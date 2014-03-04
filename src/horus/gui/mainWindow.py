@@ -30,12 +30,12 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import os
 import wx._core
 
-from Horus.language.en_us import *
+from horus.language.en_us import *
 
-class mainWindow(wx.Frame):
+class MainWindow(wx.Frame):
 
     def __init__(self):
-        super(mainWindow, self).__init__(None, title=APP_TITLE_STR)
+        super(MainWindow, self).__init__(None, title=APP_TITLE_STR)
 
         # Initialize GUI
         self.CreateStatusBar()
@@ -58,24 +58,24 @@ class mainWindow(wx.Frame):
         self.SetMenuBar(menuBar)
 
         # Events
-        self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
-        self.Bind(wx.EVT_MENU, self.OnSave, menuSave)
-        self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
-        self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
+        self.Bind(wx.EVT_MENU, self.onOpen, menuOpen)
+        self.Bind(wx.EVT_MENU, self.onSave, menuSave)
+        self.Bind(wx.EVT_MENU, self.onExit, menuExit)
+        self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
 
         self.Centre(True)
         self.Show(True)
 
 
-    def OnOpen(self, event):
+    def onOpen(self, event):
         """ """
         pass
 
-    def OnSave(self, event):
+    def onSave(self, event):
         """ """
         pass
 
-    def OnAbout(self, event):
+    def onAbout(self, event):
         """ """
         description = """Horus is an open source 3D Scanner manager..."""
 
@@ -110,5 +110,5 @@ Suite 330, Boston, MA  02111-1307  USA"""
 
         wx.AboutBox(info)
 
-    def OnExit(self, event):
+    def onExit(self, event):
         self.Close(True)

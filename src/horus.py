@@ -27,7 +27,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from Horus.gui import app
+from horus.gui import app
 
 def main():
 	app.HorusApp().MainLoop()

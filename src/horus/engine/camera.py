@@ -27,15 +27,46 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx._core
+import cv2
 
-from Horus.gui import mainWindow
+class Camera:
+	""" """
 
-class HorusApp(wx.App):
-	def __init__(self):
-		super(HorusApp, self).__init__(redirect=False)
+	def __init__(self, cameraId=0):
+		""" """
+		print ">>> Initializing camera ..."
+		print " - Camera ID: {0}".format(cameraId)
+		self.cameraId = cameraId
+		print ">>> Done"
 
-		# TODO: Load Profile and Preferences
+		self.width = 640
+		self.height = 480
 
-		self.mainWindow = mainWindow.mainWindow()
-		self.mainWindow.Show()
+	def connect(self):
+		""" """
+		print ">>> Connecting camera ..."
+		self.capture = cv2.VideoCapture(self.cameraId)
+  		self.capture.set(cv2.cv.CV_CAP_PROP_FPS, 30)
+		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.width)
+		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.height)
+		##
+		self.CaptureImage()
+		##
+		print ">>> Done"
+		
+	def disconnect(self):
+		""" """
+		print ">>> Disconnecting camera ..."
+		cv2.VideoCapture(self.cameraId).release()
+		print ">>> Done"
+
+	def captureImage(self):
+		""" """
+		for i in range(0,5):
+			self.capture.read()
+		ret, image = self.capture.read()
+		imageRGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+		return ret, imageRGB
+	
+

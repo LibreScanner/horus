@@ -67,87 +67,93 @@ class Device:
 			11 : no operation
 	"""
   
-	def __init__(self, serial_name, degrees, delay):
+	def __init__(self, serialName, degrees, delay):
 		"""Arguments: motor step, motor pulse delay"""
-		self.serial_name = serial_name  #-- Serial Name
+		print ">>> Initializing device ..."
+		print " - Serial Name: {0}".format(serialName)
+		print " - Step Degrees: {0}".format(degrees)
+		print " - Step Delay: {0}".format(delay)
+		self.serialName = serialName  #-- Serial Name
 		self.degrees = degrees   #-- Motor step
 		self.delay = delay   #-- Motor pulse delay
-    
+   		print ">>> Done"
 
-	def Connect(self):
+	def connect(self):
 		""" Opens serial port and performs handshake"""
+		print ">>> Connecting device ..."
 		try:
-			self.serial_port = serial.Serial(self.serial_name, 921600, timeout=1)
+			self.serialPort = serial.Serial(self.serialName, 921600, timeout=1)
 			time.sleep(2)
-			if self.serial_port.isOpen():
+			if self.serialPort.isOpen():
 				self.PerformHandshake()
 			else:
 				print 'Serial port is not connected.'
 		except serial.SerialException:
-			sys.stderr.write("Error opening the port {0}".format(self.serial_name))
-			
-	def Disconnect(self):
+			sys.stderr.write("Error opening the port {0}".format(self.serialName))
+		print ">>> Done"
+
+	def disconnect(self):
 		""" Closes serial port """
+		print ">>> Disconnecting device ..."
 		try:
-			if self.serial_port.isOpen():
-				self.serial_port.close()
+			if self.serialPort.isOpen():
+				self.serialPort.close()
 		except serial.SerialException:
-			sys.stderr.write("Error closing the port {0}".format(self.serial_name))
+			sys.stderr.write("Error closing the port {0}".format(self.serialName))
+		print ">>> Done"
 
-
-	def SetMotorCW(self):
+	def setMotorCW(self):
 		"""Performs a motor step clockwise"""
-		self.SendCommand(133) # 10000101
-		#ack = self.serial_port.read() # TODO: use ack
+		self.sendCommand(133) # 10000101
+		#ack = self.serialPort.read() # TODO: use ack
     
-	def SetMotorCCW(self):
+	def setMotorCCW(self):
 		"""Performs a motor step counterclockwise"""
-		self.SendCommand(137) # 10001001
-		#ack = self.serial_port.read() # TODO: use ack
+		self.sendCommand(137) # 10001001
+		#ack = self.serialPort.read() # TODO: use ack
    
-	def SetRightLaserOn(self):
+	def setRightLaserOn(self):
 		"""Turns right laser on"""
-		self.SendCommand(149) # 10010101
-		#ack = self.serial_port.read() # TODO: use ack
+		self.sendCommand(149) # 10010101
+		#ack = self.serialPort.read() # TODO: use ack
 	 
-	def SetLeftLaserOn(self):
+	def setLeftLaserOn(self):
 		"""Turns left laser on"""
-		self.SendCommand(165) # 10100101
-		#ack = self.serial_port.read() # TODO: use ack
+		self.sendCommand(165) # 10100101
+		#ack = self.serialPort.read() # TODO: use ack
 	
-	def SetBothLaserOn(self):
+	def setBothLaserOn(self):
 		"""Turns both laser on"""
-		self.SendCommand(181) # 10110101
-		#ack = self.serial_port.read() # TODO: use ack
+		self.sendCommand(181) # 10110101
+		#ack = self.serialPort.read() # TODO: use ack
 	
-	def SetRightLaserOff(self):
+	def setRightLaserOff(self):
 		"""Turns right laser on"""
-		self.SendCommand(145) # 10010001
-		#ack = self.serial_port.read() # TODO: use ack
+		self.sendCommand(145) # 10010001
+		#ack = self.serialPort.read() # TODO: use ack
 	 
-	def SetLeftLaserOff(self):
+	def setLeftLaserOff(self):
 		"""Turns left laser on"""
-		self.SendCommand(161) # 10100001
-		#ack = self.serial_port.read() # TODO: use ack
+		self.sendCommand(161) # 10100001
+		#ack = self.serialPort.read() # TODO: use ack
 	
-	def SetBothLaserOff(self):
+	def setBothLaserOff(self):
 		"""Turns both laser on"""
-		self.SendCommand(177) # 10110001
-		#ack = self.serial_port.read() # TODO: use ack
+		self.sendCommand(177) # 10110001
+		#ack = self.serialPort.read() # TODO: use ack
 
-    
-	def SendCommand(self, cmd):
+	def sendCommand(self, cmd):
 		"""Sends the command"""
-		self.serial_port.write(chr(cmd))
+		self.serialPort.write(chr(cmd))
     
-	def PerformHandshake(self):
+	def performHandshake(self):
 		"""Sends the config message
 				- degrees: motor step in degrees (00.00 - 99.99)
 				- delay: motor pulse delay (0 - 99999)
 			Receives ack ("bq")
 		"""
 		frame = 'b{0:0>4}{1:0>5}q\n'.format(trunc(self.degrees * 100), self.delay) #[-10:]
-		self.serial_port.write(frame)
-		ack = self.serial_port.readline()
+		self.serialPort.write(frame)
+		ack = self.serialPort.readline()
 		if ack != 'bq\n':
 			print "Handshake error. Please Reset the microcontroller."
