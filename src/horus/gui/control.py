@@ -488,7 +488,7 @@ class PointCloudTabPanel(wx.Panel):
             myCursor= wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(myCursor)
             with open(saveFileDialog.GetPath() + ".ply", 'w') as f:
-                f.write(self.scanner.GetPointCloudPLY())
+                f.write(self.toPLY())
                 f.close()
             myCursor= wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(myCursor)

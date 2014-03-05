@@ -27,6 +27,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import cv2
 import math
 import numpy as np
 
@@ -61,12 +62,11 @@ def toPLY(self, n, points, colors):
 
 class Core:
 	""" """
-
-	def __init__(self):
+	def __init__(self, degrees):
 		""" """
 
 		#-- Image type parameters
-		self.imageType = 0
+		self.imgType = 0
 		
 		self.imgRaw = None
 		self.imgLas = None
@@ -103,10 +103,17 @@ class Core:
 
 		self.zOffset = 0
 
+		self.width = 640
+		self.height = 480
+
+		self.degrees = degrees
+
+		self.theta = 0
+
 		#-- Constant Parameters initialization
 		self.rad = math.pi / 180.0
 		
-		alpha = self.alpha * rad
+		alpha = self.alpha * self.rad
 		
 		A = self.zs / math.sin(alpha)
 		B = self.fx / math.tan(alpha)
@@ -164,13 +171,17 @@ class Core:
 	def setZOffset(self, zOffset):
 		self.zOffset = zOffset
 
-	def getImage(self, imgType):
+	def getImage(self):
 		""" """
 		return { 0 : self.imgRaw,
 				 1 : self.imgLas,
 				 2 : self.imgDiff,
 				 3 : self.imgBin
-				}[imgType]
+				}[self.imgType]
+
+	def setImageType(self, imgType):
+		""" """
+		self.imgType = imgType
 
 	def getDiffImage(self, img1, img2):
 		""" """
@@ -190,26 +201,26 @@ class Core:
 
 		imageHSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
-		src = cv2.inRange(imageHSV, self.colorMin, self.colorMax)
+		self.src = cv2.inRange(imageHSV, self.colorMin, self.colorMax)
 
-		temp = np.zeros_like(img_raw)
-		temp[:,:,0] = src
-		temp[:,:,1] = src
-		temp[:,:,2] = src
+		temp = np.zeros_like(image)
+		temp[:,:,0] = self.src
+		temp[:,:,1] = self.src
+		temp[:,:,2] = self.src
 		self.imgBin = temp
 
-		return src
+		return self.src
 
-	def pointCloudGeneration(self, image, imageRaw):
+	def pointCloudGeneration(self, imageDiff, imageRaw):
 		""" """
 		#-- Point Cloud Generation
-		s = src.sum(1)
+		s = self.src.sum(1)
 		v = np.nonzero(s)[0]
 		if self.useCompact:
-			i = src.argmax(1)
+			i = self.src.argmax(1)
 			l = ((i + (s/255-1) / 2)[v]).T.astype(int)
 		else:
-			self.w = (np.array(self.W)*np.array(image)).sum(1)
+			self.w = (np.array(self.W)*np.array(imageDiff)).sum(1)
 			l = (w[v] / s[v].T).astype(int)
 
 		#-- Obtaining parameters
@@ -217,14 +228,18 @@ class Core:
 		thetaR = self.theta * self.rad
 		x = rho * math.cos(thetaR)
 		y = rho * math.sin(thetaR)
-		z = self.M_z[v,l] + self.z_offset
+		z = self.M_z[v,l] + self.zOffset
 		points = np.concatenate((x,y,z)).reshape(3,z.size).T
-		colors = np.copy(img_raw[v,l])
+		colors = np.copy(imageRaw[v,l])
 
 		return points, colors
 
 	def pointCloudFilter(self, points, colors):
 		""" """
+
+		z = 0
+		rho = 100
+
 		#-- Point Cloud Filter
 		idx = np.where((z > self.hMin) &
 					   (z < self.hMax) &
@@ -239,31 +254,25 @@ class Core:
 	def getPointCloud(self, imageRaw, imageDiff):
 		""" """
 		# TODO
- 
-		src = self.core.imageProcessing(imgDiff)
+ 		
+ 		self.imgRaw = imageRaw
+ 		self.imgDiff = imageDiff
 
-		points, colors = self.core.pointCloudGeneration(imgDiff, imgRaw)
+		src = self.imageProcessing(imageDiff)
 
-		points, colors = self.core.pointCloudFilter(points, colors)
+		points, colors = self.pointCloudGeneration(imageDiff, imageRaw)
 
-		if self.points == None and self.colors == None:
-			self.points = points
-			self.colors = colors
-		else:
-			self.points = np.concatenate((self.points, points))
-			self.colors = np.concatenate((self.colors, colors))
+		if points == None and colors == None:
+			points, colors = self.pointCloudFilter(points, colors)
+
+		if points == None and colors == None:
+			if self.points == None and self.colors == None:
+				self.points = points
+				self.colors = colors
+			else:
+				self.points = np.concatenate((self.points, points))
+				self.colors = np.concatenate((self.colors, colors))
+
+ 		self.theta += self.degrees
 
 		return points, colors
-
-	def isPointCloudQueueEmpty(self):
-		return self.pointCloudQueue.empty()
-		
-	def getPointCloudIncrement(self):
-		""" """
-		if not self.pointCloudQueue.empty():
-			pc = self.pointCloudQueue.get_nowait()
-			if pc != None:
-				self.pointCloudQueue.task_done()
-			return pc
-		else:
-			return None

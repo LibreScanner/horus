@@ -96,9 +96,9 @@ class PointCloudTabPanel(wx.Panel):
         self.SetSizer(vbox)
 
     def updatePointCloud(self, points, colors):
-		self.model.add_points(points, colors)
-		self.model.create_vbo()
-		self.glpanel.OnDraw()
+        self.model.add_points(points, colors)
+        self.model.create_vbo()
+        self.glpanel.OnDraw()
 
 
 class ViewNotebook(wx.Notebook):
@@ -124,15 +124,16 @@ class ViewNotebook(wx.Notebook):
         self.Bind(wx.EVT_TIMER, self.onRefreshTimer, self.refreshTimer)
         
     def onRefreshTimer(self, event):
-		if self.scanner != None:
-			frame = self.scanner.getImage()
-			if frame != None:
-				self.videoTabPanel.updateImage(frame)
-			while not self.scanner.getCore().isPointCloudQueueEmpty():
-				pc = self.scanner.getCore().getPointCloudIncrement()
-				if pc != None and pc[0] != None and pc[1] != None:
-					self.pointCloudTabPanel.updatePointCloud(pc[0], pc[1])
-			
+        if self.scanner != None:
+            frame = self.scanner.getCore().getImage()
+            if frame != None:
+                self.videoTabPanel.updateImage(frame)
+            while not self.scanner.isPointCloudQueueEmpty():
+                pc = None
+                pc = self.scanner.getPointCloudIncrement()
+                if pc != None and pc[0] != None and pc[1] != None:
+                    self.pointCloudTabPanel.updatePointCloud(pc[0], pc[1])
+
     def refreshOn(self, t):
 		self.t = t
 		self.refreshTimer.Start(self.t)

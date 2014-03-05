@@ -50,7 +50,7 @@ class Camera:
 		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.width)
 		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.height)
 		##
-		self.CaptureImage()
+		self.captureImage()
 		##
 		print ">>> Done"
 		
@@ -67,6 +67,6 @@ class Camera:
 		ret, image = self.capture.read()
 		imageRGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-		return ret, imageRGB
+		return imageRGB
 	
 

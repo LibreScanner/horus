@@ -54,7 +54,8 @@ class Scanner(wx.PyControl):
 
 	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", degrees=0.45, delay=10000):
 		""" """
-		self.core = Core()
+		self.degrees = degrees
+		self.core = Core(degrees)
 		self.camera = Camera(cameraId)
 		self.device = Device(serialName, degrees, delay)
 
@@ -68,6 +69,10 @@ class Scanner(wx.PyControl):
 		self.device.disconnect()
 		self.camera.disconnect()
 		
+	def getCore(self):
+		""" """
+		return self.core
+
 	def getCamera(self):
 		""" """
 		return self.camera
@@ -155,3 +160,16 @@ class Scanner(wx.PyControl):
 
 			#-- Update angle
 			self.theta += self.degrees
+
+	def isPointCloudQueueEmpty(self):
+		return self.pointCloudQueue.empty()
+		
+	def getPointCloudIncrement(self):
+		""" """
+		if not self.isPointCloudQueueEmpty():
+			pc = self.pointCloudQueue.get_nowait()
+			if pc != None:
+				self.pointCloudQueue.task_done()
+			return pc
+		else:
+			return None

@@ -85,7 +85,7 @@ class Device:
 			self.serialPort = serial.Serial(self.serialName, 921600, timeout=1)
 			time.sleep(2)
 			if self.serialPort.isOpen():
-				self.PerformHandshake()
+				self.performHandshake()
 			else:
 				print 'Serial port is not connected.'
 		except serial.SerialException:
