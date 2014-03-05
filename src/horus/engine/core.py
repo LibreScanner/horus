@@ -34,7 +34,8 @@ def toPLY(self, n, points, colors):
 	"""
 	Returns PLY string
 	"""
-	if points != None and colors != None and n = len(points) == len(colors):
+	if points != None and colors != None and len(points) == len(colors):
+		n = len(points)
 		# Generate Header
 		frame  = "ply\nformat ascii 1.0\n"
 		frame += "element vertex {0}\n".format(n)
@@ -64,7 +65,7 @@ class Core:
 	def __init__(self):
 		""" """
 
-		# Image type parameters
+		#-- Image type parameters
 		self.imageType = 0
 		
 		self.imgRaw = None
@@ -72,7 +73,7 @@ class Core:
 		self.imgDiff = None
 		self.imgBin = None
 
-		# Image Processing Parameters
+		#-- Image Processing Parameters
 		self.blurEnable = True
 		self.blurValue = 4
 
@@ -82,7 +83,7 @@ class Core:
 		self.colorMin = np.array([0, 180, 30],np.uint8)
 		self.colorMax = np.array([180, 250, 140],np.uint8)
 
-		# Point Cloud Parameters
+		#-- Point Cloud Parameters
 		self.modeCW = True
 
 		self.fx = 1150
@@ -102,7 +103,7 @@ class Core:
 
 		self.zOffset = 0
 
-		# Constant Parameters initialization
+		#-- Constant Parameters initialization
 		self.rad = math.pi / 180.0
 		
 		alpha = self.alpha * rad
@@ -177,7 +178,7 @@ class Core:
 
 	def imageProcessing(self, image):
 		""" """
-		# Image Processing
+		#-- Image Processing
 		if self.blurEnable:
 			image = cv2.blur(image,(self.blurValue,self.blurValue))
 
@@ -201,7 +202,7 @@ class Core:
 
 	def pointCloudGeneration(self, image, imageRaw):
 		""" """
-		# Point Cloud Generation
+		#-- Point Cloud Generation
 		s = src.sum(1)
 		v = np.nonzero(s)[0]
 		if self.useCompact:
@@ -211,7 +212,7 @@ class Core:
 			self.w = (np.array(self.W)*np.array(image)).sum(1)
 			l = (w[v] / s[v].T).astype(int)
 
-		# Obtaining parameters
+		#-- Obtaining parameters
 		rho = self.M_rho[v,l]
 		thetaR = self.theta * self.rad
 		x = rho * math.cos(thetaR)
@@ -224,7 +225,7 @@ class Core:
 
 	def pointCloudFilter(self, points, colors):
 		""" """
-		# Point Cloud Filter
+		#-- Point Cloud Filter
 		idx = np.where((z > self.hMin) &
 					   (z < self.hMax) &
 					   (rho > self.rhoMin) &

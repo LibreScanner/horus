@@ -29,7 +29,7 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
-from horus.gui import mainWindow
+from horus.gui import main
 
 class HorusApp(wx.App):
 	def __init__(self):
@@ -37,5 +37,5 @@ class HorusApp(wx.App):
 
 		# TODO: Load Profile and Preferences
 
-		self.mainWindow = mainWindow.MainWindow()
+		self.mainWindow = main.MainWindow()
 		self.mainWindow.Show()

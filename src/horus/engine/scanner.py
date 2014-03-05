@@ -103,30 +103,31 @@ class Scanner(wx.PyControl):
 
 	def captureThread(self):
 		""" """
-		# Initialize angle
+		#-- Initialize angle
 		self.theta = 0
 		
 		while self.captureFlag:
 			begin = datetime.datetime.now()
 			
-			# Get images
+			#-- Get images
 			self.device.setLeftLaserOff()
 			imgRaw = self.camera.captureImage()
 			self.device.setLeftLaserOn()
 			imgLas = self.camera.captureImage()
 
-			# Move motor
+			#-- Move motor
 			self.device.setMotorCW()
 			time.sleep(0.06)
 
-			# Get diff image
+			#-- Get diff image
 			imgDiff = self.core.getDiffImage(imgRaw, imgLas)
 
-			# Put images into the queue
+			#-- Put images into the queue
 			self.imageQueue.put((imgRaw, imgDiff))
 			
-			# Check stop condition
-			if self.theta += self.degrees >= 360:
+			#-- Check stop condition
+			self.theta += self.degrees
+			if self.theta >= 360:
 				self.stop()
 			
 			end = datetime.datetime.now()
@@ -138,19 +139,19 @@ class Scanner(wx.PyControl):
 		while self.processFlag:
 			begin = datetime.datetime.now()
 
-			# Get images
+			#-- Get images
 			images = self.imageQueue.get()
 			self.imageQueue.task_done()
 
-			# Generate Point Cloud
+			#-- Generate Point Cloud
 			points, colors = self.core.getPointCloud(images[0], images[1])
 
-			# Put point cloud into the queue
+			#-- Put point cloud into the queue
 			self.pointCloudQueue.put((points, colors))
 
 			end = datetime.datetime.now()
 			
 			print "Process: {0}. Theta = {1}".format(end - begin, self.theta)
 
-			# Update angle
+			#-- Update angle
 			self.theta += self.degrees

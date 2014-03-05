@@ -73,9 +73,9 @@ class Device:
 		print " - Serial Name: {0}".format(serialName)
 		print " - Step Degrees: {0}".format(degrees)
 		print " - Step Delay: {0}".format(delay)
-		self.serialName = serialName  #-- Serial Name
-		self.degrees = degrees   #-- Motor step
-		self.delay = delay   #-- Motor pulse delay
+		self.serialName = serialName
+		self.degrees = degrees 	#-- Motor step
+		self.delay = delay   	#-- Motor pulse delay
    		print ">>> Done"
 
 	def connect(self):

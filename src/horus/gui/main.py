@@ -30,32 +30,46 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import os
 import wx._core
 
+from horus.gui.control import *
+from horus.gui.viewer import *
+
+from horus.engine.scanner import *
+
 from horus.language.en_us import *
 
 class MainWindow(wx.Frame):
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=APP_TITLE_STR)
+        super(MainWindow, self).__init__(None, title=APP_TITLE_STR,
+                                                size=(640+300,480+100))
+        #-- Initialize GUI
+        icon = wx.Icon(os.path.join(os.path.dirname(__file__),
+         "../resources/horus.ico"), wx.BITMAP_TYPE_ICO)
+        self.SetIcon(icon)
 
-        # Initialize GUI
         self.CreateStatusBar()
 
         menuBar = wx.MenuBar()
-
         menuFile = wx.Menu()
         menuOpen = menuFile.Append(wx.ID_OPEN, MENU_OPEN_STR, MENU_OPEN_STATUS_STR)
         menuSave = menuFile.Append(wx.ID_SAVE, MENU_SAVE_STR, MENU_SAVE_STATUS_STR)
         menuFile.AppendSeparator()
         menuExit = menuFile.Append(wx.ID_EXIT, MENU_EXIT_STR, MENU_EXIT_STATUS_STR)
         menuBar.Append(menuFile, MENU_FILE_STR)
-
-
-
         menuHelp = wx.Menu()
         menuAbout = menuHelp.Append(wx.ID_ABOUT, MENU_ABOUT_STR, MENU_ABOUT_STATUS_STR)
         menuBar.Append(menuHelp, MENU_HELP_STR)
-        
         self.SetMenuBar(menuBar)
+
+        scanner = Scanner(self)
+
+        viewer = ViewNotebook(self, scanner)
+        control = ControlNotebook(self, scanner, viewer)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(control, 0, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(viewer, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
+        self.SetSizer(sizer)
 
         # Events
         self.Bind(wx.EVT_MENU, self.onOpen, menuOpen)
@@ -63,8 +77,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
         self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
 
-        self.Centre(True)
-        self.Show(True)
+        self.Layout()
+        self.Show()
 
 
     def onOpen(self, event):
