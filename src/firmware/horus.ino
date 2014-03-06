@@ -7,7 +7,7 @@
 //--------------------------------------------------------------
 
 //----------------------------------------------------------------
-//-- The communication with the PC is by the serial port (115200 bauds)
+//-- The communication with the PC is by the serial port (921600 bauds)
 //-- The config frame contains ascii characters. The format is the 
 //-- following:
 //--
@@ -36,7 +36,7 @@
 //--
 //-- A complete example is presented below:
 //--
-//--    -> b00450100q\n
+//--    -> b004500100q\n
 //--    <- bq\n
 //--    -> 0b10000101
 //--    -> 0b10010101

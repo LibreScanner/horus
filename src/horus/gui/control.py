@@ -152,7 +152,7 @@ class ControlTabPanel(wx.Panel):
 				self.connectButton.SetLabel("Disconnect")
 				self.statusLabel.SetLabel("")
 			else:
-				self.scanner.Disconnect()
+				self.scanner.disconnect()
 				self.connectButton.SetLabel("Connect")
 				self.statusLabel.SetLabel("")
 		else:
@@ -214,7 +214,7 @@ class ControlTabPanel(wx.Panel):
 			print "Device not connected"
 
     def motorCCW(self, event=None):
-		if self.connectButton.getValue():
+		if self.connectButton.GetValue():
 			self.scanner.getDevice().setMotorCCW()
 		else:
 			print "Device not connected"
@@ -341,20 +341,20 @@ class VideoTabPanel(wx.Panel):
     def onBlurChanged(self, event):
         enable = self.blurCheckBox.IsChecked()
         value = self.blurSlider.GetValue()
-        self.scanner.setBlur(enable, value)
+        self.scanner.getCore().setBlur(enable, value)
 
     def onOpenChanged(self, event):
         enable = self.openCheckBox.IsChecked()
         value = self.openSlider.GetValue()
-        self.scanner.setOpen(enable, value)
+        self.scanner.getCore().setOpen(enable, value)
 
     def onHSVRangeChanged(self, event):
-        self.scanner.setHSVRange(self.minHSlider.GetValue(),
-                                 self.minSSlider.GetValue(),
-                                 self.minVSlider.GetValue(),
-                                 self.maxHSlider.GetValue(),
-                                 self.maxSSlider.GetValue(),
-                                 self.maxVSlider.GetValue())
+        self.scanner.getCore().setHSVRange(self.minHSlider.GetValue(),
+                                         self.minSSlider.GetValue(),
+                                         self.minVSlider.GetValue(),
+                                         self.maxHSlider.GetValue(),
+                                         self.maxSSlider.GetValue(),
+                                         self.maxVSlider.GetValue())
 
     def onROIChanged(self, event):
         pass
@@ -464,23 +464,23 @@ class PointCloudTabPanel(wx.Panel):
         self.Centre()
 
     def onAlgChanged(self, event):
-        self.scanner.setUseCompactAlgorithm(self.compactAlgRadioButton.GetValue())
+        self.scanner.getCore().setUseCompactAlgorithm(self.compactAlgRadioButton.GetValue())
 
     def onZChanged(self, event):
-        self.scanner.setZOffset(self.zSlider.GetValue())
+        self.scanner.getCore().setZOffset(self.zSlider.GetValue())
 		
     def apply(self, event):
-        self.scanner.setCalibrationParams(int(self.fxParamTextCtrl.GetValue()),
-                                          int(self.fyParamTextCtrl.GetValue()),
-                                          int(self.cxParamTextCtrl.GetValue()),
-                                          int(self.cyParamTextCtrl.GetValue()),
-                                          int(self.zsParamTextCtrl.GetValue()),
-                                          int(self.hoParamTextCtrl.GetValue()))
+        self.scanner.getCore().setCalibrationParams(int(self.fxParamTextCtrl.GetValue()),
+                                                  int(self.fyParamTextCtrl.GetValue()),
+                                                  int(self.cxParamTextCtrl.GetValue()),
+                                                  int(self.cyParamTextCtrl.GetValue()),
+                                                  int(self.zsParamTextCtrl.GetValue()),
+                                                  int(self.hoParamTextCtrl.GetValue()))
 
-        self.scanner.setRangeFilter(int(self.rhoMinTextCtrl.GetValue()),
-                                    int(self.rhoMaxTextCtrl.GetValue()),
-                                    int(self.hMinTextCtrl.GetValue()),
-                                    int(self.hMaxTextCtrl.GetValue()))    
+        self.scanner.getCore().getCore().setRangeFilter(int(self.rhoMinTextCtrl.GetValue()),
+                                                        int(self.rhoMaxTextCtrl.GetValue()),
+                                                        int(self.hMinTextCtrl.GetValue()),
+                                                        int(self.hMaxTextCtrl.GetValue()))    
 
     def save(self, event):
         saveFileDialog = wx.FileDialog(self, "Save As", "", "", "PLY files (*.ply)|*.ply", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)

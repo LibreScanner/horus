@@ -103,7 +103,7 @@ class Scanner(wx.PyControl):
 		self.t1.shutdown = True
 		self.t2.shutdown = True
 		
-		self.t1.join()
+		#self.t1.join()
 		self.t2.join()
 
 	def captureThread(self):
@@ -157,9 +157,6 @@ class Scanner(wx.PyControl):
 			end = datetime.datetime.now()
 			
 			print "Process: {0}. Theta = {1}".format(end - begin, self.theta)
-
-			#-- Update angle
-			self.theta += self.degrees
 
 	def isPointCloudQueueEmpty(self):
 		return self.pointCloudQueue.empty()
