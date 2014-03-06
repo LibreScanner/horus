@@ -31,39 +31,12 @@ import cv2
 import math
 import numpy as np
 
-def toPLY(self, n, points, colors):
-	"""
-	Returns PLY string
-	"""
-	if points != None and colors != None and len(points) == len(colors):
-		n = len(points)
-		# Generate Header
-		frame  = "ply\nformat ascii 1.0\n"
-		frame += "element vertex {0}\n".format(n)
-		frame += "property float x\n"
-		frame += "property float y\n"
-		frame += "property float z\n"
-		frame += "property uchar diffuse_red\n"
-		frame += "property uchar diffuse_green\n"
-		frame += "property uchar diffuse_blue\n"
-		frame += "element face 0\n"
-		frame += "property list uchar int vertex_indices\n"
-		frame += "end_header\n"
-		#Generate Points
-		for i in range(n):
-			frame += "{0} ".format(points[i,0])
-			frame += "{0} ".format(points[i,1])
-			frame += "{0} ".format(points[i,2])
-			frame += "{0} ".format(colors[i,0])
-			frame += "{0} ".format(colors[i,1])
-			frame += "{0}\n".format(colors[i,2])
-
-		return frame
-
 class Core:
 	""" """
 	def __init__(self, degrees):
 		""" """
+		self.points = None
+		self.colors = None
 
 		#-- Image type parameters
 		self.imgType = 0
@@ -253,7 +226,6 @@ class Core:
 
 	def getPointCloud(self, imageRaw, imageDiff):
 		""" """
-		# TODO
  		
  		self.imgRaw = imageRaw
  		self.imgDiff = imageDiff
@@ -262,10 +234,10 @@ class Core:
 
 		points, colors = self.pointCloudGeneration(imageDiff, imageRaw)
 
-		if points == None and colors == None:
+		if points != None and colors != None:
 			points, colors = self.pointCloudFilter(points, colors)
 
-		if points == None and colors == None:
+		if points != None and colors != None:
 			if self.points == None and self.colors == None:
 				self.points = points
 				self.colors = colors
@@ -276,3 +248,32 @@ class Core:
  		self.theta += self.degrees
 
 		return points, colors
+
+	def toPLY(self):
+		"""
+		Returns PLY string
+		"""
+		if self.points != None and self.colors != None and len(self.points) == len(self.colors):
+			n = len(self.points)
+			# Generate Header
+			frame  = "ply\nformat ascii 1.0\n"
+			frame += "element vertex {0}\n".format(n)
+			frame += "property float x\n"
+			frame += "property float y\n"
+			frame += "property float z\n"
+			frame += "property uchar diffuse_red\n"
+			frame += "property uchar diffuse_green\n"
+			frame += "property uchar diffuse_blue\n"
+			frame += "element face 0\n"
+			frame += "property list uchar int vertex_indices\n"
+			frame += "end_header\n"
+			#Generate Points
+			for i in range(n):
+				frame += "{0} ".format(self.points[i,0])
+				frame += "{0} ".format(self.points[i,1])
+				frame += "{0} ".format(self.points[i,2])
+				frame += "{0} ".format(self.colors[i,0])
+				frame += "{0} ".format(self.colors[i,1])
+				frame += "{0}\n".format(self.colors[i,2])
+
+			return frame

@@ -341,15 +341,15 @@ class VideoTabPanel(wx.Panel):
     def onBlurChanged(self, event):
         enable = self.blurCheckBox.IsChecked()
         value = self.blurSlider.GetValue()
-        self.scanner.SetBlur(enable, value)
+        self.scanner.setBlur(enable, value)
 
     def onOpenChanged(self, event):
         enable = self.openCheckBox.IsChecked()
         value = self.openSlider.GetValue()
-        self.scanner.SetOpen(enable, value)
+        self.scanner.setOpen(enable, value)
 
     def onHSVRangeChanged(self, event):
-        self.scanner.SetHSVRange(self.minHSlider.GetValue(),
+        self.scanner.setHSVRange(self.minHSlider.GetValue(),
                                  self.minSSlider.GetValue(),
                                  self.minVSlider.GetValue(),
                                  self.maxHSlider.GetValue(),
@@ -487,9 +487,11 @@ class PointCloudTabPanel(wx.Panel):
         if saveFileDialog.ShowModal() == wx.ID_OK:
             myCursor= wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(myCursor)
-            with open(saveFileDialog.GetPath() + ".ply", 'w') as f:
-                f.write(self.toPLY())
-                f.close()
+            plyData = self.scanner.getCore().toPLY()
+            if plyData != None:
+                with open(saveFileDialog.GetPath() + ".ply", 'w') as f:
+                    f.write(plyData)
+                    f.close()
             myCursor= wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(myCursor)
         saveFileDialog.Destroy()
