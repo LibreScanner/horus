@@ -62,12 +62,12 @@ class Scanner(wx.PyControl):
 	def connect(self):
 		""" """
 		self.camera.connect()
-		self.device.connect()
+		return self.device.connect()
 		
 	def disconnect(self):
 		""" """
-		self.device.disconnect()
 		self.camera.disconnect()
+		return self.device.disconnect()
 		
 	def getCore(self):
 		""" """

@@ -27,6 +27,9 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import os
+import glob
+
 import wx
 
 class ControlTabPanel(wx.Panel):
@@ -44,16 +47,16 @@ class ControlTabPanel(wx.Panel):
 
         self.conParamsStaticText = wx.StaticText(self, -1, "Connection Parameters", style=wx.ALIGN_CENTRE)
         self.serialNameLabel = wx.StaticText(self, label=" Serial Name :")
-        self.serialNameText = wx.TextCtrl(self, value="/dev/ttyACM0",  size=(110,-1))
-        self.serialNameText.Bind(wx.EVT_TEXT, self.resetMessage)
+        self.serialNameCombo = wx.ComboBox(self, choices=self.serialList(), size=(110,-1))
+        self.serialNameCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
         self.cameraIdLabel = wx.StaticText(self, label=" Camera Id :")
-        self.cameraIdText = wx.TextCtrl(self, value="0",  size=(123,-1))
+        self.cameraIdText = wx.TextCtrl(self, value="0", size=(123,-1))
         self.cameraIdText.Bind(wx.EVT_TEXT, self.resetMessage)
         self.stepDegreesLabel = wx.StaticText(self, label=" Step degrees (º) :")
-        self.stepDegreesText = wx.TextCtrl(self, value="0.45",  size=(82,-1))
+        self.stepDegreesText = wx.TextCtrl(self, value="0.45", size=(82,-1))
         self.stepDegreesText.Bind(wx.EVT_TEXT, self.resetMessage)
         self.stepDelayLabel = wx.StaticText(self, label=" Step delay (us) :")
-        self.stepDelayText = wx.TextCtrl(self, value="800",  size=(92,-1))
+        self.stepDelayText = wx.TextCtrl(self, value="800", size=(92,-1))
         self.stepDelayText.Bind(wx.EVT_TEXT, self.resetMessage)
         
         self.connectButton = wx.ToggleButton(self, label='Connect', size=(100,-1))
@@ -93,7 +96,7 @@ class ControlTabPanel(wx.Panel):
         vbox.Add(self.conParamsStaticText, 0, wx.ALL, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.serialNameLabel, 0, wx.ALL, 10)
-        hbox.Add(self.serialNameText, 0, wx.ALL, 5)
+        hbox.Add(self.serialNameCombo, 0, wx.ALL, 5)
         vbox.Add(hbox)
         hbox = wx.BoxSizer(wx.HORIZONTAL)   
         hbox.Add(self.cameraIdLabel, 0, wx.ALL, 10)
@@ -140,22 +143,36 @@ class ControlTabPanel(wx.Panel):
         
         self.SetSizer(vbox)
         self.Centre()
-   
+
+    def serialList(self):
+        baselist=[]
+        if os.name=="nt":
+            try:
+                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM")
+                i=0
+                while(1):
+                    baselist+=[_winreg.EnumValue(key,i)[1]]
+                    i+=1
+            except:
+                pass
+        baselist = baselist + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*') + glob.glob("/dev/tty.usb*") + glob.glob("/dev/cu.*") + glob.glob("/dev/rfcomm*")
+        return baselist
+
     def connect(self, event):
-		if not self.startButton.GetValue():
-			if self.connectButton.GetValue():
-				self.scanner.initialize(int(self.cameraIdText.GetValue()),
-										self.serialNameText.GetValue(),
-										float(self.stepDegreesText.GetValue()),
-										int(self.stepDelayText.GetValue()))
-				self.scanner.connect()
-				self.connectButton.SetLabel("Disconnect")
-				self.statusLabel.SetLabel("")
-			else:
-				self.scanner.disconnect()
-				self.connectButton.SetLabel("Connect")
-				self.statusLabel.SetLabel("")
-		else:
+        if not self.startButton.GetValue():
+            if self.connectButton.GetValue():
+                self.scanner.initialize(int(self.cameraIdText.GetValue()),
+                                        self.serialNameCombo.GetValue(),
+                                        float(self.stepDegreesText.GetValue()),
+                                        int(self.stepDelayText.GetValue()))
+                if self.scanner.connect():
+				    self.connectButton.SetLabel("Disconnect")
+				    self.statusLabel.SetLabel("")
+            else:
+                if self.scanner.disconnect():
+                    self.connectButton.SetLabel("Connect")
+                    self.statusLabel.SetLabel("")
+        else:
 			self.connectButton.SetValue(not self.connectButton.GetValue())
 			print "Stop scan!"
 

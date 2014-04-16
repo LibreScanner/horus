@@ -89,18 +89,34 @@ class Device:
 			else:
 				print 'Serial port is not connected.'
 		except serial.SerialException:
-			sys.stderr.write("Error opening the port {0}".format(self.serialName))
+			sys.stderr.write("Error opening the port {0}\n".format(self.serialName))
+			self.serialPort = None
+			return False
 		print ">>> Done"
+		return True
 
 	def disconnect(self):
 		""" Closes serial port """
 		print ">>> Disconnecting device ..."
 		try:
-			if self.serialPort.isOpen():
-				self.serialPort.close()
+			if self.serialPort != None:
+				if self.serialPort.isOpen():
+					self.serialPort.close()
 		except serial.SerialException:
-			sys.stderr.write("Error closing the port {0}".format(self.serialName))
+			sys.stderr.write("Error closing the port {0}\n".format(self.serialName))
+			return False
 		print ">>> Done"
+		return True
+
+	def enable(self):
+		"""Enables motor"""
+		self.sendCommand(141) # 10001101
+		#ack = self.serialPort.read() # TODO: use ack
+
+	def disable(self):
+		"""Disables motor"""
+		self.sendCommand(129) # 10000001
+		#ack = self.serialPort.read() # TODO: use ack
 
 	def enable(self):
 		"""Enables motor"""
@@ -166,4 +182,4 @@ class Device:
 		self.serialPort.write(frame)
 		ack = self.serialPort.readline()
 		if ack != 'bq\n':
-			print "Handshake error. Please Reset the microcontroller."
+			print "Handshake error. Please Reset the microcontroller or reload the firmware"
