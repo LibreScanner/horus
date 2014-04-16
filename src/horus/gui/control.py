@@ -47,11 +47,14 @@ class ControlTabPanel(wx.Panel):
 
         self.conParamsStaticText = wx.StaticText(self, -1, "Connection Parameters", style=wx.ALIGN_CENTRE)
         self.serialNameLabel = wx.StaticText(self, label=" Serial Name :")
-        self.serialNameCombo = wx.ComboBox(self, choices=self.serialList(), size=(110,-1))
+        self.serialNames = self.serialList()
+        self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, value=self.serialNames[0], size=(110,-1))
         self.serialNameCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
         self.cameraIdLabel = wx.StaticText(self, label=" Camera Id :")
-        self.cameraIdText = wx.TextCtrl(self, value="0", size=(123,-1))
-        self.cameraIdText.Bind(wx.EVT_TEXT, self.resetMessage)
+        self.cameraIdNames = self.videoList()
+        print self.cameraIdNames
+        self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, value=self.cameraIdNames[0], size=(123,-1))
+        self.cameraIdCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
         self.stepDegreesLabel = wx.StaticText(self, label=" Step degrees (º) :")
         self.stepDegreesText = wx.TextCtrl(self, value="0.45", size=(82,-1))
         self.stepDegreesText.Bind(wx.EVT_TEXT, self.resetMessage)
@@ -100,7 +103,7 @@ class ControlTabPanel(wx.Panel):
         vbox.Add(hbox)
         hbox = wx.BoxSizer(wx.HORIZONTAL)   
         hbox.Add(self.cameraIdLabel, 0, wx.ALL, 10)
-        hbox.Add(self.cameraIdText, 0, wx.ALL, 5)
+        hbox.Add(self.cameraIdCombo, 0, wx.ALL, 5)
         vbox.Add(hbox)
         hbox = wx.BoxSizer(wx.HORIZONTAL)   
         hbox.Add(self.stepDegreesLabel, 0, wx.ALL, 10)
@@ -145,23 +148,30 @@ class ControlTabPanel(wx.Panel):
         self.Centre()
 
     def serialList(self):
+        return self._deviceList("SERIALCOMM", ['/dev/ttyACM*', '/dev/ttyUSB*', "/dev/tty.usb*", "/dev/cu.*", "/dev/rfcomm*"])
+
+    def videoList(self):
+        return self._deviceList("VIDEO", ['/dev/video*'])
+
+    def _deviceList(self, win_devices, linux_devices):
         baselist=[]
         if os.name=="nt":
             try:
-                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM")
+                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
                 i=0
                 while(1):
                     baselist+=[_winreg.EnumValue(key,i)[1]]
                     i+=1
             except:
                 pass
-        baselist = baselist + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*') + glob.glob("/dev/tty.usb*") + glob.glob("/dev/cu.*") + glob.glob("/dev/rfcomm*")
+        for device in linux_devices:
+            baselist = baselist + glob.glob(device)
         return baselist
 
     def connect(self, event):
         if not self.startButton.GetValue():
             if self.connectButton.GetValue():
-                self.scanner.initialize(int(self.cameraIdText.GetValue()),
+                self.scanner.initialize(int(self.cameraIdCombo.GetValue()[-1:]),
                                         self.serialNameCombo.GetValue(),
                                         float(self.stepDegreesText.GetValue()),
                                         int(self.stepDelayText.GetValue()))
