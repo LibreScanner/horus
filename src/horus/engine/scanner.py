@@ -111,6 +111,8 @@ class Scanner(wx.PyControl):
 		#-- Initialize angle
 		self.theta = 0
 		
+		self.device.enable()
+
 		while self.captureFlag:
 			begin = datetime.datetime.now()
 			
@@ -138,6 +140,7 @@ class Scanner(wx.PyControl):
 			end = datetime.datetime.now()
 			print "Capture: {0}. Theta: {1}".format(end - begin, self.theta)
 
+		self.device.disable()
 
 	def processThread(self):
 		""" """

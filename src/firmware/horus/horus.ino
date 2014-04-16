@@ -55,11 +55,18 @@
 #define MOTOR_STEP_PIN     2
 #define MOTOR_DIR_PIN      5
 
+#define ENABLE_PIN         8
+
+#define USTEP_RESOLUTION  16
+#define STEP_DEGREES     1.8
+
 
 //---------- Global variables
 
 float step_value; //-- Motor step
 int step_delay; // -- Motor delay
+
+float uStep = USTEP_RESOLUTION / STEP_DEGREES;
 
 //-- Buffer for storing the received commands
 #define BUFSIZE 11
@@ -98,8 +105,16 @@ void setup()
   digitalWrite(MOTOR_STEP_PIN, LOW);
   digitalWrite(MOTOR_DIR_PIN, HIGH);
   
+  //-- Configure !enable
+  pinMode(ENABLE_PIN, OUTPUT);
+  
+  //-- Turn on the !enable
+  digitalWrite(ENABLE_PIN, HIGH);
+  
+  
   //-- Configuration Frame
   boolean handshake = false;
+ 
   do
   {
     //-- Task: Read the information from the serial port
@@ -213,16 +228,26 @@ boolean process_cmd(byte cmd)
   {
     switch((cmd & BIN_VALUE_MASK) >> 2)
     {
+      //-- Disable
+      case 0:
+        digitalWrite(ENABLE_PIN, HIGH);
+        
       //-- Motor CW
       case 1:
         digitalWrite(MOTOR_DIR_PIN, HIGH);
         Step(MOTOR_STEP_PIN, step_value);
         break;
+        
       //-- Motor CCW
       case 2:
         digitalWrite(MOTOR_DIR_PIN, LOW);
         Step(MOTOR_STEP_PIN, step_value);
         break;
+        
+      //-- Enable
+      case 3:
+        digitalWrite(ENABLE_PIN, LOW);
+  
       default:
          break;
     }
@@ -232,16 +257,16 @@ boolean process_cmd(byte cmd)
 }
 
 void Pulse(int step_pin)
-{
+{  
   digitalWrite(step_pin, LOW);
+  delayMicroseconds(step_delay);
   digitalWrite(step_pin, HIGH);
- 
   delayMicroseconds(step_delay);
 }
 
 void Step(int step_pin, float deg)
 {
-  int limit = 3200 * deg / 360.0;
+  int limit = uStep * deg;
   for (int i = 0; i < limit; i++)
     Pulse(step_pin);
 }

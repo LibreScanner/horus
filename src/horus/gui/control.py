@@ -53,7 +53,7 @@ class ControlTabPanel(wx.Panel):
         self.stepDegreesText = wx.TextCtrl(self, value="0.45",  size=(82,-1))
         self.stepDegreesText.Bind(wx.EVT_TEXT, self.resetMessage)
         self.stepDelayLabel = wx.StaticText(self, label=" Step delay (us) :")
-        self.stepDelayText = wx.TextCtrl(self, value="10000",  size=(92,-1))
+        self.stepDelayText = wx.TextCtrl(self, value="800",  size=(92,-1))
         self.stepDelayText.Bind(wx.EVT_TEXT, self.resetMessage)
         
         self.connectButton = wx.ToggleButton(self, label='Connect', size=(100,-1))
@@ -208,16 +208,22 @@ class ControlTabPanel(wx.Panel):
 			print "Device not connected"
 
     def motorCW(self, event=None):
-		if self.connectButton.GetValue():
-			self.scanner.getDevice().setMotorCW()
-		else:
-			print "Device not connected"
+        if self.connectButton.GetValue():
+            device = self.scanner.getDevice()
+            device.enable()
+            device.setMotorCW()
+            device.disable()
+        else:
+            print "Device not connected"
 
     def motorCCW(self, event=None):
-		if self.connectButton.GetValue():
-			self.scanner.getDevice().setMotorCCW()
-		else:
-			print "Device not connected"
+        if self.connectButton.GetValue():
+            device = self.scanner.getDevice()
+            device.enable()
+            device.setMotorCCW()
+            device.disable()
+        else:
+            print "Device not connected"
 
     def onRawImageSelected(self, event):
         self.scanner.getCore().setImageType(0)

@@ -102,6 +102,16 @@ class Device:
 			sys.stderr.write("Error closing the port {0}".format(self.serialName))
 		print ">>> Done"
 
+	def enable(self):
+		"""Enables motor"""
+		self.sendCommand(141) # 10001101
+		#ack = self.serialPort.read() # TODO: use ack
+
+	def disable(self):
+		"""Disables motor"""
+		self.sendCommand(129) # 10000001
+		#ack = self.serialPort.read() # TODO: use ack
+
 	def setMotorCW(self):
 		"""Performs a motor step clockwise"""
 		self.sendCommand(133) # 10000101
