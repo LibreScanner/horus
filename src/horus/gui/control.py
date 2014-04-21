@@ -48,12 +48,15 @@ class ControlTabPanel(wx.Panel):
         self.conParamsStaticText = wx.StaticText(self, -1, "Connection Parameters", style=wx.ALIGN_CENTRE)
         self.serialNameLabel = wx.StaticText(self, label=" Serial Name :")
         self.serialNames = self.serialList()
-        self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, value=self.serialNames[0], size=(110,-1))
+        self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(110,-1))
+        if len(self.serialNames) > 0:
+            self.serialNameCombo.SetValue(self.serialNames[0])
         self.serialNameCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
         self.cameraIdLabel = wx.StaticText(self, label=" Camera Id :")
         self.cameraIdNames = self.videoList()
-        print self.cameraIdNames
-        self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, value=self.cameraIdNames[0], size=(123,-1))
+        self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(123,-1))
+        if len(self.cameraIdNames) > 0:
+            self.cameraIdCombo.SetValue(self.cameraIdNames[0])
         self.cameraIdCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
         self.stepDegreesLabel = wx.StaticText(self, label=" Step degrees (º) :")
         self.stepDegreesText = wx.TextCtrl(self, value="0.45", size=(82,-1))
