@@ -36,6 +36,8 @@ from horus.engine.scanner import *
 
 from viewer_3d.plyview import *
 
+from horus.language.multilingual import *
+
         
 class VideoTabPanel(wx.Panel):
     """
@@ -111,10 +113,10 @@ class ViewNotebook(wx.Notebook):
 
         #-- Create and add tab panels
         self.videoTabPanel = VideoTabPanel(self)
-        self.AddPage(self.videoTabPanel, "Video")
+        self.AddPage(self.videoTabPanel, getString("TAB_VIDEO_STR"))
 
         self.pointCloudTabPanel = PointCloudTabPanel(self)
-        self.AddPage(self.pointCloudTabPanel, "Point Cloud")
+        self.AddPage(self.pointCloudTabPanel, getString("TAB_POINTCLOUD_STR"))
 
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.onPageChanging)
