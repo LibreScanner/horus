@@ -178,7 +178,7 @@ class ControlTabPanel(wx.Panel):
             if self.connectButton.GetValue():
                 self.scanner.initialize(int(self.cameraIdCombo.GetValue()[-1:]),
                                         self.serialNameCombo.GetValue(),
-                                        float(self.stepDegreesText.GetValue()),
+                                        float((self.stepDegreesText.GetValue()).replace(',','.')),
                                         int(self.stepDelayText.GetValue()))
                 if self.scanner.connect():
 				    self.connectButton.SetLabel(getString("PANEL_CONTROL_DISCONNECT"))

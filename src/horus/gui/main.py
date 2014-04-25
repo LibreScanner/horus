@@ -147,11 +147,11 @@ class MainWindow(wx.Frame):
     def onSpanish(self, event):
         self.ShowMessageReset()
         f=open(os.path.join(os.path.dirname(__file__), "../resources/language.txt"),"w")
-        f.write("es_es")
+        f.write(ES_ES)
         f.close()
 
     def onEnglish(self, event):
         self.ShowMessageReset()
         f=open(os.path.join(os.path.dirname(__file__), "../resources/language.txt"),"w")
-        f.write("en_us")
+        f.write(EN_US)
         f.close() 

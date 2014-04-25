@@ -6,8 +6,8 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March 2014                                                      #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
+# Date: April 2014                                                      #
+# Author: Álvaro velad Galván <alvaro.velad@bq.com>                     #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
