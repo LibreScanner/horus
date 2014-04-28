@@ -34,13 +34,15 @@ import wx
 
 from horus.language.multilingual import *
 
-class ControlTabPanel(wx.Panel):
+import wx.lib.scrolledpanel
+
+class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     """
 
     def __init__(self, parent, scanner, viewer):
         """"""
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, id=wx.ID_ANY, size=(300,600))
         
         self.scanner = scanner
         self.viewer = viewer
@@ -272,12 +274,13 @@ class ControlTabPanel(wx.Panel):
     def resetMessage(self, event=None):
 		self.statusLabel.SetLabel(getString("PANEL_CONTROL_CONFIG_CHANGED_REBOOT"))
 
-class VideoTabPanel(wx.Panel):
+
+class VideoTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     """
     def __init__(self, parent, scanner, viewer):
         """"""
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, id=wx.ID_ANY, size=(300,600))
         
         self.scanner = scanner
         self.viewer = viewer
@@ -397,12 +400,12 @@ class VideoTabPanel(wx.Panel):
         pass
 
 
-class PointCloudTabPanel(wx.Panel):
+class PointCloudTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     """
     def __init__(self, parent, scanner):
         """"""
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, id=wx.ID_ANY, size=(300,600))
         
         self.scanner = scanner
         
@@ -542,9 +545,15 @@ class ControlNotebook(wx.Notebook):
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=wx.BK_DEFAULT)
 
         #-- Create and add tab panels
-        self.AddPage(ControlTabPanel(self, scanner, viewer), getString("TAB_CONTROL_STR"))
-        self.AddPage(VideoTabPanel(self, scanner, viewer), getString("TAB_VIDEO_STR"))
-        self.AddPage(PointCloudTabPanel(self, scanner), getString("TAB_POINTCLOUD_STR"))
+        controlPanel = ControlTabPanel(self, scanner, viewer)
+        controlPanel.SetupScrolling()
+        self.AddPage(controlPanel, getString("TAB_CONTROL_STR"))
+        videoPanel = VideoTabPanel(self, scanner, viewer)
+        videoPanel.SetupScrolling()
+        self.AddPage(videoPanel, getString("TAB_VIDEO_STR"))
+        pointCloudPanel = PointCloudTabPanel(self, scanner)
+        pointCloudPanel.SetupScrolling()
+        self.AddPage(pointCloudPanel, getString("TAB_POINTCLOUD_STR"))
 
         #-- Events
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
