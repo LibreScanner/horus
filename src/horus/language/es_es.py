@@ -38,6 +38,10 @@ MENU_LANGUAGE_STR = u"Idioma"
 MENU_SPANISH_STR = u"Español"
 MENU_ENGLISH_STR = u"Ingles"
 
+MENU_VIEW_STR = u"Ver"
+MENU_VIDEO_STR = u"Menu video"
+MENU_POINTCLOUD_STR = u"Menu nube de puntos"
+
 MENU_HELP_STR = u"Ayuda"
 MENU_ABOUT_STR = u"Información"
 

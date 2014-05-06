@@ -548,12 +548,19 @@ class ControlNotebook(wx.Notebook):
         controlPanel = ControlTabPanel(self, scanner, viewer)
         controlPanel.SetupScrolling()
         self.AddPage(controlPanel, getString("TAB_CONTROL_STR"))
-        videoPanel = VideoTabPanel(self, scanner, viewer)
-        videoPanel.SetupScrolling()
-        self.AddPage(videoPanel, getString("TAB_VIDEO_STR"))
-        pointCloudPanel = PointCloudTabPanel(self, scanner)
-        pointCloudPanel.SetupScrolling()
-        self.AddPage(pointCloudPanel, getString("TAB_POINTCLOUD_STR"))
+        f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'r')
+        for line in f:
+            if line.startswith('video'):
+                if line.split('=')[1].startswith('True'):
+                    videoPanel = VideoTabPanel(self, scanner, viewer)
+                    videoPanel.SetupScrolling()
+                    self.AddPage(videoPanel, getString("TAB_VIDEO_STR"))
+            elif line.startswith('pointcloud'):
+                if line.split('=')[1].startswith('True'):
+                    pointCloudPanel = PointCloudTabPanel(self, scanner)
+                    pointCloudPanel.SetupScrolling()
+                    self.AddPage(pointCloudPanel, getString("TAB_POINTCLOUD_STR"))             
+        f.close()
 
         #-- Events
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)

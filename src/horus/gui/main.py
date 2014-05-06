@@ -78,6 +78,25 @@ class MainWindow(wx.Frame):
             menuEnglish.Check(True)     
         menuBar.Append(radioMenu, getString("MENU_LANGUAGE_STR"))
 
+        # Create radio menu
+        viewMenu = wx.Menu()
+        self.menuVideo = viewMenu.Append(wx.NewId(), getString("MENU_VIDEO_STR"), getString("MENU_VIDEO_STR"), wx.ITEM_CHECK)
+        self.menuPointCloud = viewMenu.Append(wx.NewId(), getString("MENU_POINTCLOUD_STR"), getString("MENU_POINTCLOUD_STR"), wx.ITEM_CHECK)
+        f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'r')
+        for line in f:
+            if line.startswith('video'):
+                if line.split('=')[1].startswith('True'):
+                    self.menuVideo.Check(True)
+                else:
+                    self.menuVideo.Check(False)
+            elif line.startswith('pointcloud'):
+                if line.split('=')[1].startswith('True'):
+                    self.menuPointCloud.Check(True)
+                else:
+                    self.menuPointCloud.Check(False)                
+        f.close()
+        menuBar.Append(viewMenu, getString("MENU_VIEW_STR"))
+
         menuHelp = wx.Menu()
         menuAbout = wx.MenuItem(menuHelp, wx.ID_ABOUT, getString("MENU_ABOUT_STR"))
         menuAbout.SetBitmap(wx.Bitmap(os.path.join(os.path.dirname(__file__),
@@ -103,6 +122,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
         self.Bind(wx.EVT_MENU, self.onSpanish, menuSpanish)
         self.Bind(wx.EVT_MENU, self.onEnglish, menuEnglish)
+        self.Bind(wx.EVT_MENU, self.toggleVideo, self.menuVideo)
+        self.Bind(wx.EVT_MENU, self.togglePointCloud, self.menuPointCloud)
         self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
 
         self.Layout()
@@ -155,3 +176,25 @@ class MainWindow(wx.Frame):
         f=open(os.path.join(os.path.dirname(__file__), "../resources/language.txt"),"w")
         f.write(EN_US)
         f.close() 
+
+    def toggleVideo(self, event):        
+        self.ShowMessageReset()
+        s=open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt")).read()
+        if self.menuVideo.IsChecked():
+            s = s.replace('video=False', 'video=True')
+        else:
+            s = s.replace('video=True', 'video=False')           
+        f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'w')
+        f.write(s)
+        f.close()
+
+    def togglePointCloud(self, event):        
+        self.ShowMessageReset()
+        s=open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt")).read()
+        if self.menuVideo.IsChecked():
+            s = s.replace('pointcloud=False', 'pointcloud=True')
+        else:
+            s = s.replace('pointcloud=True', 'pointcloud=False')           
+        f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'w')
+        f.write(s)
+        f.close()
