@@ -74,7 +74,7 @@ class PointCloudTabPanel(wx.Panel):
         
         self.parent = parent
         
-        build_dimensions = [100, 100, 0, 0, 0, 0]
+        build_dimensions = [100, 0, 0, 0, 0]
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -83,17 +83,18 @@ class PointCloudTabPanel(wx.Panel):
         self.model = actors.PLYModel()
         self.objects = [PLYObject(self.platform), PLYObject(self.model)]
 
-        self.glpanel = PLYViewPanel(self, build_dimensions = build_dimensions, realparent = self)
+        self.glpanel = PLYViewPanel(self, build_dimensions=build_dimensions, realparent=self)
+        self.glpanel.resetview()
         
         vbox.Add(self.glpanel, 1, flag = wx.EXPAND)
 
         #-- Events
-        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.zoom_to_center(1.2), id = 1)
-        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.zoom_to_center(1 / 1.2), id = 2)
-        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.layerup(), id = 3)
-        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.layerdown(), id = 4)
-        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.resetview(), id = 5)
-        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.fit(), id = 6)
+        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.zoom_to_center(1.2), id=1)
+        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.zoom_to_center(1/1.2), id=2)
+        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.layerup(), id=3)
+        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.layerdown(), id=4)
+        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.resetview(), id=5)
+        self.Bind(wx.EVT_TOOL, lambda x: self.glpanel.fit(), id=6)
         
         self.SetSizer(vbox)
 

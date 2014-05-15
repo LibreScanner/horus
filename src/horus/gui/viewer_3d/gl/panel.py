@@ -142,8 +142,8 @@ class wxGLPanel(wx.Panel):
             glOrtho(-width / 2, width / 2, -height / 2, height / 2,
                     -5 * self.dist, 5 * self.dist)
         else:
-            gluPerspective(60., float(width) / height, 10.0, 3 * self.dist)
-            glTranslatef(0, 0, -self.dist)  # Move back
+            gluPerspective(60., float(width) / height, 10.0, 2 * self.dist)
+            #glTranslatef(0, 0, -self.dist)  # Move back
         glMatrixMode(GL_MODELVIEW)
 
         if not self.mview_initialized:
@@ -218,8 +218,14 @@ class wxGLPanel(wx.Panel):
             delta_x = to[0]
             delta_y = to[1]
             glTranslatef(delta_x, delta_y, 0)
-        glScalef(factor, factor, 1)
-        self.zoom_factor *= factor
+        if factor > 1.0:
+            if self.zoom_factor <= 5.0:
+                self.zoom_factor *= factor
+                glScalef(factor, factor, 1)
+        else:
+            if self.zoom_factor >= 0.5:
+                self.zoom_factor *= factor
+                glScalef(factor, factor, 1)
         if to:
             glTranslatef(-delta_x, -delta_y, 0)
         wx.CallAfter(self.Refresh)
@@ -252,9 +258,9 @@ class wxGLPanel(wx.Panel):
             p1 = self.initpos
             p2 = event.GetPositionTuple()
             #if self.orthographic:
-            x1, y1, _ = self.mouse_to_3d(p1[0], p1[1])
-            x2, y2, _ = self.mouse_to_3d(p2[0], p2[1])    
-            glTranslatef(x2 - x1, y2 - y1, 0)
+            #x1, y1, _ = self.mouse_to_3d(p1[0], p1[1])
+            #x2, y2, _ = self.mouse_to_3d(p2[0], p2[1])    
+            #glTranslatef(0.1*(x2 - x1), 0.1*(y2 - y1), 0)
             #else:
-            #    glTranslatef((p2[0] - p1[0]), -(p2[1] - p1[1]), 0)
+            glTranslatef(0.2*(p2[0] - p1[0]), -0.2*(p2[1] - p1[1]), 0)
             self.initpos = p2

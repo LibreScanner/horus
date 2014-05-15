@@ -42,7 +42,6 @@ class PLYViewPanel(wxGLPanel):
                                              wx.DefaultSize, 0)
         self.canvas.Bind(wx.EVT_MOUSE_EVENTS, self.move)
         self.canvas.Bind(wx.EVT_LEFT_DCLICK, self.double)
-        #self.canvas.Bind(wx.EVT_KEY_DOWN, self.keypress)
         self.initialized = 0
         self.canvas.Bind(wx.EVT_MOUSEWHEEL, self.wheel)
         self.parent = realparent if realparent else parent
@@ -50,8 +49,8 @@ class PLYViewPanel(wxGLPanel):
         if build_dimensions:
             self.build_dimensions = build_dimensions
         else:
-            self.build_dimensions = [100, 100, 100, 0, 0, 0]
-        self.dist = max(self.build_dimensions[0], self.build_dimensions[1])
+            self.build_dimensions = [100, 0, 0, 0, 0]
+        self.dist = 2 * self.build_dimensions[0]
         self.basequat = [0, 0, 0, 1]
         self.mousepos = [0, 0]
 
@@ -125,10 +124,6 @@ class PLYViewPanel(wxGLPanel):
         glTranslatef(0, 0, -self.dist) ##
         # Rotate according to trackball
         glMultMatrixd(build_rotmatrix(self.basequat))
-        # Move origin to bottom left of platform
-        platformx0 = -self.build_dimensions[3] - self.parent.platform.width / 2
-        platformy0 = -self.build_dimensions[4] - self.parent.platform.depth / 2
-        glTranslatef(platformx0, platformy0, 0)
 
         light_z = max(self.parent.platform.width, self.parent.platform.depth)
         glLightfv(GL_LIGHT0, GL_POSITION, vec(0,
@@ -244,43 +239,10 @@ class PLYViewPanel(wxGLPanel):
         glTranslatef(center_x, center_y, 0)
         wx.CallAfter(self.Refresh)
 
-    def keypress(self, event):
-        """gets keypress events and moves/rotates acive shape"""
-        step = 1.1
-        if event.ControlDown():
-            step = 1.05
-        kup = [85, 315]               # Up keys
-        kdo = [68, 317]               # Down Keys
-        kzi = [wx.WXK_PAGEDOWN, 388, 316, 61]        # Zoom In Keys
-        kzo = [wx.WXK_PAGEUP, 390, 314, 45]       # Zoom Out Keys
-        kfit = [70]       # Fit to print keys
-        kshowcurrent = [67]       # Show only current layer keys
-        kreset = [82]       # Reset keys
-        key = event.GetKeyCode()
-        if key in kup:
-            self.layerup()
-        if key in kdo:
-            self.layerdown()
-        x, y, _ = self.mouse_to_3d(self.width / 2, self.height / 2)
-        if key in kzi:
-            self.zoom_to_center(step)
-        if key in kzo:
-            self.zoom_to_center(1 / step)
-        if key in kfit:
-            self.fit()
-        if key in kshowcurrent:
-            if not self.parent.model or not self.parent.model.loaded:
-                return
-            self.parent.model.only_current = not self.parent.model.only_current
-            wx.CallAfter(self.Refresh)
-        if key in kreset:
-            self.resetview()
-        event.Skip()
-
     def resetview(self):
         self.canvas.SetCurrent(self.context)
-        self.reset_mview(0.9)
-        self.basequat = [0, 0, 0, 1]
+        #self.reset_mview(0.9)
+        self.basequat = [0.55, -0.15, -0.2, 1]
         wx.CallAfter(self.Refresh)
 
 class PLYObject(object):

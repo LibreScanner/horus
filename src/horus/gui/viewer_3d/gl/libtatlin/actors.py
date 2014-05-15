@@ -8,7 +8,7 @@
 # Copyright (C) 2013 Guillaume Seguin                                   #
 # Copyright (C) 2011 Denis Kobozev                                      #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: March & May 2014                                                #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -26,13 +26,7 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
-import time
 import math
-import logging
-
-import random
-
-from ctypes import sizeof
 
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -84,12 +78,11 @@ class BoundingBox(object):
 
     @property
     def height(self):
-        height = abs(self.upper_corner[2] - self.lower_corner[2])
         return round(height, 2)
 
-class Platform(object):
+class SquarePlatform(object):
     """
-    Platform on which models are placed.
+    Square platform on which models are placed.
     """
     graduations_major = 10
 
@@ -102,11 +95,7 @@ class Platform(object):
         self.yoffset = build_dimensions[4]
         self.zoffset = build_dimensions[5]
 
-        #self.color_grads_minor = (0xaf / 255, 0xdf / 255, 0x5f / 255, 0.1)
-        #self.color_grads_interm = (0xaf / 255, 0xdf / 255, 0x5f / 255, 0.2)
-        #self.color_grads_major = (0xaf / 255, 0xdf / 255, 0x5f / 255, 0.33)
-
-        self.color_grads_minor = (1.0, 1.0, 1.0, 0.1)
+        self.color_grads_minor = (1.0, 1.0, 1.0, 0.0)
         self.color_grads_interm = (1.0, 1.0, 1.0, 0.2)
         self.color_grads_major = (1.0, 1.0, 1.0, 0.3)
 
@@ -143,6 +132,93 @@ class Platform(object):
             if color(i):
                 glVertex3f(0, float(i), 0.0)
                 glVertex3f(self.width, float(i), 0.0)
+        glEnd()
+
+        glPopMatrix()
+
+    def display(self, mode_2d=False):
+        glCallList(self.display_list)
+
+class Platform(object):
+    """
+    Platform on which models are placed.
+    """
+    graduations_major = 10
+
+    def __init__(self, build_dimensions, light = False):
+        self.light = light
+        self.width = build_dimensions[0]
+        self.depth = build_dimensions[0]
+        self.height = build_dimensions[1]
+        self.xoffset = build_dimensions[2]
+        self.yoffset = build_dimensions[3]
+        self.zoffset = build_dimensions[4]
+   
+        self.radius = self.width
+        self.diameter = 2 * self.radius
+
+        self.color_grads_minor = (1.0, 1.0, 1.0, 0.05)
+        self.color_grads_interm = (1.0, 1.0, 1.0, 0.2)
+        self.color_grads_major = (1.0, 1.0, 1.0, 0.3)
+        self.color_grads_high = (1.0, 1.0, 1.0, 0.4)
+
+        self.circleSampling = []
+
+        for i in range(0, self.radius):
+            self.circleSampling.append(self.radius * math.cos(math.asin(1-i/float(self.radius))))
+
+        self.initialized = False
+        self.loaded = True
+
+    def init(self):
+        self.display_list = compile_display_list(self.draw)
+        self.initialized = True
+
+    def draw(self):
+        glPushMatrix()
+
+        glTranslatef(self.xoffset, self.yoffset, self.zoffset)
+
+        def color(i):
+            if i % self.graduations_major == 0:
+                glColor4f(*self.color_grads_major)
+            elif i % (self.graduations_major / 2) == 0:
+                glColor4f(*self.color_grads_interm)
+            else:
+                if self.light: return False
+                glColor4f(*self.color_grads_minor)
+            return True
+
+        #draw the circle
+        sides = 100
+        angle = 2*math.pi/sides
+        glBegin(GL_LINE_LOOP)
+        glColor4f(*self.color_grads_high)
+        for i in range(sides-1):    
+            cosine= self.radius*math.cos(i*angle)
+            sine  = self.radius*math.sin(i*angle)
+            glVertex2f(cosine,sine)
+        glEnd()
+
+        # draw the grid
+        glBegin(GL_LINES)
+        glColor4f(*self.color_grads_major)
+        glVertex2f(0.0, -self.radius)
+        glVertex2f(0.0, self.radius)
+        glVertex2f(-self.radius, 0.0)
+        glVertex2f(self.radius, 0.0)
+        for i in range(0, self.radius):
+            d = self.circleSampling[i]
+            v = float(self.radius-i)
+            if color(i):
+                glVertex2f(-d,+v)
+                glVertex2f(+d,+v)
+                glVertex2f(-d,-v)
+                glVertex2f(+d,-v)
+                glVertex2f(+v,-d)
+                glVertex2f(+v,+d)
+                glVertex2f(-v,-d)
+                glVertex2f(-v,+d)
         glEnd()
 
         glPopMatrix()
