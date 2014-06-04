@@ -30,12 +30,15 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import wx._core
 
 from horus.gui import main
+from horus.util import resources
 
 class HorusApp(wx.App):
 	def __init__(self):
 		super(HorusApp, self).__init__(redirect=False)
 
 		# TODO: Load Profile and Preferences
+
+		resources.setupLocalization('Spanish') #profile.getPreference('language'))
 
 		self.mainWindow = main.MainWindow()
 		self.mainWindow.Show()

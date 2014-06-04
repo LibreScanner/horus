@@ -5,9 +5,10 @@
 # This file is part of the Horus Project                                #
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
+# Copyright (C) 2013 David Braam from Cura Project                      #
 #                                                                       #
-# Date: April 2014                                                      #
-# Author: Álvaro velad Galván <alvaro.velad@bq.com>                     #
+# Date: June 2014                                                       #
+# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
@@ -24,26 +25,41 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
-__author__ = u"Álvaro Velad Galván <alvaro.velad@bq.com>"
-__license__ = u"GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
-
 import os
-from horus.language import es_es
-from horus.language import en_us
+import sys
+import glob
+import gettext
 
-EN_US = u"en_us"
-ES_ES = u"es_es"
+resourceBasePath = os.path.join(os.path.dirname(__file__), "../../../res")
 
-f = open(os.path.join(os.path.dirname(__file__), "../resources/language.txt"))
-locale = f.read()
-f.close()
+def getPathForResource(dir, subdir, resource_name):
+	assert os.path.isdir(dir), "{p} is not a directory".format(p=dir)
+	path = os.path.normpath(os.path.join(dir, subdir, resource_name))
+	assert os.path.isfile(path), "{p} is not a file.".format(p=path)
+	return path
 
-# Por defecto todas las string estan en ingles. Si el idioma por defecto es otro y no se encuentra la string, se busca en ingles.
-def getString(string):
-	if locale == EN_US:
-		return getattr(en_us, string)
-	elif locale == ES_ES:
-		try:
-			return getattr(es_es, string)
-		except AttributeError:
-			return getattr(en_us, string)
+def getPathForImage(name):
+	return getPathForResource(resourceBasePath, 'images', name)
+
+"""def getDefaultMachineProfiles():
+	path = os.path.normpath(os.path.join(resourceBasePath, 'machine_profiles', '*.ini'))
+	return glob.glob(path)"""
+
+def setupLocalization(selectedLanguage = None):
+	#Default to english
+	languages = ['en']
+
+	if selectedLanguage is not None:
+		for item in getLanguageOptions():
+			if item[1] == selectedLanguage and item[0] is not None:
+				languages = [item[0]]
+
+	locale_path = os.path.normpath(os.path.join(resourceBasePath, 'locale'))
+	translation = gettext.translation('horus', locale_path, languages, fallback=True)
+	translation.install(unicode=True)
+
+def getLanguageOptions():
+	return [
+		['en', 'English'],
+		['es', 'Spanish']
+	]

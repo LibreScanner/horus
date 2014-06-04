@@ -31,9 +31,6 @@ import os
 import glob
 
 import wx
-
-from horus.language.multilingual import *
-
 import wx.lib.scrolledpanel
 
 class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
@@ -49,55 +46,55 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
               
         #-- Graphic elements
 
-        self.conParamsStaticText = wx.StaticText(self, -1, getString("PANEL_CONTROL_CONNECTION_PARAMETERS"), style=wx.ALIGN_CENTRE)
-        self.serialNameLabel = wx.StaticText(self, label=getString("PANEL_CONTROL_SERIAL_NAME"))
+        self.conParamsStaticText = wx.StaticText(self, -1, _("Connection Parameters"), style=wx.ALIGN_CENTRE)
+        self.serialNameLabel = wx.StaticText(self, label=_("Serial Name :"))
         self.serialNames = self.serialList()
         self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(110,-1))
         if len(self.serialNames) > 0:
             self.serialNameCombo.SetValue(self.serialNames[0])
         self.serialNameCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
-        self.cameraIdLabel = wx.StaticText(self, label=getString("PANEL_CONTROL_CAMERA_ID"))
+        self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id :"))
         self.cameraIdNames = self.videoList()
         self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(123,-1))
         if len(self.cameraIdNames) > 0:
             self.cameraIdCombo.SetValue(self.cameraIdNames[0])
         self.cameraIdCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
-        self.stepDegreesLabel = wx.StaticText(self, label=getString("PANEL_CONTROL_STEP_DEGREES"))
+        self.stepDegreesLabel = wx.StaticText(self, label=_(u"Step degrees (º) :"))
         self.stepDegreesText = wx.TextCtrl(self, value="0.45", size=(82,-1))
         self.stepDegreesText.Bind(wx.EVT_TEXT, self.resetMessage)
-        self.stepDelayLabel = wx.StaticText(self, label=getString("PANEL_CONTROL_STEP_DELAY"))
+        self.stepDelayLabel = wx.StaticText(self, label=_("Step delay (us) :"))
         self.stepDelayText = wx.TextCtrl(self, value="800", size=(92,-1))
         self.stepDelayText.Bind(wx.EVT_TEXT, self.resetMessage)
         
-        self.connectButton = wx.ToggleButton(self, label=getString("PANEL_CONTROL_CONNECT"), size=(100,-1))
+        self.connectButton = wx.ToggleButton(self, label=_("Connect"), size=(100,-1))
         self.connectButton.Bind(wx.EVT_TOGGLEBUTTON, self.connect)
-        self.startButton = wx.ToggleButton(self, label=getString("PANEL_CONTROL_START"), size=(100,-1))
+        self.startButton = wx.ToggleButton(self, label=_("Start"), size=(100,-1))
         self.startButton.Bind(wx.EVT_TOGGLEBUTTON, self.start)
-        self.scanStepButton = wx.Button(self, label=getString("PANEL_CONTROL_SCAN_STEP"), size=(100,-1))
+        self.scanStepButton = wx.Button(self, label=_("Scan Step"), size=(100,-1))
         self.scanStepButton.Disable() # TODO
         self.scanStepButton.Bind(wx.EVT_BUTTON, self.scanStep)
-        self.refreshButton = wx.ToggleButton(self, label=getString("PANEL_CONTROL_REFRESH_ON"), size=(100,-1))
+        self.refreshButton = wx.ToggleButton(self, label=_("Refresh On"), size=(100,-1))
         self.refreshButton.Bind(wx.EVT_TOGGLEBUTTON, self.refresh)
         
-        self.laserLeftButton = wx.ToggleButton(self, label=getString("PANEL_CONTROL_LASER_L_ON"), size=(100,-1))
+        self.laserLeftButton = wx.ToggleButton(self, label=_("Laser L On"), size=(100,-1))
         self.laserLeftButton.Bind(wx.EVT_TOGGLEBUTTON, self.laserLeft)
-        self.laserRightButton = wx.ToggleButton(self, label=getString("PANEL_CONTROL_LASER_R_ON"), size=(100,-1))
+        self.laserRightButton = wx.ToggleButton(self, label=_("Laser R On"), size=(100,-1))
         self.laserRightButton.Bind(wx.EVT_TOGGLEBUTTON, self.laserRight)
-        self.motorCCWButton = wx.Button(self, label=getString("PANEL_CONTROL_MOTOR_CCW"), size=(100,-1))
+        self.motorCCWButton = wx.Button(self, label=_("Motor CCW"), size=(100,-1))
         self.motorCCWButton.Bind(wx.EVT_BUTTON, self.motorCCW)
-        self.motorCWButton = wx.Button(self, label=getString("PANEL_CONTROL_MOTOR_CW"), size=(100,-1))
+        self.motorCWButton = wx.Button(self, label=_("Motor CW"), size=(100,-1))
         self.motorCWButton.Bind(wx.EVT_BUTTON, self.motorCW)
 
-        rawImageRadioButton = wx.RadioButton(self, label=getString("PANEL_CONTROL_RAW_IMAGE"), size=(100, -1))
+        rawImageRadioButton = wx.RadioButton(self, label=_("Raw image"), size=(100, -1))
         rawImageRadioButton.Bind(wx.EVT_RADIOBUTTON, self.onRawImageSelected)
-        laserImageRadioButton = wx.RadioButton(self, label=getString("PANEL_CONTROL_LASER_IMAGE"), size=(120, -1))
+        laserImageRadioButton = wx.RadioButton(self, label=_("Laser image"), size=(120, -1))
         laserImageRadioButton.Bind(wx.EVT_RADIOBUTTON, self.onLaserImageSelected)
-        diffImageRadioButton = wx.RadioButton(self, label=getString("PANEL_CONTROL_DIFF_IMAGE"), size=(100, -1))
+        diffImageRadioButton = wx.RadioButton(self, label=_("Diff image"), size=(100, -1))
         diffImageRadioButton.Bind(wx.EVT_RADIOBUTTON, self.onDiffImageSelected)
-        binImageRadioButton = wx.RadioButton(self, label=getString("PANEL_CONTROL_BINARY_IMAGE"), size=(120, -1))
+        binImageRadioButton = wx.RadioButton(self, label=_("Binary image"), size=(120, -1))
         binImageRadioButton.Bind(wx.EVT_RADIOBUTTON, self.onBinImageSelected)
         
-        self.statusLabel = wx.StaticText(self, label=getString("PANEL_CONTROL_EMPTY"))
+        self.statusLabel = wx.StaticText(self, label="")
         
         #-- Layout
         
@@ -183,27 +180,27 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
                                         float((self.stepDegreesText.GetValue()).replace(',','.')),
                                         int(self.stepDelayText.GetValue()))
                 if self.scanner.connect():
-				    self.connectButton.SetLabel(getString("PANEL_CONTROL_DISCONNECT"))
+				    self.connectButton.SetLabel(_("Disconnect"))
 				    self.statusLabel.SetLabel(u"")
             else:
                 if self.scanner.disconnect():
-                    self.connectButton.SetLabel(getString("PANEL_CONTROL_CONNECT"))
+                    self.connectButton.SetLabel(_("Connect"))
                     self.statusLabel.SetLabel(u"")
         else:
 			self.connectButton.SetValue(not self.connectButton.GetValue())
-			print getString("PANEL_CONTROL_STOP_SCAN")
+			print _("Stop scan!")
 
     def start(self, event):
 		if self.connectButton.GetValue():
 			if self.startButton.GetValue():
 				self.scanner.start()
-				self.startButton.SetLabel(getString("PANEL_CONTROL_STOP"))
+				self.startButton.SetLabel(_("Stop"))
 			else:
 				self.scanner.stop()
-				self.startButton.SetLabel(getString("PANEL_CONTROL_START"))
+				self.startButton.SetLabel(_("Start"))
 		else:
 			self.startButton.SetValue(not self.startButton.GetValue())
-			print getString("PANEL_CONTROL_DEVICE_NOT_CONNECTED")
+			print _("Device not connected")
 
     def scanStep(self, event=None):
         pass
@@ -212,34 +209,34 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
         btn = event.GetEventObject()
         if btn.GetValue():
             self.viewer.refreshOn(150) #280
-            btn.SetLabel(getString("PANEL_CONTROL_REFRESH_OFF"))
+            btn.SetLabel(_("Refresh Off"))
         else:
             self.viewer.refreshOff()
-            btn.SetLabel(getString("PANEL_CONTROL_REFRESH_ON"))
+            btn.SetLabel(_("Refresh On"))
 
     def laserLeft(self, event):
 		if self.connectButton.GetValue():
 			if self.laserLeftButton.GetValue():
 				self.scanner.getDevice().setLeftLaserOn()
-				self.laserLeftButton.SetLabel(getString("PANEL_CONTROL_LASER_L_OFF"))
+				self.laserLeftButton.SetLabel(_("Laser L Off"))
 			else:
 				self.scanner.getDevice().setLeftLaserOff()
-				self.laserLeftButton.SetLabel(getString("PANEL_CONTROL_LASER_L_ON"))
+				self.laserLeftButton.SetLabel(_("Laser L On"))
 		else:
 			self.laserLeftButton.SetValue(not self.laserLeftButton.GetValue())
-			print getString("PANEL_CONTROL_DEVICE_NOT_CONNECTED")
+			print _("Device not connected")
 			
     def laserRight(self, event):
 		if self.connectButton.GetValue():
 			if self.laserRightButton.GetValue():
 				self.scanner.getDevice().setRightLaserOn()
-				self.laserRightButton.SetLabel(getString("PANEL_CONTROL_LASER_R_OFF"))
+				self.laserRightButton.SetLabel(_("Laser R Off"))
 			else:
 				self.scanner.getDevice().setRightLaserOff()
-				self.laserRightButton.SetLabel(getString("PANEL_CONTROL_LASER_R_ON"))
+				self.laserRightButton.SetLabel(_("Laser R On"))
 		else:
 			self.laserRightButton.SetValue(not self.laserRightButton.GetValue())
-			print getString("PANEL_CONTROL_DEVICE_NOT_CONNECTED")
+			print _("Device not connected")
 
     def motorCW(self, event=None):
         if self.connectButton.GetValue():
@@ -248,7 +245,7 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
             device.setMotorCW()
             device.disable()
         else:
-            print getString("PANEL_CONTROL_DEVICE_NOT_CONNECTED")
+            print _("Device not connected")
 
     def motorCCW(self, event=None):
         if self.connectButton.GetValue():
@@ -257,7 +254,7 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
             device.setMotorCCW()
             device.disable()
         else:
-            print getString("PANEL_CONTROL_DEVICE_NOT_CONNECTED")
+            print _("Device not connected")
 
     def onRawImageSelected(self, event):
         self.scanner.getCore().setImageType(0)
@@ -272,7 +269,7 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.scanner.getCore().setImageType(3)
 		
     def resetMessage(self, event=None):
-		self.statusLabel.SetLabel(getString("PANEL_CONTROL_CONFIG_CHANGED_REBOOT"))
+		self.statusLabel.SetLabel(_("Config changed. You must reboot"))
 
 
 class VideoTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
@@ -287,38 +284,38 @@ class VideoTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
         
         #-- Graphic elements
         
-        imgProcStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_IMAGE_PROCESSING"), style=wx.ALIGN_CENTRE)
-        self.blurCheckBox = wx.CheckBox(self, label=getString("PANEL_VIDEO_BLUR"), size=(67, -1))
+        imgProcStaticText = wx.StaticText(self, -1, _("Image Processing"), style=wx.ALIGN_CENTRE)
+        self.blurCheckBox = wx.CheckBox(self, label=_("Blur"), size=(67, -1))
         self.blurCheckBox.SetValue(True)
         self.blurCheckBox.Bind(wx.EVT_CHECKBOX, self.onBlurChanged)
         self.blurSlider = wx.Slider(self, -1, 4, 1, 10, size=(150, -1), style=wx.SL_LABELS)
         self.blurSlider.Bind(wx.EVT_SLIDER, self.onBlurChanged)
-        self.openCheckBox = wx.CheckBox(self, label=getString("PANEL_VIDEO_OPEN"), size=(67, -1))
+        self.openCheckBox = wx.CheckBox(self, label=_("Open"), size=(67, -1))
         self.openCheckBox.SetValue(True)
         self.openCheckBox.Bind(wx.EVT_CHECKBOX, self.onOpenChanged)
         self.openSlider = wx.Slider(self, -1, 5, 1, 10, size=(150, -1), style=wx.SL_LABELS)
         self.openSlider.Bind(wx.EVT_SLIDER, self.onOpenChanged)
-        self.minHStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_MIN_H"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.minHStaticText = wx.StaticText(self, -1, _("min H"), size=(45, -1), style=wx.ALIGN_CENTRE)
         self.minHSlider = wx.Slider(self, -1, 0, 0, 255, size=(150, -1), style=wx.SL_LABELS)
         self.minHSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.minSStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_MIN_S"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.minSStaticText = wx.StaticText(self, -1, _("min S"), size=(45, -1), style=wx.ALIGN_CENTRE)
         self.minSSlider = wx.Slider(self, -1, 180, 0, 255, size=(150, -1), style=wx.SL_LABELS)
         self.minSSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.minVStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_MIN_V"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.minVStaticText = wx.StaticText(self, -1, _("min V"), size=(45, -1), style=wx.ALIGN_CENTRE)
         self.minVSlider = wx.Slider(self, -1, 30, 0, 255, size=(150, -1), style=wx.SL_LABELS)
         self.minVSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.maxHStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_MAX_H"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.maxHStaticText = wx.StaticText(self, -1, _("max H"), size=(45, -1), style=wx.ALIGN_CENTRE)
         self.maxHSlider = wx.Slider(self, -1, 180, 0, 255, size=(150, -1), style=wx.SL_LABELS)
         self.maxHSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.maxSStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_MAX_S"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.maxSStaticText = wx.StaticText(self, -1, _("max S"), size=(45, -1), style=wx.ALIGN_CENTRE)
         self.maxSSlider = wx.Slider(self, -1, 250, 0, 255, size=(150, -1), style=wx.SL_LABELS)
         self.maxSSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.maxVStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_MAX_V"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.maxVStaticText = wx.StaticText(self, -1, _("max V"), size=(45, -1), style=wx.ALIGN_CENTRE)
         self.maxVSlider = wx.Slider(self, -1, 140, 0, 255, size=(150, -1), style=wx.SL_LABELS)
         self.maxVSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
 
-        roiStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_ROI_SELECTION"), style=wx.ALIGN_CENTRE)
-        rhoStaticText = wx.StaticText(self, -1, getString("PANEL_VIDEO_RADIUS"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        roiStaticText = wx.StaticText(self, -1, _("ROI Selection"), style=wx.ALIGN_CENTRE)
+        rhoStaticText = wx.StaticText(self, -1, _("radius"), size=(45, -1), style=wx.ALIGN_CENTRE)
         rhoSlider = wx.Slider(self, -1, 0, 0, 639, size=(150, -1), style=wx.SL_LABELS)
         rhoSlider.Bind(wx.EVT_SLIDER, self.onROIChanged)
         rhoSlider.Disable()
@@ -410,42 +407,42 @@ class PointCloudTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.scanner = scanner
         
         #-- Graphic elements
-        calParamsStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_CALIBRATION_PARAMETERS"))
-        self.fxParamStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_FX"), size=(18, -1))
+        calParamsStaticText = wx.StaticText(self, label=_("Calibration Parameters"))
+        self.fxParamStaticText = wx.StaticText(self, label=_("fx"), size=(18, -1))
         self.fxParamTextCtrl = wx.TextCtrl(self, -1, u"1150", pos=(40, 10))
-        self.fyParamStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_FY"), size=(18, -1))
+        self.fyParamStaticText = wx.StaticText(self, label=_("fy"), size=(18, -1))
         self.fyParamTextCtrl = wx.TextCtrl(self, -1, u"1150", pos=(40, 10))
-        self.cxParamStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_CX"), size=(18, -1))
+        self.cxParamStaticText = wx.StaticText(self, label=_("cx"), size=(18, -1))
         self.cxParamTextCtrl = wx.TextCtrl(self, -1, u"269", pos=(40, 10))
-        self.cyParamStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_CY"), size=(18, -1))
+        self.cyParamStaticText = wx.StaticText(self, label=_("cy"), size=(18, -1))
         self.cyParamTextCtrl = wx.TextCtrl(self, -1, u"240", pos=(40, 10))
-        self.zsParamStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_ZS"), size=(18, -1))
+        self.zsParamStaticText = wx.StaticText(self, label=_("zs"), size=(18, -1))
         self.zsParamTextCtrl = wx.TextCtrl(self, -1, u"270", pos=(40, 10))
-        self.hoParamStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_HO"), size=(18, -15))
+        self.hoParamStaticText = wx.StaticText(self, label=_("ho"), size=(18, -15))
         self.hoParamTextCtrl = wx.TextCtrl(self, -1, u"50", pos=(40, 10))
 
-        algorithmStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_ALGORITHM"))
-        self.compactAlgRadioButton = wx.RadioButton(self, label=getString("PANEL_POINTCLOUD_COMPACT"), size=(100,-1))
+        algorithmStaticText = wx.StaticText(self, label=_("Algorithm"))
+        self.compactAlgRadioButton = wx.RadioButton(self, label=_("Compact"), size=(100,-1))
         self.compactAlgRadioButton.Bind(wx.EVT_RADIOBUTTON, self.onAlgChanged)
-        self.completeAlgRadioButton = wx.RadioButton(self, label=getString("PANEL_POINTCLOUD_COMPLETE"), size=(100,-1))
+        self.completeAlgRadioButton = wx.RadioButton(self, label=_("Complete"), size=(100,-1))
         self.completeAlgRadioButton.Bind(wx.EVT_RADIOBUTTON, self.onAlgChanged)
 
-        filterStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_FILTER"))
+        filterStaticText = wx.StaticText(self, label=_("Filter"))
         self.rhoMinTextCtrl = wx.TextCtrl(self, -1, u"-60", pos=(40, 10))
-        self.rhoStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_R"))
+        self.rhoStaticText = wx.StaticText(self, label=_("<  r  <"))
         self.rhoMaxTextCtrl = wx.TextCtrl(self, -1, u"60", pos=(40, 10))
         self.hMinTextCtrl = wx.TextCtrl(self, -1, u"0", pos=(40, 10))
-        self.hStaticText = wx.StaticText(self, label=getString("PANEL_POINTCLOUD_H"))
+        self.hStaticText = wx.StaticText(self, label=_("<  h  <"))
         self.hMaxTextCtrl = wx.TextCtrl(self, -1, u"80", pos=(40, 10))
 
-        moveStaticText = wx.StaticText(self, -1, getString("PANEL_POINTCLOUD_MOVE"), style=wx.ALIGN_CENTRE)
-        zStaticText = wx.StaticText(self, -1, getString("PANEL_POINTCLOUD_Z"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        moveStaticText = wx.StaticText(self, -1, _("Move"), style=wx.ALIGN_CENTRE)
+        zStaticText = wx.StaticText(self, -1, _("z"), size=(45, -1), style=wx.ALIGN_CENTRE)
         self.zSlider = wx.Slider(self, -1, 0, -50, 50, size=(150, -1), style=wx.SL_LABELS)
         self.zSlider.Bind(wx.EVT_SLIDER, self.onZChanged)
         
-        saveButton = wx.Button(self, label=getString("PANEL_POINTCLOUD_SAVE"), size=(100,-1))
+        saveButton = wx.Button(self, label=_("Save"), size=(100,-1))
         saveButton.Bind(wx.EVT_BUTTON, self.save)
-        applyButton = wx.Button(self, label=getString("PANEL_POINTCLOUD_APPLY"), size=(100,-1))
+        applyButton = wx.Button(self, label=_("Apply"), size=(100,-1))
         applyButton.Bind(wx.EVT_BUTTON, self.apply)
         
         #-- Layout
@@ -523,8 +520,8 @@ class PointCloudTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
                                                         int(self.hMaxTextCtrl.GetValue()))    
 
     def save(self, event):
-        saveFileDialog = wx.FileDialog(self, getString("PANEL_POINTCLOUD_SAVE_AS"), getString("PANEL_POINTCLOUD_EMPTY"), getString("PANEL_POINTCLOUD_EMPTY"), 
-            getString("PANEL_POINTCLOUD_PLY_FILES"), wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        saveFileDialog = wx.FileDialog(self, _("Save As"), "", "", 
+            _("PLY files (*.ply)|*.ply"), wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if saveFileDialog.ShowModal() == wx.ID_OK:
             myCursor= wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(myCursor)
@@ -547,20 +544,20 @@ class ControlNotebook(wx.Notebook):
         #-- Create and add tab panels
         controlPanel = ControlTabPanel(self, scanner, viewer)
         controlPanel.SetupScrolling()
-        self.AddPage(controlPanel, getString("TAB_CONTROL_STR"))
-        f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'r')
+        self.AddPage(controlPanel, _("Control"))
+        """f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'r')
         for line in f:
             if line.startswith('video'):
                 if line.split('=')[1].startswith('True'):
                     videoPanel = VideoTabPanel(self, scanner, viewer)
                     videoPanel.SetupScrolling()
-                    self.AddPage(videoPanel, getString("TAB_VIDEO_STR"))
+                    self.AddPage(videoPanel, _("Video"))
             elif line.startswith('pointcloud'):
                 if line.split('=')[1].startswith('True'):
                     pointCloudPanel = PointCloudTabPanel(self, scanner)
                     pointCloudPanel.SetupScrolling()
-                    self.AddPage(pointCloudPanel, getString("TAB_POINTCLOUD_STR"))             
-        f.close()
+                    self.AddPage(pointCloudPanel, _("Point Cloud"))             
+        f.close()"""
 
         #-- Events
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)

@@ -36,8 +36,7 @@ from horus.engine.scanner import *
 
 from viewer_3d.plyview import *
 
-from horus.language.multilingual import *
-
+from horus.util.resources import *
         
 class VideoTabPanel(wx.Panel):
     """
@@ -46,8 +45,7 @@ class VideoTabPanel(wx.Panel):
         """"""
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
-        self.bmp = wx.Bitmap(os.path.join(os.path.dirname(__file__),
-         "../resources/images/bq.png"))
+        self.bmp = wx.Bitmap(getPathForImage("bq.png"))
         self.Bind(wx.EVT_PAINT, self.onPaint)
         
         self.SetBackgroundColour(wx.BLACK)
@@ -114,10 +112,10 @@ class ViewNotebook(wx.Notebook):
 
         #-- Create and add tab panels
         self.videoTabPanel = VideoTabPanel(self)
-        self.AddPage(self.videoTabPanel, getString("TAB_VIDEO_STR"))
+        self.AddPage(self.videoTabPanel, _("Video"))
 
         self.pointCloudTabPanel = PointCloudTabPanel(self)
-        self.AddPage(self.pointCloudTabPanel, getString("TAB_POINTCLOUD_STR"))
+        self.AddPage(self.pointCloudTabPanel, _("Point Cloud"))
 
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.onPageChanging)
