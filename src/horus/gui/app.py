@@ -27,18 +27,31 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import os
 import wx._core
 
 from horus.gui import main
+from horus.util import profile
 from horus.util import resources
 
 class HorusApp(wx.App):
 	def __init__(self):
 		super(HorusApp, self).__init__(redirect=False)
 
-		# TODO: Load Profile and Preferences
+		#-- Load Profile and Preferences
+		basePath = profile.getBasePath()
+		profile.loadPreferences(os.path.join(basePath, 'preferences.ini'))
+		profile.loadProfile(os.path.join(basePath, 'current-profile.ini'))
 
-		resources.setupLocalization('Spanish') #profile.getPreference('language'))
+		#-- Load Language
+		resources.setupLocalization(profile.getPreference('language'))
 
+		#-- Create Main Window
 		self.mainWindow = main.MainWindow()
 		self.mainWindow.Show()
+
+	def __del__(self):
+		#-- Save Profile and Preferences
+		basePath = profile.getBasePath()
+		profile.savePreferences(os.path.join(basePath, 'preferences.ini'))
+		profile.saveProfile(os.path.join(basePath, 'current-profile.ini'))

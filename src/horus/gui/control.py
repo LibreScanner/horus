@@ -33,6 +33,8 @@ import glob
 import wx
 import wx.lib.scrolledpanel
 
+from horus.util import profile
+
 class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     """
@@ -60,10 +62,10 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
             self.cameraIdCombo.SetValue(self.cameraIdNames[0])
         self.cameraIdCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
         self.stepDegreesLabel = wx.StaticText(self, label=_(u"Step degrees (º) :"))
-        self.stepDegreesText = wx.TextCtrl(self, value="0.45", size=(82,-1))
+        self.stepDegreesText = wx.TextCtrl(self, value=profile.getProfileSetting('step_degrees'), size=(82,-1))
         self.stepDegreesText.Bind(wx.EVT_TEXT, self.resetMessage)
         self.stepDelayLabel = wx.StaticText(self, label=_("Step delay (us) :"))
-        self.stepDelayText = wx.TextCtrl(self, value="800", size=(92,-1))
+        self.stepDelayText = wx.TextCtrl(self, value=profile.getProfileSetting('step_delay'), size=(92,-1))
         self.stepDelayText.Bind(wx.EVT_TEXT, self.resetMessage)
         
         self.connectButton = wx.ToggleButton(self, label=_("Connect"), size=(100,-1))

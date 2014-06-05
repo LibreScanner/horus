@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2014-06-04 13:37+0200\n"
-"PO-Revision-Date: 2014-06-04 13:12+0100\n"
+"POT-Creation-Date: 2014-06-05 17:45+0200\n"
+"PO-Revision-Date: 2014-06-05 17:46+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: Python\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: ../../src/horus/gui/viewer.py:114 ../../src/horus/gui/control.py:554
+#: ../../src/horus/gui/viewer.py:115
 msgid "Video"
 msgstr "Video"
 
-#: ../../src/horus/gui/viewer.py:117 ../../src/horus/gui/control.py:559
+#: ../../src/horus/gui/viewer.py:118
 msgid "Point Cloud"
 msgstr "Nube de Puntos"
 
-#: ../../src/horus/gui/main.py:41
+#: ../../src/horus/gui/main.py:42
 msgid "Horus: 3d scanning for everyone"
 msgstr "Horus: escaneo 3D para todo el mundo"
 
@@ -33,31 +33,31 @@ msgstr "Horus: escaneo 3D para todo el mundo"
 msgid "Open Profile"
 msgstr "Abrir perfil"
 
-#: ../../src/horus/gui/main.py:56
+#: ../../src/horus/gui/main.py:55
 msgid "Save Profile"
 msgstr "Guardar perfil"
 
-#: ../../src/horus/gui/main.py:61
+#: ../../src/horus/gui/main.py:59
 msgid "Exit"
 msgstr "Salir"
 
-#: ../../src/horus/gui/main.py:65
+#: ../../src/horus/gui/main.py:62
 msgid "File"
 msgstr "Archivo"
 
-#: ../../src/horus/gui/main.py:99
+#: ../../src/horus/gui/main.py:96
 msgid "About"
 msgstr "Información"
 
-#: ../../src/horus/gui/main.py:103
+#: ../../src/horus/gui/main.py:99
 msgid "Help"
 msgstr "Ayuda"
 
-#: ../../src/horus/gui/main.py:148
+#: ../../src/horus/gui/main.py:142
 msgid "Horus is an open source 3D Scanner manager..."
 msgstr "Horus es un gestor de escáners 3D libre..."
 
-#: ../../src/horus/gui/main.py:151
+#: ../../src/horus/gui/main.py:145
 msgid ""
 "Horus is free software; you can redistribute \n"
 "it and/or modify it under the terms of the GNU General Public License as \n"
@@ -74,1432 +74,262 @@ msgid ""
 "Suite 330, Boston, MA  02111-1307  USA"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:174
+#: ../../src/horus/gui/main.py:168
 msgid "You must restart the application for the changes to be made"
 msgstr "Debes reiniciar la aplicación para que los cambios puedan realizarse"
 
-#: ../../src/horus/gui/main.py:174
+#: ../../src/horus/gui/main.py:168
 msgid "Information"
 msgstr "Información"
 
-#: ../../src/horus/gui/control.py:49
+#: ../../src/horus/gui/control.py:51
 msgid "Connection Parameters"
 msgstr "Parametros de conexión"
 
-#: ../../src/horus/gui/control.py:50
+#: ../../src/horus/gui/control.py:52
 msgid "Serial Name :"
 msgstr "Puerto serie:"
 
-#: ../../src/horus/gui/control.py:56
+#: ../../src/horus/gui/control.py:58
 msgid "Camera Id :"
 msgstr "Cámara Id:"
 
-#: ../../src/horus/gui/control.py:62
+#: ../../src/horus/gui/control.py:64
 msgid "Step degrees (º) :"
 msgstr "Paso en grados (º) :"
 
-#: ../../src/horus/gui/control.py:65
+#: ../../src/horus/gui/control.py:67
 msgid "Step delay (us) :"
 msgstr "Retraso entre pasos (us) :"
 
-#: ../../src/horus/gui/control.py:69 ../../src/horus/gui/control.py:187
+#: ../../src/horus/gui/control.py:71 ../../src/horus/gui/control.py:189
 msgid "Connect"
 msgstr "Conectar"
 
-#: ../../src/horus/gui/control.py:71 ../../src/horus/gui/control.py:183
-msgid "Disconnect"
-msgstr "Desconectar"
-
-#: ../../src/horus/gui/control.py:73
-msgid "Scan Step"
-msgstr "Escanear un paso"
-
-#: ../../src/horus/gui/control.py:76 ../../src/horus/gui/control.py:215
-msgid "Refresh On"
-msgstr "Refresco On"
-
-#: ../../src/horus/gui/control.py:79 ../../src/horus/gui/control.py:224
-msgid "Laser L On"
-msgstr "Láser I On"
-
-#: ../../src/horus/gui/control.py:81 ../../src/horus/gui/control.py:236
-msgid "Laser R On"
-msgstr "Láser D On"
-
-#: ../../src/horus/gui/control.py:83
-msgid "Motor CCW"
-msgstr "Motor CCW"
-
-#: ../../src/horus/gui/control.py:85
-msgid "Motor CW"
-msgstr "Motor CW"
-
-#: ../../src/horus/gui/control.py:88
-msgid "Raw image"
-msgstr "Imagen Raw"
-
-#: ../../src/horus/gui/control.py:90
-msgid "Laser image"
-msgstr "Imagen Láser"
-
-#: ../../src/horus/gui/control.py:92
-msgid "Diff image"
-msgstr "Imagen Diff"
-
-#: ../../src/horus/gui/control.py:94
-msgid "Binary image"
-msgstr "Imagen Binaria"
-
-#: ../../src/horus/gui/control.py:191
-msgid "Stop scan!"
-msgstr "¡Detener escaneo!"
-
-#: ../../src/horus/gui/control.py:197
-msgid "Stop"
-msgstr "Parar"
-
-#: ../../src/horus/gui/control.py:200
+#: ../../src/horus/gui/control.py:73 ../../src/horus/gui/control.py:202
 msgid "Start"
 msgstr "Iniciar"
 
-#: ../../src/horus/gui/control.py:203 ../../src/horus/gui/control.py:227
-#: ../../src/horus/gui/control.py:239 ../../src/horus/gui/control.py:248
-#: ../../src/horus/gui/control.py:257
+#: ../../src/horus/gui/control.py:75
+msgid "Scan Step"
+msgstr "Escanear un paso"
+
+#: ../../src/horus/gui/control.py:78 ../../src/horus/gui/control.py:217
+msgid "Refresh On"
+msgstr "Refresco On"
+
+#: ../../src/horus/gui/control.py:81 ../../src/horus/gui/control.py:226
+msgid "Laser L On"
+msgstr "Láser I On"
+
+#: ../../src/horus/gui/control.py:83 ../../src/horus/gui/control.py:238
+msgid "Laser R On"
+msgstr "Láser D On"
+
+#: ../../src/horus/gui/control.py:85
+msgid "Motor CCW"
+msgstr "Motor CCW"
+
+#: ../../src/horus/gui/control.py:87
+msgid "Motor CW"
+msgstr "Motor CW"
+
+#: ../../src/horus/gui/control.py:90
+msgid "Raw image"
+msgstr "Imagen Raw"
+
+#: ../../src/horus/gui/control.py:92
+msgid "Laser image"
+msgstr "Imagen Láser"
+
+#: ../../src/horus/gui/control.py:94
+msgid "Diff image"
+msgstr "Imagen Diff"
+
+#: ../../src/horus/gui/control.py:96
+msgid "Binary image"
+msgstr "Imagen Binaria"
+
+#: ../../src/horus/gui/control.py:185
+msgid "Disconnect"
+msgstr "Desconectar"
+
+#: ../../src/horus/gui/control.py:193
+msgid "Stop scan!"
+msgstr "¡Detener escaneo!"
+
+#: ../../src/horus/gui/control.py:199
+msgid "Stop"
+msgstr "Parar"
+
+#: ../../src/horus/gui/control.py:205 ../../src/horus/gui/control.py:229
+#: ../../src/horus/gui/control.py:241 ../../src/horus/gui/control.py:250
+#: ../../src/horus/gui/control.py:259
 msgid "Device not connected"
 msgstr "Dispositivo no conectado"
 
-#: ../../src/horus/gui/control.py:212
+#: ../../src/horus/gui/control.py:214
 msgid "Refresh Off"
 msgstr "Refresco Off"
 
-#: ../../src/horus/gui/control.py:221
+#: ../../src/horus/gui/control.py:223
 msgid "Laser L Off"
 msgstr "Láser I Off"
 
-#: ../../src/horus/gui/control.py:233
+#: ../../src/horus/gui/control.py:235
 msgid "Laser R Off"
 msgstr "Láser D Off"
 
-#: ../../src/horus/gui/control.py:272
+#: ../../src/horus/gui/control.py:274
 msgid "Config changed. You must reboot"
 msgstr "Cambios de configuración. Debe reiniciar"
 
-#: ../../src/horus/gui/control.py:287
+#: ../../src/horus/gui/control.py:289
 msgid "Image Processing"
 msgstr "Procesado de imagen"
 
-#: ../../src/horus/gui/control.py:288
+#: ../../src/horus/gui/control.py:290
 msgid "Blur"
 msgstr "Blur"
 
-#: ../../src/horus/gui/control.py:293
+#: ../../src/horus/gui/control.py:295
 msgid "Open"
 msgstr "Open"
 
-#: ../../src/horus/gui/control.py:298
+#: ../../src/horus/gui/control.py:300
 msgid "min H"
 msgstr "min H"
 
-#: ../../src/horus/gui/control.py:301
+#: ../../src/horus/gui/control.py:303
 msgid "min S"
 msgstr "min S"
 
-#: ../../src/horus/gui/control.py:304
+#: ../../src/horus/gui/control.py:306
 msgid "min V"
 msgstr "min V"
 
-#: ../../src/horus/gui/control.py:307
+#: ../../src/horus/gui/control.py:309
 msgid "max H"
 msgstr "max H"
 
-#: ../../src/horus/gui/control.py:310
+#: ../../src/horus/gui/control.py:312
 msgid "max S"
 msgstr "max S"
 
-#: ../../src/horus/gui/control.py:313
+#: ../../src/horus/gui/control.py:315
 msgid "max V"
 msgstr "max V"
 
-#: ../../src/horus/gui/control.py:317
+#: ../../src/horus/gui/control.py:319
 msgid "ROI Selection"
 msgstr "Selección ROI"
 
-#: ../../src/horus/gui/control.py:318
+#: ../../src/horus/gui/control.py:320
 msgid "radius"
 msgstr "radio"
 
-#: ../../src/horus/gui/control.py:410
+#: ../../src/horus/gui/control.py:412
 msgid "Calibration Parameters"
 msgstr "Parametros de Calibración"
 
-#: ../../src/horus/gui/control.py:411
+#: ../../src/horus/gui/control.py:413
 msgid "fx"
 msgstr "fx"
 
-#: ../../src/horus/gui/control.py:413
+#: ../../src/horus/gui/control.py:415
 msgid "fy"
 msgstr "fy"
 
-#: ../../src/horus/gui/control.py:415
+#: ../../src/horus/gui/control.py:417
 msgid "cx"
 msgstr "cx"
 
-#: ../../src/horus/gui/control.py:417
+#: ../../src/horus/gui/control.py:419
 msgid "cy"
 msgstr "cy"
 
-#: ../../src/horus/gui/control.py:419
+#: ../../src/horus/gui/control.py:421
 msgid "zs"
 msgstr "zs"
 
-#: ../../src/horus/gui/control.py:421
+#: ../../src/horus/gui/control.py:423
 msgid "ho"
 msgstr "ho"
 
-#: ../../src/horus/gui/control.py:424
+#: ../../src/horus/gui/control.py:426
 msgid "Algorithm"
 msgstr "Algoritmo"
 
-#: ../../src/horus/gui/control.py:425
+#: ../../src/horus/gui/control.py:427
 msgid "Compact"
 msgstr "Compacto"
 
-#: ../../src/horus/gui/control.py:427
+#: ../../src/horus/gui/control.py:429
 msgid "Complete"
 msgstr "Completo"
 
-#: ../../src/horus/gui/control.py:430
+#: ../../src/horus/gui/control.py:432
 msgid "Filter"
 msgstr "Filtro"
 
-#: ../../src/horus/gui/control.py:432
+#: ../../src/horus/gui/control.py:434
 msgid "<  r  <"
 msgstr "<  r  <"
 
-#: ../../src/horus/gui/control.py:435
+#: ../../src/horus/gui/control.py:437
 msgid "<  h  <"
 msgstr "<  h  <"
 
-#: ../../src/horus/gui/control.py:438
+#: ../../src/horus/gui/control.py:440
 msgid "Move"
 msgstr "Mover"
 
-#: ../../src/horus/gui/control.py:439
+#: ../../src/horus/gui/control.py:441
 msgid "z"
 msgstr "z"
 
-#: ../../src/horus/gui/control.py:443
+#: ../../src/horus/gui/control.py:445
 msgid "Save"
 msgstr "Guardar"
 
-#: ../../src/horus/gui/control.py:445
+#: ../../src/horus/gui/control.py:447
 msgid "Apply"
 msgstr "Aplicar"
 
-#: ../../src/horus/gui/control.py:523
+#: ../../src/horus/gui/control.py:525
 msgid "Save As"
 msgstr "Guardar como"
 
-#: ../../src/horus/gui/control.py:524
+#: ../../src/horus/gui/control.py:526
 msgid "PLY files (*.ply)|*.ply"
 msgstr "Archivos PLY (*.ply)|*.ply"
 
-#: ../../src/horus/gui/control.py:547
+#: ../../src/horus/gui/control.py:549
 msgid "Control"
 msgstr "Control"
 
-#: ../../src/horus/util/profile.py:170 ../../src/horus/util/profile.py:171
-#: ../../src/horus/util/profile.py:172 ../../src/horus/util/profile.py:200
-#: ../../src/horus/util/profile.py:201 ../../src/horus/util/profile.py:203
-msgid "Quality"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:170
-msgid "Layer height (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:170
-msgid ""
-"Layer height in millimeters.\n"
-"This is the most important setting to determine the quality of your print. "
-"Normal quality prints are 0.1mm, high quality is 0.06mm. You can go up to "
-"0.25mm with an Ultimaker for very fast prints at low quality."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:171
-msgid "Shell thickness (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:171
-msgid ""
-"Thickness of the outside shell in the horizontal direction.\n"
-"This is used in combination with the nozzle size to define the number\n"
-"of perimeter lines and the thickness of those perimeter lines."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:172
-msgid "Enable retraction"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:172
-msgid ""
-"Retract the filament when the nozzle is moving over a none-printed area. "
-"Details about the retraction can be configured in the advanced tab."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:173 ../../src/horus/util/profile.py:174
-msgid "Fill"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:173
-msgid "Bottom/Top thickness (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:173
-msgid ""
-"This controls the thickness of the bottom and top layers, the amount of "
-"solid layers put down is calculated by the layer thickness and this value.\n"
-"Having this value a multiple of the layer thickness makes sense. And keep it "
-"near your wall thickness to make an evenly strong part."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:174
-msgid "Fill Density (%)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:174
-msgid ""
-"This controls how densely filled the insides of your print will be. For a "
-"solid part use 100%, for an empty part use 0%. A value around 20% is usually "
-"enough.\n"
-"This won't affect the outside of the print and only adjusts how strong the "
-"part becomes."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:175
-msgid "Machine"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:175
-msgid "Nozzle size (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:175
-msgid ""
-"The nozzle size is very important, this is used to calculate the line width "
-"of the infill, and used to calculate the amount of outside wall lines and "
-"thickness for the wall thickness you entered in the print settings."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:176 ../../src/horus/util/profile.py:177
-#: ../../src/horus/util/profile.py:178 ../../src/horus/util/profile.py:179
-#: ../../src/horus/util/profile.py:180 ../../src/horus/util/profile.py:181
-msgid "Speed and Temperature"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:176
-msgid "Print speed (mm/s)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:176
-msgid ""
-"Speed at which printing happens. A well adjusted Ultimaker can reach 150mm/"
-"s, but for good quality prints you want to print slower. Printing speed "
-"depends on a lot of factors. So you will be experimenting with optimal "
-"settings for this."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:177
-msgid "Printing temperature (C)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:177 ../../src/horus/util/profile.py:178
-#: ../../src/horus/util/profile.py:179 ../../src/horus/util/profile.py:180
-msgid ""
-"Temperature used for printing. Set at 0 to pre-heat yourself.\n"
-"For PLA a value of 210C is usually used.\n"
-"For ABS a value of 230C or higher is required."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:178
-msgid "2nd nozzle temperature (C)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:179
-msgid "3th nozzle temperature (C)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:180
-msgid "4th nozzle temperature (C)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:181
-msgid "Bed temperature (C)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:181
-msgid ""
-"Temperature used for the heated printer bed. Set at 0 to pre-heat yourself."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:182 ../../src/horus/util/profile.py:183
-msgid "None"
-msgstr ""
-
 #: ../../src/horus/util/profile.py:182
-msgid "Touching buildplate"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:182
-msgid "Everywhere"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:182 ../../src/horus/util/profile.py:183
-#: ../../src/horus/util/profile.py:184 ../../src/horus/util/profile.py:223
-#: ../../src/horus/util/profile.py:224 ../../src/horus/util/profile.py:225
-#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:227
-msgid "Support"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:182
-msgid "Support type"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:182
-msgid ""
-"Type of support structure build.\n"
-"\"Touching buildplate\" is the most commonly used support setting.\n"
-"\n"
-"None does not do any support.\n"
-"Touching buildplate only creates support where the support structure will "
-"touch the build platform.\n"
-"Everywhere creates support even on top of parts of the model."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:183 ../../src/horus/util/profile.py:231
-msgid "Brim"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:183 ../../src/horus/util/profile.py:232
-#: ../../src/horus/util/profile.py:233 ../../src/horus/util/profile.py:234
-#: ../../src/horus/util/profile.py:235 ../../src/horus/util/profile.py:236
-#: ../../src/horus/util/profile.py:237 ../../src/horus/util/profile.py:238
-#: ../../src/horus/util/profile.py:239
-msgid "Raft"
-msgstr ""
+msgid "Step Degrees"
+msgstr "Paso en grados"
 
 #: ../../src/horus/util/profile.py:183
-msgid "Platform adhesion type"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:183
-msgid ""
-"Different options that help in preventing corners from lifting due to "
-"warping.\n"
-"Brim adds a single layer thick flat area around your object which is easy to "
-"cut off afterwards, and it is the recommended option.\n"
-"Raft adds a thick raster below the object and a thin interface between this "
-"and your object.\n"
-"(Note that enabling the brim or raft disables the skirt)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:184
-msgid "Both"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:184
-msgid "First extruder"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:184
-msgid "Second extruder"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:184
-msgid "Support dual extrusion"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:184
-msgid ""
-"Which extruder to use for support material, for break-away support you can "
-"use both extruders.\n"
-"But if one of the materials is more expensive then the other you could "
-"select an extruder to use for support material. This causes more extruder "
-"switches.\n"
-"You can also use the 2nd extruder for soluble support materials."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:185 ../../src/horus/util/profile.py:186
-#: ../../src/horus/util/profile.py:187
-msgid "Dual extrusion"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:185
-msgid "Wipe&prime tower"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:185
-msgid ""
-"The wipe-tower is a tower printed on every layer when switching between "
-"nozzles.\n"
-"The old nozzle is wiped off on the tower before the new nozzle is used to "
-"print the 2nd color."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:186
-msgid "Wipe&prime tower volume per layer (mm3)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:186
-msgid ""
-"The amount of material put in the wipe/prime tower.\n"
-"This is done in volume because in general you want to extrude a\n"
-"certain amount of volume to get the extruder going, independent on the layer "
-"height.\n"
-"This means that with thinner layers, your tower gets bigger."
-msgstr ""
+msgid "Step Delay"
+msgstr "Retraso entre pasos"
 
 #: ../../src/horus/util/profile.py:187
-msgid "Ooze shield"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:187
-msgid ""
-"The ooze shield is a 1 line thick shell around the object which stands a few "
-"mm from the object.\n"
-"This shield catches any oozing from the unused nozzle in dual-extrusion."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:188 ../../src/horus/util/profile.py:189
-#: ../../src/horus/util/profile.py:190 ../../src/horus/util/profile.py:191
-#: ../../src/horus/util/profile.py:192
-msgid "Filament"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:188
-msgid "Diameter (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:188
-msgid ""
-"Diameter of your filament, as accurately as possible.\n"
-"If you cannot measure this value you will have to calibrate it, a higher "
-"number means less extrusion, a smaller number generates more extrusion."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:189
-msgid "Diameter2 (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:189
-msgid ""
-"Diameter of your filament for the 2nd nozzle. Use 0 to use the same diameter "
-"as for nozzle 1."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:190
-msgid "Diameter3 (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:190
-msgid ""
-"Diameter of your filament for the 3th nozzle. Use 0 to use the same diameter "
-"as for nozzle 1."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:191
-msgid "Diameter4 (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:191
-msgid ""
-"Diameter of your filament for the 4th nozzle. Use 0 to use the same diameter "
-"as for nozzle 1."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:192
-msgid "Flow (%)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:192
-msgid ""
-"Flow compensation, the amount of material extruded is multiplied by this "
-"value"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:193 ../../src/horus/util/profile.py:194
-#: ../../src/horus/util/profile.py:195 ../../src/horus/util/profile.py:196
-#: ../../src/horus/util/profile.py:197 ../../src/horus/util/profile.py:198
-#: ../../src/horus/util/profile.py:199
-#, fuzzy
-msgid "Retraction"
-msgstr "Selección ROI"
-
-#: ../../src/horus/util/profile.py:193
-msgid "Speed (mm/s)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:193
-msgid ""
-"Speed at which the filament is retracted, a higher retraction speed works "
-"better. But a very high retraction speed can lead to filament grinding."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:194
-msgid "Distance (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:194
-msgid ""
-"Amount of retraction, set at 0 for no retraction at all. A value of 4.5mm "
-"seems to generate good results."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:195
-msgid "Dual extrusion switch amount (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:195
-msgid ""
-"Amount of retraction when switching nozzle with dual-extrusion, set at 0 for "
-"no retraction at all. A value of 16.0mm seems to generate good results."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:196
-msgid "Minimum travel (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:196
-msgid ""
-"Minimum amount of travel needed for a retraction to happen at all. To make "
-"sure you do not get a lot of retractions in a small area."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:197
-msgid "Enable combing"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:197
-msgid ""
-"Combing is the act of avoiding holes in the print for the head to travel "
-"over. If combing is disabled the printer head moves straight from the start "
-"point to the end point and it will always retract."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:198
-msgid "Minimal extrusion before retracting (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:198
-msgid ""
-"The minimal amount of extrusion that needs to be done before retracting "
-"again if a retraction needs to happen before this minimal is reached the "
-"retraction is ignored.\n"
-"This avoids retracting a lot on the same piece of filament which flattens "
-"the filament and causes grinding issues."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:199
-msgid "Z hop when retracting (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:199
-msgid ""
-"When a retraction is done, the head is lifted by this amount to travel over "
-"the print. A value of 0.075 works well. This feature has a lot of positive "
-"effect on delta towers."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:200
-msgid "Initial layer thickness (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:200
-msgid ""
-"Layer thickness of the bottom layer. A thicker bottom layer makes sticking "
-"to the bed easier. Set to 0.0 to have the bottom layer thickness the same as "
-"the other layers."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:201
-msgid "Cut off object bottom (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:201
-msgid ""
-"Sinks the object into the platform, this can be used for objects that do not "
-"have a flat bottom and thus create a too small first layer."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:203
-msgid "Dual extrusion overlap (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:203
-msgid ""
-"Add a certain amount of overlapping extrusion on dual-extrusion prints. This "
-"bonds the different colors together."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:204 ../../src/horus/util/profile.py:205
-#: ../../src/horus/util/profile.py:206 ../../src/horus/util/profile.py:207
-#: ../../src/horus/util/profile.py:208
-msgid "Speed"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:204
-msgid "Travel speed (mm/s)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:204
-msgid ""
-"Speed at which travel moves are done, a well built Ultimaker can reach "
-"speeds of 250mm/s. But some machines might miss steps then."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:205
-msgid "Bottom layer speed (mm/s)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:205
-msgid ""
-"Print speed for the bottom layer, you want to print the first layer slower "
-"so it sticks better to the printer bed."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:206
-msgid "Infill speed (mm/s)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:206
-msgid ""
-"Speed at which infill parts are printed. If set to 0 then the print speed is "
-"used for the infill. Printing the infill faster can greatly reduce printing "
-"time, but this can negatively affect print quality."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:207
-msgid "Outer shell speed (mm/s)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:207
-msgid ""
-"Speed at which outer shell is printed. If set to 0 then the print speed is "
-"used. Printing the outer shell at a lower speed improves the final skin "
-"quality. However, having a large difference between the inner shell speed "
-"and the outer shell speed will effect quality in a negative way."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:208
-msgid "Inner shell speed (mm/s)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:208
-msgid ""
-"Speed at which inner shells are printed. If set to 0 then the print speed is "
-"used. Printing the inner shell faster then the outer shell will reduce "
-"printing time. It is good to set this somewhere in between the outer shell "
-"speed and the infill/printing speed."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:209 ../../src/horus/util/profile.py:210
-#: ../../src/horus/util/profile.py:215 ../../src/horus/util/profile.py:216
-#: ../../src/horus/util/profile.py:217 ../../src/horus/util/profile.py:218
-#: ../../src/horus/util/profile.py:219
-msgid "Cool"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:209
-msgid "Minimal layer time (sec)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:209
-msgid ""
-"Minimum time spent in a layer, gives the layer time to cool down before the "
-"next layer is put on top. If the layer will be placed down too fast the "
-"printer will slow down to make sure it has spent at least this amount of "
-"seconds printing this layer."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:210
-msgid "Enable cooling fan"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:210
-msgid ""
-"Enable the cooling fan during the print. The extra cooling from the cooling "
-"fan is essential during faster prints."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:212
-msgid "Line count"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:212
-msgid ""
-"The skirt is a line drawn around the object at the first layer. This helps "
-"to prime your extruder, and to see if the object fits on your platform.\n"
-"Setting this to 0 will disable the skirt. Multiple skirt lines can help "
-"priming your extruder better for small objects."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:213
-msgid "Start distance (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:213
-msgid ""
-"The distance between the skirt and the first layer.\n"
-"This is the minimal distance, multiple skirt lines will be put outwards from "
-"this distance."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:214
-msgid "Minimal length (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:214
-msgid ""
-"The minimal length of the skirt, if this minimal length is not reached it "
-"will add more skirt lines to reach this minimal lenght.\n"
-"Note: If the line count is set to 0 this is ignored."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:215
-msgid "Fan full on at height (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:215
-msgid ""
-"The height at which the fan is turned on completely. For the layers below "
-"this the fan speed is scaled linearly with the fan off at layer 0."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:216
-msgid "Fan speed min (%)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:216
-msgid ""
-"When the fan is turned on, it is enabled at this speed setting. If cool "
-"slows down the layer, the fan is adjusted between the min and max speed. "
-"Minimal fan speed is used if the layer is not slowed down due to cooling."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:217
-msgid "Fan speed max (%)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:217
-msgid ""
-"When the fan is turned on, it is enabled at this speed setting. If cool "
-"slows down the layer, the fan is adjusted between the min and max speed. "
-"Maximal fan speed is used if the layer is slowed down due to cooling by more "
-"than 200%."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:218
-msgid "Minimum speed (mm/s)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:218
-msgid ""
-"The minimal layer time can cause the print to slow down so much it starts to "
-"ooze. The minimal feedrate protects against this. Even if a print gets "
-"slowed down it will never be slower than this minimal speed."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:219
-msgid "Cool head lift"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:219
-msgid ""
-"Lift the head if the minimal speed is hit because of cool slowdown, and wait "
-"the extra time so the minimal layer time is always hit."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:220 ../../src/horus/util/profile.py:221
-#: ../../src/horus/util/profile.py:222
-msgid "Infill"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:220
-msgid "Solid infill top"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:220
-msgid ""
-"Create a solid top surface, if set to false the top is filled with the fill "
-"percentage. Useful for cups/vases."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:221
-msgid "Solid infill bottom"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:221
-msgid ""
-"Create a solid bottom surface, if set to false the bottom is filled with the "
-"fill percentage. Useful for buildings."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:222
-msgid "Infill overlap (%)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:222
-msgid ""
-"Amount of overlap between the infill and the walls. There is a slight "
-"overlap with the walls and the infill so the walls connect firmly to the "
-"infill."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:223
-msgid "Structure type"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:223
-msgid ""
-"The type of support structure.\n"
-"Grid is very strong and can come off in 1 piece, however, sometimes it is "
-"too strong.\n"
-"Lines are single walled lines that break off one at a time. Which is more "
-"work to remove, but as it is less strong it does work better on tricky "
-"prints."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:224
-msgid "Overhang angle for support (deg)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:224
-msgid ""
-"The minimal angle that overhangs need to have to get support. With 0 degree "
-"being horizontal and 90 degree being vertical."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:225
-msgid "Fill amount (%)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:225
-#, python-format
-msgid ""
-"Amount of infill structure in the support material, less material gives "
-"weaker support which is easier to remove. 15% seems to be a good average."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:226
-msgid "Distance X/Y (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:226
-msgid ""
-"Distance of the support material from the print, in the X/Y directions.\n"
-"0.7mm gives a nice distance from the print so the support does not stick to "
-"the print."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:227
-msgid "Distance Z (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:227
-msgid ""
-"Distance from the top/bottom of the support to the print. A small gap here "
-"makes it easier to remove the support but makes the print a bit uglier.\n"
-"0.15mm gives a good seperation of the support material."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:228
-msgid "Spiralize the outer contour"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:228
-msgid ""
-"Spiralize is smoothing out the Z move of the outer edge. This will create a "
-"steady Z increase over the whole print. This feature turns a solid object "
-"into a single walled print with a solid bottom.\n"
-"This feature used to be called Joris in older versions."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:229
-msgid "Only follow mesh surface"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:229
-msgid ""
-"Only follow the mesh surfaces of the 3D model, do not do anything else. No "
-"infill, no top/bottom, nothing."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:231
-msgid "Brim line amount"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:231
-msgid ""
-"The amount of lines used for a brim, more lines means a larger brim which "
-"sticks better, but this also makes your effective print area smaller."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:232
-msgid "Extra margin (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:232
-msgid ""
-"If the raft is enabled, this is the extra raft area around the object which "
-"is also rafted. Increasing this margin will create a stronger raft while "
-"using more material and leaving less area for your print."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:233
-msgid "Line spacing (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:233
-msgid ""
-"When you are using the raft this is the distance between the centerlines of "
-"the raft line."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:234
-msgid "Base thickness (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:234
-msgid ""
-"When you are using the raft this is the thickness of the base layer which is "
-"put down."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:235
-msgid "Base line width (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:235
-msgid ""
-"When you are using the raft this is the width of the base layer lines which "
-"are put down."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:236
-msgid "Interface thickness (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:236
-msgid ""
-"When you are using the raft this is the thickness of the interface layer "
-"which is put down."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:237
-msgid "Interface line width (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:237
-msgid ""
-"When you are using the raft this is the width of the interface layer lines "
-"which are put down."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:238
-msgid "Airgap"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:238
-msgid ""
-"Gap between the last layer of the raft and the first printing layer. A small "
-"gap of 0.2mm works wonders on PLA and makes the raft easy to remove."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:239
-msgid "Surface layers"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:239
-msgid ""
-"Amount of surface layers put on top of the raft, these are fully filled "
-"layers on which the model is printed."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:240 ../../src/horus/util/profile.py:241
-#: ../../src/horus/util/profile.py:242 ../../src/horus/util/profile.py:243
-msgid "Fix horrible"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:240
-msgid "Combine everything (Type-A)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:240 ../../src/horus/util/profile.py:241
-msgid ""
-"This expert option adds all parts of the model together. The result is "
-"usually that internal cavities disappear. Depending on the model this can be "
-"intended or not. Enabling this option is at your own risk. Type-A is "
-"dependent on the model normals and tries to keep some internal holes intact. "
-"Type-B ignores all internal holes and only keeps the outside shape per layer."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:241
-msgid "Combine everything (Type-B)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:242
-msgid "Keep open faces"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:242
-msgid ""
-"This expert option keeps all the open bits of the model intact. Normally "
-"Cura tries to stitch up small holes and remove everything with big holes, "
-"but this option keeps bits that are not properly part of anything and just "
-"goes with whatever is left. This option is usually not what you want, but it "
-"might enable you to slice models otherwise failing to produce proper paths.\n"
-"As with all \"Fix horrible\" options, results may vary and use at your own "
-"risk."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:243
-msgid "Extensive stitching"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:243
-msgid ""
-"Extensive stitching tries to fix up open holes in the model by closing the "
-"hole with touching polygons. This algorthm is quite expensive and could "
-"introduce a lot of processing time.\n"
-"As with all \"Fix horrible\" options, results may vary and use at your own "
-"risk."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:469
-#, fuzzy
-msgid "Save profile on slice"
-msgstr "Guardar perfil"
-
-#: ../../src/horus/util/profile.py:469
-msgid ""
-"When slicing save the profile as [stl_file]_profile.ini next to the model."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:470
-msgid "Cost (price/kg)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:470
-msgid "Cost of your filament per kg, to estimate the cost of the final print."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:471
-msgid "Cost (price/m)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:471
-msgid ""
-"Cost of your filament per meter, to estimate the cost of the final print."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:472
-msgid "Auto detect SD card drive"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:472
-msgid ""
-"Auto detect the SD card. You can disable this because on some systems "
-"external hard-drives or USB sticks are detected as SD card."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:473
-msgid "Check for updates"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:473
-msgid "Check for newer versions of Cura on startup"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:474
-msgid "Send usage statistics"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:474
-msgid "Submit anonymous usage information to improve future versions of Cura"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:476
-msgid "Density (kg/m3)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:476
-msgid ""
-"Weight of the filament per m3. Around 1240 for PLA. And around 1040 for ABS. "
-"This value is used to estimate the weight if the filament used for the print."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:477
 msgid "Language"
-msgstr ""
+msgstr "Idioma"
 
-#: ../../src/horus/util/profile.py:477
+#: ../../src/horus/util/profile.py:187
 msgid ""
-"Change the language in which Cura runs. Switching language requires a "
-"restart of Cura"
+"Change the language in which Horus runs. Switching language requires a "
+"restart of Horus"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:480
-msgid "Model colour"
-msgstr ""
+#, fuzzy
+#~ msgid "Retraction"
+#~ msgstr "Selección ROI"
 
-#: ../../src/horus/util/profile.py:480
-msgid "Display color for first extruder"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:481
-msgid "Model colour (2)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:481
-msgid "Display color for second extruder"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:482
-msgid "Model colour (3)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:482
-msgid "Display color for third extruder"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:483
-msgid "Model colour (4)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:483
-msgid "Display color for forth extruder"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:484
-msgid "Printing window type"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:484
-msgid "Select the interface used for USB printing."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:496
-msgid "Maximum width (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:496 ../../src/horus/util/profile.py:497
-#: ../../src/horus/util/profile.py:498
-msgid "Size of the machine in mm"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:497
-msgid "Maximum depth (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:498
-msgid "Maximum height (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:499
-msgid "Machine center 0,0"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:499
-msgid ""
-"Machines firmware defines the center of the bed as 0,0 instead of the front "
-"left corner."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:500
-msgid "Build area shape"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:500
-msgid "The shape of machine build area."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:502
-msgid "Heated bed"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:502
-msgid ""
-"If you have an heated bed, this enabled heated bed settings (requires "
-"restart)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:503
-msgid "GCode Flavor"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:503
-msgid ""
-"Flavor of generated GCode.\n"
-"RepRap is normal 5D GCode which works on Marlin/Sprinter based firmwares.\n"
-"UltiGCode is a variation of the RepRap GCode which puts more settings in the "
-"machine instead of the slicer.\n"
-"MakerBot GCode has a few changes in the way GCode is generated, but still "
-"requires MakerWare to generate to X3G.\n"
-"BFB style generates RPM based code.\n"
-"Mach3 uses A,B,C instead of E for extruders."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:504
-msgid "Extruder count"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:504
-msgid "Amount of extruders in your machine."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:505 ../../src/horus/util/profile.py:507
-#: ../../src/horus/util/profile.py:509
-msgid "Offset X"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:505 ../../src/horus/util/profile.py:506
-msgid "The offset of your secondary extruder compared to the primary."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:506 ../../src/horus/util/profile.py:508
-#: ../../src/horus/util/profile.py:510
-msgid "Offset Y"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:507 ../../src/horus/util/profile.py:508
-msgid "The offset of your tertiary extruder compared to the primary."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:509 ../../src/horus/util/profile.py:510
-msgid "The offset of your forth extruder compared to the primary."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:511
-msgid "E-Steps per 1mm filament"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:511
-msgid ""
-"Amount of steps per mm filament extrusion. If set to 0 then this value is "
-"ignored and the value in your firmware is used."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:512
-msgid "Serial port"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:512
-msgid "Serial port to use for communication with the printer"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:514
-msgid "Baudrate"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:514
-msgid ""
-"Speed of the serial port communication\n"
-"Needs to match your firmware settings\n"
-"Common values are 250000, 115200, 57600"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:517
-msgid "Head size towards X min (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:517
-msgid ""
-"The head size when printing multiple objects, measured from the tip of the "
-"nozzle towards the outer part of the head. 75mm for an Ultimaker if the fan "
-"is on the left side."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:518
-msgid "Head size towards Y min (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:518 ../../src/horus/util/profile.py:519
-msgid ""
-"The head size when printing multiple objects, measured from the tip of the "
-"nozzle towards the outer part of the head. 18mm for an Ultimaker if the fan "
-"is on the left side."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:519
-msgid "Head size towards X max (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:520
-msgid "Head size towards Y max (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:520
-msgid ""
-"The head size when printing multiple objects, measured from the tip of the "
-"nozzle towards the outer part of the head. 35mm for an Ultimaker if the fan "
-"is on the left side."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:521
-msgid "Printer gantry height (mm)"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:521
-msgid ""
-"The height of the gantry holding up the printer head. If an object is higher "
-"then this then you cannot print multiple objects one for one. 60mm for an "
-"Ultimaker."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:523
-#, python-format
-msgid "More flow than 150% is rare and usually not recommended."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:524
-#, python-format
-msgid "Less flow than 50% is rare and usually not recommended."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:525
-#, python-format
-msgid ""
-"Thicker layers then %.2fmm (80%% nozzle size) usually give bad results and "
-"are not recommended."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:527
-msgid ""
-"It is highly unlikely that your machine can achieve a printing speed above "
-"150mm/s"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:529 ../../src/horus/util/profile.py:530
-#: ../../src/horus/util/profile.py:531 ../../src/horus/util/profile.py:532
-msgid "Temperatures above 260C could damage your machine, be careful!"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:533 ../../src/horus/util/profile.py:534
-#: ../../src/horus/util/profile.py:535 ../../src/horus/util/profile.py:536
-msgid ""
-"Are you sure your filament is that thick? Normal filament is around 3mm or "
-"1.75mm."
-msgstr ""
-
-#: ../../src/horus/util/profile.py:537
-msgid ""
-"It is highly unlikely that your machine can achieve a travel speed above "
-"300mm/s"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:538
-#, python-format
-msgid ""
-"A bottom layer of more then %.2fmm (3/4 nozzle size) usually give bad "
-"results and is not recommended."
-msgstr ""
+#, fuzzy
+#~ msgid "Save profile on slice"
+#~ msgstr "Guardar perfil"
