@@ -49,12 +49,15 @@ class MainWindow(wx.Frame):
 
         menuBar = wx.MenuBar()
         menuFile = wx.Menu()
-        menuOpen = wx.MenuItem(menuFile, wx.ID_OPEN, _("Open Profile"))
-        menuOpen.SetBitmap(wx.Bitmap(getPathForImage("load.png")))
-        menuFile.AppendItem(menuOpen)
-        menuSave = wx.MenuItem(menuFile, wx.ID_SAVE, _("Save Profile"))
-        menuSave.SetBitmap(wx.Bitmap(getPathForImage("save.png")))
-        menuFile.AppendItem(menuSave)
+        menuOpenProfile = wx.MenuItem(menuFile, wx.ID_OPEN, _("Open Profile"))
+        menuOpenProfile.SetBitmap(wx.Bitmap(getPathForImage("load.png")))
+        menuFile.AppendItem(menuOpenProfile)
+        menuSaveProfile = wx.MenuItem(menuFile, wx.ID_SAVE, _("Save Profile"))
+        menuSaveProfile.SetBitmap(wx.Bitmap(getPathForImage("save.png")))
+        menuFile.AppendItem(menuSaveProfile)
+        menuResetProfile = wx.MenuItem(menuFile, -1 , _("Reset Profile"))
+        #menuResetProfile.SetBitmap(wx.Bitmap(getPathForImage("reset.png")))
+        menuFile.AppendItem(menuResetProfile)
         menuFile.AppendSeparator()
         menuExit = wx.MenuItem(menuFile, wx.ID_EXIT, str(u'&'+_("Exit")+u'\tCtrl+Q'))
         menuExit.SetBitmap(wx.Bitmap(getPathForImage("exit.png")))
@@ -100,19 +103,20 @@ class MainWindow(wx.Frame):
 
         self.SetMenuBar(menuBar)
 
-        scanner = Scanner(self)
+        self.scanner = Scanner(self)
 
-        viewer = ViewNotebook(self, scanner)
-        control = ControlNotebook(self, scanner, viewer)
+        self.viewer = ViewNotebook(self, self.scanner)
+        self.control = ControlNotebook(self, self.scanner, self.viewer)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(control, 0, wx.ALL|wx.EXPAND, 10)
-        sizer.Add(viewer, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
+        sizer.Add(self.control, 0, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(self.viewer, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
         self.SetSizer(sizer)
 
-        # Events
-        self.Bind(wx.EVT_MENU, self.onOpen, menuOpen)
-        self.Bind(wx.EVT_MENU, self.onSave, menuSave)
+        # Eventsº
+        self.Bind(wx.EVT_MENU, self.onOpenProfile, menuOpenProfile)
+        self.Bind(wx.EVT_MENU, self.onSaveProfile, menuSaveProfile)
+        self.Bind(wx.EVT_MENU, self.onResetProfile, menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
         #self.Bind(wx.EVT_MENU, self.onSpanish, menuSpanish)
         #self.Bind(wx.EVT_MENU, self.onEnglish, menuEnglish)
@@ -124,13 +128,42 @@ class MainWindow(wx.Frame):
         self.Show()
 
 
-    def onOpen(self, event):
+    def onOpenProfile(self, event):
         """ """
-        pass
+        dlg=wx.FileDialog(self, _("Select profile file to load"), "", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        dlg.SetWildcard("ini files (*.ini)|*.ini")
+        if dlg.ShowModal() == wx.ID_OK:
+            profileFile = dlg.GetPath()
+            profile.loadProfile(profileFile)
+            self.updateProfileToAllControls()
+        dlg.Destroy()
 
-    def onSave(self, event):
+    def onSaveProfile(self, event):
         """ """
-        pass
+        import platform
+
+        dlg=wx.FileDialog(self, _("Select profile file to save"), "", style=wx.FD_SAVE)
+        dlg.SetWildcard("ini files (*.ini)|*.ini")
+        if dlg.ShowModal() == wx.ID_OK:
+            profileFile = dlg.GetPath()
+            if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
+                profileFile += '.ini'
+            profile.saveProfile(profileFile)
+        dlg.Destroy()
+
+    def onResetProfile(self, event):
+        """ """
+        dlg = wx.MessageDialog(self, _("This will reset all profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Profile reset"), wx.YES_NO | wx.ICON_QUESTION)
+        result = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        if result:
+            profile.resetProfile()
+            self.updateProfileToAllControls()
+
+    def updateProfileToAllControls(self):
+        """ """
+        self.control.updateProfileToAllControls()
+        ## TODO
 
     def onAbout(self, event):
         """ """

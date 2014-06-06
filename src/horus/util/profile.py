@@ -180,11 +180,12 @@ def _(n):
 #-- Settings
  
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1125)
-setting('step_delay', 800, float, 'basic', _('Step Delay')).setRange(100, 10000)
+setting('step_delay', 800, int, 'basic', _('Step Delay')).setRange(100, 10000)
 
 setting('machine_name', '', str, 'machine', 'hidden')
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
+
 
 #Remove fake defined _() because later the localization will define a global _()
 del _
@@ -278,7 +279,7 @@ def loadProfile(filename, allMachines = False):
 			section = 'profile'
 			if profileParser.has_option(section, set.getName()):
 				set.setValue(unicode(profileParser.get(section, set.getName()), 'utf-8', 'replace'))
-
+				
 def saveProfile(filename, allMachines = False):
 	"""
 		Save the current profile to an ini file.

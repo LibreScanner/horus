@@ -63,10 +63,10 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.cameraIdCombo.Bind(wx.EVT_COMBOBOX, self.resetMessage)
         self.stepDegreesLabel = wx.StaticText(self, label=_(u"Step degrees (º) :"))
         self.stepDegreesText = wx.TextCtrl(self, value=profile.getProfileSetting('step_degrees'), size=(82,-1))
-        self.stepDegreesText.Bind(wx.EVT_TEXT, self.resetMessage)
+        self.stepDegreesText.Bind(wx.EVT_TEXT, self.onStepDegreesTextChanged)
         self.stepDelayLabel = wx.StaticText(self, label=_("Step delay (us) :"))
         self.stepDelayText = wx.TextCtrl(self, value=profile.getProfileSetting('step_delay'), size=(92,-1))
-        self.stepDelayText.Bind(wx.EVT_TEXT, self.resetMessage)
+        self.stepDelayText.Bind(wx.EVT_TEXT, self.onStepDelayTextChanged)
         
         self.connectButton = wx.ToggleButton(self, label=_("Connect"), size=(100,-1))
         self.connectButton.Bind(wx.EVT_TOGGLEBUTTON, self.connect)
@@ -152,6 +152,12 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
         
         self.SetSizer(vbox)
         self.Centre()
+
+    def updateProfileToControls(self):
+        """ """
+        self.stepDegreesText.SetValue(profile.getProfileSetting('step_degrees'))
+        self.stepDelayText.SetValue(profile.getProfileSetting('step_delay'))
+
 
     def serialList(self):
         return self._deviceList("SERIALCOMM", ['/dev/ttyACM*', '/dev/ttyUSB*', "/dev/tty.usb*", "/dev/cu.*", "/dev/rfcomm*"])
@@ -270,9 +276,15 @@ class ControlTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
     def onBinImageSelected(self, event):
         self.scanner.getCore().setImageType(3)
 		
-    def resetMessage(self, event=None):
-		self.statusLabel.SetLabel(_("Config changed. You must reboot"))
+    def onStepDegreesTextChanged(self, event):
+        profile.putProfileSetting('step_degrees', float((self.stepDegreesText.GetValue()).replace(',','.')))
 
+    def onStepDelayTextChanged(self, event):
+        profile.putProfileSetting('step_delay', int(self.stepDelayText.GetValue()))
+
+    def resetMessage(self, event=None):
+        pass
+        self.statusLabel.SetLabel(_("Config changed. You must reboot"))
 
 class VideoTabPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
@@ -544,9 +556,9 @@ class ControlNotebook(wx.Notebook):
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=wx.BK_DEFAULT)
 
         #-- Create and add tab panels
-        controlPanel = ControlTabPanel(self, scanner, viewer)
-        controlPanel.SetupScrolling()
-        self.AddPage(controlPanel, _("Control"))
+        self.controlPanel = ControlTabPanel(self, scanner, viewer)
+        self.controlPanel.SetupScrolling()
+        self.AddPage(self.controlPanel, _("Control"))
         """f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'r')
         for line in f:
             if line.startswith('video'):
@@ -564,6 +576,11 @@ class ControlNotebook(wx.Notebook):
         #-- Events
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.onPageChanging)
+
+    def updateProfileToAllControls(self):
+        """ """
+        self.controlPanel.updateProfileToControls()
+        ## TODO
 
     def onPageChanged(self, event):
         old = event.GetOldSelection()
