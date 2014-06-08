@@ -37,6 +37,8 @@ from horus.engine.scanner import *
 from viewer_3d.plyview import *
 
 from horus.util.resources import *
+
+from horus.gui import sceneView
         
 class VideoTabPanel(wx.Panel):
     """
@@ -101,6 +103,26 @@ class PointCloudTabPanel(wx.Panel):
         self.model.create_vbo()
         self.glpanel.OnDraw()
 
+class View3DTabPanel(wx.Panel):
+    """
+    """
+    def __init__(self, parent):
+        """"""
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        
+        self.SetBackgroundColour(wx.BLACK)
+        self.Centre()
+
+        #Preview window
+        self.scene = sceneView.SceneView(self)
+
+        #Main sizer, to position the preview window, buttons and tab control
+        sizer = wx.BoxSizer()
+        self.SetSizer(sizer)
+        sizer.Add(self.scene, 1, flag=wx.EXPAND)
+
+        self.scene.SetFocus()
+
 
 class ViewNotebook(wx.Notebook):
     """
@@ -116,6 +138,9 @@ class ViewNotebook(wx.Notebook):
 
         self.pointCloudTabPanel = PointCloudTabPanel(self)
         self.AddPage(self.pointCloudTabPanel, _("Point Cloud"))
+
+        self.view3DTabPanel = View3DTabPanel(self)
+        self.AddPage(self.view3DTabPanel, _("View 3D"))
 
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.onPageChanging)

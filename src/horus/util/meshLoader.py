@@ -26,43 +26,34 @@
 #-----------------------------------------------------------------------#
 
 import os
-import sys
-import glob
-import gettext
 
-resourceBasePath = os.path.join(os.path.dirname(__file__), "../../../res")
+from horus.util.meshLoaders import stl
 
-def getPathForResource(dir, subdir, resource_name):
-	assert os.path.isdir(dir), "{p} is not a directory".format(p=dir)
-	path = os.path.normpath(os.path.join(dir, subdir, resource_name))
-	assert os.path.isfile(path), "{p} is not a file.".format(p=path)
-	return path
+def loadSupportedExtensions():
+	""" return a list of supported file extensions for loading. """
+	return ['.stl']
 
-def getPathForImage(name):
-	return getPathForResource(resourceBasePath, 'images', name)
+def saveSupportedExtensions():
+	""" return a list of supported file extensions for saving. """
+	return []
 
-def getPathForMesh(name):
-	return getPathForResource(resourceBasePath, 'meshes', name)
+def loadMeshes(filename):
+	"""
+	loadMeshes loads 1 or more printableObjects from a file.
+	STL files are a single printableObject with a single mesh, these are most common.
+	"""
+	ext = os.path.splitext(filename)[1].lower()
+	if ext == '.stl':
+		return stl.loadScene(filename)
+	print 'Error: Unknown model extension: %s' % (ext)
+	return []
 
-"""def getDefaultMachineProfiles():
-	path = os.path.normpath(os.path.join(resourceBasePath, 'machine_profiles', '*.ini'))
-	return glob.glob(path)"""
-
-def setupLocalization(selectedLanguage = None):
-	#Default to english
-	languages = ['en']
-
-	if selectedLanguage is not None:
-		for item in getLanguageOptions():
-			if item[1] == selectedLanguage and item[0] is not None:
-				languages = [item[0]]
-
-	locale_path = os.path.normpath(os.path.join(resourceBasePath, 'locale'))
-	translation = gettext.translation('horus', locale_path, languages, fallback=True)
-	translation.install(unicode=True)
-
-def getLanguageOptions():
-	return [
-		['en', 'English'],
-		['es', 'Spanish']
-	]
+def saveMeshes(filename, objects):
+	"""
+	Save a list of objects into the file given by the filename. Use the filename extension to find out the file format.
+	"""
+	ext = os.path.splitext(filename)[1].lower()
+	#if ext == '.stl':
+	#	ply.saveScene(filename, objects)
+	#	return
+	print 'Error: Unknown model extension: %s' % (ext)

@@ -5,7 +5,6 @@
 # This file is part of the Horus Project                                #
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
-# Copyright (C) 2013 David Braam from Cura Project                      #
 #                                                                       #
 # Date: June 2014                                                       #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
@@ -26,43 +25,33 @@
 #-----------------------------------------------------------------------#
 
 import os
-import sys
-import glob
-import gettext
 
-resourceBasePath = os.path.join(os.path.dirname(__file__), "../../../res")
+from horus.util.pointCloudLoaders import ply
 
-def getPathForResource(dir, subdir, resource_name):
-	assert os.path.isdir(dir), "{p} is not a directory".format(p=dir)
-	path = os.path.normpath(os.path.join(dir, subdir, resource_name))
-	assert os.path.isfile(path), "{p} is not a file.".format(p=path)
-	return path
+def loadSupportedExtensions():
+	""" return a list of supported file extensions for loading. """
+	return ['.ply']
 
-def getPathForImage(name):
-	return getPathForResource(resourceBasePath, 'images', name)
+def saveSupportedExtensions():
+	""" return a list of supported file extensions for saving. """
+	return ['.ply']
 
-def getPathForMesh(name):
-	return getPathForResource(resourceBasePath, 'meshes', name)
+def loadPointCloud(filename):
+	"""
+	PLY files contains a color pointcloud.
+	"""
+	ext = os.path.splitext(filename)[1].lower()
+	if ext == '.ply':
+		return ply.loadScene(filename)
+	print 'Error: Unknown point cloud extension: %s' % (ext)
+	return []
 
-"""def getDefaultMachineProfiles():
-	path = os.path.normpath(os.path.join(resourceBasePath, 'machine_profiles', '*.ini'))
-	return glob.glob(path)"""
-
-def setupLocalization(selectedLanguage = None):
-	#Default to english
-	languages = ['en']
-
-	if selectedLanguage is not None:
-		for item in getLanguageOptions():
-			if item[1] == selectedLanguage and item[0] is not None:
-				languages = [item[0]]
-
-	locale_path = os.path.normpath(os.path.join(resourceBasePath, 'locale'))
-	translation = gettext.translation('horus', locale_path, languages, fallback=True)
-	translation.install(unicode=True)
-
-def getLanguageOptions():
-	return [
-		['en', 'English'],
-		['es', 'Spanish']
-	]
+def savePointCloud(filename, objects):
+	"""
+	Save a list of objects into the file given by the filename. Use the filename extension to find out the file format.
+	"""
+	ext = os.path.splitext(filename)[1].lower()
+	if ext == '.ply':
+		ply.saveScene(filename, objects)
+		return
+	print 'Error: Unknown point cloud extension: %s' % (ext)
