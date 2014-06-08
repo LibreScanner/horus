@@ -78,8 +78,8 @@ class SceneView(openglGui.glGuiPanel):
 
 		self.viewMode = 'ply'
 
-		self.openFileButton = openglGui.glButton(self, 4, _("Load"), (0,0), self.showLoadModel)
-		self.openFileButton.setDisabled(True)
+		#self.openFileButton = openglGui.glButton(self, 4, _("Load"), (0,0), self.showLoadModel)
+		#self.openFileButton.setDisabled(True)
 
 		group = []
 		self.rotateToolButton = openglGui.glRadioButton(self, 8, _("Rotate"), (0,-1), group, self.OnToolSelect)
@@ -715,9 +715,9 @@ class SceneView(openglGui.glGuiPanel):
 		glDisable(GL_BLEND)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-		glClearColor(0.8, 0.8, 0.8, 1.0)
-		glClearStencil(0)
-		glClearDepth(1.0)
+		#glClearColor(0.0, 0.0, 0.0, 1.0)
+		#glClearStencil(0)
+		#glClearDepth(1.0)
 
 		glMatrixMode(GL_PROJECTION)
 		glLoadIdentity()
@@ -726,8 +726,19 @@ class SceneView(openglGui.glGuiPanel):
 
 		glMatrixMode(GL_MODELVIEW)
 		glLoadIdentity()
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
 
+		glBegin(GL_QUADS)
+		glColor3f(1,1,1)
+		glVertex3f (-1,-1,-1)
+		glVertex3f (1,-1,-1)
+		glColor3f(0,0,0)
+		glVertex3f (1,1,-1)
+		glVertex3f (-1,1,-1)
+		glEnd()
+
+		glClear(GL_DEPTH_BUFFER_BIT)
+		#glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
+			
 	def OnPaint(self,e):
 		if self._animView is not None:
 			self._viewTarget = self._animView.getPosition()
@@ -1057,7 +1068,7 @@ class SceneView(openglGui.glGuiPanel):
 				else:
 					self._platformMesh[machine] = None
 				self._platformMesh[machine]._drawOffset = numpy.array([0,0,13.6], numpy.float32)
-			glColor4f(1,1,1,0.8)
+			glColor4f(0.6,0.6,0.6,1.0)
 			self._objectShader.bind()
 			self._renderObject(self._platformMesh[machine], False, False)
 			self._objectShader.unbind()
@@ -1114,8 +1125,9 @@ class SceneView(openglGui.glGuiPanel):
 		polys = profile.getMachineSizePolygons()
 		height = profile.getMachineSettingFloat('machine_height')
 		circular = profile.getMachineSetting('machine_shape') == 'Circular'
+
+		"""
 		glBegin(GL_QUADS)
-		
 		# Draw the sides of the build volume.
 		for n in xrange(0, len(polys[0])):
 			if not circular:
@@ -1125,7 +1137,7 @@ class SceneView(openglGui.glGuiPanel):
 					glColor4ub(5, 171, 231, 64)
 			else:
 				#glColor4ub(5, 171, 231, 96)
-				glColor4ub(5, 171, 231, 50)
+				glColor4ub(200, 200, 200, 60)
 
 			glVertex3f(polys[0][n][0], polys[0][n][1], height)
 			glVertex3f(polys[0][n][0], polys[0][n][1], 0)
@@ -1135,11 +1147,11 @@ class SceneView(openglGui.glGuiPanel):
 
 		#Draw top of build volume.
 		#glColor4ub(5, 171, 231, 128)
-		glColor4ub(5, 171, 231, 50)
+		glColor4ub(200, 200, 200, 70)
 		glBegin(GL_TRIANGLE_FAN)
 		for p in polys[0][::-1]:
 			glVertex3f(p[0], p[1], height)
-		glEnd()
+		glEnd()"""
 
 		#Draw checkerboard
 		if self._platformTexture is None:
@@ -1147,7 +1159,7 @@ class SceneView(openglGui.glGuiPanel):
 			glBindTexture(GL_TEXTURE_2D, self._platformTexture)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-		glColor4f(1,1,1,0.5)
+		glColor4f(1,1,1,1)
 		glBindTexture(GL_TEXTURE_2D, self._platformTexture)
 		glEnable(GL_TEXTURE_2D)
 		glBegin(GL_TRIANGLE_FAN)
@@ -1156,6 +1168,7 @@ class SceneView(openglGui.glGuiPanel):
 			glVertex3f(p[0], p[1], 0)
 		glEnd()
 
+		"""
 		#Draw no-go zones. (clips in case of UM2)
 		glDisable(GL_TEXTURE_2D)
 		glColor4ub(127, 127, 127, 200)
@@ -1164,7 +1177,7 @@ class SceneView(openglGui.glGuiPanel):
 			for p in poly:
 				glTexCoord2f(p[0]/20, p[1]/20)
 				glVertex3f(p[0], p[1], 0)
-			glEnd()
+			glEnd()"""
 
 		glDepthMask(True)
 		glDisable(GL_BLEND)
