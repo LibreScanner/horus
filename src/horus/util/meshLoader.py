@@ -27,22 +27,24 @@
 
 import os
 
+from horus.util.meshLoaders import ply
 from horus.util.meshLoaders import stl
 
 def loadSupportedExtensions():
 	""" return a list of supported file extensions for loading. """
-	return ['.stl']
+	return ['.ply','.stl']
 
 def saveSupportedExtensions():
 	""" return a list of supported file extensions for saving. """
-	return []
+	return ['.ply']
 
 def loadMeshes(filename):
 	"""
 	loadMeshes loads 1 or more printableObjects from a file.
-	STL files are a single printableObject with a single mesh, these are most common.
 	"""
 	ext = os.path.splitext(filename)[1].lower()
+	if ext == '.ply':
+		return ply.loadScene(filename)
 	if ext == '.stl':
 		return stl.loadScene(filename)
 	print 'Error: Unknown model extension: %s' % (ext)
@@ -53,7 +55,7 @@ def saveMeshes(filename, objects):
 	Save a list of objects into the file given by the filename. Use the filename extension to find out the file format.
 	"""
 	ext = os.path.splitext(filename)[1].lower()
-	#if ext == '.stl':
-	#	ply.saveScene(filename, objects)
-	#	return
+	if ext == '.ply':
+		ply.saveScene(filename, objects)
+		return
 	print 'Error: Unknown model extension: %s' % (ext)

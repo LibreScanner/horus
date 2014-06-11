@@ -39,6 +39,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from OpenGL.GL import *
 from OpenGL.GL import shaders
+
 glutInit() #Hack; required before glut can be called. Not required for all OS.
 
 class GLReferenceCounter(object):
@@ -156,29 +157,43 @@ class GLVBO(GLReferenceCounter):
 	"""
 	Vertex buffer object. Used for faster rendering.
 	"""
-	def __init__(self, renderType, vertexArray, normalArray = None, indicesArray = None):
+	def __init__(self, renderType, vertexArray, normalArray = None, indicesArray = None, colorArray = None):
 		super(GLVBO, self).__init__()
 		self._renderType = renderType
 		if not bool(glGenBuffers): # Fallback if buffers are not supported.
 			self._vertexArray = vertexArray
 			self._normalArray = normalArray
 			self._indicesArray = indicesArray
+			self._colorArray = colorArray
 			self._size = len(vertexArray)
 			self._buffer = None
 			self._hasNormals = self._normalArray is not None
 			self._hasIndices = self._indicesArray is not None
+			self._hasColor = self._colorArray is not None
 			if self._hasIndices:
 				self._size = len(indicesArray)
 		else:
-			self._buffer = glGenBuffers(1)
 			self._size = len(vertexArray)
 			self._hasNormals = normalArray is not None
 			self._hasIndices = indicesArray is not None
-			glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
+			self._hasColor = colorArray is not None
 			if self._hasNormals: #TODO: Add size check to see if arrays have same size.
+				self._buffer = glGenBuffers(1)
+				glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
 				glBufferData(GL_ARRAY_BUFFER, numpy.concatenate((vertexArray, normalArray), 1), GL_STATIC_DRAW)
 			else:
-				glBufferData(GL_ARRAY_BUFFER, vertexArray, GL_STATIC_DRAW)
+				if self._hasColor:
+					self._buffer = glGenBuffers(2)
+					glBindBuffer(GL_ARRAY_BUFFER, self._buffer[0])
+					glBufferData(GL_ARRAY_BUFFER, vertexArray, GL_STATIC_DRAW)
+					glBindBuffer(GL_ARRAY_BUFFER, self._buffer[1])
+					glBufferData(GL_ARRAY_BUFFER, numpy.array(colorArray, numpy.uint8), GL_STATIC_DRAW)
+				else:
+					self._buffer = glGenBuffers(1)
+					glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
+					glBufferData(GL_ARRAY_BUFFER, vertexArray, GL_STATIC_DRAW)
+					print self._buffer
+
 			glBindBuffer(GL_ARRAY_BUFFER, 0)
 			if self._hasIndices:
 				self._size = len(indicesArray)
@@ -193,14 +208,26 @@ class GLVBO(GLReferenceCounter):
 			if self._hasNormals:
 				glEnableClientState(GL_NORMAL_ARRAY)
 				glNormalPointer(GL_FLOAT, 0, self._normalArray)
+			if self._hasColor:
+				glEnableClientState(GL_COLOR_ARRAY)
+				glColorPointer(3, GL_UNSIGNED_BYTE, 0, self._colorArray)
 		else:
-			glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
 			if self._hasNormals:
+				glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
 				glEnableClientState(GL_NORMAL_ARRAY)
 				glVertexPointer(3, GL_FLOAT, 2*3*4, c_void_p(0))
 				glNormalPointer(GL_FLOAT, 2*3*4, c_void_p(3 * 4))
 			else:
-				glVertexPointer(3, GL_FLOAT, 3*4, c_void_p(0))
+				if self._hasColor:
+					glEnableClientState(GL_COLOR_ARRAY)
+					glBindBuffer(GL_ARRAY_BUFFER, self._buffer[1])
+					glColorPointer(3, GL_UNSIGNED_BYTE, 0, None)
+					glBindBuffer(GL_ARRAY_BUFFER, self._buffer[0])
+					glVertexPointer(3, GL_FLOAT, 0, None)
+				else:
+					glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
+					glVertexPointer(3, GL_FLOAT, 3*4, c_void_p(0))
+
 			if self._hasIndices:
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self._bufferIndices)
 
@@ -222,9 +249,11 @@ class GLVBO(GLReferenceCounter):
 		if self._hasIndices:
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
-		glDisableClientState(GL_VERTEX_ARRAY)
 		if self._hasNormals:
 			glDisableClientState(GL_NORMAL_ARRAY)
+		if self._hasColor:
+			glDisableClientState(GL_COLOR_ARRAY)
+		glDisableClientState(GL_VERTEX_ARRAY)
 
 	def release(self):
 		if self._buffer is not None:

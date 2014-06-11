@@ -168,7 +168,7 @@ class Scene(object):
 			obj.applyMatrix(numpy.matrix(matrix, numpy.float64))
 		self._findFreePositionFor(obj)
 		self._objectList.append(obj)
-		self.updateSizeOffsets(True)
+		#self.updateSizeOffsets(True)
 		self.pushFree(obj)
 
 	def remove(self, obj):

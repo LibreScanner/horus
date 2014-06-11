@@ -48,7 +48,7 @@ class printableObject(object):
 	Each object has a 3x3 transformation matrix to rotate/scale the object.
 	This object also keeps track of the 2D boundary polygon used for object collision in the objectScene class.
 	"""
-	def __init__(self, originFilename):
+	def __init__(self, originFilename, isPointCloud):
 		self._originFilename = originFilename
 		if originFilename is None:
 			self._name = 'None'
@@ -73,6 +73,8 @@ class printableObject(object):
 		self._headAreaMinHull = None
 
 		self._loadAnim = None
+
+		self._isPointCloud = isPointCloud
 
 	def copy(self):
 		ret = printableObject(self._originFilename)
@@ -99,8 +101,9 @@ class printableObject(object):
 		return m
 
 	def _postProcessAfterLoad(self):
-		for m in self._meshList:
-			m._calculateNormals()
+		if not self._isPointCloud:
+			for m in self._meshList:
+				m._calculateNormals()
 		self.processMatrix()
 		if numpy.max(self.getSize()) > 10000.0:
 			for m in self._meshList:
@@ -166,6 +169,9 @@ class printableObject(object):
 		return self._drawOffset
 	def getBoundaryCircle(self):
 		return self._boundaryCircleSize
+
+	def isPointCloud(self):
+		return self._isPointCloud
 
 	def setPrintAreaExtends(self, poly):
 		self._printAreaExtend = poly
@@ -330,9 +336,20 @@ class mesh(object):
 	"""
 	def __init__(self, obj):
 		self.vertexes = None
+		self.colors = None
 		self.vertexCount = 0
 		self.vbo = None
 		self._obj = obj
+
+	def _addVertex(self, x, y, z, r, g, b):
+		n = self.vertexCount
+		self.vertexes[n][0] = x
+		self.vertexes[n][1] = y
+		self.vertexes[n][2] = z
+		self.colors[n][0] = r
+		self.colors[n][1] = g
+		self.colors[n][2] = b
+		self.vertexCount += 1
 
 	def _addFace(self, x0, y0, z0, x1, y1, z1, x2, y2, z2):
 		n = self.vertexCount
@@ -348,7 +365,14 @@ class mesh(object):
 		self.vertexes[n][1] = y2
 		self.vertexes[n][2] = z2
 		self.vertexCount += 3
-	
+
+	def _prepareVertexCount(self, vertexNumber):
+		#Set the amount of faces before loading data in them. This way we can create the numpy arrays before we fill them.
+		self.vertexes = numpy.zeros((vertexNumber, 3), numpy.float32)
+		self.colors = numpy.zeros((vertexNumber, 3), numpy.int32)
+		self.normal = numpy.zeros((vertexNumber, 3), numpy.float32)
+		self.vertexCount = 0
+
 	def _prepareFaceCount(self, faceNumber):
 		#Set the amount of faces before loading data in them. This way we can create the numpy arrays before we fill them.
 		self.vertexes = numpy.zeros((faceNumber*3, 3), numpy.float32)

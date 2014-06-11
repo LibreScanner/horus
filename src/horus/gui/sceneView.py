@@ -40,9 +40,9 @@ OpenGL.ERROR_CHECKING = False
 from OpenGL.GLU import *
 from OpenGL.GL import *
 
-from horus.util import profile
 from horus.util import meshLoader
 from horus.util import objectScene
+from horus.util import profile
 from horus.util import resources
 from horus.gui.util import previewTools
 from horus.gui.util import openglHelpers
@@ -78,43 +78,10 @@ class SceneView(openglGui.glGuiPanel):
 
 		self.viewMode = 'ply'
 
-		#self.openFileButton = openglGui.glButton(self, 4, _("Load"), (0,0), self.showLoadModel)
+		self.openFileButton = openglGui.glButton(self, 4, _("Load"), (0,0), self.showLoadModel)
 		#self.openFileButton.setDisabled(True)
 
 		group = []
-		self.rotateToolButton = openglGui.glRadioButton(self, 8, _("Rotate"), (0,-1), group, self.OnToolSelect)
-		self.scaleToolButton  = openglGui.glRadioButton(self, 9, _("Scale"), (1,-1), group, self.OnToolSelect)
-		self.mirrorToolButton  = openglGui.glRadioButton(self, 10, _("Mirror"), (2,-1), group, self.OnToolSelect)
-
-		self.resetRotationButton = openglGui.glButton(self, 12, _("Reset"), (0,-2), self.OnRotateReset)
-		self.layFlatButton       = openglGui.glButton(self, 16, _("Lay flat"), (0,-3), self.OnLayFlat)
-
-		self.resetScaleButton    = openglGui.glButton(self, 13, _("Reset"), (1,-2), self.OnScaleReset)
-
-		self.mirrorXButton       = openglGui.glButton(self, 14, _("Mirror X"), (2,-2), lambda button: self.OnMirror(0))
-		self.mirrorYButton       = openglGui.glButton(self, 18, _("Mirror Y"), (2,-3), lambda button: self.OnMirror(1))
-		self.mirrorZButton       = openglGui.glButton(self, 22, _("Mirror Z"), (2,-4), lambda button: self.OnMirror(2))
-
-		self.rotateToolButton.setExpandArrow(True)
-		self.scaleToolButton.setExpandArrow(True)
-		self.mirrorToolButton.setExpandArrow(True)
-
-		self.scaleForm = openglGui.glFrame(self, (2, -2))
-		openglGui.glGuiLayoutGrid(self.scaleForm)
-		openglGui.glLabel(self.scaleForm, _("Scale X"), (0,0))
-		self.scaleXctrl = openglGui.glNumberCtrl(self.scaleForm, '1.0', (1,0), lambda value: self.OnScaleEntry(value, 0))
-		openglGui.glLabel(self.scaleForm, _("Scale Y"), (0,1))
-		self.scaleYctrl = openglGui.glNumberCtrl(self.scaleForm, '1.0', (1,1), lambda value: self.OnScaleEntry(value, 1))
-		openglGui.glLabel(self.scaleForm, _("Scale Z"), (0,2))
-		self.scaleZctrl = openglGui.glNumberCtrl(self.scaleForm, '1.0', (1,2), lambda value: self.OnScaleEntry(value, 2))
-		openglGui.glLabel(self.scaleForm, _("Size X (mm)"), (0,4))
-		self.scaleXmmctrl = openglGui.glNumberCtrl(self.scaleForm, '0.0', (1,4), lambda value: self.OnScaleEntryMM(value, 0))
-		openglGui.glLabel(self.scaleForm, _("Size Y (mm)"), (0,5))
-		self.scaleYmmctrl = openglGui.glNumberCtrl(self.scaleForm, '0.0', (1,5), lambda value: self.OnScaleEntryMM(value, 1))
-		openglGui.glLabel(self.scaleForm, _("Size Z (mm)"), (0,6))
-		self.scaleZmmctrl = openglGui.glNumberCtrl(self.scaleForm, '0.0', (1,6), lambda value: self.OnScaleEntryMM(value, 2))
-		openglGui.glLabel(self.scaleForm, _("Uniform scale"), (0,8))
-		self.scaleUniform = openglGui.glCheckbox(self.scaleForm, True, (1,8), None)
 
 		#self.viewSelection = openglGui.glComboButton(self, _("View mode"), [7,19,11,15,23], [_("Normal"), _("Overhang"), _("Transparent"), _("X-Ray"), _("Layers")], (-1,0), self.OnViewChange)
 
@@ -136,8 +103,9 @@ class SceneView(openglGui.glGuiPanel):
 		#	self.OnViewChange()
 		self.loadScene(filenames)
 
-	def loadFiles(self, filenames):
-		mainWindow = self.GetParent().GetParent().GetParent()
+	def loadFiles(self, filenames): # TODO: refactor for PLY
+
+		#mainWindow = self.GetParent().GetParent().GetParent()
 		# only one GCODE file can be active
 		# so if single gcode file, process this
 		# otherwise ignore all gcode files
@@ -147,7 +115,7 @@ class SceneView(openglGui.glGuiPanel):
 			ext = os.path.splitext(filename)[1].lower()
 			if ext == '.g' or ext == '.gcode':
 				gcodeFilename = filename
-				mainWindow.addToModelMRU(filename)
+				#mainWindow.addToModelMRU(filename)
 		if gcodeFilename is not None:
 			self.loadGCodeFile(gcodeFilename)
 		else:
@@ -166,17 +134,17 @@ class SceneView(openglGui.glGuiPanel):
 					ext = os.path.splitext(filename)[1].lower()
 					if ext == '.ini':
 						profile.loadProfile(filename)
-						mainWindow.addToProfileMRU(filename)
+						#mainWindow.addToProfileMRU(filename)
 					elif ext in meshLoader.loadSupportedExtensions():
 						scene_filenames.append(filename)
-						mainWindow.addToModelMRU(filename)
+						#mainWindow.addToModelMRU(filename)
 					else:
 						ignored_types[ext] = 1
 			if ignored_types:
 				ignored_types = ignored_types.keys()
 				ignored_types.sort()
 				self.notification.message("ignored: " + " ".join("*" + type for type in ignored_types))
-			mainWindow.updateProfileToAllControls()
+			#mainWindow.updateProfileToAllControls()
 			# now process all the scene files
 			if scene_filenames:
 				self.loadSceneFiles(scene_filenames)
@@ -219,38 +187,13 @@ class SceneView(openglGui.glGuiPanel):
 			return
 		filename = dlg.GetPath()
 		dlg.Destroy()
-		meshLoader.saveMeshes(filename, self._scene.objects())
+		meshesLoader.saveMeshes(filename, self._scene.objects())
 
 	def OnToolSelect(self, button):
-		if self.rotateToolButton.getSelected():
-			self.tool = previewTools.toolRotate(self)
-		elif self.scaleToolButton.getSelected():
-			self.tool = previewTools.toolScale(self)
-		elif self.mirrorToolButton.getSelected():
-			self.tool = previewTools.toolNone(self)
-		else:
-			self.tool = previewTools.toolNone(self)
-		self.resetRotationButton.setHidden(not self.rotateToolButton.getSelected())
-		self.layFlatButton.setHidden(not self.rotateToolButton.getSelected())
-		self.resetScaleButton.setHidden(not self.scaleToolButton.getSelected())
-		self.scaleForm.setHidden(not self.scaleToolButton.getSelected())
-		self.mirrorXButton.setHidden(not self.mirrorToolButton.getSelected())
-		self.mirrorYButton.setHidden(not self.mirrorToolButton.getSelected())
-		self.mirrorZButton.setHidden(not self.mirrorToolButton.getSelected())
+		self.tool = previewTools.toolNone(self)
 
 	def updateToolButtons(self):
-		if self._selectedObj is None:
-			hidden = True
-		else:
-			hidden = False
-		self.rotateToolButton.setHidden(hidden)
-		self.scaleToolButton.setHidden(hidden)
-		self.mirrorToolButton.setHidden(hidden)
-		if hidden:
-			self.rotateToolButton.setSelected(False)
-			self.scaleToolButton.setSelected(False)
-			self.mirrorToolButton.setSelected(False)
-			self.OnToolSelect(0)
+		self.OnToolSelect(0)
 
 	def OnViewChange(self):
 		pass
@@ -385,10 +328,11 @@ class SceneView(openglGui.glGuiPanel):
 		self.QueueRefresh()
 
 	def _onRunEngine(self, e):
-		if self._isSimpleMode:
-			self.GetTopLevelParent().simpleSettingsPanel.setupSlice()
-		if self._isSimpleMode:
-			profile.resetTempOverride()
+		pass
+		#if self._isSimpleMode:
+			#self.GetTopLevelParent().simpleSettingsPanel.setupSlice()
+		#if self._isSimpleMode:
+			#profile.resetTempOverride()
 
 	def _updateEngineProgress(self, progressValue):
 		finished = result is not None and result.isFinished()
@@ -425,16 +369,16 @@ class SceneView(openglGui.glGuiPanel):
 				traceback.print_exc()
 			else:
 				for obj in objList:
-					if self._objectLoadShader is not None:
+					"""if self._objectLoadShader is not None:
 						obj._loadAnim = openglGui.animation(self, 1, 0, 1.5)
 					else:
-						obj._loadAnim = None
+						obj._loadAnim = None"""
 					self._scene.add(obj)
-					if not self._scene.checkPlatform(obj):
+					"""if not self._scene.checkPlatform(obj):
 						self._scene.centerAll()
 					self._selectObject(obj)
 					if obj.getScale()[0] < 1.0:
-						self.notification.message("Warning: Object scaled down.")
+						self.notification.message("Warning: Object scaled down.")"""
 		self.sceneUpdated()
 
 	def _deleteObject(self, obj):
@@ -481,12 +425,6 @@ class SceneView(openglGui.glGuiPanel):
 		if self._selectedObj is not None:
 			scale = self._selectedObj.getScale()
 			size = self._selectedObj.getSize()
-			self.scaleXctrl.setValue(round(scale[0], 2))
-			self.scaleYctrl.setValue(round(scale[1], 2))
-			self.scaleZctrl.setValue(round(scale[2], 2))
-			self.scaleXmmctrl.setValue(round(size[0], 2))
-			self.scaleYmmctrl.setValue(round(size[1], 2))
-			self.scaleZmmctrl.setValue(round(size[2], 2))
 
 	def OnKeyChar(self, keyCode):
 		if keyCode == wx.WXK_DELETE or keyCode == wx.WXK_NUMPAD_DELETE or (keyCode == wx.WXK_BACK and platform.system() == "Darwin"):
@@ -634,7 +572,7 @@ class SceneView(openglGui.glGuiPanel):
 		if e.Dragging() and self._mouseState is not None:
 			if self._mouseState == 'tool':
 				self.tool.OnDrag(p0, p1)
-			elif e.LeftIsDown() and not e.RightIsDown():
+			elif not e.LeftIsDown() and e.RightIsDown():
 				self._mouseState = 'drag'
 				if wx.GetKeyState(wx.WXK_SHIFT):
 					a = math.cos(math.radians(self._yaw)) / 3.0
@@ -657,19 +595,6 @@ class SceneView(openglGui.glGuiPanel):
 					self._zoom = 1
 				if self._zoom > numpy.max(self._machineSize) * 3:
 					self._zoom = numpy.max(self._machineSize) * 3
-			elif e.LeftIsDown() and self._selectedObj is not None and self._selectedObj == self._mouseClickFocus:
-				self._mouseState = 'dragObject'
-				z = max(0, self._mouseClick3DPos[2])
-				p0, p1 = self.getMouseRay(self._mouseX, self._mouseY)
-				p2, p3 = self.getMouseRay(e.GetX(), e.GetY())
-				p0[2] -= z
-				p1[2] -= z
-				p2[2] -= z
-				p3[2] -= z
-				cursorZ0 = p0 - (p1 - p0) * (p0[2] / (p1[2] - p0[2]))
-				cursorZ1 = p2 - (p3 - p2) * (p2[2] / (p3[2] - p2[2]))
-				diff = cursorZ1 - cursorZ0
-				self._selectedObj.setPosition(self._selectedObj.getPosition() + diff[0:2])
 		if not e.Dragging() or self._mouseState != 'tool':
 			self.tool.OnMouseMove(p0, p1)
 
@@ -828,6 +753,7 @@ class SceneView(openglGui.glGuiPanel):
 				self._objectShader = openglHelpers.GLFakeShader()
 				self._objectOverhangShader = openglHelpers.GLFakeShader()
 				self._objectLoadShader = None
+
 		self._init3DView()
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
@@ -888,24 +814,8 @@ class SceneView(openglGui.glGuiPanel):
 					brightness = 0.8
 
 				if self._selectedObj == obj or self._selectedObj is None:
-					#If we want transparent, then first render a solid black model to remove the printer size lines.
-					if self.viewMode == 'transparent':
-						glColor4f(0, 0, 0, 0)
-						self._renderObject(obj)
-						glEnable(GL_BLEND)
-						glBlendFunc(GL_ONE, GL_ONE)
-						glDisable(GL_DEPTH_TEST)
-						brightness *= 0.5
-					if self.viewMode == 'xray':
-						glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE)
 					glStencilOp(GL_INCR, GL_INCR, GL_INCR)
 					glEnable(GL_STENCIL_TEST)
-
-				if self.viewMode == 'overhang':
-					if self._selectedObj == obj and self.tempMatrix is not None:
-						self._objectOverhangShader.setUniform('rotMatrix', obj.getMatrix() * self.tempMatrix)
-					else:
-						self._objectOverhangShader.setUniform('rotMatrix', obj.getMatrix())
 
 				if not self._scene.checkPlatform(obj):
 					glColor4f(0.5 * brightness, 0.5 * brightness, 0.5 * brightness, 0.8 * brightness)
@@ -916,34 +826,6 @@ class SceneView(openglGui.glGuiPanel):
 				glDisable(GL_BLEND)
 				glEnable(GL_DEPTH_TEST)
 				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
-
-			if self.viewMode == 'xray':
-				glPushMatrix()
-				glLoadIdentity()
-				glEnable(GL_STENCIL_TEST)
-				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) #Keep values
-				glDisable(GL_DEPTH_TEST)
-				for i in xrange(2, 15, 2): #All even values
-					glStencilFunc(GL_EQUAL, i, 0xFF)
-					glColor(float(i)/10, float(i)/10, float(i)/5)
-					glBegin(GL_QUADS)
-					glVertex3f(-1000,-1000,-10)
-					glVertex3f( 1000,-1000,-10)
-					glVertex3f( 1000, 1000,-10)
-					glVertex3f(-1000, 1000,-10)
-					glEnd()
-				for i in xrange(1, 15, 2): #All odd values
-					glStencilFunc(GL_EQUAL, i, 0xFF)
-					glColor(float(i)/10, 0, 0)
-					glBegin(GL_QUADS)
-					glVertex3f(-1000,-1000,-10)
-					glVertex3f( 1000,-1000,-10)
-					glVertex3f( 1000, 1000,-10)
-					glVertex3f(-1000, 1000,-10)
-					glEnd()
-				glPopMatrix()
-				glDisable(GL_STENCIL_TEST)
-				glEnable(GL_DEPTH_TEST)
 
 			self._objectShader.unbind()
 
@@ -963,71 +845,6 @@ class SceneView(openglGui.glGuiPanel):
 
 		self._drawMachine()
 
-		if self.viewMode != 'gcode':
-			#Draw the object box-shadow, so you can see where it will collide with other objects.
-			if self._selectedObj is not None:
-				glEnable(GL_BLEND)
-				glEnable(GL_CULL_FACE)
-				glColor4f(0,0,0,0.16)
-				glDepthMask(False)
-				for obj in self._scene.objects():
-					glPushMatrix()
-					glTranslatef(obj.getPosition()[0], obj.getPosition()[1], 0)
-					glBegin(GL_TRIANGLE_FAN)
-					for p in obj._boundaryHull[::-1]:
-						glVertex3f(p[0], p[1], 0)
-					glEnd()
-					glPopMatrix()
-				if self._scene.isOneAtATime(): #Check print sequence mode.
-					glPushMatrix()
-					glColor4f(0,0,0,0.06)
-					glTranslatef(self._selectedObj.getPosition()[0], self._selectedObj.getPosition()[1], 0)
-					glBegin(GL_TRIANGLE_FAN)
-					for p in self._selectedObj._printAreaHull[::-1]:
-						glVertex3f(p[0], p[1], 0)
-					glEnd()
-					glBegin(GL_TRIANGLE_FAN)
-					for p in self._selectedObj._headAreaMinHull[::-1]:
-						glVertex3f(p[0], p[1], 0)
-					glEnd()
-					glPopMatrix()
-				glDepthMask(True)
-				glDisable(GL_CULL_FACE)
-
-			#Draw the outline of the selected object on top of everything else except the GUI.
-			if self._selectedObj is not None and self._selectedObj._loadAnim is None:
-				glDisable(GL_DEPTH_TEST)
-				glEnable(GL_CULL_FACE)
-				glEnable(GL_STENCIL_TEST)
-				glDisable(GL_BLEND)
-				glStencilFunc(GL_EQUAL, 0, 255)
-
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-				glLineWidth(2)
-				glColor4f(1,1,1,0.5)
-				self._renderObject(self._selectedObj)
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-
-				glViewport(0, 0, self.GetSize().GetWidth(), self.GetSize().GetHeight())
-				glDisable(GL_STENCIL_TEST)
-				glDisable(GL_CULL_FACE)
-				glEnable(GL_DEPTH_TEST)
-
-			if self._selectedObj is not None:
-				glPushMatrix()
-				pos = self.getObjectCenterPos()
-				glTranslate(pos[0], pos[1], pos[2])
-				self.tool.OnDraw()
-				glPopMatrix()
-		if self.viewMode == 'overhang' and not openglHelpers.hasShaderSupport():
-			glDisable(GL_DEPTH_TEST)
-			glPushMatrix()
-			glLoadIdentity()
-			glTranslate(0,-4,-10)
-			glColor4ub(60,60,60,255)
-			openglHelpers.glDrawStringCenter(_("Overhang view not working due to lack of OpenGL shaders support."))
-			glPopMatrix()
-
 	def _renderObject(self, obj, brightness = 0, addSink = True):
 		glPushMatrix()
 		if addSink:
@@ -1043,14 +860,20 @@ class SceneView(openglGui.glGuiPanel):
 
 		glMultMatrixf(openglHelpers.convert3x3MatrixTo4x4(obj.getMatrix()))
 
-		n = 0
-		for m in obj._meshList:
-			if m.vbo is None:
-				m.vbo = openglHelpers.GLVBO(GL_TRIANGLES, m.vertexes, m.normal)
-			if brightness != 0:
-				glColor4fv(map(lambda idx: idx * brightness, self._objColors[n]))
-				n += 1
-			m.vbo.render()
+		if obj.isPointCloud():
+			for m in obj._meshList:
+				if m.vbo is None:
+					m.vbo = openglHelpers.GLVBO(GL_POINTS, m.vertexes, colorArray = m.colors)
+				m.vbo.render()
+		else:
+			n = 0
+			for m in obj._meshList:
+				if m.vbo is None:
+					m.vbo = openglHelpers.GLVBO(GL_TRIANGLES, m.vertexes, m.normal)
+				if brightness != 0:
+					glColor4fv(map(lambda idx: idx * brightness, self._objColors[n]))
+					n += 1
+				m.vbo.render()
 		glPopMatrix()
 
 	def _drawMachine(self):
@@ -1061,6 +884,8 @@ class SceneView(openglGui.glGuiPanel):
 
 		machine = profile.getMachineSetting('machine_type')
 		if machine.startswith('cyclops'):
+
+			#-- Platform
 			if machine not in self._platformMesh:
 				meshes = meshLoader.loadMeshes(resources.getPathForMesh(machine + '_platform.stl'))
 				if len(meshes) > 0:
@@ -1073,13 +898,14 @@ class SceneView(openglGui.glGuiPanel):
 			self._renderObject(self._platformMesh[machine], False, False)
 			self._objectShader.unbind()
 
-			"""if not hasattr(self._platformMesh[machine], 'texture'):
+			#-- Text
+			"""
+			if not hasattr(self._platformMesh[machine], 'texture'):
 				self._platformMesh[machine].texture = openglHelpers.loadGLTexture('Cyclopsbackplate.png')
 			glBindTexture(GL_TEXTURE_2D, self._platformMesh[machine].texture)
 			glEnable(GL_TEXTURE_2D)
 			glPushMatrix()
 			glColor4f(1,1,1,1)
-
 			glTranslate(0,150,0)
 			h = 50
 			d = 8
@@ -1109,7 +935,9 @@ class SceneView(openglGui.glGuiPanel):
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			glPopMatrix()"""
 
-			"""glColor4f(0,0,0,1)
+			#-- Coordinate system
+			"""
+			glColor4f(0,0,0,1)
 			glLineWidth(3)
 			glBegin(GL_LINES)
 			glVertex3f(-size[0] / 2, -size[1] / 2, 0)
@@ -1122,6 +950,7 @@ class SceneView(openglGui.glGuiPanel):
 
 		glDepthMask(False)
 
+		
 		polys = profile.getMachineSizePolygons()
 		height = profile.getMachineSettingFloat('machine_height')
 		circular = profile.getMachineSetting('machine_shape') == 'Circular'
@@ -1153,7 +982,7 @@ class SceneView(openglGui.glGuiPanel):
 			glVertex3f(p[0], p[1], height)
 		glEnd()"""
 
-		#Draw checkerboard
+		#-- Draw checkerboard
 		if self._platformTexture is None:
 			self._platformTexture = openglHelpers.loadGLTexture('checkerboard.png')
 			glBindTexture(GL_TEXTURE_2D, self._platformTexture)

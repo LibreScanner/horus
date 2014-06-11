@@ -25,12 +25,62 @@
 #-----------------------------------------------------------------------#
 
 """
-PLY file reader.
+PLY file point cloud loader.
+
+	- Binary, which is easy and quick to read.
+	- Ascii, which is harder to read, as can come with windows, mac and unix style newlines.
+
+This module also contains a function to save objects as an PLY file.
 
 http://en.wikipedia.org/wiki/PLY_(file_format)
 """
 
+import sys
 import os
+import struct
+import time
+
+from horus.util import printableObject
+
+def _loadAscii(m, f): # TODO: improve parser: normals, colors, faces, etc.
+	cnt = 0
+	sections = f.read().split('end_header')
+
+	header = sections[0].split('\n')
+	for line in header:
+		if 'element vertex ' in line:
+			cnt = int(line.split('element vertex ')[1])
+
+	m._prepareVertexCount(int(cnt))
+
+	body = sections[1].split('\n')
+	for i in range(1,cnt):
+		data = body[i].split(' ')
+		if len(data) == 6: # colors
+			m._addVertex(float(data[0]),float(data[1]),float(data[2]),int(data[3]),int(data[4]),int(data[5]))
+		if len(data) == 11: # normals
+			m._addVertex(float(data[0]),float(data[1]),float(data[2]),int(data[6]),int(data[7]),int(data[8]))
+
+def _loadBinary(m, f):
+	pass
 
 def loadScene(filename):
+	obj = printableObject.printableObject(filename, isPointCloud=True)
+	m = obj._addMesh()
+	f = open(filename, "rb")
+	if f.read(3).lower() == "ply":
+		_loadAscii(m, f)
+	else:
+		pass
+		#_loadBinary(m, f)
+	f.close()
+	obj._postProcessAfterLoad()
+	return [obj]
+
+def saveScene(filename, objects):
+	f = open(filename, 'wb')
+	saveSceneStream(f, objects)
+	f.close()
+
+def saveSceneStream(stream, objects):
 	pass

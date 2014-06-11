@@ -183,6 +183,8 @@ def _(n):
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1125)
 setting('step_delay', 800, int, 'basic', _('Step Delay')).setRange(100, 10000)
 
+setting('object_sink', 0.0, float, 'advanced', _('Quality')).setRange(0).setLabel(_("Cut off object bottom (mm)"), _("Sinks the object into the platform, this can be used for objects that do not have a flat bottom and thus create a too small first layer."))
+
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'cyclops', str, 'machine', 'hidden')
 setting('machine_width', '200', float, 'machine', 'hidden').setLabel(_("Maximum width (mm)"), _("Size of the machine in mm"))
