@@ -24,23 +24,39 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
-from horus.gui.util.workbench import *
+import wx
+import sys
 
-from horus.util import resources
+class Page(wx.Panel):
+    def __init__(self, parent, left="Left", right="Right"):
+        wx.Panel.__init__(self, parent)
+        
+	vbox = wx.BoxSizer(wx.VERTICAL)
+	hbox = wx.BoxSizer(wx.HORIZONTAL)
+	
+	self._upPanel = wx.Panel(self)
+	self._downPanel = wx.Panel(self)
+	self._leftButton = wx.Button(self._downPanel, -1, left)
+	self._rightButton = wx.Button(self._downPanel, -1, right)
+	
+	vbox.Add(self._upPanel, 1, wx.ALL|wx.EXPAND, 1)
+	vbox.Add(self._downPanel, 0, wx.ALL|wx.EXPAND, 1)
+	
+	hbox.Add(self._leftButton, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 5)
+	hbox.Add((0, 0), 1, wx.EXPAND)	
+	hbox.Add(self._rightButton, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5)
+	
+	self._downPanel.SetSizer(hbox)
+	self._downPanel.Layout()
+        
+	self.SetSizer(vbox)
+        self.Layout()
 
-class ControlWorkbench(Workbench):
+    def getPanel(self):
+	return self._upPanel
 
-	def __init__(self, parent):
-		Workbench.__init__(self, parent)
+    def getRightButton(self):
+	return self._rightButton
 
-		self.load()
-
-	def load(self):
-
-		self._toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
-		self._toolbar.Realize()
-
-		self._leftPanel = self.getLeftPanel()
-		wx.StaticText(self._leftPanel, -1, "Control")
-
-		self._rightPanel.SetBackgroundColour(wx.RED)
+    def getLeftButton(self):
+	return self._leftButton

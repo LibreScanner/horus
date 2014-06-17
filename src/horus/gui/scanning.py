@@ -28,7 +28,7 @@ from horus.gui.util.workbench import *
 
 from horus.util import resources
 
-class ControlWorkbench(Workbench):
+class ScanningWorkbench(Workbench):
 
 	def __init__(self, parent):
 		Workbench.__init__(self, parent)
@@ -41,6 +41,6 @@ class ControlWorkbench(Workbench):
 		self._toolbar.Realize()
 
 		self._leftPanel = self.getLeftPanel()
-		wx.StaticText(self._leftPanel, -1, "Control")
+		wx.StaticText(self._leftPanel, -1, "Scanning")
 
-		self._rightPanel.SetBackgroundColour(wx.RED)
+		self._rightPanel.SetBackgroundColour(wx.BLUE)

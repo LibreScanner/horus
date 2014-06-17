@@ -23,24 +23,3 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.  #
 #                                                                       #
 #-----------------------------------------------------------------------#
-
-from horus.gui.util.workbench import *
-
-from horus.util import resources
-
-class ControlWorkbench(Workbench):
-
-	def __init__(self, parent):
-		Workbench.__init__(self, parent)
-
-		self.load()
-
-	def load(self):
-
-		self._toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
-		self._toolbar.Realize()
-
-		self._leftPanel = self.getLeftPanel()
-		wx.StaticText(self._leftPanel, -1, "Control")
-
-		self._rightPanel.SetBackgroundColour(wx.RED)

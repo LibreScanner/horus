@@ -24,23 +24,43 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
-from horus.gui.util.workbench import *
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from horus.util import resources
+import wx
+import sys
 
-class ControlWorkbench(Workbench):
+class Workbench(wx.Panel):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent)
+		wx.Panel.__init__(self, parent)
 
-		self.load()
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-	def load(self):
+		self._toolbar = wx.ToolBar(self)
+		self._panel = wx.Panel(self)
+		self._leftPanel = wx.Panel(self._panel, wx.SIMPLE_BORDER)
+		self._rightPanel = wx.Panel(self._panel)
 
-		self._toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
-		self._toolbar.Realize()
+		vbox.Add(self._toolbar, 0, wx.ALL|wx.EXPAND, 2)
+		vbox.Add(self._panel, 1, wx.ALL|wx.EXPAND, 2)
 
-		self._leftPanel = self.getLeftPanel()
-		wx.StaticText(self._leftPanel, -1, "Control")
+		hbox.Add(self._leftPanel, 1, wx.ALL|wx.EXPAND, 2)
+		hbox.Add(self._rightPanel, 2, wx.ALL|wx.EXPAND, 2)
 
-		self._rightPanel.SetBackgroundColour(wx.RED)
+		self._panel.SetSizer(hbox)
+		self._panel.Layout()
+
+		self.SetSizer(vbox)
+		self.Layout()
+		self.Hide()
+
+	def getToolbar(self):
+		return self._toolbar
+
+	def getRightPanel(self):
+		return self._rightPanel
+
+	def getLeftPanel(self):
+		return self._leftPanel

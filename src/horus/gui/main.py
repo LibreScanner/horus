@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: March & June 2014                                               #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -29,99 +29,106 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
-from horus.gui.control import *
-from horus.gui.viewer import *
+from horus.gui.control import ControlWorkbench
+from horus.gui.scanning import ScanningWorkbench
+from horus.gui.calibration import CalibrationWorkbench
+
+from horus.util import profile, resources
 
 from horus.engine.scanner import *
-
-from horus.util.resources import *
 
 class MainWindow(wx.Frame):
 
     def __init__(self):
         super(MainWindow, self).__init__(None, title=_("Horus: 3d scanning for everyone"),
                                                 size=(640+300,480+100))
-        #-- Initialize GUI
-        icon = wx.Icon(getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        ###-- Initialize GUI
+
+        ##-- Set Icon
+        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
+        ##-- Status Bar
         self.CreateStatusBar()
 
+        ##-- Menu Bar
         menuBar = wx.MenuBar()
+
+        #--  Menu File        
         menuFile = wx.Menu()
         menuOpenProfile = wx.MenuItem(menuFile, wx.ID_OPEN, _("Open Profile"))
-        menuOpenProfile.SetBitmap(wx.Bitmap(getPathForImage("load.png")))
+        #menuOpenProfile.SetBitmap(wx.Bitmap(getPathForImage("load.png")))
         menuFile.AppendItem(menuOpenProfile)
         menuSaveProfile = wx.MenuItem(menuFile, wx.ID_SAVE, _("Save Profile"))
-        menuSaveProfile.SetBitmap(wx.Bitmap(getPathForImage("save.png")))
+        #menuSaveProfile.SetBitmap(wx.Bitmap(getPathForImage("save.png")))
         menuFile.AppendItem(menuSaveProfile)
         menuResetProfile = wx.MenuItem(menuFile, -1 , _("Reset Profile"))
         #menuResetProfile.SetBitmap(wx.Bitmap(getPathForImage("reset.png")))
         menuFile.AppendItem(menuResetProfile)
         menuFile.AppendSeparator()
-        menuExit = wx.MenuItem(menuFile, wx.ID_EXIT, str(u'&'+_("Exit")+u'\tCtrl+Q'))
-        menuExit.SetBitmap(wx.Bitmap(getPathForImage("exit.png")))
-        menuFile.AppendItem(menuExit)        
+        menuExit = wx.MenuItem(menuFile, wx.ID_EXIT, _("Exit"))
+        #menuExit.SetBitmap(wx.Bitmap(getPathForImage("exit.png")))
+        menuFile.AppendItem(menuExit)
         menuBar.Append(menuFile, _("File"))
 
-        """# Create radio menu
-        radioMenu = wx.Menu()
-        menuSpanish = radioMenu.Append(wx.NewId(), getString("MENU_SPANISH_STR"), getString("MENU_SPANISH_STR"), wx.ITEM_RADIO)
-        menuEnglish = radioMenu.Append(wx.NewId(), getString("MENU_ENGLISH_STR"), getString("MENU_ENGLISH_STR"), wx.ITEM_RADIO)
-        if locale == ES_ES:
-            menuSpanish.Check(True)
-            menuEnglish.Check(False)
-        else:
-            menuSpanish.Check(False)
-            menuEnglish.Check(True)     
-        menuBar.Append(radioMenu, getString("MENU_LANGUAGE_STR"))"""
+        #-- Menu Edit
+        menuEdit = wx.Menu()
+        menuEdit.AppendCheckItem(wx.ID_ANY, _("Basic Mode"))
+        menuEdit.AppendCheckItem(wx.ID_ANY, _("Expert Mode"))
+        menuEdit.AppendSeparator()
+        menuEdit.Append(wx.ID_ANY, _("Preferences"))
+        menuBar.Append(menuEdit, _("Edit"))
 
-        """# Create radio menu
-        viewMenu = wx.Menu()
-        self.menuVideo = viewMenu.Append(wx.NewId(), getString("MENU_VIDEO_STR"), getString("MENU_VIDEO_STR"), wx.ITEM_CHECK)
-        self.menuPointCloud = viewMenu.Append(wx.NewId(), getString("MENU_POINTCLOUD_STR"), getString("MENU_POINTCLOUD_STR"), wx.ITEM_CHECK)
-        f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'r')
-        for line in f:
-            if line.startswith('video'):
-                if line.split('=')[1].startswith('True'):
-                    self.menuVideo.Check(True)
-                else:
-                    self.menuVideo.Check(False)
-            elif line.startswith('pointcloud'):
-                if line.split('=')[1].startswith('True'):
-                    self.menuPointCloud.Check(True)
-                else:
-                    self.menuPointCloud.Check(False)                
-        f.close()
-        menuBar.Append(viewMenu, getString("MENU_VIEW_STR"))"""
+        #-- Menu View
+        menuView = wx.Menu()
+        menuWorkbench = wx.Menu()
+        menuWorkbench.Append(wx.ID_ANY, _("<none>"))
+        menuWorkbench.Append(wx.ID_ANY, _("Main"))
+        menuWorkbench.Append(wx.ID_ANY, _("Control"))
+        menuWorkbench.Append(wx.ID_ANY, _("Calibration"))
+        menuWorkbench.Append(wx.ID_ANY, _("Scanning"))
+        menuView.AppendMenu(wx.ID_ANY, _("Workbench"), menuWorkbench)
+        menuBar.Append(menuView, _("View"))
 
+        #-- Menu Help
         menuHelp = wx.Menu()
         menuAbout = wx.MenuItem(menuHelp, wx.ID_ABOUT, _("About"))
-        menuAbout.SetBitmap(wx.Bitmap(getPathForImage("about.png")))
+        #menuAbout.SetBitmap(wx.Bitmap(getPathForImage("about.png")))
         menuHelp.AppendItem(menuAbout)
         menuBar.Append(menuHelp, _("Help"))
 
         self.SetMenuBar(menuBar)
 
-        self.scanner = Scanner(self)
+        ##-- Load Scanner Engine
+        #self.scanner = Scanner(self)
 
-        self.viewer = ViewNotebook(self, self.scanner)
-        self.control = ControlNotebook(self, self.scanner, self.viewer)
+        #self.viewer = ViewNotebook(self, self.scanner)
+        #self.control = ControlNotebook(self, self.scanner, self.viewer)
+        #sizer = wx.BoxSizer(wx.HORIZONTAL)
+        #sizer.Add(self.control, 0, wx.ALL|wx.EXPAND, 10)
+        #sizer.Add(self.viewer, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
+        #self.SetSizer(sizer)
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.control, 0, wx.ALL|wx.EXPAND, 10)
-        sizer.Add(self.viewer, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
+        controlWorkbench = ControlWorkbench(self)
+        scanningWorkbench = ScanningWorkbench(self)
+        calibrationWorkbench = CalibrationWorkbench(self)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(controlWorkbench, 1, wx.EXPAND)
+        sizer.Add(scanningWorkbench, 1, wx.EXPAND)
+        sizer.Add(calibrationWorkbench, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
-        # Eventsº
+        #controlWorkbench.Show()
+        #scanningWorkbench.Show()
+        #calibrationWorkbench.Show()
+
+
+        ##-- Events
         self.Bind(wx.EVT_MENU, self.onOpenProfile, menuOpenProfile)
         self.Bind(wx.EVT_MENU, self.onSaveProfile, menuSaveProfile)
         self.Bind(wx.EVT_MENU, self.onResetProfile, menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
-        #self.Bind(wx.EVT_MENU, self.onSpanish, menuSpanish)
-        #self.Bind(wx.EVT_MENU, self.onEnglish, menuEnglish)
-        #self.Bind(wx.EVT_MENU, self.toggleVideo, self.menuVideo)
-        #elf.Bind(wx.EVT_MENU, self.togglePointCloud, self.menuPointCloud)
         self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
 
         self.Layout()
@@ -162,13 +169,13 @@ class MainWindow(wx.Frame):
 
     def updateProfileToAllControls(self):
         """ """
-        self.control.updateProfileToAllControls()
+        #self.control.updateProfileToAllControls()
         ## TODO
 
     def onAbout(self, event):
         """ """
         info = wx.AboutDialogInfo()
-        icon = wx.Icon(getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(u'0.1')
@@ -196,41 +203,3 @@ Suite 330, Boston, MA  02111-1307  USA"""))
 
     def onExit(self, event):
         self.Close(True)
-
-    def ShowMessageReset(self):
-        wx.MessageBox(_("You must restart the application for the changes to be made"), _("Information"),
-            wx.OK | wx.ICON_INFORMATION)
-
-    def onSpanish(self, event):
-        self.ShowMessageReset()
-        f=open(os.path.join(os.path.dirname(__file__), "../resources/language.txt"),"w")
-        f.write(ES_ES)
-        f.close()
-
-    def onEnglish(self, event):
-        self.ShowMessageReset()
-        f=open(os.path.join(os.path.dirname(__file__), "../resources/language.txt"),"w")
-        f.write(EN_US)
-        f.close() 
-
-    def toggleVideo(self, event):        
-        self.ShowMessageReset()
-        s=open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt")).read()
-        if self.menuVideo.IsChecked():
-            s = s.replace('video=False', 'video=True')
-        else:
-            s = s.replace('video=True', 'video=False')           
-        f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'w')
-        f.write(s)
-        f.close()
-
-    def togglePointCloud(self, event):        
-        self.ShowMessageReset()
-        s=open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt")).read()
-        if self.menuVideo.IsChecked():
-            s = s.replace('pointcloud=False', 'pointcloud=True')
-        else:
-            s = s.replace('pointcloud=True', 'pointcloud=False')           
-        f = open(os.path.join(os.path.dirname(__file__), "../resources/preferences.txt"), 'w')
-        f.write(s)
-        f.close()
