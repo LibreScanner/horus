@@ -121,7 +121,7 @@ class MainWindow(wx.Frame):
 
         #controlWorkbench.Show()
         #scanningWorkbench.Show()
-        #calibrationWorkbench.Show()
+        calibrationWorkbench.Show()
 
 
         ##-- Events

@@ -46,10 +46,10 @@ class Workbench(wx.Panel):
 		vbox.Add(self._toolbar, 0, wx.ALL|wx.EXPAND, 2)
 		vbox.Add(self._panel, 1, wx.ALL|wx.EXPAND, 2)
 
-		hbox.Add(self._leftPanel, 1, wx.ALL|wx.EXPAND, 2)
-		hbox.Add(self._rightPanel, 2, wx.ALL|wx.EXPAND, 2)
+		#hbox.Add(self._leftPanel, 1, wx.ALL|wx.EXPAND, 2)
+		#hbox.Add(self._rightPanel, 2, wx.ALL|wx.EXPAND, 2)
 
-		self._panel.SetSizer(hbox)
+		#self._panel.SetSizer(hbox)
 		self._panel.Layout()
 
 		self.SetSizer(vbox)
@@ -64,3 +64,6 @@ class Workbench(wx.Panel):
 
 	def getLeftPanel(self):
 		return self._leftPanel
+
+	def getPanel(self):
+		return self._panel
