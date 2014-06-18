@@ -42,6 +42,9 @@ class MainWindow(wx.Frame):
     def __init__(self):
         super(MainWindow, self).__init__(None, title=_("Horus: 3d scanning for everyone"),
                                                 size=(640+300,480+100))
+
+        self.wbDictionary = {'none':100, 'main':101, 'control':102, 'calibration':103, 'scanning':104}
+
         ###-- Initialize GUI
 
         ##-- Set Icon
@@ -56,45 +59,35 @@ class MainWindow(wx.Frame):
 
         #--  Menu File        
         menuFile = wx.Menu()
-        menuOpenProfile = wx.MenuItem(menuFile, wx.ID_OPEN, _("Open Profile"))
-        #menuOpenProfile.SetBitmap(wx.Bitmap(getPathForImage("load.png")))
-        menuFile.AppendItem(menuOpenProfile)
-        menuSaveProfile = wx.MenuItem(menuFile, wx.ID_SAVE, _("Save Profile"))
-        #menuSaveProfile.SetBitmap(wx.Bitmap(getPathForImage("save.png")))
-        menuFile.AppendItem(menuSaveProfile)
-        menuResetProfile = wx.MenuItem(menuFile, -1 , _("Reset Profile"))
-        #menuResetProfile.SetBitmap(wx.Bitmap(getPathForImage("reset.png")))
-        menuFile.AppendItem(menuResetProfile)
+        menuOpenProfile = menuFile.Append(wx.ID_OPEN, _("Open Profile"), _("Opens Profile .ini"))
+        menuSaveProfile = menuFile.Append(wx.ID_SAVE, _("Save Profile"))
+        menuResetProfile = menuFile.Append(wx.ID_ANY, _("Reset Profile"))
         menuFile.AppendSeparator()
-        menuExit = wx.MenuItem(menuFile, wx.ID_EXIT, _("Exit"))
-        #menuExit.SetBitmap(wx.Bitmap(getPathForImage("exit.png")))
-        menuFile.AppendItem(menuExit)
+        menuExit = menuFile.Append(wx.ID_EXIT, _("Exit"))
         menuBar.Append(menuFile, _("File"))
 
         #-- Menu Edit
         menuEdit = wx.Menu()
-        menuEdit.AppendCheckItem(wx.ID_ANY, _("Basic Mode"))
-        menuEdit.AppendCheckItem(wx.ID_ANY, _("Expert Mode"))
+        menuBasicMode = menuEdit.AppendCheckItem(wx.ID_ANY, _("Basic Mode"))
+        menuExpertMode = menuEdit.AppendCheckItem(wx.ID_ANY, _("Expert Mode"))
         menuEdit.AppendSeparator()
-        menuEdit.Append(wx.ID_ANY, _("Preferences"))
+        menuPreferences = menuEdit.Append(wx.ID_ANY, _("Preferences"))
         menuBar.Append(menuEdit, _("Edit"))
 
         #-- Menu View
         menuView = wx.Menu()
         menuWorkbench = wx.Menu()
-        menuWorkbench.Append(wx.ID_ANY, _("<none>"))
-        menuWorkbench.Append(wx.ID_ANY, _("Main"))
-        menuWorkbench.Append(wx.ID_ANY, _("Control"))
-        menuWorkbench.Append(wx.ID_ANY, _("Calibration"))
-        menuWorkbench.Append(wx.ID_ANY, _("Scanning"))
+        menuWorkbenchNone = menuWorkbench.Append(self.wbDictionary['none'], _("<none>"))
+        menuWorkbenchMain = menuWorkbench.Append(self.wbDictionary['main'], _("Main"))
+        menuWorkbenchControl = menuWorkbench.Append(self.wbDictionary['control'], _("Control"))
+        menuWorkbenchCalibration = menuWorkbench.Append(self.wbDictionary['calibration'], _("Calibration"))
+        menuWorkbenchScanning = menuWorkbench.Append(self.wbDictionary['scanning'], _("Scanning"))
         menuView.AppendMenu(wx.ID_ANY, _("Workbench"), menuWorkbench)
         menuBar.Append(menuView, _("View"))
 
         #-- Menu Help
         menuHelp = wx.Menu()
-        menuAbout = wx.MenuItem(menuHelp, wx.ID_ABOUT, _("About"))
-        #menuAbout.SetBitmap(wx.Bitmap(getPathForImage("about.png")))
-        menuHelp.AppendItem(menuAbout)
+        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         menuBar.Append(menuHelp, _("Help"))
 
         self.SetMenuBar(menuBar)
@@ -109,26 +102,30 @@ class MainWindow(wx.Frame):
         #sizer.Add(self.viewer, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
         #self.SetSizer(sizer)
 
-        controlWorkbench = ControlWorkbench(self)
-        scanningWorkbench = ScanningWorkbench(self)
-        calibrationWorkbench = CalibrationWorkbench(self)
+        ##-- Create Workbenchs
+
+        self.controlWorkbench = ControlWorkbench(self)
+        self.scanningWorkbench = ScanningWorkbench(self)
+        self.calibrationWorkbench = CalibrationWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(controlWorkbench, 1, wx.EXPAND)
-        sizer.Add(scanningWorkbench, 1, wx.EXPAND)
-        sizer.Add(calibrationWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
         self.SetSizer(sizer)
-
-        #controlWorkbench.Show()
-        #scanningWorkbench.Show()
-        #calibrationWorkbench.Show()
-
 
         ##-- Events
         self.Bind(wx.EVT_MENU, self.onOpenProfile, menuOpenProfile)
         self.Bind(wx.EVT_MENU, self.onSaveProfile, menuSaveProfile)
         self.Bind(wx.EVT_MENU, self.onResetProfile, menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
+
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchNone)
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchMain)
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchControl)
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchCalibration)
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchScanning)
+
         self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
 
         self.Layout()
@@ -167,10 +164,28 @@ class MainWindow(wx.Frame):
             profile.resetProfile()
             self.updateProfileToAllControls()
 
+    def onExit(self, event):
+        self.Close(True)
+
     def updateProfileToAllControls(self):
         """ """
         #self.control.updateProfileToAllControls()
         ## TODO
+
+    def onWorkbenchSelected(self, event):
+        """ """
+        self.controlWorkbench.Hide()
+        self.calibrationWorkbench.Hide()
+        self.scanningWorkbench.Hide()
+
+        wb = {self.wbDictionary['control']     : self.controlWorkbench,
+              self.wbDictionary['calibration'] : self.calibrationWorkbench,
+              self.wbDictionary['scanning']    : self.scanningWorkbench}.get(event.GetId())
+
+        if wb is not None:
+            wb.Show()
+
+        self.Layout()
 
     def onAbout(self, event):
         """ """
@@ -200,6 +215,3 @@ Suite 330, Boston, MA  02111-1307  USA"""))
         info.AddTranslator(u'Jesús Arroyo\n Álvaro Velad')
 
         wx.AboutBox(info)
-
-    def onExit(self, event):
-        self.Close(True)

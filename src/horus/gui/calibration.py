@@ -31,7 +31,7 @@ from horus.util import resources
 class CalibrationWorkbench(Workbench):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent)
+		Workbench.__init__(self, parent, 1, 1)
 
 		self.load()
 

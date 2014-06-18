@@ -28,11 +28,10 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import wx
-import sys
 
 class Workbench(wx.Panel):
 
-	def __init__(self, parent):
+	def __init__(self, parent, leftSize=1, rightSize=1):
 		wx.Panel.__init__(self, parent)
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -46,8 +45,8 @@ class Workbench(wx.Panel):
 		vbox.Add(self._toolbar, 0, wx.ALL|wx.EXPAND, 2)
 		vbox.Add(self._panel, 1, wx.ALL|wx.EXPAND, 2)
 
-		hbox.Add(self._leftPanel, 1, wx.ALL|wx.EXPAND, 2)
-		hbox.Add(self._rightPanel, 2, wx.ALL|wx.EXPAND, 2)
+		hbox.Add(self._leftPanel, leftSize, wx.ALL|wx.EXPAND, 2)
+		hbox.Add(self._rightPanel, rightSize, wx.ALL|wx.EXPAND, 2)
 
 		self._panel.SetSizer(hbox)
 		self._panel.Layout()

@@ -23,3 +23,32 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.  #
 #                                                                       #
 #-----------------------------------------------------------------------#
+
+import wx
+
+from horus.util import resources
+
+class VideoView(wx.Panel):
+
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent)
+
+		self.bmp = wx.Bitmap(resources.getPathForImage("bq.png"))
+		self.Bind(wx.EVT_PAINT, self.onPaint)
+
+		self.SetBackgroundColour(wx.GREEN)
+		self.Centre()
+
+	def onPaint(self, event):
+		dc = wx.PaintDC(self)
+		dc.DrawBitmap(self.bmp, 0, 0)
+
+	def setBitmap(self, bmp):
+		self.bmp = bmp
+		self.Refresh()
+
+	def setFrame(self, frame):
+		height, width = frame.shape[:2]
+		self.bmp = wx.BitmapFromBuffer(width, height, frame)
+		self.Refresh()
+

@@ -24,23 +24,79 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
-from horus.gui.util.workbench import *
+from horus.engine.camera import *
+from horus.engine.device import *
 
-from horus.util import resources
+from horus.util.resources import *
+
+from horus.gui.util.workbench import *
+from horus.gui.util.videoView import *
 
 class ControlWorkbench(Workbench):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent)
+		Workbench.__init__(self, parent, 2, 3)
 
 		self.load()
 
 	def load(self):
 
-		self._toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
+		#-- Toolbar Configuration
+
+		connectTool    = self._toolbar.AddLabelTool(wx.ID_ANY, _("Connect"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Connect / Disconnect"))
+		playTool       = self._toolbar.AddLabelTool(wx.ID_ANY, _("Play"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Play / Stop"))
+		snapshotTool   = self._toolbar.AddLabelTool(wx.ID_ANY, _("Snapshot"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Snapshot"))
+		motorCCWTool   = self._toolbar.AddLabelTool(wx.ID_ANY, _("Motor CCW"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Motor CCW"))
+		motorCWTool    = self._toolbar.AddLabelTool(wx.ID_ANY, _("Motor CW"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Motor CW"))
+		leftLaserTool  = self._toolbar.AddLabelTool(wx.ID_ANY, _("Left Laser On"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Left Laser On / Off"))
+		rightLaserTool = self._toolbar.AddLabelTool(wx.ID_ANY, _("Right Laser On"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Right Laser On / Off"))
 		self._toolbar.Realize()
 
-		self._leftPanel = self.getLeftPanel()
-		wx.StaticText(self._leftPanel, -1, "Control")
+		#-- Bind Toolbar Items
 
-		self._rightPanel.SetBackgroundColour(wx.RED)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, connectTool)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, playTool)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, snapshotTool)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, motorCCWTool)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, motorCWTool)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, leftLaserTool)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, rightLaserTool)
+
+		#-- Video View
+
+		leftSizer = wx.BoxSizer(wx.VERTICAL)
+		self._leftPanel.SetSizer(leftSizer)
+
+		videoView = VideoView(self._leftPanel)
+		leftSizer.Add(videoView, 1, wx.ALL|wx.EXPAND, 1)
+
+		#-- Image View
+		
+		rightSizer = wx.BoxSizer(wx.VERTICAL)
+		self._rightPanel.SetSizer(rightSizer)
+
+		imageView = VideoView(self._rightPanel)
+		rightSizer.Add(imageView, 1, wx.ALL|wx.EXPAND, 1)
+
+		imageView.setBitmap(wx.Bitmap(resources.getPathForImage("render.png")))
+
+	def onConnectToolEnter(self, event):
+		pass
+
+	def onPlayToolEnter(self, event):
+		pass
+
+	def onSnapshotToolEnter(self, event):
+		pass
+
+	def onMotorCCWToolEnter(self, event):
+		pass
+
+	def onMotorCWToolEnter(self, event):
+		pass
+
+	def onLeftLaserToolEnter(self, event):
+		pass
+
+	def onRightLaserToolEnter(self, event):
+		pass

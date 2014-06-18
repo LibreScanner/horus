@@ -31,7 +31,7 @@ from horus.util import resources
 class ScanningWorkbench(Workbench):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent)
+		Workbench.__init__(self, parent, 1, 2)
 
 		self.load()
 
