@@ -39,6 +39,12 @@ class ControlWorkbench(Workbench):
 
 		self.load()
 
+		self.camera = Camera()
+
+		self.timer = wx.Timer(self)
+
+		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+
 	def load(self):
 
 		#-- Toolbar Configuration
@@ -55,20 +61,21 @@ class ControlWorkbench(Workbench):
 		#-- Bind Toolbar Items
 
 		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, connectTool)
-		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, playTool)
-		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, snapshotTool)
-		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, motorCCWTool)
-		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, motorCWTool)
-		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, leftLaserTool)
-		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, rightLaserTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayToolEnter, playTool)
+		self.Bind(wx.EVT_TOOL, self.onSnapshotToolEnter, snapshotTool)
+		self.Bind(wx.EVT_TOOL, self.onMotorCCWToolEnter, motorCCWTool)
+		self.Bind(wx.EVT_TOOL, self.onMotorCWToolEnter, motorCWTool)
+		self.Bind(wx.EVT_TOOL, self.onLeftLaserToolEnter, leftLaserTool)
+		self.Bind(wx.EVT_TOOL, self.onRightLaserToolEnter, rightLaserTool)
 
 		#-- Video View
 
 		leftSizer = wx.BoxSizer(wx.VERTICAL)
 		self._leftPanel.SetSizer(leftSizer)
 
-		videoView = VideoView(self._leftPanel)
-		leftSizer.Add(videoView, 1, wx.ALL|wx.EXPAND, 1)
+		self.videoView = VideoView(self._leftPanel)
+		self.videoView.SetBackgroundColour(wx.BLACK)
+		leftSizer.Add(self.videoView, 1, wx.ALL|wx.EXPAND, 5)
 
 		#-- Image View
 		
@@ -76,18 +83,23 @@ class ControlWorkbench(Workbench):
 		self._rightPanel.SetSizer(rightSizer)
 
 		imageView = VideoView(self._rightPanel)
-		rightSizer.Add(imageView, 1, wx.ALL|wx.EXPAND, 1)
+		rightSizer.Add(imageView, 1, wx.ALL|wx.EXPAND, 5)
 
-		imageView.setBitmap(wx.Bitmap(resources.getPathForImage("render.png")))
+		imageView.setImage(wx.Image(getPathForImage("render.png")))
+
+	def onTimer(self, event):
+		frame = self.camera.captureImage()
+		self.videoView.setFrame(frame)
 
 	def onConnectToolEnter(self, event):
-		pass
+		self.camera.connect()
 
 	def onPlayToolEnter(self, event):
-		pass
+		self.timer.Start(milliseconds = 200)
 
 	def onSnapshotToolEnter(self, event):
-		pass
+		frame = self.camera.captureImage()
+		self.videoView.setFrame(frame)
 
 	def onMotorCCWToolEnter(self, event):
 		pass

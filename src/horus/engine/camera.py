@@ -46,7 +46,6 @@ class Camera:
 		""" """
 		print ">>> Connecting camera ..."
 		self.capture = cv2.VideoCapture(self.cameraId)
-  		self.capture.set(cv2.cv.CV_CAP_PROP_FPS, 30)
 		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.width)
 		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.height)
 		##
@@ -62,7 +61,7 @@ class Camera:
 
 	def captureImage(self):
 		""" """
-		for i in range(0,5):
+		for i in range(0,2):
 			self.capture.read()
 		ret, image = self.capture.read()
 		imageRGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

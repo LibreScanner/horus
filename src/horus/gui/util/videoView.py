@@ -26,29 +26,56 @@
 
 import wx
 
-from horus.util import resources
+from horus.util.resources import *
 
 class VideoView(wx.Panel):
 
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 
-		self.bmp = wx.Bitmap(resources.getPathForImage("bq.png"))
-		self.Bind(wx.EVT_PAINT, self.onPaint)
+		self.xOffset = 0
+		self.yOffset = 0
 
-		self.SetBackgroundColour(wx.GREEN)
-		self.Centre()
+		self.image = wx.Image(getPathForImage("bq.png"))
+
+		self.Bind(wx.EVT_PAINT, self.onPaint)
+		self.Bind(wx.EVT_SIZE, self.onResize)
 
 	def onPaint(self, event):
 		dc = wx.PaintDC(self)
-		dc.DrawBitmap(self.bmp, 0, 0)
+		dc.DrawBitmap(self.bitmap, self.xOffset, self.yOffset)
 
-	def setBitmap(self, bmp):
-		self.bmp = bmp
-		self.Refresh()
+	def onResize(self, size):
+		self.refreshBitmap()
+
+	def setImage(self, image):
+		self.image = image
+		self.refreshBitmap()
 
 	def setFrame(self, frame):
 		height, width = frame.shape[:2]
-		self.bmp = wx.BitmapFromBuffer(width, height, frame)
+		self.image = wx.ImageFromBuffer(width, height, frame)
+		self.refreshBitmap()
+
+	def refreshBitmap(self):
+		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
+		self.bitmap = wx.BitmapFromImage(self.image.Scale(w, h))
 		self.Refresh()
+
+	def getBestSize(self):
+		(wwidth, wheight) = self.GetSizeTuple()
+		(width, height) = self.image.GetSize()
+
+		if float(width)/height > float(wwidth)/wheight:
+			nwidth  = wwidth
+			nheight = float(wwidth*height)/width
+			xoffset = 0
+			yoffset = (wheight-nheight)/2.0
+		else:
+			nwidth  = float(wheight*width) /height
+			nheight = wheight
+			xoffset = (wwidth-nwidth)/2.0
+			yoffset = 0
+
+		return (nwidth, nheight, xoffset, yoffset)
 
