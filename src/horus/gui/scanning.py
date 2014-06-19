@@ -24,9 +24,11 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
-from horus.gui.util.workbench import *
+from horus.util.resources import *
 
-from horus.util import resources
+from horus.gui.util.workbench import *
+from horus.gui.util.videoView import *
+from horus.gui.util.videoPanel import *
 
 class ScanningWorkbench(Workbench):
 
@@ -37,10 +39,48 @@ class ScanningWorkbench(Workbench):
 
 	def load(self):
 
-		self._toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
-		self._toolbar.Realize()
+		#-- Toolbar Configuration
 
-		self._leftPanel = self.getLeftPanel()
-		wx.StaticText(self._leftPanel, -1, "Scanning")
+		connectTool = self.toolbar.AddLabelTool(wx.ID_ANY, _("Connect"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Connect / Disconnect"))
+		startTool   = self.toolbar.AddLabelTool(wx.ID_ANY, _("Start"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Start / Stop"))
+		pauseTool   = self.toolbar.AddLabelTool(wx.ID_ANY, _("Pause"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Pause / Resume"))
+		clearTool   = self.toolbar.AddLabelTool(wx.ID_ANY, _("Clear"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Clear"))
+		toggleTool  = self.toolbar.AddLabelTool(wx.ID_ANY, _("Toogle"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Camera / 3D"))
+		self.toolbar.Realize()
 
-		self._rightPanel.SetBackgroundColour(wx.BLUE)
+		#-- Bind Toolbar Items
+
+		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, connectTool)
+		self.Bind(wx.EVT_TOOL, self.onStartToolEnter, startTool)
+		self.Bind(wx.EVT_TOOL, self.onPauseToolEnter, pauseTool)
+		self.Bind(wx.EVT_TOOL, self.onClearToolEnter, clearTool)
+		self.Bind(wx.EVT_TOOL, self.onToogleToolEnter, toggleTool)
+
+		#-- Video Panel
+
+		self.leftPanel.SetBackgroundColour(wx.GREEN)
+
+		self.videoPanel = VideoPanel(self.leftPanel)
+		self.videoPanel.SetBackgroundColour(wx.BLACK)
+		self.addToLeft(self.videoPanel, 1, wx.ALL|wx.EXPAND, 5)
+
+		#-- Video View
+
+		self.videoView = VideoView(self.rightPanel)
+		self.videoView.SetBackgroundColour(wx.BLACK)
+		self.addToRight(self.videoView, 1, wx.ALL|wx.EXPAND, 5)
+
+	def onConnectToolEnter(self, event):
+		pass
+
+	def onStartToolEnter(self, event):
+		pass
+
+	def onPauseToolEnter(self, event):
+		pass
+
+	def onClearToolEnter(self, event):
+		pass
+
+	def onToogleToolEnter(self, event):
+		pass

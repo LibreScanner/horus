@@ -29,6 +29,9 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
+from horus.engine.camera import *
+from horus.engine.device import *
+
 from horus.gui.control import ControlWorkbench
 from horus.gui.scanning import ScanningWorkbench
 from horus.gui.calibration import CalibrationWorkbench
@@ -44,6 +47,13 @@ class MainWindow(wx.Frame):
                                                 size=(640+300,480+100))
 
         self.wbDictionary = {'none':100, 'main':101, 'control':102, 'calibration':103, 'scanning':104}
+
+        ###-- Initialize Engine
+
+        self.camera = Camera()
+        self.device = Device(profile.getProfileSetting('serial_name'),
+                             profile.getProfileSetting('step_degrees'),
+                             profile.getProfileSetting('step_delay'))
 
         ###-- Initialize GUI
 
@@ -61,7 +71,7 @@ class MainWindow(wx.Frame):
         menuFile = wx.Menu()
         menuOpenProfile = menuFile.Append(wx.ID_OPEN, _("Open Profile"), _("Opens Profile .ini"))
         menuSaveProfile = menuFile.Append(wx.ID_SAVE, _("Save Profile"))
-        menuResetProfile = menuFile.Append(wx.ID_ANY, _("Reset Profile"))
+        menuResetProfile = menuFile.Append(wx.ID_RESET, _("Reset Profile"))
         menuFile.AppendSeparator()
         menuExit = menuFile.Append(wx.ID_EXIT, _("Exit"))
         menuBar.Append(menuFile, _("File"))
@@ -113,6 +123,8 @@ class MainWindow(wx.Frame):
         sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
         sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
         self.SetSizer(sizer)
+
+        self.workbenchUpdate()
 
         ##-- Events
         self.Bind(wx.EVT_MENU, self.onOpenProfile, menuOpenProfile)
@@ -167,25 +179,18 @@ class MainWindow(wx.Frame):
     def onExit(self, event):
         self.Close(True)
 
-    def updateProfileToAllControls(self):
-        """ """
-        #self.control.updateProfileToAllControls()
-        ## TODO
-
     def onWorkbenchSelected(self, event):
         """ """
-        self.controlWorkbench.Hide()
-        self.calibrationWorkbench.Hide()
-        self.scanningWorkbench.Hide()
+        currentWorkbench = {self.wbDictionary['control']     : 'control',
+                            self.wbDictionary['calibration'] : 'calibration',
+                            self.wbDictionary['scanning']    : 'scanning'}.get(event.GetId())
 
-        wb = {self.wbDictionary['control']     : self.controlWorkbench,
-              self.wbDictionary['calibration'] : self.calibrationWorkbench,
-              self.wbDictionary['scanning']    : self.scanningWorkbench}.get(event.GetId())
+        if currentWorkbench is not None:
+            profile.putPreference('workbench', currentWorkbench)
+        else:
+            profile.putPreference('workbench', 'none')
 
-        if wb is not None:
-            wb.Show()
-
-        self.Layout()
+        self.workbenchUpdate()
 
     def onAbout(self, event):
         """ """
@@ -199,7 +204,7 @@ class MainWindow(wx.Frame):
         info.SetWebSite(u'http://www.bq.com')
         info.SetLicence(_("""Horus is free software; you can redistribute 
 it and/or modify it under the terms of the GNU General Public License as 
-published by the Free Software Foundation; either version 3 of the License, 
+published by the Free Software Foundation; either version 3 of the License,
 or (at your option) any later version.
 
 Horus is distributed in the hope that it will be useful, 
@@ -215,3 +220,25 @@ Suite 330, Boston, MA  02111-1307  USA"""))
         info.AddTranslator(u'Jesús Arroyo\n Álvaro Velad')
 
         wx.AboutBox(info)
+
+    def updateProfileToAllControls(self):
+        """ """
+        #self.control.updateProfileToAllControls()
+        self.workbenchUpdate()
+
+    def workbenchUpdate(self):
+        """ """
+        currentWorkbench = profile.getPreference('workbench')
+
+        self.controlWorkbench.Hide()
+        self.calibrationWorkbench.Hide()
+        self.scanningWorkbench.Hide()
+
+        wb = {'control'     : self.controlWorkbench,
+              'calibration' : self.calibrationWorkbench,
+              'scanning'    : self.scanningWorkbench}.get(currentWorkbench)
+
+        if wb is not None:
+            wb.Show()
+
+        self.Layout()

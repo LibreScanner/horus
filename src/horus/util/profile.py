@@ -179,7 +179,8 @@ def _(n):
 	return n
 
 #-- Settings
- 
+
+setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1125)
 setting('step_delay', 800, int, 'basic', _('Step Delay')).setRange(100, 10000)
 
@@ -196,6 +197,8 @@ setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden')
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
 
 setting('startMode', 'Simple', ['Simple', 'Normal'], 'preference', 'hidden')
+
+setting('workbench', 'control', ['none', 'main', 'control', 'calibration', 'scanning'], 'preference', 'hidden')
 
 # TODO: change default last file
 setting('lastFile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')

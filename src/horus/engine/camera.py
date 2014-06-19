@@ -61,8 +61,8 @@ class Camera:
 
 	def captureImage(self):
 		""" """
-		for i in range(0,2):
-			self.capture.read()
+		#for i in range(0,2):
+		#	self.capture.read()
 		ret, image = self.capture.read()
 		imageRGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 

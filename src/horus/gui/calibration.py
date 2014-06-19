@@ -37,11 +37,10 @@ class CalibrationWorkbench(Workbench):
 
 	def load(self):
 
-		self._toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
-		self._toolbar.Realize()
+		self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
+		self.toolbar.Realize()
 
-		self._leftPanel = self.getLeftPanel()
-		wx.StaticText(self._leftPanel, -1, "Calibration")
+		wx.StaticText(self.leftPanel, -1, "Calibration")
 
-		self._rightPanel.SetBackgroundColour(wx.GREEN)
+		self.rightPanel.SetBackgroundColour(wx.GREEN)
 

@@ -25,7 +25,6 @@
 #-----------------------------------------------------------------------#
 
 import wx
-import sys
 
 class Page(wx.Panel):
     def __init__(self, parent, left="Left", right="Right"):
