@@ -27,60 +27,96 @@
 from horus.util.resources import *
 
 from horus.gui.util.workbench import *
-from horus.gui.util.videoView import *
 from horus.gui.util.videoPanel import *
+from horus.gui.util.videoView import *
+from horus.gui.util.scenePanel import *
+from horus.gui.util.sceneView import *
 
 class ScanningWorkbench(Workbench):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent, 1, 2)
+		Workbench.__init__(self, parent, 0, 1)
+
+		self.view3D = True
 
 		self.load()
 
 	def load(self):
 
 		#-- Toolbar Configuration
-
-		connectTool = self.toolbar.AddLabelTool(wx.ID_ANY, _("Connect"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Connect / Disconnect"))
-		startTool   = self.toolbar.AddLabelTool(wx.ID_ANY, _("Start"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Start / Stop"))
-		pauseTool   = self.toolbar.AddLabelTool(wx.ID_ANY, _("Pause"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Pause / Resume"))
-		clearTool   = self.toolbar.AddLabelTool(wx.ID_ANY, _("Clear"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Clear"))
-		toggleTool  = self.toolbar.AddLabelTool(wx.ID_ANY, _("Toogle"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Camera / 3D"))
+		
+		connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Connect"))
+		disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Disconnect"))
+		playTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Play"))
+		stopTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Stop"))
+		pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Pause"))
+		resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Resume"))
+		clearTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Clear"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Clear"))
+		toggleTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Toogle"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Camera / 3D"))
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
 
-		self.Bind(wx.EVT_TOOL, self.onConnectToolEnter, connectTool)
-		self.Bind(wx.EVT_TOOL, self.onStartToolEnter, startTool)
-		self.Bind(wx.EVT_TOOL, self.onPauseToolEnter, pauseTool)
-		self.Bind(wx.EVT_TOOL, self.onClearToolEnter, clearTool)
-		self.Bind(wx.EVT_TOOL, self.onToogleToolEnter, toggleTool)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked   , connectTool)
+		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked, disconnectTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked      , playTool)
+		self.Bind(wx.EVT_TOOL, self.onStopToolClicked      , stopTool)
+		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , pauseTool)
+		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , resumeTool)
+		self.Bind(wx.EVT_TOOL, self.onClearToolClicked     , clearTool)
+		self.Bind(wx.EVT_TOOL, self.onToogleToolClicked    , toggleTool)
 
-		#-- Video Panel
-
-		self.leftPanel.SetBackgroundColour(wx.GREEN)
-
+		#-- Left Panel
 		self.videoPanel = VideoPanel(self.leftPanel)
-		self.videoPanel.SetBackgroundColour(wx.BLACK)
-		self.addToLeft(self.videoPanel, 1, wx.ALL|wx.EXPAND, 5)
+		self.scenePanel = ScenePanel(self.leftPanel)
 
-		#-- Video View
+		#-- Right Views
 
 		self.videoView = VideoView(self.rightPanel)
+		self.sceneView = SceneView(self.rightPanel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
-		self.addToRight(self.videoView, 1, wx.ALL|wx.EXPAND, 5)
+		self.sceneView.SetBackgroundColour(wx.BLACK)
+		
+		self.updateView()
 
-	def onConnectToolEnter(self, event):
+	def onConnectToolClicked(self, event):
 		pass
 
-	def onStartToolEnter(self, event):
+	def onDisconnectToolClicked(self, event):
 		pass
 
-	def onPauseToolEnter(self, event):
+	def onPlayToolClicked(self, event):
 		pass
 
-	def onClearToolEnter(self, event):
+	def onStopToolClicked(self, event):
 		pass
 
-	def onToogleToolEnter(self, event):
+	def onPauseToolClicked(self, event):
 		pass
+
+	def onResumeToolClicked(self, event):
+		pass
+
+	def onClearToolClicked(self, event):
+		pass
+
+	def onToogleToolClicked(self, event):
+		self.view3D = not self.view3D
+		self.updateView()
+
+	def updateView(self):
+		if self.view3D:
+			self.videoPanel.Hide()
+			self.videoView.Hide()
+			self.scenePanel.Show()
+			self.sceneView.Show()
+			self.addToLeft(self.scenePanel)
+			self.addToRight(self.sceneView)
+		else:
+			self.scenePanel.Hide()
+			self.sceneView.Hide()
+			self.videoPanel.Show()
+			self.videoView.Show()
+			self.addToLeft(self.videoPanel)
+			self.addToRight(self.videoView)
+		self.Layout()

@@ -49,43 +49,43 @@ class ControlWorkbench(Workbench):
 
 		#-- Toolbar Configuration
 
-		connectTool       = self.toolbar.AddLabelTool(wx.ID_ANY, _("Connect"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Connect"))
-		disconnectTool    = self.toolbar.AddLabelTool(wx.ID_ANY, _("Disconnect"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Disconnect"))
-		playTool          = self.toolbar.AddLabelTool(wx.ID_ANY, _("Play"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Play"))
-		stopTool          = self.toolbar.AddLabelTool(wx.ID_ANY, _("Stop"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Stop"))
-		snapshotTool      = self.toolbar.AddLabelTool(wx.ID_ANY, _("Snapshot"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Snapshot"))
-		motorCCWTool      = self.toolbar.AddLabelTool(wx.ID_ANY, _("Motor CCW"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Motor CCW"))
-		motorCWTool       = self.toolbar.AddLabelTool(wx.ID_ANY, _("Motor CW"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Motor CW"))
-		leftLaserOnTool   = self.toolbar.AddLabelTool(wx.ID_ANY, _("Left Laser On"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Left Laser On"))
-		leftLaserOffTool  = self.toolbar.AddLabelTool(wx.ID_ANY, _("Left Laser Off"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Left Laser Off"))
-		rightLaserOnTool  = self.toolbar.AddLabelTool(wx.ID_ANY, _("Right Laser On"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Right Laser On"))
-		rightLaserOffTool = self.toolbar.AddLabelTool(wx.ID_ANY, _("Right Laser Off"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Right Laser Off"))
+		self.connectTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Connect"))
+		self.disconnectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Disconnect"))
+		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Play"))
+		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Stop"))
+		self.snapshotTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Snapshot"))
+		self.motorCCWTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Motor CCW"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Motor CCW"))
+		self.motorCWTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Motor CW"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Motor CW"))
+		self.leftLaserOnTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Left Laser On"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Left Laser On"))
+		self.leftLaserOffTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Left Laser Off"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Left Laser Off"))
+		self.rightLaserOnTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Right Laser On"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Right Laser On"))
+		self.rightLaserOffTool = self.toolbar.AddLabelTool(wx.NewId(), _("Right Laser Off"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Right Laser Off"))
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
 
-		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked      , connectTool)
-		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , disconnectTool)
-		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked         , playTool)
-		self.Bind(wx.EVT_TOOL, self.onStopToolClicked         , stopTool)
-		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked     , snapshotTool)
-		self.Bind(wx.EVT_TOOL, self.onMotorCCWToolClicked     , motorCCWTool)
-		self.Bind(wx.EVT_TOOL, self.onMotorCWToolClicked      , motorCWTool)
-		self.Bind(wx.EVT_TOOL, self.onLeftLaserOnToolClicked  , leftLaserOnTool)
-		self.Bind(wx.EVT_TOOL, self.onLeftLaserOffToolClicked , leftLaserOffTool)
-		self.Bind(wx.EVT_TOOL, self.onRightLaserOnToolClicked , rightLaserOnTool)
-		self.Bind(wx.EVT_TOOL, self.onRightLaserOffToolClicked, rightLaserOffTool)
+		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked      , self.connectTool)
+		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , self.disconnectTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked         , self.playTool)
+		self.Bind(wx.EVT_TOOL, self.onStopToolClicked         , self.stopTool)
+		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked     , self.snapshotTool)
+		self.Bind(wx.EVT_TOOL, self.onMotorCCWToolClicked     , self.motorCCWTool)
+		self.Bind(wx.EVT_TOOL, self.onMotorCWToolClicked      , self.motorCWTool)
+		self.Bind(wx.EVT_TOOL, self.onLeftLaserOnToolClicked  , self.leftLaserOnTool)
+		self.Bind(wx.EVT_TOOL, self.onLeftLaserOffToolClicked , self.leftLaserOffTool)
+		self.Bind(wx.EVT_TOOL, self.onRightLaserOnToolClicked , self.rightLaserOnTool)
+		self.Bind(wx.EVT_TOOL, self.onRightLaserOffToolClicked, self.rightLaserOffTool)
 
 		#-- Video View
 
 		self.videoView = VideoView(self.leftPanel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
-		self.addToLeft(self.videoView, 1, wx.ALL|wx.EXPAND, 5)
+		self.addToLeft(self.videoView)
 
 		#-- Image View
 
 		self.imageView = VideoView(self.rightPanel)
-		self.addToRight(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
+		self.addToRight(self.imageView)
 
 		self.imageView.setImage(wx.Image(getPathForImage("scanner.png")))
 

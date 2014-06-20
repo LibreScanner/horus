@@ -44,7 +44,6 @@ from horus.util import meshLoader
 from horus.util import objectScene
 from horus.util import profile
 from horus.util import resources
-from horus.gui.util import previewTools
 from horus.gui.util import openglHelpers
 from horus.gui.util import openglGui
 
@@ -82,8 +81,6 @@ class SceneView(openglGui.glGuiPanel):
 		#self.openFileButton.setDisabled(True)
 
 		group = []
-
-		#self.viewSelection = openglGui.glComboButton(self, _("View mode"), [7,19,11,15,23], [_("Normal"), _("Overhang"), _("Transparent"), _("X-Ray"), _("Layers")], (-1,0), self.OnViewChange)
 
 		self.notification = openglGui.glNotification(self, (0, 0))
 
@@ -190,7 +187,8 @@ class SceneView(openglGui.glGuiPanel):
 		meshesLoader.saveMeshes(filename, self._scene.objects())
 
 	def OnToolSelect(self, button):
-		self.tool = previewTools.toolNone(self)
+		pass
+		#self.tool = previewTools.toolNone(self)
 
 	def updateToolButtons(self):
 		self.OnToolSelect(0)
@@ -554,14 +552,14 @@ class SceneView(openglGui.glGuiPanel):
 		elif self._mouseState == 'dragObject' and self._selectedObj is not None:
 			self._scene.pushFree(self._selectedObj)
 			self.sceneUpdated()
-		elif self._mouseState == 'tool':
-			if self.tempMatrix is not None and self._selectedObj is not None:
-				self._selectedObj.applyMatrix(self.tempMatrix)
-				self._scene.pushFree(self._selectedObj)
-				self._selectObject(self._selectedObj)
-			self.tempMatrix = None
-			self.tool.OnDragEnd()
-			self.sceneUpdated()
+		#elif self._mouseState == 'tool':
+		#	if self.tempMatrix is not None and self._selectedObj is not None:
+		#		self._selectedObj.applyMatrix(self.tempMatrix)
+		#		self._scene.pushFree(self._selectedObj)
+		#		self._selectObject(self._selectedObj)
+		#	self.tempMatrix = None
+		#	self.tool.OnDragEnd()
+		#	self.sceneUpdated()
 		self._mouseState = None
 
 	def OnMouseMotion(self,e):
@@ -595,8 +593,8 @@ class SceneView(openglGui.glGuiPanel):
 					self._zoom = 1
 				if self._zoom > numpy.max(self._machineSize) * 3:
 					self._zoom = numpy.max(self._machineSize) * 3
-		if not e.Dragging() or self._mouseState != 'tool':
-			self.tool.OnMouseMove(p0, p1)
+		#if not e.Dragging() or self._mouseState != 'tool':
+		#	self.tool.OnMouseMove(p0, p1)
 
 		self._mouseX = e.GetX()
 		self._mouseY = e.GetY()
