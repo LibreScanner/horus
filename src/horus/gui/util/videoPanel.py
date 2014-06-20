@@ -32,7 +32,7 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     def __init__(self, parent):
         """"""
-        wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(260, 0))
+        wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
 
         self.SetupScrolling()
         

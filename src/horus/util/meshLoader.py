@@ -36,11 +36,11 @@ def loadSupportedExtensions():
 
 def saveSupportedExtensions():
 	""" return a list of supported file extensions for saving. """
-	return ['.ply']
+	return ['.ply', '.stl']
 
-def loadMeshes(filename):
+def loadMesh(filename):
 	"""
-	loadMeshes loads 1 or more printableObjects from a file.
+	loadMesh loads 1 printableObject from a file.
 	"""
 	ext = os.path.splitext(filename)[1].lower()
 	if ext == '.ply':
@@ -48,14 +48,17 @@ def loadMeshes(filename):
 	if ext == '.stl':
 		return stl.loadScene(filename)
 	print 'Error: Unknown model extension: %s' % (ext)
-	return []
+	return None
 
-def saveMeshes(filename, objects):
+def saveMesh(filename, _object):
 	"""
-	Save a list of objects into the file given by the filename. Use the filename extension to find out the file format.
+	Save a object into the file given by the filename. Use the filename extension to find out the file format.
 	"""
 	ext = os.path.splitext(filename)[1].lower()
 	if ext == '.ply':
-		ply.saveScene(filename, objects)
+		ply.saveScene(filename, _object)
+		return
+	if ext == '.stl':
+		stl.saveScene(filename, _object)
 		return
 	print 'Error: Unknown model extension: %s' % (ext)

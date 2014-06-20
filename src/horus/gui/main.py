@@ -29,14 +29,17 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
+import os
+
 from horus.engine.camera import *
 from horus.engine.device import *
+
+from horus.util import profile, resources, meshLoader
 
 from horus.gui.control import ControlWorkbench
 from horus.gui.scanning import ScanningWorkbench
 from horus.gui.calibration import CalibrationWorkbench
 
-from horus.util import profile, resources
 
 from horus.engine.scanner import *
 
@@ -140,13 +143,41 @@ class MainWindow(wx.Frame):
         self.Show()
 
     def onLoadModel(self, event):
-        pass
+        dlg=wx.FileDialog(self, _("Open 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+
+        dlg.SetWildcard(wildcardFilter)
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        filename = dlg.GetPath()
+        dlg.Destroy()
+        if filename is not None:
+            profile.putPreference('lastFile', filename)
+            self.scanningWorkbench.sceneView.loadFile(filename)
 
     def onSaveModel(self, event):
-        pass
+        if self.scanningWorkbench.sceneView._object is None:
+            return
+
+        dlg=wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        fileExtensions = meshLoader.saveSupportedExtensions()
+        wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
+        wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+        dlg.SetWildcard(wildcardFilter)
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        filename = dlg.GetPath()
+        dlg.Destroy()
+
+        meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
 
     def onClearModel(self, event):
-        pass
+        self.scanningWorkbench.sceneView._clearScene()
 
     def onOpenProfile(self, event):
         """ """

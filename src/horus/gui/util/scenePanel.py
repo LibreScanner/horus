@@ -38,7 +38,6 @@ class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
         
         #-- Graphic elements
 
-
         algorithmStaticText = wx.StaticText(self, label=_("Algorithm"))
         algorithmStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         self.compactAlgRadioButton = wx.RadioButton(self, label=_("Compact"), size=(100,-1))
