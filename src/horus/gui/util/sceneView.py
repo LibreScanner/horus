@@ -567,7 +567,7 @@ class SceneView(openglGui.glGuiPanel):
 				else:
 					self._platformMesh[machine] = None
 				self._platformMesh[machine]._drawOffset = numpy.array([0,0,13.6], numpy.float32)
-			glColor4f(0.6,0.6,0.6,1.0)
+			glColor4f(0.6,0.6,0.6,0.5)
 			self._objectShader.bind()
 			self._renderObject(self._platformMesh[machine], False, False)
 			self._objectShader.unbind()
@@ -662,7 +662,7 @@ class SceneView(openglGui.glGuiPanel):
 			glBindTexture(GL_TEXTURE_2D, self._platformTexture)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-		glColor4f(1,1,1,1)
+		glColor4f(1,1,1,0.5)
 		glBindTexture(GL_TEXTURE_2D, self._platformTexture)
 		glEnable(GL_TEXTURE_2D)
 		glBegin(GL_TRIANGLE_FAN)
