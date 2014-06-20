@@ -45,14 +45,14 @@ class ScanningWorkbench(Workbench):
 
 		#-- Toolbar Configuration
 		
-		connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Connect"))
-		disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Disconnect"))
-		playTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Play"))
-		stopTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Stop"))
-		pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Pause"))
-		resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("save.png")), shortHelp=_("Resume"))
-		clearTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Clear"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Clear"))
-		toggleTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Toogle"), wx.Bitmap(getPathForImage("load.png")), shortHelp=_("Camera / 3D"))
+		connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
+		disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
+		playTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
+		stopTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
+		pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("pause.png")), shortHelp=_("Pause"))
+		resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
+		deleteTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
+		viewTool       = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("3D / Camera"))
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
@@ -63,8 +63,8 @@ class ScanningWorkbench(Workbench):
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked      , stopTool)
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , pauseTool)
 		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , resumeTool)
-		self.Bind(wx.EVT_TOOL, self.onClearToolClicked     , clearTool)
-		self.Bind(wx.EVT_TOOL, self.onToogleToolClicked    , toggleTool)
+		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , deleteTool)
+		self.Bind(wx.EVT_TOOL, self.onViewToolClicked      , viewTool)
 
 		#-- Left Panel
 		self.videoPanel = VideoPanel(self.leftPanel)
@@ -97,10 +97,10 @@ class ScanningWorkbench(Workbench):
 	def onResumeToolClicked(self, event):
 		pass
 
-	def onClearToolClicked(self, event):
+	def onDeleteToolClicked(self, event):
 		pass
 
-	def onToogleToolClicked(self, event):
+	def onViewToolClicked(self, event):
 		self.view3D = not self.view3D
 		self.updateView()
 

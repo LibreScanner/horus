@@ -37,7 +37,7 @@ class CalibrationWorkbench(Workbench):
 
 	def load(self):
 
-		self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
+		self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("connect.png")))
 		self.toolbar.Realize()
 
 		wx.StaticText(self.leftPanel, -1, "Calibration")

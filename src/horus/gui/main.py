@@ -94,7 +94,7 @@ class MainWindow(wx.Frame):
         menuView = wx.Menu()
         menuWorkbench = wx.Menu()
         menuWorkbenchNone = menuWorkbench.Append(wx.NewId(), _("<none>"))
-        menuWorkbenchMain = menuWorkbench.Append(wx.NewId(), _("Main"))
+        #menuWorkbenchMain = menuWorkbench.Append(wx.NewId(), _("Main"))
         self.menuWorkbenchControl = menuWorkbench.Append(wx.NewId(), _("Control"))
         self.menuWorkbenchCalibration = menuWorkbench.Append(wx.NewId(), _("Calibration"))
         self.menuWorkbenchScanning = menuWorkbench.Append(wx.NewId(), _("Scanning"))
@@ -132,7 +132,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
 
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchNone)
-        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchMain)
+        #self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchMain)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchControl)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchCalibration)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchScanning)
