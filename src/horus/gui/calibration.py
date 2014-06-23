@@ -32,6 +32,7 @@ from horus.gui.util.workbench import *
 from horus.util import resources
 
 import random
+import numpy as np
 
 class CalibrationWorkbench(Workbench):
 
@@ -50,90 +51,107 @@ class CalibrationWorkbench(Workbench):
 		self._extrinsicsPanel=ExtrinsicsPanel(self._panel)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND,0)
-		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND,0)
+
+		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
+		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		self._panel.SetSizer(hbox)
 		
 
 class IntrinsicsPanel(wx.Panel):
 
 	def __init__(self,parent):
-		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
-		self._matrix= [["fx",0,"cx"],[0,"fy","cy"],[0,0,1]] # TODO connect with scanner's calibration matrix
-		self._distortionVector=["k1","k2","p1","p2","k3"] 
-		self.rotmatrix= [["r11","r12","r13"],["r21","r22","r23"],["r31","r32","r33"]] # TODO connect with scanner's calibration matrix
-		self.transmatrix= [["t1"],["t2"],["t3"]] # TODO connect with scanner's calibration matrix
+		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
 
+		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] # TODO connect with scanner's calibration matrix
+		self._calMatrix=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
+		self._vDistortionVector=["k1=","k2=","p1=","p2=","k3="] 
+		self._distortionVector= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
 		self.load()
 
 	def load(self):
 
 		self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-
-		self._intrinsicTitle=wx.StaticText(self,label=_("Intrinsic parameters"))
-		font = wx.Font(18, wx.FONTFAMILY_DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD,True)
+		# toolbar
+		self._intrinsicTitle=wx.StaticText(self,label=_("Step 1: Intrinsic parameters"))
+		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
 		
 		self._intrinsicTitle.SetFont(font)
 
 		vbox=wx.BoxSizer(wx.VERTICAL)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._intrinsicTitle,0,0,0)
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
+		hbox.Add(self._intrinsicTitle,0,wx.ALL,20)
+		hbox.Add((-1,-1),1)
 
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
-		self._camMatrixTitle=wx.StaticText(self,label=_("Camera Matrix"))
-		self._camMatrixTitle.SetFont(font)
-		hbox.Add(self._camMatrixTitle,0,wx.ALL,20)
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
-
-		self._visualMatrix=[[0 for j in range(len(self._matrix))] for i in range(len(self._matrix[0]))]
-		for i in range(len(self._matrix)):
-			hbox = wx.BoxSizer(wx.HORIZONTAL)  
-			for j in range (len(self._matrix[i])):
-				self._visualMatrix[i][j]= wx.StaticText(self,label=str(self._matrix[i][j]))
-				hbox.Add(self._visualMatrix[i][j],0,wx.ALL,20)
-			vbox.Add(hbox,-1,wx.ALIGN_CENTER,10)
-
-
-		self._distortionCoeffStaticText = wx.StaticText(self, label=_("Distortion coefficients"))
-
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._distortionCoeffStaticText,0,wx.ALL,20)
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
-
-		hbox= wx.BoxSizer(wx.HORIZONTAL)
-		self._visualDistortionVector=[0 for j in range(len(self._distortionVector))]
-		for i in range(len(self._distortionVector)):
-			self._visualDistortionVector[i]=wx.StaticText(self,label=str(self._distortionVector[i]))
-			hbox.Add( self._visualDistortionVector[i],0,wx.ALL,10)
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
-
+		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
+		image1=self.scale_bitmap(image1,55,55)
+		self.editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
 		
+		image2=wx.Bitmap(resources.getPathForImage("reset.png"))
+		image2=self.scale_bitmap(image2,55,55)
+		self.resetButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
+		
+		hbox.Add(self.editButton,0,wx.ALL,0)
+		hbox.Add(self.resetButton,0,wx.ALL,0)
 
+		vboxAux=wx.BoxSizer(wx.VERTICAL)
+		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
+
+		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
+
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
+
+		#camera matrix
+		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
+		self._camMatrixTitle=wx.StaticBox(self,label=_("Camera Matrix"))
+		self._camMatrixTitle.SetFont(font)
+		boxSizer = wx.StaticBoxSizer(self._camMatrixTitle,wx.HORIZONTAL)
+		boxSizer.Add((-1,50),0,wx.ALL,5)
+
+		self._visualMatrix=[[0 for j in range(len(self._vCalMatrix))] for i in range(len(self._vCalMatrix[0]))]
+		
+		for j in range(len(self._vCalMatrix[0])):
+			vbox2 = wx.BoxSizer(wx.VERTICAL)  
+			for i in range (len(self._vCalMatrix)):
+				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
+			
+				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
+				vbox2.Add(self._visualMatrix[i][j],0,wx.ALL,20)
+			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
+
+		boxSizer.Add((-1,50),0,wx.ALL,5)
+
+		vbox.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
+		
+		#distortion coefficients
+		self._distortionCoeffStaticText = wx.StaticBox(self, label=_("Distortion coefficients"))
+		self._distortionCoeffStaticText.SetFont(font)
+		boxSizer = wx.StaticBoxSizer(self._distortionCoeffStaticText,wx.VERTICAL)
+
+		vboxAux= wx.BoxSizer(wx.VERTICAL)
+		self._visualDistortionVector=[0 for j in range(len(self._distortionVector))]
+		for i in range(len(self._vDistortionVector)):
+			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
+			self._visualDistortionVector[i]=wx.StaticText(self,label=label)
+			vboxAux.Add( self._visualDistortionVector[i],0,wx.ALL|wx.EXPAND,10)
+		boxSizer.Add(vboxAux,-1,wx.ALIGN_LEFT,0)
+
+		vbox.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,30)
+
+		#buttons
 		self._startButton = wx.Button(self,label=_("Start"),size=(100,-1))
 		self._startButton.Bind(wx.EVT_BUTTON,self.start)
 
-		self._restoreButton = wx.Button(self,label=_("Restore"),size=(100,-1))
-		self._restoreButton.Bind(wx.EVT_BUTTON,self.restore)
-
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self._startButton,0,wx.ALL,20)
-		hbox.Add(self._restoreButton,0,wx.ALL,20)
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
+		
+		vboxAux=wx.BoxSizer(wx.VERTICAL)
+		
 
-		self._editButton = wx.Button(self,label=_("Edit"),size=(100,-1))
-		self._editButton.Bind(wx.EVT_BUTTON,self.edit)
-
-		self._saveButton = wx.Button(self,label=_("Save"),size=(100,-1))
-		self._saveButton.Bind(wx.EVT_BUTTON,self.save)
-
-		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._editButton,0,wx.ALL,20)
-		hbox.Add(self._saveButton,0,wx.ALL,20)
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
+		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
+		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
 
 		self.SetSizer(vbox)
 		
@@ -145,46 +163,108 @@ class IntrinsicsPanel(wx.Panel):
 		print "edit"
 	def save(self,event):
 		print "save"
+	def scale_bitmap(self,bitmap, width, height):
+		image = wx.ImageFromBitmap(bitmap)
+		image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+		result = wx.BitmapFromImage(image)
+		return result
 
 class ExtrinsicsPanel(wx.Panel):
 
 	def __init__(self,parent):
-		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		self._vRotMatrix= [["r11","r12","r13"],["r21","r22","r23"],["r31","r32","r33"]] # TODO connect with scanner's calibration matrix
+		self._rotMatrix=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
+		self._vTransMatrix= [["t1"],["t2"],["t3"]] # TODO connect with scanner's calibration matrix
+		self._transMatrix=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
+
 		self.load()
 	def load(self):
-		self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		# self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
 
-		self._extrinsicTitle=wx.StaticText(self,label=_("Extrinsic parameters"))
-		font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+		self._extrinsicTitle=wx.StaticText(self,label=_("Step 2: Extrinsic parameters"))
+		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
+		
 		self._extrinsicTitle.SetFont(font)
 
 		vbox=wx.BoxSizer(wx.VERTICAL)
-		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._extrinsicTitle,0,0,0)
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
 
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self._extrinsicTitle,0,wx.ALL,20)
+		hbox.Add((-1,-1),1)
+
+		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
+		image1=self.scale_bitmap(image1,55,55)
+		self.editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
+		
+		image2=wx.Bitmap(resources.getPathForImage("reset.png"))
+		image2=self.scale_bitmap(image2,55,55)
+		self.resetButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
+		
+		hbox.Add(self.editButton,0,wx.ALL,0)
+		hbox.Add(self.resetButton,0,wx.ALL,0)
+
+		vboxAux=wx.BoxSizer(wx.VERTICAL)
+		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
+
+		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
+
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
+
+		#camera matrix
+		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
+		self.transMatrixTitle=wx.StaticBox(self,label=_("Translation Matrix"))
+		self.transMatrixTitle.SetFont(font)
+		boxSizer = wx.StaticBoxSizer(self.transMatrixTitle,wx.HORIZONTAL)
+		boxSizer.Add((-1,50),0,wx.ALL,5)
+
+		self._visualMatrix=[[0 for j in range(len(self._vRotMatrix)+1)] for i in range(len(self._vRotMatrix[0]))]
+		print self._visualMatrix
+		for j in range(len(self._vRotMatrix[0])):
+			vbox2 = wx.BoxSizer(wx.VERTICAL)  
+			for i in range (len(self._vRotMatrix)):
+				label=str(self._vRotMatrix[i][j])+'=' + str(self._rotMatrix[i][j])
+			
+				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
+				vbox2.Add(self._visualMatrix[i][j],0,wx.ALL,20)
+			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
+
+		vbox2 = wx.BoxSizer(wx.VERTICAL)
+		for j in range(len(self._vTransMatrix)):
+			print self._vTransMatrix
+			label=str(self._vTransMatrix[j][0])+'=' + str(self._transMatrix[j][0])
+		
+			self._visualMatrix[j][3]= wx.StaticText(self,label=label)
+			vbox2.Add(self._visualMatrix[j][3],0,wx.ALL,20)
+		boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
+		
+
+
+		boxSizer.Add((-1,50),0,wx.ALL,5)
+
+		vbox.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
+		
+
+		#buttons
 		self._startButton = wx.Button(self,label=_("Start"),size=(100,-1))
 		self._startButton.Bind(wx.EVT_BUTTON,self.start)
 
-		self._restoreButton = wx.Button(self,label=_("Restore"),size=(100,-1))
-		self._restoreButton.Bind(wx.EVT_BUTTON,self.restore)
-
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self._startButton,0,wx.ALL,20)
-		hbox.Add(self._restoreButton,0,wx.ALL,20)
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
+		
+		vboxAux=wx.BoxSizer(wx.VERTICAL)
+		
 
-		self._editButton = wx.Button(self,label=_("Edit"),size=(100,-1))
-		self._editButton.Bind(wx.EVT_BUTTON,self.edit)
+		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
+		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
+		vbox.Add(vboxAux,0,wx.EXPAND,0)
 
-		self._saveButton = wx.Button(self,label=_("Save"),size=(100,-1))
-		self._saveButton.Bind(wx.EVT_BUTTON,self.save)
 
-		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._editButton,0,wx.ALL,20)
-		hbox.Add(self._saveButton,0,wx.ALL,20)
 
-		vbox.Add(hbox,-1,wx.ALIGN_CENTER,0)
+
+		
+
+
 
 		self.SetSizer(vbox)
 
@@ -196,3 +276,9 @@ class ExtrinsicsPanel(wx.Panel):
 		print "edit"
 	def save(self,event):
 		print "save"
+
+	def scale_bitmap(self,bitmap, width, height):
+		image = wx.ImageFromBitmap(bitmap)
+		image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+		result = wx.BitmapFromImage(image)
+		return result
