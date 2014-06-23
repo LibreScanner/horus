@@ -65,13 +65,18 @@ class IntrinsicsPanel(wx.Panel):
 
 		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] # TODO connect with scanner's calibration matrix
 		self._calMatrix=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
+		self._calMatrixDefault=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
+		
 		self._vDistortionVector=["k1=","k2=","p1=","p2=","k3="] 
 		self._distortionVector= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
+		self._distortionVectorDefault= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
+		
+		self._editControl=False  # True means editing
 		self.load()
 
 	def load(self):
 
-		self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		# self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
 		# toolbar
 		self._intrinsicTitle=wx.StaticText(self,label=_("Step 1: Intrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
@@ -86,14 +91,16 @@ class IntrinsicsPanel(wx.Panel):
 
 		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
 		image1=self.scale_bitmap(image1,55,55)
-		self.editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
-		
-		image2=wx.Bitmap(resources.getPathForImage("reset.png"))
+		self._editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
+		self._editButton.Bind(wx.EVT_BUTTON,self.edit)
+
+		image2=wx.Bitmap(resources.getPathForImage("restore.png"))
 		image2=self.scale_bitmap(image2,55,55)
-		self.resetButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
-		
-		hbox.Add(self.editButton,0,wx.ALL,0)
-		hbox.Add(self.resetButton,0,wx.ALL,0)
+		self._restoreButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
+		self._restoreButton.Bind(wx.EVT_BUTTON,self.restore)
+
+		hbox.Add(self._editButton,0,wx.ALL,0)
+		hbox.Add(self._restoreButton,0,wx.ALL,0)
 
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
 		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
@@ -110,14 +117,23 @@ class IntrinsicsPanel(wx.Panel):
 		boxSizer.Add((-1,50),0,wx.ALL,5)
 
 		self._visualMatrix=[[0 for j in range(len(self._vCalMatrix))] for i in range(len(self._vCalMatrix[0]))]
+		self._visualCtrlMatrix=[[0 for j in range(len(self._visualMatrix))] for i in range(len(self._visualMatrix[0]))]
 		
 		for j in range(len(self._vCalMatrix[0])):
 			vbox2 = wx.BoxSizer(wx.VERTICAL)  
+			vbox3 = wx.BoxSizer(wx.VERTICAL)
 			for i in range (len(self._vCalMatrix)):
 				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
 			
 				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
-				vbox2.Add(self._visualMatrix[i][j],0,wx.ALL,20)
+
+				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self._calMatrix[i][j]))
+
+				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND|wx.ALL,20)
+				
+				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND|wx.ALL,15)
+				self._visualCtrlMatrix[i][j].Show(False)
+			
 			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
 
 		boxSizer.Add((-1,50),0,wx.ALL,5)
@@ -131,11 +147,16 @@ class IntrinsicsPanel(wx.Panel):
 
 		vboxAux= wx.BoxSizer(wx.VERTICAL)
 		self._visualDistortionVector=[0 for j in range(len(self._distortionVector))]
+		self._visualCtrlDistortionVector=[0 for j in range(len(self._distortionVector))]
 		for i in range(len(self._vDistortionVector)):
 			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
 			self._visualDistortionVector[i]=wx.StaticText(self,label=label)
-			vboxAux.Add( self._visualDistortionVector[i],0,wx.ALL|wx.EXPAND,10)
-		boxSizer.Add(vboxAux,-1,wx.ALIGN_LEFT,0)
+			self._visualCtrlDistortionVector[i]=wx.TextCtrl(self,value=str(self._distortionVector[i]))
+			vboxAux.Add( self._visualCtrlDistortionVector[i],0,wx.ALL|wx.EXPAND,14)
+			self._visualCtrlDistortionVector[i].Show(False)
+			vboxAux.Add( self._visualDistortionVector[i],0,wx.ALL|wx.EXPAND,20)
+
+		boxSizer.Add(vboxAux,-1,wx.EXPAND,0)
 
 		vbox.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,30)
 
@@ -159,8 +180,60 @@ class IntrinsicsPanel(wx.Panel):
 		print "Start"
 	def restore(self,event):
 		print "restore"
+		for i in range(len(self._visualMatrix)):
+			for j in range(len(self._visualMatrix[0])):
+
+				self._calMatrix.itemset((i,j),self._calMatrixDefault[i][j])
+				
+				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
+		
+				self._visualMatrix[i][j].SetLabel(label)
+		for i in range(len(self._vDistortionVector)):
+			
+			self._distortionVector.itemset((i),self._distortionVectorDefault[i])
+			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
+			self._visualDistortionVector[i].SetLabel(label)
+
+			
+			self.Layout()
+
 	def edit(self,event):
 		print "edit"
+		if self._editControl:
+			for i in range(len(self._visualMatrix)):
+				for j in range(len(self._visualMatrix[0])):
+					
+					self._visualCtrlMatrix[i][j].Show(False)
+					self._visualMatrix[i][j].Show(True)
+					self._editControl=False
+					self._calMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
+					
+					label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
+			
+					self._visualMatrix[i][j].SetLabel(label)
+			for i in range(len(self._vDistortionVector)):
+				
+				self._visualDistortionVector[i].Show(True)
+				self._visualCtrlDistortionVector[i].Show(False)
+				self._distortionVector.itemset((i),self._visualCtrlDistortionVector[i].GetValue())
+				label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
+				self._visualDistortionVector[i].SetLabel(label)
+
+			
+			self.Layout()
+		else:
+			for i in range(len(self._visualMatrix)):
+				for j in range(len(self._visualMatrix[0])):
+					
+					self._visualCtrlMatrix[i][j].Show(True)
+					self._visualMatrix[i][j].Show(False)
+					self._editControl=True
+					
+			for i in range(len(self._vDistortionVector)):
+				self._visualDistortionVector[i].Show(False)
+				self._visualCtrlDistortionVector[i].Show(True)
+			self.Layout()
+				
 	def save(self,event):
 		print "save"
 	def scale_bitmap(self,bitmap, width, height):
@@ -180,7 +253,7 @@ class ExtrinsicsPanel(wx.Panel):
 
 		self.load()
 	def load(self):
-		# self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
 
 		self._extrinsicTitle=wx.StaticText(self,label=_("Step 2: Extrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
@@ -195,14 +268,16 @@ class ExtrinsicsPanel(wx.Panel):
 
 		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
 		image1=self.scale_bitmap(image1,55,55)
-		self.editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
-		
-		image2=wx.Bitmap(resources.getPathForImage("reset.png"))
+		self._editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
+		self._editButton.Bind(wx.EVT_BUTTON,self.edit)
+
+		image2=wx.Bitmap(resources.getPathForImage("restore.png"))
 		image2=self.scale_bitmap(image2,55,55)
-		self.resetButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
-		
-		hbox.Add(self.editButton,0,wx.ALL,0)
-		hbox.Add(self.resetButton,0,wx.ALL,0)
+		self._restoreButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
+		self._restoreButton.Bind(wx.EVT_BUTTON,self.restore)
+
+		hbox.Add(self._editButton,0,wx.ALL,0)
+		hbox.Add(self._restoreButton,0,wx.ALL,0)
 
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
 		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
@@ -274,6 +349,7 @@ class ExtrinsicsPanel(wx.Panel):
 		print "restore"
 	def edit(self,event):
 		print "edit"
+
 	def save(self,event):
 		print "save"
 
