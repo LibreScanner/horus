@@ -121,7 +121,7 @@ class IntrinsicsPanel(wx.Panel):
 		
 		for j in range(len(self._vCalMatrix[0])):
 			vbox2 = wx.BoxSizer(wx.VERTICAL)  
-			vbox3 = wx.BoxSizer(wx.VERTICAL)
+
 			for i in range (len(self._vCalMatrix)):
 				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
 			
@@ -177,7 +177,7 @@ class IntrinsicsPanel(wx.Panel):
 		self.SetSizer(vbox)
 		
 	def start(self,event):
-		print "Start"
+		print self.parent
 	def restore(self,event):
 		print "restore"
 		for i in range(len(self._visualMatrix)):
@@ -246,15 +246,19 @@ class ExtrinsicsPanel(wx.Panel):
 
 	def __init__(self,parent):
 		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
-		self._vRotMatrix= [["r11","r12","r13"],["r21","r22","r23"],["r31","r32","r33"]] # TODO connect with scanner's calibration matrix
+		self._vRotMatrix= [["r11=","r12=","r13="],["r21=","r22=","r23="],["r31=","r32=","r33="]] # TODO connect with scanner's calibration matrix
 		self._rotMatrix=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
-		self._vTransMatrix= [["t1"],["t2"],["t3"]] # TODO connect with scanner's calibration matrix
+		self._rotMatrixDefault=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
+		
+		self._vTransMatrix= [["t1="],["t2="],["t3="]] # TODO connect with scanner's calibration matrix
 		self._transMatrix=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
+		self._transMatrixDefault=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
+		self._editControl=False
 
 		self.load()
 	def load(self):
-		self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-
+		# self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.SetBackgroundColour((255,255,255))
 		self._extrinsicTitle=wx.StaticText(self,label=_("Step 2: Extrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
 		
@@ -294,22 +298,30 @@ class ExtrinsicsPanel(wx.Panel):
 		boxSizer.Add((-1,50),0,wx.ALL,5)
 
 		self._visualMatrix=[[0 for j in range(len(self._vRotMatrix)+1)] for i in range(len(self._vRotMatrix[0]))]
+		self._visualCtrlMatrix=[[0 for j in range(len(self._vRotMatrix)+1)] for i in range(len(self._vRotMatrix[0]))]
+		
 		print self._visualMatrix
 		for j in range(len(self._vRotMatrix[0])):
 			vbox2 = wx.BoxSizer(wx.VERTICAL)  
 			for i in range (len(self._vRotMatrix)):
-				label=str(self._vRotMatrix[i][j])+'=' + str(self._rotMatrix[i][j])
-			
+				label=str(self._vRotMatrix[i][j])+ str(self._rotMatrix[i][j])
+				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self._rotMatrix[i][j]))
+				
 				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
 				vbox2.Add(self._visualMatrix[i][j],0,wx.ALL,20)
+				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND | wx.ALL,15)
+				self._visualCtrlMatrix[i][j].Show(False)
 			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
 
 		vbox2 = wx.BoxSizer(wx.VERTICAL)
 		for j in range(len(self._vTransMatrix)):
 			print self._vTransMatrix
-			label=str(self._vTransMatrix[j][0])+'=' + str(self._transMatrix[j][0])
-		
+			label=str(self._vTransMatrix[j][0])+ str(self._transMatrix[j][0])
+			self._visualCtrlMatrix[j][3]=wx.TextCtrl(self,-1,str(self._transMatrix[j][0]))
+				
 			self._visualMatrix[j][3]= wx.StaticText(self,label=label)
+			self._visualCtrlMatrix[j][3].Show(False)
+			vbox2.Add(self._visualCtrlMatrix[j][3],0,wx.EXPAND | wx.ALL,15)
 			vbox2.Add(self._visualMatrix[j][3],0,wx.ALL,20)
 		boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
 		
@@ -334,21 +346,64 @@ class ExtrinsicsPanel(wx.Panel):
 		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
 		vbox.Add(vboxAux,0,wx.EXPAND,0)
 
-
-
-
-		
-
-
-
 		self.SetSizer(vbox)
 
 	def start(self,event):
 		print "Start"
 	def restore(self,event):
 		print "restore"
+		for i in range(len(self._visualMatrix)):
+			for j in range(len(self._visualMatrix[0])-1):
+
+				self._rotMatrix.itemset((i,j),self._rotMatrixDefault[i][j])
+				
+				label=str(self._vRotMatrix[i][j]) + str(self._rotMatrix[i][j])
+		
+				self._visualMatrix[i][j].SetLabel(label)
+		for j in range(len(self._vTransMatrix)):
+			
+			self._transMatrix.itemset((j),self._transMatrixDefault[j])
+			label=str(self._vTransMatrix[j])+str(self._transMatrix[j])
+			self._visualMatrix[j][3].SetLabel(label)
+
+			
+			self.Layout()
+
 	def edit(self,event):
 		print "edit"
+		if self._editControl:
+			for i in range(len(self._visualMatrix)):
+				for j in range(len(self._visualMatrix[0])-1):
+					
+					self._visualCtrlMatrix[i][j].Show(False)
+					self._visualMatrix[i][j].Show(True)
+					self._editControl=False
+					self._rotMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
+					
+					label=str(self._vRotMatrix[i][j]) + str(self._rotMatrix[i][j])
+			
+					self._visualMatrix[i][j].SetLabel(label)
+			for j in range(len(self._vTransMatrix)):
+				
+				self._visualMatrix[j][3].Show(True)
+				self._visualCtrlMatrix[j][3].Show(False)
+				self._transMatrix.itemset((j),self._visualCtrlMatrix[j][3].GetValue())
+				label=str(self._vTransMatrix[j][0])+str(self._transMatrix[j][0])
+				self._visualMatrix[j][3].SetLabel(label)
+
+
+			
+			self.Layout()
+		else:
+			for i in range(len(self._visualMatrix)):
+				for j in range(len(self._visualMatrix[0])):
+					
+					self._visualCtrlMatrix[i][j].Show(True)
+					self._visualMatrix[i][j].Show(False)
+					self._editControl=True
+					
+			
+			self.Layout()
 
 	def save(self,event):
 		print "save"
