@@ -72,8 +72,6 @@ class printableObject(object):
 		self._headAreaHull = None
 		self._headAreaMinHull = None
 
-		self._loadAnim = None
-
 		self._isPointCloud = isPointCloud
 
 	def copy(self):

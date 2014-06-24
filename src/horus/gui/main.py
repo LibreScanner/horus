@@ -29,11 +29,16 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
+import os
+
+from horus.engine.scanner import *
+
+from horus.util import profile, resources, meshLoader
+
+from horus.gui.preferences import PreferencesDialog
 from horus.gui.control import ControlWorkbench
 from horus.gui.scanning import ScanningWorkbench
 from horus.gui.calibration import CalibrationWorkbench
-
-from horus.util import profile, resources
 
 from horus.engine.scanner import *
 
@@ -42,6 +47,13 @@ class MainWindow(wx.Frame):
     def __init__(self):
         super(MainWindow, self).__init__(None, title=_("Horus: 3d scanning for everyone"),
                                                 size=(640+300,480+100))
+        ###-- Initialize Engine
+
+        #self.scanner = Scanner(self)
+        self.scanner = Scanner(self)
+
+        self.updateEngine()
+
         ###-- Initialize GUI
 
         ##-- Set Icon
@@ -49,95 +61,125 @@ class MainWindow(wx.Frame):
         self.SetIcon(icon)
 
         ##-- Status Bar
-        self.CreateStatusBar()
+        #self.CreateStatusBar()
 
         ##-- Menu Bar
         menuBar = wx.MenuBar()
 
         #--  Menu File        
-        menuFile = wx.Menu()
-        menuOpenProfile = wx.MenuItem(menuFile, wx.ID_OPEN, _("Open Profile"))
-        #menuOpenProfile.SetBitmap(wx.Bitmap(getPathForImage("load.png")))
-        menuFile.AppendItem(menuOpenProfile)
-        menuSaveProfile = wx.MenuItem(menuFile, wx.ID_SAVE, _("Save Profile"))
-        #menuSaveProfile.SetBitmap(wx.Bitmap(getPathForImage("save.png")))
-        menuFile.AppendItem(menuSaveProfile)
-        menuResetProfile = wx.MenuItem(menuFile, -1 , _("Reset Profile"))
-        #menuResetProfile.SetBitmap(wx.Bitmap(getPathForImage("reset.png")))
-        menuFile.AppendItem(menuResetProfile)
-        menuFile.AppendSeparator()
-        menuExit = wx.MenuItem(menuFile, wx.ID_EXIT, _("Exit"))
-        #menuExit.SetBitmap(wx.Bitmap(getPathForImage("exit.png")))
-        menuFile.AppendItem(menuExit)
-        menuBar.Append(menuFile, _("File"))
+        self.menuFile = wx.Menu()
+        self.menuLoadModel = self.menuFile.Append(wx.NewId(), _("Load Model"))
+        self.menuSaveModel = self.menuFile.Append(wx.NewId(), _("Save Model"))
+        self.menuClearModel = self.menuFile.Append(wx.NewId(), _("Clear Model"))
+        self.menuFile.AppendSeparator()
+        menuOpenProfile = self.menuFile.Append(wx.NewId(), _("Open Profile"), _("Opens Profile .ini"))
+        menuSaveProfile = self.menuFile.Append(wx.NewId(), _("Save Profile"))
+        menuResetProfile = self.menuFile.Append(wx.NewId(), _("Reset Profile"))
+        self.menuFile.AppendSeparator()
+        menuExit = self.menuFile.Append(wx.ID_EXIT, _("Exit"))
+        menuBar.Append(self.menuFile, _("File"))
 
         #-- Menu Edit
-        menuEdit = wx.Menu()
-        menuEdit.AppendCheckItem(wx.ID_ANY, _("Basic Mode"))
-        menuEdit.AppendCheckItem(wx.ID_ANY, _("Expert Mode"))
-        menuEdit.AppendSeparator()
-        menuEdit.Append(wx.ID_ANY, _("Preferences"))
-        menuBar.Append(menuEdit, _("Edit"))
+        self.menuEdit = wx.Menu()
+        self.menuBasicMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Basic Mode"))
+        self.menuExpertMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Expert Mode"))
+        self.menuEdit.AppendSeparator()
+        self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
+        menuBar.Append(self.menuEdit, _("Edit"))
 
         #-- Menu View
         menuView = wx.Menu()
         menuWorkbench = wx.Menu()
-        menuWorkbench.Append(wx.ID_ANY, _("<none>"))
-        menuWorkbench.Append(wx.ID_ANY, _("Main"))
-        menuWorkbench.Append(wx.ID_ANY, _("Control"))
-        menuWorkbench.Append(wx.ID_ANY, _("Calibration"))
-        menuWorkbench.Append(wx.ID_ANY, _("Scanning"))
-        menuView.AppendMenu(wx.ID_ANY, _("Workbench"), menuWorkbench)
+        menuWorkbenchNone = menuWorkbench.Append(wx.NewId(), _("<none>"))
+        #menuWorkbenchMain = menuWorkbench.Append(wx.NewId(), _("Main"))
+        self.menuWorkbenchControl = menuWorkbench.Append(wx.NewId(), _("Control"))
+        self.menuWorkbenchCalibration = menuWorkbench.Append(wx.NewId(), _("Calibration"))
+        self.menuWorkbenchScanning = menuWorkbench.Append(wx.NewId(), _("Scanning"))
+        menuView.AppendMenu(wx.NewId(), _("Workbench"), menuWorkbench)
         menuBar.Append(menuView, _("View"))
 
         #-- Menu Help
         menuHelp = wx.Menu()
-        menuAbout = wx.MenuItem(menuHelp, wx.ID_ABOUT, _("About"))
-        #menuAbout.SetBitmap(wx.Bitmap(getPathForImage("about.png")))
-        menuHelp.AppendItem(menuAbout)
+        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         menuBar.Append(menuHelp, _("Help"))
 
         self.SetMenuBar(menuBar)
 
-        ##-- Load Scanner Engine
-        #self.scanner = Scanner(self)
+        ##-- Create Workbenchs
 
-        #self.viewer = ViewNotebook(self, self.scanner)
-        #self.control = ControlNotebook(self, self.scanner, self.viewer)
-        #sizer = wx.BoxSizer(wx.HORIZONTAL)
-        #sizer.Add(self.control, 0, wx.ALL|wx.EXPAND, 10)
-        #sizer.Add(self.viewer, 1, wx.RIGHT|wx.TOP|wx.BOTTOM|wx.EXPAND, 10)
-        #self.SetSizer(sizer)
-
-        controlWorkbench = ControlWorkbench(self)
-        scanningWorkbench = ScanningWorkbench(self)
-        calibrationWorkbench = CalibrationWorkbench(self)
+        self.controlWorkbench = ControlWorkbench(self)
+        self.scanningWorkbench = ScanningWorkbench(self)
+        self.calibrationWorkbench = CalibrationWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(controlWorkbench, 1, wx.EXPAND)
-        sizer.Add(scanningWorkbench, 1, wx.EXPAND)
-        sizer.Add(calibrationWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
-        #controlWorkbench.Show()
-        #scanningWorkbench.Show()
-        calibrationWorkbench.Show()
-
-
         ##-- Events
+        self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
+        self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
+        self.Bind(wx.EVT_MENU, self.onClearModel, self.menuClearModel)
         self.Bind(wx.EVT_MENU, self.onOpenProfile, menuOpenProfile)
         self.Bind(wx.EVT_MENU, self.onSaveProfile, menuSaveProfile)
         self.Bind(wx.EVT_MENU, self.onResetProfile, menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
+
+        self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
+
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchNone)
+        #self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchMain)
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchControl)
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchCalibration)
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchScanning)
+
         self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
 
-        self.Layout()
+        self.workbenchUpdate()
+
         self.Show()
 
+    def onLoadModel(self, event):
+        dlg=wx.FileDialog(self, _("Open 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+
+        dlg.SetWildcard(wildcardFilter)
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        filename = dlg.GetPath()
+        dlg.Destroy()
+        if filename is not None:
+            profile.putPreference('lastFile', filename)
+            self.scanningWorkbench.sceneView.loadFile(filename)
+
+    def onSaveModel(self, event):
+        if self.scanningWorkbench.sceneView._object is None:
+            return
+
+        dlg=wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        fileExtensions = meshLoader.saveSupportedExtensions()
+        wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
+        wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+        dlg.SetWildcard(wildcardFilter)
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        filename = dlg.GetPath()
+        dlg.Destroy()
+
+        meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
+
+    def onClearModel(self, event):
+        self.scanningWorkbench.sceneView._clearScene()
 
     def onOpenProfile(self, event):
         """ """
-        dlg=wx.FileDialog(self, _("Select profile file to load"), "", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        dlg=wx.FileDialog(self, _("Select profile file to load"), "", style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
@@ -167,10 +209,28 @@ class MainWindow(wx.Frame):
             profile.resetProfile()
             self.updateProfileToAllControls()
 
-    def updateProfileToAllControls(self):
+    def onExit(self, event):
+        self.Close(True)
+
+    def onPreferences(self, event):
+        prefDialog = PreferencesDialog(self)
+        prefDialog.Centre()
+        prefDialog.Show()
+        prefDialog.Raise()
+        wx.CallAfter(prefDialog.Show)
+
+    def onWorkbenchSelected(self, event):
         """ """
-        #self.control.updateProfileToAllControls()
-        ## TODO
+        currentWorkbench = {self.menuWorkbenchControl.GetId()     : 'control',
+                            self.menuWorkbenchCalibration.GetId() : 'calibration',
+                            self.menuWorkbenchScanning.GetId()    : 'scanning'}.get(event.GetId())
+
+        if currentWorkbench is not None:
+            profile.putPreference('workbench', currentWorkbench)
+        else:
+            profile.putPreference('workbench', 'none')
+
+        self.workbenchUpdate()
 
     def onAbout(self, event):
         """ """
@@ -184,7 +244,7 @@ class MainWindow(wx.Frame):
         info.SetWebSite(u'http://www.bq.com')
         info.SetLicence(_("""Horus is free software; you can redistribute 
 it and/or modify it under the terms of the GNU General Public License as 
-published by the Free Software Foundation; either version 3 of the License, 
+published by the Free Software Foundation; either version 3 of the License,
 or (at your option) any later version.
 
 Horus is distributed in the hope that it will be useful, 
@@ -201,5 +261,34 @@ Suite 330, Boston, MA  02111-1307  USA"""))
 
         wx.AboutBox(info)
 
-    def onExit(self, event):
-        self.Close(True)
+    def updateProfileToAllControls(self):
+        """ """
+        #self.control.updateProfileToAllControls()
+        self.workbenchUpdate()
+
+    def updateEngine(self):
+        self.scanner.initialize(profile.getProfileSettingInteger('camera_id'),
+                               profile.getProfileSetting('serial_name'),
+                               profile.getProfileSettingFloat('step_degrees'),
+                               profile.getProfileSettingInteger('step_delay'))
+
+    def workbenchUpdate(self):
+        """ """
+        currentWorkbench = profile.getPreference('workbench')
+
+        self.controlWorkbench.Hide()
+        self.calibrationWorkbench.Hide()
+        self.scanningWorkbench.Hide()
+
+        wb = {'control'     : self.controlWorkbench,
+              'calibration' : self.calibrationWorkbench,
+              'scanning'    : self.scanningWorkbench}.get(currentWorkbench)
+
+        if wb is not None:
+            wb.Show()
+
+        self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
+        self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
+        self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
+
+        self.Layout()

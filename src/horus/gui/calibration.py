@@ -40,14 +40,14 @@ import numpy as np
 class CalibrationWorkbench(Workbench):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent)
+		Workbench.__init__(self, parent, 1, 1)
 
 		self.load()
 
 	def load(self):
 
-		self._toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
-		self._toolbar.Realize()
+		self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("connect.png")))
+		self.toolbar.Realize()
 
 		self._panel.parent=self
 		self._intrinsicsPanel=IntrinsicsPanel(self._panel)
@@ -58,7 +58,7 @@ class CalibrationWorkbench(Workbench):
 		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		self._panel.SetSizer(hbox)
-		self.loadPagePattern()
+		#self.loadPagePattern()
 
 	def loadPagePattern(self):
 		self._intrinsicsPanel.Show(False)
@@ -197,7 +197,8 @@ class IntrinsicsPanel(wx.Panel):
 		
 	def start(self,event):
 		# print self.parent
-		self.parent.parent.loadPagePattern()
+		self.loadPagePattern()
+
 	def restore(self,event):
 		print "restore"
 		for i in range(len(self._visualMatrix)):

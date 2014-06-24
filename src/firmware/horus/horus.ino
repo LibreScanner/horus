@@ -49,13 +49,13 @@
 #define FRAME_HEADER 'b'
 #define FRAME_FOOTER 'q'
 
-#define LASER_LEFT_PIN    10
-#define LASER_RIGHT_PIN   11
+#define LASER_LEFT_PIN    2
+#define LASER_RIGHT_PIN   3
 
-#define MOTOR_STEP_PIN     2
-#define MOTOR_DIR_PIN      5
+#define MOTOR_STEP_PIN    12
+#define MOTOR_DIR_PIN     13
 
-#define ENABLE_PIN         8
+#define ENABLE_PIN         9
 
 #define USTEP_RESOLUTION  16
 #define STEP_DEGREES     1.8
@@ -88,7 +88,7 @@ boolean cmd_ready = false;
 void setup()
 { 
   //-- Configure the serial port
-  Serial.begin(921600);
+  Serial.begin(19200);
   
   //-- Configure the lasers
   pinMode(LASER_LEFT_PIN, OUTPUT);

@@ -75,7 +75,7 @@ def loadScene(filename):
 		#_loadBinary(m, f)
 	f.close()
 	obj._postProcessAfterLoad()
-	return [obj]
+	return obj
 
 def saveScene(filename, objects):
 	f = open(filename, 'wb')
@@ -84,3 +84,4 @@ def saveScene(filename, objects):
 
 def saveSceneStream(stream, objects):
 	pass
+	## TODO

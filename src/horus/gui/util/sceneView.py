@@ -40,11 +40,7 @@ OpenGL.ERROR_CHECKING = False
 from OpenGL.GLU import *
 from OpenGL.GL import *
 
-from horus.util import meshLoader
-from horus.util import objectScene
-from horus.util import profile
-from horus.util import resources
-from horus.gui.util import previewTools
+from horus.util import profile, resources, meshLoader
 from horus.gui.util import openglHelpers
 from horus.gui.util import openglGui
 
@@ -55,7 +51,7 @@ class SceneView(openglGui.glGuiPanel):
 		self._yaw = 30
 		self._pitch = 60
 		self._zoom = 300
-		self._scene = objectScene.Scene()
+		self._object = None
 		self._objectShader = None
 		self._objectLoadShader = None
 		self._focusObj = None
@@ -78,327 +74,53 @@ class SceneView(openglGui.glGuiPanel):
 
 		self.viewMode = 'ply'
 
-		self.openFileButton = openglGui.glButton(self, 4, _("Load"), (0,0), self.showLoadModel)
-		#self.openFileButton.setDisabled(True)
-
-		group = []
-
-		#self.viewSelection = openglGui.glComboButton(self, _("View mode"), [7,19,11,15,23], [_("Normal"), _("Overhang"), _("Transparent"), _("X-Ray"), _("Layers")], (-1,0), self.OnViewChange)
-
-		self.notification = openglGui.glNotification(self, (0, 0))
-
-		self._sceneUpdateTimer = wx.Timer(self)
-		self.Bind(wx.EVT_TIMER, self._onRunEngine, self._sceneUpdateTimer)
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
 
-		self.OnViewChange()
-		self.OnToolSelect(0)
-		self.updateToolButtons()
 		self.updateProfileToControls()
 
-	def loadSceneFiles(self, filenames):
-		#if self.viewSelection.getValue() == 4:
-		#	self.viewSelection.setValue(0)
-		#	self.OnViewChange()
-		self.loadScene(filenames)
-
-	def loadFiles(self, filenames): # TODO: refactor for PLY
-
-		#mainWindow = self.GetParent().GetParent().GetParent()
-		# only one GCODE file can be active
-		# so if single gcode file, process this
-		# otherwise ignore all gcode files
-		gcodeFilename = None
-		if len(filenames) == 1:
-			filename = filenames[0]
+	def loadFile(self, filename):
+		#-- Only one STL / PLY file can be active
+		if filename is not None:
 			ext = os.path.splitext(filename)[1].lower()
-			if ext == '.g' or ext == '.gcode':
-				gcodeFilename = filename
-				#mainWindow.addToModelMRU(filename)
-		if gcodeFilename is not None:
-			self.loadGCodeFile(gcodeFilename)
-		else:
-			# process directories and special file types
-			# and keep scene files for later processing
-			scene_filenames = []
-			ignored_types = dict()
-			# use file list as queue
-			# pop first entry for processing and append new files at end
-			while filenames:
-				filename = filenames.pop(0)
-				if os.path.isdir(filename):
-					# directory: queue all included files and directories
-					filenames.extend(os.path.join(filename, f) for f in os.listdir(filename))
-				else:
-					ext = os.path.splitext(filename)[1].lower()
-					if ext == '.ini':
-						profile.loadProfile(filename)
-						#mainWindow.addToProfileMRU(filename)
-					elif ext in meshLoader.loadSupportedExtensions():
-						scene_filenames.append(filename)
-						#mainWindow.addToModelMRU(filename)
-					else:
-						ignored_types[ext] = 1
-			if ignored_types:
-				ignored_types = ignored_types.keys()
-				ignored_types.sort()
-				self.notification.message("ignored: " + " ".join("*" + type for type in ignored_types))
-			#mainWindow.updateProfileToAllControls()
-			# now process all the scene files
-			if scene_filenames:
-				self.loadSceneFiles(scene_filenames)
+			if ext == '.ply' or ext == '.stl':
+				modelFilename = filename
+			if modelFilename:
+				self.loadScene(modelFilename)
 				self._selectObject(None)
-				self.sceneUpdated()
 				newZoom = numpy.max(self._machineSize)
 				self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
 				self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
-
-	def showLoadModel(self, button = 1):
-		if button == 1:
-			dlg=wx.FileDialog(self, _("Open 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.FD_MULTIPLE)
-
-			wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-			wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-			wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-			wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-
-			dlg.SetWildcard(wildcardFilter)
-			if dlg.ShowModal() != wx.ID_OK:
-				dlg.Destroy()
-				return
-			filenames = dlg.GetPaths()
-			dlg.Destroy()
-			if len(filenames) < 1:
-				return False
-			profile.putPreference('lastFile', filenames[0])
-			self.loadFiles(filenames)
-
-	def showSaveModel(self):
-		if len(self._scene.objects()) < 1:
-			return
-		dlg=wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
-		fileExtensions = meshLoader.saveSupportedExtensions()
-		wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
-		wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-		dlg.SetWildcard(wildcardFilter)
-		if dlg.ShowModal() != wx.ID_OK:
-			dlg.Destroy()
-			return
-		filename = dlg.GetPath()
-		dlg.Destroy()
-		meshesLoader.saveMeshes(filename, self._scene.objects())
-
-	def OnToolSelect(self, button):
-		self.tool = previewTools.toolNone(self)
-
-	def updateToolButtons(self):
-		self.OnToolSelect(0)
-
-	def OnViewChange(self):
-		pass
-		"""if self.viewSelection.getValue() == 4:
-			self.viewMode = 'gcode'
-			self.tool = previewTools.toolNone(self)
-		elif self.viewSelection.getValue() == 1:
-			self.viewMode = 'overhang'
-		elif self.viewSelection.getValue() == 2:
-			self.viewMode = 'transparent'
-		elif self.viewSelection.getValue() == 3:
-			self.viewMode = 'xray'
-		else:
-			self.viewMode = 'normal'
-		self.QueueRefresh()"""
-
-	def OnRotateReset(self, button):
-		if self._selectedObj is None:
-			return
-		self._selectedObj.resetRotation()
-		self._scene.pushFree(self._selectedObj)
-		self._selectObject(self._selectedObj)
-		self.sceneUpdated()
-
-	def OnLayFlat(self, button):
-		if self._selectedObj is None:
-			return
-		self._selectedObj.layFlat()
-		self._scene.pushFree(self._selectedObj)
-		self._selectObject(self._selectedObj)
-		self.sceneUpdated()
-
-	def OnScaleReset(self, button):
-		if self._selectedObj is None:
-			return
-		self._selectedObj.resetScale()
-		self._selectObject(self._selectedObj)
-		self.updateProfileToControls()
-		self.sceneUpdated()
-
-	def OnScaleEntry(self, value, axis):
-		if self._selectedObj is None:
-			return
-		try:
-			value = float(value)
-		except:
-			return
-		self._selectedObj.setScale(value, axis, self.scaleUniform.getValue())
-		self.updateProfileToControls()
-		self._scene.pushFree(self._selectedObj)
-		self._selectObject(self._selectedObj)
-		self.sceneUpdated()
-
-	def OnScaleEntryMM(self, value, axis):
-		if self._selectedObj is None:
-			return
-		try:
-			value = float(value)
-		except:
-			return
-		self._selectedObj.setSize(value, axis, self.scaleUniform.getValue())
-		self.updateProfileToControls()
-		self._scene.pushFree(self._selectedObj)
-		self._selectObject(self._selectedObj)
-		self.sceneUpdated()
-
-	def OnDeleteAll(self, e):
-		while len(self._scene.objects()) > 0:
-			self._deleteObject(self._scene.objects()[0])
-		self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
-
-	def OnMultiply(self, e):
-		if self._focusObj is None:
-			return
-		obj = self._focusObj
-		dlg = wx.NumberEntryDialog(self, _("How many copies do you want?"), _("Number of copies"), _("Multiply"), 1, 1, 100)
-		if dlg.ShowModal() != wx.ID_OK:
-			dlg.Destroy()
-			return
-		cnt = dlg.GetValue()
-		dlg.Destroy()
-		n = 0
-		while True:
-			n += 1
-			newObj = obj.copy()
-			self._scene.add(newObj)
-			self._scene.centerAll()
-			if not self._scene.checkPlatform(newObj):
-				break
-			if n > cnt:
-				break
-		if n <= cnt:
-			self.notification.message("Could not create more then %d items" % (n - 1))
-		self._scene.remove(newObj)
-		self._scene.centerAll()
-		self.sceneUpdated()
-
-	def OnSplitObject(self, e):
-		if self._focusObj is None:
-			return
-		self._scene.remove(self._focusObj)
-		for obj in self._focusObj.split(self._splitCallback):
-			if numpy.max(obj.getSize()) > 2.0:
-				self._scene.add(obj)
-		self._scene.centerAll()
-		self._selectObject(None)
-		self.sceneUpdated()
 
 	def OnCenter(self, e):
 		if self._focusObj is None:
 			return
 		self._focusObj.setPosition(numpy.array([0.0, 0.0]))
-		self._scene.pushFree(self._selectedObj)
 		newViewPos = numpy.array([self._focusObj.getPosition()[0], self._focusObj.getPosition()[1], self._focusObj.getSize()[2] / 2])
 		self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
-		self.sceneUpdated()
 
-	def _splitCallback(self, progress):
-		print progress
+	def loadScene(self, filename):
+		try:
+			self._clearScene()
+			self._object = meshLoader.loadMesh(filename)
+		except:
+			traceback.print_exc()
 
-	def OnMergeObjects(self, e):
-		if self._selectedObj is None or self._focusObj is None or self._selectedObj == self._focusObj:
-			if len(self._scene.objects()) == 2:
-				self._scene.merge(self._scene.objects()[0], self._scene.objects()[1])
-				self.sceneUpdated()
-			return
-		self._scene.merge(self._selectedObj, self._focusObj)
-		self.sceneUpdated()
+	def _clearScene(self):
+		if self._object is not None:
+			for m in self._object._meshList:
+				if m.vbo is not None and m.vbo.decRef():
+					self.glReleaseList.append(m.vbo)
+			self._object = None
+			import gc
+			gc.collect()
 
-	def sceneUpdated(self):
-		self._sceneUpdateTimer.Start(500, True)
-		self.QueueRefresh()
-
-	def _onRunEngine(self, e):
-		pass
-		#if self._isSimpleMode:
-			#self.GetTopLevelParent().simpleSettingsPanel.setupSlice()
-		#if self._isSimpleMode:
-			#profile.resetTempOverride()
-
-	def _updateEngineProgress(self, progressValue):
-		finished = result is not None and result.isFinished()
-		if not finished:
-			if self.printButton.getProgressBar() is not None and progressValue >= 0.0 and abs(self.printButton.getProgressBar() - progressValue) < 0.01:
-				return
-		self.printButton.setDisabled(not finished)
-		if progressValue >= 0.0:
-			self.printButton.setProgressBar(progressValue)
-		else:
-			self.printButton.setProgressBar(None)
-		if finished:
-			self.printButton.setProgressBar(None)
-			text = '%s' % (result.getPrintTime())
-			for e in xrange(0, int(profile.getMachineSetting('extruder_amount'))):
-				amount = result.getFilamentAmount(e)
-				if amount is None:
-					continue
-				text += '\n%s' % (amount)
-				cost = result.getFilamentCost(e)
-				if cost is not None:
-					text += '\n%s' % (cost)
-			self.printButton.setBottomText(text)
-		else:
-			self.printButton.setBottomText('')
-		self.QueueRefresh()
-
-	def loadScene(self, fileList):
-		for filename in fileList:
-			try:
-				ext = os.path.splitext(filename)[1].lower()
-				objList = meshLoader.loadMeshes(filename)
-			except:
-				traceback.print_exc()
-			else:
-				for obj in objList:
-					"""if self._objectLoadShader is not None:
-						obj._loadAnim = openglGui.animation(self, 1, 0, 1.5)
-					else:
-						obj._loadAnim = None"""
-					self._scene.add(obj)
-					"""if not self._scene.checkPlatform(obj):
-						self._scene.centerAll()
-					self._selectObject(obj)
-					if obj.getScale()[0] < 1.0:
-						self.notification.message("Warning: Object scaled down.")"""
-		self.sceneUpdated()
-
-	def _deleteObject(self, obj):
-		if obj == self._selectedObj:
-			self._selectObject(None)
-		if obj == self._focusObj:
-			self._focusObj = None
-		self._scene.remove(obj)
-		for m in obj._meshList:
-			if m.vbo is not None and m.vbo.decRef():
-				self.glReleaseList.append(m.vbo)
-		import gc
-		gc.collect()
-		self.sceneUpdated()
+			self.QueueRefresh()
 
 	def _selectObject(self, obj, zoom = True):
 		if obj != self._selectedObj:
 			self._selectedObj = obj
 			self.updateModelSettingsToControls()
-			self.updateToolButtons()
 		if zoom and obj is not None:
 			newViewPos = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2])
 			self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
@@ -410,15 +132,11 @@ class SceneView(openglGui.glGuiPanel):
 	def updateProfileToControls(self):
 		oldSimpleMode = self._isSimpleMode
 		self._isSimpleMode = profile.getPreference('startMode') == 'Simple'
-		if self._isSimpleMode != oldSimpleMode:
-			self._scene.arrangeAll()
-			self.sceneUpdated()
 		self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')])
 		self._objColors[0] = profile.getPreferenceColour('model_colour')
 		self._objColors[1] = profile.getPreferenceColour('model_colour2')
 		self._objColors[2] = profile.getPreferenceColour('model_colour3')
 		self._objColors[3] = profile.getPreferenceColour('model_colour4')
-		self._scene.updateMachineDimensions()
 		self.updateModelSettingsToControls()
 
 	def updateModelSettingsToControls(self):
@@ -503,8 +221,6 @@ class SceneView(openglGui.glGuiPanel):
 		if s.isValid():
 			self._objectLoadShader.release()
 			self._objectLoadShader = s
-			for obj in self._scene.objects():
-				obj._loadAnim = openglGui.animation(self, 1, 0, 1.5)
 			self.QueueRefresh()
 
 	def OnMouseDown(self,e):
@@ -515,15 +231,10 @@ class SceneView(openglGui.glGuiPanel):
 		if e.ButtonDClick():
 			self._mouseState = 'doubleClick'
 		else:
-			if self._mouseState == 'dragObject' and self._selectedObj is not None:
-				self._scene.pushFree(self._selectedObj)
-				self.sceneUpdated()
 			self._mouseState = 'dragOrClick'
 		p0, p1 = self.getMouseRay(self._mouseX, self._mouseY)
 		p0 -= self.getObjectCenterPos() - self._viewTarget
 		p1 -= self.getObjectCenterPos() - self._viewTarget
-		if self.tool.OnDragStart(p0, p1):
-			self._mouseState = 'tool'
 		if self._mouseState == 'dragOrClick':
 			if e.GetButton() == 1:
 				if self._focusObj is not None:
@@ -535,33 +246,14 @@ class SceneView(openglGui.glGuiPanel):
 			return
 		if self._mouseState == 'dragOrClick':
 			if e.GetButton() == 1:
-				self._selectObject(self._focusObj)
+				self._selectObject(self._object)
 			if e.GetButton() == 3:
 					menu = wx.Menu()
-					if self._focusObj is not None:
-
-						self.Bind(wx.EVT_MENU, self.OnCenter, menu.Append(-1, _("Center on platform")))
-						self.Bind(wx.EVT_MENU, lambda e: self._deleteObject(self._focusObj), menu.Append(-1, _("Delete object")))
-						self.Bind(wx.EVT_MENU, self.OnMultiply, menu.Append(-1, _("Multiply object")))
-						self.Bind(wx.EVT_MENU, self.OnSplitObject, menu.Append(-1, _("Split object into parts")))
-					if ((self._selectedObj != self._focusObj and self._focusObj is not None and self._selectedObj is not None) or len(self._scene.objects()) == 2) and int(profile.getMachineSetting('extruder_amount')) > 1:
-						self.Bind(wx.EVT_MENU, self.OnMergeObjects, menu.Append(-1, _("Dual extrusion merge")))
-					if len(self._scene.objects()) > 0:
-						self.Bind(wx.EVT_MENU, self.OnDeleteAll, menu.Append(-1, _("Delete all objects")))
+					if self._object is not None:
+						self.Bind(wx.EVT_MENU, lambda e: self._clearScene(), menu.Append(-1, _("Delete object")))
 					if menu.MenuItemCount > 0:
 						self.PopupMenu(menu)
 					menu.Destroy()
-		elif self._mouseState == 'dragObject' and self._selectedObj is not None:
-			self._scene.pushFree(self._selectedObj)
-			self.sceneUpdated()
-		elif self._mouseState == 'tool':
-			if self.tempMatrix is not None and self._selectedObj is not None:
-				self._selectedObj.applyMatrix(self.tempMatrix)
-				self._scene.pushFree(self._selectedObj)
-				self._selectObject(self._selectedObj)
-			self.tempMatrix = None
-			self.tool.OnDragEnd()
-			self.sceneUpdated()
 		self._mouseState = None
 
 	def OnMouseMotion(self,e):
@@ -570,9 +262,7 @@ class SceneView(openglGui.glGuiPanel):
 		p1 -= self.getObjectCenterPos() - self._viewTarget
 
 		if e.Dragging() and self._mouseState is not None:
-			if self._mouseState == 'tool':
-				self.tool.OnDrag(p0, p1)
-			elif not e.LeftIsDown() and e.RightIsDown():
+			if e.LeftIsDown() and not e.RightIsDown():
 				self._mouseState = 'drag'
 				if wx.GetKeyState(wx.WXK_SHIFT):
 					a = math.cos(math.radians(self._yaw)) / 3.0
@@ -595,8 +285,6 @@ class SceneView(openglGui.glGuiPanel):
 					self._zoom = 1
 				if self._zoom > numpy.max(self._machineSize) * 3:
 					self._zoom = numpy.max(self._machineSize) * 3
-		if not e.Dragging() or self._mouseState != 'tool':
-			self.tool.OnMouseMove(p0, p1)
 
 		self._mouseX = e.GetX()
 		self._mouseY = e.GetY()
@@ -683,8 +371,10 @@ class SceneView(openglGui.glGuiPanel):
 						gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 						gl_FrontColor = gl_Color;
 
-						light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
-						light_amount += 0.2;
+						light_amount = 1.0;
+
+						//light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
+						//light_amount += 0.2;
 					}
 									""","""
 					varying float light_amount;
@@ -767,19 +457,16 @@ class SceneView(openglGui.glGuiPanel):
 		glClearColor(1,1,1,1)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
 
-		if self.viewMode != 'gcode':
-			for n in xrange(0, len(self._scene.objects())):
-				obj = self._scene.objects()[n]
-				glColor4ub((n >> 16) & 0xFF, (n >> 8) & 0xFF, (n >> 0) & 0xFF, 0xFF)
-				self._renderObject(obj)
+		#if self.viewMode != 'gcode':
+		#	for n in xrange(0, len(self._scene.objects())):
+		#		obj = self._scene.objects()[n]
+		#		glColor4ub((n >> 16) & 0xFF, (n >> 8) & 0xFF, (n >> 0) & 0xFF, 0xFF)
+		#		self._renderObject(obj)
 
 		if self._mouseX > -1: # mouse has not passed over the opengl window.
 			glFlush()
 			n = glReadPixels(self._mouseX, self.GetSize().GetHeight() - 1 - self._mouseY, 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0] >> 8
-			if n < len(self._scene.objects()):
-				self._focusObj = self._scene.objects()[n]
-			else:
-				self._focusObj = None
+			self._focusObj = self._object
 			f = glReadPixels(self._mouseX, self.GetSize().GetHeight() - 1 - self._mouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
 			#self.GetTopLevelParent().SetTitle(hex(n) + " " + str(f))
 			self._mouse3Dpos = openglHelpers.unproject(self._mouseX, self._viewport[1] + self._viewport[3] - self._mouseY, f, self._modelMatrix, self._projMatrix, self._viewport)
@@ -801,47 +488,36 @@ class SceneView(openglGui.glGuiPanel):
 				self._objectOverhangShader.setUniform('cosAngle', math.cos(math.radians(90 - profile.getProfileSettingFloat('support_angle'))))
 			else:
 				self._objectShader.bind()
-			for obj in self._scene.objects():
-				if obj._loadAnim is not None:
-					if obj._loadAnim.isDone():
-						obj._loadAnim = None
-					else:
-						continue
+
+			if self._object is not None:
 				brightness = 1.0
-				if self._focusObj == obj:
+				if self._focusObj == self._object:
 					brightness = 1.2
-				elif self._focusObj is not None or self._selectedObj is not None and obj != self._selectedObj:
+				elif self._focusObj is not None or self._selectedObj is not None and self._object != self._selectedObj:
 					brightness = 0.8
 
-				if self._selectedObj == obj or self._selectedObj is None:
+				if self._selectedObj == self._object or self._selectedObj is None:
 					glStencilOp(GL_INCR, GL_INCR, GL_INCR)
 					glEnable(GL_STENCIL_TEST)
+				self._renderObject(self._object, brightness)
 
-				if not self._scene.checkPlatform(obj):
-					glColor4f(0.5 * brightness, 0.5 * brightness, 0.5 * brightness, 0.8 * brightness)
-					self._renderObject(obj)
-				else:
-					self._renderObject(obj, brightness)
 				glDisable(GL_STENCIL_TEST)
 				glDisable(GL_BLEND)
 				glEnable(GL_DEPTH_TEST)
 				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
 
-			self._objectShader.unbind()
+				self._objectShader.unbind()
 
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			glEnable(GL_BLEND)
-			if self._objectLoadShader is not None:
-				self._objectLoadShader.bind()
-				glColor4f(0.2, 0.6, 1.0, 1.0)
-				for obj in self._scene.objects():
-					if obj._loadAnim is None:
-						continue
-					self._objectLoadShader.setUniform('intensity', obj._loadAnim.getPosition())
-					self._objectLoadShader.setUniform('scale', obj.getBoundaryCircle() / 10)
-					self._renderObject(obj)
-				self._objectLoadShader.unbind()
-				glDisable(GL_BLEND)
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+				glEnable(GL_BLEND)
+				if self._objectLoadShader is not None:
+					self._objectLoadShader.bind()
+					glColor4f(0.2, 0.6, 1.0, 1.0)
+					#self._objectLoadShader.setUniform('intensity', self._object._.getPosition())
+					self._objectLoadShader.setUniform('scale', self._object.getBoundaryCircle() / 10)
+					self._renderObject(self._object)
+					self._objectLoadShader.unbind()
+					glDisable(GL_BLEND)
 
 		self._drawMachine()
 
@@ -887,13 +563,13 @@ class SceneView(openglGui.glGuiPanel):
 
 			#-- Platform
 			if machine not in self._platformMesh:
-				meshes = meshLoader.loadMeshes(resources.getPathForMesh(machine + '_platform.stl'))
-				if len(meshes) > 0:
-					self._platformMesh[machine] = meshes[0]
+				mesh = meshLoader.loadMesh(resources.getPathForMesh(machine + '_platform.stl'))
+				if mesh is not None:
+					self._platformMesh[machine] = mesh
 				else:
 					self._platformMesh[machine] = None
 				self._platformMesh[machine]._drawOffset = numpy.array([0,0,13.6], numpy.float32)
-			glColor4f(0.6,0.6,0.6,1.0)
+			glColor4f(0.6,0.6,0.6,0.5)
 			self._objectShader.bind()
 			self._renderObject(self._platformMesh[machine], False, False)
 			self._objectShader.unbind()
@@ -988,7 +664,7 @@ class SceneView(openglGui.glGuiPanel):
 			glBindTexture(GL_TEXTURE_2D, self._platformTexture)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-		glColor4f(1,1,1,1)
+		glColor4f(1,1,1,0.5)
 		glBindTexture(GL_TEXTURE_2D, self._platformTexture)
 		glEnable(GL_TEXTURE_2D)
 		glBegin(GL_TRIANGLE_FAN)

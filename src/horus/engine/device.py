@@ -67,7 +67,7 @@ class Device:
 			11 : no operation
 	"""
   
-	def __init__(self, serialName, degrees, delay):
+	def __init__(self, serialName='/dev/ttyACM0', degrees=0.45, delay=800):
 		"""Arguments: motor step, motor pulse delay"""
 		print ">>> Initializing device ..."
 		print " - Serial Name: {0}".format(serialName)
@@ -76,18 +76,19 @@ class Device:
 		self.serialName = serialName
 		self.degrees = degrees 	#-- Motor step
 		self.delay = delay   	#-- Motor pulse delay
+		self.serialPort = None
    		print ">>> Done"
 
 	def connect(self):
 		""" Opens serial port and performs handshake"""
 		print ">>> Connecting device ..."
 		try:
-			self.serialPort = serial.Serial(self.serialName, 921600, timeout=1)
+			self.serialPort = serial.Serial(self.serialName, 19200, timeout=1)
 			time.sleep(2)
 			if self.serialPort.isOpen():
 				self.performHandshake()
 			else:
-				print 'Serial port is not connected.'
+				print "Serial port is not connected."
 		except serial.SerialException:
 			sys.stderr.write("Error opening the port {0}\n".format(self.serialName))
 			self.serialPort = None
@@ -170,7 +171,10 @@ class Device:
 
 	def sendCommand(self, cmd):
 		"""Sends the command"""
-		self.serialPort.write(chr(cmd))
+		if self.serialPort is not None:
+			self.serialPort.write(chr(cmd))
+		else:
+			print "Serial port is not connected."
     
 	def performHandshake(self):
 		"""Sends the config message

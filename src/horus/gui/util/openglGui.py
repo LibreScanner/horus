@@ -156,7 +156,7 @@ class glGuiPanel(glcanvas.GLCanvas):
 		self._shownError = False
 
 		self._context = glcanvas.GLContext(self)
-		self._glButtonsTexture = None
+		#self._glButtonsTexture = None
 		self._buttonSize = 64
 
 		self._animationList = []
@@ -265,8 +265,8 @@ class glGuiPanel(glcanvas.GLCanvas):
 				self._shownError = True
 
 	def _drawGui(self):
-		if self._glButtonsTexture is None:
-			self._glButtonsTexture = openglHelpers.loadGLTexture('glButtons.png')
+		#if self._glButtonsTexture is None:
+			#self._glButtonsTexture = openglHelpers.loadGLTexture('glButtons.png')
 
 		glDisable(GL_DEPTH_TEST)
 		glEnable(GL_BLEND)
@@ -470,7 +470,7 @@ class glButton(glGuiControl):
 		bs = self.getMinSize()[0]
 		pos = self._getPixelPos()
 
-		glBindTexture(GL_TEXTURE_2D, self._base._glButtonsTexture)
+		#glBindTexture(GL_TEXTURE_2D, self._base._glButtonsTexture)
 		scale = 0.8
 		if self._selected:
 			scale = 1.0
@@ -608,7 +608,7 @@ class glComboButton(glButton):
 
 		glPushMatrix()
 		glTranslatef(pos[0]+bs*0.5, pos[1] + bs*0.5, 0)
-		glBindTexture(GL_TEXTURE_2D, self._base._glButtonsTexture)
+		#glBindTexture(GL_TEXTURE_2D, self._base._glButtonsTexture)
 		for n in xrange(0, len(self._imageIDs)):
 			glTranslatef(0, bs, 0)
 			glColor4ub(255,255,255,255)
