@@ -39,6 +39,8 @@ class ScanningWorkbench(Workbench):
 
 		self.view3D = True
 
+		self.scanner = self.GetParent().scanner
+
 		self.load()
 
 	def load(self):
@@ -98,7 +100,7 @@ class ScanningWorkbench(Workbench):
 		pass
 
 	def onDeleteToolClicked(self, event):
-		pass
+		self.sceneView._clearScene()
 
 	def onViewToolClicked(self, event):
 		self.view3D = not self.view3D

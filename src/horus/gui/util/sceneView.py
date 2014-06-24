@@ -87,10 +87,7 @@ class SceneView(openglGui.glGuiPanel):
 				modelFilename = filename
 			if modelFilename:
 				self.loadScene(modelFilename)
-				self._selectObject(None)
-				newZoom = numpy.max(self._machineSize)
-				self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
-				self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
+				self._selectObject(self._object)
 
 	def OnCenter(self, e):
 		if self._focusObj is None:
@@ -115,7 +112,9 @@ class SceneView(openglGui.glGuiPanel):
 			import gc
 			gc.collect()
 
-			self.QueueRefresh()
+			newZoom = numpy.max(self._machineSize)
+			self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
+			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
 
 	def _selectObject(self, obj, zoom = True):
 		if obj != self._selectedObj:

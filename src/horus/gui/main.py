@@ -109,12 +109,12 @@ class MainWindow(wx.Frame):
 
         self.controlWorkbench = ControlWorkbench(self)
         self.scanningWorkbench = ScanningWorkbench(self)
-        self.calibrationWorkbench = CalibrationWorkbench(self)
+        #self.calibrationWorkbench = CalibrationWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
         sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
-        sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
+        #sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
         ##-- Events
@@ -277,11 +277,11 @@ Suite 330, Boston, MA  02111-1307  USA"""))
         currentWorkbench = profile.getPreference('workbench')
 
         self.controlWorkbench.Hide()
-        self.calibrationWorkbench.Hide()
+        #self.calibrationWorkbench.Hide()
         self.scanningWorkbench.Hide()
 
         wb = {'control'     : self.controlWorkbench,
-              'calibration' : self.calibrationWorkbench,
+              #'calibration' : self.calibrationWorkbench,
               'scanning'    : self.scanningWorkbench}.get(currentWorkbench)
 
         if wb is not None:
