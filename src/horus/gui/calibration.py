@@ -28,8 +28,11 @@ __author__ = u"Carlos Crespo <carlos.crespo@bq.com>"
 __license__ = u"GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 from horus.gui.util.workbench import *
+from horus.gui.util.page import *
 
 from horus.util import resources
+
+
 
 import random
 import numpy as np
@@ -46,7 +49,7 @@ class CalibrationWorkbench(Workbench):
 		self._toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("load.png")))
 		self._toolbar.Realize()
 
-
+		self._panel.parent=self
 		self._intrinsicsPanel=IntrinsicsPanel(self._panel)
 		self._extrinsicsPanel=ExtrinsicsPanel(self._panel)
 
@@ -55,14 +58,29 @@ class CalibrationWorkbench(Workbench):
 		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		self._panel.SetSizer(hbox)
-		
+		self.loadPagePattern()
 
+	def loadPagePattern(self):
+		self._intrinsicsPanel.Show(False)
+		self._extrinsicsPanel.Show(False)
+		self._patternPanel=PatternPanel(self._panel)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self._patternPanel,1,wx.EXPAND,0)
+		self._panel.SetSizer(hbox)
+		self.Layout()
+
+class PatternPanel(Page):
+	def __init__(self,parent):
+		Page.__init__(self,parent)
+		self.load()	
+	def load(self):
+		print "loading calibration"
 class IntrinsicsPanel(wx.Panel):
 
 	def __init__(self,parent):
 
 		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
-
+		self.parent=parent
 		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] # TODO connect with scanner's calibration matrix
 		self._calMatrix=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
 		self._calMatrixDefault=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
@@ -71,8 +89,9 @@ class IntrinsicsPanel(wx.Panel):
 		self._distortionVector= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
 		self._distortionVectorDefault= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
 		
-		self._editControl=False  # True means editing
+		self._editControl=False  # True means editing state
 		self.load()
+		
 
 	def load(self):
 
@@ -177,7 +196,8 @@ class IntrinsicsPanel(wx.Panel):
 		self.SetSizer(vbox)
 		
 	def start(self,event):
-		print self.parent
+		# print self.parent
+		self.parent.parent.loadPagePattern()
 	def restore(self,event):
 		print "restore"
 		for i in range(len(self._visualMatrix)):
