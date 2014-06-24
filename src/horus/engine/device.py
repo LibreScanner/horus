@@ -67,7 +67,7 @@ class Device:
 			11 : no operation
 	"""
   
-	def __init__(self, serialName, degrees, delay):
+	def __init__(self, serialName='/dev/ttyACM0', degrees=0.45, delay=800):
 		"""Arguments: motor step, motor pulse delay"""
 		print ">>> Initializing device ..."
 		print " - Serial Name: {0}".format(serialName)
@@ -83,7 +83,7 @@ class Device:
 		""" Opens serial port and performs handshake"""
 		print ">>> Connecting device ..."
 		try:
-			self.serialPort = serial.Serial(self.serialName, 921600, timeout=1)
+			self.serialPort = serial.Serial(self.serialName, 19200, timeout=1)
 			time.sleep(2)
 			if self.serialPort.isOpen():
 				self.performHandshake()

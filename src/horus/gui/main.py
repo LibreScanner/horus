@@ -31,8 +31,7 @@ import wx._core
 
 import os
 
-from horus.engine.camera import *
-from horus.engine.device import *
+from horus.engine.scanner import *
 
 from horus.util import profile, resources, meshLoader
 
@@ -40,7 +39,6 @@ from horus.gui.preferences import PreferencesDialog
 from horus.gui.control import ControlWorkbench
 from horus.gui.scanning import ScanningWorkbench
 from horus.gui.calibration import CalibrationWorkbench
-
 
 from horus.engine.scanner import *
 
@@ -52,10 +50,9 @@ class MainWindow(wx.Frame):
         ###-- Initialize Engine
 
         #self.scanner = Scanner(self)
-        self.camera = Camera()
-        self.device = Device(profile.getProfileSetting('serial_name'),
-                             profile.getProfileSetting('step_degrees'),
-                             profile.getProfileSetting('step_delay'))
+        self.scanner = Scanner(self)
+
+        self.updateEngine()
 
         ###-- Initialize GUI
 
@@ -268,6 +265,12 @@ Suite 330, Boston, MA  02111-1307  USA"""))
         """ """
         #self.control.updateProfileToAllControls()
         self.workbenchUpdate()
+
+    def updateEngine(self):
+        self.scanner.initialize(profile.getProfileSettingInteger('camera_id'),
+                               profile.getProfileSetting('serial_name'),
+                               profile.getProfileSettingFloat('step_degrees'),
+                               profile.getProfileSettingInteger('step_delay'))
 
     def workbenchUpdate(self):
         """ """

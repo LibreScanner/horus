@@ -371,8 +371,10 @@ class SceneView(openglGui.glGuiPanel):
 						gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 						gl_FrontColor = gl_Color;
 
-						light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
-						light_amount += 0.2;
+						light_amount = 1.0;
+
+						//light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
+						//light_amount += 0.2;
 					}
 									""","""
 					varying float light_amount;

@@ -36,8 +36,7 @@ class ControlWorkbench(Workbench):
 
 		self.load()
 
-		self.camera = self.GetParent().camera
-		self.device = self.GetParent().device
+		self.scanner = self.GetParent().scanner
 
 		self.laserLeft = False
 		self.laserRight = False
@@ -90,16 +89,14 @@ class ControlWorkbench(Workbench):
 		self.imageView.setImage(wx.Image(getPathForImage("scanner.png")))
 
 	def onTimer(self, event):
-		frame = self.camera.captureImage()
+		frame = self.scanner.camera.captureImage()
 		self.videoView.setFrame(frame)
 
 	def onConnectToolClicked(self, event):
-		self.camera.connect()
-		self.device.connect()
+		self.scanner.connect()
 
 	def onDisconnectToolClicked(self, event):
-		self.camera.disconnect()
-		self.device.disconnect()
+		self.scanner.disconnect()
 
 	def onPlayToolClicked(self, event):
 		self.timer.Start(milliseconds=150)
@@ -108,36 +105,36 @@ class ControlWorkbench(Workbench):
 		self.timer.Stop()
 
 	def onSnapshotToolClicked(self, event):
-		frame = self.camera.captureImage()
+		frame = self.scanner.camera.captureImage()
 		self.videoView.setFrame(frame)
 
 	def onMotorCCWToolClicked(self, event):
-		self.device.enable()
-		self.device.setMotorCCW()
-		self.device.disable()
+		self.scanner.device.enable()
+		self.scanner.device.setMotorCCW()
+		self.scanner.device.disable()
 
 	def onMotorCWToolClicked(self, event):
-		self.device.enable()
-		self.device.setMotorCW()
-		self.device.disable()
+		self.scanner.device.enable()
+		self.scanner.device.setMotorCW()
+		self.scanner.device.disable()
 
 	def onLeftLaserOnToolClicked(self, event):
-		self.device.setLeftLaserOn()
+		self.scanner.device.setLeftLaserOn()
 		self.laserLeft = True
 		self.updateScannerImage()
 
 	def onLeftLaserOffToolClicked(self, event):
-		self.device.setLeftLaserOff()
+		self.scanner.device.setLeftLaserOff()
 		self.laserLeft = False
 		self.updateScannerImage()
 
 	def onRightLaserOnToolClicked(self, event):
-		self.device.setRightLaserOn()
+		self.scanner.device.setRightLaserOn()
 		self.laserRight = True
 		self.updateScannerImage()
 
 	def onRightLaserOffToolClicked(self, event):
-		self.device.setRightLaserOff()
+		self.scanner.device.setRightLaserOff()
 		self.laserRight = False
 		self.updateScannerImage()
 

@@ -181,6 +181,7 @@ def _(n):
 #-- Settings
 
 setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
+setting('camera_id', 0, int, 'basic', _('Camera Id'))
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1125)
 setting('step_delay', 800, int, 'basic', _('Step Delay')).setRange(100, 10000)
 
@@ -403,6 +404,13 @@ def getProfileSetting(name):
 	traceback.print_stack()
 	sys.stderr.write('Error: "%s" not found in profile settings\n' % (name))
 	return ''
+
+def getProfileSettingInteger(name):
+	try:
+		setting = getProfileSetting(name)
+		return int(eval(setting, {}, {}))
+	except:
+		return 0.0
 
 def getProfileSettingFloat(name):
 	try:

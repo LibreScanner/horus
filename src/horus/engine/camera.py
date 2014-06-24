@@ -56,7 +56,7 @@ class Camera:
 	def disconnect(self):
 		""" """
 		print ">>> Disconnecting camera ..."
-		cv2.VideoCapture(self.cameraId).release()
+		self.capture.release()
 		print ">>> Done"
 
 	def captureImage(self):
@@ -64,8 +64,7 @@ class Camera:
 		#for i in range(0,2):
 		#	self.capture.read()
 		ret, image = self.capture.read()
+
 		imageRGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 		return imageRGB
-	
-
