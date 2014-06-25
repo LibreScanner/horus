@@ -81,9 +81,9 @@ class MainWindow(wx.Frame):
 
         #-- Menu Edit
         self.menuEdit = wx.Menu()
-        self.menuBasicMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Basic Mode"))
-        self.menuExpertMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Expert Mode"))
-        self.menuEdit.AppendSeparator()
+        #self.menuBasicMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Basic Mode"))
+        #self.menuExpertMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Expert Mode"))
+        #self.menuEdit.AppendSeparator()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
         menuBar.Append(self.menuEdit, _("Edit"))
 
@@ -276,16 +276,16 @@ Suite 330, Boston, MA  02111-1307  USA"""))
         """ """
         currentWorkbench = profile.getPreference('workbench')
 
-        self.controlWorkbench.Hide()
-        #self.calibrationWorkbench.Hide()
-        self.scanningWorkbench.Hide()
-
         wb = {'control'     : self.controlWorkbench,
               #'calibration' : self.calibrationWorkbench,
-              'scanning'    : self.scanningWorkbench}.get(currentWorkbench)
+              'scanning'    : self.scanningWorkbench}
 
-        if wb is not None:
-            wb.Show()
+        for key in wb:
+            if wb[key] is not None:
+                if key == currentWorkbench:
+                    wb[key].Show()
+                else:
+                    wb[key].Hide()
 
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')

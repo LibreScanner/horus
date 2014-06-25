@@ -36,7 +36,8 @@ class VideoView(wx.Panel):
 		self.xOffset = 0
 		self.yOffset = 0
 
-		self.image = wx.Image(getPathForImage("bq.png"))
+		self.defaultImage = wx.Image(getPathForImage("bq.png"))
+		self.image = self.defaultImage
 
 		self.Bind(wx.EVT_PAINT, self.onPaint)
 		self.Bind(wx.EVT_SIZE, self.onResize)
@@ -51,6 +52,9 @@ class VideoView(wx.Panel):
 	def setImage(self, image):
 		self.image = image
 		self.refreshBitmap()
+
+	def setDefaultImage(self):
+		self.setImage(self.defaultImage)
 
 	def setFrame(self, frame):
 		height, width = frame.shape[:2]

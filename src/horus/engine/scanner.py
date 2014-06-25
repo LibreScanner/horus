@@ -48,6 +48,8 @@ class Scanner(wx.PyControl):
 		wx.PyControl.__init__(self, parent)
 		self.Hide()
 
+		self.isConnected = False
+
 		self.theta = 0
 		self.imageQueue = Queue.Queue(1000)
 		self.pointCloudQueue = Queue.Queue(10000)
@@ -61,11 +63,15 @@ class Scanner(wx.PyControl):
 
 	def connect(self):
 		""" """
+		self.isConnected = True # TODO: Fake state
+
 		self.camera.connect()
 		return self.device.connect()
 		
 	def disconnect(self):
 		""" """
+		self.isConnected = False # TODO: Fake state
+		
 		self.camera.disconnect()
 		return self.device.disconnect()
 		

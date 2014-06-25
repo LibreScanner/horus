@@ -65,6 +65,7 @@ class Camera:
 		#	self.capture.read()
 		ret, image = self.capture.read()
 
-		imageRGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-		return imageRGB
+		if ret:
+			return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+		else:
+			return None
