@@ -29,7 +29,7 @@ __license__ = u"GNU General Public License v3 http://www.gnu.org/licenses/gpl.ht
 
 from horus.gui.util.workbench import *
 from horus.gui.util.page import *
-
+from horus.gui.util.videoView import *
 from horus.util import resources
 
 
@@ -68,14 +68,32 @@ class CalibrationWorkbench(Workbench):
 		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		self._panel.SetSizer(hbox)
 		self.loadPagePattern()
+
 		self.loadPagePlot()
+
+		# self.loadPagePlot()
+
+
 	def loadPagePattern(self):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
 		self._patternPanel=PatternPanel(self._panel)
+
+		self._title=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 1): camera calibration"))
+		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
+		self._title.SetFont(font)
+		self._subTitle=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Place the pattern adjusting it to the grid"))
+		
+		vbox=wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		
+		self._patternPanel.getTitlePanel().SetSizer(vbox)
+		self._patternPanel.Layout()
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self._patternPanel,1,wx.EXPAND,0)
 		self._panel.SetSizer(hbox)
+
 		self.Layout()
 
 	def loadPagePlot(self):
@@ -103,8 +121,12 @@ class CalibrationWorkbench(Workbench):
 class PatternPanel(Page):
 	def __init__(self,parent):
 		Page.__init__(self,parent)
+		self.parent=parent;
 		self.load() 
 	def load(self):
+
+		self.videoView = VideoView(self._upPanel)
+		hbox= wx.BoxSizer(wx.HORIZONTAL)
 		print "loading calibration"
 
 class PlotPanel(Page):
@@ -139,8 +161,6 @@ class PlotPanel(Page):
 		self.load()
 	def load(self):
 
-		
-		
 		self.fig = Figure(tight_layout=True)
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
@@ -254,7 +274,7 @@ class PlotPanel(Page):
 			self.ax.plot(rtAxisXx,rtAxisXz,rtAxisXy,linewidth=2.0,color='red')
 			self.ax.plot(rtAxisYx,rtAxisYz,rtAxisYy,linewidth=2.0,color='green')
 			self.ax.plot(rtAxisZx,rtAxisZz,rtAxisZy,linewidth=2.0,color='blue')
-			self.ax.pbaspect = [1.0, 1.0, 0.25]
+			
 			self.canvas.draw()
 
 	def clearPlot(self):
@@ -508,7 +528,6 @@ class ExtrinsicsPanel(wx.Panel):
 		self._visualMatrix=[[0 for j in range(len(self._vRotMatrix)+1)] for i in range(len(self._vRotMatrix[0]))]
 		self._visualCtrlMatrix=[[0 for j in range(len(self._vRotMatrix)+1)] for i in range(len(self._vRotMatrix[0]))]
 		
-		print self._visualMatrix
 		for j in range(len(self._vRotMatrix[0])):
 			vbox2 = wx.BoxSizer(wx.VERTICAL)  
 			for i in range (len(self._vRotMatrix)):
