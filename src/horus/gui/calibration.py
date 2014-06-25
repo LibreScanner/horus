@@ -37,6 +37,15 @@ from horus.util import resources
 import random
 import numpy as np
 
+import matplotlib
+matplotlib.interactive( True )
+matplotlib.use( 'WXAgg' )
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+from matplotlib.figure import Figure
+import cv2
+
 class CalibrationWorkbench(Workbench):
 
 	def __init__(self, parent):
@@ -58,8 +67,8 @@ class CalibrationWorkbench(Workbench):
 		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		self._panel.SetSizer(hbox)
-		#self.loadPagePattern()
-
+		self.loadPagePattern()
+		self.loadPagePlot()
 	def loadPagePattern(self):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
@@ -69,12 +78,175 @@ class CalibrationWorkbench(Workbench):
 		self._panel.SetSizer(hbox)
 		self.Layout()
 
+	def loadPagePlot(self):
+		self._patternPanel.Show(False)
+		
+		self._plotPanel=PlotPanel(self._panel)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self._plotPanel,1,wx.EXPAND,0)
+		self._panel.SetSizer(hbox)
+		self.Layout()
+
+
 class PatternPanel(Page):
 	def __init__(self,parent):
 		Page.__init__(self,parent)
-		self.load()	
+		self.load() 
 	def load(self):
 		print "loading calibration"
+
+class PlotPanel(Page):
+	def __init__(self,parent):
+		Page.__init__(self,parent)
+		# self.calibration=calibration
+		
+		self.rvecsTrain= [np.array([[ 0.04556978],
+		[-0.00280866],
+		[ 0.02094954]]), np.array([[ 0.02915861],
+		[-0.30092417],
+		[ 0.01556802]]), np.array([[ 0.04117649],
+		[-0.14565509],
+		[-0.00452818]]), np.array([[-0.0171663 ],
+		[ 0.08693157],
+		[-0.06443989]]), np.array([[ 0.14652568],
+		[ 0.06109054],
+		[ 0.00354194]])]
+		self.tvecsTrain= [np.array([[ -32.46085485],
+		[ -63.2348963 ],
+		[ 297.2667928 ]]), np.array([[ -26.16118248],
+		[ -63.06724284],
+		[ 289.82220614]]), np.array([[ -35.06743885],
+		[ -59.33289319],
+		[ 177.66348235]]), np.array([[-155.16327457],
+		[-126.18071567],
+		[ 566.3086255 ]]), np.array([[  46.86198721],
+		[-222.89083096],
+		[ 554.24110018]])]
+
+		
+		self.load()
+	def load(self):
+		self.fig = Figure(tight_layout=True)
+		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
+		self.canvas.SetExtraStyle(wx.EXPAND)
+		self.ax = self.fig.gca(projection='3d',axisbg=(0.1843, 0.3098, 0.3098))
+		self.getPanel().Bind(wx.EVT_SIZE, self.on_size)
+		# Parameters of the pattern
+		self.columns=5
+		self.rows=8
+		self.squareWidth=12
+		self.nPoints=100
+		# Basis for the pattern
+		self.x = np.linspace(0, self.squareWidth*self.columns, self.nPoints)
+		self.y = np.linspace(0, self.squareWidth*self.rows, self.nPoints)
+		self.x=self.x[np.newaxis]
+		self.y=self.y[np.newaxis]
+		self.x=self.x.T
+		self.y=self.y.T
+		self.z=np.zeros(np.shape(self.x))
+		# do the grid horizontal
+		self.testMatrix = [0,0,0]
+		for xColumns in range(self.columns+1):
+			x=np.empty(np.shape(self.x))
+			x.fill(xColumns*self.squareWidth)
+			y=self.y
+			z=self.z
+			auxTestMatrix=np.hstack((x,y,z))
+			self.testMatrix=np.vstack((self.testMatrix,auxTestMatrix))
+		# do the grid vertical
+		for yRows in range(self.rows+1):
+			x=self.x
+			y=np.empty(np.shape(self.y))
+			y.fill(yRows*self.squareWidth)
+			z=self.z
+			auxTestMatrix=np.hstack((x,y,z))
+			self.testMatrix=np.vstack((self.testMatrix,auxTestMatrix))
+		# plot the pattern
+		# for i in range(self.columns+self.rows+2):
+		# 	plotable=self.testMatrix[i*self.nPoints+1:i*self.nPoints+self.nPoints,:]
+		# 	self.ax.plot(plotable[:,0],plotable[:,2],plotable[:,1])
+		self.printCanvas()
+		print "loading plot"
+	def on_size(self,event):
+		pix = self.getPanel().GetClientSize()
+		self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
+		x,y = self.getPanel().GetSize()  
+		self.canvas.SetClientSize((x, y))
+		self.canvas.draw()
+		event.Skip()
+
+	def printCanvas(self):
+		axisXx,axisXy,axisXz=[0,50],[0,0],[0,0]
+		axisYx,axisYy,axisYz=[0,0],[0,50],[0,0]
+		axisZx,axisZy,axisZz=[0,0],[0,0],[0,50]
+		self.ax.plot(axisXx,axisXy,axisXz,linewidth=3.0,color='red')
+		self.ax.plot(axisYx,axisYy,axisYz,linewidth=3.0,color='blue')
+		self.ax.plot(axisZx,axisZy,axisZz,linewidth=3.0,color='green')
+
+		self.ax.set_xlabel('X')
+		self.ax.set_ylabel('Z')
+		self.ax.set_zlabel('Y')
+		self.ax.set_xlim(-150, 150)
+		self.ax.set_ylim(0, 300)
+		self.ax.set_zlim(-150, 150)
+		self.ax.invert_xaxis()
+		self.ax.invert_yaxis()
+		self.ax.invert_zaxis()
+		#remove next line, add to button
+		self.addToCanvas()
+	def addToCanvas(self):
+		self.rotation=self.rvecsTrain
+		self.translation=self.tvecsTrain
+		axisXx,axisXy,axisXz=[0,30],[0,0],[0,0]
+		axisYx,axisYy,axisYz=[0,0],[0,30],[0,0]
+		axisZx,axisZy,axisZz=[0,0],[0,0],[0,30]
+		for ind,transvector in enumerate(self.rotation): 
+			rtAxisXx,rtAxisXy,rtAxisXz=np.zeros(len(axisXx)),np.zeros(len(axisXy)),np.zeros(len(axisXz))
+			rtAxisYx,rtAxisYy,rtAxisYz=np.zeros(len(axisYx)),np.zeros(len(axisYy)),np.zeros(len(axisYz))
+			rtAxisZx,rtAxisZy,rtAxisZz=np.zeros(len(axisZx)),np.zeros(len(axisZy)),np.zeros(len(axisZz))
+			rotTemp,jacob=cv2.Rodrigues(transvector)
+			transTemp=self.translation[ind]
+			for indAxis,pointAxis in enumerate( axisXx):
+				bx= np.asarray([[axisXx[indAxis]],[axisXy[indAxis]],[axisXz[indAxis]]])
+				rtAxisX=(np.dot(rotTemp,bx)+transTemp)
+				rtAxisXx.itemset(indAxis,rtAxisX.item(0))
+				rtAxisXy.itemset(indAxis,rtAxisX.item(1))
+				rtAxisXz.itemset(indAxis,rtAxisX.item(2))
+				by= np.asarray([[axisYx[indAxis]],[axisYy[indAxis]],[axisYz[indAxis]]])
+				rtAxisY=(np.dot(rotTemp,by)+transTemp)
+				rtAxisYx.itemset(indAxis,rtAxisY.item(0))
+				rtAxisYy.itemset(indAxis,rtAxisY.item(1))
+				rtAxisYz.itemset(indAxis,rtAxisY.item(2))
+				bz= np.asarray([[axisZx[indAxis]],[axisZy[indAxis]],[axisZz[indAxis]]])
+				rtAxisZ=(np.dot(rotTemp,bz)+transTemp)
+				rtAxisZx.itemset(indAxis,rtAxisZ.item(0))
+				rtAxisZy.itemset(indAxis,rtAxisZ.item(1))
+				rtAxisZz.itemset(indAxis,rtAxisZ.item(2))
+			for index,vector in enumerate(self.testMatrix):
+					vector=vector[np.newaxis]
+					vector=vector.T
+					rtvector= (np.dot(rotTemp,vector)+ transTemp)
+					rtvector=rtvector.T
+					if (index==0):
+						self.rtTestMatrix=rtvector
+					else:
+						self.rtTestMatrix=np.vstack((self.rtTestMatrix,rtvector))
+			color=(random.random(),random.random(),random.random(),0.5)
+			for i in range(self.columns+self.rows+2):
+				
+				plotable=self.rtTestMatrix[i*self.nPoints+1:i*self.nPoints+self.nPoints,:]
+				self.ax.plot(plotable[:,0],plotable[:,2],plotable[:,1],linewidth=4,color=color)
+			self.ax.plot(rtAxisXx,rtAxisXz,rtAxisXy,linewidth=2.0,color='red')
+			self.ax.plot(rtAxisYx,rtAxisYz,rtAxisYy,linewidth=2.0,color='green')
+			self.ax.plot(rtAxisZx,rtAxisZz,rtAxisZy,linewidth=2.0,color='blue')
+			self.ax.pbaspect = [1.0, 1.0, 0.25]
+			self.canvas.draw()
+
+	def clearPlot(self):
+		self.ax.cla()
+		self.printCanvas()
+		self.canvas.draw()
+
 class IntrinsicsPanel(wx.Panel):
 
 	def __init__(self,parent):
