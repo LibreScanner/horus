@@ -24,6 +24,11 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
+import threading
+
 from horus.util.resources import *
 
 from horus.gui.util.workbench import *
@@ -38,10 +43,14 @@ class ScanningWorkbench(Workbench):
 		Workbench.__init__(self, parent, 0, 1)
 
 		self.view3D = True
+		self.showVideoViews = False
 
 		self.load()
 
 		self.scanner = self.GetParent().scanner
+
+		self.timer = wx.Timer(self)
+		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
@@ -80,14 +89,70 @@ class ScanningWorkbench(Workbench):
 		self.sceneView = SceneView(self._rightPanel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
+
+		#-- Video View Selector
+
+		self.buttonShowVideoViews = wx.Button(self.videoView, wx.NewId(), _("Video Views"), pos=(10,10))
+		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(15,15+40))
+		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(15,15+80))
+		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(15,15+120))
+		self.buttonBin  = wx.RadioButton(self.videoView, wx.NewId(), _("Binary"), pos=(15,15+160))
+
+		self.buttonRaw.Hide()
+		self.buttonLas.Hide()
+		self.buttonDiff.Hide()
+		self.buttonBin.Hide()
+
+		self.buttonRaw.SetForegroundColour(wx.WHITE)
+		self.buttonLas.SetForegroundColour(wx.WHITE)
+		self.buttonDiff.SetForegroundColour(wx.WHITE)
+		self.buttonBin.SetForegroundColour(wx.WHITE)
+
+		self.buttonRaw.SetBackgroundColour(wx.BLACK)
+		self.buttonLas.SetBackgroundColour(wx.BLACK)
+		self.buttonDiff.SetBackgroundColour(wx.BLACK)
+		self.buttonBin.SetBackgroundColour(wx.BLACK)
+
+		self.Bind(wx.EVT_BUTTON, self.onShowVideoViews, self.buttonShowVideoViews)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonRaw)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLas)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonDiff)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
 		
 		self.updateView()
+
+	def onShowVideoViews(self, event):
+		self.showVideoViews = not self.showVideoViews
+		if self.showVideoViews:
+			self.buttonRaw.Show()
+			self.buttonLas.Show()
+			self.buttonDiff.Show()
+			self.buttonBin.Show()
+		else:
+			self.buttonRaw.Hide()
+			self.buttonLas.Hide()
+			self.buttonDiff.Hide()
+			self.buttonBin.Hide()
+
+	def onSelectVideoView(self, event):
+		selectedView = {self.buttonRaw.GetId()  : 'raw',
+						self.buttonLas.GetId()  : 'las',
+						self.buttonDiff.GetId() : 'diff',
+						self.buttonBin.GetId()  : 'bin'}.get(event.GetId())
+
+		self.scanner.core.setImageType(selectedView)
+
+	def onTimer(self, event):
+		frame = self.scanner.core.getImage()
+		if frame is not None:
+			self.videoView.setFrame(frame)
 
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateToolbarStatus(self.scanner.isConnected)
 		else:
-			self.onStopToolClicked(None)
+			pass
+			#self.onStopToolClicked(None)
 
 	def onConnectToolClicked(self, event):
 		self.updateToolbarStatus(True)
@@ -112,12 +177,14 @@ class ScanningWorkbench(Workbench):
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, True)
-		pass
+		
+		self.timer.Stop()
 
 	def onResumeToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , True)
 		self.enableLabelTool(self.resumeTool, False)
-		pass
+		
+		self.timer.Start(milliseconds=100)
 
 	def onDeleteToolClicked(self, event):
 		self.sceneView._clearScene()

@@ -39,8 +39,8 @@ class Camera:
 		self.cameraId = cameraId
 		print ">>> Done"
 
-		self.width = 640
-		self.height = 480
+		self.width = 1280
+		self.height = 960
 
 	def connect(self):
 		""" """
@@ -66,6 +66,8 @@ class Camera:
 		ret, image = self.capture.read()
 
 		if ret:
+			image = cv2.transpose(image)
+			image = cv2.flip(image, 1)
 			return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		else:
 			return None

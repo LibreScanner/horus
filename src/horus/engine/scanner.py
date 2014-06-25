@@ -132,11 +132,8 @@ class Scanner(wx.PyControl):
 			self.device.setMotorCW()
 			time.sleep(0.06)
 
-			#-- Get diff image
-			imgDiff = self.core.getDiffImage(imgRaw, imgLas)
-
 			#-- Put images into the queue
-			self.imageQueue.put((imgRaw, imgDiff))
+			self.imageQueue.put((imgRaw, imgLas))
 			
 			#-- Check stop condition
 			self.theta += self.degrees

@@ -39,12 +39,13 @@ class Core:
 		self.colors = None
 
 		#-- Image type parameters
-		self.imgType = 0
+		self.imgType = 'raw'
 		
-		self.imgRaw = None
-		self.imgLas = None
+		self.imgRaw  = None
+		self.imgLas  = None
 		self.imgDiff = None
-		self.imgBin = None
+		self.imgBin  = None
+		self.imgLine = None
 
 		#-- Image Processing Parameters
 		self.blurEnable = True
@@ -146,10 +147,11 @@ class Core:
 
 	def getImage(self):
 		""" """
-		return { 0 : self.imgRaw,
-				 1 : self.imgLas,
-				 2 : self.imgDiff,
-				 3 : self.imgBin
+		return { 'raw' : self.imgRaw,
+				 'las' : self.imgLas,
+				 'diff' : self.imgDiff,
+				 'bin' : self.imgBin,
+				 'line' : self.imgLine
 				}[self.imgType]
 
 	def setImageType(self, imgType):
@@ -174,29 +176,21 @@ class Core:
 
 		imageHSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
-		self.src = cv2.inRange(imageHSV, self.colorMin, self.colorMax)
+		return cv2.inRange(imageHSV, self.colorMin, self.colorMax)
 
-		temp = np.zeros_like(image)
-		temp[:,:,0] = self.src
-		temp[:,:,1] = self.src
-		temp[:,:,2] = self.src
-		self.imgBin = temp
-
-		return self.src
-
-	def pointCloudGeneration(self, imageDiff, imageRaw):
+	def pointCloudGeneration(self, imageDiff, imageRaw, src):
 		""" """
 		#-- Point Cloud Generation
-		s = self.src.sum(1)
+		s = src.sum(1)
 		v = np.nonzero(s)[0]
 		if self.useCompact:
-			i = self.src.argmax(1)
+			i = src.argmax(1)
 			l = ((i + (s/255-1) / 2)[v]).T.astype(int)
 		else:
 			self.w = (np.array(self.W)*np.array(imageDiff)).sum(1)
 			l = (w[v] / s[v].T).astype(int)
 
-		#-- Obtaining parameters
+		"""#-- Obtaining parameters
 		rho = self.M_rho[v,l]
 		thetaR = self.theta * self.rad
 		x = rho * math.cos(thetaR)
@@ -205,11 +199,12 @@ class Core:
 		points = np.concatenate((x,y,z)).reshape(3,z.size).T
 		colors = np.copy(imageRaw[v,l])
 
-		return points, colors
+		return points, colors"""
+
+		return None, None
 
 	def pointCloudFilter(self, points, colors):
 		""" """
-
 		z = 0
 		rho = 100
 
@@ -224,15 +219,22 @@ class Core:
 
 		return points, colors
 
-	def getPointCloud(self, imageRaw, imageDiff):
+	def getPointCloud(self, imageRaw, imageLas):
 		""" """
- 		
- 		self.imgRaw = imageRaw
- 		self.imgDiff = imageDiff
+ 		#-- Update Raw, Laser and Diff images
+		self.imgRaw = imageRaw
+		self.imgLas = imageLas
+		self.imgDiff = self.getDiffImage(imageRaw, imageLas)
 
-		src = self.imageProcessing(imageDiff)
+		src = self.imageProcessing(self.imgDiff)
 
-		points, colors = self.pointCloudGeneration(imageDiff, imageRaw)
+		temp = np.zeros_like(self.imgDiff)
+		temp[:,:,0] = src
+		temp[:,:,1] = src
+		temp[:,:,2] = src
+		self.imgBin = temp
+
+		points, colors = self.pointCloudGeneration(self.imgDiff, imageRaw, src)
 
 		if points != None and colors != None:
 			points, colors = self.pointCloudFilter(points, colors)

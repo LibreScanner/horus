@@ -24,6 +24,9 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 from horus.util.resources import *
 
 from horus.gui.util.workbench import *
@@ -94,6 +97,7 @@ class ControlWorkbench(Workbench):
 		#-- Video View
 
 		self.videoView = VideoView(self._leftPanel)
+		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.addToLeft(self.videoView)
 
 		#-- Image View
@@ -112,7 +116,8 @@ class ControlWorkbench(Workbench):
 		if event.GetShow():
 			self.updateToolbarStatus(self.scanner.isConnected)
 		else:
-			self.onStopToolClicked(None)
+			pass
+			#self.onStopToolClicked(None)
 
 	def onConnectToolClicked(self, event):
 		self.updateToolbarStatus(True)

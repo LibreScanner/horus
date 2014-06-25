@@ -70,16 +70,19 @@ class VideoView(wx.Panel):
 		(wwidth, wheight) = self.GetSizeTuple()
 		(width, height) = self.image.GetSize()
 
-		if float(width)/height > float(wwidth)/wheight:
-			nwidth  = wwidth
-			nheight = float(wwidth*height)/width
-			xoffset = 0
-			yoffset = (wheight-nheight)/2.0
-		else:
-			nwidth  = float(wheight*width) /height
-			nheight = wheight
-			xoffset = (wwidth-nwidth)/2.0
-			yoffset = 0
+		if height > 0 and wheight > 0:
+			if float(width)/height > float(wwidth)/wheight:
+				nwidth  = wwidth
+				nheight = float(wwidth*height)/width
+				xoffset = 0
+				yoffset = (wheight-nheight)/2.0
+			else:
+				nwidth  = float(wheight*width) /height
+				nheight = wheight
+				xoffset = (wwidth-nwidth)/2.0
+				yoffset = 0
 
-		return (nwidth, nheight, xoffset, yoffset)
+			return (nwidth, nheight, xoffset, yoffset)
+		else:
+			return (0, 0, 0, 0)
 
