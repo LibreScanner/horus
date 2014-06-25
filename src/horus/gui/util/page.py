@@ -40,12 +40,10 @@ class Page(wx.Panel):
 		self._downPanel = wx.Panel(self)
 		self._leftButton = wx.Button(self._downPanel, -1, left)
 		self._rightButton = wx.Button(self._downPanel, -1, right)
-		self._titlePanel.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
 		
-		self._upPanel.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self._downPanel.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		vbox.Add(self._titlePanel,0,wx.ALL|wx.EXPAND,1)
-		vbox.Add(self._upPanel, 1, wx.ALL|wx.EXPAND, 1)
+		vbox.Add(self._titlePanel,1,wx.ALL|wx.EXPAND,20)
+
+		vbox.Add(self._upPanel, 9, wx.ALL|wx.EXPAND, 1)
 		vbox.Add(self._downPanel, 0, wx.ALL|wx.EXPAND, 1)
 		
 		hbox.Add(self._leftButton, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 5)
@@ -60,7 +58,7 @@ class Page(wx.Panel):
 
 	def getPanel(self):
 		return self._upPanel
-	def getTtilePanel(self):
+	def getTitlePanel(self):
 		return self._titlePanel
 	def getRightButton(self):
 		return self._rightButton

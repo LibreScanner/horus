@@ -80,8 +80,20 @@ class CalibrationWorkbench(Workbench):
 
 	def loadPagePlot(self):
 		self._patternPanel.Show(False)
-		
+
 		self._plotPanel=PlotPanel(self._panel)
+
+		self._title=wx.StaticText(self._plotPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot monin"))
+		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
+		self._title.SetFont(font)
+		self._subTitle=wx.StaticText(self._plotPanel.getTitlePanel(),label=_("Here you can see the seUXy plot"))
+		
+		vbox=wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self._title,0,wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 1)	
+		vbox.Add(self._subTitle,0,wx.TOP|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		
+		self._plotPanel.getTitlePanel().SetSizer(vbox)
+		self._plotPanel.Layout()
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self._plotPanel,1,wx.EXPAND,0)
 		self._panel.SetSizer(hbox)
@@ -126,6 +138,9 @@ class PlotPanel(Page):
 		
 		self.load()
 	def load(self):
+
+		
+		
 		self.fig = Figure(tight_layout=True)
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
