@@ -69,8 +69,6 @@ class CalibrationWorkbench(Workbench):
 		self._panel.SetSizer(hbox)
 		self.loadPagePattern()
 
-		self.loadPagePlot()
-
 		# self.loadPagePlot()
 
 
@@ -126,7 +124,14 @@ class PatternPanel(Page):
 	def load(self):
 
 		self.videoView = VideoView(self._upPanel)
+		self.guideView = VideoView(self._upPanel)
 		hbox= wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
+		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
+		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
+		self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform monin captures"))
+		
+		self._upPanel.SetSizer(hbox)
 		print "loading calibration"
 
 class PlotPanel(Page):
