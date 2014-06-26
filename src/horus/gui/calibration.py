@@ -126,6 +126,9 @@ class PatternPanel(Page):
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.loaded=False
+		self.currentGrid=0
+		self.rows=2
+		self.columns=6
 	def load(self):
 
 		self.videoView = VideoView(self._upPanel)
@@ -150,7 +153,7 @@ class PatternPanel(Page):
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
 		# cool hack: key event listener only works if the focus is in some elements like our videoview
 		self.videoView.SetFocus()
-		print self.playTool
+		
 		
 	def onPlayToolClicked(self, event):
 		
@@ -161,7 +164,7 @@ class PatternPanel(Page):
 	def onSnapshotToolClicked(self, event):
 		
 		frame = self.scanner.camera.captureImage(False)
-		self.videoView.setFrame(frame)
+		self.addToGrid(frame)
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
@@ -177,9 +180,9 @@ class PatternPanel(Page):
 			# self.guideView.Layout()
 			# self.guideView.setImage(None)
 			print event.GetKeyCode()
-		else:
+		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
-			self.guideView.setFrame(frame)
+			self.addToGrid(frame)
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
@@ -188,36 +191,20 @@ class PatternPanel(Page):
 		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.gridPanel,5,wx.EXPAND|wx.ALL,1)
 		self._upPanel.SetSizer(hbox)
-		gs=wx.GridSizer(2,6,3,3)
-		self.pnl1 = wx.Panel(self.gridPanel, -1)
-		self.pnl2 = wx.Panel(self.gridPanel, -1)
-		self.pnl3 = wx.Panel(self.gridPanel, -1)
-		self.pnl4 = wx.Panel(self.gridPanel, -1)
-		self.pnl5 = wx.Panel(self.gridPanel, -1)
-		self.pnl6 = wx.Panel(self.gridPanel, -1)
-		self.pnl7 = wx.Panel(self.gridPanel, -1)
-		self.pnl8 = wx.Panel(self.gridPanel, -1)
-		self.pnl9 = wx.Panel(self.gridPanel, -1)
-		self.pnl10 = wx.Panel(self.gridPanel, -1)
-		self.pnl11 = wx.Panel(self.gridPanel, -1)
-		self.pnl12 = wx.Panel(self.gridPanel, -1)
-		self.pnl1.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
-		self.pnl2.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl3.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl4.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl5.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl6.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl7.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl8.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl9.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl10.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl11.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.pnl12.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		gs.AddMany([ (self.pnl1, 0 ,wx.EXPAND),(self.pnl2, 0, wx.EXPAND),(self.pnl3, 0, wx.EXPAND),(self.pnl4, 0, wx.EXPAND),(self.pnl5, 0, wx.EXPAND),(self.pnl6, 0, wx.EXPAND),(self.pnl7, 0, wx.EXPAND),(self.pnl8, 0, wx.EXPAND),(self.pnl9, 0, wx.EXPAND),(self.pnl10, 0, wx.EXPAND),(self.pnl11, 0, wx.EXPAND),(self.pnl12, 0, wx.EXPAND) ])
+		
+		gs=wx.GridSizer(self.rows,self.columns,3,3)
+		self.panelGrid=[]
+		for panel in range(self.rows*self.columns):
+			# self.panelGrid.append(wx.Panel(self.gridPanel, -1))
+			self.panelGrid.append(VideoView(self.gridPanel))
+			self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+			gs.Add(self.panelGrid[panel],0,wx.EXPAND)
 		self.gridPanel.SetSizer(gs)
 		self.Layout()
 	def addToGrid(self,image):
-		print "bla"
+		if self.currentGrid<(self.columns*self.rows):
+			self.panelGrid[self.currentGrid].setFrame(image)
+			self.currentGrid+=1
 
 class PlotPanel(Page):
 	def __init__(self,parent):
