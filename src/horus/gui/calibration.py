@@ -50,13 +50,13 @@ class CalibrationWorkbench(Workbench):
 
 	def __init__(self, parent):
 		Workbench.__init__(self, parent, 1, 1)
-
+		self.scanner = self.GetParent().scanner
 		self.load()
 
 	def load(self):
 
-		self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("connect.png")))
-		self.toolbar.Realize()
+		# self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("connect.png")))
+		# self.toolbar.Realize()
 
 		self._panel.parent=self
 		self._intrinsicsPanel=IntrinsicsPanel(self._panel)
@@ -75,8 +75,7 @@ class CalibrationWorkbench(Workbench):
 	def loadPagePattern(self):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
-		self._patternPanel=PatternPanel(self._panel)
-
+		self._patternPanel=PatternPanel(self._panel,self.scanner)
 		self._title=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 1): camera calibration"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
@@ -117,10 +116,15 @@ class CalibrationWorkbench(Workbench):
 
 
 class PatternPanel(Page):
-	def __init__(self,parent):
+	def __init__(self,parent,scanner):
 		Page.__init__(self,parent)
 		self.parent=parent;
+		
+
 		self.load() 
+		self.scanner=scanner
+		self.timer = wx.Timer(self)
+		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 	def load(self):
 
 		self.videoView = VideoView(self._upPanel)
@@ -129,10 +133,42 @@ class PatternPanel(Page):
 		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
 		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
-		self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform monin captures"))
-		
+		self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform captures moninas"))		
 		self._upPanel.SetSizer(hbox)
-		print "loading calibration"
+
+		self.playTool= self.parent.parent.toolbar.AddLabelTool(wx.NewId(), _("Initialize camera"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
+				
+		self.snapshotTool= self.parent.parent.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
+				
+		self.parent.parent.toolbar.Realize()
+
+		self.parent.parent.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
+				
+		self.parent.parent.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked, self.snapshotTool)
+
+		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
+		# cool hack: key event listener only works if the focus is in some elements like our videoview
+		self.videoView.SetFocus()
+		print self.playTool
+		
+	def onPlayToolClicked(self, event):
+		
+		self.scanner.connect()
+		self.timer.Start(milliseconds=150)
+
+	def onSnapshotToolClicked(self, event):
+		
+		frame = self.scanner.camera.captureImage(False)
+		self.videoView.setFrame(frame)
+
+	def onTimer(self, event):
+		frame = self.scanner.camera.captureImage(True)
+		self.videoView.setFrame(frame)
+
+	def OnKeyPress(self,event):
+		print event.GetKeyCode()
+		print "wololoooo"
+
 
 class PlotPanel(Page):
 	def __init__(self,parent):
