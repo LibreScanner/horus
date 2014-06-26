@@ -35,10 +35,10 @@ from horus.engine.scanner import *
 
 from horus.util import profile, resources, meshLoader
 
-from horus.gui.preferences import PreferencesDialog
 from horus.gui.control import ControlWorkbench
 from horus.gui.scanning import ScanningWorkbench
 from horus.gui.calibration import CalibrationWorkbench
+from horus.gui.preferences import PreferencesDialog
 
 from horus.engine.scanner import *
 
@@ -90,8 +90,7 @@ class MainWindow(wx.Frame):
         #-- Menu View
         menuView = wx.Menu()
         menuWorkbench = wx.Menu()
-        menuWorkbenchNone = menuWorkbench.Append(wx.NewId(), _("<none>"))
-        #menuWorkbenchMain = menuWorkbench.Append(wx.NewId(), _("Main"))
+        self.menuWorkbenchMain = menuWorkbench.Append(wx.NewId(), _("Main"))
         self.menuWorkbenchControl = menuWorkbench.Append(wx.NewId(), _("Control"))
         self.menuWorkbenchCalibration = menuWorkbench.Append(wx.NewId(), _("Calibration"))
         self.menuWorkbenchScanning = menuWorkbench.Append(wx.NewId(), _("Scanning"))
@@ -107,11 +106,13 @@ class MainWindow(wx.Frame):
 
         ##-- Create Workbenchs
 
+        self.mainWorkbench = MainWorkbench(self)
         self.controlWorkbench = ControlWorkbench(self)
         self.scanningWorkbench = ScanningWorkbench(self)
         #self.calibrationWorkbench = CalibrationWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.mainWorkbench, 1, wx.EXPAND)
         sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
         sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
         #sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
@@ -128,8 +129,7 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
 
-        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchNone)
-        #self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, menuWorkbenchMain)
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchMain)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchControl)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchCalibration)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchScanning)
@@ -221,14 +221,15 @@ class MainWindow(wx.Frame):
 
     def onWorkbenchSelected(self, event):
         """ """
-        currentWorkbench = {self.menuWorkbenchControl.GetId()     : 'control',
+        currentWorkbench = {self.menuWorkbenchMain.GetId()        : 'main',
+                            self.menuWorkbenchControl.GetId()     : 'control',
                             self.menuWorkbenchCalibration.GetId() : 'calibration',
                             self.menuWorkbenchScanning.GetId()    : 'scanning'}.get(event.GetId())
 
         if currentWorkbench is not None:
             profile.putPreference('workbench', currentWorkbench)
         else:
-            profile.putPreference('workbench', 'none')
+            profile.putPreference('workbench', 'main')
 
         self.workbenchUpdate()
 
@@ -268,15 +269,16 @@ Suite 330, Boston, MA  02111-1307  USA"""))
 
     def updateEngine(self):
         self.scanner.initialize(profile.getProfileSettingInteger('camera_id'),
-                               profile.getProfileSetting('serial_name'),
-                               profile.getProfileSettingFloat('step_degrees'),
-                               profile.getProfileSettingInteger('step_delay'))
+                                profile.getProfileSetting('serial_name'),
+                                profile.getProfileSettingFloat('step_degrees'),
+                                profile.getProfileSettingInteger('step_delay'))
 
     def workbenchUpdate(self):
         """ """
         currentWorkbench = profile.getPreference('workbench')
 
-        wb = {'control'     : self.controlWorkbench,
+        wb = {'main'        : self.mainWorkbench,
+              'control'     : self.controlWorkbench,
               #'calibration' : self.calibrationWorkbench,
               'scanning'    : self.scanningWorkbench}
 
@@ -291,4 +293,93 @@ Suite 330, Boston, MA  02111-1307  USA"""))
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
 
+        self.Layout()
+
+
+class MainWorkbench(wx.Panel):
+
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        titleBox = wx.BoxSizer(wx.VERTICAL)
+
+        self._title = wx.Panel(self)
+        self._panel = wx.Panel(self)
+        self._leftPanel = ItemWorkbench(self._panel, _("Control"))
+        self._middlePanel = ItemWorkbench(self._panel, _("Calibration"))
+        self._rightPanel = ItemWorkbench(self._panel, _("Scanning"))
+
+        #self._title.SetBackgroundColour(wx.WHITE)
+        #self._panel.SetBackgroundColour(wx.BLACK)
+
+        self.titleText = wx.StaticText(self._title, label=_("Welcome to Horus"))
+        self.titleText.SetFont((wx.Font(18, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+
+        titleBox.Add(self.titleText, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 20)
+        self._title.SetSizer(titleBox)
+
+        vbox.Add(self._title, 0, wx.ALL|wx.EXPAND, 2)
+        vbox.Add(self._panel, 1, wx.ALL|wx.EXPAND, 2)
+
+        hbox.Add(self._leftPanel, 1, wx.ALL|wx.EXPAND, 20)
+        hbox.Add(self._middlePanel, 1, wx.ALL|wx.EXPAND, 20)
+        hbox.Add(self._rightPanel, 1, wx.ALL|wx.EXPAND, 20)
+
+        self._panel.SetSizer(hbox)
+        self._panel.Layout()
+
+        self.Bind(wx.EVT_BUTTON, self.onWorkbenchSelected, self._leftPanel.buttonGo)
+        self.Bind(wx.EVT_BUTTON, self.onWorkbenchSelected, self._middlePanel.buttonGo)
+        self.Bind(wx.EVT_BUTTON, self.onWorkbenchSelected, self._rightPanel.buttonGo)
+
+        self.SetSizer(vbox)
+        self.Layout()
+
+    def onWorkbenchSelected(self, event):
+        """ """
+        currentWorkbench = {self._leftPanel.buttonGo.GetId()   : 'control',
+                            self._middlePanel.buttonGo.GetId() : 'calibration',
+                            self._rightPanel.buttonGo.GetId()  : 'scanning'}.get(event.GetId())
+
+        if currentWorkbench is not None:
+            profile.putPreference('workbench', currentWorkbench)
+        else:
+            profile.putPreference('workbench', 'main')
+
+        self.GetParent().workbenchUpdate()
+
+
+class ItemWorkbench(wx.Panel):
+
+    def __init__(self, parent, titleText="Workbench", description="Workbench description", buttonText="Go"):
+        wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        titleBox = wx.BoxSizer(wx.VERTICAL)
+        contentBox = wx.BoxSizer(wx.VERTICAL)
+
+        title = wx.Panel(self)
+        content = wx.Panel(self)
+
+        #title.SetBackgroundColour(wx.GREEN)
+        #content.SetBackgroundColour(wx.BLUE)
+
+        titleText = wx.StaticText(title, label=titleText)
+        titleText.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        descText = wx.StaticText(content, label=description)
+        self.buttonGo = wx.Button(content, wx.NewId(), label=buttonText)
+
+        titleBox.Add(titleText, 0, wx.ALL|wx.EXPAND, 10)
+        title.SetSizer(titleBox)
+        contentBox.Add(descText, 0, wx.ALL|wx.EXPAND, 10)
+        contentBox.Add((0, 0), 1, wx.EXPAND)
+        contentBox.Add(self.buttonGo, 0, wx.ALL|wx.EXPAND, 10)
+        content.SetSizer(contentBox)
+
+        vbox.Add(title, 0, wx.ALL|wx.EXPAND, 2)
+        vbox.Add(content, 1, wx.ALL|wx.EXPAND, 2)
+
+        self.SetSizer(vbox)
         self.Layout()
