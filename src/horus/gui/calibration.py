@@ -125,6 +125,7 @@ class PatternPanel(Page):
 		self.scanner=scanner
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+		self.loaded=False
 	def load(self):
 
 		self.videoView = VideoView(self._upPanel)
@@ -155,6 +156,7 @@ class PatternPanel(Page):
 		
 		self.scanner.connect()
 		self.timer.Start(milliseconds=150)
+		self.guideView.setFrame()
 
 	def onSnapshotToolClicked(self, event):
 		
@@ -166,9 +168,56 @@ class PatternPanel(Page):
 		self.videoView.setFrame(frame)
 
 	def OnKeyPress(self,event):
-		print event.GetKeyCode()
-		print "wololoooo"
-
+		if not self.loaded:
+			self.scanner.connect()
+			self.timer.Start(milliseconds=150)
+			self.loaded=True
+			self.loadGrid()
+			# self.guideView.Show(False)
+			# self.guideView.Layout()
+			# self.guideView.setImage(None)
+			print event.GetKeyCode()
+		else:
+			frame = self.scanner.camera.captureImage(True)
+			self.guideView.setFrame(frame)
+		
+	def loadGrid(self):
+		self.guideView.Show(False)
+		self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		hbox= wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
+		hbox.Add(self.gridPanel,5,wx.EXPAND|wx.ALL,1)
+		self._upPanel.SetSizer(hbox)
+		gs=wx.GridSizer(2,6,3,3)
+		self.pnl1 = wx.Panel(self.gridPanel, -1)
+		self.pnl2 = wx.Panel(self.gridPanel, -1)
+		self.pnl3 = wx.Panel(self.gridPanel, -1)
+		self.pnl4 = wx.Panel(self.gridPanel, -1)
+		self.pnl5 = wx.Panel(self.gridPanel, -1)
+		self.pnl6 = wx.Panel(self.gridPanel, -1)
+		self.pnl7 = wx.Panel(self.gridPanel, -1)
+		self.pnl8 = wx.Panel(self.gridPanel, -1)
+		self.pnl9 = wx.Panel(self.gridPanel, -1)
+		self.pnl10 = wx.Panel(self.gridPanel, -1)
+		self.pnl11 = wx.Panel(self.gridPanel, -1)
+		self.pnl12 = wx.Panel(self.gridPanel, -1)
+		self.pnl1.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+		self.pnl2.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl3.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl4.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl5.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl6.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl7.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl8.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl9.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl10.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl11.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		self.pnl12.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
+		gs.AddMany([ (self.pnl1, 0 ,wx.EXPAND),(self.pnl2, 0, wx.EXPAND),(self.pnl3, 0, wx.EXPAND),(self.pnl4, 0, wx.EXPAND),(self.pnl5, 0, wx.EXPAND),(self.pnl6, 0, wx.EXPAND),(self.pnl7, 0, wx.EXPAND),(self.pnl8, 0, wx.EXPAND),(self.pnl9, 0, wx.EXPAND),(self.pnl10, 0, wx.EXPAND),(self.pnl11, 0, wx.EXPAND),(self.pnl12, 0, wx.EXPAND) ])
+		self.gridPanel.SetSizer(gs)
+		self.Layout()
+	def addToGrid(self,image):
+		print "bla"
 
 class PlotPanel(Page):
 	def __init__(self,parent):
