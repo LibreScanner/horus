@@ -67,12 +67,13 @@ class CalibrationWorkbench(Workbench):
 		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		self._panel.SetSizer(hbox)
-		self.loadPagePattern()
+		# self.loadPagePattern()
 
 		# self.loadPagePlot()
+	def loadInit(self,event):
+		print "hola"
 
-
-	def loadPagePattern(self):
+	def loadPagePattern(self,event):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
 		self._patternPanel=PatternPanel(self._panel,self.scanner)
@@ -93,7 +94,7 @@ class CalibrationWorkbench(Workbench):
 
 		self.Layout()
 
-	def loadPagePlot(self):
+	def loadPagePlot(self,event):
 		self._patternPanel.Show(False)
 
 		self._plotPanel=PlotPanel(self._panel)
@@ -125,8 +126,10 @@ class PatternPanel(Page):
 		self.scanner=scanner
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
 		self.loaded=False
 		self.currentGrid=0
+		# set quantity of photos to take
 		self.rows=2
 		self.columns=6
 	def load(self):
@@ -176,9 +179,6 @@ class PatternPanel(Page):
 			self.timer.Start(milliseconds=150)
 			self.loaded=True
 			self.loadGrid()
-			# self.guideView.Show(False)
-			# self.guideView.Layout()
-			# self.guideView.setImage(None)
 			print event.GetKeyCode()
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
@@ -195,7 +195,7 @@ class PatternPanel(Page):
 		gs=wx.GridSizer(self.rows,self.columns,3,3)
 		self.panelGrid=[]
 		for panel in range(self.rows*self.columns):
-			# self.panelGrid.append(wx.Panel(self.gridPanel, -1))
+
 			self.panelGrid.append(VideoView(self.gridPanel))
 			self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
 			gs.Add(self.panelGrid[panel],0,wx.EXPAND)
@@ -205,6 +205,7 @@ class PatternPanel(Page):
 		if self.currentGrid<(self.columns*self.rows):
 			self.panelGrid[self.currentGrid].setFrame(image)
 			self.currentGrid+=1
+
 
 class PlotPanel(Page):
 	def __init__(self,parent):
@@ -481,7 +482,7 @@ class IntrinsicsPanel(wx.Panel):
 		
 	def start(self,event):
 		# print self.parent
-		self.loadPagePattern()
+		self.parent.parent.loadPagePattern(0)
 
 	def restore(self,event):
 		print "restore"
