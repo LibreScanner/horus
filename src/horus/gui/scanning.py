@@ -64,7 +64,7 @@ class ScanningWorkbench(Workbench):
 		self.stopTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("pause.png")), shortHelp=_("Pause"))
 		self.resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
-		self.deleteTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
+		#self.deleteTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
 		self.viewTool       = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("3D / Camera"))
 		self.toolbar.Realize()
 
@@ -76,7 +76,7 @@ class ScanningWorkbench(Workbench):
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked      , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , self.pauseTool)
 		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , self.resumeTool)
-		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
+		#self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked      , self.viewTool)
 
 		#-- Left Panel

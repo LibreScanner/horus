@@ -89,12 +89,12 @@ class MainWindow(wx.Frame):
 
         #-- Menu View
         menuView = wx.Menu()
-        menuWorkbench = wx.Menu()
-        self.menuWorkbenchMain = menuWorkbench.Append(wx.NewId(), _("Main"))
-        self.menuWorkbenchControl = menuWorkbench.Append(wx.NewId(), _("Control"))
-        self.menuWorkbenchCalibration = menuWorkbench.Append(wx.NewId(), _("Calibration"))
-        self.menuWorkbenchScanning = menuWorkbench.Append(wx.NewId(), _("Scanning"))
-        menuView.AppendMenu(wx.NewId(), _("Workbench"), menuWorkbench)
+        self.menuWorkbench = wx.Menu()
+        self.menuWorkbenchMain = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Main"))
+        self.menuWorkbenchControl = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Control"))
+        self.menuWorkbenchCalibration = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Calibration"))
+        self.menuWorkbenchScanning = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Scanning"))
+        menuView.AppendMenu(wx.NewId(), _("Workbench"), self.menuWorkbench)
         menuBar.Append(menuView, _("View"))
 
         #-- Menu Help
@@ -289,12 +289,19 @@ Suite 330, Boston, MA  02111-1307  USA"""))
                 else:
                     wb[key].Hide()
 
+        menuWb = {'main'        : self.menuWorkbenchMain,
+                  'control'     : self.menuWorkbenchControl,
+                  #'calibration' : self.menuWorkbenchCalibration,
+                  'scanning'    : self.menuWorkbenchScanning}.get(currentWorkbench)
+
+        if menuWb is not None:
+            self.menuWorkbench.Check(menuWb.GetId(), True)
+
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
 
         self.Layout()
-
 
 class MainWorkbench(wx.Panel):
 
@@ -354,14 +361,14 @@ class MainWorkbench(wx.Panel):
 class ItemWorkbench(wx.Panel):
 
     def __init__(self, parent, titleText="Workbench", description="Workbench description", buttonText="Go"):
-        wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         titleBox = wx.BoxSizer(wx.VERTICAL)
         contentBox = wx.BoxSizer(wx.VERTICAL)
 
         title = wx.Panel(self)
-        content = wx.Panel(self)
+        content = wx.Panel(self, style=wx.SUNKEN_BORDER)
 
         #title.SetBackgroundColour(wx.GREEN)
         #content.SetBackgroundColour(wx.BLUE)
