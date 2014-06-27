@@ -91,13 +91,16 @@ class CalibrationWorkbench(Workbench):
 	def loadPagePlot(self,event):
 		self._patternPanel.Show(False)
 		if not hasattr(self,'_plotPanel'):
-
 			self._plotPanel=PlotPanel(self._panel)
-
-			
 		else:
 			self._plotPanel.show()
-			# self._patternPanel.videoView.SetFocus()
+	def loadExtrinsicCalibrationPanel(self,event):
+		self._intrinsicsPanel.Show(False)
+		self._extrinsicsPanel.Show(False)
+		if not hasattr(self,'_extrinsicCalibrationPanel'):
+			self._extrinsicCalibrationPanel=ExtrinsicCalibrationPanel(self._panel,self.scanner)
+		else:
+			self._extrinsicCalibrationPanel.Show(True)
 
 
 class PatternPanel(Page):
@@ -394,6 +397,83 @@ class PlotPanel(Page):
 		self.Show(True)
 		self.getPanel().Bind(wx.EVT_SIZE,self.on_size)
 
+class ExtrinsicCalibrationPanel(Page):
+	def __init__(self,parent,scanner):
+		Page.__init__(self,parent)
+		self.scanner=scanner
+		self.parent=parent;
+		self.timer = wx.Timer(self)
+		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePattern)
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		self.loaded=False
+		self.load()
+	def load(self):
+		self.videoView = VideoView(self._upPanel)
+		self.guideView = VideoView(self._upPanel)
+		hbox= wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
+		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
+		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
+		self.text=wx.StaticText(self.guideView,label=_("Place the pattern in the indicated position and press the space bar to perform captures moninas"))		
+		self._upPanel.SetSizer(hbox)
+
+		self.playTool= self.parent.parent.toolbar.AddLabelTool(wx.NewId(), _("Initialize camera"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
+				
+		self.snapshotTool= self.parent.parent.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
+				
+		self.parent.parent.toolbar.Realize()
+
+		self.parent.parent.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
+				
+		self.parent.parent.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked, self.snapshotTool)
+
+		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
+		# cool hack: key event listener only works if the focus is in some elements like our videoview
+		self.videoView.SetFocus()
+
+		self._title=wx.StaticText(self.getTitlePanel(),label=_("Extrinsic calibration (Step 1): rotating plate calibration"))
+		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
+		self._title.SetFont(font)
+		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Place the pattern adjusting it to the grid and let the scanner calibrate itself"))
+		
+		vbox=wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		
+		self.getTitlePanel().SetSizer(vbox)
+		self.Layout()
+		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.ghbox.Add(self,1,wx.EXPAND,0)
+		self.parent.SetSizer(self.ghbox)
+
+		self.parent.parent.Layout()
+	def onPlayToolClicked(self, event):
+		
+		self.scanner.connect()
+		self.timer.Start(milliseconds=150)
+		self.guideView.setFrame()
+
+	def onSnapshotToolClicked(self, event):
+		
+		frame = self.scanner.camera.captureImage(False)
+		self.addToGrid(frame)
+
+	def onTimer(self, event):
+		frame = self.scanner.camera.captureImage(True)
+		self.videoView.setFrame(frame)
+
+	def OnKeyPress(self,event):
+		if not self.loaded:
+			self.scanner.connect()
+			self.timer.Start(milliseconds=150)
+			self.loaded=True
+			self.loadGrid()
+			print event.GetKeyCode()
+		elif event.GetKeyCode()==32:
+			frame = self.scanner.camera.captureImage(True)
+			self.addToGrid(frame)
+
 class IntrinsicsPanel(wx.Panel):
 
 	def __init__(self,parent):
@@ -586,6 +666,8 @@ class ExtrinsicsPanel(wx.Panel):
 
 	def __init__(self,parent):
 		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		self.parent=parent
+
 		self._vRotMatrix= [["r11=","r12=","r13="],["r21=","r22=","r23="],["r31=","r32=","r33="]] # TODO connect with scanner's calibration matrix
 		self._rotMatrix=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
 		self._rotMatrixDefault=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
@@ -688,7 +770,7 @@ class ExtrinsicsPanel(wx.Panel):
 		self.SetSizer(vbox)
 
 	def start(self,event):
-		print "Start"
+		self.parent.parent.loadExtrinsicCalibrationPanel(0)
 	def restore(self,event):
 		print "restore"
 		for i in range(len(self._visualMatrix)):
