@@ -200,6 +200,7 @@ setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language
 setting('startMode', 'Simple', ['Simple', 'Normal'], 'preference', 'hidden')
 
 setting('workbench', 'control', ['none', 'main', 'control', 'calibration', 'scanning'], 'preference', 'hidden')
+setting('workbench_selector', True, bool, 'preference', 'hidden')
 
 # TODO: change default last file
 setting('lastFile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
@@ -448,6 +449,16 @@ def getPreferenceFloat(name):
 		return float(eval(setting, {}, {}))
 	except:
 		return 0.0
+
+def getPreferenceBool(name):
+	"""
+	Get the float value of a preference, returns 0.0 if the preference is not a invalid float
+	"""
+	try:
+		setting = getPreference(name)
+		return bool(eval(setting, {}, {}))
+	except:
+		return False
 
 def getPreferenceColour(name):
 	"""

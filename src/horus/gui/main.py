@@ -40,8 +40,6 @@ from horus.gui.scanning import ScanningWorkbench
 from horus.gui.calibration import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
 
-from horus.engine.scanner import *
-
 class MainWindow(wx.Frame):
 
     def __init__(self):
@@ -49,7 +47,6 @@ class MainWindow(wx.Frame):
                                                 size=(640+300,480+100))
         ###-- Initialize Engine
 
-        #self.scanner = Scanner(self)
         self.scanner = Scanner(self)
 
         self.updateEngine()
@@ -89,6 +86,7 @@ class MainWindow(wx.Frame):
 
         #-- Menu View
         menuView = wx.Menu()
+        self.menuWorkbenchSelector = menuView.AppendCheckItem(wx.NewId(), _("Workbench Selector"))
         self.menuWorkbench = wx.Menu()
         self.menuWorkbenchMain = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Main"))
         self.menuWorkbenchControl = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Control"))
@@ -104,6 +102,19 @@ class MainWindow(wx.Frame):
 
         self.SetMenuBar(menuBar)
 
+        #-- Create Combobox Workbench Selector
+
+        self.workbenchList = {}
+
+        self.workbenchList[_("Main")] = 'main'
+        self.workbenchList[_("Control")] = 'control'
+        self.workbenchList[_("Calibration")] = 'calibration'
+        self.workbenchList[_("Scanning")] = 'scanning'
+
+        keylist = [_("Main"), _("Control"), _("Calibration"), _("Scanning")]
+
+        self.comboBoxWorkbench = wx.ComboBox(self, -1, value=keylist[0], choices=keylist, style=wx.CB_READONLY)
+
         ##-- Create Workbenchs
 
         self.mainWorkbench = MainWorkbench(self)
@@ -112,10 +123,11 @@ class MainWindow(wx.Frame):
         #self.calibrationWorkbench = CalibrationWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.comboBoxWorkbench, 0, wx.ALL|wx.EXPAND, 6)
         sizer.Add(self.mainWorkbench, 1, wx.EXPAND)
         sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
-        sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
         #sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
         ##-- Events
@@ -129,6 +141,7 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
 
+        self.Bind(wx.EVT_MENU, self.onWorkbenchSelectorClicked, self.menuWorkbenchSelector)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchMain)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchControl)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchCalibration)
@@ -136,7 +149,9 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
 
-        self.workbenchUpdate()
+        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.comboBoxWorkbench)
+
+        self.updateProfileToAllControls()
 
         self.Show()
 
@@ -219,12 +234,33 @@ class MainWindow(wx.Frame):
         prefDialog.Raise()
         wx.CallAfter(prefDialog.Show)
 
+    def onWorkbenchSelectorClicked(self, event):
+        """ """
+        if self.menuWorkbenchSelector.IsChecked():
+            self.comboBoxWorkbench.Show()
+            profile.putPreference('workbench_selector', True)
+        else:
+            self.comboBoxWorkbench.Hide()
+            profile.putPreference('workbench_selector', False)
+        self.Layout()
+
     def onWorkbenchSelected(self, event):
         """ """
         currentWorkbench = {self.menuWorkbenchMain.GetId()        : 'main',
                             self.menuWorkbenchControl.GetId()     : 'control',
                             self.menuWorkbenchCalibration.GetId() : 'calibration',
                             self.menuWorkbenchScanning.GetId()    : 'scanning'}.get(event.GetId())
+
+        if currentWorkbench is not None:
+            profile.putPreference('workbench', currentWorkbench)
+        else:
+            profile.putPreference('workbench', 'main')
+
+        self.workbenchUpdate()
+
+    def onComboBoxWorkbenchSelected(self, event):
+        """ """
+        currentWorkbench = self.workbenchList[self.comboBoxWorkbench.GetValue()]
 
         if currentWorkbench is not None:
             profile.putPreference('workbench', currentWorkbench)
@@ -265,7 +301,17 @@ Suite 330, Boston, MA  02111-1307  USA"""))
     def updateProfileToAllControls(self):
         """ """
         #self.control.updateProfileToAllControls()
+
+        if profile.getPreferenceBool('workbench_selector'):
+            self.comboBoxWorkbench.Show()
+            self.menuWorkbenchSelector.Check(True)
+        else:
+            self.comboBoxWorkbench.Hide()
+            self.menuWorkbenchSelector.Check(False)
+
         self.workbenchUpdate()
+
+        self.Layout()
 
     def updateEngine(self):
         self.scanner.initialize(profile.getProfileSettingInteger('camera_id'),
@@ -296,6 +342,11 @@ Suite 330, Boston, MA  02111-1307  USA"""))
 
         if menuWb is not None:
             self.menuWorkbench.Check(menuWb.GetId(), True)
+
+        for key in self.workbenchList:
+            if self.workbenchList[key] == currentWorkbench:
+                self.comboBoxWorkbench.SetValue(key)
+                break
 
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
@@ -358,6 +409,8 @@ class MainWorkbench(wx.Panel):
         self.GetParent().workbenchUpdate()
 
 
+from horus.gui.util.videoView import *
+
 class ItemWorkbench(wx.Panel):
 
     def __init__(self, parent, titleText="Workbench", description="Workbench description", buttonText="Go"):
@@ -368,7 +421,7 @@ class ItemWorkbench(wx.Panel):
         contentBox = wx.BoxSizer(wx.VERTICAL)
 
         title = wx.Panel(self)
-        content = wx.Panel(self, style=wx.SUNKEN_BORDER)
+        content = wx.Panel(self) #, style=wx.SUNKEN_BORDER)
 
         #title.SetBackgroundColour(wx.GREEN)
         #content.SetBackgroundColour(wx.BLUE)
@@ -376,12 +429,15 @@ class ItemWorkbench(wx.Panel):
         titleText = wx.StaticText(title, label=titleText)
         titleText.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         descText = wx.StaticText(content, label=description)
+        imageView = VideoView(self)
+        imageView.setImage(wx.Image(resources.getPathForImage("horus.png")))
         self.buttonGo = wx.Button(content, wx.NewId(), label=buttonText)
 
         titleBox.Add(titleText, 0, wx.ALL|wx.EXPAND, 10)
         title.SetSizer(titleBox)
         contentBox.Add(descText, 0, wx.ALL|wx.EXPAND, 10)
         contentBox.Add((0, 0), 1, wx.EXPAND)
+        contentBox.Add(imageView, 1, wx.ALL|wx.EXPAND, 10)
         contentBox.Add(self.buttonGo, 0, wx.ALL|wx.EXPAND, 10)
         content.SetSizer(contentBox)
 
