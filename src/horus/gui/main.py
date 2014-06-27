@@ -41,6 +41,7 @@ from horus.gui.scanning import ScanningWorkbench
 from horus.gui.calibration import CalibrationWorkbench
 
 from horus.engine.scanner import *
+from horus.engine.calibration import *
 
 class MainWindow(wx.Frame):
 
@@ -51,6 +52,7 @@ class MainWindow(wx.Frame):
 
         #self.scanner = Scanner(self)
         self.scanner = Scanner(self)
+        self.calibration = Calibration(self)
 
         self.updateEngine()
 

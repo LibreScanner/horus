@@ -114,7 +114,6 @@ class CalibrationWorkbench(Workbench):
 			self._extrinsicCalibrationPanel.videoView.SetFocus()
 			self._extrinsicCalibrationPanel.getRightButton().Bind(wx.EVT_BUTTON,self._extrinsicCalibrationPanel.start)
 
-
 class PatternPanel(Page):
 	def __init__(self,parent,scanner):
 		Page.__init__(self,parent)
@@ -629,8 +628,6 @@ class ExtrinsicCalibrationPanel(Page):
 			self.canvas.Show(True)
 		self.Show(True)
 		
-
-
 class IntrinsicsPanel(wx.Panel):
 
 	def __init__(self,parent):
