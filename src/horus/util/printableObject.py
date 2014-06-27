@@ -102,15 +102,21 @@ class printableObject(object):
 		if not self._isPointCloud:
 			for m in self._meshList:
 				m._calculateNormals()
-		self.processMatrix()
-		if numpy.max(self.getSize()) > 10000.0:
-			for m in self._meshList:
-				m.vertexes /= 1000.0
-			self.processMatrix()
-		if numpy.max(self.getSize()) < 1.0:
-			for m in self._meshList:
-				m.vertexes *= 1000.0
-			self.processMatrix()
+
+		self._position = [0, 0, 0]
+		self._drawOffset = [0, 0, 0]
+		self._transformedSize = [0, 0, 0]
+		self._boundaryCircleSize = 20.0
+
+		#self.processMatrix()
+		#if numpy.max(self.getSize()) > 10000.0:
+		#	for m in self._meshList:
+		#		m.vertexes /= 1000.0
+		#	self.processMatrix()
+		#if numpy.max(self.getSize()) < 1.0:
+		#	for m in self._meshList:
+		#		m.vertexes *= 1000.0
+		#	self.processMatrix()
 
 	def applyMatrix(self, m):
 		self._matrix *= m
@@ -348,6 +354,7 @@ class mesh(object):
 		self.colors[n][1] = g
 		self.colors[n][2] = b
 		self.vertexCount += 1
+		#print  self.vertexCount
 
 	def _addFace(self, x0, y0, z0, x1, y1, z1, x2, y2, z2):
 		n = self.vertexCount

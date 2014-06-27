@@ -70,15 +70,15 @@ class Core:
 
 		self.useCompact = True
 
-		self.rhoMin = -60
-		self.rhoMax = 60
+		self.rhoMin = -100
+		self.rhoMax = 100
 		self.hMin = 0
-		self.hMax = 80
+		self.hMax = 200
 
 		self.zOffset = 0
 
-		self.width = 640
-		self.height = 480
+		self.width = 960
+		self.height = 1280
 
 		self.degrees = degrees
 
@@ -106,10 +106,10 @@ class Core:
 				self.M_rho[j,i] = rho = A*u/(u+B)
 				self.M_z[j,i] = self.ho + (self.zs-rho*math.sin(alpha))*v/self.fy
 				
-		print "----------------R-------------"
-		print self.M_rho
-		print "----------------Z-------------"
-		print self.M_z
+		#print "----------------R-------------"
+		#print self.M_rho
+		#print "----------------Z-------------"
+		#print self.M_z
 
 		self.W = np.matrix(np.ones(self.height)).T * np.matrix(np.arange(self.width).reshape((self.width)))
 
@@ -190,7 +190,7 @@ class Core:
 			self.w = (np.array(self.W)*np.array(imageDiff)).sum(1)
 			l = (w[v] / s[v].T).astype(int)
 
-		"""#-- Obtaining parameters
+		#-- Obtaining parameters
 		rho = self.M_rho[v,l]
 		thetaR = self.theta * self.rad
 		x = rho * math.cos(thetaR)
@@ -199,25 +199,17 @@ class Core:
 		points = np.concatenate((x,y,z)).reshape(3,z.size).T
 		colors = np.copy(imageRaw[v,l])
 
-		return points, colors"""
+		return points, colors, rho, z
 
-		return None, None
-
-	def pointCloudFilter(self, points, colors):
+	def pointCloudFilter(self, points, colors, rho, z):
 		""" """
-		z = 0
-		rho = 100
-
 		#-- Point Cloud Filter
-		idx = np.where((z > self.hMin) &
-					   (z < self.hMax) &
-					   (rho > self.rhoMin) &
-					   (rho < self.rhoMax))[0]
-		if len(idx):
-			points = points[idx]
-			colors = colors[idx]
+		idx = np.where((z >= self.hMin) &
+					   (z <= self.hMax) &
+					   (rho >= self.rhoMin) &
+					   (rho <= self.rhoMax))[0]
 
-		return points, colors
+		return points[idx], colors[idx]
 
 	def getPointCloud(self, imageRaw, imageLas):
 		""" """
@@ -234,10 +226,10 @@ class Core:
 		temp[:,:,2] = src
 		self.imgBin = temp
 
-		points, colors = self.pointCloudGeneration(self.imgDiff, imageRaw, src)
+		points, colors, rho, z = self.pointCloudGeneration(self.imgDiff, imageRaw, src)
 
 		if points != None and colors != None:
-			points, colors = self.pointCloudFilter(points, colors)
+			points, colors = self.pointCloudFilter(points, colors, rho, z)
 
 		if points != None and colors != None:
 			if self.points == None and self.colors == None:

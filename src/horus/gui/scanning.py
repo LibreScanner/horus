@@ -27,15 +27,13 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import threading
-
-from horus.util.resources import *
-
 from horus.gui.util.workbench import *
 from horus.gui.util.videoPanel import *
 from horus.gui.util.videoView import *
 from horus.gui.util.scenePanel import *
 from horus.gui.util.sceneView import *
+
+from horus.util.resources import *
 
 class ScanningWorkbench(Workbench):
 
@@ -62,8 +60,8 @@ class ScanningWorkbench(Workbench):
 		self.disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
 		self.playTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("pause.png")), shortHelp=_("Pause"))
 		self.resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
+		self.pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("pause.png")), shortHelp=_("Pause"))
 		#self.deleteTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
 		self.viewTool       = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("3D / Camera"))
 		self.toolbar.Realize()
@@ -74,8 +72,8 @@ class ScanningWorkbench(Workbench):
 		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked, self.disconnectTool)
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked      , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked      , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , self.pauseTool)
 		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , self.resumeTool)
+		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , self.pauseTool)
 		#self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked      , self.viewTool)
 
@@ -92,11 +90,11 @@ class ScanningWorkbench(Workbench):
 
 		#-- Video View Selector
 
-		self.buttonShowVideoViews = wx.Button(self.videoView, wx.NewId(), _("Video Views"), pos=(10,10))
-		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(15,15+40))
-		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(15,15+80))
-		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(15,15+120))
-		self.buttonBin  = wx.RadioButton(self.videoView, wx.NewId(), _("Binary"), pos=(15,15+160))
+		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
+		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(10,15+40))
+		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+80))
+		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(10,15+120))
+		self.buttonBin  = wx.RadioButton(self.videoView, wx.NewId(), _("Binary"), pos=(10,15+160))
 
 		self.buttonRaw.Hide()
 		self.buttonLas.Hide()
@@ -147,6 +145,17 @@ class ScanningWorkbench(Workbench):
 		if frame is not None:
 			self.videoView.setFrame(frame)
 
+		pointCloud = self.scanner.getPointCloudIncrement()
+
+		if pointCloud is not None:
+			#print "OK 1"
+			if pointCloud[0] is not None and pointCloud[1] is not None:
+				#print "OK 2"
+				#print len(pointCloud[0])
+				if len(pointCloud[0]) > 0:
+					#print "OK 3"
+					self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateToolbarStatus(self.scanner.isConnected)
@@ -166,6 +175,8 @@ class ScanningWorkbench(Workbench):
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
 		
+		self.sceneView.createDefaultObject()
+
 		self.scanner.start()
 
 	def onStopToolClicked(self, event):
@@ -174,17 +185,17 @@ class ScanningWorkbench(Workbench):
 		
 		self.scanner.stop()
 
-	def onPauseToolClicked(self, event):
-		self.enableLabelTool(self.pauseTool , False)
-		self.enableLabelTool(self.resumeTool, True)
-		
-		self.timer.Stop()
-
 	def onResumeToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , True)
 		self.enableLabelTool(self.resumeTool, False)
 		
 		self.timer.Start(milliseconds=100)
+
+	def onPauseToolClicked(self, event):
+		self.enableLabelTool(self.pauseTool , False)
+		self.enableLabelTool(self.resumeTool, True)
+		
+		self.timer.Stop()
 
 	def onDeleteToolClicked(self, event):
 		self.sceneView._clearScene()
@@ -219,12 +230,12 @@ class ScanningWorkbench(Workbench):
 			self.enableLabelTool(self.disconnectTool, True)
 			self.enableLabelTool(self.playTool      , True)
 			self.enableLabelTool(self.stopTool      , False)
-			self.enableLabelTool(self.pauseTool     , True)
-			self.enableLabelTool(self.resumeTool    , False)
+			self.enableLabelTool(self.resumeTool    , True)
+			self.enableLabelTool(self.pauseTool     , False)
 		else:
 			self.enableLabelTool(self.connectTool   , True)
 			self.enableLabelTool(self.disconnectTool, False)
 			self.enableLabelTool(self.playTool      , False)
 			self.enableLabelTool(self.stopTool      , False)
-			self.enableLabelTool(self.pauseTool     , False)
 			self.enableLabelTool(self.resumeTool    , False)
+			self.enableLabelTool(self.pauseTool     , False)

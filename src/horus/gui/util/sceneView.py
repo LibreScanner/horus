@@ -25,6 +25,9 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 import wx
 import numpy
 import time
@@ -43,6 +46,8 @@ from OpenGL.GL import *
 from horus.util import profile, resources, meshLoader
 from horus.gui.util import openglHelpers
 from horus.gui.util import openglGui
+
+from horus.util import printableObject
 
 class SceneView(openglGui.glGuiPanel):
 	def __init__(self, parent):
@@ -79,6 +84,22 @@ class SceneView(openglGui.glGuiPanel):
 
 		self.updateProfileToControls()
 
+	def createDefaultObject(self):
+		self._clearScene()
+		self._object = printableObject.printableObject(None, isPointCloud=True)
+		self._object._addMesh()
+		self._object._meshList[0]._prepareVertexCount(1000000)
+		#self._object._postProcessAfterLoad()
+
+	def appendPointCloud(self, point, color):
+		if self._object is not None:
+			mesh = self._object._meshList[0]
+			if mesh is not None:
+				for i in range(len(point)):
+					mesh._addVertex(point[i][0], point[i][1], point[i][2], color[i][0], color[i][1], color[i][2])
+			self._object._postProcessAfterLoad()
+			self.QueueRefresh()
+
 	def loadFile(self, filename):
 		#-- Only one STL / PLY file can be active
 		if filename is not None:
@@ -87,6 +108,7 @@ class SceneView(openglGui.glGuiPanel):
 				modelFilename = filename
 			if modelFilename:
 				self.loadScene(modelFilename)
+				self._selectedObj =  self._object
 				self._selectObject(self._object)
 
 	def OnCenter(self, e):
@@ -510,22 +532,22 @@ class SceneView(openglGui.glGuiPanel):
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				glEnable(GL_BLEND)
 				if self._objectLoadShader is not None:
-					self._objectLoadShader.bind()
-					glColor4f(0.2, 0.6, 1.0, 1.0)
+					#self._objectLoadShader.bind()
+					#glColor4f(0.2, 0.6, 1.0, 1.0)
 					#self._objectLoadShader.setUniform('intensity', self._object._.getPosition())
-					self._objectLoadShader.setUniform('scale', self._object.getBoundaryCircle() / 10)
+					#self._objectLoadShader.setUniform('scale', self._object.getBoundaryCircle() / 10)
 					self._renderObject(self._object)
-					self._objectLoadShader.unbind()
+					#self._objectLoadShader.unbind()
 					glDisable(GL_BLEND)
 
 		self._drawMachine()
 
 	def _renderObject(self, obj, brightness = 0, addSink = True):
 		glPushMatrix()
-		if addSink:
-			glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2 - profile.getProfileSettingFloat('object_sink'))
-		else:
-			glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2)
+		#if addSink:
+		#	glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2 - profile.getProfileSettingFloat('object_sink'))
+		#else:
+		#	glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2)
 
 		if self.tempMatrix is not None and obj == self._selectedObj:
 			glMultMatrixf(openglHelpers.convert3x3MatrixTo4x4(self.tempMatrix))
@@ -537,8 +559,10 @@ class SceneView(openglGui.glGuiPanel):
 
 		if obj.isPointCloud():
 			for m in obj._meshList:
-				if m.vbo is None:
-					m.vbo = openglHelpers.GLVBO(GL_POINTS, m.vertexes, colorArray = m.colors)
+				#if m.vbo is None:
+				if m.vbo is not None:
+					m.vbo.release()
+				m.vbo = openglHelpers.GLVBO(GL_POINTS, m.vertexes, colorArray = m.colors)
 				m.vbo.render()
 		else:
 			n = 0
