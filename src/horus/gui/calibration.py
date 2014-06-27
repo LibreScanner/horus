@@ -71,49 +71,62 @@ class CalibrationWorkbench(Workbench):
 
 		# self.loadPagePlot()
 	def loadInit(self,event):
-		print "hola"
+		self._intrinsicsPanel.Show(True)
+		self._extrinsicsPanel.Show(True)
+		self._patternPanel.Show(False)
+		if hasattr(self,'_plotPanel'):
+			self._plotPanel.hide()
 
 	def loadPagePattern(self,event):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
-		self._patternPanel=PatternPanel(self._panel,self.scanner)
-		self._title=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 1): camera calibration"))
-		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
-		self._title.SetFont(font)
-		self._subTitle=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Place the pattern adjusting it to the grid"))
-		
-		vbox=wx.BoxSizer(wx.VERTICAL)
-		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
-		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
-		
-		self._patternPanel.getTitlePanel().SetSizer(vbox)
-		self._patternPanel.Layout()
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._patternPanel,1,wx.EXPAND,0)
-		self._panel.SetSizer(hbox)
+		if not hasattr(self,'_patternPanel'):
+			self._patternPanel=PatternPanel(self._panel,self.scanner)
+			self._title=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 1): camera calibration"))
+			font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
+			self._title.SetFont(font)
+			self._subTitle=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Place the pattern adjusting it to the grid"))
+			
+			vbox=wx.BoxSizer(wx.VERTICAL)
+			vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+			vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+			
+			self._patternPanel.getTitlePanel().SetSizer(vbox)
+			self._patternPanel.Layout()
+			self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
+			self.ghbox.Add(self._patternPanel,1,wx.EXPAND,0)
+			self._panel.SetSizer(self.ghbox)
 
-		self.Layout()
-
+			self.Layout()
+		else:
+			self._patternPanel.Show(True)
+			self._plotPanel.hide()
+			self._patternPanel.clear()
+			self._patternPanel.videoView.SetFocus()
 	def loadPagePlot(self,event):
 		self._patternPanel.Show(False)
+		if not hasattr(self,'_plotPanel'):
 
-		self._plotPanel=PlotPanel(self._panel)
+			self._plotPanel=PlotPanel(self._panel)
 
-		self._title=wx.StaticText(self._plotPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot monin"))
-		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
-		self._title.SetFont(font)
-		self._subTitle=wx.StaticText(self._plotPanel.getTitlePanel(),label=_("Here you can see the seUXy plot"))
-		
-		vbox=wx.BoxSizer(wx.VERTICAL)
-		vbox.Add(self._title,0,wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 1)	
-		vbox.Add(self._subTitle,0,wx.TOP|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
-		
-		self._plotPanel.getTitlePanel().SetSizer(vbox)
-		self._plotPanel.Layout()
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._plotPanel,1,wx.EXPAND,0)
-		self._panel.SetSizer(hbox)
-		self.Layout()
+			self._title=wx.StaticText(self._plotPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot monin"))
+			font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
+			self._title.SetFont(font)
+			self._subTitle=wx.StaticText(self._plotPanel.getTitlePanel(),label=_("Here you can see the seUXy plot"))
+			
+			vbox=wx.BoxSizer(wx.VERTICAL)
+			vbox.Add(self._title,0,wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 1)	
+			vbox.Add(self._subTitle,0,wx.TOP|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+			
+			self._plotPanel.getTitlePanel().SetSizer(vbox)
+			self._plotPanel.Layout()
+			hbox = wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self._plotPanel,1,wx.EXPAND,0)
+			self._panel.SetSizer(hbox)
+			self.Layout()
+		else:
+			self._plotPanel.show()
+			# self._patternPanel.videoView.SetFocus()
 
 
 class PatternPanel(Page):
@@ -127,6 +140,7 @@ class PatternPanel(Page):
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePlot)
 		self.loaded=False
 		self.currentGrid=0
 		# set quantity of photos to take
@@ -205,13 +219,21 @@ class PatternPanel(Page):
 		if self.currentGrid<(self.columns*self.rows):
 			self.panelGrid[self.currentGrid].setFrame(image)
 			self.currentGrid+=1
-
+	def clear(self):
+		if hasattr(self,'panelGrid'):
+			for panel in self.panelGrid:
+				panel.Destroy()
+				print "Destroy the panel"
+			self.loadGrid()
+		self.currentGrid=0
 
 class PlotPanel(Page):
 	def __init__(self,parent):
 		Page.__init__(self,parent)
 		# self.calibration=calibration
-		
+		self.parent=parent;
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePattern)
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
 		self.rvecsTrain= [np.array([[ 0.04556978],
 		[-0.00280866],
 		[ 0.02094954]]), np.array([[ 0.02915861],
@@ -242,6 +264,7 @@ class PlotPanel(Page):
 		self.fig = Figure(tight_layout=True)
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
+
 		self.ax = self.fig.gca(projection='3d',axisbg=(0.1843, 0.3098, 0.3098))
 		self.getPanel().Bind(wx.EVT_SIZE, self.on_size)
 		# Parameters of the pattern
@@ -287,6 +310,7 @@ class PlotPanel(Page):
 		self.canvas.SetClientSize((x, y))
 		self.canvas.draw()
 		event.Skip()
+		
 
 	def printCanvas(self):
 		axisXx,axisXy,axisXz=[0,50],[0,0],[0,0]
@@ -359,6 +383,14 @@ class PlotPanel(Page):
 		self.ax.cla()
 		self.printCanvas()
 		self.canvas.draw()
+	def hide(self):
+		self.canvas.Show(False)
+		self.Show(False)
+		self.getPanel().Unbind(wx.EVT_SIZE)
+	def show(self):
+		self.canvas.Show(True)
+		self.Show(True)
+		self.getPanel().Bind(wx.EVT_SIZE,self.on_size)
 
 class IntrinsicsPanel(wx.Panel):
 
