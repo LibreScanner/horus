@@ -82,22 +82,7 @@ class CalibrationWorkbench(Workbench):
 		self._extrinsicsPanel.Show(False)
 		if not hasattr(self,'_patternPanel'):
 			self._patternPanel=PatternPanel(self._panel,self.scanner)
-			self._title=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 1): camera calibration"))
-			font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
-			self._title.SetFont(font)
-			self._subTitle=wx.StaticText(self._patternPanel.getTitlePanel(),label=_("Place the pattern adjusting it to the grid"))
 			
-			vbox=wx.BoxSizer(wx.VERTICAL)
-			vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
-			vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
-			
-			self._patternPanel.getTitlePanel().SetSizer(vbox)
-			self._patternPanel.Layout()
-			self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
-			self.ghbox.Add(self._patternPanel,1,wx.EXPAND,0)
-			self._panel.SetSizer(self.ghbox)
-
-			self.Layout()
 		else:
 			self._patternPanel.Show(True)
 			self._plotPanel.hide()
@@ -109,21 +94,7 @@ class CalibrationWorkbench(Workbench):
 
 			self._plotPanel=PlotPanel(self._panel)
 
-			self._title=wx.StaticText(self._plotPanel.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot monin"))
-			font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
-			self._title.SetFont(font)
-			self._subTitle=wx.StaticText(self._plotPanel.getTitlePanel(),label=_("Here you can see the seUXy plot"))
 			
-			vbox=wx.BoxSizer(wx.VERTICAL)
-			vbox.Add(self._title,0,wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 1)	
-			vbox.Add(self._subTitle,0,wx.TOP|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
-			
-			self._plotPanel.getTitlePanel().SetSizer(vbox)
-			self._plotPanel.Layout()
-			hbox = wx.BoxSizer(wx.HORIZONTAL)
-			hbox.Add(self._plotPanel,1,wx.EXPAND,0)
-			self._panel.SetSizer(hbox)
-			self.Layout()
 		else:
 			self._plotPanel.show()
 			# self._patternPanel.videoView.SetFocus()
@@ -170,7 +141,23 @@ class PatternPanel(Page):
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
 		# cool hack: key event listener only works if the focus is in some elements like our videoview
 		self.videoView.SetFocus()
+
+		self._title=wx.StaticText(self.getTitlePanel(),label=_("Intrinsic calibration (Step 1): camera calibration"))
+		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
+		self._title.SetFont(font)
+		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Place the pattern adjusting it to the grid"))
 		
+		vbox=wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		
+		self.getTitlePanel().SetSizer(vbox)
+		self.Layout()
+		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.ghbox.Add(self,1,wx.EXPAND,0)
+		self.parent.SetSizer(self.ghbox)
+
+		self.parent.parent.Layout()
 		
 	def onPlayToolClicked(self, event):
 		
@@ -303,6 +290,21 @@ class PlotPanel(Page):
 		# 	self.ax.plot(plotable[:,0],plotable[:,2],plotable[:,1])
 		self.printCanvas()
 		print "loading plot"
+		self._title=wx.StaticText(self.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot monin"))
+		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
+		self._title.SetFont(font)
+		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Here you can see the seUXy plot"))
+		
+		vbox=wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self._title,0,wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 1)	
+		vbox.Add(self._subTitle,0,wx.TOP|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		
+		self.getTitlePanel().SetSizer(vbox)
+		self.Layout()
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self,1,wx.EXPAND,0)
+		self.parent.SetSizer(hbox)
+		self.parent.parent.Layout()
 	def on_size(self,event):
 		pix = self.getPanel().GetClientSize()
 		self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
