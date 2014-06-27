@@ -46,6 +46,10 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 import cv2
 
+from scipy import optimize
+import matplotlib.cm as cm  
+import matplotlib.colors as colors
+
 class CalibrationWorkbench(Workbench):
 
 	def __init__(self, parent):
@@ -67,15 +71,19 @@ class CalibrationWorkbench(Workbench):
 		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
 		self._panel.SetSizer(hbox)
-		# self.loadPagePattern()
 
-		# self.loadPagePlot()
+		# self.loadExtrinsicCalibrationPanel(0)
+
 	def loadInit(self,event):
-		self._intrinsicsPanel.Show(True)
-		self._extrinsicsPanel.Show(True)
-		self._patternPanel.Show(False)
+		
+		if hasattr(self,'_extrinsicCalibrationPanel'):
+			self._extrinsicCalibrationPanel.hide()
+		if hasattr(self,'_patternPanel'):
+			self._patternPanel.Show(False)
 		if hasattr(self,'_plotPanel'):
 			self._plotPanel.hide()
+		self._intrinsicsPanel.Show(True)
+		self._extrinsicsPanel.Show(True)
 
 	def loadPagePattern(self,event):
 		self._intrinsicsPanel.Show(False)
@@ -85,7 +93,8 @@ class CalibrationWorkbench(Workbench):
 			
 		else:
 			self._patternPanel.Show(True)
-			self._plotPanel.hide()
+			if hasattr(self,'_plotPanel'):
+				self._plotPanel.hide()
 			self._patternPanel.clear()
 			self._patternPanel.videoView.SetFocus()
 	def loadPagePlot(self,event):
@@ -101,6 +110,9 @@ class CalibrationWorkbench(Workbench):
 			self._extrinsicCalibrationPanel=ExtrinsicCalibrationPanel(self._panel,self.scanner)
 		else:
 			self._extrinsicCalibrationPanel.Show(True)
+			self._extrinsicCalibrationPanel.guideView.Show(True)
+			self._extrinsicCalibrationPanel.videoView.SetFocus()
+			self._extrinsicCalibrationPanel.getRightButton().Bind(wx.EVT_BUTTON,self._extrinsicCalibrationPanel.start)
 
 
 class PatternPanel(Page):
@@ -164,9 +176,7 @@ class PatternPanel(Page):
 		
 	def onPlayToolClicked(self, event):
 		
-		self.scanner.connect()
-		self.timer.Start(milliseconds=150)
-		self.guideView.setFrame()
+		self.OnKeyPress(0)
 
 	def onSnapshotToolClicked(self, event):
 		
@@ -308,6 +318,7 @@ class PlotPanel(Page):
 		hbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(hbox)
 		self.parent.parent.Layout()
+
 	def on_size(self,event):
 		pix = self.getPanel().GetClientSize()
 		self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
@@ -404,10 +415,14 @@ class ExtrinsicCalibrationPanel(Page):
 		self.parent=parent;
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
-		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePattern)
-		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.start)
 		self.loaded=False
 		self.load()
+
+		self.workingOnExtrinsic=True
+
+
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
 		self.guideView = VideoView(self._upPanel)
@@ -468,11 +483,153 @@ class ExtrinsicCalibrationPanel(Page):
 			self.scanner.connect()
 			self.timer.Start(milliseconds=150)
 			self.loaded=True
-			self.loadGrid()
+			self.start(0)
 			print event.GetKeyCode()
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
 			self.addToGrid(frame)
+	def start(self,event):
+		self.guideView.Show(False)
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		self.plot2DPanel=wx.Panel(self._upPanel, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
+		
+
+		self.fig = Figure(facecolor='white')
+		self.canvas = FigureCanvasWxAgg( self.plot2DPanel, -1, self.fig)
+		self.ax = self.fig.gca()
+		self.ax.axis('equal')
+		
+		self.x2D=np.array([])
+		self.z2D=np.array([])
+		self.plot2DPanel.Bind(wx.EVT_SIZE, self.on_size)
+
+		hbox.Add(self.plot2DPanel,5,wx.EXPAND|wx.ALL,1)
+		self._upPanel.SetSizer(hbox)
+
+		self.parent.Layout()
+		self.plot()
+
+	def plot(self):
+		self.ax.cla()
+		
+		transVectors=np.array( [np.array([[ -42.69884629],
+			   [ -60.66166513],
+			   [ 321.66039025]]), np.array([[ -42.41493766],
+			   [ -60.64227845],
+			   [ 314.83533902]]),np.array([[ -41.50678247],
+			   [ -60.61090239],
+			   [ 309.86558147]]), np.array([[ -39.94829325],
+			   [ -60.53994931],
+			   [ 304.62751714]]), np.array([[ -35.74329096],
+			   [ -60.37072737],
+			   [ 295.90780527]]), np.array([[ -28.6653856 ],
+			   [ -60.11288896],
+			   [ 287.22736507]]), np.array([[ -17.04165965],
+			   [ -59.83398485],
+			   [ 280.00927257]]), np.array([[  -7.25630751],
+			   [ -59.66790518],
+			   [ 277.30374209]]), np.array([[   2.22381082],
+			   [ -59.49892478],
+			   [ 276.60780411]])])
+		
+		
+		self.x2D=np.array([])
+		self.z2D=np.array([])
+		for transUnit in transVectors:
+			   self.x2D=np.hstack((self.x2D,transUnit[0][0]))
+			   self.z2D=np.hstack((self.z2D,transUnit[2][0]))
+		self.x2D=np.r_[self.x2D]
+		self.z2D=np.r_[self.z2D]
+		center_estimate = 0, 310
+		print center_estimate
+		center, ier = optimize.leastsq(self.f, center_estimate)
+
+		self.xc, self.zc = center
+
+		Ri     = self.calc_R(*center)
+		self.R      = Ri.mean()
+		residu = sum((Ri - self.R)**2)
+
+		print self.xc,self.zc
+		print self.R
+
+		theta_fit = np.linspace(-np.pi, np.pi, 180)
+
+		x_fit2 = self.xc + self.R*np.cos(theta_fit)
+		z_fit2 = self.zc + self.R*np.sin(theta_fit)
+		self.ax.plot(x_fit2, z_fit2, 'k--', lw=2)
+		self.ax.plot([self.xc], [self.zc], 'gD', mec='r', mew=1)
+		self.ax.set_xlabel('x')
+		self.ax.set_ylabel('z')
+
+		# plot the residu fields
+		nb_pts = 100
+
+		self.canvas.draw()
+		xmin, xmax = self.ax.set_xlim()
+		ymin, ymax = self.ax.set_ylim()
+
+		vmin = min(xmin, ymin)
+		vmax = max(xmax, ymax)
+
+		xg, zg = np.ogrid[vmin-self.R:(vmin+4*self.R):nb_pts*1j, vmax-4*self.R:vmax+self.R:nb_pts*1j]
+		xg = xg[..., np.newaxis]
+		zg = zg[..., np.newaxis]
+
+		Rig    = np.sqrt( (xg - self.x2D)**2 + (zg - self.z2D)**2 )
+		Rig_m  = Rig.mean(axis=2)[..., np.newaxis]  
+		residu = np.sum( (Rig-Rig_m)**2 ,axis=2)
+		lvl = np.exp(np.linspace(np.log(residu.min()), np.log(residu.max()), 15))
+
+		self.ax.contourf(xg.flat, zg.flat, residu.T, lvl, alpha=0.4, cmap=cm.Purples_r) # , norm=colors.LogNorm())
+		
+		self.ax.contour (xg.flat, zg.flat, residu.T, lvl, alpha=0.8, colors="lightblue")
+
+		# plot data
+		self.ax.plot(self.x2D, self.z2D, 'ro', label='data', ms=8, mec='b', mew=1)
+		self.ax.legend(loc='best',labelspacing=0.1 )
+
+		self.ax.set_xlim(xmin=(self.xc-self.R)*1.05, xmax=(self.xc+self.R)*1.05)
+		self.ax.set_ylim(ymin=(self.zc-self.R)*1.05, ymax=(self.zc+self.R)*1.05)
+
+		self.ax.grid()
+
+		self.canvas.draw()
+
+
+	def calc_R(self,xc, zc):
+		return np.sqrt((self.x2D-xc)**2 + (self.z2D-zc)**2)
+
+	def f(self,c):
+		Ri = self.calc_R(*c)
+		return Ri - Ri.mean()
+
+	
+	def on_size(self,event):
+		pix = self.plot2DPanel.GetClientSize()
+		self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
+		x,y = self.plot2DPanel.GetSize()  
+		self.canvas.SetClientSize((x, y))
+		self.ax.axis('equal')
+		if hasattr(self,'xc'):
+			self.ax.set_xlim(xmin=(self.xc-self.R)*1.05, xmax=(self.xc+self.R)*1.05)
+			self.ax.set_ylim(ymin=(self.zc-self.R)/1.05, ymax=(self.zc+self.R)*1.05)
+		self.canvas.draw()
+		event.Skip()
+	def hide(self):
+		if hasattr(self,'canvas'):
+			self.canvas.Show(False)
+		self.Show(False)
+		# self.getPanel().Unbind(wx.EVT_SIZE)
+	def show(self):
+		if hasattr(self,'canvas'):
+			self.canvas.Show(True)
+		self.Show(True)
+		
+
 
 class IntrinsicsPanel(wx.Panel):
 
