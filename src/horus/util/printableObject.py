@@ -38,8 +38,6 @@ import os
 import numpy
 numpy.seterr(all='ignore')
 
-from horus.util import polygon
-
 class printableObject(object):
 	"""
 	A printable object is an object that can be printed and is on the build platform.
@@ -61,15 +59,9 @@ class printableObject(object):
 		self._matrix = numpy.matrix([[1,0,0],[0,1,0],[0,0,1]], numpy.float64)
 		self._transformedMin = None
 		self._transformedMax = None
-		self._transformedSize = None
-		self._boundaryCircleSize = None
-		self._drawOffset = None
-		self._boundaryHull = None
-
-		self._position = [0, 0, 0]
-		self._drawOffset = [0, 0, 0]
-		self._transformedSize = [0, 0, 0]
+		self._transformedSize = numpy.array([0.0, 0.0])
 		self._boundaryCircleSize = 20.0
+		self._drawOffset = numpy.array([0.0, 0.0])
 
 		self._isPointCloud = isPointCloud
 
@@ -97,10 +89,7 @@ class printableObject(object):
 		self._transformedMax = numpy.array([-999999999999,-999999999999,-999999999999], numpy.float64)
 		self._boundaryCircleSize = 0
 
-		hull = numpy.zeros((0, 2), numpy.int)
-
 		transformedVertexes = self._mesh.getTransformedVertexes()
-		hull = polygon.convexHull(numpy.concatenate((numpy.rint(transformedVertexes[:,0:2]).astype(int), hull), 0))
 		transformedMin = transformedVertexes.min(0)
 		transformedMax = transformedVertexes.max(0)
 		for n in xrange(0, 3):
@@ -118,8 +107,6 @@ class printableObject(object):
 		self._drawOffset[2] = self._transformedMin[2]
 		self._transformedMax -= self._drawOffset
 		self._transformedMin -= self._drawOffset
-
-		self._boundaryHull = polygon.minkowskiHull((hull.astype(numpy.float32) - self._drawOffset[0:2]), numpy.array([[-1,-1],[-1,1],[1,1],[1,-1]],numpy.float32))
 
 	def getName(self):
 		return self._name

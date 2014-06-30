@@ -54,11 +54,17 @@ def _loadAscii(m, f): # TODO: improve parser: normals, colors, faces, etc.
 	m._prepareVertexCount(int(cnt))
 
 	body = sections[1].split('\n')
-	for i in range(1,cnt):
-		data = body[i].split(' ')
-		if len(data) == 6: # colors
+
+	if len(body) > 1:
+		_len = len(body[1].split(' '))
+
+	if _len == 6: # colors
+		for i in range(1,cnt):
+			data = body[i].split(' ')
 			m._addVertex(float(data[0]),float(data[1]),float(data[2]),int(data[3]),int(data[4]),int(data[5]))
-		if len(data) == 11: # normals
+	elif  _len == 11: # normals
+		for i in range(1,cnt):
+			data = body[i].split(' ')
 			m._addVertex(float(data[0]),float(data[1]),float(data[2]),int(data[6]),int(data[7]),int(data[8]))
 
 def _loadBinary(m, f):
