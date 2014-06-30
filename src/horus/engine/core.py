@@ -187,7 +187,7 @@ class Core:
 			i = src.argmax(1)
 			l = ((i + (s/255-1) / 2)[v]).T.astype(int)
 		else:
-			self.w = (np.array(self.W)*np.array(imageDiff)).sum(1)
+			w = (np.array(self.W)*np.array(imageDiff[:,:,0])).sum(1) # TODO: Check
 			l = (w[v] / s[v].T).astype(int)
 
 		#-- Obtaining parameters

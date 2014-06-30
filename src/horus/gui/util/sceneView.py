@@ -107,7 +107,7 @@ class SceneView(openglGui.glGuiPanel):
 				modelFilename = filename
 			if modelFilename:
 				self.loadScene(modelFilename)
-				self._selectedObj =  self._object
+				self._selectedObj = self._object
 				self._selectObject(self._object)
 
 	def OnCenter(self, e):

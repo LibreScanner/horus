@@ -43,9 +43,9 @@ class ScanningWorkbench(Workbench):
 		self.view3D = True
 		self.showVideoViews = False
 
-		self.load()
-
 		self.scanner = self.GetParent().scanner
+
+		self.load()
 
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)

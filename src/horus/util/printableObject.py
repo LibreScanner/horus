@@ -55,13 +55,13 @@ class printableObject(object):
 		if '.' in self._name:
 			self._name = os.path.splitext(self._name)[0]
 		self._mesh = None
-		self._position = numpy.array([0.0, 0.0])
+		self._position = numpy.array([0.0, 0.0, 0.0])
 		self._matrix = numpy.matrix([[1,0,0],[0,1,0],[0,0,1]], numpy.float64)
 		self._transformedMin = None
 		self._transformedMax = None
-		self._transformedSize = numpy.array([0.0, 0.0])
+		self._transformedSize = numpy.array([0.0, 0.0, 0.0])
 		self._boundaryCircleSize = 20.0
-		self._drawOffset = numpy.array([0.0, 0.0])
+		self._drawOffset = numpy.array([0.0, 0.0, 0.0])
 
 		self._isPointCloud = isPointCloud
 
