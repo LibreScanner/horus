@@ -61,9 +61,9 @@ class Calibration:
 	def solvePnp(self):
 		print "solfpenepe"
 	def calibrationFromImages(self):
-		print "calibreision from imeichs"
-		print "\nobjpoints\n",self.objpoints
-		print "\nimgpoints\n",self.imagePointsStack
+		if hasattr(self,'rvecs'):
+			del self.rvecs[:]
+			del self.tvecs[:]
 		ret,self._calMatrix,self._distortionVector,self.rvecs,self.tvecs = cv2.calibrateCamera(self.objPointsStack,self.imagePointsStack,self.invertedShape)
 		print "Camera matrix: ",self._calMatrix
 		print "Distortion coefficients: ", self._distortionVector
@@ -90,3 +90,10 @@ class Calibration:
 		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
 		objp=np.multiply(objp,12)
 		return objp
+
+	def clearData(self):
+		del self.imagePointsStack[:]
+		del self.objPointsStack[:]
+		if hasattr(self,'rvecs'):
+			del self.rvecs[:]
+			del self.tvecs[:]

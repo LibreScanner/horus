@@ -57,7 +57,7 @@ class CalibrationWorkbench(Workbench):
 		self.scanner = self.GetParent().scanner
 		self.calibration = self.GetParent().calibration
 		self.load()
-		self.loadPagePattern(0)
+
 	def load(self):
 
 		# self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("connect.png")))
@@ -90,19 +90,20 @@ class CalibrationWorkbench(Workbench):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
 		if not hasattr(self,'_patternPanel'):
-			self._patternPanel=PatternPanel(self._panel,self.scanner,self.calibration)
-			
+			self._patternPanel=PatternPanel(self._panel,self.scanner,self.calibration)			
 		else:
 			self._patternPanel.Show(True)
 			if hasattr(self,'_plotPanel'):
 				self._plotPanel.hide()
+
 			self._patternPanel.clear()
 			self._patternPanel.videoView.SetFocus()
 	def loadPagePlot(self,event):
 		self._patternPanel.Show(False)
 		if not hasattr(self,'_plotPanel'):
-			self._plotPanel=PlotPanel(self._panel)
+			self._plotPanel=PlotPanel(self._panel,self.calibration)
 		else:
+			self._plotPanel.reload()
 			self._plotPanel.show()
 	def loadExtrinsicCalibrationPanel(self,event):
 		self._intrinsicsPanel.Show(False)
@@ -244,6 +245,7 @@ class PatternPanel(Page):
 				print "Destroy the panel"
 			self.loadGrid()
 		self.currentGrid=0
+		self.calibration.clearData()
 	def onClick(self,event):
 		# TODO removable on click
 		print event.GetEventObject()
@@ -254,39 +256,21 @@ class PatternPanel(Page):
 	def calibrateCamera(self,event):
 		self.calibration.calibrationFromImages()
 		self.parent.parent.loadPagePlot(0)
+
 class PlotPanel(Page):
-	def __init__(self,parent):
+	def __init__(self,parent,calibration):
 		Page.__init__(self,parent)
-		# self.calibration=calibration
+		self.calibration=calibration
 		self.parent=parent;
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePattern)
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
-		self.rvecsTrain= [np.array([[ 0.04556978],
-		[-0.00280866],
-		[ 0.02094954]]), np.array([[ 0.02915861],
-		[-0.30092417],
-		[ 0.01556802]]), np.array([[ 0.04117649],
-		[-0.14565509],
-		[-0.00452818]]), np.array([[-0.0171663 ],
-		[ 0.08693157],
-		[-0.06443989]]), np.array([[ 0.14652568],
-		[ 0.06109054],
-		[ 0.00354194]])]
-		self.tvecsTrain= [np.array([[ -32.46085485],
-		[ -63.2348963 ],
-		[ 297.2667928 ]]), np.array([[ -26.16118248],
-		[ -63.06724284],
-		[ 289.82220614]]), np.array([[ -35.06743885],
-		[ -59.33289319],
-		[ 177.66348235]]), np.array([[-155.16327457],
-		[-126.18071567],
-		[ 566.3086255 ]]), np.array([[  46.86198721],
-		[-222.89083096],
-		[ 554.24110018]])]
+		
 
 		
 		self.load()
 	def load(self):
+		self.rvecsTrain= self.calibration.rvecs
+		self.tvecsTrain= self.calibration.tvecs
 
 		self.fig = Figure(tight_layout=True)
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
@@ -434,6 +418,9 @@ class PlotPanel(Page):
 		self.canvas.Show(True)
 		self.Show(True)
 		self.getPanel().Bind(wx.EVT_SIZE,self.on_size)
+	def reload(self):
+		self.clearPlot()
+		self.load()
 
 class ExtrinsicCalibrationPanel(Page):
 	def __init__(self,parent,scanner):
