@@ -29,8 +29,6 @@ __license__ = u"GNU General Public License v3 http://www.gnu.org/licenses/gpl.ht
 
 import cv2
 import numpy as np
-import copy
-
 
 class Calibration:
 	"""Calibration class. For managing calibration"""
@@ -50,21 +48,45 @@ class Calibration:
 		
 		self.patternRows=9 # points_per_column
 		self.patternColumns=6 # points_per_row
+		self.squareWidth=12 # milimeters of each square's side
 
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
 
+		self.imagePointsStack=[]
+		self.objPointsStack=[]
+
+		self.objpoints=self.generateObjectPoints(self.patternColumns,self.patternRows,self.squareWidth)
 		print "calibreision"
+
 	def solvePnp(self):
 		print "solfpenepe"
-	def calibrationFromImages(self,images):
+	def calibrationFromImages(self):
 		print "calibreision from imeichs"
+		print "\nobjpoints\n",self.objpoints
+		print "\nimgpoints\n",self.imagePointsStack
+		ret,self._calMatrix,self._distortionVector,self.rvecs,self.tvecs = cv2.calibrateCamera(self.objPointsStack,self.imagePointsStack,self.invertedShape)
+		print "Camera matrix: ",self._calMatrix
+		print "Distortion coefficients: ", self._distortionVector
+		print "Rotation matrix: ",self.rvecs
+		print "Translation matrix: ",self.tvecs
+
 	def detectPrintChessboard(self,image):
-		print "detect and print chessbour"
+
 		gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+		self.invertedShape=gray.shape[::-1]
 		retval,corners=cv2.findChessboardCorners(gray,(self.patternColumns,self.patternRows))
 		if retval:
 			cv2.cornerSubPix(gray,corners,winSize=(11,11),zeroZone=(-1,-1),criteria=self.criteria)
+			self.imagePointsStack.append(corners)
+			self.objPointsStack.append(self.objpoints)
 			cv2.drawChessboardCorners(image,(self.patternColumns,self.patternRows),corners,retval)
+			
 		else:
 			print "chessboard not found :("
 		return image,retval
+
+	def generateObjectPoints(self,patternColumns,patternRows,squareWidth):
+		objp = np.zeros((patternRows*patternColumns,3), np.float32)
+		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
+		objp=np.multiply(objp,12)
+		return objp

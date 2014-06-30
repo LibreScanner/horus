@@ -127,7 +127,10 @@ class PatternPanel(Page):
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
-		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePlot)
+
+		# self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePlot)
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.calibrateCamera)
+		self.getRightButton().SetLabel("Calibrate!")
 		self.loaded=False
 		self.currentGrid=0
 		# set quantity of photos to take
@@ -233,7 +236,7 @@ class PatternPanel(Page):
 			self.currentGrid=0
 			self.panelGrid[self.currentGrid].setFrame(image)
 			self.currentGrid+=1
-			
+
 	def clear(self):
 		if hasattr(self,'panelGrid'):
 			for panel in self.panelGrid:
@@ -248,6 +251,9 @@ class PatternPanel(Page):
 		obj.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
 		print obj.index
 
+	def calibrateCamera(self,event):
+		self.calibration.calibrationFromImages()
+		self.parent.parent.loadPagePlot(0)
 class PlotPanel(Page):
 	def __init__(self,parent):
 		Page.__init__(self,parent)
