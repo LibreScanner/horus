@@ -46,7 +46,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 import cv2
 
-from scipy import optimize
+from scipy import optimize   
 import matplotlib.cm as cm  
 import matplotlib.colors as colors
 
@@ -55,8 +55,9 @@ class CalibrationWorkbench(Workbench):
 	def __init__(self, parent):
 		Workbench.__init__(self, parent, 1, 1)
 		self.scanner = self.GetParent().scanner
+		self.calibration = self.GetParent().calibration
 		self.load()
-
+		self.loadPagePattern(0)
 	def load(self):
 
 		# self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("connect.png")))
@@ -89,7 +90,7 @@ class CalibrationWorkbench(Workbench):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
 		if not hasattr(self,'_patternPanel'):
-			self._patternPanel=PatternPanel(self._panel,self.scanner)
+			self._patternPanel=PatternPanel(self._panel,self.scanner,self.calibration)
 			
 		else:
 			self._patternPanel.Show(True)
@@ -115,13 +116,14 @@ class CalibrationWorkbench(Workbench):
 			self._extrinsicCalibrationPanel.getRightButton().Bind(wx.EVT_BUTTON,self._extrinsicCalibrationPanel.start)
 
 class PatternPanel(Page):
-	def __init__(self,parent,scanner):
+	def __init__(self,parent,scanner,calibration):
 		Page.__init__(self,parent)
 		self.parent=parent;
 		
 
 		self.load() 
 		self.scanner=scanner
+		self.calibration=calibration
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
@@ -195,6 +197,7 @@ class PatternPanel(Page):
 			print event.GetKeyCode()
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
+			frame= self.calibration.detectPrintChessboard(frame)
 			self.addToGrid(frame)
 		
 	def loadGrid(self):
@@ -635,13 +638,11 @@ class IntrinsicsPanel(wx.Panel):
 		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
 		self.parent=parent
 		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] # TODO connect with scanner's calibration matrix
-		self._calMatrix=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
-		self._calMatrixDefault=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
-		
+		self._calMatrix=parent.parent.calibration._calMatrix
+		self._calMatrixDefault=parent.parent.calibration._calMatrixDefault
 		self._vDistortionVector=["k1=","k2=","p1=","p2=","k3="] 
-		self._distortionVector= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
-		self._distortionVectorDefault= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
-		
+		self._distortionVector=parent.parent.calibration._distortionVector
+		self._distortionVectorDefault=parent.parent.calibration._distortionVectorDefault
 		self._editControl=False  # True means editing state
 		self.load()
 		
@@ -758,13 +759,14 @@ class IntrinsicsPanel(wx.Panel):
 			for j in range(len(self._visualMatrix[0])):
 
 				self._calMatrix.itemset((i,j),self._calMatrixDefault[i][j])
-				
+				self._visualCtrlMatrix[i][j].SetValue(str(self._calMatrixDefault[i][j]))
 				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
 		
 				self._visualMatrix[i][j].SetLabel(label)
 		for i in range(len(self._vDistortionVector)):
 			
 			self._distortionVector.itemset((i),self._distortionVectorDefault[i])
+			self._visualCtrlDistortionVector[i].SetValue(str(self._distortionVectorDefault[i]))
 			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
 			self._visualDistortionVector[i].SetLabel(label)
 
@@ -781,7 +783,6 @@ class IntrinsicsPanel(wx.Panel):
 					self._visualMatrix[i][j].Show(True)
 					self._editControl=False
 					self._calMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
-					
 					label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
 			
 					self._visualMatrix[i][j].SetLabel(label)
@@ -823,12 +824,12 @@ class ExtrinsicsPanel(wx.Panel):
 		self.parent=parent
 
 		self._vRotMatrix= [["r11=","r12=","r13="],["r21=","r22=","r23="],["r31=","r32=","r33="]] # TODO connect with scanner's calibration matrix
-		self._rotMatrix=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
-		self._rotMatrixDefault=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
-		
+		self._rotMatrix=parent.parent.calibration._rotMatrix
+		self._rotMatrixDefault=parent.parent.calibration._rotMatrixDefault
+
 		self._vTransMatrix= [["t1="],["t2="],["t3="]] # TODO connect with scanner's calibration matrix
-		self._transMatrix=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
-		self._transMatrixDefault=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
+		self._transMatrix=parent.parent.calibration._transMatrix
+		self._transMatrixDefault=parent.parent.calibration._transMatrixDefault
 		self._editControl=False
 
 		self.load()
@@ -931,14 +932,16 @@ class ExtrinsicsPanel(wx.Panel):
 			for j in range(len(self._visualMatrix[0])-1):
 
 				self._rotMatrix.itemset((i,j),self._rotMatrixDefault[i][j])
-				
+				self._visualCtrlMatrix[i][j].SetValue(str(self._rotMatrixDefault[i][j]))
 				label=str(self._vRotMatrix[i][j]) + str(self._rotMatrix[i][j])
 		
 				self._visualMatrix[i][j].SetLabel(label)
 		for j in range(len(self._vTransMatrix)):
 			
 			self._transMatrix.itemset((j),self._transMatrixDefault[j])
-			label=str(self._vTransMatrix[j])+str(self._transMatrix[j])
+			print j
+			self._visualCtrlMatrix[j][3].SetValue(str(self._transMatrixDefault[j][0]))
+			label=str(self._vTransMatrix[j][0])+str(self._transMatrix[j][0])
 			self._visualMatrix[j][3].SetLabel(label)
 
 			
