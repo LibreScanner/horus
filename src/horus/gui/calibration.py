@@ -172,8 +172,7 @@ class PatternPanel(Page):
 		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
-
-		self.parent.parent.Layout()
+  		self.parent.parent.Layout()
 		
 	def onPlayToolClicked(self, event):
 		
@@ -197,8 +196,8 @@ class PatternPanel(Page):
 			print event.GetKeyCode()
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
-			frame= self.calibration.detectPrintChessboard(frame)
-			self.addToGrid(frame)
+			frame,retval= self.calibration.detectPrintChessboard(frame)
+			self.addToGrid(frame,retval)
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
@@ -214,13 +213,27 @@ class PatternPanel(Page):
 
 			self.panelGrid.append(VideoView(self.gridPanel))
 			self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+			self.panelGrid[panel].index=panel
 			gs.Add(self.panelGrid[panel],0,wx.EXPAND)
+			self.panelGrid[panel].Bind(wx.EVT_LEFT_DOWN,self.onClick)
 		self.gridPanel.SetSizer(gs)
 		self.Layout()
-	def addToGrid(self,image):
+
+	def addToGrid(self,image,retval):
 		if self.currentGrid<(self.columns*self.rows):
+			if retval:
+				self.panelGrid[self.currentGrid].setFrame(image)
+				self.panelGrid[self.currentGrid].SetBackgroundColour((0,255,0))
+				self.currentGrid+=1
+
+			else:
+				self.panelGrid[self.currentGrid].setFrame(image)
+				self.panelGrid[self.currentGrid].SetBackgroundColour((255,0,0))
+		else:
+			self.currentGrid=0
 			self.panelGrid[self.currentGrid].setFrame(image)
 			self.currentGrid+=1
+			
 	def clear(self):
 		if hasattr(self,'panelGrid'):
 			for panel in self.panelGrid:
@@ -228,6 +241,12 @@ class PatternPanel(Page):
 				print "Destroy the panel"
 			self.loadGrid()
 		self.currentGrid=0
+	def onClick(self,event):
+		# TODO removable on click
+		print event.GetEventObject()
+		obj=event.GetEventObject()
+		obj.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+		print obj.index
 
 class PlotPanel(Page):
 	def __init__(self,parent):

@@ -36,7 +36,6 @@ class Calibration:
 	"""Calibration class. For managing calibration"""
 	def __init__(self, parent):
 
-
 		self._calMatrix=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
 		self._calMatrixDefault=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
 		
@@ -49,6 +48,11 @@ class Calibration:
 		self._transMatrix=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
 		self._transMatrixDefault=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
 		
+		self.patternRows=9 # points_per_column
+		self.patternColumns=6 # points_per_row
+
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
+
 		print "calibreision"
 	def solvePnp(self):
 		print "solfpenepe"
@@ -60,5 +64,7 @@ class Calibration:
 		retval,corners=cv2.findChessboardCorners(gray,(self.patternColumns,self.patternRows))
 		if retval:
 			cv2.cornerSubPix(gray,corners,winSize=(11,11),zeroZone=(-1,-1),criteria=self.criteria)
-			
-		return image
+			cv2.drawChessboardCorners(image,(self.patternColumns,self.patternRows),corners,retval)
+		else:
+			print "chessboard not found :("
+		return image,retval
