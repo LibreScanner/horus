@@ -66,6 +66,7 @@ class Calibration:
 			del self.tvecs[:]
 		ret,self._calMatrix,self._distortionVector,self.rvecs,self.tvecs = cv2.calibrateCamera(self.objPointsStack,self.imagePointsStack,self.invertedShape)
 		print "Camera matrix: ",self._calMatrix
+		self._distortionVector=self._distortionVector[0]
 		print "Distortion coefficients: ", self._distortionVector
 		print "Rotation matrix: ",self.rvecs
 		print "Translation matrix: ",self.tvecs

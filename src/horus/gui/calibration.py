@@ -64,8 +64,8 @@ class CalibrationWorkbench(Workbench):
 		# self.toolbar.Realize()
 
 		self._panel.parent=self
-		self._intrinsicsPanel=IntrinsicsPanel(self._panel)
-		self._extrinsicsPanel=ExtrinsicsPanel(self._panel)
+		self._intrinsicsPanel=IntrinsicsPanel(self._panel,self.calibration)
+		self._extrinsicsPanel=ExtrinsicsPanel(self._panel,self.calibration)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -84,6 +84,7 @@ class CalibrationWorkbench(Workbench):
 		if hasattr(self,'_plotPanel'):
 			self._plotPanel.hide()
 		self._intrinsicsPanel.Show(True)
+		self._intrinsicsPanel.reload()
 		self._extrinsicsPanel.Show(True)
 
 	def loadPagePattern(self,event):
@@ -256,6 +257,7 @@ class PatternPanel(Page):
 	def calibrateCamera(self,event):
 		self.calibration.calibrationFromImages()
 		self.parent.parent.loadPagePlot(0)
+
 
 class PlotPanel(Page):
 	def __init__(self,parent,calibration):
@@ -642,13 +644,14 @@ class ExtrinsicCalibrationPanel(Page):
 		if hasattr(self,'canvas'):
 			self.canvas.Show(True)
 		self.Show(True)
-		
+
 class IntrinsicsPanel(wx.Panel):
 
-	def __init__(self,parent):
+	def __init__(self,parent,calibration):
 
 		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
 		self.parent=parent
+		self.calibration=calibration
 		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] # TODO connect with scanner's calibration matrix
 		self._calMatrix=parent.parent.calibration._calMatrix
 		self._calMatrixDefault=parent.parent.calibration._calMatrixDefault
@@ -783,7 +786,7 @@ class IntrinsicsPanel(wx.Panel):
 			self._visualDistortionVector[i].SetLabel(label)
 
 			
-			self.Layout()
+		self.Layout()
 
 	def edit(self,event):
 		print "edit"
@@ -828,13 +831,29 @@ class IntrinsicsPanel(wx.Panel):
 		image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
 		result = wx.BitmapFromImage(image)
 		return result
+	def reload(self):
+		self._calMatrix=self.calibration._calMatrix
+		self._distortionVector=self.calibration._distortionVector
+		for i in range(len(self._visualMatrix)):
+			for j in range(len(self._visualMatrix[0])):
+
+				self._visualCtrlMatrix[i][j].SetValue(str(self._calMatrix[i][j]))
+				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
+				self._visualMatrix[i][j].SetLabel(label)
+
+		for i in range(len(self._vDistortionVector)):
+			
+			self._visualCtrlDistortionVector[i].SetValue(str(self._distortionVector[i]))
+			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
+			self._visualDistortionVector[i].SetLabel(label)	
+		self.Layout()
 
 class ExtrinsicsPanel(wx.Panel):
 
-	def __init__(self,parent):
+	def __init__(self,parent,calibration):
 		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
 		self.parent=parent
-
+		self.calibration=calibration
 		self._vRotMatrix= [["r11=","r12=","r13="],["r21=","r22=","r23="],["r31=","r32=","r33="]] # TODO connect with scanner's calibration matrix
 		self._rotMatrix=parent.parent.calibration._rotMatrix
 		self._rotMatrixDefault=parent.parent.calibration._rotMatrixDefault
