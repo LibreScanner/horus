@@ -77,11 +77,34 @@ def loadScene(filename):
 	obj._postProcessAfterLoad()
 	return obj
 
-def saveScene(filename, objects):
+def saveScene(filename, _object):
 	f = open(filename, 'wb')
-	saveSceneStream(f, objects)
+	saveSceneStream(f, _object)
 	f.close()
 
-def saveSceneStream(stream, objects):
-	pass
-	## TODO
+def saveSceneStream(stream, _object):
+	m = _object._mesh
+
+	if m is not None:
+		frame  = "ply\nformat ascii 1.0\n"
+		frame += "element vertex {0}\n".format(m.vertexCount)
+		frame += "property float x\n"
+		frame += "property float y\n"
+		frame += "property float z\n"
+		frame += "property uchar diffuse_red\n"
+		frame += "property uchar diffuse_green\n"
+		frame += "property uchar diffuse_blue\n"
+		frame += "element face 0\n"
+		frame += "property list uchar int vertex_indices\n"
+		frame += "end_header\n"
+		if m.vertexCount > 0:
+			points = m.vertexes
+			colors = m.colors
+			for i in range(m.vertexCount):
+				frame += "{0} ".format(points[i,0])
+				frame += "{0} ".format(points[i,1])
+				frame += "{0} ".format(points[i,2])
+				frame += "{0} ".format(colors[i,0])
+				frame += "{0} ".format(colors[i,1])
+				frame += "{0}\n".format(colors[i,2])
+		stream.write(frame)

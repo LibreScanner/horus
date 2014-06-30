@@ -150,14 +150,14 @@ class ControlWorkbench(Workbench):
 			self.videoView.setFrame(frame)
 
 	def onMotorCCWToolClicked(self, event):
-		self.scanner.device.enable()
+		#self.scanner.device.enable()
 		self.scanner.device.setMotorCCW()
-		self.scanner.device.disable()
+		#self.scanner.device.disable()
 
 	def onMotorCWToolClicked(self, event):
-		self.scanner.device.enable()
+		#self.scanner.device.enable()
 		self.scanner.device.setMotorCW()
-		self.scanner.device.disable()
+		#self.scanner.device.disable()
 
 	def onLeftLaserOnToolClicked(self, event):
 		self.enableLabelTool(self.leftLaserOnTool , False)

@@ -88,16 +88,15 @@ class SceneView(openglGui.glGuiPanel):
 		self._clearScene()
 		self._object = printableObject.printableObject(None, isPointCloud=True)
 		self._object._addMesh()
-		self._object._meshList[0]._prepareVertexCount(1000000)
+		self._object._mesh._prepareVertexCount(1000000)
 		#self._object._postProcessAfterLoad()
 
 	def appendPointCloud(self, point, color):
 		if self._object is not None:
-			mesh = self._object._meshList[0]
+			mesh = self._object._mesh
 			if mesh is not None:
 				for i in range(len(point)):
 					mesh._addVertex(point[i][0], point[i][1], point[i][2], color[i][0], color[i][1], color[i][2])
-			self._object._postProcessAfterLoad()
 			self.QueueRefresh()
 
 	def loadFile(self, filename):
@@ -127,10 +126,10 @@ class SceneView(openglGui.glGuiPanel):
 
 	def _clearScene(self):
 		if self._object is not None:
-			for m in self._object._meshList:
-				if m.vbo is not None and m.vbo.decRef():
-					self.glReleaseList.append(m.vbo)
-			self._object = None
+			if self._object._mesh is not None:
+				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
+					self.glReleaseList.append(self._object._mesh.vbo)
+				self._object = None
 			import gc
 			gc.collect()
 
@@ -544,10 +543,10 @@ class SceneView(openglGui.glGuiPanel):
 
 	def _renderObject(self, obj, brightness = 0, addSink = True):
 		glPushMatrix()
-		#if addSink:
-		#	glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2 - profile.getProfileSettingFloat('object_sink'))
-		#else:
-		#	glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2)
+		if addSink:
+			glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2 - profile.getProfileSettingFloat('object_sink'))
+		else:
+			glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2)
 
 		if self.tempMatrix is not None and obj == self._selectedObj:
 			glMultMatrixf(openglHelpers.convert3x3MatrixTo4x4(self.tempMatrix))
@@ -558,21 +557,20 @@ class SceneView(openglGui.glGuiPanel):
 		glMultMatrixf(openglHelpers.convert3x3MatrixTo4x4(obj.getMatrix()))
 
 		if obj.isPointCloud():
-			for m in obj._meshList:
-				#if m.vbo is None:
-				if m.vbo is not None:
-					m.vbo.release()
-				m.vbo = openglHelpers.GLVBO(GL_POINTS, m.vertexes, colorArray = m.colors)
-				m.vbo.render()
+			if obj._mesh is not None:
+				if obj._mesh.vbo is not None:
+					obj._mesh.vbo.release()
+				obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes, colorArray=obj._mesh.colors)
+				obj._mesh.vbo.render()
 		else:
 			n = 0
-			for m in obj._meshList:
-				if m.vbo is None:
-					m.vbo = openglHelpers.GLVBO(GL_TRIANGLES, m.vertexes, m.normal)
+			if obj._mesh is not None:
+				if obj._mesh.vbo is None:
+					obj._mesh.vbo = openglHelpers.GLVBO(GL_TRIANGLES, obj._mesh.vertexes, obj._mesh.normal)
 				if brightness != 0:
 					glColor4fv(map(lambda idx: idx * brightness, self._objColors[n]))
 					n += 1
-				m.vbo.render()
+				obj._mesh.vbo.render()
 		glPopMatrix()
 
 	def _drawMachine(self):

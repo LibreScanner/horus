@@ -148,12 +148,8 @@ class ScanningWorkbench(Workbench):
 		pointCloud = self.scanner.getPointCloudIncrement()
 
 		if pointCloud is not None:
-			#print "OK 1"
 			if pointCloud[0] is not None and pointCloud[1] is not None:
-				#print "OK 2"
-				#print len(pointCloud[0])
 				if len(pointCloud[0]) > 0:
-					#print "OK 3"
 					self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
 	def onShow(self, event):

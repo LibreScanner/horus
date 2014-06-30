@@ -242,32 +242,3 @@ class Core:
  		self.theta += self.degrees
 
 		return points, colors
-
-	def toPLY(self):
-		"""
-		Returns PLY string
-		"""
-		if self.points != None and self.colors != None and len(self.points) == len(self.colors):
-			n = len(self.points)
-			# Generate Header
-			frame  = "ply\nformat ascii 1.0\n"
-			frame += "element vertex {0}\n".format(n)
-			frame += "property float x\n"
-			frame += "property float y\n"
-			frame += "property float z\n"
-			frame += "property uchar diffuse_red\n"
-			frame += "property uchar diffuse_green\n"
-			frame += "property uchar diffuse_blue\n"
-			frame += "element face 0\n"
-			frame += "property list uchar int vertex_indices\n"
-			frame += "end_header\n"
-			#Generate Points
-			for i in range(n):
-				frame += "{0} ".format(self.points[i,0])
-				frame += "{0} ".format(self.points[i,1])
-				frame += "{0} ".format(self.points[i,2])
-				frame += "{0} ".format(self.colors[i,0])
-				frame += "{0} ".format(self.colors[i,1])
-				frame += "{0}\n".format(self.colors[i,2])
-
-			return frame
