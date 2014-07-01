@@ -70,7 +70,6 @@ class SceneView(openglGui.glGuiPanel):
 		self._animZoom = None
 		self._platformMesh = {}
 		self._platformTexture = None
-		self._isSimpleMode = True
 
 		self._viewport = None
 		self._modelMatrix = None
@@ -150,8 +149,6 @@ class SceneView(openglGui.glGuiPanel):
 			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
 
 	def updateProfileToControls(self):
-		oldSimpleMode = self._isSimpleMode
-		self._isSimpleMode = profile.getPreference('startMode') == 'Simple'
 		self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')])
 		self._objColor = profile.getPreferenceColour('model_colour')
 		self.updateModelSettingsToControls()
@@ -518,12 +515,9 @@ class SceneView(openglGui.glGuiPanel):
 
 		self._drawMachine()
 
-	def _renderObject(self, obj, brightness = 0, addSink = True):
+	def _renderObject(self, obj, brightness = 0):
 		glPushMatrix()
-		if addSink:
-			glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2 - profile.getProfileSettingFloat('object_sink'))
-		else:
-			glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2)
+		glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2)
 
 		if self.tempMatrix is not None and obj == self._selectedObj:
 			glMultMatrixf(openglHelpers.convert3x3MatrixTo4x4(self.tempMatrix))
@@ -568,7 +562,7 @@ class SceneView(openglGui.glGuiPanel):
 				self._platformMesh[machine]._drawOffset = numpy.array([0,0,13.6], numpy.float32)
 			glColor4f(0.6,0.6,0.6,0.5)
 			self._objectShader.bind()
-			self._renderObject(self._platformMesh[machine], False, False)
+			self._renderObject(self._platformMesh[machine], False)
 			self._objectShader.unbind()
 
 			#-- Text
@@ -690,7 +684,7 @@ class SceneView(openglGui.glGuiPanel):
 			return [0.0, 0.0, 0.0]
 		pos = self._selectedObj.getPosition()
 		size = self._selectedObj.getSize()
-		return [pos[0], pos[1], size[2]/2 - profile.getProfileSettingFloat('object_sink')]
+		return [pos[0], pos[1], size[2]/2]
 
 	def getObjectBoundaryCircle(self):
 		if self._selectedObj is None:

@@ -30,6 +30,8 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import wx
 import wx.lib.scrolledpanel
 
+from horus.util import profile
+
 class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     """
@@ -46,27 +48,30 @@ class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
         algorithmStaticText = wx.StaticText(self, label=_("Algorithm"))
         algorithmStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         self.compactAlgRadioButton = wx.RadioButton(self, label=_("Compact"), size=(100,-1))
-        self.compactAlgRadioButton.Bind(wx.EVT_RADIOBUTTON, self.onAlgChanged)
         self.completeAlgRadioButton = wx.RadioButton(self, label=_("Complete"), size=(100,-1))
-        self.completeAlgRadioButton.Bind(wx.EVT_RADIOBUTTON, self.onAlgChanged)
-
         filterStaticText = wx.StaticText(self, label=_("Filter"))
         filterStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-        self.rhoMinTextCtrl = wx.TextCtrl(self, -1, u"-100", pos=(40, 10))
-        self.rhoStaticText = wx.StaticText(self, label=_("<  Rho  <"))
-        self.rhoMaxTextCtrl = wx.TextCtrl(self, -1, u"100", pos=(40, 10))
-        self.hMinTextCtrl = wx.TextCtrl(self, -1, u"0", pos=(40, 10))
-        self.hStaticText = wx.StaticText(self, label=_(" <  h  <"))
-        self.hMaxTextCtrl = wx.TextCtrl(self, -1, u"200", pos=(40, 10))
+        self.rhoMinTextCtrl = wx.TextCtrl(self, wx.ID_ANY, '', pos=(40, 10))
+        self.rhoStaticText = wx.StaticText(self, label=_("<  R  <"))
+        self.rhoMaxTextCtrl = wx.TextCtrl(self, wx.ID_ANY, '', pos=(40, 10))
+        self.hMinTextCtrl = wx.TextCtrl(self, wx.ID_ANY, '', pos=(40, 10))
+        self.hStaticText = wx.StaticText(self, label=_("<  H  <"))
+        self.hMaxTextCtrl = wx.TextCtrl(self, wx.ID_ANY, '', pos=(40, 10))
 
-        moveStaticText = wx.StaticText(self, -1, _("Move"), style=wx.ALIGN_CENTRE)
+        moveStaticText = wx.StaticText(self, wx.ID_ANY, _("Move"), style=wx.ALIGN_CENTRE)
         moveStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-        zStaticText = wx.StaticText(self, -1, _("z"), size=(45, -1), style=wx.ALIGN_CENTRE)
-        self.zSlider = wx.Slider(self, -1, 0, -50, 50, size=(150, -1), style=wx.SL_LABELS)
-        self.zSlider.Bind(wx.EVT_SLIDER, self.onZChanged)
+        zStaticText = wx.StaticText(self, wx.ID_ANY, _("z"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.zSlider = wx.Slider(self, wx.ID_ANY, 0, -50, 50, size=(150, -1), style=wx.SL_LABELS)
         
         applyButton = wx.Button(self, label=_("Apply"), size=(100,-1))
         applyButton.Bind(wx.EVT_BUTTON, self.apply)
+
+        #-- Bind
+
+        self.Bind(wx.EVT_RADIOBUTTON, self.onAlgChanged, self.compactAlgRadioButton)
+        self.Bind(wx.EVT_RADIOBUTTON, self.onAlgChanged, self.completeAlgRadioButton)
+        self.Bind(wx.EVT_SLIDER, self.onZChanged, self.zSlider)
+        self.Bind(wx.EVT_BUTTON, self.apply, applyButton)
         
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -109,12 +114,27 @@ class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
 
     def onAlgChanged(self, event):
         self.scanner.getCore().setUseCompactAlgorithm(self.compactAlgRadioButton.GetValue())
+        profile.putProfileSetting('use_compact', self.compactAlgRadioButton.GetValue())
 
     def onZChanged(self, event):
         self.scanner.getCore().setZOffset(self.zSlider.GetValue())
+        profile.putProfileSetting('z_offset', self.zSlider.GetValue())
         
     def apply(self, event):
         self.scanner.getCore().setRangeFilter(int(self.rhoMinTextCtrl.GetValue()),
                                               int(self.rhoMaxTextCtrl.GetValue()),
                                               int(self.hMinTextCtrl.GetValue()),
                                               int(self.hMaxTextCtrl.GetValue()))
+        profile.putProfileSetting('min_rho', int(self.rhoMinTextCtrl.GetValue()))
+        profile.putProfileSetting('max_rho', int(self.rhoMaxTextCtrl.GetValue()))
+        profile.putProfileSetting('min_h', int(self.hMinTextCtrl.GetValue()))
+        profile.putProfileSetting('max_h', int(self.hMaxTextCtrl.GetValue()))
+
+    def updateProfileToAllControls(self):
+        self.compactAlgRadioButton.SetValue(profile.getProfileSettingBool('use_compact'))
+        self.completeAlgRadioButton.SetValue(not profile.getProfileSettingBool('use_compact'))
+        self.rhoMinTextCtrl.SetValue(profile.getProfileSetting('min_rho'))
+        self.rhoMaxTextCtrl.SetValue(profile.getProfileSetting('max_rho'))
+        self.hMinTextCtrl.SetValue(profile.getProfileSetting('min_h'))
+        self.hMaxTextCtrl.SetValue(profile.getProfileSetting('max_h'))
+        self.zSlider.SetValue(profile.getProfileSettingInteger('z_offset'))

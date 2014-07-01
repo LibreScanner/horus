@@ -34,13 +34,14 @@ from horus.gui.util.scenePanel import *
 from horus.gui.util.sceneView import *
 
 from horus.util.resources import *
+from horus.util import profile
 
 class ScanningWorkbench(Workbench):
 
 	def __init__(self, parent):
 		Workbench.__init__(self, parent, 0, 1)
 
-		self.view3D = True
+		self.view3D = False
 		self.showVideoViews = False
 
 		self.scanner = self.GetParent().scanner
@@ -198,6 +199,7 @@ class ScanningWorkbench(Workbench):
 
 	def onViewToolClicked(self, event):
 		self.view3D = not self.view3D
+		profile.putPreference('view_3d', self.view3D)
 		self.updateView()
 
 	def updateView(self):
@@ -235,3 +237,9 @@ class ScanningWorkbench(Workbench):
 			self.enableLabelTool(self.stopTool      , False)
 			self.enableLabelTool(self.resumeTool    , False)
 			self.enableLabelTool(self.pauseTool     , False)
+
+	def updateProfileToAllControls(self):
+		self.videoPanel.updateProfileToAllControls()
+		self.scenePanel.updateProfileToAllControls()
+		self.view3D = profile.getPreferenceBool('view_3d')
+		self.updateView()

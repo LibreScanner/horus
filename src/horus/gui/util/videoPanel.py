@@ -24,8 +24,13 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 import wx
 import wx.lib.scrolledpanel
+
+from horus.util import profile
 
 class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
@@ -40,36 +45,24 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
         
         #-- Graphic elements
         
-        imgProcStaticText = wx.StaticText(self, -1, _("Image Processing"), style=wx.ALIGN_CENTRE)
+        imgProcStaticText = wx.StaticText(self, wx.ID_ANY, _("Image Processing"), style=wx.ALIGN_CENTRE)
         imgProcStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         self.blurCheckBox = wx.CheckBox(self, label=_("Blur"), size=(67, -1))
-        self.blurCheckBox.SetValue(True)
-        self.blurCheckBox.Bind(wx.EVT_CHECKBOX, self.onBlurChanged)
-        self.blurSlider = wx.Slider(self, -1, 4, 1, 10, size=(150, -1), style=wx.SL_LABELS)
-        self.blurSlider.Bind(wx.EVT_SLIDER, self.onBlurChanged)
+        self.blurSlider = wx.Slider(self, wx.ID_ANY, 0, 1, 10, size=(150, -1), style=wx.SL_LABELS)
         self.openCheckBox = wx.CheckBox(self, label=_("Open"), size=(67, -1))
-        self.openCheckBox.SetValue(True)
-        self.openCheckBox.Bind(wx.EVT_CHECKBOX, self.onOpenChanged)
-        self.openSlider = wx.Slider(self, -1, 5, 1, 10, size=(150, -1), style=wx.SL_LABELS)
-        self.openSlider.Bind(wx.EVT_SLIDER, self.onOpenChanged)
-        self.minHStaticText = wx.StaticText(self, -1, _("min H"), size=(45, -1), style=wx.ALIGN_CENTRE)
-        self.minHSlider = wx.Slider(self, -1, 0, 0, 255, size=(150, -1), style=wx.SL_LABELS)
-        self.minHSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.minSStaticText = wx.StaticText(self, -1, _("min S"), size=(45, -1), style=wx.ALIGN_CENTRE)
-        self.minSSlider = wx.Slider(self, -1, 180, 0, 255, size=(150, -1), style=wx.SL_LABELS)
-        self.minSSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.minVStaticText = wx.StaticText(self, -1, _("min V"), size=(45, -1), style=wx.ALIGN_CENTRE)
-        self.minVSlider = wx.Slider(self, -1, 30, 0, 255, size=(150, -1), style=wx.SL_LABELS)
-        self.minVSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.maxHStaticText = wx.StaticText(self, -1, _("max H"), size=(45, -1), style=wx.ALIGN_CENTRE)
-        self.maxHSlider = wx.Slider(self, -1, 180, 0, 255, size=(150, -1), style=wx.SL_LABELS)
-        self.maxHSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.maxSStaticText = wx.StaticText(self, -1, _("max S"), size=(45, -1), style=wx.ALIGN_CENTRE)
-        self.maxSSlider = wx.Slider(self, -1, 250, 0, 255, size=(150, -1), style=wx.SL_LABELS)
-        self.maxSSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
-        self.maxVStaticText = wx.StaticText(self, -1, _("max V"), size=(45, -1), style=wx.ALIGN_CENTRE)
-        self.maxVSlider = wx.Slider(self, -1, 140, 0, 255, size=(150, -1), style=wx.SL_LABELS)
-        self.maxVSlider.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged)
+        self.openSlider = wx.Slider(self, wx.ID_ANY, 0, 1, 10, size=(150, -1), style=wx.SL_LABELS)
+        self.minHStaticText = wx.StaticText(self, wx.ID_ANY, _("min H"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.minHSlider = wx.Slider(self, wx.ID_ANY, 0, 0, 255, size=(150, -1), style=wx.SL_LABELS)
+        self.minSStaticText = wx.StaticText(self, wx.ID_ANY, _("min S"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.minSSlider = wx.Slider(self, wx.ID_ANY, 0, 0, 255, size=(150, -1), style=wx.SL_LABELS)
+        self.minVStaticText = wx.StaticText(self, wx.ID_ANY, _("min V"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.minVSlider = wx.Slider(self, wx.ID_ANY, 0, 0, 255, size=(150, -1), style=wx.SL_LABELS)
+        self.maxHStaticText = wx.StaticText(self, wx.ID_ANY, _("max H"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.maxHSlider = wx.Slider(self, wx.ID_ANY, 0, 0, 255, size=(150, -1), style=wx.SL_LABELS)
+        self.maxSStaticText = wx.StaticText(self, wx.ID_ANY, _("max S"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.maxSSlider = wx.Slider(self, wx.ID_ANY, 0, 0, 255, size=(150, -1), style=wx.SL_LABELS)
+        self.maxVStaticText = wx.StaticText(self, wx.ID_ANY, _("max V"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.maxVSlider = wx.Slider(self, wx.ID_ANY, 0, 0, 255, size=(150, -1), style=wx.SL_LABELS)
 
         #roiStaticText = wx.StaticText(self, -1, _("ROI Selection"), style=wx.ALIGN_CENTRE)
         #rhoStaticText = wx.StaticText(self, -1, _("radius"), size=(45, -1), style=wx.ALIGN_CENTRE)
@@ -80,7 +73,20 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
         #hSlider = wx.Slider(self, -1, 0, 0, 479, size=(150, -1), style=wx.SL_LABELS)
         #hSlider.Bind(wx.EVT_SLIDER, self.OnROIChanged)
         #hSlider.Disable()
-        
+
+        #-- Bind
+
+        self.Bind(wx.EVT_CHECKBOX, self.onBlurChanged, self.blurCheckBox)
+        self.Bind(wx.EVT_SLIDER, self.onBlurChanged, self.blurSlider)
+        self.Bind(wx.EVT_CHECKBOX, self.onOpenChanged, self.openCheckBox)
+        self.Bind(wx.EVT_SLIDER, self.onOpenChanged, self.openSlider)
+        self.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged, self.minHSlider)
+        self.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged, self.minSSlider)
+        self.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged, self.minVSlider)
+        self.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged, self.maxHSlider)
+        self.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged, self.maxSSlider)
+        self.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged, self.maxVSlider)
+
         #-- Layout
         
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -137,19 +143,41 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
         enable = self.blurCheckBox.IsChecked()
         value = self.blurSlider.GetValue()
         self.scanner.getCore().setBlur(enable, value)
+        profile.putProfileSetting('blur', enable)
+        profile.putProfileSetting('blur_value', value)
 
     def onOpenChanged(self, event):
         enable = self.openCheckBox.IsChecked()
         value = self.openSlider.GetValue()
         self.scanner.getCore().setOpen(enable, value)
+        profile.putProfileSetting('open', enable)
+        profile.putProfileSetting('open_value', value)
 
     def onHSVRangeChanged(self, event):
         self.scanner.getCore().setHSVRange(self.minHSlider.GetValue(),
-                                         self.minSSlider.GetValue(),
-                                         self.minVSlider.GetValue(),
-                                         self.maxHSlider.GetValue(),
-                                         self.maxSSlider.GetValue(),
-                                         self.maxVSlider.GetValue())
+                                           self.minSSlider.GetValue(),
+                                           self.minVSlider.GetValue(),
+                                           self.maxHSlider.GetValue(),
+                                           self.maxSSlider.GetValue(),
+                                           self.maxVSlider.GetValue())
+        profile.putProfileSetting('min_h', self.minHSlider.GetValue())
+        profile.putProfileSetting('min_s', self.minSSlider.GetValue())
+        profile.putProfileSetting('min_v', self.minVSlider.GetValue())
+        profile.putProfileSetting('max_h', self.maxHSlider.GetValue())
+        profile.putProfileSetting('max_s', self.maxSSlider.GetValue())
+        profile.putProfileSetting('max_v', self.maxVSlider.GetValue())
 
     def onROIChanged(self, event):
         pass
+
+    def updateProfileToAllControls(self):
+        self.blurCheckBox.SetValue(profile.getProfileSettingBool('blur'))
+        self.openCheckBox.SetValue(profile.getProfileSettingBool('open'))
+        self.blurSlider.SetValue(profile.getProfileSettingInteger('blur_value'))
+        self.openSlider.SetValue(profile.getProfileSettingInteger('open_value'))
+        self.minHSlider.SetValue(profile.getProfileSettingInteger('min_h'))
+        self.minSSlider.SetValue(profile.getProfileSettingInteger('min_s'))
+        self.minVSlider.SetValue(profile.getProfileSettingInteger('min_v'))
+        self.maxHSlider.SetValue(profile.getProfileSettingInteger('max_h'))
+        self.maxSSlider.SetValue(profile.getProfileSettingInteger('max_s'))
+        self.maxVSlider.SetValue(profile.getProfileSettingInteger('max_v'))
