@@ -67,7 +67,7 @@ class Device:
 			11 : no operation
 	"""
   
-	def __init__(self, serialName='/dev/ttyACM0', degrees=0.45, delay=800):
+	def __init__(self, serialName='/dev/ttyACM0', degrees=0.45, delay=2400):
 		"""Arguments: motor step, motor pulse delay"""
 		print ">>> Initializing device ..."
 		print " - Serial Name: {0}".format(serialName)

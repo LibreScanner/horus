@@ -437,7 +437,7 @@ class ExtrinsicCalibrationPanel(Page):
 		self.load()
 
 		self.workingOnExtrinsic=True
-
+		self.isFirstPlot=True
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
@@ -503,11 +503,18 @@ class ExtrinsicCalibrationPanel(Page):
 			print event.GetKeyCode()
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
+			self.scanner.device.setMotorCCW()
+			
 			self.addToPlot(frame)
 
 	def addToPlot(self,image):
-		self.calibration.solvePnp(image)
-		self.plot()
+		retval=self.calibration.solvePnp(image)
+		if (retval and (len(self.calibration.transVectors)>1)):
+
+			self.plot()
+			
+		else:
+			print "Pattern not found"
 
 	def start(self,event):
 		self.guideView.Show(False)
@@ -537,27 +544,6 @@ class ExtrinsicCalibrationPanel(Page):
 		self.ax.cla()
 		
 		transVectors=self.calibration.transVectors
-
-		# transVectors=np.array( [np.array([[ -42.69884629],
-		# 	   [ -60.66166513],
-		# 	   [ 321.66039025]]), np.array([[ -42.41493766],
-		# 	   [ -60.64227845],
-		# 	   [ 314.83533902]]),np.array([[ -41.50678247],
-		# 	   [ -60.61090239],
-		# 	   [ 309.86558147]]), np.array([[ -39.94829325],
-		# 	   [ -60.53994931],
-		# 	   [ 304.62751714]]), np.array([[ -35.74329096],
-		# 	   [ -60.37072737],
-		# 	   [ 295.90780527]]), np.array([[ -28.6653856 ],
-		# 	   [ -60.11288896],
-		# 	   [ 287.22736507]]), np.array([[ -17.04165965],
-		# 	   [ -59.83398485],
-		# 	   [ 280.00927257]]), np.array([[  -7.25630751],
-		# 	   [ -59.66790518],
-		# 	   [ 277.30374209]]), np.array([[   2.22381082],
-		# 	   [ -59.49892478],
-		# 	   [ 276.60780411]])])
-		
 		
 		self.x2D=np.array([])
 		self.z2D=np.array([])
