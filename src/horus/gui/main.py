@@ -50,6 +50,15 @@ class MainWindow(wx.Frame):
                                                 size=(640+300,480+100))
         ###-- Initialize Engine
 
+        #-- TODO: only if profile setting is None or it isn't working
+
+        serialList = self.serialList()
+        if len(serialList) > 0:
+            profile.putProfileSetting('serial_name', serialList[0])
+        videoList = self.videoList()
+        if len(videoList) > 0:
+            profile.putProfileSetting('camera_id', int(videoList[0][-1:]))
+            
         self.scanner = Scanner(self)
         #self.calibration = Calibration(self)
 
@@ -233,9 +242,7 @@ class MainWindow(wx.Frame):
 
     def onPreferences(self, event):
         prefDialog = PreferencesDialog(self)
-        prefDialog.Centre()
-        prefDialog.Show()
-        prefDialog.Raise()
+        prefDialog.ShowModal()
         wx.CallAfter(prefDialog.Show)
 
     def onWorkbenchSelectorClicked(self, event):
@@ -356,6 +363,27 @@ Suite 330, Boston, MA  02111-1307  USA"""))
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
 
         self.Layout()
+
+    def serialList(self):
+        return self._deviceList("SERIALCOMM", ['/dev/ttyACM*', '/dev/ttyUSB*', "/dev/tty.usb*", "/dev/cu.*", "/dev/rfcomm*"])
+
+    def videoList(self):
+        return self._deviceList("VIDEO", ['/dev/video*'])
+
+    def _deviceList(self, win_devices, linux_devices):
+        baselist=[]
+        if os.name=="nt":
+            try:
+                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
+                i=0
+                while(1):
+                    baselist+=[_winreg.EnumValue(key,i)[1]]
+                    i+=1
+            except:
+                pass
+        for device in linux_devices:
+            baselist = baselist + glob.glob(device)
+        return baselist
 
 class MainWorkbench(wx.Panel):
 

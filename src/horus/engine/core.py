@@ -33,7 +33,7 @@ import numpy as np
 
 class Core:
 	""" """
-	def __init__(self, degrees):
+	def __init__(self, degrees=0.45):
 		""" """
 		self.points = None
 		self.colors = None
@@ -144,6 +144,9 @@ class Core:
 
 	def setZOffset(self, zOffset):
 		self.zOffset = zOffset
+
+	def setDegrees(self, degrees):
+		self.degrees = degrees
 
 	def getImage(self):
 		""" """

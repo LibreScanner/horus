@@ -50,14 +50,16 @@ class Scanner(wx.PyControl):
 
 		self.isConnected = False
 
+		self.core = Core()
+
 		self.theta = 0
 		self.imageQueue = Queue.Queue(1000)
 		self.pointCloudQueue = Queue.Queue(10000)
 
-	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", degrees=0.45, delay=10000):
+	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", degrees=0.45, delay=800):
 		""" """
 		self.degrees = degrees
-		self.core = Core(degrees)
+		self.core.setDegrees(degrees)
 		self.camera = Camera(cameraId)
 		self.device = Device(serialName, degrees, delay)
 

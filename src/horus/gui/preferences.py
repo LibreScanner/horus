@@ -47,10 +47,10 @@ class PreferencesDialog(wx.Dialog):
 
 		self.conParamsStaticText = wx.StaticText(self, -1, _("Connection Parameters"), style=wx.ALIGN_CENTRE)
 		self.serialNameLabel = wx.StaticText(self, label=_("Serial Name :"))
-		self.serialNames = self.serialList()
+		self.serialNames = self.main.serialList()
 		self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(110,-1))
 		self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id :"))
-		self.cameraIdNames = self.videoList()
+		self.cameraIdNames = self.main.videoList()
 		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(123,-1))
 		self.stepDegreesLabel = wx.StaticText(self, label=_(u"Step degrees (º) :"))
 		self.stepDegreesText = wx.TextCtrl(self, value=profile.getProfileSetting('step_degrees'), size=(82,-1))
@@ -109,42 +109,18 @@ class PreferencesDialog(wx.Dialog):
 
 		self.Fit()
 
-	def serialList(self):
-		return self._deviceList("SERIALCOMM", ['/dev/ttyACM*', '/dev/ttyUSB*', "/dev/tty.usb*", "/dev/cu.*", "/dev/rfcomm*"])
-
-	def videoList(self):
-		return self._deviceList("VIDEO", ['/dev/video*'])
-
-	def _deviceList(self, win_devices, linux_devices):
-		baselist=[]
-		if os.name=="nt":
-			try:
-				key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
-				i=0
-				while(1):
-					baselist+=[_winreg.EnumValue(key,i)[1]]
-					i+=1
-			except:
-				pass
-		for device in linux_devices:
-			baselist = baselist + glob.glob(device)
-		return baselist
-
 	def onSerialNameTextChanged(self, event):
 		profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
-		self.main.updateEngine()
 
 	def onCameraIdTextChanged(self, event):
 		profile.putProfileSetting('camera_id', int(self.cameraIdCombo.GetValue()[-1:]))
-		self.main.updateEngine()
 
 	def onStepDegreesTextChanged(self, event):
 		profile.putProfileSetting('step_degrees', float((self.stepDegreesText.GetValue()).replace(',','.')))
-		self.main.updateEngine()
 
 	def onStepDelayTextChanged(self, event):
 		profile.putProfileSetting('step_delay', int(self.stepDelayText.GetValue()))
-		self.main.updateEngine()
 
 	def onClose(self, e):
+		self.main.updateEngine()
 		self.Destroy()
