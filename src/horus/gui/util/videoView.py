@@ -24,6 +24,9 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 import wx
 
 from horus.util.resources import *
@@ -36,7 +39,8 @@ class VideoView(wx.Panel):
 		self.xOffset = 0
 		self.yOffset = 0
 
-		self.image = wx.Image(getPathForImage("bq.png"))
+		self.defaultImage = wx.Image(getPathForImage("bq.png"))
+		self.image = self.defaultImage
 
 		self.Bind(wx.EVT_PAINT, self.onPaint)
 		self.Bind(wx.EVT_SIZE, self.onResize)
@@ -52,6 +56,9 @@ class VideoView(wx.Panel):
 		self.image = image
 		self.refreshBitmap()
 
+	def setDefaultImage(self):
+		self.setImage(self.defaultImage)
+
 	def setFrame(self, frame):
 		height, width = frame.shape[:2]
 		self.image = wx.ImageFromBuffer(width, height, frame)
@@ -66,16 +73,19 @@ class VideoView(wx.Panel):
 		(wwidth, wheight) = self.GetSizeTuple()
 		(width, height) = self.image.GetSize()
 
-		if float(width)/height > float(wwidth)/wheight:
-			nwidth  = wwidth
-			nheight = float(wwidth*height)/width
-			xoffset = 0
-			yoffset = (wheight-nheight)/2.0
-		else:
-			nwidth  = float(wheight*width) /height
-			nheight = wheight
-			xoffset = (wwidth-nwidth)/2.0
-			yoffset = 0
+		if height > 0 and wheight > 0:
+			if float(width)/height > float(wwidth)/wheight:
+				nwidth  = wwidth
+				nheight = float(wwidth*height)/width
+				xoffset = 0
+				yoffset = (wheight-nheight)/2.0
+			else:
+				nwidth  = float(wheight*width) /height
+				nheight = wheight
+				xoffset = (wwidth-nwidth)/2.0
+				yoffset = 0
 
-		return (nwidth, nheight, xoffset, yoffset)
+			return (nwidth, nheight, xoffset, yoffset)
+		else:
+			return (0, 0, 0, 0)
 

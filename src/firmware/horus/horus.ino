@@ -1,5 +1,5 @@
 //--------------------------------------------------------------
-//-- Scanner 3D: Firmware
+//-- Horus Firmware. Compatible with ZUM Shield Scann V.1
 //--------------------------------------------------------------
 //-- Code based on (c) Juan Gonzalez-Gomez (Obijuan), May-2013
 //-- (c) Jesus Arroyo Torrens, October/November-2013
@@ -7,7 +7,7 @@
 //--------------------------------------------------------------
 
 //----------------------------------------------------------------
-//-- The communication with the PC is by the serial port (921600 bauds)
+//-- The communication with the PC is by the serial port (19200 bauds)
 //-- The config frame contains ascii characters. The format is the 
 //-- following:
 //--
@@ -49,13 +49,33 @@
 #define FRAME_HEADER 'b'
 #define FRAME_FOOTER 'q'
 
+//-- Pinout
+//
+//  Laser 1: 2
+//  Laser 2: 3
+//  Laser 3: 4
+//  Laser 4: 5
+//
+//  LDR 1: A0
+//  LDR 2: A1
+//
+//  Motor 1:
+//    - Enable: 9
+//    - Step:  12
+//    - Dir:   13 
+//
+//  Motor 2:
+//    - Enable: 6
+//    - Step:   7
+//    - Dir:    8
+
 #define LASER_LEFT_PIN    2
 #define LASER_RIGHT_PIN   3
 
-#define MOTOR_STEP_PIN    12
-#define MOTOR_DIR_PIN     13
+#define MOTOR_STEP_PIN   12
+#define MOTOR_DIR_PIN    13
 
-#define ENABLE_PIN         9
+#define ENABLE_PIN        9
 
 #define USTEP_RESOLUTION  16
 #define STEP_DEGREES     1.8
@@ -109,7 +129,7 @@ void setup()
   pinMode(ENABLE_PIN, OUTPUT);
   
   //-- Turn on the !enable
-  digitalWrite(ENABLE_PIN, HIGH);
+  digitalWrite(ENABLE_PIN, LOW);
   
   
   //-- Configuration Frame

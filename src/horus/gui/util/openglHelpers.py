@@ -183,6 +183,7 @@ class GLVBO(GLReferenceCounter):
 				glBufferData(GL_ARRAY_BUFFER, numpy.concatenate((vertexArray, normalArray), 1), GL_STATIC_DRAW)
 			else:
 				if self._hasColor:
+					glPointSize(2)
 					self._buffer = glGenBuffers(2)
 					glBindBuffer(GL_ARRAY_BUFFER, self._buffer[0])
 					glBufferData(GL_ARRAY_BUFFER, vertexArray, GL_STATIC_DRAW)
@@ -257,11 +258,22 @@ class GLVBO(GLReferenceCounter):
 
 	def release(self):
 		if self._buffer is not None:
-			glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
-			glBufferData(GL_ARRAY_BUFFER, None, GL_STATIC_DRAW)
-			glBindBuffer(GL_ARRAY_BUFFER, 0)
-			glDeleteBuffers(1, [self._buffer])
-			self._buffer = None
+			if self._hasColor:
+				glBindBuffer(GL_ARRAY_BUFFER, self._buffer[0])
+				glBufferData(GL_ARRAY_BUFFER, None, GL_STATIC_DRAW)
+				glBindBuffer(GL_ARRAY_BUFFER, 0)
+				glDeleteBuffers(1, [self._buffer[0]])
+				glBindBuffer(GL_ARRAY_BUFFER, self._buffer[1])
+				glBufferData(GL_ARRAY_BUFFER, None, GL_STATIC_DRAW)
+				glBindBuffer(GL_ARRAY_BUFFER, 0)
+				glDeleteBuffers(1, [self._buffer[1]])
+				self._buffer = None
+			else:
+				glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
+				glBufferData(GL_ARRAY_BUFFER, None, GL_STATIC_DRAW)
+				glBindBuffer(GL_ARRAY_BUFFER, 0)
+				glDeleteBuffers(1, [self._buffer])
+				self._buffer = None
 			if self._hasIndices:
 				glBindBuffer(GL_ARRAY_BUFFER, self._bufferIndices)
 				glBufferData(GL_ARRAY_BUFFER, None, GL_STATIC_DRAW)

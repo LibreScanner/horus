@@ -25,6 +25,9 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 import wx
 import numpy
 import time
@@ -44,6 +47,8 @@ from horus.util import profile, resources, meshLoader
 from horus.gui.util import openglHelpers
 from horus.gui.util import openglGui
 
+from horus.util import printableObject
+
 class SceneView(openglGui.glGuiPanel):
 	def __init__(self, parent):
 		super(SceneView, self).__init__(parent)
@@ -56,7 +61,7 @@ class SceneView(openglGui.glGuiPanel):
 		self._objectLoadShader = None
 		self._focusObj = None
 		self._selectedObj = None
-		self._objColors = [None,None,None,None]
+		self._objColor = None
 		self._mouseX = -1
 		self._mouseY = -1
 		self._mouseState = None
@@ -79,6 +84,21 @@ class SceneView(openglGui.glGuiPanel):
 
 		self.updateProfileToControls()
 
+	def createDefaultObject(self):
+		self._clearScene()
+		self._object = printableObject.printableObject(None, isPointCloud=True)
+		self._object._addMesh()
+		self._object._mesh._prepareVertexCount(1000000)
+		#self._object._postProcessAfterLoad()
+
+	def appendPointCloud(self, point, color):
+		if self._object is not None:
+			mesh = self._object._mesh
+			if mesh is not None:
+				for i in range(len(point)):
+					mesh._addVertex(point[i][0], point[i][1], point[i][2], color[i][0], color[i][1], color[i][2])
+			self.QueueRefresh()
+
 	def loadFile(self, filename):
 		#-- Only one STL / PLY file can be active
 		if filename is not None:
@@ -87,10 +107,8 @@ class SceneView(openglGui.glGuiPanel):
 				modelFilename = filename
 			if modelFilename:
 				self.loadScene(modelFilename)
-				self._selectObject(None)
-				newZoom = numpy.max(self._machineSize)
-				self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
-				self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
+				self._selectedObj = self._object
+				self._selectObject(self._object)
 
 	def OnCenter(self, e):
 		if self._focusObj is None:
@@ -108,14 +126,16 @@ class SceneView(openglGui.glGuiPanel):
 
 	def _clearScene(self):
 		if self._object is not None:
-			for m in self._object._meshList:
-				if m.vbo is not None and m.vbo.decRef():
-					self.glReleaseList.append(m.vbo)
-			self._object = None
+			if self._object._mesh is not None:
+				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
+					self.glReleaseList.append(self._object._mesh.vbo)
+				self._object = None
 			import gc
 			gc.collect()
 
-			self.QueueRefresh()
+			newZoom = numpy.max(self._machineSize)
+			self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
+			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
 
 	def _selectObject(self, obj, zoom = True):
 		if obj != self._selectedObj:
@@ -133,10 +153,7 @@ class SceneView(openglGui.glGuiPanel):
 		oldSimpleMode = self._isSimpleMode
 		self._isSimpleMode = profile.getPreference('startMode') == 'Simple'
 		self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')])
-		self._objColors[0] = profile.getPreferenceColour('model_colour')
-		self._objColors[1] = profile.getPreferenceColour('model_colour2')
-		self._objColors[2] = profile.getPreferenceColour('model_colour3')
-		self._objColors[3] = profile.getPreferenceColour('model_colour4')
+		self._objColor = profile.getPreferenceColour('model_colour')
 		self.updateModelSettingsToControls()
 
 	def updateModelSettingsToControls(self):
@@ -371,10 +388,8 @@ class SceneView(openglGui.glGuiPanel):
 						gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 						gl_FrontColor = gl_Color;
 
-						light_amount = 1.0;
-
-						//light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
-						//light_amount += 0.2;
+						light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
+						light_amount += 0.2;
 					}
 									""","""
 					varying float light_amount;
@@ -384,9 +399,7 @@ class SceneView(openglGui.glGuiPanel):
 						gl_FragColor = vec4(gl_Color.xyz * light_amount, gl_Color[3]);
 					}
 				""")
-				self._objectOverhangShader = openglHelpers.GLShader("""
-					uniform float cosAngle;
-					uniform mat3 rotMatrix;
+				self._objectShaderNoLight = openglHelpers.GLShader("""
 					varying float light_amount;
 
 					void main(void)
@@ -394,26 +407,16 @@ class SceneView(openglGui.glGuiPanel):
 						gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 						gl_FrontColor = gl_Color;
 
-						light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
-						light_amount += 0.2;
-						if (normalize(rotMatrix * gl_Normal).z < -cosAngle)
-						{
-							light_amount = -10.0;
-						}
+						light_amount = 1.0;
 					}
-				""","""
+									""","""
 					varying float light_amount;
 
 					void main(void)
 					{
-						if (light_amount == -10.0)
-						{
-							gl_FragColor = vec4(1.0, 0.0, 0.0, gl_Color[3]);
-						}else{
-							gl_FragColor = vec4(gl_Color.xyz * light_amount, gl_Color[3]);
-						}
+						gl_FragColor = vec4(gl_Color.xyz * light_amount, gl_Color[3]);
 					}
-									""")
+				""")
 				self._objectLoadShader = openglHelpers.GLShader("""
 					uniform float intensity;
 					uniform float scale;
@@ -441,7 +444,6 @@ class SceneView(openglGui.glGuiPanel):
 				""")
 			if self._objectShader is None or not self._objectShader.isValid(): #Could not make shader.
 				self._objectShader = openglHelpers.GLFakeShader()
-				self._objectOverhangShader = openglHelpers.GLFakeShader()
 				self._objectLoadShader = None
 
 		self._init3DView()
@@ -456,12 +458,6 @@ class SceneView(openglGui.glGuiPanel):
 
 		glClearColor(1,1,1,1)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
-
-		#if self.viewMode != 'gcode':
-		#	for n in xrange(0, len(self._scene.objects())):
-		#		obj = self._scene.objects()[n]
-		#		glColor4ub((n >> 16) & 0xFF, (n >> 8) & 0xFF, (n >> 0) & 0xFF, 0xFF)
-		#		self._renderObject(obj)
 
 		if self._mouseX > -1: # mouse has not passed over the opengl window.
 			glFlush()
@@ -478,46 +474,47 @@ class SceneView(openglGui.glGuiPanel):
 		glRotate(self._yaw, 0,0,1)
 		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
 
-		self._objectShader.unbind()
-		if self.viewMode != 'gcode':
-			glStencilFunc(GL_ALWAYS, 1, 1)
-			glStencilOp(GL_INCR, GL_INCR, GL_INCR)
+		glStencilFunc(GL_ALWAYS, 1, 1)
+		glStencilOp(GL_INCR, GL_INCR, GL_INCR)
 
-			if self.viewMode == 'overhang':
-				self._objectOverhangShader.bind()
-				self._objectOverhangShader.setUniform('cosAngle', math.cos(math.radians(90 - profile.getProfileSettingFloat('support_angle'))))
+		if self._object is not None:
+
+			if self._object.isPointCloud():
+				self._objectShaderNoLight.bind()
 			else:
 				self._objectShader.bind()
 
-			if self._object is not None:
-				brightness = 1.0
-				if self._focusObj == self._object:
-					brightness = 1.2
-				elif self._focusObj is not None or self._selectedObj is not None and self._object != self._selectedObj:
-					brightness = 0.8
+			brightness = 1.0
+			if self._focusObj == self._object:
+				brightness = 1.2
+			elif self._focusObj is not None or self._selectedObj is not None and self._object != self._selectedObj:
+				brightness = 0.8
 
-				if self._selectedObj == self._object or self._selectedObj is None:
-					glStencilOp(GL_INCR, GL_INCR, GL_INCR)
-					glEnable(GL_STENCIL_TEST)
-				self._renderObject(self._object, brightness)
+			if self._selectedObj == self._object or self._selectedObj is None:
+				glStencilOp(GL_INCR, GL_INCR, GL_INCR)
+				glEnable(GL_STENCIL_TEST)
+			self._renderObject(self._object, brightness)
 
-				glDisable(GL_STENCIL_TEST)
-				glDisable(GL_BLEND)
-				glEnable(GL_DEPTH_TEST)
-				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
+			glDisable(GL_STENCIL_TEST)
+			glDisable(GL_BLEND)
+			glEnable(GL_DEPTH_TEST)
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
 
+			if self._object.isPointCloud():
+				self._objectShaderNoLight.unbind()
+			else:
 				self._objectShader.unbind()
 
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-				glEnable(GL_BLEND)
-				if self._objectLoadShader is not None:
-					self._objectLoadShader.bind()
-					glColor4f(0.2, 0.6, 1.0, 1.0)
-					#self._objectLoadShader.setUniform('intensity', self._object._.getPosition())
-					self._objectLoadShader.setUniform('scale', self._object.getBoundaryCircle() / 10)
-					self._renderObject(self._object)
-					self._objectLoadShader.unbind()
-					glDisable(GL_BLEND)
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			glEnable(GL_BLEND)
+			if self._objectLoadShader is not None:
+				#self._objectLoadShader.bind()
+				#glColor4f(0.2, 0.6, 1.0, 1.0)
+				#self._objectLoadShader.setUniform('intensity', self._object._.getPosition())
+				#self._objectLoadShader.setUniform('scale', self._object.getBoundaryCircle() / 10)
+				self._renderObject(self._object)
+				#self._objectLoadShader.unbind()
+				glDisable(GL_BLEND)
 
 		self._drawMachine()
 
@@ -537,19 +534,19 @@ class SceneView(openglGui.glGuiPanel):
 		glMultMatrixf(openglHelpers.convert3x3MatrixTo4x4(obj.getMatrix()))
 
 		if obj.isPointCloud():
-			for m in obj._meshList:
-				if m.vbo is None:
-					m.vbo = openglHelpers.GLVBO(GL_POINTS, m.vertexes, colorArray = m.colors)
-				m.vbo.render()
+			if obj._mesh is not None:
+				if obj._mesh.vbo is not None:
+					obj._mesh.vbo.release()
+				obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes, colorArray=obj._mesh.colors)
+				obj._mesh.vbo.render()
 		else:
-			n = 0
-			for m in obj._meshList:
-				if m.vbo is None:
-					m.vbo = openglHelpers.GLVBO(GL_TRIANGLES, m.vertexes, m.normal)
+			if obj._mesh is not None:
+				if obj._mesh.vbo is not None:
+					obj._mesh.vbo.release()
+				obj._mesh.vbo = openglHelpers.GLVBO(GL_TRIANGLES, obj._mesh.vertexes, obj._mesh.normal)
 				if brightness != 0:
-					glColor4fv(map(lambda idx: idx * brightness, self._objColors[n]))
-					n += 1
-				m.vbo.render()
+					glColor4fv(map(lambda idx: idx * brightness, self._objColor))
+				obj._mesh.vbo.render()
 		glPopMatrix()
 
 	def _drawMachine(self):

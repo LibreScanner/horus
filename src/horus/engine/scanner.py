@@ -48,6 +48,8 @@ class Scanner(wx.PyControl):
 		wx.PyControl.__init__(self, parent)
 		self.Hide()
 
+		self.isConnected = False
+
 		self.theta = 0
 		self.imageQueue = Queue.Queue(1000)
 		self.pointCloudQueue = Queue.Queue(10000)
@@ -61,11 +63,15 @@ class Scanner(wx.PyControl):
 
 	def connect(self):
 		""" """
+		self.isConnected = True # TODO: Fake state
+
 		self.camera.connect()
 		return self.device.connect()
 		
 	def disconnect(self):
 		""" """
+		self.isConnected = False # TODO: Fake state
+		
 		self.camera.disconnect()
 		return self.device.disconnect()
 		
@@ -126,11 +132,8 @@ class Scanner(wx.PyControl):
 			self.device.setMotorCW()
 			time.sleep(0.06)
 
-			#-- Get diff image
-			imgDiff = self.core.getDiffImage(imgRaw, imgLas)
-
 			#-- Put images into the queue
-			self.imageQueue.put((imgRaw, imgDiff))
+			self.imageQueue.put((imgRaw, imgLas))
 			
 			#-- Check stop condition
 			self.theta += self.degrees

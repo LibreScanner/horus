@@ -39,12 +39,13 @@ class Core:
 		self.colors = None
 
 		#-- Image type parameters
-		self.imgType = 0
+		self.imgType = 'raw'
 		
-		self.imgRaw = None
-		self.imgLas = None
+		self.imgRaw  = None
+		self.imgLas  = None
 		self.imgDiff = None
-		self.imgBin = None
+		self.imgBin  = None
+		self.imgLine = None
 
 		#-- Image Processing Parameters
 		self.blurEnable = True
@@ -69,15 +70,15 @@ class Core:
 
 		self.useCompact = True
 
-		self.rhoMin = -60
-		self.rhoMax = 60
+		self.rhoMin = -100
+		self.rhoMax = 100
 		self.hMin = 0
-		self.hMax = 80
+		self.hMax = 200
 
 		self.zOffset = 0
 
-		self.width = 640
-		self.height = 480
+		self.width = 960
+		self.height = 1280
 
 		self.degrees = degrees
 
@@ -105,10 +106,10 @@ class Core:
 				self.M_rho[j,i] = rho = A*u/(u+B)
 				self.M_z[j,i] = self.ho + (self.zs-rho*math.sin(alpha))*v/self.fy
 				
-		print "----------------R-------------"
-		print self.M_rho
-		print "----------------Z-------------"
-		print self.M_z
+		#print "----------------R-------------"
+		#print self.M_rho
+		#print "----------------Z-------------"
+		#print self.M_z
 
 		self.W = np.matrix(np.ones(self.height)).T * np.matrix(np.arange(self.width).reshape((self.width)))
 
@@ -146,10 +147,11 @@ class Core:
 
 	def getImage(self):
 		""" """
-		return { 0 : self.imgRaw,
-				 1 : self.imgLas,
-				 2 : self.imgDiff,
-				 3 : self.imgBin
+		return { 'raw' : self.imgRaw,
+				 'las' : self.imgLas,
+				 'diff' : self.imgDiff,
+				 'bin' : self.imgBin,
+				 'line' : self.imgLine
 				}[self.imgType]
 
 	def setImageType(self, imgType):
@@ -174,26 +176,18 @@ class Core:
 
 		imageHSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
-		self.src = cv2.inRange(imageHSV, self.colorMin, self.colorMax)
+		return cv2.inRange(imageHSV, self.colorMin, self.colorMax)
 
-		temp = np.zeros_like(image)
-		temp[:,:,0] = self.src
-		temp[:,:,1] = self.src
-		temp[:,:,2] = self.src
-		self.imgBin = temp
-
-		return self.src
-
-	def pointCloudGeneration(self, imageDiff, imageRaw):
+	def pointCloudGeneration(self, imageDiff, imageRaw, src):
 		""" """
 		#-- Point Cloud Generation
-		s = self.src.sum(1)
+		s = src.sum(1)
 		v = np.nonzero(s)[0]
 		if self.useCompact:
-			i = self.src.argmax(1)
+			i = src.argmax(1)
 			l = ((i + (s/255-1) / 2)[v]).T.astype(int)
 		else:
-			self.w = (np.array(self.W)*np.array(imageDiff)).sum(1)
+			w = (np.array(self.W)*np.array(imageDiff[:,:,0])).sum(1) # TODO: Check
 			l = (w[v] / s[v].T).astype(int)
 
 		#-- Obtaining parameters
@@ -205,37 +199,37 @@ class Core:
 		points = np.concatenate((x,y,z)).reshape(3,z.size).T
 		colors = np.copy(imageRaw[v,l])
 
-		return points, colors
+		return points, colors, rho, z
 
-	def pointCloudFilter(self, points, colors):
+	def pointCloudFilter(self, points, colors, rho, z):
 		""" """
-
-		z = 0
-		rho = 100
-
 		#-- Point Cloud Filter
-		idx = np.where((z > self.hMin) &
-					   (z < self.hMax) &
-					   (rho > self.rhoMin) &
-					   (rho < self.rhoMax))[0]
-		if len(idx):
-			points = points[idx]
-			colors = colors[idx]
+		idx = np.where((z >= self.hMin) &
+					   (z <= self.hMax) &
+					   (rho >= self.rhoMin) &
+					   (rho <= self.rhoMax))[0]
 
-		return points, colors
+		return points[idx], colors[idx]
 
-	def getPointCloud(self, imageRaw, imageDiff):
+	def getPointCloud(self, imageRaw, imageLas):
 		""" """
- 		
- 		self.imgRaw = imageRaw
- 		self.imgDiff = imageDiff
+ 		#-- Update Raw, Laser and Diff images
+		self.imgRaw = imageRaw
+		self.imgLas = imageLas
+		self.imgDiff = self.getDiffImage(imageRaw, imageLas)
 
-		src = self.imageProcessing(imageDiff)
+		src = self.imageProcessing(self.imgDiff)
 
-		points, colors = self.pointCloudGeneration(imageDiff, imageRaw)
+		temp = np.zeros_like(self.imgDiff)
+		temp[:,:,0] = src
+		temp[:,:,1] = src
+		temp[:,:,2] = src
+		self.imgBin = temp
+
+		points, colors, rho, z = self.pointCloudGeneration(self.imgDiff, imageRaw, src)
 
 		if points != None and colors != None:
-			points, colors = self.pointCloudFilter(points, colors)
+			points, colors = self.pointCloudFilter(points, colors, rho, z)
 
 		if points != None and colors != None:
 			if self.points == None and self.colors == None:
@@ -248,32 +242,3 @@ class Core:
  		self.theta += self.degrees
 
 		return points, colors
-
-	def toPLY(self):
-		"""
-		Returns PLY string
-		"""
-		if self.points != None and self.colors != None and len(self.points) == len(self.colors):
-			n = len(self.points)
-			# Generate Header
-			frame  = "ply\nformat ascii 1.0\n"
-			frame += "element vertex {0}\n".format(n)
-			frame += "property float x\n"
-			frame += "property float y\n"
-			frame += "property float z\n"
-			frame += "property uchar diffuse_red\n"
-			frame += "property uchar diffuse_green\n"
-			frame += "property uchar diffuse_blue\n"
-			frame += "element face 0\n"
-			frame += "property list uchar int vertex_indices\n"
-			frame += "end_header\n"
-			#Generate Points
-			for i in range(n):
-				frame += "{0} ".format(self.points[i,0])
-				frame += "{0} ".format(self.points[i,1])
-				frame += "{0} ".format(self.points[i,2])
-				frame += "{0} ".format(self.colors[i,0])
-				frame += "{0} ".format(self.colors[i,1])
-				frame += "{0}\n".format(self.colors[i,2])
-
-			return frame

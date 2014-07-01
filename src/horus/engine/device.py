@@ -100,7 +100,7 @@ class Device:
 		""" Closes serial port """
 		print ">>> Disconnecting device ..."
 		try:
-			if self.serialPort != None:
+			if self.serialPort is not None:
 				if self.serialPort.isOpen():
 					self.serialPort.close()
 		except serial.SerialException:

@@ -54,11 +54,17 @@ def _loadAscii(m, f): # TODO: improve parser: normals, colors, faces, etc.
 	m._prepareVertexCount(int(cnt))
 
 	body = sections[1].split('\n')
-	for i in range(1,cnt):
-		data = body[i].split(' ')
-		if len(data) == 6: # colors
+
+	if len(body) > 1:
+		_len = len(body[1].split(' '))
+
+	if _len == 6: # colors
+		for i in range(1,cnt):
+			data = body[i].split(' ')
 			m._addVertex(float(data[0]),float(data[1]),float(data[2]),int(data[3]),int(data[4]),int(data[5]))
-		if len(data) == 11: # normals
+	elif  _len == 11: # normals
+		for i in range(1,cnt):
+			data = body[i].split(' ')
 			m._addVertex(float(data[0]),float(data[1]),float(data[2]),int(data[6]),int(data[7]),int(data[8]))
 
 def _loadBinary(m, f):
@@ -77,11 +83,34 @@ def loadScene(filename):
 	obj._postProcessAfterLoad()
 	return obj
 
-def saveScene(filename, objects):
+def saveScene(filename, _object):
 	f = open(filename, 'wb')
-	saveSceneStream(f, objects)
+	saveSceneStream(f, _object)
 	f.close()
 
-def saveSceneStream(stream, objects):
-	pass
-	## TODO
+def saveSceneStream(stream, _object):
+	m = _object._mesh
+
+	if m is not None:
+		frame  = "ply\nformat ascii 1.0\n"
+		frame += "element vertex {0}\n".format(m.vertexCount)
+		frame += "property float x\n"
+		frame += "property float y\n"
+		frame += "property float z\n"
+		frame += "property uchar diffuse_red\n"
+		frame += "property uchar diffuse_green\n"
+		frame += "property uchar diffuse_blue\n"
+		frame += "element face 0\n"
+		frame += "property list uchar int vertex_indices\n"
+		frame += "end_header\n"
+		if m.vertexCount > 0:
+			points = m.vertexes
+			colors = m.colors
+			for i in range(m.vertexCount):
+				frame += "{0} ".format(points[i,0])
+				frame += "{0} ".format(points[i,1])
+				frame += "{0} ".format(points[i,2])
+				frame += "{0} ".format(colors[i,0])
+				frame += "{0} ".format(colors[i,1])
+				frame += "{0}\n".format(colors[i,2])
+		stream.write(frame)

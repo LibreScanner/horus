@@ -33,6 +33,8 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
     def __init__(self, parent):
         """"""
         wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
+        
+        self.scanner = self.GetParent().GetParent().GetParent().scanner
 
         self.SetupScrolling()
         
@@ -132,25 +134,22 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.Centre()
 
     def onBlurChanged(self, event):
-    	pass
-        """enable = self.blurCheckBox.IsChecked()
+        enable = self.blurCheckBox.IsChecked()
         value = self.blurSlider.GetValue()
-        self.scanner.getCore().setBlur(enable, value)"""
+        self.scanner.getCore().setBlur(enable, value)
 
     def onOpenChanged(self, event):
-    	pass
-        """enable = self.openCheckBox.IsChecked()
+        enable = self.openCheckBox.IsChecked()
         value = self.openSlider.GetValue()
-        self.scanner.getCore().setOpen(enable, value)"""
+        self.scanner.getCore().setOpen(enable, value)
 
     def onHSVRangeChanged(self, event):
-    	pass
-        """self.scanner.getCore().setHSVRange(self.minHSlider.GetValue(),
+        self.scanner.getCore().setHSVRange(self.minHSlider.GetValue(),
                                          self.minSSlider.GetValue(),
                                          self.minVSlider.GetValue(),
                                          self.maxHSlider.GetValue(),
                                          self.maxSSlider.GetValue(),
-                                         self.maxVSlider.GetValue())"""
+                                         self.maxVSlider.GetValue())
 
     def onROIChanged(self, event):
         pass
