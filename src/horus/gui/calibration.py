@@ -110,7 +110,7 @@ class CalibrationWorkbench(Workbench):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
 		if not hasattr(self,'_extrinsicCalibrationPanel'):
-			self._extrinsicCalibrationPanel=ExtrinsicCalibrationPanel(self._panel,self.scanner)
+			self._extrinsicCalibrationPanel=ExtrinsicCalibrationPanel(self._panel,self.scanner,self.calibration)
 		else:
 			self._extrinsicCalibrationPanel.Show(True)
 			self._extrinsicCalibrationPanel.guideView.Show(True)
@@ -257,7 +257,6 @@ class PatternPanel(Page):
 	def calibrateCamera(self,event):
 		self.calibration.calibrationFromImages()
 		self.parent.parent.loadPagePlot(0)
-
 
 class PlotPanel(Page):
 	def __init__(self,parent,calibration):
@@ -425,10 +424,11 @@ class PlotPanel(Page):
 		self.load()
 
 class ExtrinsicCalibrationPanel(Page):
-	def __init__(self,parent,scanner):
+	def __init__(self,parent,scanner,calibration):
 		Page.__init__(self,parent)
 		self.scanner=scanner
-		self.parent=parent;
+		self.parent=parent
+		self.calibration=calibration
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
@@ -488,7 +488,7 @@ class ExtrinsicCalibrationPanel(Page):
 	def onSnapshotToolClicked(self, event):
 		
 		frame = self.scanner.camera.captureImage(False)
-		self.addToGrid(frame)
+		self.addToPlot(frame)
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
@@ -503,7 +503,12 @@ class ExtrinsicCalibrationPanel(Page):
 			print event.GetKeyCode()
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
-			self.addToGrid(frame)
+			self.addToPlot(frame)
+
+	def addToPlot(self,image):
+		self.calibration.solvePnp(image)
+		self.plot()
+
 	def start(self,event):
 		self.guideView.Show(False)
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
@@ -526,30 +531,32 @@ class ExtrinsicCalibrationPanel(Page):
 		self._upPanel.SetSizer(hbox)
 
 		self.parent.Layout()
-		self.plot()
+		# self.plot()
 
 	def plot(self):
 		self.ax.cla()
 		
-		transVectors=np.array( [np.array([[ -42.69884629],
-			   [ -60.66166513],
-			   [ 321.66039025]]), np.array([[ -42.41493766],
-			   [ -60.64227845],
-			   [ 314.83533902]]),np.array([[ -41.50678247],
-			   [ -60.61090239],
-			   [ 309.86558147]]), np.array([[ -39.94829325],
-			   [ -60.53994931],
-			   [ 304.62751714]]), np.array([[ -35.74329096],
-			   [ -60.37072737],
-			   [ 295.90780527]]), np.array([[ -28.6653856 ],
-			   [ -60.11288896],
-			   [ 287.22736507]]), np.array([[ -17.04165965],
-			   [ -59.83398485],
-			   [ 280.00927257]]), np.array([[  -7.25630751],
-			   [ -59.66790518],
-			   [ 277.30374209]]), np.array([[   2.22381082],
-			   [ -59.49892478],
-			   [ 276.60780411]])])
+		transVectors=self.calibration.transVectors
+
+		# transVectors=np.array( [np.array([[ -42.69884629],
+		# 	   [ -60.66166513],
+		# 	   [ 321.66039025]]), np.array([[ -42.41493766],
+		# 	   [ -60.64227845],
+		# 	   [ 314.83533902]]),np.array([[ -41.50678247],
+		# 	   [ -60.61090239],
+		# 	   [ 309.86558147]]), np.array([[ -39.94829325],
+		# 	   [ -60.53994931],
+		# 	   [ 304.62751714]]), np.array([[ -35.74329096],
+		# 	   [ -60.37072737],
+		# 	   [ 295.90780527]]), np.array([[ -28.6653856 ],
+		# 	   [ -60.11288896],
+		# 	   [ 287.22736507]]), np.array([[ -17.04165965],
+		# 	   [ -59.83398485],
+		# 	   [ 280.00927257]]), np.array([[  -7.25630751],
+		# 	   [ -59.66790518],
+		# 	   [ 277.30374209]]), np.array([[   2.22381082],
+		# 	   [ -59.49892478],
+		# 	   [ 276.60780411]])])
 		
 		
 		self.x2D=np.array([])

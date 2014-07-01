@@ -56,10 +56,23 @@ class Calibration:
 		self.objPointsStack=[]
 
 		self.objpoints=self.generateObjectPoints(self.patternColumns,self.patternRows,self.squareWidth)
+		
+		self.transVectors=[]
+
 		print "calibreision"
 
-	def solvePnp(self):
+	def solvePnp(self,image):
 		print "solfpenepe"
+		gray=cv2.cvtColor(image,sc2.COLOR_BGR2GRAY)
+		retval,corners=cv2.findChessboardCorners(gray,(self.patternColumns,self.patternRows))
+		if retval:
+			cv2.cornerSubPix(gray,corners,winSize=(11,11),zeroZone=(-1,-1),criteria=self.criteria)
+			 # TODO seguir aqui!!!
+		else:
+			print "chessboard not found :("
+		return image,retval
+
+
 	def calibrationFromImages(self):
 		if hasattr(self,'rvecs'):
 			del self.rvecs[:]
