@@ -55,12 +55,12 @@ class MainWindow(wx.Frame):
         serialList = self.serialList()
         if len(serialList) > 0:
             profile.putProfileSetting('serial_name', serialList[0])
-        videoList = self.videoList()
-        if len(videoList) > 0:
-            profile.putProfileSetting('camera_id', int(videoList[0][-1:]))
+        # videoList = self.videoList()
+        # if len(videoList) > 0:
+        #     profile.putProfileSetting('camera_id', int(videoList[0][-1:]))
             
         self.scanner = Scanner(self)
-        #self.calibration = Calibration(self)
+        self.calibration = Calibration(self)
 
         self.updateEngine()
 
@@ -133,13 +133,13 @@ class MainWindow(wx.Frame):
         self.mainWorkbench = MainWorkbench(self)
         self.controlWorkbench = ControlWorkbench(self)
         self.scanningWorkbench = ScanningWorkbench(self)
-        #self.calibrationWorkbench = CalibrationWorkbench(self)
+        self.calibrationWorkbench = CalibrationWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.comboBoxWorkbench, 0, wx.ALL|wx.EXPAND, 6)
         sizer.Add(self.mainWorkbench, 1, wx.EXPAND)
         sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
-        #sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
         sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
@@ -259,7 +259,7 @@ class MainWindow(wx.Frame):
         """ """
         currentWorkbench = {self.menuWorkbenchMain.GetId()        : 'main',
                             self.menuWorkbenchControl.GetId()     : 'control',
-                            #self.menuWorkbenchCalibration.GetId() : 'calibration',
+                            self.menuWorkbenchCalibration.GetId() : 'calibration',
                             self.menuWorkbenchScanning.GetId()    : 'scanning'}.get(event.GetId())
 
         if currentWorkbench is not None:
@@ -335,7 +335,7 @@ Suite 330, Boston, MA  02111-1307  USA"""))
 
         wb = {'main'        : self.mainWorkbench,
               'control'     : self.controlWorkbench,
-              #'calibration' : self.calibrationWorkbench,
+              'calibration' : self.calibrationWorkbench,
               'scanning'    : self.scanningWorkbench}
 
         for key in wb:
@@ -347,7 +347,7 @@ Suite 330, Boston, MA  02111-1307  USA"""))
 
         menuWb = {'main'        : self.menuWorkbenchMain,
                   'control'     : self.menuWorkbenchControl,
-                  #'calibration' : self.menuWorkbenchCalibration,
+                  'calibration' : self.menuWorkbenchCalibration,
                   'scanning'    : self.menuWorkbenchScanning}.get(currentWorkbench)
 
         if menuWb is not None:

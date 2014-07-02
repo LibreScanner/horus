@@ -29,6 +29,7 @@ __license__ = u"GNU General Public License v3 http://www.gnu.org/licenses/gpl.ht
 
 import cv2
 import numpy as np
+from scipy import optimize  
 
 class Calibration:
 	"""Calibration class. For managing calibration"""
@@ -58,6 +59,8 @@ class Calibration:
 		self.objpoints=self.generateObjectPoints(self.patternColumns,self.patternRows,self.squareWidth)
 		
 		self.transVectors=[]
+
+		self.centerEstimate=0,310
 
 
 	def solvePnp(self,image):
@@ -111,3 +114,18 @@ class Calibration:
 		if hasattr(self,'rvecs'):
 			del self.rvecs[:]
 			del self.tvecs[:]
+
+	def optimizeCircle(self,x2D,z2D):
+		self.x2D=x2D
+		self.z2D=z2D
+		center,_=optimize.leastsq(self.f, self.centerEstimate)
+		Ri     = self.calc_R(*center)
+		print Ri
+		return Ri,center
+
+	def calc_R(self,xc, zc):
+		return np.sqrt((self.x2D-xc)**2 + (self.z2D-zc)**2)
+
+	def f(self,c):
+		Ri = self.calc_R(*c)
+		return Ri - Ri.mean()

@@ -46,7 +46,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 import cv2
 
-from scipy import optimize   
+import weakref
 import matplotlib.cm as cm  
 import matplotlib.colors as colors
 
@@ -430,7 +430,9 @@ class ExtrinsicCalibrationPanel(Page):
 		self.parent=parent
 		self.calibration=calibration
 		self.timer = wx.Timer(self)
+		self.calibrationTimer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+		self.Bind(wx.EVT_TIMER, self.onCalibrationTimer, self.calibrationTimer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.start)
 		self.loaded=False
@@ -494,10 +496,17 @@ class ExtrinsicCalibrationPanel(Page):
 		frame = self.scanner.camera.captureImage(True)
 		self.videoView.setFrame(frame)
 
+	def onCalibrationTimer(self,event):
+		frame = self.scanner.camera.captureImage(True)
+		self.scanner.device.setMotorCCW()
+		
+		self.addToPlot(frame)
+
 	def OnKeyPress(self,event):
 		if not self.loaded:
 			self.scanner.connect()
 			self.timer.Start(milliseconds=150)
+			# self.calibrationTimer.Start(milliseconds=1000)
 			self.loaded=True
 			self.start(0)
 			print event.GetKeyCode()
@@ -538,53 +547,58 @@ class ExtrinsicCalibrationPanel(Page):
 		self._upPanel.SetSizer(hbox)
 
 		self.parent.Layout()
+
+		self.ax.set_xlabel('x')
+		self.ax.set_ylabel('z')
 		# self.plot()
 
 	def plot(self):
-		self.ax.cla()
-		
+
+
 		transVectors=self.calibration.transVectors
 		
 		self.x2D=np.array([])
 		self.z2D=np.array([])
 		for transUnit in transVectors:
-			   self.x2D=np.hstack((self.x2D,transUnit[0][0]))
-			   self.z2D=np.hstack((self.z2D,transUnit[2][0]))
+			self.x2D=np.hstack((self.x2D,transUnit[0][0]))
+			self.z2D=np.hstack((self.z2D,transUnit[2][0]))
+		
 		self.x2D=np.r_[self.x2D]
 		self.z2D=np.r_[self.z2D]
-		center_estimate = 0, 310
-		print center_estimate
-		center, ier = optimize.leastsq(self.f, center_estimate)
 
+		Ri,center = self.calibration.optimizeCircle(self.x2D,self.z2D)
+		
 		self.xc, self.zc = center
-
-		Ri     = self.calc_R(*center)
-		self.R      = Ri.mean()
+		
+		self.R = Ri.mean()
 		residu = sum((Ri - self.R)**2)
-
-		print self.xc,self.zc
-		print self.R
 
 		theta_fit = np.linspace(-np.pi, np.pi, 180)
 
 		x_fit2 = self.xc + self.R*np.cos(theta_fit)
 		z_fit2 = self.zc + self.R*np.sin(theta_fit)
-		self.ax.plot(x_fit2, z_fit2, 'k--', lw=2)
-		self.ax.plot([self.xc], [self.zc], 'gD', mec='r', mew=1)
-		self.ax.set_xlabel('x')
-		self.ax.set_ylabel('z')
+		print type(self.ax)
+		
+		self.clearPlot()
+			
+		self.circlePlot=self.ax.plot(x_fit2, z_fit2, 'k--', lw=2)
+		# print self.ax.get_children()
+		self.centerPlot=self.ax.plot([self.xc], [self.zc], 'gD', mec='r', mew=1)
+
 
 		# plot the residu fields
 		nb_pts = 100
 
-		self.canvas.draw()
-		xmin, xmax = self.ax.set_xlim()
-		ymin, ymax = self.ax.set_ylim()
+		# self.canvas.draw()
+		xmin=(self.xc-self.R)*1.05
+		xmax=(self.xc+self.R)*1.05
+		ymin=(self.zc-self.R)/1.05
+		ymax=(self.zc+self.R)*1.05
 
 		vmin = min(xmin, ymin)
 		vmax = max(xmax, ymax)
 
-		xg, zg = np.ogrid[vmin-self.R:(vmin+4*self.R):nb_pts*1j, vmax-4*self.R:vmax+self.R:nb_pts*1j]
+		xg, zg = np.ogrid[vmin-4*self.R:(vmin+4*self.R):nb_pts*1j, vmax-4*self.R:vmax+self.R:nb_pts*1j]
 		xg = xg[..., np.newaxis]
 		zg = zg[..., np.newaxis]
 
@@ -593,29 +607,21 @@ class ExtrinsicCalibrationPanel(Page):
 		residu = np.sum( (Rig-Rig_m)**2 ,axis=2)
 		lvl = np.exp(np.linspace(np.log(residu.min()), np.log(residu.max()), 15))
 
-		self.ax.contourf(xg.flat, zg.flat, residu.T, lvl, alpha=0.4, cmap=cm.Purples_r) # , norm=colors.LogNorm())
+		self.residuContour=self.ax.contourf(xg.flat, zg.flat, residu.T, lvl, alpha=0.4, cmap=cm.Purples_r) # , norm=colors.LogNorm())
 		
-		self.ax.contour (xg.flat, zg.flat, residu.T, lvl, alpha=0.8, colors="lightblue")
+		self.residuColors=self.ax.contour (xg.flat, zg.flat, residu.T, lvl, alpha=0.8, colors="lightblue")
 
 		# plot data
-		self.ax.plot(self.x2D, self.z2D, 'ro', label='data', ms=8, mec='b', mew=1)
-		self.ax.legend(loc='best',labelspacing=0.1 )
+		self.ax.plot(self.x2D, self.z2D, 'ro', label='Pattern corner', ms=8, mec='b', mew=1)
+		# self.legend=self.ax.legend(loc='best',labelspacing=0.1 )
 
-		self.ax.set_xlim(xmin=(self.xc-self.R)*1.05, xmax=(self.xc+self.R)*1.05)
-		self.ax.set_ylim(ymin=(self.zc-self.R)*1.05, ymax=(self.zc+self.R)*1.05)
+		# self.ax.set_xlim(xmin=(self.xc-self.R)*1.05, xmax=(self.xc+self.R)*1.05)
+		# self.ax.set_ylim(ymin=(self.zc-self.R)*1.05, ymax=(self.zc+self.R)*1.05)
 
 		self.ax.grid()
 
-		self.canvas.draw()
-
-
-	def calc_R(self,xc, zc):
-		return np.sqrt((self.x2D-xc)**2 + (self.z2D-zc)**2)
-
-	def f(self,c):
-		Ri = self.calc_R(*c)
-		return Ri - Ri.mean()
-
+		# self.canvas.draw()
+		self.on_size(0)
 	
 	def on_size(self,event):
 		pix = self.plot2DPanel.GetClientSize()
@@ -637,6 +643,18 @@ class ExtrinsicCalibrationPanel(Page):
 		if hasattr(self,'canvas'):
 			self.canvas.Show(True)
 		self.Show(True)
+
+	def clearPlot(self):
+		if hasattr(self,'circlePlot'):
+			
+			self.circlePlot.pop().remove()
+			self.centerPlot.pop().remove()
+
+			self.ax.grid()
+			for coll in self.residuContour.collections:
+				self.ax.collections.remove(coll)
+			for coll in self.residuColors.collections:
+				self.ax.collections.remove(coll)
 
 class IntrinsicsPanel(wx.Panel):
 
