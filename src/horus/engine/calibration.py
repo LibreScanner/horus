@@ -66,7 +66,9 @@ class Calibration:
 	def solvePnp(self,image):
 		
 		gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-		retval,corners=cv2.findChessboardCorners(gray,(self.patternColumns,self.patternRows))
+		# the fast check flag reduces significantly the computation time if the pattern is out of sight 
+		retval,corners=cv2.findChessboardCorners(gray,(self.patternColumns,self.patternRows),flags=cv2.CALIB_CB_FAST_CHECK)
+		
 		if retval:
 			cv2.cornerSubPix(gray,corners,winSize=(11,11),zeroZone=(-1,-1),criteria=self.criteria)
 			ret,rvecs,tvecs=cv2.solvePnP(self.objpoints,corners,self._calMatrix,self._distortionVector)
@@ -120,7 +122,6 @@ class Calibration:
 		self.z2D=z2D
 		center,_=optimize.leastsq(self.f, self.centerEstimate)
 		Ri     = self.calc_R(*center)
-		print Ri
 		return Ri,center
 
 	def calc_R(self,xc, zc):

@@ -440,6 +440,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
+		self.stopExtrinsicSamples=20
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
@@ -501,12 +502,14 @@ class ExtrinsicCalibrationPanel(Page):
 		self.scanner.device.setMotorCCW()
 		
 		self.addToPlot(frame)
+		if len(self.calibration.transVectors)> self.stopExtrinsicSamples:
+			self.calibrationTimer.Stop()
 
 	def OnKeyPress(self,event):
 		if not self.loaded:
 			self.scanner.connect()
 			self.timer.Start(milliseconds=150)
-			# self.calibrationTimer.Start(milliseconds=1000)
+			self.calibrationTimer.Start(milliseconds=500)
 			self.loaded=True
 			self.start(0)
 			print event.GetKeyCode()
@@ -577,14 +580,13 @@ class ExtrinsicCalibrationPanel(Page):
 
 		x_fit2 = self.xc + self.R*np.cos(theta_fit)
 		z_fit2 = self.zc + self.R*np.sin(theta_fit)
-		print type(self.ax)
+
 		
 		self.clearPlot()
 			
 		self.circlePlot=self.ax.plot(x_fit2, z_fit2, 'k--', lw=2)
-		# print self.ax.get_children()
+	
 		self.centerPlot=self.ax.plot([self.xc], [self.zc], 'gD', mec='r', mew=1)
-
 
 		# plot the residu fields
 		nb_pts = 100
@@ -611,16 +613,12 @@ class ExtrinsicCalibrationPanel(Page):
 		
 		self.residuColors=self.ax.contour (xg.flat, zg.flat, residu.T, lvl, alpha=0.8, colors="lightblue")
 
-		# plot data
+		# plot the data
 		self.ax.plot(self.x2D, self.z2D, 'ro', label='Pattern corner', ms=8, mec='b', mew=1)
 		# self.legend=self.ax.legend(loc='best',labelspacing=0.1 )
 
-		# self.ax.set_xlim(xmin=(self.xc-self.R)*1.05, xmax=(self.xc+self.R)*1.05)
-		# self.ax.set_ylim(ymin=(self.zc-self.R)*1.05, ymax=(self.zc+self.R)*1.05)
-
 		self.ax.grid()
 
-		# self.canvas.draw()
 		self.on_size(0)
 	
 	def on_size(self,event):
@@ -633,7 +631,7 @@ class ExtrinsicCalibrationPanel(Page):
 			self.ax.set_xlim(xmin=(self.xc-self.R)*1.05, xmax=(self.xc+self.R)*1.05)
 			self.ax.set_ylim(ymin=(self.zc-self.R)/1.05, ymax=(self.zc+self.R)*1.05)
 		self.canvas.draw()
-		event.Skip()
+		
 	def hide(self):
 		if hasattr(self,'canvas'):
 			self.canvas.Show(False)
