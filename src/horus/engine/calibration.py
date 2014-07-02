@@ -30,6 +30,7 @@ __license__ = u"GNU General Public License v3 http://www.gnu.org/licenses/gpl.ht
 import cv2
 import numpy as np
 from scipy import optimize  
+from horus.util import profile
 
 class Calibration:
 	"""Calibration class. For managing calibration"""
@@ -37,7 +38,7 @@ class Calibration:
 
 		self._calMatrix=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
 		self._calMatrixDefault=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
-		
+		print type(self._calMatrix)
 		self._distortionVector= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
 		self._distortionVectorDefault= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
 		
@@ -130,3 +131,44 @@ class Calibration:
 	def f(self,c):
 		Ri = self.calc_R(*c)
 		return Ri - Ri.mean()
+
+	def updateProfileToAllControls(self):
+		profile.resetProfileSetting('calibration_matrix')
+		self._calMatrix=profile.getProfileSettingNumpy('calibration_matrix')
+
+		# self._calMatrixDefault=profile.getDefaultProfileSettingNumpy('calibration_matrix')
+		self._distortionVector=profile.getProfileSettingNumpy('distortion_vector')
+
+		self._rotMatrix=profile.getProfileSettingNumpy('rotation_matrix')
+		# self._rotMatrixDefault=profile.getDefaultProfileSettingNumpy('rotation_matrix')
+
+		self._transMatrix=profile.getProfileSettingNumpy('translation_vector')		
+
+	def restoreCalibrationMatrix(self):
+		profile.resetProfileSetting('calibration_matrix')
+		self._calMatrix=profile.getProfileSettingNumpy('calibration_matrix')
+
+	def restoreDistortionVector(self):
+		profile.resetProfileSetting('distortion_vector')
+		self._distortionVector=profile.getProfileSettingNumpy('distortion_vector')
+
+	def restoreRotationMatrix(self):
+		profile.resetProfileSetting('rotation_matrix')
+		self._rotMatrix=profile.getProfileSettingNumpy('rotation_matrix')
+
+	def restoreTranslationVector(self):
+		profile.resetProfileSetting('translation_vector')
+		self._transMatrix=profile.getProfileSettingNumpy('translation_vector')
+
+	def saveCalibrationMatrix(self):
+		profile.putProfileSetting('calibration_matrix',self._calMatrix)
+
+	def saveDistortionVector(self):
+		profile.putProfileSetting('distortion_vector',self._distortionVector)
+
+	def saveRotationMatrix(self):
+		profile.putProfileSetting('rotation_matrix',self._rotMatrix)
+		print profile.getProfileSettingNumpy('rotation_matrix')
+
+	def saveTranslationVector(self):
+		profile.putProfileSetting('translation_vector',self._transMatrix)

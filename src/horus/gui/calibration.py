@@ -46,7 +46,6 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 import cv2
 
-import weakref
 import matplotlib.cm as cm  
 import matplotlib.colors as colors
 
@@ -661,12 +660,13 @@ class IntrinsicsPanel(wx.Panel):
 		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
 		self.parent=parent
 		self.calibration=calibration
+		self.calibration.updateProfileToAllControls()
 		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] # TODO connect with scanner's calibration matrix
 		self._calMatrix=parent.parent.calibration._calMatrix
-		self._calMatrixDefault=parent.parent.calibration._calMatrixDefault
+		
 		self._vDistortionVector=["k1=","k2=","p1=","p2=","k3="] 
 		self._distortionVector=parent.parent.calibration._distortionVector
-		self._distortionVectorDefault=parent.parent.calibration._distortionVectorDefault
+		
 		self._editControl=False  # True means editing state
 		self.load()
 		
@@ -779,23 +779,10 @@ class IntrinsicsPanel(wx.Panel):
 
 	def restore(self,event):
 		print "restore"
-		for i in range(len(self._visualMatrix)):
-			for j in range(len(self._visualMatrix[0])):
+		self.calibration.restoreCalibrationMatrix()
+		self.calibration.restoreDistortionVector()
+		self.reload()
 
-				self._calMatrix.itemset((i,j),self._calMatrixDefault[i][j])
-				self._visualCtrlMatrix[i][j].SetValue(str(self._calMatrixDefault[i][j]))
-				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
-		
-				self._visualMatrix[i][j].SetLabel(label)
-		for i in range(len(self._vDistortionVector)):
-			
-			self._distortionVector.itemset((i),self._distortionVectorDefault[i])
-			self._visualCtrlDistortionVector[i].SetValue(str(self._distortionVectorDefault[i]))
-			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
-			self._visualDistortionVector[i].SetLabel(label)
-
-			
-		self.Layout()
 
 	def edit(self,event):
 		print "edit"
@@ -855,6 +842,7 @@ class IntrinsicsPanel(wx.Panel):
 			self._visualCtrlDistortionVector[i].SetValue(str(self._distortionVector[i]))
 			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
 			self._visualDistortionVector[i].SetLabel(label)	
+
 		self.Layout()
 
 class ExtrinsicsPanel(wx.Panel):
@@ -863,13 +851,10 @@ class ExtrinsicsPanel(wx.Panel):
 		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
 		self.parent=parent
 		self.calibration=calibration
-		self._vRotMatrix= [["r11=","r12=","r13="],["r21=","r22=","r23="],["r31=","r32=","r33="]] # TODO connect with scanner's calibration matrix
-		self._rotMatrix=parent.parent.calibration._rotMatrix
-		self._rotMatrixDefault=parent.parent.calibration._rotMatrixDefault
-
+		self._vRotMatrix= [["r11=","r12=","r13="],["r21=","r22=","r23="],["r31=","r32=","r33="]] 
+		
 		self._vTransMatrix= [["t1="],["t2="],["t3="]] # TODO connect with scanner's calibration matrix
-		self._transMatrix=parent.parent.calibration._transMatrix
-		self._transMatrixDefault=parent.parent.calibration._transMatrixDefault
+
 		self._editControl=False
 
 		self.load()
@@ -907,7 +892,7 @@ class ExtrinsicsPanel(wx.Panel):
 
 		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
 
-		#camera matrix
+		#rotation matrix
 		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
 		self.transMatrixTitle=wx.StaticBox(self,label=_("Translation Matrix"))
 		self.transMatrixTitle.SetFont(font)
@@ -920,8 +905,8 @@ class ExtrinsicsPanel(wx.Panel):
 		for j in range(len(self._vRotMatrix[0])):
 			vbox2 = wx.BoxSizer(wx.VERTICAL)  
 			for i in range (len(self._vRotMatrix)):
-				label=str(self._vRotMatrix[i][j])+ str(self._rotMatrix[i][j])
-				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self._rotMatrix[i][j]))
+				label=str(self._vRotMatrix[i][j])+ str(self.calibration._rotMatrix[i][j])
+				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self.calibration._rotMatrix[i][j]))
 				
 				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
 				vbox2.Add(self._visualMatrix[i][j],0,wx.ALL,20)
@@ -932,8 +917,8 @@ class ExtrinsicsPanel(wx.Panel):
 		vbox2 = wx.BoxSizer(wx.VERTICAL)
 		for j in range(len(self._vTransMatrix)):
 			print self._vTransMatrix
-			label=str(self._vTransMatrix[j][0])+ str(self._transMatrix[j][0])
-			self._visualCtrlMatrix[j][3]=wx.TextCtrl(self,-1,str(self._transMatrix[j][0]))
+			label=str(self._vTransMatrix[j][0])+ str(self.calibration._transMatrix[j][0])
+			self._visualCtrlMatrix[j][3]=wx.TextCtrl(self,-1,str(self.calibration._transMatrix[j][0]))
 				
 			self._visualMatrix[j][3]= wx.StaticText(self,label=label)
 			self._visualCtrlMatrix[j][3].Show(False)
@@ -967,25 +952,14 @@ class ExtrinsicsPanel(wx.Panel):
 	def start(self,event):
 		self.parent.parent.loadExtrinsicCalibrationPanel(0)
 	def restore(self,event):
+
 		print "restore"
-		for i in range(len(self._visualMatrix)):
-			for j in range(len(self._visualMatrix[0])-1):
-
-				self._rotMatrix.itemset((i,j),self._rotMatrixDefault[i][j])
-				self._visualCtrlMatrix[i][j].SetValue(str(self._rotMatrixDefault[i][j]))
-				label=str(self._vRotMatrix[i][j]) + str(self._rotMatrix[i][j])
+		self.calibration.restoreRotationMatrix()
+		self.calibration.restoreTranslationVector()
 		
-				self._visualMatrix[i][j].SetLabel(label)
-		for j in range(len(self._vTransMatrix)):
-			
-			self._transMatrix.itemset((j),self._transMatrixDefault[j])
-			print j
-			self._visualCtrlMatrix[j][3].SetValue(str(self._transMatrixDefault[j][0]))
-			label=str(self._vTransMatrix[j][0])+str(self._transMatrix[j][0])
-			self._visualMatrix[j][3].SetLabel(label)
+		self.reload()
 
-			
-			self.Layout()
+		
 
 	def edit(self,event):
 		print "edit"
@@ -996,21 +970,20 @@ class ExtrinsicsPanel(wx.Panel):
 					self._visualCtrlMatrix[i][j].Show(False)
 					self._visualMatrix[i][j].Show(True)
 					self._editControl=False
-					self._rotMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
+					self.calibration._rotMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
 					
-					label=str(self._vRotMatrix[i][j]) + str(self._rotMatrix[i][j])
-			
+					label=str(self._vRotMatrix[i][j]) + str(self.calibration._rotMatrix[i][j])		
 					self._visualMatrix[i][j].SetLabel(label)
 			for j in range(len(self._vTransMatrix)):
 				
 				self._visualMatrix[j][3].Show(True)
 				self._visualCtrlMatrix[j][3].Show(False)
-				self._transMatrix.itemset((j),self._visualCtrlMatrix[j][3].GetValue())
-				label=str(self._vTransMatrix[j][0])+str(self._transMatrix[j][0])
+				self.calibration._transMatrix.itemset((j),self._visualCtrlMatrix[j][3].GetValue())
+				label=str(self._vTransMatrix[j][0])+str(self.calibration._transMatrix[j][0])
 				self._visualMatrix[j][3].SetLabel(label)
 
-
-			
+			self.calibration.saveRotationMatrix()
+			self.calibration.saveTranslationVector()
 			self.Layout()
 		else:
 			for i in range(len(self._visualMatrix)):
@@ -1031,3 +1004,19 @@ class ExtrinsicsPanel(wx.Panel):
 		image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
 		result = wx.BitmapFromImage(image)
 		return result
+
+	def reload(self):
+		for i in range(len(self._visualMatrix)):
+			for j in range(len(self._visualMatrix[0])-1):
+
+				self._visualCtrlMatrix[i][j].SetValue(str(self.calibration._rotMatrix[i][j]))
+				label=str(self._vRotMatrix[i][j]) + str(self.calibration._rotMatrix[i][j])
+		
+				self._visualMatrix[i][j].SetLabel(label)
+		for j in range(len(self._vTransMatrix)):
+			
+			self._visualCtrlMatrix[j][3].SetValue(str(self.calibration._transMatrix[j][0]))
+			label=str(self._vTransMatrix[j][0])+str(self.calibration._transMatrix[j][0])
+			self._visualMatrix[j][3].SetLabel(label)
+
+		self.Layout()
