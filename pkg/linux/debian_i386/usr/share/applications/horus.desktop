@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Horus
+Comment=Horus
+Icon=/usr/share/horus/res/images/horus.png
+Exec=/usr/bin/python /usr/share/horus/src/horus.py
+Path=/usr/share/horus/
+StartupNotify=true
+Terminal=false
+Categories=GNOME;GTK;Utility;

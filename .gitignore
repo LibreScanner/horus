@@ -1,2 +1,10 @@
-*.pyc
 *~
+*.swp
+*.tar.bz2
+*.tar.gz
+*.7z
+*.pyc
+*.po~
+*.deb
+.idea
+pkg/linux/debian_*/usr/share/horus*

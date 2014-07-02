@@ -27,6 +27,21 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+
+try:
+    import serial
+    import OpenGL
+    import numpy
+    import scipy
+    import matplotlib
+    import cv2
+    import wx
+except ImportError as e:
+    module = e.message.lstrip('No module named ')
+    print "Requires " + module
+    #print "Try sudo apt-get install " + module
+    exit(1)
+
 from horus.gui import app
 
 def main():
