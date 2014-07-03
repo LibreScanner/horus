@@ -32,7 +32,7 @@ from horus.gui.util.page import *
 from horus.gui.util.videoView import *
 from horus.util import resources
 
-
+import wx.lib.scrolledpanel
 
 import random
 import numpy as np
@@ -68,8 +68,8 @@ class CalibrationWorkbench(Workbench):
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
-		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,40)
+		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
+		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
 		self._panel.SetSizer(hbox)
 
 		# self.loadExtrinsicCalibrationPanel(0)
@@ -205,7 +205,7 @@ class PatternPanel(Page):
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
-		self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY)
 		hbox= wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.gridPanel,5,wx.EXPAND|wx.ALL,1)
@@ -527,7 +527,7 @@ class ExtrinsicCalibrationPanel(Page):
 	def start(self,event):
 		self.guideView.Show(False)
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
-		self.plot2DPanel=wx.Panel(self._upPanel, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		self.plot2DPanel=wx.Panel(self._upPanel, id=wx.ID_ANY)
 		
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
@@ -650,25 +650,25 @@ class ExtrinsicCalibrationPanel(Page):
 			for coll in self.residuColors.collections:
 				self.ax.collections.remove(coll)
 
-class IntrinsicsPanel(wx.Panel):
+class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 	def __init__(self,parent,calibration):
 
-		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, id=wx.ID_ANY)
+
 		self.parent=parent
 		self.calibration=calibration
 		self.calibration.updateProfileToAllControls()
-		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] 
+		self._vCalMatrix= [["fx=","","cx="],["","fy=","cy="],["","",""]] 
 		
 		self._vDistortionVector=["k1=","k2=","p1=","p2=","k3="] 
 	
 		self._editControl=False  # True means editing state
 		self.load()
-		
+		self.SetupScrolling()
 
 	def load(self):
 
-		# self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
 		# toolbar
 		self._intrinsicTitle=wx.StaticText(self,label=_("Step 1: Intrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
@@ -721,12 +721,12 @@ class IntrinsicsPanel(wx.Panel):
 
 				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self.calibration._calMatrix[i][j]))
 
-				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND|wx.ALL,20)
+				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND|wx.TOP,27)
 				
-				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND|wx.ALL,15)
+				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND|wx.TOP,15)
 				self._visualCtrlMatrix[i][j].Show(False)
 			
-			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
+			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,5)
 
 		boxSizer.Add((-1,50),0,wx.ALL,5)
 
@@ -738,16 +738,24 @@ class IntrinsicsPanel(wx.Panel):
 		boxSizer = wx.StaticBoxSizer(self._distortionCoeffStaticText,wx.VERTICAL)
 
 		vboxAux= wx.BoxSizer(wx.VERTICAL)
+		hboxRow1=wx.BoxSizer(wx.HORIZONTAL)
+		hboxRow2=wx.BoxSizer(wx.HORIZONTAL)
 		self._visualDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
 		self._visualCtrlDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
 		for i in range(len(self._vDistortionVector)):
 			label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
 			self._visualDistortionVector[i]=wx.StaticText(self,label=label)
 			self._visualCtrlDistortionVector[i]=wx.TextCtrl(self,value=str(self.calibration._distortionVector[i]))
-			vboxAux.Add( self._visualCtrlDistortionVector[i],0,wx.ALL|wx.EXPAND,14)
 			self._visualCtrlDistortionVector[i].Show(False)
-			vboxAux.Add( self._visualDistortionVector[i],0,wx.ALL|wx.EXPAND,20)
-
+			if i<3:	
+				hboxRow1.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
+				hboxRow1.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
+			else:
+				hboxRow2.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
+				hboxRow2.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
+		hboxRow2.Add( (-1,-1),1,wx.ALL|wx.EXPAND,5)
+		vboxAux.Add(hboxRow1,0,wx.EXPAND|wx.TOP,15)
+		vboxAux.Add(hboxRow2,0,wx.EXPAND|wx.TOP,15)
 		boxSizer.Add(vboxAux,-1,wx.EXPAND,0)
 
 		vbox.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,30)
@@ -802,7 +810,7 @@ class IntrinsicsPanel(wx.Panel):
 			self._editControl=False
 			self.calibration.saveCalibrationMatrix()
 			self.calibration.saveDistortionVector()
-			self.Layout()
+			
 		else:
 			for i in range(len(self._visualMatrix)):
 				for j in range(len(self._visualMatrix[0])):
@@ -814,7 +822,7 @@ class IntrinsicsPanel(wx.Panel):
 			for i in range(len(self._vDistortionVector)):
 				self._visualDistortionVector[i].Show(False)
 				self._visualCtrlDistortionVector[i].Show(True)
-			self.Layout()
+		self.Layout()
 				
 	def save(self,event):
 		print "save"
@@ -840,10 +848,10 @@ class IntrinsicsPanel(wx.Panel):
 
 		self.Layout()
 
-class ExtrinsicsPanel(wx.Panel):
+class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 	def __init__(self,parent,calibration):
-		wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, id=wx.ID_ANY)
 		self.parent=parent
 		self.calibration=calibration
 		self._vRotMatrix= [["r11=","r12=","r13="],["r21=","r22=","r23="],["r31=","r32=","r33="]] 
@@ -853,9 +861,9 @@ class ExtrinsicsPanel(wx.Panel):
 		self._editControl=False
 
 		self.load()
+		self.SetupScrolling()
+
 	def load(self):
-		# self.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))
-		self.SetBackgroundColour((255,255,255))
 		self._extrinsicTitle=wx.StaticText(self,label=_("Step 2: Extrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
 		
@@ -889,7 +897,7 @@ class ExtrinsicsPanel(wx.Panel):
 
 		#rotation matrix
 		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
-		self.transMatrixTitle=wx.StaticBox(self,label=_("Translation Matrix"))
+		self.transMatrixTitle=wx.StaticBox(self,label=_("Transformation Matrix"))
 		self.transMatrixTitle.SetFont(font)
 		boxSizer = wx.StaticBoxSizer(self.transMatrixTitle,wx.HORIZONTAL)
 		boxSizer.Add((-1,50),0,wx.ALL,5)
@@ -904,10 +912,11 @@ class ExtrinsicsPanel(wx.Panel):
 				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self.calibration._rotMatrix[i][j]))
 				
 				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
-				vbox2.Add(self._visualMatrix[i][j],0,wx.ALL,20)
-				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND | wx.ALL,15)
+				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND |wx.TOP,27)
+				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND | wx.TOP,15)
+
 				self._visualCtrlMatrix[i][j].Show(False)
-			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
+			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,5)
 
 		vbox2 = wx.BoxSizer(wx.VERTICAL)
 		for j in range(len(self._vTransMatrix)):
@@ -917,16 +926,14 @@ class ExtrinsicsPanel(wx.Panel):
 				
 			self._visualMatrix[j][3]= wx.StaticText(self,label=label)
 			self._visualCtrlMatrix[j][3].Show(False)
-			vbox2.Add(self._visualCtrlMatrix[j][3],0,wx.EXPAND | wx.ALL,15)
-			vbox2.Add(self._visualMatrix[j][3],0,wx.ALL,20)
-		boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,0)
-		
+			vbox2.Add(self._visualMatrix[j][3],0,wx.EXPAND |wx.TOP,27)
+			vbox2.Add(self._visualCtrlMatrix[j][3],0,wx.EXPAND | wx.TOP,15)
 
+		boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,5)
 
 		boxSizer.Add((-1,50),0,wx.ALL,5)
 
 		vbox.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
-		
 
 		#buttons
 		self._startButton = wx.Button(self,label=_("Start"),size=(100,-1))
@@ -937,7 +944,6 @@ class ExtrinsicsPanel(wx.Panel):
 		
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
 		
-
 		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
 		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
 		vbox.Add(vboxAux,0,wx.EXPAND,0)
@@ -946,15 +952,12 @@ class ExtrinsicsPanel(wx.Panel):
 
 	def start(self,event):
 		self.parent.parent.loadExtrinsicCalibrationPanel(0)
+
 	def restore(self,event):
 
-		
 		self.calibration.restoreRotationMatrix()
-		self.calibration.restoreTranslationVector()
-		
+		self.calibration.restoreTranslationVector()		
 		self.reload()
-
-		
 
 	def edit(self,event):
 		"""Method for both saving and start editting"""
@@ -987,8 +990,7 @@ class ExtrinsicsPanel(wx.Panel):
 					
 					self._visualCtrlMatrix[i][j].Show(True)
 					self._visualMatrix[i][j].Show(False)
-					self._editControl=True
-					
+					self._editControl=True					
 			
 			self.Layout()
 
@@ -1007,8 +1009,8 @@ class ExtrinsicsPanel(wx.Panel):
 
 				self._visualCtrlMatrix[i][j].SetValue(str(self.calibration._rotMatrix[i][j]))
 				label=str(self._vRotMatrix[i][j]) + str(self.calibration._rotMatrix[i][j])
-		
 				self._visualMatrix[i][j].SetLabel(label)
+
 		for j in range(len(self._vTransMatrix)):
 			
 			self._visualCtrlMatrix[j][3].SetValue(str(self.calibration._transMatrix[j][0]))

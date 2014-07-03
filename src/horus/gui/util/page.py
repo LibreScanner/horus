@@ -36,7 +36,7 @@ class Page(wx.Panel):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		self._titlePanel = wx.Panel(self)
-		self._upPanel = wx.Panel(self, id=wx.ID_ANY,style=wx.SUNKEN_BORDER)
+		self._upPanel = wx.Panel(self, id=wx.ID_ANY)
 		self._downPanel = wx.Panel(self)
 		self._leftButton = wx.Button(self._downPanel, -1, left)
 		self._rightButton = wx.Button(self._downPanel, -1, right)

@@ -92,7 +92,7 @@ class Calibration:
 
 		gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
 		self.invertedShape=gray.shape[::-1]
-		retval,corners=cv2.findChessboardCorners(gray,(self.patternColumns,self.patternRows))
+		retval,corners=cv2.findChessboardCorners(gray,(self.patternColumns,self.patternRows),flags=cv2.CALIB_CB_FAST_CHECK)
 		if retval:
 			cv2.cornerSubPix(gray,corners,winSize=(11,11),zeroZone=(-1,-1),criteria=self.criteria)
 			self.imagePointsStack.append(corners)
