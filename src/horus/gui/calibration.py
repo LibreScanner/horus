@@ -59,16 +59,34 @@ class CalibrationWorkbench(Workbench):
 
 	def load(self):
 
-		# self.toolbar.AddLabelTool(wx.ID_EXIT, '', wx.Bitmap(resources.getPathForImage("connect.png")))
-		# self.toolbar.Realize()
+		#-- Toolbar Configuration
+
+		self.connectTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
+		self.disconnectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
+		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
+		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
+		self.snapshotTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
+		
+		#-- Disable Toolbar Items
+
+		self.enableLabelTool(self.connectTool      , True)
+		self.enableLabelTool(self.disconnectTool   , False)
+		self.enableLabelTool(self.playTool         , False)
+		self.enableLabelTool(self.stopTool         , False)
+		self.enableLabelTool(self.snapshotTool     , False)		
+
+		#-- Bind Toolbar Items
+
+		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked      , self.connectTool)
+		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , self.disconnectTool)
+		
+		self.toolbar.Realize()
 
 		self._panel.parent=self
 		self._intrinsicsPanel=IntrinsicsPanel(self._panel,self.calibration)
 		self._extrinsicsPanel=ExtrinsicsPanel(self._panel,self.calibration)
 
 		self.setLayout()
-
-		# self.loadExtrinsicCalibrationPanel(0)
 
 	def loadInit(self,event):
 		
@@ -126,6 +144,25 @@ class CalibrationWorkbench(Workbench):
 		self.initHbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
 		self._panel.SetSizer(self.initHbox)
 
+	def enableLabelTool(self, item, enable):
+		self.toolbar.EnableTool(item.GetId(), enable)
+
+	def onConnectToolClicked(self, event):
+		self.enableLabelTool(self.disconnectTool,True)
+		self.enableLabelTool(self.connectTool,False)
+		self.scanner.connect()
+
+	def onDisconnectToolClicked(self, event):
+		self.scanner.disconnect() # Not working camera disconnect :S
+
+		# TODO: Check disconnection
+		self.enableLabelTool(self.connectTool, True)
+		self.enableLabelTool(self.disconnectTool,False)
+		self.enableLabelTool(self.playTool    , False)
+		self.enableLabelTool(self.stopTool    , False)
+		self.enableLabelTool(self.snapshotTool, False)
+
+
 class PatternPanel(Page):
 	def __init__(self,parent,scanner,calibration):
 		Page.__init__(self,parent)
@@ -139,7 +176,7 @@ class PatternPanel(Page):
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
 
-		# self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePlot)
+		
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.calibrateCamera)
 		self.getRightButton().SetLabel("Calibrate!")
 		self.loaded=False
@@ -158,16 +195,6 @@ class PatternPanel(Page):
 		self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform captures moninas"))		
 		self._upPanel.SetSizer(hbox)
 
-		self.playTool= self.parent.parent.toolbar.AddLabelTool(wx.NewId(), _("Initialize camera"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-				
-		self.snapshotTool= self.parent.parent.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
-				
-		self.parent.parent.toolbar.Realize()
-
-		self.parent.parent.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
-				
-		self.parent.parent.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked, self.snapshotTool)
-
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
 		# cool hack: key event listener only works if the focus is in some elements like our videoview
 		self.videoView.SetFocus()
@@ -181,6 +208,7 @@ class PatternPanel(Page):
 		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
 		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
 		
+		
 		self.getTitlePanel().SetSizer(vbox)
 		self.setLayout()
 		
@@ -189,20 +217,34 @@ class PatternPanel(Page):
 		self.OnKeyPress(0)
 
 	def onSnapshotToolClicked(self, event):
-		
-		frame = self.scanner.camera.captureImage(False)
-		self.addToGrid(frame)
 
+		self.OnKeyPress(0)
+
+	def onStopToolClicked(self, event):
+		self.parent.parent.enableLabelTool(self.parent.parent.playTool, True)
+		self.parent.parent.enableLabelTool(self.parent.parent.stopTool, False)
+		self.timer.Stop()
+		self.videoView.setDefaultImage()
+		self.clear()
+		self.loaded=False
+		
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
 		self.videoView.setFrame(frame)
 
 	def OnKeyPress(self,event):
+		"""Key bindings: if it is not started, spacebar initialize the scanner"""
 		if not self.loaded:
-			self.scanner.connect()
+			if not self.scanner.isConnected:
+				self.scanner.connect()
+
 			self.timer.Start(milliseconds=150)
 			self.loaded=True
 			self.loadGrid()
+			
+			self.parent.parent.enableLabelTool(self.parent.parent.playTool, False)
+			self.parent.parent.enableLabelTool(self.parent.parent.stopTool, True)
+			self.parent.parent.enableLabelTool(self.parent.parent.snapshotTool, True)
 			
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
@@ -268,6 +310,12 @@ class PatternPanel(Page):
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
 		self.parent.Layout()
+
+		self.parent.parent.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.parent.parent.snapshotTool)
+		self.parent.parent.Bind(wx.EVT_TOOL, self.onPlayToolClicked , self.parent.parent.playTool)
+		self.parent.parent.Bind(wx.EVT_TOOL, self.onStopToolClicked , self.parent.parent.stopTool)
+
+		self.parent.parent.enableLabelTool(self.parent.parent.playTool, True)
 
 class PlotPanel(Page):
 	def __init__(self,parent,calibration):
@@ -464,16 +512,6 @@ class ExtrinsicCalibrationPanel(Page):
 		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
 		self.text=wx.StaticText(self.guideView,label=_("Place the pattern in the indicated position and press the space bar to perform captures moninas"))		
 		self._upPanel.SetSizer(hbox)
-
-		self.playTool= self.parent.parent.toolbar.AddLabelTool(wx.NewId(), _("Initialize camera"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-				
-		self.snapshotTool= self.parent.parent.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
-				
-		self.parent.parent.toolbar.Realize()
-
-		self.parent.parent.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
-				
-		self.parent.parent.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked, self.snapshotTool)
 
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
 		# cool hack: key event listener only works if the focus is in some elements like our videoview
@@ -688,7 +726,6 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 	def load(self):
 
-		# toolbar
 		self._intrinsicTitle=wx.StaticText(self,label=_("Step 1: Intrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
 		
