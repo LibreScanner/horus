@@ -66,11 +66,7 @@ class CalibrationWorkbench(Workbench):
 		self._intrinsicsPanel=IntrinsicsPanel(self._panel,self.calibration)
 		self._extrinsicsPanel=ExtrinsicsPanel(self._panel,self.calibration)
 
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-
-		hbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
-		hbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
-		self._panel.SetSizer(hbox)
+		self.setLayout()
 
 		# self.loadExtrinsicCalibrationPanel(0)
 
@@ -85,6 +81,8 @@ class CalibrationWorkbench(Workbench):
 		self._intrinsicsPanel.Show(True)
 		self._intrinsicsPanel.reload()
 		self._extrinsicsPanel.Show(True)
+		self._extrinsicsPanel.reload()
+		self.setLayout()
 
 	def loadPagePattern(self,event):
 		self._intrinsicsPanel.Show(False)
@@ -97,7 +95,9 @@ class CalibrationWorkbench(Workbench):
 				self._plotPanel.hide()
 
 			self._patternPanel.clear()
+			self._patternPanel.setLayout()
 			self._patternPanel.videoView.SetFocus()
+
 	def loadPagePlot(self,event):
 		self._patternPanel.Show(False)
 		if not hasattr(self,'_plotPanel'):
@@ -105,6 +105,8 @@ class CalibrationWorkbench(Workbench):
 		else:
 			self._plotPanel.reload()
 			self._plotPanel.show()
+			self._plotPanel.setLayout()
+	
 	def loadExtrinsicCalibrationPanel(self,event):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
@@ -115,6 +117,14 @@ class CalibrationWorkbench(Workbench):
 			self._extrinsicCalibrationPanel.guideView.Show(True)
 			self._extrinsicCalibrationPanel.videoView.SetFocus()
 			self._extrinsicCalibrationPanel.getRightButton().Bind(wx.EVT_BUTTON,self._extrinsicCalibrationPanel.start)
+			self._extrinsicCalibrationPanel.setLayout()
+
+	def setLayout(self):
+		self.initHbox = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.initHbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
+		self.initHbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
+		self._panel.SetSizer(self.initHbox)
 
 class PatternPanel(Page):
 	def __init__(self,parent,scanner,calibration):
@@ -172,11 +182,7 @@ class PatternPanel(Page):
 		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
 		
 		self.getTitlePanel().SetSizer(vbox)
-		self.Layout()
-		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
-		self.ghbox.Add(self,1,wx.EXPAND,0)
-		self.parent.SetSizer(self.ghbox)
-  		self.parent.parent.Layout()
+		self.setLayout()
 		
 	def onPlayToolClicked(self, event):
 		
@@ -256,6 +262,13 @@ class PatternPanel(Page):
 		self.calibration.calibrationFromImages()
 		self.parent.parent.loadPagePlot(0)
 
+	def setLayout(self):
+		print "resizing"
+		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.ghbox.Add(self,1,wx.EXPAND,0)
+		self.parent.SetSizer(self.ghbox)
+		self.parent.Layout()
+
 class PlotPanel(Page):
 	def __init__(self,parent,calibration):
 		Page.__init__(self,parent)
@@ -308,9 +321,7 @@ class PlotPanel(Page):
 			auxTestMatrix=np.hstack((x,y,z))
 			self.testMatrix=np.vstack((self.testMatrix,auxTestMatrix))
 		# plot the pattern
-		# for i in range(self.columns+self.rows+2):
-		# 	plotable=self.testMatrix[i*self.nPoints+1:i*self.nPoints+self.nPoints,:]
-		# 	self.ax.plot(plotable[:,0],plotable[:,2],plotable[:,1])
+		
 		self.printCanvas()
 		
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot monin"))
@@ -323,11 +334,9 @@ class PlotPanel(Page):
 		vbox.Add(self._subTitle,0,wx.TOP|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
 		
 		self.getTitlePanel().SetSizer(vbox)
-		self.Layout()
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self,1,wx.EXPAND,0)
-		self.parent.SetSizer(hbox)
-		self.parent.parent.Layout()
+		
+		self.setLayout()
+		
 
 	def on_size(self,event):
 		pix = self.getPanel().GetClientSize()
@@ -421,6 +430,12 @@ class PlotPanel(Page):
 		self.clearPlot()
 		self.load()
 
+	def setLayout(self):
+		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.ghbox.Add(self,1,wx.EXPAND,0)
+		self.parent.SetSizer(self.ghbox)
+		self.parent.Layout()
+
 class ExtrinsicCalibrationPanel(Page):
 	def __init__(self,parent,scanner,calibration):
 		Page.__init__(self,parent)
@@ -474,12 +489,10 @@ class ExtrinsicCalibrationPanel(Page):
 		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
 		
 		self.getTitlePanel().SetSizer(vbox)
-		self.Layout()
-		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
-		self.ghbox.Add(self,1,wx.EXPAND,0)
-		self.parent.SetSizer(self.ghbox)
+		
+		self.setLayout()
 
-		self.parent.parent.Layout()
+		
 	def onPlayToolClicked(self, event):
 		
 		self.scanner.connect()
@@ -649,6 +662,12 @@ class ExtrinsicCalibrationPanel(Page):
 				self.ax.collections.remove(coll)
 			for coll in self.residuColors.collections:
 				self.ax.collections.remove(coll)
+
+	def setLayout(self):
+		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.ghbox.Add(self,1,wx.EXPAND,0)
+		self.parent.SetSizer(self.ghbox)
+		self.parent.Layout()
 
 class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
