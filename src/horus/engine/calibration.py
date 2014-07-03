@@ -36,17 +36,16 @@ class Calibration:
 	"""Calibration class. For managing calibration"""
 	def __init__(self, parent):
 
-		self._calMatrix=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
-		self._calMatrixDefault=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
-		print type(self._calMatrix)
-		self._distortionVector= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
-		self._distortionVectorDefault= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
+		# self._calMatrix=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
+		# self._calMatrixDefault=np.array([[  1.39809096e+03  , 0.00000000e+00 ,  4.91502299e+02], [  0.00000000e+00 ,  1.43121118e+03  , 6.74406283e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
+		# self._distortionVector= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
+		# self._distortionVectorDefault= np.array([ 0.11892648 ,-0.24087801 , 0.01288427 , 0.00628766 , 0.01007653])
 		
-		self._rotMatrix=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
-		self._rotMatrixDefault=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
+		# self._rotMatrix=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
+		# self._rotMatrixDefault=np.array([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]])
 		
-		self._transMatrix=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
-		self._transMatrixDefault=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
+		# self._transMatrix=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
+		# self._transMatrixDefault=np.array([[  -5.56044557],[  73.33950448], [ 328.54553044]])
 		
 		self.patternRows=11 # points_per_column
 		self.patternColumns=6 # points_per_row
@@ -74,8 +73,7 @@ class Calibration:
 			cv2.cornerSubPix(gray,corners,winSize=(11,11),zeroZone=(-1,-1),criteria=self.criteria)
 			ret,rvecs,tvecs=cv2.solvePnP(self.objpoints,corners,self._calMatrix,self._distortionVector)
 			self.transVectors.append(tvecs)
-		else:
-			print "chessboard not found :("
+		
 		return retval
 
 
@@ -84,11 +82,11 @@ class Calibration:
 			del self.rvecs[:]
 			del self.tvecs[:]
 		ret,self._calMatrix,self._distortionVector,self.rvecs,self.tvecs = cv2.calibrateCamera(self.objPointsStack,self.imagePointsStack,self.invertedShape)
-		print "Camera matrix: ",self._calMatrix
+		# print "Camera matrix: ",self._calMatrix
 		self._distortionVector=self._distortionVector[0]
-		print "Distortion coefficients: ", self._distortionVector
-		print "Rotation matrix: ",self.rvecs
-		print "Translation matrix: ",self.tvecs
+		# print "Distortion coefficients: ", self._distortionVector
+		# print "Rotation matrix: ",self.rvecs
+		# print "Translation matrix: ",self.tvecs
 
 	def detectPrintChessboard(self,image):
 
@@ -101,8 +99,6 @@ class Calibration:
 			self.objPointsStack.append(self.objpoints)
 			cv2.drawChessboardCorners(image,(self.patternColumns,self.patternRows),corners,retval)
 			
-		else:
-			print "chessboard not found :("
 		return image,retval
 
 	def generateObjectPoints(self,patternColumns,patternRows,squareWidth):
@@ -133,15 +129,13 @@ class Calibration:
 		return Ri - Ri.mean()
 
 	def updateProfileToAllControls(self):
-		profile.resetProfileSetting('calibration_matrix')
+
 		self._calMatrix=profile.getProfileSettingNumpy('calibration_matrix')
 
-		# self._calMatrixDefault=profile.getDefaultProfileSettingNumpy('calibration_matrix')
 		self._distortionVector=profile.getProfileSettingNumpy('distortion_vector')
 
 		self._rotMatrix=profile.getProfileSettingNumpy('rotation_matrix')
-		# self._rotMatrixDefault=profile.getDefaultProfileSettingNumpy('rotation_matrix')
-
+		
 		self._transMatrix=profile.getProfileSettingNumpy('translation_vector')		
 
 	def restoreCalibrationMatrix(self):
@@ -161,14 +155,14 @@ class Calibration:
 		self._transMatrix=profile.getProfileSettingNumpy('translation_vector')
 
 	def saveCalibrationMatrix(self):
-		profile.putProfileSetting('calibration_matrix',self._calMatrix)
+		profile.putProfileSettingNumpy('calibration_matrix',self._calMatrix)
 
 	def saveDistortionVector(self):
-		profile.putProfileSetting('distortion_vector',self._distortionVector)
+		profile.putProfileSettingNumpy('distortion_vector',self._distortionVector)
 
 	def saveRotationMatrix(self):
-		profile.putProfileSetting('rotation_matrix',self._rotMatrix)
-		print profile.getProfileSettingNumpy('rotation_matrix')
+		profile.putProfileSettingNumpy('rotation_matrix',self._rotMatrix)
+		
 
 	def saveTranslationVector(self):
-		profile.putProfileSetting('translation_vector',self._transMatrix)
+		profile.putProfileSettingNumpy('translation_vector',self._transMatrix)

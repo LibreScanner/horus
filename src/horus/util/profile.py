@@ -657,7 +657,7 @@ def getMachineSizePolygons():
 def getProfileSettingNumpy(name):
 	try:
 		setting = getProfileSetting(name)
-		print 'sexy setting',setting
+
 		return numpy.array(eval(setting, {}, {}))
 	except:
 		return False
@@ -669,4 +669,12 @@ def getProfileSettingNumpy(name):
 # 	except:
 # 		return False
 
-
+def putProfileSettingNumpy(name,value):
+	# Continuar Aquí!
+	reprValue=repr(value)
+	reprValue=reprValue.replace('\n','')
+	reprValue=reprValue.replace('array(','')
+	reprValue=reprValue.replace(')','')
+	reprValue=reprValue.replace(' ','')
+	# print reprValue,type(reprValue)
+	putProfileSetting(name,reprValue)

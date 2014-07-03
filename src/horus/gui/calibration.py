@@ -197,7 +197,7 @@ class PatternPanel(Page):
 			self.timer.Start(milliseconds=150)
 			self.loaded=True
 			self.loadGrid()
-			print event.GetKeyCode()
+			
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
 			frame,retval= self.calibration.detectPrintChessboard(frame)
@@ -242,7 +242,6 @@ class PatternPanel(Page):
 		if hasattr(self,'panelGrid'):
 			for panel in self.panelGrid:
 				panel.Destroy()
-				print "Destroy the panel"
 			self.loadGrid()
 		self.currentGrid=0
 		self.calibration.clearData()
@@ -313,7 +312,7 @@ class PlotPanel(Page):
 		# 	plotable=self.testMatrix[i*self.nPoints+1:i*self.nPoints+self.nPoints,:]
 		# 	self.ax.plot(plotable[:,0],plotable[:,2],plotable[:,1])
 		self.printCanvas()
-		print "loading plot"
+		
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot monin"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
@@ -511,7 +510,7 @@ class ExtrinsicCalibrationPanel(Page):
 			self.calibrationTimer.Start(milliseconds=500)
 			self.loaded=True
 			self.start(0)
-			print event.GetKeyCode()
+			
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
 			self.scanner.device.setMotorCCW()
@@ -521,9 +520,7 @@ class ExtrinsicCalibrationPanel(Page):
 	def addToPlot(self,image):
 		retval=self.calibration.solvePnp(image)
 		if (retval and (len(self.calibration.transVectors)>1)):
-
-			self.plot()
-			
+			self.plot()			
 		else:
 			print "Pattern not found"
 
@@ -661,12 +658,10 @@ class IntrinsicsPanel(wx.Panel):
 		self.parent=parent
 		self.calibration=calibration
 		self.calibration.updateProfileToAllControls()
-		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] # TODO connect with scanner's calibration matrix
-		self._calMatrix=parent.parent.calibration._calMatrix
+		self._vCalMatrix= [["fx= ","","cx= "],["","fy= ","cy= "],["","",""]] 
 		
 		self._vDistortionVector=["k1=","k2=","p1=","p2=","k3="] 
-		self._distortionVector=parent.parent.calibration._distortionVector
-		
+	
 		self._editControl=False  # True means editing state
 		self.load()
 		
@@ -720,11 +715,11 @@ class IntrinsicsPanel(wx.Panel):
 			vbox2 = wx.BoxSizer(wx.VERTICAL)  
 
 			for i in range (len(self._vCalMatrix)):
-				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
+				label=str(self._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
 			
 				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
 
-				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self._calMatrix[i][j]))
+				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self.calibration._calMatrix[i][j]))
 
 				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND|wx.ALL,20)
 				
@@ -743,12 +738,12 @@ class IntrinsicsPanel(wx.Panel):
 		boxSizer = wx.StaticBoxSizer(self._distortionCoeffStaticText,wx.VERTICAL)
 
 		vboxAux= wx.BoxSizer(wx.VERTICAL)
-		self._visualDistortionVector=[0 for j in range(len(self._distortionVector))]
-		self._visualCtrlDistortionVector=[0 for j in range(len(self._distortionVector))]
+		self._visualDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
+		self._visualCtrlDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
 		for i in range(len(self._vDistortionVector)):
-			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
+			label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
 			self._visualDistortionVector[i]=wx.StaticText(self,label=label)
-			self._visualCtrlDistortionVector[i]=wx.TextCtrl(self,value=str(self._distortionVector[i]))
+			self._visualCtrlDistortionVector[i]=wx.TextCtrl(self,value=str(self.calibration._distortionVector[i]))
 			vboxAux.Add( self._visualCtrlDistortionVector[i],0,wx.ALL|wx.EXPAND,14)
 			self._visualCtrlDistortionVector[i].Show(False)
 			vboxAux.Add( self._visualDistortionVector[i],0,wx.ALL|wx.EXPAND,20)
@@ -774,38 +769,39 @@ class IntrinsicsPanel(wx.Panel):
 		self.SetSizer(vbox)
 		
 	def start(self,event):
-		# print self.parent
+		
 		self.parent.parent.loadPagePattern(0)
 
 	def restore(self,event):
-		print "restore"
+		
 		self.calibration.restoreCalibrationMatrix()
 		self.calibration.restoreDistortionVector()
 		self.reload()
 
 
 	def edit(self,event):
-		print "edit"
+		
 		if self._editControl:
 			for i in range(len(self._visualMatrix)):
 				for j in range(len(self._visualMatrix[0])):
 					
 					self._visualCtrlMatrix[i][j].Show(False)
 					self._visualMatrix[i][j].Show(True)
-					self._editControl=False
-					self._calMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
-					label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
+					
+					self.calibration._calMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
+					label=str(self._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
 			
 					self._visualMatrix[i][j].SetLabel(label)
 			for i in range(len(self._vDistortionVector)):
 				
 				self._visualDistortionVector[i].Show(True)
 				self._visualCtrlDistortionVector[i].Show(False)
-				self._distortionVector.itemset((i),self._visualCtrlDistortionVector[i].GetValue())
-				label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
+				self.calibration._distortionVector.itemset((i),self._visualCtrlDistortionVector[i].GetValue())
+				label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
 				self._visualDistortionVector[i].SetLabel(label)
-
-			
+			self._editControl=False
+			self.calibration.saveCalibrationMatrix()
+			self.calibration.saveDistortionVector()
 			self.Layout()
 		else:
 			for i in range(len(self._visualMatrix)):
@@ -813,7 +809,7 @@ class IntrinsicsPanel(wx.Panel):
 					
 					self._visualCtrlMatrix[i][j].Show(True)
 					self._visualMatrix[i][j].Show(False)
-					self._editControl=True
+			self._editControl=True
 					
 			for i in range(len(self._vDistortionVector)):
 				self._visualDistortionVector[i].Show(False)
@@ -828,19 +824,18 @@ class IntrinsicsPanel(wx.Panel):
 		result = wx.BitmapFromImage(image)
 		return result
 	def reload(self):
-		self._calMatrix=self.calibration._calMatrix
-		self._distortionVector=self.calibration._distortionVector
+		
 		for i in range(len(self._visualMatrix)):
 			for j in range(len(self._visualMatrix[0])):
 
-				self._visualCtrlMatrix[i][j].SetValue(str(self._calMatrix[i][j]))
-				label=str(self._vCalMatrix[i][j]) + str(self._calMatrix[i][j])
+				self._visualCtrlMatrix[i][j].SetValue(str(self.calibration._calMatrix[i][j]))
+				label=str(self._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
 				self._visualMatrix[i][j].SetLabel(label)
 
 		for i in range(len(self._vDistortionVector)):
 			
-			self._visualCtrlDistortionVector[i].SetValue(str(self._distortionVector[i]))
-			label=str(self._vDistortionVector[i])+str(self._distortionVector[i])
+			self._visualCtrlDistortionVector[i].SetValue(str(self.calibration._distortionVector[i]))
+			label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
 			self._visualDistortionVector[i].SetLabel(label)	
 
 		self.Layout()
@@ -916,7 +911,7 @@ class ExtrinsicsPanel(wx.Panel):
 
 		vbox2 = wx.BoxSizer(wx.VERTICAL)
 		for j in range(len(self._vTransMatrix)):
-			print self._vTransMatrix
+			
 			label=str(self._vTransMatrix[j][0])+ str(self.calibration._transMatrix[j][0])
 			self._visualCtrlMatrix[j][3]=wx.TextCtrl(self,-1,str(self.calibration._transMatrix[j][0]))
 				
@@ -953,7 +948,7 @@ class ExtrinsicsPanel(wx.Panel):
 		self.parent.parent.loadExtrinsicCalibrationPanel(0)
 	def restore(self,event):
 
-		print "restore"
+		
 		self.calibration.restoreRotationMatrix()
 		self.calibration.restoreTranslationVector()
 		
@@ -962,7 +957,8 @@ class ExtrinsicsPanel(wx.Panel):
 		
 
 	def edit(self,event):
-		print "edit"
+		"""Method for both saving and start editting"""
+		
 		if self._editControl:
 			for i in range(len(self._visualMatrix)):
 				for j in range(len(self._visualMatrix[0])-1):
