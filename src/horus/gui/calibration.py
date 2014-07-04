@@ -7,7 +7,7 @@
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
 # Date: June 2014                                                       #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
+# Author: Carlos Crespo <carlos.crespo@bq.com   	                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
@@ -63,18 +63,12 @@ class CalibrationWorkbench(Workbench):
 
 		self.connectTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
 		self.disconnectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
-		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.snapshotTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
 		
 		#-- Disable Toolbar Items
 
 		self.enableLabelTool(self.connectTool      , True)
 		self.enableLabelTool(self.disconnectTool   , False)
-		self.enableLabelTool(self.playTool         , False)
-		self.enableLabelTool(self.stopTool         , False)
-		self.enableLabelTool(self.snapshotTool     , False)		
-
+		
 		#-- Bind Toolbar Items
 
 		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked      , self.connectTool)
@@ -158,32 +152,28 @@ class CalibrationWorkbench(Workbench):
 		# TODO: Check disconnection
 		self.enableLabelTool(self.connectTool, True)
 		self.enableLabelTool(self.disconnectTool,False)
-		self.enableLabelTool(self.playTool    , False)
-		self.enableLabelTool(self.stopTool    , False)
-		self.enableLabelTool(self.snapshotTool, False)
-
-
+		self.loadInit(0)
+		
 class PatternPanel(Page):
 	def __init__(self,parent,scanner,calibration):
 		Page.__init__(self,parent)
 		self.parent=parent;
 		
-
-		self.load() 
 		self.scanner=scanner
 		self.calibration=calibration
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
 
-		
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.calibrateCamera)
 		self.getRightButton().SetLabel("Calibrate!")
+		self.getRightButton().Disable()
 		self.loaded=False
 		self.currentGrid=0
 		# set quantity of photos to take
 		self.rows=2
 		self.columns=6
+		self.load() 
 	def load(self):
 
 		self.videoView = VideoView(self._upPanel)
@@ -191,8 +181,7 @@ class PatternPanel(Page):
 		hbox= wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
-		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
-		self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform captures moninas"))		
+
 		self._upPanel.SetSizer(hbox)
 
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
@@ -212,21 +201,6 @@ class PatternPanel(Page):
 		self.getTitlePanel().SetSizer(vbox)
 		self.setLayout()
 		
-	def onPlayToolClicked(self, event):
-		
-		self.OnKeyPress(0)
-
-	def onSnapshotToolClicked(self, event):
-
-		self.OnKeyPress(0)
-
-	def onStopToolClicked(self, event):
-		self.parent.parent.enableLabelTool(self.parent.parent.playTool, True)
-		self.parent.parent.enableLabelTool(self.parent.parent.stopTool, False)
-		self.timer.Stop()
-		self.videoView.setDefaultImage()
-		self.clear()
-		self.loaded=False
 		
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
@@ -241,10 +215,6 @@ class PatternPanel(Page):
 			self.timer.Start(milliseconds=150)
 			self.loaded=True
 			self.loadGrid()
-			
-			self.parent.parent.enableLabelTool(self.parent.parent.playTool, False)
-			self.parent.parent.enableLabelTool(self.parent.parent.stopTool, True)
-			self.parent.parent.enableLabelTool(self.parent.parent.snapshotTool, True)
 			
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
@@ -285,6 +255,8 @@ class PatternPanel(Page):
 			self.currentGrid=0
 			self.panelGrid[self.currentGrid].setFrame(image)
 			self.currentGrid+=1
+		if self.currentGrid is (self.columns*self.rows):
+			self.getRightButton().Enable()	
 
 	def clear(self):
 		if hasattr(self,'panelGrid'):
@@ -305,17 +277,36 @@ class PatternPanel(Page):
 		self.parent.parent.loadPagePlot(0)
 
 	def setLayout(self):
-		print "resizing"
+		
 		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
 		self.parent.Layout()
+		if self.scanner.isConnected:
+			self.showSpaceHelp(0)	
+		else:
+			self.showSocketHelp()
+	def showSpaceHelp(self):
+		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
+		if hasattr(self,'text'):
+			self.text.SetLabel(_("Press the space bar to perform captures"))
+		else:
+			self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform captures. Press space to start taking captures."))	
+	
 
-		self.parent.parent.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.parent.parent.snapshotTool)
-		self.parent.parent.Bind(wx.EVT_TOOL, self.onPlayToolClicked , self.parent.parent.playTool)
-		self.parent.parent.Bind(wx.EVT_TOOL, self.onStopToolClicked , self.parent.parent.stopTool)
-
-		self.parent.parent.enableLabelTool(self.parent.parent.playTool, True)
+	def showSocketHelp(self):
+		self.guideView.setImage(wx.Image(getPathForImage("socket.png")))
+		if hasattr(self,'text'):
+			self.text.SetLabel(_("Please connect the scanner"))
+		else:
+			self.text=wx.StaticText(self.guideView,label=_("Please connect the scanner"))		
+		self.parent.parent.Bind(wx.EVT_TOOL , self.onConnectToolClicked,self.parent.parent.connectTool)
+	
+	def onConnectToolClicked(self,event):
+		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
+		self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
+		self.scanner.connect()
+		self.showSpaceHelp()
 
 class PlotPanel(Page):
 	def __init__(self,parent,calibration):
@@ -531,16 +522,7 @@ class ExtrinsicCalibrationPanel(Page):
 		self.setLayout()
 
 		
-	def onPlayToolClicked(self, event):
-		
-		self.scanner.connect()
-		self.timer.Start(milliseconds=150)
-		self.guideView.setFrame()
-
-	def onSnapshotToolClicked(self, event):
-		
-		frame = self.scanner.camera.captureImage(False)
-		self.addToPlot(frame)
+	
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
