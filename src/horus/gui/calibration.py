@@ -124,6 +124,7 @@ class CalibrationWorkbench(Workbench):
 	def loadExtrinsicCalibrationPanel(self,event):
 		self._intrinsicsPanel.Show(False)
 		self._extrinsicsPanel.Show(False)
+
 		if not hasattr(self,'_extrinsicCalibrationPanel'):
 			self._extrinsicCalibrationPanel=ExtrinsicCalibrationPanel(self._panel,self.scanner,self.calibration)
 		else:
@@ -523,7 +524,10 @@ class ExtrinsicCalibrationPanel(Page):
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.Bind(wx.EVT_TIMER, self.onCalibrationTimer, self.calibrationTimer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		self.getLeftButton().SetLabel(_("Cancel"))
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.start)
+		self.getRightButton().SetLabel(_("Next"))
+		self.getRightButton().Disable()
 		self.loaded=False
 		self.load()
 
@@ -537,8 +541,7 @@ class ExtrinsicCalibrationPanel(Page):
 		hbox= wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
-		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
-		self.text=wx.StaticText(self.guideView,label=_("Place the pattern in the indicated position and press the space bar to perform captures moninas"))		
+		
 		self._upPanel.SetSizer(hbox)
 
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
@@ -557,8 +560,6 @@ class ExtrinsicCalibrationPanel(Page):
 		self.getTitlePanel().SetSizer(vbox)
 		
 		self.setLayout()
-
-		
 	
 
 	def onTimer(self, event):
@@ -572,6 +573,12 @@ class ExtrinsicCalibrationPanel(Page):
 		self.addToPlot(frame)
 		if len(self.calibration.transVectors)> self.stopExtrinsicSamples:
 			self.calibrationTimer.Stop()
+			self.getLeftButton().SetLabel(_("Reject"))
+			self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		
+			self.getRightButton().Bind(wx.EVT_BUTTON,self.acceptCalibration)	
+			self.getRightButton().SetLabel(_("Accept"))
+			self.getRightButton().Enable()
 
 	def OnKeyPress(self,event):
 		if not self.loaded:
@@ -619,7 +626,10 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.ax.set_xlabel('x')
 		self.ax.set_ylabel('z')
-		# self.plot()
+		self.timer.Start(milliseconds=150)
+		self.calibrationTimer.Start(milliseconds=500)
+		self.loaded=True
+		self.getRightButton().Disable()
 
 	def plot(self):
 
@@ -724,7 +734,47 @@ class ExtrinsicCalibrationPanel(Page):
 		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
+		if self.scanner.isConnected:
+			self.showPatternHelp()	
+		else:
+			self.showSocketHelp()
+		self._upPanel.Layout()
 		self.parent.Layout()
+
+	def showPatternHelp(self):
+		self.guideView.setImage(wx.Image(getPathForImage("patternPosition.png")))
+		if hasattr(self,'text'):
+			self.text.SetLabel(_("Place the pattern here and press Next"))
+		else:
+			self.text=wx.StaticText(self.guideView,label=_("Place the pattern here and press Next"))	
+	
+	def showSocketHelp(self):
+		self.guideView.setImage(wx.Image(getPathForImage("socket.png")))
+		if hasattr(self,'text'):
+			self.text.SetLabel(_("Please connect the scanner"))
+		else:
+			self.text=wx.StaticText(self.guideView,label=_("Please connect the scanner"))		
+		self.parent.parent.Bind(wx.EVT_TOOL , self.onConnectToolClicked,self.parent.parent.connectTool)
+	
+	def onConnectToolClicked(self,event):
+		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
+		self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
+		self.scanner.connect()
+		self.showPatternHelp()
+		self.getRightButton().Enable()
+
+	def onDisconnectToolClicked(self,event):
+		
+		self.scanner.disconnect() # Not working camera disconnect :S
+		# TODO: Check disconnection
+		self.parent.parent.enableLabelTool(self.parent.parent.connectTool, True)
+		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,False)
+		self.parent.parent.loadInit(0)
+
+	def acceptCalibration(self,event):
+		self.calibration.setExtrinsic(self.xc, self.zc)
+		self.parent.parent.loadInit(0)
+
 
 class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
