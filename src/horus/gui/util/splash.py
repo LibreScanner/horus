@@ -5,8 +5,9 @@
 # This file is part of the Horus Project                                #
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
+# Copyright (C) 2013 David Braam from Cura Project                      #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: July 2014                                                       #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -27,25 +28,23 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import wx._core
 
-try:
-    import serial
-    import OpenGL
-    import numpy
-    import scipy
-    import matplotlib
-    import cv2
-    import wx
-except ImportError as e:
-    module = e.message.lstrip('No module named ')
-    print "Requires " + module
-    #print "Try sudo apt-get install " + module
-    exit(1)
+from horus.util.resources import getPathForImage
 
-from horus.gui import app
+class SplashScreen(wx.SplashScreen):
 
-def main():
-    app.HorusApp().MainLoop()
+	def __init__(self, callback):
+		self.callback = callback
 
-if __name__ == '__main__':
-    main()
+		bitmap = wx.Image(getPathForImage("splash.png"), wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+		super(SplashScreen, self).__init__(bitmap, 1, 0, None)
+		#-- TODO: fix in wx.SplashScreen class
+		import time
+		time.sleep(0.03)
+		#--
+		wx.CallAfter(self.DoCallback)
+
+	def DoCallback(self):
+		self.callback()
+		self.Destroy()
