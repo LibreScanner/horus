@@ -87,7 +87,12 @@ class CalibrationWorkbench(Workbench):
 		if hasattr(self,'_extrinsicCalibrationPanel'):
 			self._extrinsicCalibrationPanel.hide()
 		if hasattr(self,'_patternPanel'):
+			self._patternPanel.loaded=False
 			self._patternPanel.Show(False)
+			self._patternPanel.setLayout()
+			if self._patternPanel.timer.IsRunning:
+				self._patternPanel.timer.Stop()
+				self._patternPanel.videoView.setImage(wx.Image(getPathForImage("bq.png")))
 		if hasattr(self,'_plotPanel'):
 			self._plotPanel.hide()
 		self._intrinsicsPanel.Show(True)
@@ -103,9 +108,6 @@ class CalibrationWorkbench(Workbench):
 			self._patternPanel=PatternPanel(self._panel,self.scanner,self.calibration)			
 		else:
 			self._patternPanel.Show(True)
-			if hasattr(self,'_plotPanel'):
-				self._plotPanel.hide()
-
 			self._patternPanel.clear()
 			self._patternPanel.setLayout()
 			self._patternPanel.videoView.SetFocus()
@@ -164,7 +166,7 @@ class PatternPanel(Page):
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
-
+		self.getLeftButton().SetLabel("Cancel")
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.calibrateCamera)
 		self.getRightButton().SetLabel("Calibrate!")
 		self.getRightButton().Disable()
@@ -178,11 +180,7 @@ class PatternPanel(Page):
 
 		self.videoView = VideoView(self._upPanel)
 		self.guideView = VideoView(self._upPanel)
-		hbox= wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
-		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
-
-		self._upPanel.SetSizer(hbox)
+		
 
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
 		# cool hack: key event listener only works if the focus is in some elements like our videoview
@@ -206,6 +204,7 @@ class PatternPanel(Page):
 		frame = self.scanner.camera.captureImage(True)
 		self.videoView.setFrame(frame)
 
+
 	def OnKeyPress(self,event):
 		"""Key bindings: if it is not started, spacebar initialize the scanner"""
 		if not self.loaded:
@@ -223,22 +222,26 @@ class PatternPanel(Page):
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
-		self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY)
+		if not hasattr(self,'gridPanel'):
+			self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY)
+			
+			gs=wx.GridSizer(self.rows,self.columns,3,3)
+			self.panelGrid=[]
+			for panel in range(self.rows*self.columns):
+				self.panelGrid.append(VideoView(self.gridPanel))
+				self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+				self.panelGrid[panel].index=panel
+				gs.Add(self.panelGrid[panel],0,wx.EXPAND)
+				self.panelGrid[panel].Bind(wx.EVT_LEFT_DOWN,self.onClick)
+			self.gridPanel.SetSizer(gs)
+		else:
+			self.gridPanel.Show(True)
+			self.clear()
 		hbox= wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.gridPanel,5,wx.EXPAND|wx.ALL,1)
 		self._upPanel.SetSizer(hbox)
-		
-		gs=wx.GridSizer(self.rows,self.columns,3,3)
-		self.panelGrid=[]
-		for panel in range(self.rows*self.columns):
-
-			self.panelGrid.append(VideoView(self.gridPanel))
-			self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
-			self.panelGrid[panel].index=panel
-			gs.Add(self.panelGrid[panel],0,wx.EXPAND)
-			self.panelGrid[panel].Bind(wx.EVT_LEFT_DOWN,self.onClick)
-		self.gridPanel.SetSizer(gs)
+		self._upPanel.Layout()
 		self.Layout()
 
 	def addToGrid(self,image,retval):
@@ -261,10 +264,12 @@ class PatternPanel(Page):
 	def clear(self):
 		if hasattr(self,'panelGrid'):
 			for panel in self.panelGrid:
-				panel.Destroy()
-			self.loadGrid()
+				panel.setImage(wx.Image(getPathForImage("bq.png")))
+				self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+			
 		self.currentGrid=0
 		self.calibration.clearData()
+
 	def onClick(self,event):
 		# TODO removable on click
 		print event.GetEventObject()
@@ -275,17 +280,34 @@ class PatternPanel(Page):
 	def calibrateCamera(self,event):
 		self.calibration.calibrationFromImages()
 		self.parent.parent.loadPagePlot(0)
+		self.timer.Stop()
+		self.videoView.setImage(wx.Image(getPathForImage("bq.png")))
+		self.loaded=False
 
 	def setLayout(self):
-		
+		hbox= wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
+		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
+
+		self._upPanel.SetSizer(hbox)
 		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
-		self.parent.Layout()
+		
+		if hasattr(self,'gridPanel'):
+			self.gridPanel.Show(False)
+		if hasattr(self,'guideView'):
+			self.guideView.Show(True)
+			self.videoView.Show(True)
+			
 		if self.scanner.isConnected:
-			self.showSpaceHelp(0)	
+			self.showSpaceHelp()	
 		else:
 			self.showSocketHelp()
+		self.parent.parent.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , self.parent.parent.disconnectTool)
+		self._upPanel.Layout()
+		self.parent.Layout()
+
 	def showSpaceHelp(self):
 		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
 		if hasattr(self,'text'):
@@ -293,7 +315,6 @@ class PatternPanel(Page):
 		else:
 			self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform captures. Press space to start taking captures."))	
 	
-
 	def showSocketHelp(self):
 		self.guideView.setImage(wx.Image(getPathForImage("socket.png")))
 		if hasattr(self,'text'):
@@ -307,16 +328,24 @@ class PatternPanel(Page):
 		self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
 		self.scanner.connect()
 		self.showSpaceHelp()
+	def onDisconnectToolClicked(self,event):
+		
+		self.scanner.disconnect() # Not working camera disconnect :S
 
+		# TODO: Check disconnection
+		self.parent.parent.enableLabelTool(self.parent.parent.connectTool, True)
+		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,False)
+		self.parent.parent.loadInit(0)
+		
 class PlotPanel(Page):
 	def __init__(self,parent,calibration):
 		Page.__init__(self,parent)
 		self.calibration=calibration
 		self.parent=parent;
-		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadPagePattern)
-		self.getRightButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
-		
-
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.rejectCalibration)
+		self.getLeftButton().SetLabel(_("Reject"))
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.acceptCalibration)
+		self.getRightButton().SetLabel(_("Accept"))
 		
 		self.load()
 	def load(self):
@@ -474,6 +503,14 @@ class PlotPanel(Page):
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
 		self.parent.Layout()
+	def acceptCalibration(self,event):
+		self.calibration.saveCalibrationMatrix()
+		self.calibration.saveDistortionVector()
+		self.parent.parent.loadInit(0)
+
+	def rejectCalibration(self,event):
+		self.calibration.updateProfileToAllControls()
+		self.parent.parent.loadInit(0)
 
 class ExtrinsicCalibrationPanel(Page):
 	def __init__(self,parent,scanner,calibration):
