@@ -44,7 +44,6 @@ class PreferencesDialog(wx.Dialog):
 		self.main = parent
 
 		#-- Graphic elements
-
 		self.conParamsStaticText = wx.StaticText(self, -1, _("Connection Parameters"), style=wx.ALIGN_CENTRE)
 		self.serialNameLabel = wx.StaticText(self, label=_("Serial Name :"))
 		self.serialNames = self.main.serialList()
@@ -59,7 +58,6 @@ class PreferencesDialog(wx.Dialog):
 		self.okButton = wx.Button(self, -1, 'Ok')
 
 		#-- Events
-
 		self.serialNameCombo.Bind(wx.EVT_TEXT, self.onSerialNameTextChanged)
 		self.cameraIdCombo.Bind(wx.EVT_TEXT, self.onCameraIdTextChanged)
 		self.stepDelayText.Bind(wx.EVT_TEXT, self.onStepDelayTextChanged)
@@ -67,21 +65,18 @@ class PreferencesDialog(wx.Dialog):
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Close())
 
 		#-- Fill data
-
 		if len(self.serialNames) > 0:
 			self.serialNameCombo.SetValue(self.serialNames[0])
 		if len(self.cameraIdNames) > 0:
 			self.cameraIdCombo.SetValue(self.cameraIdNames[0])
 
 		#-- Call Events
-
 		self.onSerialNameTextChanged(None)
 		self.onCameraIdTextChanged(None)
 		self.onStepDegreesTextChanged(None)
 		self.onStepDelayTextChanged(None)
 
 		#-- Layout
-
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		    
 		vbox.Add(self.conParamsStaticText, 0, wx.ALL, 10)

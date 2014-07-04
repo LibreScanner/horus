@@ -25,28 +25,21 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
-"""
-The printableObject module contains a printableObject class,
-which is used to represent a single object that can be printed.
-A single object can have 1 or more meshes which represent different sections for multi-material extrusion.
-"""
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import os
 import time
 import math
-import os
 
 import numpy
 numpy.seterr(all='ignore')
 
-class printableObject(object):
+class Model(object):
 	"""
-	A printable object is an object that can be printed and is on the build platform.
-	It contains 1 or more Meshes. Where more meshes are used for multi-extrusion.
-
-	Each object has a 3x3 transformation matrix to rotate/scale the object.
-	This object also keeps track of the 2D boundary polygon used for object collision in the objectScene class.
+	Each object has a Mesh and a 3x3 transformation matrix to rotate/scale the object.
 	"""
-	def __init__(self, originFilename, isPointCloud):
+	def __init__(self, originFilename, isPointCloud=False):
 		self._originFilename = originFilename
 		if originFilename is None:
 			self._name = 'None'
@@ -66,7 +59,7 @@ class printableObject(object):
 		self._isPointCloud = isPointCloud
 
 	def _addMesh(self):
-		self._mesh = mesh(self)
+		self._mesh = Mesh(self)
 		return self._mesh
 
 	def _postProcessAfterLoad(self):
@@ -170,10 +163,9 @@ class printableObject(object):
 		self.applyMatrix(numpy.matrix([[x,0,0],[0,y,0],[0,0,z]], numpy.float64))
 
 
-class mesh(object):
+class Mesh(object):
 	"""
-	A mesh is a list of 3D triangles build from vertexes. Each triangle has 3 vertexes.
-
+	A mesh is a list of 3D triangles build from vertexes. Each triangle has 3 vertexes. It can be also a point cloud.
 	A "VBO" can be associated with this object, which is used for rendering this object.
 	"""
 	def __init__(self, obj):

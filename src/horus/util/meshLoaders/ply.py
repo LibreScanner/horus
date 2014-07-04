@@ -35,12 +35,15 @@ This module also contains a function to save objects as an PLY file.
 http://en.wikipedia.org/wiki/PLY_(file_format)
 """
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 import sys
 import os
 import struct
 import time
 
-from horus.util import printableObject
+from horus.util import model
 
 def _loadAscii(m, f): # TODO: improve parser: normals, colors, faces, etc.
 	cnt = 0
@@ -71,7 +74,7 @@ def _loadBinary(m, f):
 	pass
 
 def loadScene(filename):
-	obj = printableObject.printableObject(filename, isPointCloud=True)
+	obj = model.Model(filename, isPointCloud=True)
 	m = obj._addMesh()
 	f = open(filename, "rb")
 	if f.read(3).lower() == "ply":

@@ -25,6 +25,9 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 import os
 import traceback
 import math
@@ -217,7 +220,7 @@ setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden')
 ##-- Preferences
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
-setting('workbench', 'control', ['none', 'main', 'control', 'calibration', 'scanning'], 'preference', 'hidden')
+setting('workbench', 'main', ['none', 'main', 'control', 'calibration', 'scanning'], 'preference', 'hidden')
 setting('workbench_selector', True, bool, 'preference', 'hidden')
 setting('view_3d', True, bool, 'preference', 'hidden')
 

@@ -38,12 +38,15 @@ This module also contains a function to save objects as an STL file.
 http://en.wikipedia.org/wiki/STL_(file_format)
 """
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 import sys
 import os
 import struct
 import time
 
-from horus.util import printableObject
+from horus.util import model
 
 def _loadAscii(m, f):
 	cnt = 0
@@ -74,7 +77,7 @@ def _loadBinary(m, f):
 		m._addFace(data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11])
 
 def loadScene(filename):
-	obj = printableObject.printableObject(filename, isPointCloud=False)
+	obj = model.Model(filename)
 	m = obj._addMesh()
 
 	f = open(filename, "rb")

@@ -56,7 +56,6 @@ class ScanningWorkbench(Workbench):
 	def load(self):
 
 		#-- Toolbar Configuration
-		
 		self.connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
 		self.disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
 		self.playTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
@@ -68,7 +67,6 @@ class ScanningWorkbench(Workbench):
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
-
 		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked   , self.connectTool)
 		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked, self.disconnectTool)
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked      , self.playTool)
@@ -83,14 +81,12 @@ class ScanningWorkbench(Workbench):
 		self.scenePanel = ScenePanel(self._leftPanel)
 
 		#-- Right Views
-
 		self.videoView = VideoView(self._rightPanel)
 		self.sceneView = SceneView(self._rightPanel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
 
 		#-- Video View Selector
-
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
 		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(10,15+40))
 		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+80))

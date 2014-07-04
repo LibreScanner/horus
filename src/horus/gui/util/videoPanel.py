@@ -44,7 +44,6 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.SetupScrolling()
         
         #-- Graphic elements
-        
         imgProcStaticText = wx.StaticText(self, wx.ID_ANY, _("Image Processing"), style=wx.ALIGN_CENTRE)
         imgProcStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         self.blurCheckBox = wx.CheckBox(self, label=_("Blur"), size=(67, -1))
@@ -75,7 +74,6 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
         #hSlider.Disable()
 
         #-- Bind
-
         self.Bind(wx.EVT_CHECKBOX, self.onBlurChanged, self.blurCheckBox)
         self.Bind(wx.EVT_SLIDER, self.onBlurChanged, self.blurSlider)
         self.Bind(wx.EVT_CHECKBOX, self.onOpenChanged, self.openCheckBox)
@@ -88,7 +86,6 @@ class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.Bind(wx.EVT_SLIDER, self.onHSVRangeChanged, self.maxVSlider)
 
         #-- Layout
-        
         vbox = wx.BoxSizer(wx.VERTICAL)
         
         vbox.Add(imgProcStaticText, 0, wx.ALL, 10)

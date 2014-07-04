@@ -43,11 +43,9 @@ OpenGL.ERROR_CHECKING = False
 from OpenGL.GLU import *
 from OpenGL.GL import *
 
-from horus.util import profile, resources, meshLoader
+from horus.util import profile, resources, meshLoader, model
 from horus.gui.util import openglHelpers
 from horus.gui.util import openglGui
-
-from horus.util import printableObject
 
 class SceneView(openglGui.glGuiPanel):
 	def __init__(self, parent):
@@ -85,7 +83,7 @@ class SceneView(openglGui.glGuiPanel):
 
 	def createDefaultObject(self):
 		self._clearScene()
-		self._object = printableObject.printableObject(None, isPointCloud=True)
+		self._object = model.Model(None, isPointCloud=True)
 		self._object._addMesh()
 		self._object._mesh._prepareVertexCount(1000000)
 		#self._object._postProcessAfterLoad()
