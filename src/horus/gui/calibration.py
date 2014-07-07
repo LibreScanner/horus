@@ -885,8 +885,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			
 				self._visualMatrix[i][j]= wx.StaticText(parent,label=label)
 
-				self._visualCtrlMatrix[i][j]=wx.TextCtrl(parent,-1,str(self.calibration._calMatrix[i][j]))
-
+				self._visualCtrlMatrix[i][j]=wx.TextCtrl(parent,-1,str(self.calibration._calMatrix[i][j]),style=wx.TE_RICH)
 				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND|wx.TOP,27)
 				
 				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND|wx.TOP,15)
@@ -912,7 +911,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			
 			label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
 			self._visualDistortionVector[i]=wx.StaticText(parent,label=label)
-			self._visualCtrlDistortionVector[i]=wx.TextCtrl(parent,value=str(self.calibration._distortionVector[i]))
+			self._visualCtrlDistortionVector[i]=wx.TextCtrl(parent,value=str(self.calibration._distortionVector[i]),style=wx.TE_RICH)
 			self._visualCtrlDistortionVector[i].Show(False)
 			if i<3:	
 				hboxRow1.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
@@ -942,28 +941,31 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 	def edit(self,event):
 		
 		if self._editControl:
-			for i in range(len(self._visualMatrix)):
-				for j in range(len(self._visualMatrix[0])):
-					
-					self._visualCtrlMatrix[i][j].Show(False)
-					self._visualMatrix[i][j].Show(True)
-					
-					self.calibration._calMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
-					label=str(self._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
-			
-					self._visualMatrix[i][j].SetLabel(label)
-			for i in range(len(self._vDistortionVector)):
+			# means finish editing = save
+			if  self.checkMatrices():
+				for i in range(len(self._visualMatrix)):
+					for j in range(len(self._visualMatrix[0])):
+						
+						self._visualCtrlMatrix[i][j].Show(False)
+						self._visualMatrix[i][j].Show(True)
+						
+						self.calibration._calMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
+						label=str(self._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
 				
-				self._visualDistortionVector[i].Show(True)
-				self._visualCtrlDistortionVector[i].Show(False)
-				self.calibration._distortionVector.itemset((i),self._visualCtrlDistortionVector[i].GetValue())
-				label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
-				self._visualDistortionVector[i].SetLabel(label)
-			self._editControl=False
-			self.calibration.saveCalibrationMatrix()
-			self.calibration.saveDistortionVector()
+						self._visualMatrix[i][j].SetLabel(label)
+				for i in range(len(self._vDistortionVector)):
+					
+					self._visualDistortionVector[i].Show(True)
+					self._visualCtrlDistortionVector[i].Show(False)
+					self.calibration._distortionVector.itemset((i),self._visualCtrlDistortionVector[i].GetValue())
+					label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
+					self._visualDistortionVector[i].SetLabel(label)
+				self._editControl=False
+				self.calibration.saveCalibrationMatrix()
+				self.calibration.saveDistortionVector()
 			
 		else:
+			# means start editing 
 			for i in range(len(self._visualMatrix)):
 				for j in range(len(self._visualMatrix[0])):
 					
@@ -976,6 +978,32 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 				self._visualCtrlDistortionVector[i].Show(True)
 		self.Layout()
 				
+	def checkMatrices(self):
+		isCorrect=True
+		for i in range(len(self._visualMatrix)):
+			for j in range(len(self._visualMatrix[0])):
+				
+				if self.checkFloat(self._visualCtrlMatrix[i][j].GetValue()):
+					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.WHITE)
+				else:
+					isCorrect=False
+					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.RED)
+				
+		for i in range(len(self._vDistortionVector)):
+			
+			if self.checkFloat(self._visualCtrlDistortionVector[i].GetValue()):
+				self._visualCtrlDistortionVector[i].SetBackgroundColour(wx.WHITE)
+			else:
+				isCorrect=False
+				self._visualCtrlDistortionVector[i].SetBackgroundColour(wx.RED)
+		return isCorrect
+	def checkFloat(self,number):
+		try:
+			float(number)
+			return True
+		except ValueError:
+			return False
+
 	def save(self,event):
 		print "save"
 	def scale_bitmap(self,bitmap, width, height):
@@ -1061,7 +1089,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			vbox2 = wx.BoxSizer(wx.VERTICAL)  
 			for i in range (len(self._vRotMatrix)):
 				label=str(self._vRotMatrix[i][j])+ str(self.calibration._rotMatrix[i][j])
-				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self.calibration._rotMatrix[i][j]))
+				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self.calibration._rotMatrix[i][j]),style=wx.TE_RICH)
 				
 				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
 				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND |wx.TOP,27)
@@ -1074,7 +1102,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		for j in range(len(self._vTransMatrix)):
 			
 			label=str(self._vTransMatrix[j][0])+ str(self.calibration._transMatrix[j][0])
-			self._visualCtrlMatrix[j][3]=wx.TextCtrl(self,-1,str(self.calibration._transMatrix[j][0]))
+			self._visualCtrlMatrix[j][3]=wx.TextCtrl(self,-1,str(self.calibration._transMatrix[j][0]),style=wx.TE_RICH)
 				
 			self._visualMatrix[j][3]= wx.StaticText(self,label=label)
 			self._visualCtrlMatrix[j][3].Show(False)
@@ -1115,27 +1143,28 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		"""Method for both saving and start editting"""
 		
 		if self._editControl:
-			for i in range(len(self._visualMatrix)):
-				for j in range(len(self._visualMatrix[0])-1):
+			if self.checkMatrices():
+				for i in range(len(self._visualMatrix)):
+					for j in range(len(self._visualMatrix[0])-1):
+						
+						self._visualCtrlMatrix[i][j].Show(False)
+						self._visualMatrix[i][j].Show(True)
+						self._editControl=False
+						self.calibration._rotMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
+						
+						label=str(self._vRotMatrix[i][j]) + str(self.calibration._rotMatrix[i][j])		
+						self._visualMatrix[i][j].SetLabel(label)
+				for j in range(len(self._vTransMatrix)):
 					
-					self._visualCtrlMatrix[i][j].Show(False)
-					self._visualMatrix[i][j].Show(True)
-					self._editControl=False
-					self.calibration._rotMatrix.itemset((i,j),self._visualCtrlMatrix[i][j].GetValue())
-					
-					label=str(self._vRotMatrix[i][j]) + str(self.calibration._rotMatrix[i][j])		
-					self._visualMatrix[i][j].SetLabel(label)
-			for j in range(len(self._vTransMatrix)):
-				
-				self._visualMatrix[j][3].Show(True)
-				self._visualCtrlMatrix[j][3].Show(False)
-				self.calibration._transMatrix.itemset((j),self._visualCtrlMatrix[j][3].GetValue())
-				label=str(self._vTransMatrix[j][0])+str(self.calibration._transMatrix[j][0])
-				self._visualMatrix[j][3].SetLabel(label)
+					self._visualMatrix[j][3].Show(True)
+					self._visualCtrlMatrix[j][3].Show(False)
+					self.calibration._transMatrix.itemset((j),self._visualCtrlMatrix[j][3].GetValue())
+					label=str(self._vTransMatrix[j][0])+str(self.calibration._transMatrix[j][0])
+					self._visualMatrix[j][3].SetLabel(label)
 
-			self.calibration.saveRotationMatrix()
-			self.calibration.saveTranslationVector()
-			self.Layout()
+				self.calibration.saveRotationMatrix()
+				self.calibration.saveTranslationVector()
+				self.Layout()
 		else:
 			for i in range(len(self._visualMatrix)):
 				for j in range(len(self._visualMatrix[0])):
@@ -1170,3 +1199,23 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			self._visualMatrix[j][3].SetLabel(label)
 
 		self.Layout()
+
+	def checkMatrices(self):
+		isCorrect=True
+		for i in range(len(self._visualMatrix)):
+			for j in range(len(self._visualMatrix[0])):
+				
+				if self.checkFloat(self._visualCtrlMatrix[i][j].GetValue()):
+					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.WHITE)
+				else:
+					isCorrect=False
+					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.RED)
+				
+		return isCorrect
+
+	def checkFloat(self,number):
+		try:
+			float(number)
+			return True
+		except ValueError:
+			return False
