@@ -59,7 +59,7 @@ class Camera:
 		self.capture.release()
 		print ">>> Done"
 
-	def captureImage(self, mirror=True):
+	def captureImage(self, mirror=False):
 		""" If mirror is set to True, the image will be displayed as a mirror, 
 		otherwise it will be displayed as the camera sees it"""
 		#for i in range(0,2):
@@ -68,7 +68,7 @@ class Camera:
 
 		if ret:
 			image = cv2.transpose(image)
-			if mirror:
+			if not mirror:
 				image = cv2.flip(image, 1)
 			return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		else:

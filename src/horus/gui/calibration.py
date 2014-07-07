@@ -140,6 +140,7 @@ class CalibrationWorkbench(Workbench):
 		self.initHbox.Add(self._intrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
 		self.initHbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
 		self._panel.SetSizer(self.initHbox)
+		self.Layout()
 
 	def enableLabelTool(self, item, enable):
 		self.toolbar.EnableTool(item.GetId(), enable)
@@ -357,7 +358,7 @@ class PlotPanel(Page):
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
 
-		self.ax = self.fig.gca(projection='3d',axisbg=(0.1843, 0.3098, 0.3098))
+		self.ax = self.fig.gca(projection='3d',axisbg=(random.random(),random.random(),random.random()))
 		self.getPanel().Bind(wx.EVT_SIZE, self.on_size)
 		# Parameters of the pattern
 		self.columns=5
@@ -393,10 +394,10 @@ class PlotPanel(Page):
 		
 		self.printCanvas()
 		
-		self._title=wx.StaticText(self.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot monin"))
+		self._title=wx.StaticText(self.getTitlePanel(),label=_("Intrinsic calibration (Step 2): plot "))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
-		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Here you can see the seUXy plot"))
+		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Here you can see the plot, please, accept or reject the calibration"))
 		
 		vbox=wx.BoxSizer(wx.VERTICAL)
 		vbox.Add(self._title,0,wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 1)	
@@ -404,15 +405,28 @@ class PlotPanel(Page):
 		
 		self.getTitlePanel().SetSizer(vbox)
 		
+		self.matrixPanel=wx.lib.scrolledpanel.ScrolledPanel( parent=self.getPanel(), id=wx.ID_ANY)
+		
+		vbox=wx.BoxSizer(wx.VERTICAL)
+		self.parent.parent._intrinsicsPanel.loadMatrices(self.matrixPanel,vbox)
+		self.matrixPanel.SetSizer(vbox)
 		self.setLayout()
 		
 
 	def on_size(self,event):
-		pix = self.getPanel().GetClientSize()
-		self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
-		x,y = self.getPanel().GetSize()  
-		self.canvas.SetClientSize((x, y))
-		self.canvas.draw()
+		# factor=1.5
+		# pix = self.getPanel().GetClientSize()
+		# self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
+		# x,y = self.getPanel().GetSize()  
+		# self.canvas.SetClientSize((y*factor, y))
+		# self.ax.set_xlim(-150, 150)
+		# self.ax.set_ylim(0, 300)
+		# self.ax.set_zlim(-150/factor, 150/factor)
+		# self.ax.invert_xaxis()
+		# self.ax.invert_yaxis()
+		# self.ax.invert_zaxis()
+		# self.canvas.draw()
+		self._upPanel.Layout()
 		event.Skip()
 		
 
@@ -500,6 +514,12 @@ class PlotPanel(Page):
 		self.load()
 
 	def setLayout(self):
+		self.initHbox = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.initHbox.Add(self.canvas,2,wx.EXPAND|wx.ALL,10)
+		self.initHbox.Add(self.matrixPanel,1,wx.EXPAND|wx.ALL,10)
+		self._upPanel.SetSizer(self.initHbox)
+		self.Layout()
 		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
@@ -775,7 +795,6 @@ class ExtrinsicCalibrationPanel(Page):
 		self.calibration.setExtrinsic(self.xc, self.zc)
 		self.parent.parent.loadInit(0)
 
-
 class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 	def __init__(self,parent,calibration):
@@ -826,64 +845,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
 
-		#camera matrix
-		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
-		self._camMatrixTitle=wx.StaticBox(self,label=_("Camera Matrix"))
-		self._camMatrixTitle.SetFont(font)
-		boxSizer = wx.StaticBoxSizer(self._camMatrixTitle,wx.HORIZONTAL)
-		boxSizer.Add((-1,50),0,wx.ALL,5)
-
-		self._visualMatrix=[[0 for j in range(len(self._vCalMatrix))] for i in range(len(self._vCalMatrix[0]))]
-		self._visualCtrlMatrix=[[0 for j in range(len(self._visualMatrix))] for i in range(len(self._visualMatrix[0]))]
-		
-		for j in range(len(self._vCalMatrix[0])):
-			vbox2 = wx.BoxSizer(wx.VERTICAL)  
-
-			for i in range (len(self._vCalMatrix)):
-				label=str(self._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
-			
-				self._visualMatrix[i][j]= wx.StaticText(self,label=label)
-
-				self._visualCtrlMatrix[i][j]=wx.TextCtrl(self,-1,str(self.calibration._calMatrix[i][j]))
-
-				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND|wx.TOP,27)
-				
-				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND|wx.TOP,15)
-				self._visualCtrlMatrix[i][j].Show(False)
-			
-			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,5)
-
-		boxSizer.Add((-1,50),0,wx.ALL,5)
-
-		vbox.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
-		
-		#distortion coefficients
-		self._distortionCoeffStaticText = wx.StaticBox(self, label=_("Distortion coefficients"))
-		self._distortionCoeffStaticText.SetFont(font)
-		boxSizer = wx.StaticBoxSizer(self._distortionCoeffStaticText,wx.VERTICAL)
-
-		vboxAux= wx.BoxSizer(wx.VERTICAL)
-		hboxRow1=wx.BoxSizer(wx.HORIZONTAL)
-		hboxRow2=wx.BoxSizer(wx.HORIZONTAL)
-		self._visualDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
-		self._visualCtrlDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
-		for i in range(len(self._vDistortionVector)):
-			label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
-			self._visualDistortionVector[i]=wx.StaticText(self,label=label)
-			self._visualCtrlDistortionVector[i]=wx.TextCtrl(self,value=str(self.calibration._distortionVector[i]))
-			self._visualCtrlDistortionVector[i].Show(False)
-			if i<3:	
-				hboxRow1.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
-				hboxRow1.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
-			else:
-				hboxRow2.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
-				hboxRow2.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
-		hboxRow2.Add( (-1,-1),1,wx.ALL|wx.EXPAND,5)
-		vboxAux.Add(hboxRow1,0,wx.EXPAND|wx.TOP,15)
-		vboxAux.Add(hboxRow2,0,wx.EXPAND|wx.TOP,15)
-		boxSizer.Add(vboxAux,-1,wx.EXPAND,0)
-
-		vbox.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,30)
+		self.loadMatrices(self,vbox)
 
 		#buttons
 		self._startButton = wx.Button(self,label=_("Start"),size=(100,-1))
@@ -901,6 +863,68 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		self.SetSizer(vbox)
 		
+	def loadMatrices(self,parent,sizer):
+		#camera matrix
+		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
+		self._camMatrixTitle=wx.StaticBox(parent,label=_("Camera Matrix"))
+		self._camMatrixTitle.SetFont(font)
+		boxSizer = wx.StaticBoxSizer(self._camMatrixTitle,wx.HORIZONTAL)
+		boxSizer.Add((-1,50),0,wx.ALL,5)
+
+		self._visualMatrix=[[0 for j in range(len(self._vCalMatrix))] for i in range(len(self._vCalMatrix[0]))]
+		self._visualCtrlMatrix=[[0 for j in range(len(self._visualMatrix))] for i in range(len(self._visualMatrix[0]))]
+		
+		for j in range(len(self._vCalMatrix[0])):
+			vbox2 = wx.BoxSizer(wx.VERTICAL)  
+
+			for i in range (len(self._vCalMatrix)):
+				label=str(self._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
+			
+				self._visualMatrix[i][j]= wx.StaticText(parent,label=label)
+
+				self._visualCtrlMatrix[i][j]=wx.TextCtrl(parent,-1,str(self.calibration._calMatrix[i][j]))
+
+				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND|wx.TOP,27)
+				
+				vbox2.Add(self._visualCtrlMatrix[i][j],0,wx.EXPAND|wx.TOP,15)
+				self._visualCtrlMatrix[i][j].Show(False)
+			
+			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,5)
+
+		boxSizer.Add((-1,50),0,wx.ALL,5)
+
+		sizer.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
+		
+		#distortion coefficients
+		self._distortionCoeffStaticText = wx.StaticBox(parent, label=_("Distortion coefficients"))
+		self._distortionCoeffStaticText.SetFont(font)
+		boxSizer = wx.StaticBoxSizer(self._distortionCoeffStaticText,wx.VERTICAL)
+
+		vboxAux= wx.BoxSizer(wx.VERTICAL)
+		hboxRow1=wx.BoxSizer(wx.HORIZONTAL)
+		hboxRow2=wx.BoxSizer(wx.HORIZONTAL)
+		self._visualDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
+		self._visualCtrlDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
+		for i in range(len(self._vDistortionVector)):
+			
+			label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
+			self._visualDistortionVector[i]=wx.StaticText(parent,label=label)
+			self._visualCtrlDistortionVector[i]=wx.TextCtrl(parent,value=str(self.calibration._distortionVector[i]))
+			self._visualCtrlDistortionVector[i].Show(False)
+			if i<3:	
+				hboxRow1.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
+				hboxRow1.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
+			else:
+				hboxRow2.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
+				hboxRow2.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
+		hboxRow2.Add( (-1,-1),1,wx.ALL|wx.EXPAND,5)
+		vboxAux.Add(hboxRow1,0,wx.EXPAND|wx.TOP,15)
+		vboxAux.Add(hboxRow2,0,wx.EXPAND|wx.TOP,15)
+		boxSizer.Add(vboxAux,-1,wx.EXPAND,0)
+
+		sizer.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,30)
+
+
 	def start(self,event):
 		
 		self.parent.parent.loadPagePattern(0)

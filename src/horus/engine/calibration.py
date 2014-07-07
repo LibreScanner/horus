@@ -52,7 +52,6 @@ class Calibration:
 
 		self.centerEstimate=0,310
 
-
 	def solvePnp(self,image):
 		
 		gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
@@ -66,17 +65,19 @@ class Calibration:
 		
 		return retval
 
-
 	def calibrationFromImages(self):
 		if hasattr(self,'rvecs'):
 			del self.rvecs[:]
 			del self.tvecs[:]
 		ret,self._calMatrix,self._distortionVector,self.rvecs,self.tvecs = cv2.calibrateCamera(self.objPointsStack,self.imagePointsStack,self.invertedShape)
 		# print "Camera matrix: ",self._calMatrix
+		
 		self._distortionVector=self._distortionVector[0]
+		# print np.array([self._distortionVector ])
 		# print "Distortion coefficients: ", self._distortionVector
 		# print "Rotation matrix: ",self.rvecs
 		# print "Translation matrix: ",self.tvecs
+		self.meanError()
 
 	def detectPrintChessboard(self,image):
 
@@ -123,6 +124,17 @@ class Calibration:
 		self._transMatrix.itemset((0),xc)
 		self._transMatrix.itemset((2),zc)
 		self.saveTranslationVector()
+
+	def meanError(self):
+		mean_error = 0
+		
+		for i in xrange(len(self.objPointsStack)):
+			imgpoints2,_=cv2.projectPoints(self.objPointsStack[i],self.rvecs[i],self.tvecs[i],self._calMatrix,self._distortionVector)
+			error=cv2.norm(self.imagePointsStack[i],imgpoints2,cv2.NORM_L2)/len(imgpoints2)
+			mean_error+=error
+		self.mean_error=mean_error
+
+# Data storage stuff
 
 	def updateProfileToAllControls(self):
 
