@@ -218,7 +218,7 @@ class PatternPanel(Page):
 			self.loadGrid()
 			
 		elif event.GetKeyCode()==32:
-			frame = self.scanner.camera.captureImage(True)
+			frame = self.scanner.camera.captureImage(False)
 			frame,retval= self.calibration.detectPrintChessboard(frame)
 			self.addToGrid(frame,retval)
 		
@@ -553,7 +553,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
-		self.stopExtrinsicSamples=20
+		self.stopExtrinsicSamples=40
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
@@ -587,7 +587,7 @@ class ExtrinsicCalibrationPanel(Page):
 		self.videoView.setFrame(frame)
 
 	def onCalibrationTimer(self,event):
-		frame = self.scanner.camera.captureImage(True)
+		frame = self.scanner.camera.captureImage(False)
 		self.scanner.device.setMotorCCW()
 		
 		self.addToPlot(frame)
@@ -714,6 +714,9 @@ class ExtrinsicCalibrationPanel(Page):
 		# self.legend=self.ax.legend(loc='best',labelspacing=0.1 )
 
 		self.ax.grid()
+
+		label= "Center: xc="+str(self.xc)+" zc="+str(self.zc)
+		self.ax.set_title(label)
 
 		self.on_size(0)
 	
