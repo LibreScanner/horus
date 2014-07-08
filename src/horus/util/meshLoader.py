@@ -25,6 +25,9 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
+__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
+
 import os
 
 from horus.util.meshLoaders import ply
@@ -36,11 +39,11 @@ def loadSupportedExtensions():
 
 def saveSupportedExtensions():
 	""" return a list of supported file extensions for saving. """
-	return ['.ply', '.stl']
+	return ['.ply']
 
 def loadMesh(filename):
 	"""
-	loadMesh loads 1 printableObject from a file.
+	loadMesh loads one model from a file.
 	"""
 	ext = os.path.splitext(filename)[1].lower()
 	if ext == '.ply':
@@ -57,8 +60,5 @@ def saveMesh(filename, _object):
 	ext = os.path.splitext(filename)[1].lower()
 	if ext == '.ply':
 		ply.saveScene(filename, _object)
-		return
-	if ext == '.stl':
-		stl.saveScene(filename, _object)
 		return
 	print 'Error: Unknown model extension: %s' % (ext)

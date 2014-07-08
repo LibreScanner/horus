@@ -1,2 +1,14 @@
-*.pyc
 *~
+*.swp
+*.tar.bz2
+*.tar.gz
+*.7z
+*.pyc
+*.po~
+*.zip
+*.exe
+*.deb
+.idea
+pkg/linux/debian_*/usr/share/horus*
+pkg/win32/dist*
+$_WIN/*

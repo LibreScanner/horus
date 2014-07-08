@@ -41,6 +41,7 @@ class VideoView(wx.Panel):
 
 		self.defaultImage = wx.Image(getPathForImage("bq.png"))
 		self.image = self.defaultImage
+		self.bitmap = wx.BitmapFromImage(self.defaultImage)
 
 		self.Bind(wx.EVT_PAINT, self.onPaint)
 		self.Bind(wx.EVT_SIZE, self.onResize)

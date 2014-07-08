@@ -52,7 +52,6 @@ class ControlWorkbench(Workbench):
 	def load(self):
 
 		#-- Toolbar Configuration
-
 		self.connectTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
 		self.disconnectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
 		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
@@ -67,7 +66,6 @@ class ControlWorkbench(Workbench):
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
-
 		self.enableLabelTool(self.connectTool      , True)
 		self.enableLabelTool(self.disconnectTool   , False)
 		self.enableLabelTool(self.playTool         , False)
@@ -81,7 +79,6 @@ class ControlWorkbench(Workbench):
 		self.enableLabelTool(self.rightLaserOffTool, False)
 
 		#-- Bind Toolbar Items
-
 		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked      , self.connectTool)
 		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , self.disconnectTool)
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked         , self.playTool)
@@ -95,13 +92,11 @@ class ControlWorkbench(Workbench):
 		self.Bind(wx.EVT_TOOL, self.onRightLaserOffToolClicked, self.rightLaserOffTool)
 
 		#-- Video View
-
 		self.videoView = VideoView(self._leftPanel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.addToLeft(self.videoView)
 
 		#-- Image View
-
 		self.imageView = VideoView(self._rightPanel)
 		self.addToRight(self.imageView)
 

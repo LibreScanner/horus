@@ -30,14 +30,19 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import os
 import wx._core
 
-from horus.gui import main
 from horus.util import profile
 from horus.util import resources
+
+from horus.gui import main
+from horus.gui.util import splash
 
 class HorusApp(wx.App):
 	def __init__(self):
 		super(HorusApp, self).__init__(redirect=False)
 
+		splash.SplashScreen(self.afterSplashCallback)
+
+	def afterSplashCallback(self):
 		#-- Load Profile and Preferences
 		basePath = profile.getBasePath()
 		profile.loadPreferences(os.path.join(basePath, 'preferences.ini'))
@@ -48,6 +53,7 @@ class HorusApp(wx.App):
 
 		#-- Create Main Window
 		self.mainWindow = main.MainWindow()
+		self.mainWindow.Center()
 		self.mainWindow.Show()
 
 	def __del__(self):
