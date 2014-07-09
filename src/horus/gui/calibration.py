@@ -813,9 +813,10 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 	
 		self._editControl=False  # True means editing state
 		self.load()
-		self.SetupScrolling()
+		self.SetupScrolling(scroll_x = False)
 
 	def load(self):
+		self.scaleFactor=3*40
 
 		self._intrinsicTitle=wx.StaticText(self,label=_("Step 1: Intrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
@@ -865,6 +866,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
 
 		self.SetSizer(vbox)
+		self.Bind(wx.EVT_SIZE, self.on_size)
 		
 	def loadMatrices(self,parent,sizer):
 		#camera matrix
@@ -976,7 +978,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			for i in range(len(self._vDistortionVector)):
 				self._visualDistortionVector[i].Show(False)
 				self._visualCtrlDistortionVector[i].Show(True)
-		self.Layout()
+		self.reload()
 				
 	def checkMatrices(self):
 		isCorrect=True
@@ -1012,21 +1014,28 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		result = wx.BitmapFromImage(image)
 		return result
 	def reload(self):
+		x,_= self.GetClientSize()
+		optimalTrimming=x/(self.scaleFactor)
+		self._trimmedCalMatrix=np.around(np.copy(self.calibration._calMatrix),decimals=optimalTrimming)
+		self._trimmedDistortionVector=np.around(np.copy(self.calibration._distortionVector),decimals=optimalTrimming)
 		
 		for i in range(len(self._visualMatrix)):
 			for j in range(len(self._visualMatrix[0])):
 
 				self._visualCtrlMatrix[i][j].SetValue(str(self.calibration._calMatrix[i][j]))
-				label=str(self._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
+				label=str(self._vCalMatrix[i][j]) + str(self._trimmedCalMatrix[i][j])
 				self._visualMatrix[i][j].SetLabel(label)
 
 		for i in range(len(self._vDistortionVector)):
 			
 			self._visualCtrlDistortionVector[i].SetValue(str(self.calibration._distortionVector[i]))
-			label=str(self._vDistortionVector[i])+str(self.calibration._distortionVector[i])
+			label=str(self._vDistortionVector[i])+str(self._trimmedDistortionVector[i])
 			self._visualDistortionVector[i].SetLabel(label)	
 
 		self.Layout()
+	def on_size(self,event):
+		
+		self.reload()
 
 class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
@@ -1041,9 +1050,11 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self._editControl=False
 
 		self.load()
-		self.SetupScrolling()
+		self.SetupScrolling(scroll_x = False)
 
 	def load(self):
+		self.scaleFactor=4*28
+
 		self._extrinsicTitle=wx.StaticText(self,label=_("Step 2: Extrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
 		
@@ -1084,7 +1095,6 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		self._visualMatrix=[[0 for j in range(len(self._vRotMatrix)+1)] for i in range(len(self._vRotMatrix[0]))]
 		self._visualCtrlMatrix=[[0 for j in range(len(self._vRotMatrix)+1)] for i in range(len(self._vRotMatrix[0]))]
-		
 		for j in range(len(self._vRotMatrix[0])):
 			vbox2 = wx.BoxSizer(wx.VERTICAL)  
 			for i in range (len(self._vRotMatrix)):
@@ -1130,6 +1140,12 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		self.SetSizer(vbox)
 
+		self.Bind(wx.EVT_SIZE, self.on_size)
+
+	def on_size(self,event):
+		
+		self.reload()
+		
 	def start(self,event):
 		self.parent.parent.loadExtrinsicCalibrationPanel(0)
 
@@ -1144,6 +1160,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		
 		if self._editControl:
 			if self.checkMatrices():
+
 				for i in range(len(self._visualMatrix)):
 					for j in range(len(self._visualMatrix[0])-1):
 						
@@ -1164,7 +1181,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 				self.calibration.saveRotationMatrix()
 				self.calibration.saveTranslationVector()
-				self.Layout()
+				
 		else:
 			for i in range(len(self._visualMatrix)):
 				for j in range(len(self._visualMatrix[0])):
@@ -1173,7 +1190,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 					self._visualMatrix[i][j].Show(False)
 					self._editControl=True					
 			
-			self.Layout()
+		self.reload()
 
 	def save(self,event):
 		print "save"
@@ -1185,17 +1202,21 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		return result
 
 	def reload(self):
+		x,_= self.GetClientSize()
+		optimalTrimming=x/(self.scaleFactor)
+		self._trimmedRotMatrix=np.around(np.copy(self.calibration._rotMatrix),decimals=optimalTrimming)
+		self._trimmedTransMatrix=np.around(np.copy(self.calibration._transMatrix),decimals=optimalTrimming)
 		for i in range(len(self._visualMatrix)):
 			for j in range(len(self._visualMatrix[0])-1):
 
 				self._visualCtrlMatrix[i][j].SetValue(str(self.calibration._rotMatrix[i][j]))
-				label=str(self._vRotMatrix[i][j]) + str(self.calibration._rotMatrix[i][j])
+				label=str(self._vRotMatrix[i][j]) + str(self._trimmedRotMatrix[i][j])
 				self._visualMatrix[i][j].SetLabel(label)
 
 		for j in range(len(self._vTransMatrix)):
 			
 			self._visualCtrlMatrix[j][3].SetValue(str(self.calibration._transMatrix[j][0]))
-			label=str(self._vTransMatrix[j][0])+str(self.calibration._transMatrix[j][0])
+			label=str(self._vTransMatrix[j][0])+str(self._trimmedTransMatrix[j][0])
 			self._visualMatrix[j][3].SetLabel(label)
 
 		self.Layout()
