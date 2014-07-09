@@ -827,7 +827,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self._intrinsicTitle,0,wx.ALL,20)
-		hbox.Add((-1,-1),1)
+		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 
 		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
 		image1=self.scale_bitmap(image1,55,55)
@@ -1053,7 +1053,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self.SetupScrolling(scroll_x = False)
 
 	def load(self):
-		self.scaleFactor=4*28
+		self.scaleFactor=4*40
 
 		self._extrinsicTitle=wx.StaticText(self,label=_("Step 2: Extrinsic parameters"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL,True)
@@ -1064,7 +1064,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self._extrinsicTitle,0,wx.ALL,20)
-		hbox.Add((-1,-1),1)
+		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 
 		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
 		image1=self.scale_bitmap(image1,55,55)
