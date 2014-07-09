@@ -36,7 +36,7 @@ class Calibration:
 	"""Calibration class. For managing calibration"""
 	def __init__(self, parent):
 
-		
+		self.parent=parent
 		self.patternRows=11 # points_per_column
 		self.patternColumns=6 # points_per_row
 		self.squareWidth=12.5 # milimeters of each square's side
@@ -134,6 +134,12 @@ class Calibration:
 			mean_error+=error
 		self.mean_error=mean_error
 
+	def undistortImage(self,image):
+		mapx,mapy = cv2.initUndistortRectifyMap(self._calMatrix,self._distortionVector,R=None,newCameraMatrix=self._newCameraMatrix,size=(self.w,self.h),m1type=5)
+		image = cv2.remap(image,mapx,mapy,cv2.INTER_LINEAR)
+					
+		return image
+
 # Data storage stuff
 
 	def updateProfileToAllControls(self):
@@ -144,7 +150,12 @@ class Calibration:
 
 		self._rotMatrix=profile.getProfileSettingNumpy('rotation_matrix')
 		
-		self._transMatrix=profile.getProfileSettingNumpy('translation_vector')		
+		self._transMatrix=profile.getProfileSettingNumpy('translation_vector')	
+
+		#undistort objects
+		self.w,self.h=self.parent.scanner.camera.height,self.parent.scanner.camera.width
+		self._newCameraMatrix, self.roi=cv2.getOptimalNewCameraMatrix(self._calMatrix,self._distortionVector,(self.w,self.h),alpha=1)
+		
 
 	def restoreCalibrationMatrix(self):
 		profile.resetProfileSetting('calibration_matrix')

@@ -204,6 +204,7 @@ class PatternPanel(Page):
 		
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
+		frame=self.calibration.undistortImage(frame)
 		self.videoView.setFrame(frame)
 
 
