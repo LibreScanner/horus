@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2014-06-05 17:45+0200\n"
+"POT-Creation-Date: 2014-07-09 16:24+0200\n"
 "PO-Revision-Date: 2014-06-04 11:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
@@ -17,313 +17,539 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: ../../src/horus/gui/viewer.py:115
-msgid "Video"
-msgstr ""
-
-#: ../../src/horus/gui/viewer.py:118
-msgid "Point Cloud"
-msgstr ""
-
-#: ../../src/horus/gui/main.py:42
+#: ../../src/horus/gui/main.py:49
 msgid "Horus: 3d scanning for everyone"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:52
+#: ../../src/horus/gui/main.py:81
+msgid "Load Model"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:82
+msgid "Save Model"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:83
+msgid "Clear Model"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:85
 msgid "Open Profile"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:55
+#: ../../src/horus/gui/main.py:85
+msgid "Opens Profile .ini"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:86
 msgid "Save Profile"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:59
+#: ../../src/horus/gui/main.py:87
+msgid "Reset Profile"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:89
 msgid "Exit"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:62
+#: ../../src/horus/gui/main.py:90
 msgid "File"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:96
-msgid "About"
+#: ../../src/horus/gui/main.py:97
+msgid "Preferences"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:99
-msgid "Help"
+#: ../../src/horus/gui/main.py:98
+msgid "Edit"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:142
-msgid "Horus is an open source 3D Scanner manager..."
+#: ../../src/horus/gui/main.py:102
+msgid "Workbench Selector"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:145
-msgid ""
-"Horus is free software; you can redistribute \n"
-"it and/or modify it under the terms of the GNU General Public License as \n"
-"published by the Free Software Foundation; either version 3 of the "
-"License, \n"
-"or (at your option) any later version.\n"
-"\n"
-"Horus is distributed in the hope that it will be useful, \n"
-"but WITHOUT ANY WARRANTY; without even the implied warranty of \n"
-"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  \n"
-"See the GNU General Public License for more details. You should have \n"
-"received a copy of the GNU General Public License along with File Hunter; \n"
-"if not, write to the Free Software Foundation, Inc., 59 Temple Place, \n"
-"Suite 330, Boston, MA  02111-1307  USA"
+#: ../../src/horus/gui/main.py:104 ../../src/horus/gui/main.py:122
+#: ../../src/horus/gui/main.py:127
+msgid "Main"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:168
-msgid "You must restart the application for the changes to be made"
-msgstr ""
-
-#: ../../src/horus/gui/main.py:168
-msgid "Information"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:51
-msgid "Connection Parameters"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:52
-msgid "Serial Name :"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:58
-msgid "Camera Id :"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:64
-msgid "Step degrees (º) :"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:67
-msgid "Step delay (us) :"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:71 ../../src/horus/gui/control.py:189
-msgid "Connect"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:73 ../../src/horus/gui/control.py:202
-msgid "Start"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:75
-msgid "Scan Step"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:78 ../../src/horus/gui/control.py:217
-msgid "Refresh On"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:81 ../../src/horus/gui/control.py:226
-msgid "Laser L On"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:83 ../../src/horus/gui/control.py:238
-msgid "Laser R On"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:85
-msgid "Motor CCW"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:87
-msgid "Motor CW"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:90
-msgid "Raw image"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:92
-msgid "Laser image"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:94
-msgid "Diff image"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:96
-msgid "Binary image"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:185
-msgid "Disconnect"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:193
-msgid "Stop scan!"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:199
-msgid "Stop"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:205 ../../src/horus/gui/control.py:229
-#: ../../src/horus/gui/control.py:241 ../../src/horus/gui/control.py:250
-#: ../../src/horus/gui/control.py:259
-msgid "Device not connected"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:214
-msgid "Refresh Off"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:223
-msgid "Laser L Off"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:235
-msgid "Laser R Off"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:274
-msgid "Config changed. You must reboot"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:289
-msgid "Image Processing"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:290
-msgid "Blur"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:295
-msgid "Open"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:300
-msgid "min H"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:303
-msgid "min S"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:306
-msgid "min V"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:309
-msgid "max H"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:312
-msgid "max S"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:315
-msgid "max V"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:319
-msgid "ROI Selection"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:320
-msgid "radius"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:412
-msgid "Calibration Parameters"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:413
-msgid "fx"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:415
-msgid "fy"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:417
-msgid "cx"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:419
-msgid "cy"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:421
-msgid "zs"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:423
-msgid "ho"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:426
-msgid "Algorithm"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:427
-msgid "Compact"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:429
-msgid "Complete"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:432
-msgid "Filter"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:434
-msgid "<  r  <"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:437
-msgid "<  h  <"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:440
-msgid "Move"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:441
-msgid "z"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:445
-msgid "Save"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:447
-msgid "Apply"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:525
-msgid "Save As"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:526
-msgid "PLY files (*.ply)|*.ply"
-msgstr ""
-
-#: ../../src/horus/gui/control.py:549
+#: ../../src/horus/gui/main.py:105 ../../src/horus/gui/main.py:123
+#: ../../src/horus/gui/main.py:127 ../../src/horus/gui/main.py:399
 msgid "Control"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:182
+#: ../../src/horus/gui/main.py:106 ../../src/horus/gui/main.py:124
+#: ../../src/horus/gui/main.py:127 ../../src/horus/gui/main.py:400
+msgid "Calibration"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:107 ../../src/horus/gui/main.py:125
+#: ../../src/horus/gui/main.py:127 ../../src/horus/gui/main.py:401
+msgid "Scanning"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:108
+msgid "Workbench"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:109 ../../src/horus/gui/scanning.py:66
+msgid "View"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:113
+msgid "About"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:114
+msgid "Help"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:172
+msgid "Open 3D model"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:192
+msgid "Save 3D model"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:210
+msgid "Select profile file to load"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:222
+msgid "Select profile file to save"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:233
+msgid ""
+"This will reset all profile settings to defaults.\n"
+"Unless you have saved your current profile, all settings will be lost!\n"
+"Do you really want to reset?"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:233
+msgid "Profile reset"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:290
+msgid "Horus is an open source 3D Scanner manager..."
+msgstr ""
+
+#: ../../src/horus/gui/main.py:406
+msgid "Welcome to Horus"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:59 ../../src/horus/gui/calibration.py:64
+#: ../../src/horus/gui/control.py:55
+msgid "Connect"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:60 ../../src/horus/gui/calibration.py:65
+#: ../../src/horus/gui/control.py:56
+msgid "Disconnect"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:61 ../../src/horus/gui/control.py:57
+msgid "Play"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:62 ../../src/horus/gui/control.py:58
+msgid "Stop"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:63
+msgid "Resume"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:64
+msgid "Pause"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:66
+msgid "3D / Camera"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:91
+msgid "Raw"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:92
+msgid "Laser"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:93
+msgid "Diff"
+msgstr ""
+
+#: ../../src/horus/gui/scanning.py:94
+msgid "Binary"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:47
+msgid "Connection Parameters"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:48
+msgid "Serial Name :"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:51
+msgid "Camera Id :"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:54
+msgid "Step degrees (º) :"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:56
+msgid "Step delay (us) :"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:59
+msgid "Language :"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:141
+msgid "You have to restart the application to make the changes effective."
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:191
+msgid "Intrinsic calibration (Step 1): camera calibration"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:194
+msgid "Place the pattern adjusting it to the grid"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:316
+msgid "Press the space bar to perform captures"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:318
+msgid ""
+"Press the space bar to perform captures. Press space to start taking "
+"captures."
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:323
+#: ../../src/horus/gui/calibration.py:325
+#: ../../src/horus/gui/calibration.py:777
+#: ../../src/horus/gui/calibration.py:779
+msgid "Please connect the scanner"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:348
+#: ../../src/horus/gui/calibration.py:596
+msgid "Reject"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:350
+#: ../../src/horus/gui/calibration.py:600
+msgid "Accept"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:397
+msgid "Intrinsic calibration (Step 2): plot "
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:400
+msgid "Here you can see the plot, please, accept or reject the calibration"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:547
+msgid "Cancel"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:549
+msgid "Next"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:571
+msgid "Extrinsic calibration (Step 1): rotating plate calibration"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:574
+msgid ""
+"Place the pattern adjusting it to the grid and let the scanner calibrate "
+"itself"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:770
+#: ../../src/horus/gui/calibration.py:772
+msgid "Place the pattern here and press Next"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:821
+msgid "Step 1: Intrinsic parameters"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:855
+#: ../../src/horus/gui/calibration.py:1129
+msgid "Start"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:874
+msgid "Camera Matrix"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:903
+msgid "Distortion coefficients"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:1058
+msgid "Step 2: Extrinsic parameters"
+msgstr ""
+
+#: ../../src/horus/gui/calibration.py:1091
+msgid "Transformation Matrix"
+msgstr ""
+
+#: ../../src/horus/gui/control.py:59
+msgid "Snapshot"
+msgstr ""
+
+#: ../../src/horus/gui/control.py:60
+msgid "Motor CCW"
+msgstr ""
+
+#: ../../src/horus/gui/control.py:61
+msgid "Motor CW"
+msgstr ""
+
+#: ../../src/horus/gui/control.py:62
+msgid "Left Laser On"
+msgstr ""
+
+#: ../../src/horus/gui/control.py:63
+msgid "Left Laser Off"
+msgstr ""
+
+#: ../../src/horus/gui/control.py:64
+msgid "Right Laser On"
+msgstr ""
+
+#: ../../src/horus/gui/control.py:65
+msgid "Right Laser Off"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:47
+msgid "Algorithm"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:49
+msgid "Compact"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:50
+msgid "Complete"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:51
+msgid "Filter"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:54
+msgid "<  R  <"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:57
+msgid "<  H  <"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:60
+msgid "Move"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:62
+msgid "z"
+msgstr ""
+
+#: ../../src/horus/gui/util/scenePanel.py:65
+msgid "Apply"
+msgstr ""
+
+#: ../../src/horus/gui/util/sceneView.py:265
+msgid "Delete object"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:47
+msgid "Image Processing"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:49
+#: ../../src/horus/util/profile.py:191
+msgid "Blur"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:51
+#: ../../src/horus/util/profile.py:193
+msgid "Open"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:53
+msgid "min H"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:55
+msgid "min S"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:57
+msgid "min V"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:59
+msgid "max H"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:61
+msgid "max S"
+msgstr ""
+
+#: ../../src/horus/gui/util/videoPanel.py:63
+msgid "max V"
+msgstr ""
+
+#: ../../src/horus/gui/util/openglGui.py:259
+msgid "An error has occurred during the 3D view drawing."
+msgstr ""
+
+#: ../../src/horus/gui/util/openglGui.py:267
+msgid "3D window error"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:186
+msgid "Serial Name"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:187
+msgid "Camera Id"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:188
 msgid "Step Degrees"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:183
+#: ../../src/horus/util/profile.py:189
 msgid "Step Delay"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:187
+#: ../../src/horus/util/profile.py:192
+msgid "Blur Value"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:194
+msgid "Open Value"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:196 ../../src/horus/util/profile.py:206
+msgid "Minimum H"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:197
+msgid "Minimum S"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:198
+msgid "Minimum V"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:199 ../../src/horus/util/profile.py:207
+msgid "Maximum H"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:200
+msgid "Maximum S"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:201
+msgid "Maximum V"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:203
+msgid "Compact Algorithm"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:204
+msgid "Minimum Rho"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:205
+msgid "Maximum Rho"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:209
+msgid "Z Offset"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:214
+msgid "Maximum width (mm)"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:214 ../../src/horus/util/profile.py:215
+#: ../../src/horus/util/profile.py:216
+msgid "Size of the machine in mm"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:215
+msgid "Maximum depth (mm)"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:216
+msgid "Maximum height (mm)"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:217
+msgid "Machine center 0,0"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:217
+msgid ""
+"Machines firmware defines the center of the bed as 0,0 instead of the front "
+"left corner."
+msgstr ""
+
+#: ../../src/horus/util/profile.py:218
+msgid "Build area shape"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:218
+msgid "The shape of machine build area."
+msgstr ""
+
+#: ../../src/horus/util/profile.py:221
+msgid "Calibration Matrix"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:222
+msgid "Distortion Vector"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:224
+msgid "Rotation Matrix"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:226
+msgid "Translation Matrix"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:230
 msgid "Language"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:187
+#: ../../src/horus/util/profile.py:230
 msgid ""
 "Change the language in which Horus runs. Switching language requires a "
 "restart of Horus"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:238
+msgid "Model colour"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:238
+msgid "Display color for first extruder"
 msgstr ""
 
 #~ msgid "Holaaaaaaaa"
