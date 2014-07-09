@@ -290,7 +290,7 @@ class MainWindow(wx.Frame):
         info.SetDescription(_('Horus is an open source 3D Scanner manager...'))
         info.SetCopyright(u'(C) 2014 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
-        info.SetLicence(_("""Horus is free software; you can redistribute 
+        info.SetLicence("""Horus is free software; you can redistribute 
 it and/or modify it under the terms of the GNU General Public License as 
 published by the Free Software Foundation; either version 3 of the License,
 or (at your option) any later version.
@@ -301,7 +301,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License for more details. You should have 
 received a copy of the GNU General Public License along with File Hunter; 
 if not, write to the Free Software Foundation, Inc., 59 Temple Place, 
-Suite 330, Boston, MA  02111-1307  USA"""))
+Suite 330, Boston, MA  02111-1307  USA""")
         info.AddDeveloper(u'Jesús Arroyo\n Álvaro Velad')
         info.AddDocWriter(u'Jesús Arroyo')
         info.AddArtist(u'Jesús Arroyo')

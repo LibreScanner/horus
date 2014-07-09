@@ -37,7 +37,7 @@ from horus.util import resources
 
 class PreferencesDialog(wx.Dialog):
 	def __init__(self, parent):
-		super(PreferencesDialog, self).__init__(None, title="Preferences")
+		super(PreferencesDialog, self).__init__(None, title=_("Preferences"))
 
 		wx.EVT_CLOSE(self, self.onClose)
 
@@ -55,6 +55,11 @@ class PreferencesDialog(wx.Dialog):
 		self.stepDegreesText = wx.TextCtrl(self, value=profile.getProfileSetting('step_degrees'), size=(82,-1))
 		self.stepDelayLabel = wx.StaticText(self, label=_("Step delay (us) :"))
 		self.stepDelayText = wx.TextCtrl(self, value=profile.getProfileSetting('step_delay'), size=(92,-1))
+
+		self.languageLabel = wx.StaticText(self, label=_("Language :"))
+		self.languages = [row[1] for row in resources.getLanguageOptions()]
+		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(110,-1))
+
 		self.okButton = wx.Button(self, -1, 'Ok')
 
 		#-- Events
@@ -62,6 +67,7 @@ class PreferencesDialog(wx.Dialog):
 		self.cameraIdCombo.Bind(wx.EVT_TEXT, self.onCameraIdTextChanged)
 		self.stepDelayText.Bind(wx.EVT_TEXT, self.onStepDelayTextChanged)
 		self.stepDegreesText.Bind(wx.EVT_TEXT, self.onStepDegreesTextChanged)
+		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Close())
 
 		#-- Fill data
@@ -97,6 +103,15 @@ class PreferencesDialog(wx.Dialog):
 		hbox.Add(self.stepDelayText, 0, wx.ALL, 5)
 		vbox.Add(hbox)
 
+		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
+
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.languageLabel, 0, wx.ALL, 10)
+		hbox.Add(self.languageCombo, 0, wx.ALL, 5)
+		vbox.Add(hbox)
+
+		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
+
 		vbox.Add(self.okButton, 0, wx.ALL, 10)
 
 		self.SetSizer(vbox)
@@ -108,13 +123,22 @@ class PreferencesDialog(wx.Dialog):
 		profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
 
 	def onCameraIdTextChanged(self, event):
-		profile.putProfileSetting('camera_id', int(self.cameraIdCombo.GetValue()[-1:]))
+		if self.cameraIdCombo.GetValue() is not None:
+			profile.putProfileSetting('camera_id', int(self.cameraIdCombo.GetValue()[-1:]))
 
 	def onStepDegreesTextChanged(self, event):
-		profile.putProfileSetting('step_degrees', float((self.stepDegreesText.GetValue()).replace(',','.')))
+		if self.stepDegreesText.GetValue() is not None:
+			profile.putProfileSetting('step_degrees', float((self.stepDegreesText.GetValue()).replace(',','.')))
 
 	def onStepDelayTextChanged(self, event):
-		profile.putProfileSetting('step_delay', int(self.stepDelayText.GetValue()))
+		if self.stepDelayText.GetValue() is not None:
+			profile.putProfileSetting('step_delay', int(self.stepDelayText.GetValue()))
+
+	def onLanguageComboChanged(self, event):
+		if profile.getPreference('language') is not self.languageCombo.GetValue():
+			profile.putPreference('language', self.languageCombo.GetValue())
+			resources.setupLocalization(profile.getPreference('language'))
+			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
 
 	def onClose(self, e):
 		self.main.updateEngine()

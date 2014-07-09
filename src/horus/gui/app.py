@@ -53,7 +53,7 @@ class HorusApp(wx.App):
 
 		#-- Create Main Window
 		self.mainWindow = main.MainWindow()
-		self.mainWindow.Center()
+		#self.mainWindow.Center()
 		self.mainWindow.Show()
 
 	def __del__(self):
