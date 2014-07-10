@@ -53,6 +53,7 @@ class CalibrationWorkbench(Workbench):
 
 	def __init__(self, parent):
 		Workbench.__init__(self, parent, 1, 1)
+		self.parent=parent
 		self.scanner = self.GetParent().scanner
 		self.calibration = self.GetParent().calibration
 		self.load()
@@ -188,6 +189,16 @@ class PatternPanel(Page):
 		# cool hack: key event listener only works if the focus is in some elements like our videoview
 		self.videoView.SetFocus()
 
+		# be sure that the focus is always where it should be
+
+		self.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self._titlePanel.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self._upPanel.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self._downPanel.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self.getLeftButton().Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self.getRightButton().Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self.parent.parent.parent.comboBoxWorkbench.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Intrinsic calibration (Step 1): camera calibration"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
@@ -201,7 +212,10 @@ class PatternPanel(Page):
 		self.getTitlePanel().SetSizer(vbox)
 		self.setLayout()
 		
-		
+	def returnFocus(self,event):
+		print event.GetEventObject()
+		self.videoView.SetFocus()
+
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
 		frame=self.calibration.undistortImage(frame)
