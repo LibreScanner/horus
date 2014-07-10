@@ -37,7 +37,7 @@ class Calibration:
 	def __init__(self, parent):
 
 		self.parent=parent
-		self.patternRows=11 # points_per_column
+		self.patternRows=9 # points_per_column
 		self.patternColumns=6 # points_per_row
 		self.squareWidth=12.5 # milimeters of each square's side
 
