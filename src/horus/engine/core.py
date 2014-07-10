@@ -37,9 +37,6 @@ class Core:
 		""" """
 		self.points = None
 		self.colors = None
-
-		#-- Image type parameters
-		self.imgType = 'raw'
 		
 		self.imgRaw  = None
 		self.imgLas  = None
@@ -47,18 +44,7 @@ class Core:
 		self.imgBin  = None
 		self.imgLine = None
 
-		#-- Image Processing Parameters
-		self.blurEnable = True
-		self.blurValue = 4
-
-		self.openEnable = True
-		self.openValue = 5
-
-		self.colorMin = np.array([0, 180, 30],np.uint8)
-		self.colorMax = np.array([180, 250, 140],np.uint8)
-
-		#-- Point Cloud Parameters
-		self.modeCW = True
+		self.theta = 0
 
 		self.fx = 1150
 		self.fy = 1150
@@ -68,21 +54,10 @@ class Core:
 		self.ho = 50
 		self.alpha = 60
 
-		self.useCompact = True
-
-		self.rhoMin = -100
-		self.rhoMax = 100
-		self.hMin = 0
-		self.hMax = 200
-
-		self.zOffset = 0
-
 		self.width = 960
 		self.height = 1280
 
 		self.degrees = degrees
-
-		self.theta = 0
 
 		#-- Constant Parameters initialization
 		self.rad = math.pi / 180.0
@@ -105,13 +80,47 @@ class Core:
 				u = i-self.cx
 				self.M_rho[j,i] = rho = A*u/(u+B)
 				self.M_z[j,i] = self.ho + (self.zs-rho*math.sin(alpha))*v/self.fy
-				
-		#print "----------------R-------------"
-		#print self.M_rho
-		#print "----------------Z-------------"
-		#print self.M_z
 
 		self.W = np.matrix(np.ones(self.height)).T * np.matrix(np.arange(self.width).reshape((self.width)))
+
+	def initialize(self, imgType='raw',
+						 blurEnable=True,
+						 blurValue=4,
+						 openEnable=True,
+						 openValue=4,
+						 colorMin=np.array([0, 180, 30],np.uint8),
+						 colorMax=np.array([180, 250, 140],np.uint8),
+						 useCompact=True,
+						 rhoMin=-100,
+						 rhoMax=100,
+						 hMin=0,
+						 hMax=200,
+						 zOffset=0):
+
+		#-- Image type parameters
+		self.imgType = imgType
+
+		#-- Image Processing Parameters
+		self.blurEnable = blurEnable
+		self.blurValue = blurValue
+
+		self.openEnable = openEnable
+		self.openValue = openValue
+
+		self.colorMin = colorMin
+		self.colorMax = colorMax
+
+		#-- Point Cloud Parameters
+		self.modeCW = True
+
+		self.useCompact = useCompact
+
+		self.rhoMin = rhoMin
+		self.rhoMax = rhoMax
+		self.hMin = hMin
+		self.hMax = hMax
+
+		self.zOffset = zOffset
 
 	def setBlur(self, enable, value):
 		self.blurEnable = enable

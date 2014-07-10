@@ -136,6 +136,7 @@ class ScanningWorkbench(Workbench):
 						self.buttonBin.GetId()  : 'bin'}.get(event.GetId())
 
 		self.scanner.core.setImageType(selectedView)
+		profile.putProfileSetting('img_type', selectedView)
 
 	def onTimer(self, event):
 		frame = self.scanner.core.getImage()

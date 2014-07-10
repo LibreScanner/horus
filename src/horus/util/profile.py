@@ -188,6 +188,8 @@ setting('camera_id', 0, int, 'basic', _('Camera Id'))
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1125)
 setting('step_delay', 800, int, 'basic', _('Step Delay')).setRange(100, 10000)
 
+setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Blur'))
+
 setting('blur', True, bool, 'advanced', _('Blur'))
 setting('blur_value', 4, int, 'advanced', _('Blur Value')).setRange(1, 10)
 setting('open', True, bool, 'advanced', _('Open'))
@@ -207,7 +209,6 @@ setting('min_h', 0, int, 'advanced', _('Minimum H'))
 setting('max_h', 200, int, 'advanced', _('Maximum H'))
 
 setting('z_offset', 0, int, 'advanced', _('Z Offset')).setRange(-50, 50)
-
 
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'cyclops', str, 'machine', 'hidden')
@@ -473,11 +474,27 @@ def getProfileSettingBool(name):
 	except:
 		return False
 
+def getProfileSettingNumpy(name):
+	try:
+		setting = getProfileSetting(name)
+
+		return numpy.array(eval(setting, {}, {}))
+	except:
+		return False
+
 def putProfileSetting(name, value):
 	""" Store a certain value in a profile setting. """
 	global settingsDictionary
 	if name in settingsDictionary and settingsDictionary[name].isProfile():
 		settingsDictionary[name].setValue(value)
+
+def putProfileSettingNumpy(name, value):
+	reprValue=repr(value)
+	reprValue=reprValue.replace('\n','')
+	reprValue=reprValue.replace('array(','')
+	reprValue=reprValue.replace(')','')
+	reprValue=reprValue.replace(' ','')
+	putProfileSetting(name,reprValue)
 
 def isProfileSetting(name):
 	""" Check if a certain key name is actually a profile value. """
@@ -656,28 +673,3 @@ def getMachineSizePolygons():
 		ret.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
 	"""
 	return ret
-
-def getProfileSettingNumpy(name):
-	try:
-		setting = getProfileSetting(name)
-
-		return numpy.array(eval(setting, {}, {}))
-	except:
-		return False
-# def getDefaultProfileSettingNumpy(name):
-# 	try:
-# 		setting = getDefaultProfileSetting(name)
-# 		print 'sexy setting',setting
-# 		return numpy.array(eval(setting, {}, {}))
-# 	except:
-# 		return False
-
-def putProfileSettingNumpy(name,value):
-
-	reprValue=repr(value)
-	reprValue=reprValue.replace('\n','')
-	reprValue=reprValue.replace('array(','')
-	reprValue=reprValue.replace(')','')
-	reprValue=reprValue.replace(' ','')
-
-	putProfileSetting(name,reprValue)

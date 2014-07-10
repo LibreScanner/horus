@@ -329,6 +329,24 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                 profile.getProfileSettingFloat('step_degrees'),
                                 profile.getProfileSettingInteger('step_delay'))
 
+        self.scanner.core.initialize(profile.getProfileSetting('img_type'),
+                                     profile.getProfileSettingBool('blur'),
+                                     profile.getProfileSettingInteger('blur_value'),
+                                     profile.getProfileSettingBool('open'),
+                                     profile.getProfileSettingInteger('open_value'),
+                                     np.array([profile.getProfileSettingNumpy('min_h'),
+                                               profile.getProfileSettingNumpy('min_s'),
+                                               profile.getProfileSettingNumpy('min_v')],np.uint8),
+                                     np.array([profile.getProfileSettingNumpy('max_h'),
+                                               profile.getProfileSettingNumpy('max_s'),
+                                               profile.getProfileSettingNumpy('max_v')],np.uint8),
+                                     profile.getProfileSettingBool('use_compact'),
+                                     profile.getProfileSettingInteger('min_rho'),
+                                     profile.getProfileSettingInteger('max_rho'),
+                                     profile.getProfileSettingInteger('min_h'),
+                                     profile.getProfileSettingInteger('max_h'),
+                                     profile.getProfileSettingInteger('z_offset'))
+
     def workbenchUpdate(self):
         """ """
         currentWorkbench = profile.getPreference('workbench')
