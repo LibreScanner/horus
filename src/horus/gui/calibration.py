@@ -222,19 +222,22 @@ class PatternPanel(Page):
 
 	def OnKeyPress(self,event):
 		"""Key bindings: if it is not started, spacebar initialize the scanner"""
-		if not self.loaded:
-			if not self.scanner.isConnected:
-				self.scanner.connect()
-				self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
-				self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
-			self.timer.Start(milliseconds=150)
-			self.loaded=True
-			self.loadGrid()
+		
 			
-		elif event.GetKeyCode()==32:
-			frame = self.scanner.camera.captureImage(False)
-			frame,retval= self.calibration.detectPrintChessboard(frame)
-			self.addToGrid(frame,retval)
+		if event.GetKeyCode()==32:
+			if not self.loaded:
+				if not self.scanner.isConnected:
+					self.scanner.connect()
+					self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
+					self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
+				self.timer.Start(milliseconds=150)
+				self.loaded=True
+				self.loadGrid()
+			else:
+
+				frame = self.scanner.camera.captureImage(False)
+				frame,retval= self.calibration.detectPrintChessboard(frame)
+				self.addToGrid(frame,retval)
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
@@ -1064,6 +1067,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 				self._editControl=False
 				self.calibration.saveCalibrationMatrix()
 				self.calibration.saveDistortionVector()
+				self.reload()
 			
 		else:
 			# means start editing 
@@ -1077,7 +1081,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			for i in range(len(self._vDistortionVector)):
 				self._visualDistortionVector[i].Show(False)
 				self._visualCtrlDistortionVector[i].Show(True)
-		self.reload()
+			self.reload()
 				
 	def checkMatrices(self):
 		isCorrect=True
@@ -1280,6 +1284,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 				self.calibration.saveRotationMatrix()
 				self.calibration.saveTranslationVector()
+				self.reload()
 				
 		else:
 			for i in range(len(self._visualMatrix)):
@@ -1289,7 +1294,7 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 					self._visualMatrix[i][j].Show(False)
 					self._editControl=True					
 			
-		self.reload()
+			self.reload()
 
 	def save(self,event):
 		print "save"
