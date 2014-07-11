@@ -281,7 +281,7 @@ class PatternPanel(Page):
 		if hasattr(self,'panelGrid'):
 			for panel in self.panelGrid:
 				panel.setImage(wx.Image(getPathForImage("bq.png")))
-				self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+				panel.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
 			
 		self.currentGrid=0
 		self.calibration.clearData()
@@ -365,8 +365,7 @@ class PlotPanel(Page):
 		self.scaleFactor=3*80
 		self.load()
 	def load(self):
-		self.rvecsTrain= self.calibration.rvecs
-		self.tvecsTrain= self.calibration.tvecs
+		
 
 		self.fig = Figure(tight_layout=True)
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
@@ -464,11 +463,11 @@ class PlotPanel(Page):
 		self.ax.invert_xaxis()
 		self.ax.invert_yaxis()
 		self.ax.invert_zaxis()
-		#remove next line, add to button
 		self.addToCanvas()
+
 	def addToCanvas(self):
-		self.rotation=self.rvecsTrain
-		self.translation=self.tvecsTrain
+		self.rotation=self.calibration.rvecs
+		self.translation=self.calibration.tvecs
 		axisXx,axisXy,axisXz=[0,30],[0,0],[0,0]
 		axisYx,axisYy,axisYz=[0,0],[0,30],[0,0]
 		axisZx,axisZy,axisZz=[0,0],[0,0],[0,30]
@@ -517,7 +516,7 @@ class PlotPanel(Page):
 	def clearPlot(self):
 		self.ax.cla()
 		self.printCanvas()
-		self.canvas.draw()
+		
 	def hide(self):
 		self.canvas.Show(False)
 		self.Show(False)
@@ -528,7 +527,8 @@ class PlotPanel(Page):
 		self.getPanel().Bind(wx.EVT_SIZE,self.on_size)
 	def reload(self):
 		self.clearPlot()
-		self.load()
+		self.reloadMatrix()
+
 
 	def setLayout(self):
 		self.initHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -611,6 +611,7 @@ class PlotPanel(Page):
 			self._visualDistortionVector[i].SetLabel(label)	
 		
 		self.Layout()
+		
 class ExtrinsicCalibrationPanel(Page):
 	def __init__(self,parent,scanner,calibration):
 		Page.__init__(self,parent)
