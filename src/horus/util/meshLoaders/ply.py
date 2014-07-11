@@ -45,43 +45,69 @@ import time
 
 from horus.util import model
 
-def _loadAscii(m, f): # TODO: improve parser: normals, colors, faces, etc.
-	cnt = 0
-	sections = f.read().split('end_header')
+def _loadAscii(m, cnt, idx, body):
+	for i in range(1,cnt):
+		data = body[i].split(' ')
+		m._addVertex(float(data[idx[0]]),float(data[idx[1]]),float(data[idx[2]]),int(data[idx[3]]),int(data[idx[4]]),int(data[idx[5]]))
 
-	header = sections[0].split('\n')
-	for line in header:
-		if 'element vertex ' in line:
-			cnt = int(line.split('element vertex ')[1])
-
-	m._prepareVertexCount(int(cnt))
-
-	body = sections[1].split('\n')
-
-	if len(body) > 1:
-		_len = len(body[1].split(' '))
-
-	if _len == 6: # colors
-		for i in range(1,cnt):
-			data = body[i].split(' ')
-			m._addVertex(float(data[0]),float(data[1]),float(data[2]),int(data[3]),int(data[4]),int(data[5]))
-	elif  _len == 11: # normals
-		for i in range(1,cnt):
-			data = body[i].split(' ')
-			m._addVertex(float(data[0]),float(data[1]),float(data[2]),int(data[6]),int(data[7]),int(data[8]))
-
-def _loadBinary(m, f):
-	pass
+def _loadBinary(m, cnt, idx, step, format, body):
+	a = b = 0
+	for i in range(cnt):
+		b = a+step
+		data = struct.unpack(format, body[step*i:step*(i+1)])
+		m._addVertex(float(data[idx[0]]),float(data[idx[1]]),float(data[idx[2]]),int(data[idx[3]]),int(data[idx[4]]),int(data[idx[5]]))
+		a = b
 
 def loadScene(filename):
 	obj = model.Model(filename, isPointCloud=True)
 	m = obj._addMesh()
 	f = open(filename, "rb")
-	if f.read(3).lower() == "ply":
-		_loadAscii(m, f)
+
+	cnt = 0
+	idx = []
+	pidx = []
+	ridx = ['x', 'y', 'z', 'red', 'green', 'blue'] #-- Current addVertex prototype
+	step = 0
+	format = ""
+	sections = f.read().split('end_header\n')
+	header = sections[0].split('element face ')[0].split('\n') #-- Discart faces
+
+	if header[0] == 'ply':
+
+		for line in header:
+			if 'element vertex ' in line:
+				cnt = int(line.split('element vertex ')[1])
+			elif 'property ' in line:
+				props = line.split(' ')
+				pidx += [props[2]]
+				if props[1] == 'float':
+					format += 'f'
+					step += 4
+				if props[1] == 'uchar':
+					format += 'B'
+					step += 1
+
+		for item in ridx:
+			if item in pidx:
+				idx += [pidx.index(item)]
+
+		codec = None
+		for line in header:
+			if 'format ' in line:
+				codec = line.split(' ')[1]
+
+		m._prepareVertexCount(cnt)
+
+		if codec is not None:
+			if codec == 'ascii':
+				_loadAscii(m, cnt, idx, sections[1].split('\n'))
+			elif codec == 'binary_big_endian':
+				_loadBinary(m, cnt, idx, step, '>'+format, sections[1])
+			elif codec == 'binary_little_endian':
+				_loadBinary(m, cnt, idx, step, '<'+format, sections[1])
 	else:
-		pass
-		#_loadBinary(m, f)
+		print "Error: incorrect file format."
+
 	f.close()
 	obj._postProcessAfterLoad()
 	return obj
@@ -94,26 +120,35 @@ def saveScene(filename, _object):
 def saveSceneStream(stream, _object):
 	m = _object._mesh
 
+	binary = False
+
 	if m is not None:
-		frame  = "ply\nformat ascii 1.0\n"
+		frame  = "ply\n"
+		if binary:
+			frame += "format ascii 1.0\n"
+		else:
+			frame += "format binary_little_endian 1.0\n"
 		frame += "element vertex {0}\n".format(m.vertexCount)
 		frame += "property float x\n"
 		frame += "property float y\n"
 		frame += "property float z\n"
-		frame += "property uchar diffuse_red\n"
-		frame += "property uchar diffuse_green\n"
-		frame += "property uchar diffuse_blue\n"
+		frame += "property uchar red\n"
+		frame += "property uchar green\n"
+		frame += "property uchar blue\n"
 		frame += "element face 0\n"
 		frame += "property list uchar int vertex_indices\n"
 		frame += "end_header\n"
-		if m.vertexCount > 0:
-			points = m.vertexes
-			colors = m.colors
-			for i in range(m.vertexCount):
-				frame += "{0} ".format(points[i,0])
-				frame += "{0} ".format(points[i,1])
-				frame += "{0} ".format(points[i,2])
-				frame += "{0} ".format(colors[i,0])
-				frame += "{0} ".format(colors[i,1])
-				frame += "{0}\n".format(colors[i,2])
+		if binary:
+			pass
+		else:
+			if m.vertexCount > 0:
+				points = m.vertexes
+				colors = m.colors
+				for i in range(m.vertexCount):
+					frame += "{0} ".format(points[i,0])
+					frame += "{0} ".format(points[i,1])
+					frame += "{0} ".format(points[i,2])
+					frame += "{0} ".format(colors[i,0])
+					frame += "{0} ".format(colors[i,1])
+					frame += "{0}\n".format(colors[i,2])
 		stream.write(frame)
