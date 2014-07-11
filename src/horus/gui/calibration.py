@@ -53,6 +53,7 @@ class CalibrationWorkbench(Workbench):
 
 	def __init__(self, parent):
 		Workbench.__init__(self, parent, 1, 1)
+		self.parent=parent
 		self.scanner = self.GetParent().scanner
 		self.calibration = self.GetParent().calibration
 		self.load()
@@ -130,7 +131,6 @@ class CalibrationWorkbench(Workbench):
 		else:
 			self._extrinsicCalibrationPanel.Show(True)
 			self._extrinsicCalibrationPanel.guideView.Show(True)
-			self._extrinsicCalibrationPanel.videoView.SetFocus()
 			self._extrinsicCalibrationPanel.getRightButton().Bind(wx.EVT_BUTTON,self._extrinsicCalibrationPanel.start)
 			self._extrinsicCalibrationPanel.setLayout()
 
@@ -188,6 +188,16 @@ class PatternPanel(Page):
 		# cool hack: key event listener only works if the focus is in some elements like our videoview
 		self.videoView.SetFocus()
 
+		# be sure that the focus is always where it should be
+
+		self.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self._titlePanel.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self._upPanel.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self._downPanel.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self.getLeftButton().Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self.getRightButton().Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+		self.parent.parent.parent.comboBoxWorkbench.Bind(wx.EVT_SET_FOCUS,self.returnFocus)
+
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Intrinsic calibration (Step 1): camera calibration"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
@@ -201,7 +211,9 @@ class PatternPanel(Page):
 		self.getTitlePanel().SetSizer(vbox)
 		self.setLayout()
 		
-		
+	def returnFocus(self,event):
+		self.videoView.SetFocus()
+
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
 		frame=self.calibration.undistortImage(frame)
@@ -213,7 +225,8 @@ class PatternPanel(Page):
 		if not self.loaded:
 			if not self.scanner.isConnected:
 				self.scanner.connect()
-
+				self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
+				self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
 			self.timer.Start(milliseconds=150)
 			self.loaded=True
 			self.loadGrid()
@@ -268,7 +281,7 @@ class PatternPanel(Page):
 		if hasattr(self,'panelGrid'):
 			for panel in self.panelGrid:
 				panel.setImage(wx.Image(getPathForImage("bq.png")))
-				self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+				panel.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
 			
 		self.currentGrid=0
 		self.calibration.clearData()
@@ -349,22 +362,27 @@ class PlotPanel(Page):
 		self.getLeftButton().SetLabel(_("Reject"))
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.acceptCalibration)
 		self.getRightButton().SetLabel(_("Accept"))
+		self.scaleFactor=3*80
 		
+		self.angle=0
+		self.timer = wx.Timer(self)
+		self.Bind(wx.EVT_TIMER, self.onAnimationTimer, self.timer)
+
 		self.load()
+
 	def load(self):
-		self.rvecsTrain= self.calibration.rvecs
-		self.tvecsTrain= self.calibration.tvecs
+		
 
 		self.fig = Figure(tight_layout=True)
-		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
+		self.canvas = FigureCanvasWxAgg( self.getPanel(), 1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
 
 		self.ax = self.fig.gca(projection='3d',axisbg=(random.random(),random.random(),random.random()))
 		self.getPanel().Bind(wx.EVT_SIZE, self.on_size)
 		# Parameters of the pattern
-		self.columns=5
-		self.rows=8
-		self.squareWidth=12
+		self.columns=self.calibration.patternColumns+2
+		self.rows=self.calibration.patternRows+2
+		self.squareWidth=self.calibration.squareWidth
 		self.nPoints=100
 		# Basis for the pattern
 		self.x = np.linspace(0, self.squareWidth*self.columns, self.nPoints)
@@ -409,17 +427,18 @@ class PlotPanel(Page):
 		self.matrixPanel=wx.lib.scrolledpanel.ScrolledPanel( parent=self.getPanel(), id=wx.ID_ANY)
 		
 		vbox=wx.BoxSizer(wx.VERTICAL)
-		self.parent.parent._intrinsicsPanel.loadMatrices(self.matrixPanel,vbox)
+		self.loadMatrices(self.matrixPanel,vbox)
 		self.matrixPanel.SetSizer(vbox)
+		self.getPanel().Bind(wx.EVT_SIZE, self.on_size)
 		self.setLayout()
 		
 
 	def on_size(self,event):
-		# factor=1.5
+		factor=1
 		# pix = self.getPanel().GetClientSize()
 		# self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
-		# x,y = self.getPanel().GetSize()  
-		# self.canvas.SetClientSize((y*factor, y))
+		x,y = self.getPanel().GetClientSize()  
+		self.canvas.SetClientSize((y*factor-20, (x/2)-40))
 		# self.ax.set_xlim(-150, 150)
 		# self.ax.set_ylim(0, 300)
 		# self.ax.set_zlim(-150/factor, 150/factor)
@@ -427,7 +446,9 @@ class PlotPanel(Page):
 		# self.ax.invert_yaxis()
 		# self.ax.invert_zaxis()
 		# self.canvas.draw()
+		self.reloadMatrix()
 		self._upPanel.Layout()
+		self.Layout()
 		event.Skip()
 		
 
@@ -448,11 +469,11 @@ class PlotPanel(Page):
 		self.ax.invert_xaxis()
 		self.ax.invert_yaxis()
 		self.ax.invert_zaxis()
-		#remove next line, add to button
 		self.addToCanvas()
+
 	def addToCanvas(self):
-		self.rotation=self.rvecsTrain
-		self.translation=self.tvecsTrain
+		self.rotation=self.calibration.rvecs
+		self.translation=self.calibration.tvecs
 		axisXx,axisXy,axisXz=[0,30],[0,0],[0,0]
 		axisYx,axisYy,axisYz=[0,0],[0,30],[0,0]
 		axisZx,axisZy,axisZz=[0,0],[0,0],[0,30]
@@ -497,11 +518,19 @@ class PlotPanel(Page):
 			self.ax.plot(rtAxisZx,rtAxisZz,rtAxisZy,linewidth=2.0,color='blue')
 			
 			self.canvas.draw()
+			# self.timer.Start(milliseconds=50) 
 
+	def onAnimationTimer(self,event):
+		if self.angle is 360:
+			self.angle=0
+		self.ax.view_init(30,self.angle)
+		self.canvas.draw()
+		print self.angle
+		self.angle+=1
 	def clearPlot(self):
 		self.ax.cla()
 		self.printCanvas()
-		self.canvas.draw()
+		
 	def hide(self):
 		self.canvas.Show(False)
 		self.Show(False)
@@ -512,17 +541,18 @@ class PlotPanel(Page):
 		self.getPanel().Bind(wx.EVT_SIZE,self.on_size)
 	def reload(self):
 		self.clearPlot()
-		self.load()
+		self.reloadMatrix()
+
 
 	def setLayout(self):
 		self.initHbox = wx.BoxSizer(wx.HORIZONTAL)
 
-		self.initHbox.Add(self.canvas,2,wx.EXPAND|wx.ALL,10)
+		self.initHbox.Add(self.canvas,1,wx.EXPAND|wx.ALL,10)
 		self.initHbox.Add(self.matrixPanel,1,wx.EXPAND|wx.ALL,10)
 		self._upPanel.SetSizer(self.initHbox)
 		self.Layout()
 		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
-		self.ghbox.Add(self,1,wx.EXPAND,0)
+		self.ghbox.Add(self,1,wx.EXPAND|wx.ALL,10)
 		self.parent.SetSizer(self.ghbox)
 		self.parent.Layout()
 	def acceptCalibration(self,event):
@@ -533,6 +563,68 @@ class PlotPanel(Page):
 	def rejectCalibration(self,event):
 		self.calibration.updateProfileToAllControls()
 		self.parent.parent.loadInit(0)
+
+	def loadMatrices(self,parent,sizer):
+		#camera matrix
+		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
+		self._camMatrixTitle=wx.StaticBox(parent,label=_("Camera Matrix"))
+		self._camMatrixTitle.SetFont(font)
+		boxSizer = wx.StaticBoxSizer(self._camMatrixTitle,wx.HORIZONTAL)
+		boxSizer.Add((-1,50),0,wx.ALL,5)
+		self._visualMatrix=[[0 for j in range(len(self.parent.parent._intrinsicsPanel._vCalMatrix))] for i in range(len(self.parent.parent._intrinsicsPanel._vCalMatrix[0]))]
+		
+		for j in range(len(self.parent.parent._intrinsicsPanel._vCalMatrix[0])):
+			vbox2 = wx.BoxSizer(wx.VERTICAL)  
+			for i in range (len(self.parent.parent._intrinsicsPanel._vCalMatrix)):
+				label=str(self.parent.parent._intrinsicsPanel._vCalMatrix[i][j]) + str(self.calibration._calMatrix[i][j])
+				self._visualMatrix[i][j]= wx.StaticText(parent,label=label)
+				vbox2.Add(self._visualMatrix[i][j],0,wx.EXPAND|wx.TOP,27)
+			boxSizer.Add(vbox2,1,wx.EXPAND | wx.ALL,5)
+
+		boxSizer.Add((-1,50),0,wx.ALL,5)
+		sizer.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
+		
+		#distortion coefficients
+		self._distortionCoeffStaticText = wx.StaticBox(parent, label=_("Distortion coefficients"))
+		self._distortionCoeffStaticText.SetFont(font)
+		boxSizer = wx.StaticBoxSizer(self._distortionCoeffStaticText,wx.VERTICAL)
+
+		vboxAux= wx.BoxSizer(wx.VERTICAL)
+		hboxRow1=wx.BoxSizer(wx.HORIZONTAL)
+		hboxRow2=wx.BoxSizer(wx.HORIZONTAL)
+		self._visualDistortionVector=[0 for j in range(len(self.calibration._distortionVector))]
+		for i in range(len(self.parent.parent._intrinsicsPanel._vDistortionVector)):		
+			label=str(self.parent.parent._intrinsicsPanel._vDistortionVector[i])+str(self.calibration._distortionVector[i])
+			self._visualDistortionVector[i]=wx.StaticText(parent,label=label)
+			if i<3:	
+				hboxRow1.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
+			else:
+				hboxRow2.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
+		hboxRow2.Add( (-1,-1),1,wx.ALL|wx.EXPAND,5)
+		vboxAux.Add(hboxRow1,0,wx.EXPAND|wx.TOP,15)
+		vboxAux.Add(hboxRow2,0,wx.EXPAND|wx.TOP,15)
+		boxSizer.Add(vboxAux,-1,wx.EXPAND,0)
+
+		sizer.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,30)
+
+	def reloadMatrix(self):
+		x,_= self.GetClientSize()
+		optimalTrimming=x/(self.scaleFactor)
+		self._trimmedCalMatrix=np.around(np.copy(self.calibration._calMatrix),decimals=optimalTrimming)
+		self._trimmedDistortionVector=np.around(np.copy(self.calibration._distortionVector),decimals=optimalTrimming)
+		
+		for i in range(len(self.parent.parent._intrinsicsPanel._visualMatrix)):
+			for j in range(len(self.parent.parent._intrinsicsPanel._visualMatrix[0])):
+
+				label=str(self.parent.parent._intrinsicsPanel._vCalMatrix[i][j]) + str(self._trimmedCalMatrix[i][j])
+				self._visualMatrix[i][j].SetLabel(label)
+
+		for i in range(len(self.parent.parent._intrinsicsPanel._vDistortionVector)):
+			
+			label=str(self.parent.parent._intrinsicsPanel._vDistortionVector[i])+str(self._trimmedDistortionVector[i])
+			self._visualDistortionVector[i].SetLabel(label)	
+		
+		self.Layout()
 
 class ExtrinsicCalibrationPanel(Page):
 	def __init__(self,parent,scanner,calibration):
@@ -559,26 +651,14 @@ class ExtrinsicCalibrationPanel(Page):
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
 		self.guideView = VideoView(self._upPanel)
-		hbox= wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
-		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
 		
-		self._upPanel.SetSizer(hbox)
-
-		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
-		# cool hack: key event listener only works if the focus is in some elements like our videoview
-		self.videoView.SetFocus()
 
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Extrinsic calibration (Step 1): rotating plate calibration"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
 		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Place the pattern adjusting it to the grid and let the scanner calibrate itself"))
 		
-		vbox=wx.BoxSizer(wx.VERTICAL)
-		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
-		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
 		
-		self.getTitlePanel().SetSizer(vbox)
 		
 		self.setLayout()
 	
@@ -593,6 +673,7 @@ class ExtrinsicCalibrationPanel(Page):
 		
 		self.addToPlot(frame)
 		if len(self.calibration.transVectors)> self.stopExtrinsicSamples:
+			delattr(self,'circlePlot')
 			self.calibrationTimer.Stop()
 			self.getLeftButton().SetLabel(_("Reject"))
 			self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
@@ -647,13 +728,13 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.ax.set_xlabel('x')
 		self.ax.set_ylabel('z')
+		del self.calibration.transVectors[:]
 		self.timer.Start(milliseconds=150)
 		self.calibrationTimer.Start(milliseconds=500)
 		self.loaded=True
 		self.getRightButton().Disable()
 
 	def plot(self):
-
 
 		transVectors=self.calibration.transVectors
 		
@@ -712,8 +793,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		# plot the data
 		self.ax.plot(self.x2D, self.z2D, 'ro', label='Pattern corner', ms=8, mec='b', mew=1)
-		# self.legend=self.ax.legend(loc='best',labelspacing=0.1 )
-
+		
 		self.ax.grid()
 
 		label= "Center: xc="+str(self.xc)+" zc="+str(self.zc)
@@ -755,14 +835,31 @@ class ExtrinsicCalibrationPanel(Page):
 				self.ax.collections.remove(coll)
 
 	def setLayout(self):
+		
+		self.getLeftButton().SetLabel(_("Cancel"))
+		self.getRightButton().SetLabel(_("Next"))
+		if self.scanner.isConnected:
+			self.showPatternHelp()	
+			self.getRightButton().Enable()
+		else:
+			self.showSocketHelp()
+			self.getRightButton().Disable()
+		hbox= wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
+		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
+		
+		self._upPanel.SetSizer(hbox)
+		vbox=wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		
+		self.getTitlePanel().SetSizer(vbox)
+		self._upPanel.Layout()
 		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
-		if self.scanner.isConnected:
-			self.showPatternHelp()	
-		else:
-			self.showSocketHelp()
-		self._upPanel.Layout()
+		if hasattr(self,'plot2DPanel'):
+			self.plot2DPanel.Show(False)
 		self.parent.Layout()
 
 	def showPatternHelp(self):
@@ -797,6 +894,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 	def acceptCalibration(self,event):
 		self.calibration.setExtrinsic(self.xc, self.zc)
+
 		self.parent.parent.loadInit(0)
 
 class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
