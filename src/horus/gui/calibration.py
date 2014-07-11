@@ -131,7 +131,6 @@ class CalibrationWorkbench(Workbench):
 		else:
 			self._extrinsicCalibrationPanel.Show(True)
 			self._extrinsicCalibrationPanel.guideView.Show(True)
-			self._extrinsicCalibrationPanel.videoView.SetFocus()
 			self._extrinsicCalibrationPanel.getRightButton().Bind(wx.EVT_BUTTON,self._extrinsicCalibrationPanel.start)
 			self._extrinsicCalibrationPanel.setLayout()
 
@@ -633,27 +632,19 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
-		self.stopExtrinsicSamples=40
+		self.stopExtrinsicSamples=4
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
 		self.guideView = VideoView(self._upPanel)
-		hbox= wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
-		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
 		
-		self._upPanel.SetSizer(hbox)
 
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Extrinsic calibration (Step 1): rotating plate calibration"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
 		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Place the pattern adjusting it to the grid and let the scanner calibrate itself"))
 		
-		vbox=wx.BoxSizer(wx.VERTICAL)
-		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
-		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
 		
-		self.getTitlePanel().SetSizer(vbox)
 		
 		self.setLayout()
 	
@@ -830,18 +821,31 @@ class ExtrinsicCalibrationPanel(Page):
 				self.ax.collections.remove(coll)
 
 	def setLayout(self):
-		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
-		self.ghbox.Add(self,1,wx.EXPAND,0)
-		self.parent.SetSizer(self.ghbox)
+		
 		self.getLeftButton().SetLabel(_("Cancel"))
 		self.getRightButton().SetLabel(_("Next"))
 		if self.scanner.isConnected:
 			self.showPatternHelp()	
-			
+			self.getRightButton().Enable()
 		else:
 			self.showSocketHelp()
 			self.getRightButton().Disable()
+		hbox= wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.videoView,2,wx.EXPAND|wx.ALL,1)
+		hbox.Add(self.guideView,5,wx.EXPAND|wx.ALL,1)
+		
+		self._upPanel.SetSizer(hbox)
+		vbox=wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self._title,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		vbox.Add(self._subTitle,0,wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 10)	
+		
+		self.getTitlePanel().SetSizer(vbox)
 		self._upPanel.Layout()
+		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.ghbox.Add(self,1,wx.EXPAND,0)
+		self.parent.SetSizer(self.ghbox)
+		if hasattr(self,'plot2DPanel'):
+			self.plot2DPanel.Show(False)
 		self.parent.Layout()
 
 	def showPatternHelp(self):
@@ -876,6 +880,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 	def acceptCalibration(self,event):
 		self.calibration.setExtrinsic(self.xc, self.zc)
+
 		self.parent.parent.loadInit(0)
 
 class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
