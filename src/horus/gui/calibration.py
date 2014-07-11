@@ -368,7 +368,7 @@ class PlotPanel(Page):
 		
 
 		self.fig = Figure(tight_layout=True)
-		self.canvas = FigureCanvasWxAgg( self.getPanel(), -1, self.fig)
+		self.canvas = FigureCanvasWxAgg( self.getPanel(), 1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
 
 		self.ax = self.fig.gca(projection='3d',axisbg=(random.random(),random.random(),random.random()))
@@ -431,8 +431,8 @@ class PlotPanel(Page):
 		factor=1
 		# pix = self.getPanel().GetClientSize()
 		# self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
-		x,y = self.getPanel().GetSize()  
-		self.canvas.SetClientSize((y*factor, y))
+		x,y = self.getPanel().GetClientSize()  
+		self.canvas.SetClientSize((y*factor-20, (x/2)-40))
 		# self.ax.set_xlim(-150, 150)
 		# self.ax.set_ylim(0, 300)
 		# self.ax.set_zlim(-150/factor, 150/factor)
