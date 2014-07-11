@@ -8,7 +8,8 @@
 *.zip
 *.exe
 *.deb
-.idea
+*.ini
+*.idea
 pkg/linux/debian_*/usr/share/horus*
 pkg/win32/dist*
 $_WIN/*
