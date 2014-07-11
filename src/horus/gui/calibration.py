@@ -363,7 +363,13 @@ class PlotPanel(Page):
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.acceptCalibration)
 		self.getRightButton().SetLabel(_("Accept"))
 		self.scaleFactor=3*80
+		
+		self.angle=0
+		self.timer = wx.Timer(self)
+		self.Bind(wx.EVT_TIMER, self.onAnimationTimer, self.timer)
+
 		self.load()
+
 	def load(self):
 		
 
@@ -512,7 +518,15 @@ class PlotPanel(Page):
 			self.ax.plot(rtAxisZx,rtAxisZz,rtAxisZy,linewidth=2.0,color='blue')
 			
 			self.canvas.draw()
+			# self.timer.Start(milliseconds=50) 
 
+	def onAnimationTimer(self,event):
+		if self.angle is 360:
+			self.angle=0
+		self.ax.view_init(30,self.angle)
+		self.canvas.draw()
+		print self.angle
+		self.angle+=1
 	def clearPlot(self):
 		self.ax.cla()
 		self.printCanvas()
@@ -632,7 +646,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
-		self.stopExtrinsicSamples=4
+		self.stopExtrinsicSamples=40
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
