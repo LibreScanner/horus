@@ -226,7 +226,8 @@ class PatternPanel(Page):
 		if not self.loaded:
 			if not self.scanner.isConnected:
 				self.scanner.connect()
-
+				self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
+				self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
 			self.timer.Start(milliseconds=150)
 			self.loaded=True
 			self.loadGrid()
@@ -611,7 +612,7 @@ class PlotPanel(Page):
 			self._visualDistortionVector[i].SetLabel(label)	
 		
 		self.Layout()
-		
+
 class ExtrinsicCalibrationPanel(Page):
 	def __init__(self,parent,scanner,calibration):
 		Page.__init__(self,parent)
@@ -643,10 +644,6 @@ class ExtrinsicCalibrationPanel(Page):
 		
 		self._upPanel.SetSizer(hbox)
 
-		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
-		# cool hack: key event listener only works if the focus is in some elements like our videoview
-		self.videoView.SetFocus()
-
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Extrinsic calibration (Step 1): rotating plate calibration"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
@@ -671,6 +668,7 @@ class ExtrinsicCalibrationPanel(Page):
 		
 		self.addToPlot(frame)
 		if len(self.calibration.transVectors)> self.stopExtrinsicSamples:
+			delattr(self,'circlePlot')
 			self.calibrationTimer.Stop()
 			self.getLeftButton().SetLabel(_("Reject"))
 			self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
@@ -725,13 +723,13 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.ax.set_xlabel('x')
 		self.ax.set_ylabel('z')
+		del self.calibration.transVectors[:]
 		self.timer.Start(milliseconds=150)
 		self.calibrationTimer.Start(milliseconds=500)
 		self.loaded=True
 		self.getRightButton().Disable()
 
 	def plot(self):
-
 
 		transVectors=self.calibration.transVectors
 		
@@ -790,8 +788,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		# plot the data
 		self.ax.plot(self.x2D, self.z2D, 'ro', label='Pattern corner', ms=8, mec='b', mew=1)
-		# self.legend=self.ax.legend(loc='best',labelspacing=0.1 )
-
+		
 		self.ax.grid()
 
 		label= "Center: xc="+str(self.xc)+" zc="+str(self.zc)
@@ -836,10 +833,14 @@ class ExtrinsicCalibrationPanel(Page):
 		self.ghbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.ghbox.Add(self,1,wx.EXPAND,0)
 		self.parent.SetSizer(self.ghbox)
+		self.getLeftButton().SetLabel(_("Cancel"))
+		self.getRightButton().SetLabel(_("Next"))
 		if self.scanner.isConnected:
 			self.showPatternHelp()	
+			
 		else:
 			self.showSocketHelp()
+			self.getRightButton().Disable()
 		self._upPanel.Layout()
 		self.parent.Layout()
 
