@@ -30,16 +30,21 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 from horus.util.resources import *
 
 from horus.gui.util.workbench import *
+from horus.gui.util.cameraPanel import *
+from horus.gui.util.videoView import *
+from horus.gui.util.devicePanel import *
 from horus.gui.util.videoView import *
 
 class ControlWorkbench(Workbench):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent, 2, 3)
+		Workbench.__init__(self, parent, 0, 1)
 
-		self.load()
+		self.viewCamera = True
 
 		self.scanner = self.GetParent().scanner
+
+		self.load()
 
 		self.laserLeft = False
 		self.laserRight = False
@@ -63,6 +68,7 @@ class ControlWorkbench(Workbench):
 		self.leftLaserOffTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Left Laser Off"), wx.Bitmap(getPathForImage("laser-left-off.png")), shortHelp=_("Left Laser Off"))
 		self.rightLaserOnTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Right Laser On"), wx.Bitmap(getPathForImage("laser-right-on.png")), shortHelp=_("Right Laser On"))
 		self.rightLaserOffTool = self.toolbar.AddLabelTool(wx.NewId(), _("Right Laser Off"), wx.Bitmap(getPathForImage("laser-right-off.png")), shortHelp=_("Right Laser Off"))
+		self.viewTool          = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("Camera / Device"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
@@ -77,6 +83,7 @@ class ControlWorkbench(Workbench):
 		self.enableLabelTool(self.leftLaserOffTool , False)
 		self.enableLabelTool(self.rightLaserOnTool , False)
 		self.enableLabelTool(self.rightLaserOffTool, False)
+		self.enableLabelTool(self.viewTool         , True)
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked      , self.connectTool)
@@ -90,22 +97,25 @@ class ControlWorkbench(Workbench):
 		self.Bind(wx.EVT_TOOL, self.onLeftLaserOffToolClicked , self.leftLaserOffTool)
 		self.Bind(wx.EVT_TOOL, self.onRightLaserOnToolClicked , self.rightLaserOnTool)
 		self.Bind(wx.EVT_TOOL, self.onRightLaserOffToolClicked, self.rightLaserOffTool)
+		self.Bind(wx.EVT_TOOL, self.onViewToolClicked         , self.viewTool)
 
-		#-- Video View
-		self.videoView = VideoView(self._leftPanel)
-		self.videoView.SetBackgroundColour(wx.BLACK)
-		self.addToLeft(self.videoView)
+		#-- Left Panel
+		self.cameraPanel = CameraPanel(self._leftPanel)
+		self.devicePanel = DevicePanel(self._leftPanel)
 
-		#-- Image View
-		self.imageView = VideoView(self._rightPanel)
-		self.addToRight(self.imageView)
+		#-- Right Views
+		self.cameraView = VideoView(self._rightPanel)
+		self.deviceView = VideoView(self._rightPanel)
+		self.cameraView.SetBackgroundColour(wx.BLACK)
 
-		self.imageView.setImage(wx.Image(getPathForImage("scanner.png")))
+		self.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
+
+		self.updateView()
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage()
 		if frame is not None:
-			self.videoView.setFrame(frame)
+			self.cameraView.setFrame(frame)
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -142,7 +152,7 @@ class ControlWorkbench(Workbench):
 	def onSnapshotToolClicked(self, event):
 		frame = self.scanner.camera.captureImage()
 		if frame is not None:
-			self.videoView.setFrame(frame)
+			self.cameraView.setFrame(frame)
 
 	def onMotorCCWToolClicked(self, event):
 		#self.scanner.device.enable()
@@ -185,17 +195,39 @@ class ControlWorkbench(Workbench):
 	def enableLabelTool(self, item, enable):
 		self.toolbar.EnableTool(item.GetId(), enable)
 
+	def onViewToolClicked(self, event):
+		self.viewCamera = not self.viewCamera
+		profile.putPreference('view_camera', self.viewCamera)
+		self.updateView()
+
+	def updateView(self):
+		if self.viewCamera:
+			self.cameraPanel.Show()
+			self.cameraView.Show()
+			self.devicePanel.Hide()
+			self.deviceView.Hide()
+			self.addToLeft(self.cameraPanel)
+			self.addToRight(self.cameraView)
+		else:
+			self.cameraPanel.Hide()
+			self.cameraView.Hide()
+			self.devicePanel.Show()
+			self.deviceView.Show()
+			self.addToLeft(self.devicePanel)
+			self.addToRight(self.deviceView)
+		self.Layout()
+
 	def updateScannerImage(self):
 		if self.laserLeft:
 			if self.laserRight:
-				self.imageView.setImage(wx.Image(getPathForImage("scannerlr.png")))
+				self.deviceView.setImage(wx.Image(getPathForImage("scannerlr.png")))
 			else:
-				self.imageView.setImage(wx.Image(getPathForImage("scannerl.png")))
+				self.deviceView.setImage(wx.Image(getPathForImage("scannerl.png")))
 		else:
 			if self.laserRight:
-				self.imageView.setImage(wx.Image(getPathForImage("scannerr.png")))
+				self.deviceView.setImage(wx.Image(getPathForImage("scannerr.png")))
 			else:
-				self.imageView.setImage(wx.Image(getPathForImage("scanner.png")))
+				self.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
 
 	def updateToolbarStatus(self, status):
 		if status:
@@ -222,3 +254,9 @@ class ControlWorkbench(Workbench):
 			self.enableLabelTool(self.leftLaserOffTool , False)
 			self.enableLabelTool(self.rightLaserOnTool , False)
 			self.enableLabelTool(self.rightLaserOffTool, False)
+
+	def updateProfileToAllControls(self):
+		self.cameraPanel.updateProfileToAllControls()
+		self.devicePanel.updateProfileToAllControls()
+		self.viewCamera = profile.getPreferenceBool('view_camera')
+		self.updateView()

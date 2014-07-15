@@ -311,6 +311,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateProfileToAllControls(self):
         """ """
+        self.controlWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
 
         if profile.getPreferenceBool('workbench_selector'):
@@ -328,6 +329,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                 profile.getProfileSetting('serial_name'),
                                 profile.getProfileSettingFloat('step_degrees'),
                                 profile.getProfileSettingInteger('step_delay'))
+
+        #-- TODO: add camera initialize
 
         self.scanner.core.initialize(profile.getProfileSetting('img_type'),
                                      profile.getProfileSettingBool('blur'),
