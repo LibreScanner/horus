@@ -67,8 +67,9 @@ class VideoView(wx.Panel):
 
 	def refreshBitmap(self):
 		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
-		self.bitmap = wx.BitmapFromImage(self.image.Scale(w, h))
-		self.Refresh()
+		if w > 0 and h > 0:
+			self.bitmap = wx.BitmapFromImage(self.image.Scale(w, h))
+			self.Refresh()
 
 	def getBestSize(self):
 		(wwidth, wheight) = self.GetSizeTuple()

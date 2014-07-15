@@ -34,9 +34,6 @@ class Workbench(wx.Panel):
 	def __init__(self, parent, leftSize=1, rightSize=1):
 		wx.Panel.__init__(self, parent)
 
-		self._leftObject = None
-		self._rightObject = None
-
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.leftBox = wx.BoxSizer(wx.VERTICAL)
@@ -66,13 +63,7 @@ class Workbench(wx.Panel):
 		return self._panel
 
 	def addToLeft(self, _object):
-		if self._leftObject is not None:
-			self.leftBox.Remove(self._leftObject)
 		self.leftBox.Add(_object, 1, wx.ALL|wx.EXPAND, 3)
-		self._leftObject = _object
 
 	def addToRight(self, _object):
-		if self._rightObject is not None:
-			self.rightBox.Remove(self._rightObject)
 		self.rightBox.Add(_object, 1, wx.ALL|wx.EXPAND, 3)
-		self._rightObject = _object

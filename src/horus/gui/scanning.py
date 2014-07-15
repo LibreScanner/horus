@@ -86,6 +86,12 @@ class ScanningWorkbench(Workbench):
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
 
+		self.addToLeft(self.scenePanel)
+		self.addToRight(self.sceneView)
+
+		self.addToLeft(self.videoPanel)
+		self.addToRight(self.videoView)
+
 		#-- Video View Selector
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
 		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(10,15+40))
@@ -205,15 +211,11 @@ class ScanningWorkbench(Workbench):
 			self.videoView.Hide()
 			self.scenePanel.Show()
 			self.sceneView.Show()
-			self.addToLeft(self.scenePanel)
-			self.addToRight(self.sceneView)
 		else:
 			self.scenePanel.Hide()
 			self.sceneView.Hide()
 			self.videoPanel.Show()
 			self.videoView.Show()
-			self.addToLeft(self.videoPanel)
-			self.addToRight(self.videoView)
 		self.Layout()
 
 	def enableLabelTool(self, item, enable):

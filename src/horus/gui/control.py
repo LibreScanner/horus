@@ -108,6 +108,12 @@ class ControlWorkbench(Workbench):
 		self.deviceView = VideoView(self._rightPanel)
 		self.cameraView.SetBackgroundColour(wx.BLACK)
 
+		self.addToLeft(self.cameraPanel)
+		self.addToRight(self.cameraView)
+
+		self.addToLeft(self.devicePanel)
+		self.addToRight(self.deviceView)
+
 		self.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
 
 		self.updateView()
@@ -147,7 +153,7 @@ class ControlWorkbench(Workbench):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.timer.Stop()
-		self.videoView.setDefaultImage()
+		self.cameraView.setDefaultImage()
 
 	def onSnapshotToolClicked(self, event):
 		frame = self.scanner.camera.captureImage()
@@ -206,15 +212,11 @@ class ControlWorkbench(Workbench):
 			self.cameraView.Show()
 			self.devicePanel.Hide()
 			self.deviceView.Hide()
-			self.addToLeft(self.cameraPanel)
-			self.addToRight(self.cameraView)
 		else:
 			self.cameraPanel.Hide()
 			self.cameraView.Hide()
 			self.devicePanel.Show()
 			self.deviceView.Show()
-			self.addToLeft(self.devicePanel)
-			self.addToRight(self.deviceView)
 		self.Layout()
 
 	def updateScannerImage(self):
