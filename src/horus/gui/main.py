@@ -394,14 +394,17 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def _deviceList(self, win_devices, linux_devices):
         baselist=[]
         if os.name=="nt":
-            try:
-                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
-                i=0
-                while(1):
-                    baselist+=[_winreg.EnumValue(key,i)[1]]
-                    i+=1
-            except:
-                pass
+            import _winreg
+            key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
+            i=0
+            while True:
+                try:
+                    values = _winreg.EnumValue(key, i)
+                except:
+                    return baselist
+                if 'USBSER' in values[0]:
+                    baselist.append(values[1])
+                i+=1
         for device in linux_devices:
             baselist = baselist + glob.glob(device)
         return baselist
