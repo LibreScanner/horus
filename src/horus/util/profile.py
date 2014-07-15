@@ -188,6 +188,8 @@ setting('camera_id', 0, int, 'basic', _('Camera Id'))
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1125)
 setting('step_delay', 800, int, 'basic', _('Step Delay')).setRange(100, 10000)
 
+setting('brightness_value', 50, int, 'advanced', _('Brightness Value')).setRange(0, 255)
+
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Blur'))
 
 setting('blur', True, bool, 'advanced', _('Blur'))
@@ -231,6 +233,7 @@ setting('translation_vector',([[  -5.56044557],[  73.33950448], [ 328.54553044]]
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
 setting('workbench', 'main', ['none', 'main', 'control', 'calibration', 'scanning'], 'preference', 'hidden')
 setting('workbench_selector', True, bool, 'preference', 'hidden')
+setting('view_camera', True, bool, 'preference', 'hidden')
 setting('view_3d', True, bool, 'preference', 'hidden')
 
 # TODO: change default last file
