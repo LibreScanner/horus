@@ -95,18 +95,19 @@ if (( ${BUILD_OPENCV} )); then
 		cd LIN
 		git clone https://github.com/bq/opencv.git
 		cd opencv; git pull
+		rm -rf release
 		mkdir -p release
 		cd release
 		if [ "$BUILD_TARGET" = "debian_i386" ]; then
-			cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_V4L=ON ..
-			make -j #-- TODO: Set architecture
+			cmake -D CMAKE_C_FLAGS=-m32 -D CMAKE_CXX_FLAGS=-m32 -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_V4L=ON ..
 		elif [ "$BUILD_TARGET" = "debian_amd64" ]; then
 			cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_V4L=ON ..
-			make -j #-- TODO: Set architecture
 		fi
+		make -j3
 		cd ../../..
 		mkdir -p  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/
 		cp -a LIN/opencv/release/lib/cv2.so  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/
+		rm -rf LIN/opencv/release
 		#rm -rf LIN
 	fi
 fi
