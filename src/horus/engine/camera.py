@@ -79,18 +79,24 @@ class Camera:
 	def setBrightness(self,value):
 		value=int(value)/255.
 		self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS,value)
+		print self.capture.get(cv2.cv.CV_CAP_PROP_BRIGHTNESS)
 
 	def setContrast(self,value):
 		value=int(value)/255.
 		self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST,value)
+		print self.capture.get(cv2.cv.CV_CAP_PROP_CONTRAST)
+
 
 	def setSaturation(self,value):
 		value=int(value)/255.
 		self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION,value)
+		print self.capture.get(cv2.cv.CV_CAP_PROP_SATURATION)
+
 
 	def setExposure(self,value):
 		value=int(value)/10000.
 		self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE,value)
+		print self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
 
 	def setFps(self,value):
 		self.fps=value
