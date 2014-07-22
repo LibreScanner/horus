@@ -42,6 +42,8 @@ class Camera:
 		self.width = 1280
 		self.height = 960
 
+		self.fps=30 #TODO put al this in preferences
+
 	def connect(self):
 		""" """
 		print ">>> Connecting camera ..."
@@ -73,3 +75,36 @@ class Camera:
 			return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		else:
 			return None
+
+	def setBrightness(self,value):
+		value=int(value)/255.
+		self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS,value)
+
+	def setContrast(self,value):
+		value=int(value)/255.
+		self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST,value)
+
+	def setSaturation(self,value):
+		value=int(value)/255.
+		self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION,value)
+
+	def setExposure(self,value):
+		value=int(value)/10000.
+		self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE,value)
+
+	def setFps(self,value):
+		self.fps=value
+		self.capture.set(cv2.cv.CV_CAP_PROP_FPS,value)
+		
+
+	def setResolution(self,value):
+		value=value.replace('(','')
+		value=value.replace(')','')	
+		value=value.split(',')
+		width,height=int(value[0]),int(value[1])
+
+		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH,width)
+		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,height)
+
+		actualWidth=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
+		actualHeight=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
