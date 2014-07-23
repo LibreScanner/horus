@@ -49,32 +49,31 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         cameraParamsStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         self.brightnessText = wx.StaticText(self,label="Brightness")
-        self.brightnessSlider = wx.Slider(self,wx.ID_ANY,128,0,255,size=(150,-1), style=wx.SL_LABELS)
+        self.brightnessSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
         self.Bind(wx.EVT_SLIDER,self.onbrightnessChanged,self.brightnessSlider)
 
         self.contrastText = wx.StaticText(self,label="Contrast")
-        self.contrastSlider = wx.Slider(self,wx.ID_ANY,46,0,255,size=(150,-1), style=wx.SL_LABELS)
+        self.contrastSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
         self.Bind(wx.EVT_SLIDER,self.oncontrastChanged,self.contrastSlider)
 
         self.saturationText = wx.StaticText(self,label="Saturation")
-        self.saturationSlider = wx.Slider(self,wx.ID_ANY,32,0,255,size=(150,-1), style=wx.SL_LABELS)
+        self.saturationSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
         self.Bind(wx.EVT_SLIDER,self.onsaturationChanged,self.saturationSlider)
 
         self.exposureText = wx.StaticText(self,label="Exposure")
         self.exposureSlider = wx.Slider(self,wx.ID_ANY,60,0,200,size=(150,-1), style=wx.SL_LABELS)
         self.Bind(wx.EVT_SLIDER,self.onexposureChanged,self.exposureSlider)
 
-        self.framerates = [str(5),str(10),str(15),str(20),str(25),str(30)]
+        self.framerates = [str(30),str(25),str(20),str(15),str(10),str(5)]
 
         self.frameRateText = wx.StaticText(self,label="Frame rate")
-        self.frameRateCombo = wx.ComboBox(self, -1,str(30), size=(150, -1), choices=self.framerates, style=wx.CB_READONLY)
+        self.frameRateCombo = wx.ComboBox(self, -1, size=(150, -1), choices=self.framerates, style=wx.CB_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectFrame,self.frameRateCombo)
 
-        self.resolutions = [str((160,120)),str((176,144)),str((320,240)),str((352,288)),str((432,240)),str((544,288)),str((432,240)),str((544,288))
-        ,str((640,360)),str((752,416)),str((800,448)),str((800,600)),str((864,480)),str((960,544)),str((960,720)),str((1024,576)),str((1184,656)),str((1280,720)),str((1280,960))]
+        self.resolutions = [str((1280,960)),str((1184,656)),str((1024,576)),str((960,720)),str((960,544)),str((864,480)),str((800,600)),str((800,448)),str((800,448)),str((752,416)),str((640,360)),str((544,288)),str((432,240)),str((544,288)),str((432,240)),str((352,288)),str((320,240)),str((176,144)),str((160,120))]
 
         self.resolutionText = wx.StaticText(self,label="Resolution")
-        self.resolutionCombo = wx.ComboBox(self, -1,str((1280,96)), size=(150, -1), choices=self.resolutions, style=wx.CB_READONLY)
+        self.resolutionCombo = wx.ComboBox(self, -1,str((1280,960)), size=(150, -1), choices=self.resolutions, style=wx.CB_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectResolution,self.resolutionCombo)
 
         #-- Layout
@@ -113,40 +112,65 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         hbox.Add(self.resolutionCombo, 0, wx.ALL, 0)
         vbox.Add(hbox)
 
+        self.updateProfileToAllControls()
+        
         self.SetSizer(vbox)
         self.Centre()
 
     def onbrightnessChanged(self,event):
         value=self.brightnessSlider.GetValue()  
-
+        profile.putProfileSetting('brightness_value', value)
         self.scanner.camera.setBrightness(value)
         
 
     def oncontrastChanged(self,event):
         value=self.contrastSlider.GetValue()    
-
+        profile.putProfileSetting('contrast_value', value)
         self.scanner.camera.setContrast(value)
 
     def onsaturationChanged(self,event):
         value=self.saturationSlider.GetValue()  
-
+        profile.putProfileSetting('saturation_value', value)
         self.scanner.camera.setSaturation(value)
 
     def onexposureChanged(self,event):
         value=self.exposureSlider.GetValue()    
-
+        profile.putProfileSetting('exposure_value', value)
         self.scanner.camera.setExposure(value)
 
     def OnSelectFrame(self,event):
-        value= int(self.framerates[event.GetSelection()])
-        self.scanner.camera.setFps(value)
+        value= int(event.GetSelection())
+        profile.putProfileSetting('framerate_value', value)
         self.GetParent().GetParent().GetParent().timer.Stop()
+        self.scanner.camera.setFps(value)
         self.GetParent().GetParent().GetParent().timer.Start(milliseconds=(1000/self.scanner.camera.fps))
         
-
     def OnSelectResolution(self,event):
-        value= self.resolutions[event.GetSelection()]
+        value= event.GetSelection()
+        profile.putProfileSetting('resolution_value', value)
         self.scanner.camera.setResolution(value)
 
     def updateProfileToAllControls(self):
-        self.brightnessSlider.SetValue(profile.getProfileSettingInteger('brightness_value'))
+        brightness=profile.getProfileSettingInteger('brightness_value')
+        self.brightnessSlider.SetValue(brightness)
+        self.scanner.camera.setBrightness(brightness)
+
+        contrast=profile.getProfileSettingInteger('contrast_value')
+        self.contrastSlider.SetValue(contrast)
+        self.scanner.camera.setContrast(contrast)
+
+        saturation=profile.getProfileSettingInteger('saturation_value')
+        self.saturationSlider.SetValue(saturation)
+        self.scanner.camera.setSaturation(saturation)
+
+        exposure=profile.getProfileSettingInteger('exposure_value')
+        self.exposureSlider.SetValue(exposure)
+        self.scanner.camera.setExposure(exposure)
+
+        framerate=profile.getProfileSettingInteger('framerate_value')
+        self.frameRateCombo.SetSelection(framerate)
+        self.scanner.camera.setFps(framerate)
+
+        resolution=profile.getProfileSettingInteger('resolution_value')
+        self.resolutionCombo.SetSelection(resolution)
+        self.scanner.camera.setResolution(resolution)
