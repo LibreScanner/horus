@@ -188,7 +188,13 @@ setting('camera_id', 0, int, 'basic', _('Camera Id'))
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1125)
 setting('step_delay', 800, int, 'basic', _('Step Delay')).setRange(100, 10000)
 
-setting('brightness_value', 50, int, 'advanced', _('Brightness Value')).setRange(0, 255)
+setting('brightness_value', 128, int, 'advanced', _('Brightness Value')).setRange(0, 255)
+setting('contrast_value', 46, int, 'advanced', _('Brightness Value')).setRange(0, 255)
+setting('saturation_value', 32, int, 'advanced', _('Brightness Value')).setRange(0, 255)
+setting('exposure_value', 60, int, 'advanced', _('Brightness Value')).setRange(0, 10000)
+setting('framerate_value', 0, int, 'advanced', _('Brightness Value')).setRange(0, 5)
+
+setting('resolution_value', 0, int, 'advanced', _('Brightness Value')).setRange(0, 20)
 
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Blur'))
 

@@ -147,7 +147,8 @@ class ControlWorkbench(Workbench):
 	def onPlayToolClicked(self, event):
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
-		self.timer.Start(milliseconds=150)
+		mseconds= 1000/self.scanner.camera.fps
+		self.timer.Start(milliseconds=mseconds)
 
 	def onStopToolClicked(self, event):
 		self.enableLabelTool(self.playTool, True)
