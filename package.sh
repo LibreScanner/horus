@@ -19,6 +19,8 @@ ARCHIVE_FOR_DISTRIBUTION=1
 export BUILD_NAME=1.0
 TARGET_DIR=Horus-${BUILD_NAME}-${BUILD_TARGET}
 
+BUILD_OPENCV=1
+
 ##Which versions of external programs to use
 WIN_PORTABLE_PY_VERSION=2.7.2.1 #TODO: 2.7.6.1
 
@@ -76,10 +78,38 @@ fi
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPT_DIR
 
+checkTool git "git: http://git-scm.com/"
 checkTool curl "curl: http://curl.haxx.se/"
 if [ $BUILD_TARGET = "win32" ]; then
 	#Check if we have 7zip, needed to extract and packup a bunch of packages for windows.
 	checkTool 7z "7zip: http://www.7-zip.org/"
+fi
+
+#############################
+# OpenCV: make and install
+#############################
+
+if (( ${BUILD_OPENCV} )); then
+	if ! [ "$BUILD_TARGET" = "win32" ]; then
+		mkdir -p LIN
+		cd LIN
+		git clone https://github.com/bq/opencv.git
+		cd opencv; git pull
+		rm -rf release
+		mkdir -p release
+		cd release
+		if [ "$BUILD_TARGET" = "debian_i386" ]; then
+			cmake -D CMAKE_C_FLAGS=-m32 -D CMAKE_CXX_FLAGS=-m32 -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_V4L=ON ..
+		elif [ "$BUILD_TARGET" = "debian_amd64" ]; then
+			cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_V4L=ON ..
+		fi
+		make -j3
+		cd ../../..
+		mkdir -p  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/
+		cp -a LIN/opencv/release/lib/cv2.so  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/
+		rm -rf LIN/opencv/release
+		#rm -rf LIN
+	fi
 fi
 
 #############################
@@ -132,8 +162,8 @@ fi
 #############################
 
 if [ $BUILD_TARGET = "win32" ]; then
-	mkdir -p \$_WIN
-	cd \$_WIN
+	mkdir -p WIN
+	cd WIN
 	#Get portable python for windows and extract it. (Linux and Mac need to install python themselfs)
 	downloadURL http://ftp.nluug.nl/languages/python/portablepython/v2.7/PortablePython_${WIN_PORTABLE_PY_VERSION}.exe
 	#downloadURL https://www.python.org/ftp/python/2.7.8/python-2.7.8.msi
@@ -239,7 +269,7 @@ if (( ${ARCHIVE_FOR_DISTRIBUTION} )); then
 		if [ $? != 0 ]; then echo "Failed to package NSIS installer"; exit 1; fi
 		rm -rf ../pkg/win32/dist
 		#cd ../
-		#rm -rf \$_WIN
+		#rm -rf WIN
 	fi
 else
 	echo "Installed into ${TARGET_DIR}"
