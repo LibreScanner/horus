@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: June 2014                                                       #
 # Author: Carlos Crespo <carlos.crespo@bq.com>                          #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #

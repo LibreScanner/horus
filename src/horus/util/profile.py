@@ -212,6 +212,11 @@ setting('max_h', 200, int, 'advanced', _('Maximum H'))
 
 setting('z_offset', 0, int, 'advanced', _('Z Offset')).setRange(-50, 50)
 
+setting('laser_angle', 60.0, float, 'basic', _('Laser Angle'))
+
+setting('camera_width', 600, int, 'advanced', _('Camera Width'))
+setting('camera_height', 800, int, 'advanced', _('Camera Height'))
+
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'cyclops', str, 'machine', 'hidden')
 setting('machine_width', '200', float, 'machine', 'hidden').setLabel(_("Maximum width (mm)"), _("Size of the machine in mm"))

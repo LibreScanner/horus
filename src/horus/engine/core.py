@@ -33,7 +33,7 @@ import numpy as np
 
 class Core:
 	""" """
-	def __init__(self, degrees=0.45):
+	def __init__(self):
 		""" """
 		self.points = None
 		self.colors = None
@@ -44,44 +44,8 @@ class Core:
 		self.imgBin  = None
 		self.imgLine = None
 
-		self.theta = 0
-
-		self.fx = 1150
-		self.fy = 1150
-		self.cx = 269
-		self.cy = 240
-		self.zs = 270
-		self.ho = 50
-		self.alpha = 60
-
-		self.width = 960
-		self.height = 1280
-
-		self.degrees = degrees
-
-		#-- Constant Parameters initialization
-		self.rad = math.pi / 180.0
-		
-		alpha = self.alpha * self.rad
-		
-		A = self.zs / math.sin(alpha)
-		B = self.fx / math.tan(alpha)
-		
-		self.theta = 0
 		self.points = None
 		self.colors = None
-		
-		self.M_rho = np.zeros((self.height, self.width))
-		self.M_z = np.zeros((self.height, self.width))
-		
-		for j in xrange(self.height):
-			v = self.cy-j
-			for i in xrange(self.width):
-				u = i-self.cx
-				self.M_rho[j,i] = rho = A*u/(u+B)
-				self.M_z[j,i] = self.ho + (self.zs-rho*math.sin(alpha))*v/self.fy
-
-		self.W = np.matrix(np.ones(self.height)).T * np.matrix(np.arange(self.width).reshape((self.width)))
 
 	def initialize(self, imgType='raw',
 						 blurEnable=True,
@@ -95,7 +59,13 @@ class Core:
 						 rhoMax=100,
 						 hMin=0,
 						 hMax=200,
-						 zOffset=0):
+						 zOffset=0,
+						 degrees=0.45,
+						 width=600,
+						 height=800,
+						 alpha=60.0,
+						 calibrationMatrix=None,
+						 translationVector=None):
 
 		#-- Image type parameters
 		self.imgType = imgType
@@ -121,6 +91,45 @@ class Core:
 		self.hMax = hMax
 
 		self.zOffset = zOffset
+
+		self.degrees = degrees
+
+		self.width = width
+		self.height = height
+
+		#-- Calibration parameters
+		if calibrationMatrix is not None:
+			self.fx = calibrationMatrix[0][0]
+			self.fy = calibrationMatrix[1][1]
+			self.cx = calibrationMatrix[0][2]
+			self.cy = calibrationMatrix[1][2]
+
+		if translationVector is not None:
+			self.xo = translationVector[0]
+			self.ho = translationVector[1]
+			self.zs = translationVector[2]
+
+		self.xp = self.fx * self.xo / self.zs
+
+		#-- Constant Parameters initialization
+		self.rad = math.pi / 180.0
+
+		self.alpha = alpha
+		
+		alpha = self.alpha * self.rad
+		
+		A = self.zs / math.sin(alpha)
+		B = self.fx / math.tan(alpha)
+		
+		self.theta = 0
+
+		self.W = np.ones((self.height,self.width))*np.linspace(0,self.width-1,self.width)
+		
+		u = self.W-self.cx-self.xp
+		self.M_rho = A*u/(u+B)
+		
+		v = self.cy-np.linspace(0,self.height-1,self.height)
+		self.M_z = self.ho + (self.zs-self.M_rho*math.sin(alpha))*(np.ones((self.width,self.height))*v).T/self.fy
 
 	def setBlur(self, enable, value):
 		self.blurEnable = enable
@@ -199,8 +208,10 @@ class Core:
 			i = src.argmax(1)
 			l = ((i + (s/255-1) / 2)[v]).T.astype(int)
 		else:
-			w = (np.array(self.W)*np.array(imageDiff[:,:,0])).sum(1) # TODO: Check
+			w = (self.W*src).sum(1) # TODO: Check
+			print w
 			l = (w[v] / s[v].T).astype(int)
+			print l
 
 		#-- Obtaining parameters
 		rho = self.M_rho[v,l]
