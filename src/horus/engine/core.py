@@ -65,7 +65,8 @@ class Core:
 						 height=800,
 						 alpha=60.0,
 						 calibrationMatrix=None,
-						 translationVector=None):
+						 translationVector=None,
+						 useLeftLaser=True):
 
 		#-- Image type parameters
 		self.imgType = imgType
@@ -111,6 +112,9 @@ class Core:
 
 		self.xp = self.fx * self.xo / self.zs
 
+		if not useLeftLaser:
+			self.xp *= -1
+
 		#-- Constant Parameters initialization
 		self.rad = math.pi / 180.0
 
@@ -131,6 +135,10 @@ class Core:
 		v = self.cy-np.linspace(0,self.height-1,self.height)
 		self.M_z = self.ho + (self.zs-self.M_rho*math.sin(alpha))*(np.ones((self.width,self.height))*v).T/self.fy
 
+		if not useLeftLaser:
+			self.M_rho = np.fliplr(self.M_rho)
+			self.M_z = np.fliplr(self.M_z)
+
 	def setBlur(self, enable, value):
 		self.blurEnable = enable
 		self.blurValue = value
@@ -142,14 +150,6 @@ class Core:
 	def setHSVRange(self, minH, minS, minV, maxH, maxS, maxV):
 		self.colorMin = np.array([minH,minS,minV],np.uint8)
 		self.colorMax = np.array([maxH,maxS,maxV],np.uint8)
-
-	def setCalibrationParams(self, fx, fy, cx, cy, zs, ho):
-		self.fx = fx
-		self.fy = fy
-		self.cx = cx
-		self.cy = cy
-		self.zs = zs
-		self.ho = ho
 
 	def setUseCompactAlgorithm(self, useCompact):
 		self.useCompact = useCompact
@@ -208,10 +208,8 @@ class Core:
 			i = src.argmax(1)
 			l = ((i + (s/255-1) / 2)[v]).T.astype(int)
 		else:
-			w = (self.W*src).sum(1) # TODO: Check
-			print w
+			w = (self.W * src).sum(1)
 			l = (w[v] / s[v].T).astype(int)
-			print l
 
 		#-- Obtaining parameters
 		rho = self.M_rho[v,l]
