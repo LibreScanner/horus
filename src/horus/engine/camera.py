@@ -39,8 +39,8 @@ class Camera:
 		self.cameraId = cameraId
 		print ">>> Done"
 
-		self.width = 1280
-		self.height = 960
+		self.width = 800
+		self.height = 600
 
 	def connect(self):
 		""" """
@@ -49,7 +49,7 @@ class Camera:
 		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.width)
 		self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.height)
 		##
-		self.captureImage()
+		self.captureImage(flush=True)
 		##
 		print ">>> Done"
 		
@@ -59,11 +59,12 @@ class Camera:
 		self.capture.release()
 		print ">>> Done"
 
-	def captureImage(self, mirror=False):
+	def captureImage(self, mirror=False, flush=False):
 		""" If mirror is set to True, the image will be displayed as a mirror, 
 		otherwise it will be displayed as the camera sees it"""
-		#for i in range(0,2):
-		#	self.capture.read()
+		if flush:
+			for i in range(0,2):
+				self.capture.read()
 		ret, image = self.capture.read()
 
 		if ret:

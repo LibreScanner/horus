@@ -50,6 +50,8 @@ class Scanner(wx.PyControl):
 
 		self.isConnected = False
 
+		self.useLeftLaser = True
+
 		self.core = Core()
 
 		self.theta = 0
@@ -125,10 +127,16 @@ class Scanner(wx.PyControl):
 			begin = datetime.datetime.now()
 			
 			#-- Get images
-			self.device.setLeftLaserOff()
-			imgRaw = self.camera.captureImage()
-			self.device.setLeftLaserOn()
-			imgLas = self.camera.captureImage()
+			if self.useLeftLaser:
+				self.device.setLeftLaserOff()
+			else:
+				self.device.setRightLaserOff()
+			imgRaw = self.camera.captureImage(flush=False)
+			if self.useLeftLaser:
+				self.device.setLeftLaserOn()
+			else:
+				self.device.setRightLaserOn()
+			imgLas = self.camera.captureImage(flush=False)
 
 			#-- Move motor
 			self.device.setMotorCW()
