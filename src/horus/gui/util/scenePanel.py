@@ -50,26 +50,28 @@ class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.completeAlgRadioButton = wx.RadioButton(self, label=_("Complete"), size=(100,-1))
         filterStaticText = wx.StaticText(self, label=_("Filter"))
         filterStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-        self.rhoMinTextCtrl = wx.TextCtrl(self, wx.ID_ANY, '', pos=(40, 10))
-        self.rhoStaticText = wx.StaticText(self, label=_("<  R  <"))
-        self.rhoMaxTextCtrl = wx.TextCtrl(self, wx.ID_ANY, '', pos=(40, 10))
-        self.hMinTextCtrl = wx.TextCtrl(self, wx.ID_ANY, '', pos=(40, 10))
-        self.hStaticText = wx.StaticText(self, label=_("<  H  <"))
-        self.hMaxTextCtrl = wx.TextCtrl(self, wx.ID_ANY, '', pos=(40, 10))
+        minRadiousStaticText = wx.StaticText(self, wx.ID_ANY, _("min R"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.minRadiousSlider = wx.Slider(self, wx.ID_ANY, 0, -200, 200, size=(150, -1), style=wx.SL_LABELS)
+        maxRadiousStaticText = wx.StaticText(self, wx.ID_ANY, _("max R"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.maxRadiousSlider = wx.Slider(self, wx.ID_ANY, 0, -200, 200, size=(150, -1), style=wx.SL_LABELS)
+        minHeightStaticText = wx.StaticText(self, wx.ID_ANY, _("min H"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.minHeightSlider = wx.Slider(self, wx.ID_ANY, 0, -100, 200, size=(150, -1), style=wx.SL_LABELS)
+        maxHeightStaticText = wx.StaticText(self, wx.ID_ANY, _("max H"), size=(45, -1), style=wx.ALIGN_CENTRE)
+        self.maxHeightSlider = wx.Slider(self, wx.ID_ANY, 0, -100, 200, size=(150, -1), style=wx.SL_LABELS)
 
         moveStaticText = wx.StaticText(self, wx.ID_ANY, _("Move"), style=wx.ALIGN_CENTRE)
         moveStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         zStaticText = wx.StaticText(self, wx.ID_ANY, _("z"), size=(45, -1), style=wx.ALIGN_CENTRE)
         self.zSlider = wx.Slider(self, wx.ID_ANY, 0, -50, 50, size=(150, -1), style=wx.SL_LABELS)
-        
-        applyButton = wx.Button(self, label=_("Apply"), size=(100,-1))
-        applyButton.Bind(wx.EVT_BUTTON, self.apply)
 
         #-- Bind
         self.Bind(wx.EVT_RADIOBUTTON, self.onAlgChanged, self.compactAlgRadioButton)
         self.Bind(wx.EVT_RADIOBUTTON, self.onAlgChanged, self.completeAlgRadioButton)
+        self.Bind(wx.EVT_SLIDER, self.onRadiousChanged, self.minRadiousSlider)
+        self.Bind(wx.EVT_SLIDER, self.onRadiousChanged, self.maxRadiousSlider)
+        self.Bind(wx.EVT_SLIDER, self.onHeightChanged, self.minHeightSlider)
+        self.Bind(wx.EVT_SLIDER, self.onHeightChanged, self.maxHeightSlider)
         self.Bind(wx.EVT_SLIDER, self.onZChanged, self.zSlider)
-        self.Bind(wx.EVT_BUTTON, self.apply, applyButton)
         
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -80,33 +82,30 @@ class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
         hbox.Add(self.compactAlgRadioButton, 0, wx.ALL, 15);
         hbox.Add(self.completeAlgRadioButton, 0, wx.ALL, 15);
         vbox.Add(hbox) 
-
         vbox.Add(filterStaticText, 0, wx.ALL, 10)
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.rhoMinTextCtrl, 0, wx.ALL, 15);
-        hbox.Add(self.rhoStaticText, 0, wx.TOP, 20);
-        hbox.Add(self.rhoMaxTextCtrl, 0, wx.ALL, 15);
+        hbox.Add(minRadiousStaticText, 0, wx.ALL^wx.BOTTOM, 18)
+        hbox.Add(self.minRadiousSlider, 0, wx.ALL, 0)
         vbox.Add(hbox)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.hMinTextCtrl, 0, wx.ALL, 15);
-        hbox.Add(self.hStaticText, 0, wx.TOP, 20);
-        hbox.Add(self.hMaxTextCtrl, 0, wx.ALL, 15);
+        hbox.Add(maxRadiousStaticText, 0, wx.ALL^wx.BOTTOM, 18)
+        hbox.Add(self.maxRadiousSlider, 0, wx.ALL, 0)
         vbox.Add(hbox)
-
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(minHeightStaticText, 0, wx.ALL^wx.BOTTOM, 18)
+        hbox.Add(self.minHeightSlider, 0, wx.ALL, 0)
+        vbox.Add(hbox)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(maxHeightStaticText, 0, wx.ALL, 18)
+        hbox.Add(self.maxHeightSlider, 0, wx.ALL, 0)
+        vbox.Add(hbox)
         vbox.Add(moveStaticText, 0, wx.ALL, 10)
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(zStaticText, 0, wx.ALL^wx.RIGHT, 18)
+        hbox.Add(zStaticText, 0, wx.ALL^wx.BOTTOM, 18)
         hbox.Add(self.zSlider, 0, wx.ALL, 0)
         vbox.Add(hbox)
-
-        vbox.Add((0, 0), 1, wx.EXPAND)  
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(applyButton, 1, wx.ALL, 10);
-        vbox.Add(hbox)
-        
         self.SetSizer(vbox)
         self.Centre()
 
@@ -118,21 +117,47 @@ class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.scanner.getCore().setZOffset(self.zSlider.GetValue())
         profile.putProfileSetting('z_offset', self.zSlider.GetValue())
         
-    def apply(self, event):
-        self.scanner.getCore().setRangeFilter(int(self.rhoMinTextCtrl.GetValue()),
-                                              int(self.rhoMaxTextCtrl.GetValue()),
-                                              int(self.hMinTextCtrl.GetValue()),
-                                              int(self.hMaxTextCtrl.GetValue()))
-        profile.putProfileSetting('min_rho', int(self.rhoMinTextCtrl.GetValue()))
-        profile.putProfileSetting('max_rho', int(self.rhoMaxTextCtrl.GetValue()))
-        profile.putProfileSetting('min_h', int(self.hMinTextCtrl.GetValue()))
-        profile.putProfileSetting('max_h', int(self.hMaxTextCtrl.GetValue()))
+    def onRadiousChanged(self, event):
+        minR = int(self.minRadiousSlider.GetValue())
+        maxR = int(self.maxRadiousSlider.GetValue())
+
+        if minR >= maxR:
+            maxR = minR
+
+        self.minRadiousSlider.SetValue(minR)
+        self.maxRadiousSlider.SetValue(maxR)
+
+        self.scanner.getCore().setRangeFilter(int(self.minRadiousSlider.GetValue()),
+                                              int(self.maxRadiousSlider.GetValue()),
+                                              int(self.minHeightSlider.GetValue()),
+                                              int(self.maxHeightSlider.GetValue()))
+
+        profile.putProfileSetting('min_rho', minR)
+        profile.putProfileSetting('max_rho', maxR)
+
+    def onHeightChanged(self, event):
+        minH = int(self.minHeightSlider.GetValue())
+        maxH = int(self.maxHeightSlider.GetValue())
+
+        if minH >= maxH:
+            maxH = minH
+
+        self.minHeightSlider.SetValue(minH)
+        self.maxHeightSlider.SetValue(maxH)
+
+        self.scanner.getCore().setRangeFilter(int(self.minRadiousSlider.GetValue()),
+                                              int(self.maxRadiousSlider.GetValue()),
+                                              int(self.minHeightSlider.GetValue()),
+                                              int(self.maxHeightSlider.GetValue()))
+
+        profile.putProfileSetting('min_h', minH)
+        profile.putProfileSetting('max_h', maxH)
 
     def updateProfileToAllControls(self):
         self.compactAlgRadioButton.SetValue(profile.getProfileSettingBool('use_compact'))
         self.completeAlgRadioButton.SetValue(not profile.getProfileSettingBool('use_compact'))
-        self.rhoMinTextCtrl.SetValue(profile.getProfileSetting('min_rho'))
-        self.rhoMaxTextCtrl.SetValue(profile.getProfileSetting('max_rho'))
-        self.hMinTextCtrl.SetValue(profile.getProfileSetting('min_h'))
-        self.hMaxTextCtrl.SetValue(profile.getProfileSetting('max_h'))
+        self.minRadiousSlider.SetValue(profile.getProfileSettingInteger('min_rho'))
+        self.maxRadiousSlider.SetValue(profile.getProfileSettingInteger('max_rho'))
+        self.minHeightSlider.SetValue(profile.getProfileSettingInteger('min_h'))
+        self.maxHeightSlider.SetValue(profile.getProfileSettingInteger('max_h'))
         self.zSlider.SetValue(profile.getProfileSettingInteger('z_offset'))
