@@ -400,19 +400,28 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def _deviceList(self, win_devices, linux_devices):
         baselist=[]
         if os.name=="nt":
-            import _winreg
-            key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
-            i=0
-            while True:
-                try:
-                    values = _winreg.EnumValue(key, i)
-                except:
-                    return baselist
-                if 'USBSER' in values[0]:
-                    baselist.append(values[1])
-                i+=1
-        for device in linux_devices:
-            baselist = baselist + glob.glob(device)
+            if win_devices=="VIDEO":
+                for i in range(10):
+                    cap = cv2.VideoCapture(i)
+                    if cap.isOpened() == False:
+                        break
+                    cap.release()
+                    baselist.append(str(i))
+            else:
+                import _winreg
+                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
+                i=0
+                while True:
+                    try:
+                        values = _winreg.EnumValue(key, i)
+                    except:
+                        return baselist
+                    if 'USBSER' in values[0]:
+                        baselist.append(values[1])
+                    i+=1
+        else:
+            for device in linux_devices:
+                baselist = baselist + glob.glob(device)
         return baselist
 
 class MainWorkbench(wx.Panel):
