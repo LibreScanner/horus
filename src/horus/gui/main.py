@@ -409,16 +409,19 @@ Suite 330, Boston, MA  02111-1307  USA""")
                     baselist.append(str(i))
             else:
                 import _winreg
-                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
-                i=0
-                while True:
-                    try:
-                        values = _winreg.EnumValue(key, i)
-                    except:
-                        return baselist
-                    if 'USBSER' in values[0]:
-                        baselist.append(values[1])
-                    i+=1
+                try:
+                    key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
+                    i=0
+                    while True:
+                        try:
+                            values = _winreg.EnumValue(key, i)
+                        except:
+                            return baselist
+                        if 'USBSER' in values[0]:
+                            baselist.append(values[1])
+                        i+=1
+                except:
+                    return baselist
         else:
             for device in linux_devices:
                 baselist = baselist + glob.glob(device)
