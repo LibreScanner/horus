@@ -37,8 +37,9 @@ try:
     import cv2
     import wx
 except ImportError as e:
-    module = e.message.lstrip('No module named ')
-    print "Requires " + module
+    #module = e.message.lstrip('No module named ')
+    print e.message
+    #print "Requires " + module
     #print "Try sudo apt-get install " + module
     exit(1)
 
