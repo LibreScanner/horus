@@ -230,7 +230,7 @@ class PatternPanel(Page):
 					self.scanner.connect()
 					self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 					self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
-				self.timer.Start(milliseconds=150)
+				self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
 				self.loaded=True
 				self.loadGrid()
 			else:
@@ -1081,17 +1081,21 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 				
 				if self.checkFloat(self._visualCtrlMatrix[i][j].GetValue()):
 					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.WHITE)
+					self._visualCtrlMatrix[i][j].SetForegroundColour(wx.BLACK)
 				else:
 					isCorrect=False
-					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.RED)
+					self._visualCtrlMatrix[i][j].SetBackgroundColour('#FFBFBF')
+					self._visualCtrlMatrix[i][j].SetForegroundColour('#D90000')
 				
 		for i in range(len(self._vDistortionVector)):
 			
 			if self.checkFloat(self._visualCtrlDistortionVector[i].GetValue()):
 				self._visualCtrlDistortionVector[i].SetBackgroundColour(wx.WHITE)
+				self._visualCtrlDistortionVector[i].SetForegroundColour(wx.BLACK)
 			else:
 				isCorrect=False
-				self._visualCtrlDistortionVector[i].SetBackgroundColour(wx.RED)
+				self._visualCtrlDistortionVector[i].SetBackgroundColour('#FFBFBF')
+				self._visualCtrlDistortionVector[i].SetForegroundColour('#D90000')
 		return isCorrect
 	def checkFloat(self,number):
 		try:
@@ -1314,9 +1318,11 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 				
 				if self.checkFloat(self._visualCtrlMatrix[i][j].GetValue()):
 					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.WHITE)
+					self._visualCtrlMatrix[i][j].SetForegroundColour(wx.BLACK)
 				else:
 					isCorrect=False
-					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.RED)
+					self._visualCtrlMatrix[i][j].SetBackgroundColour('#FFBFBF')
+					self._visualCtrlMatrix[i][j].SetForegroundColour('#D90000')
 				
 		return isCorrect
 
