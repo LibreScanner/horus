@@ -7,11 +7,14 @@
 *.po~
 *.zip
 *.exe
+!avrdude.exe
 *.deb
 *.ini
 *.idea
+*.db
 pkg/linux/debian_*/usr/share/horus*
 pkg/linux/debian_*/usr/local/*
 pkg/win32/dist*
 LIN/*
 WIN/*
+testAvr.py

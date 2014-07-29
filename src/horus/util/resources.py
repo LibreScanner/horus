@@ -38,11 +38,19 @@ resourceBasePath = os.path.join(os.path.dirname(__file__), "../../../res")
 def getPathForResource(dir, subdir, resource_name):
 	assert os.path.isdir(dir), "{p} is not a directory".format(p=dir)
 	path = os.path.normpath(os.path.join(dir, subdir, resource_name))
-	assert os.path.isfile(path), "{p} is not a file.".format(p=path)
 	return path
 
 def getPathForImage(name):
 	return getPathForResource(resourceBasePath, 'images', name)
+
+def getPathForFirmware(name):
+	return getPathForResource(resourceBasePath, 'firmware', name)
+
+def getPathForToolsLinux(name):
+	return getPathForResource(resourceBasePath, 'tools/linux', name)
+
+def getPathForToolsWindows(name):
+	return getPathForResource(resourceBasePath, 'tools/windows', name)
 
 def getPathForMesh(name):
 	return getPathForResource(resourceBasePath, 'meshes', name)
