@@ -95,19 +95,29 @@ if (( ${BUILD_OPENCV} )); then
 		cd LIN
 		git clone https://github.com/bq/opencv.git
 		cd opencv; git pull
-		rm -rf release
+		#rm -rf release
 		mkdir -p release
 		cd release
 		if [ "$BUILD_TARGET" = "debian_i386" ]; then
-			cmake -D CMAKE_C_FLAGS=-m32 -D CMAKE_CXX_FLAGS=-m32 -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_V4L=ON ..
+			cmake -D CMAKE_C_FLAGS=-m32 -D CMAKE_CXX_FLAGS=-m32 -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON \
+				  -D WITH_V4L=ON -D BUILD_opencv_gpu=OFF -D BUILD_opencv_gpu=OFF -D BUILD_opencv_ocl=OFF -D BUILD_opencv_nonfree=OFF \
+				  -D BUILD_opencv_stitching=OFF -D BUILD_opencv_superres=OFF -D BUILD_opencv_ts=OFF -D BUILD_opencv_videostab=OFF ..
 		elif [ "$BUILD_TARGET" = "debian_amd64" ]; then
-			cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_V4L=ON ..
+			cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_NEW_PYTHON_SUPPORT=ON \
+				  -D WITH_V4L=ON -D BUILD_opencv_gpu=OFF -D BUILD_opencv_gpu=OFF -D BUILD_opencv_ocl=OFF -D BUILD_opencv_nonfree=OFF \
+				  -D BUILD_opencv_stitching=OFF -D BUILD_opencv_superres=OFF -D BUILD_opencv_ts=OFF -D BUILD_opencv_videostab=OFF ..
 		fi
 		make -j3
 		cd ../../..
+		rm -rf pkg/linux/${BUILD_TARGET}/usr/local/lib
 		mkdir -p  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/
-		cp -a LIN/opencv/release/lib/cv2.so  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/
-		rm -rf LIN/opencv/release
+		echo "from cv2.cv import *" > pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/cv.py
+		cp -a LIN/opencv/release/lib/cv2.so  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/cv2.so
+		cp -a LIN/opencv/release/lib/*.2.4.9 pkg/linux/${BUILD_TARGET}/usr/local/lib/
+		cp -a LIN/opencv/release/lib/*.2.4 pkg/linux/${BUILD_TARGET}/usr/local/lib/
+		cp -a LIN/opencv/release/lib/*.so pkg/linux/${BUILD_TARGET}/usr/local/lib/
+		rm -rf pkg/linux/${BUILD_TARGET}/usr/local/lib/cv2.so
+		#rm -rf LIN/opencv/release
 		#rm -rf LIN
 	fi
 fi
@@ -124,7 +134,12 @@ if [ "$BUILD_TARGET" = "debian_i386" ]; then
 	cp -a src  pkg/linux/${BUILD_TARGET}/usr/share/horus/
 	echo $BUILD_NAME >  pkg/linux/${BUILD_TARGET}/usr/share/horus/version
 	sudo chown root:root  pkg/linux/${BUILD_TARGET} -R
-	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr -R
+	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr/bin -R
+	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr/local/lib/*.so -R
+	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr/local/lib/*.2.4 -R
+	sudo chmod 644  pkg/linux/${BUILD_TARGET}/usr/local/lib/*.2.4.9 -R
+	sudo chmod 644  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/*
+	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr/share -R
 	sudo chmod 755  pkg/linux/${BUILD_TARGET}/DEBIAN -R
 	cd  pkg/linux
 	dpkg-deb --build ${BUILD_TARGET} $(dirname ${TARGET_DIR})/horus_${BUILD_NAME}-${BUILD_TARGET}.deb
@@ -144,14 +159,18 @@ if [ "$BUILD_TARGET" = "debian_amd64" ]; then
 	cp -a src  pkg/linux/${BUILD_TARGET}/usr/share/horus/
 	echo $BUILD_NAME >  pkg/linux/${BUILD_TARGET}/usr/share/horus/version
 	sudo chown root:root  pkg/linux/${BUILD_TARGET} -R
-	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr -R
+	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr/bin -R
+	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr/local/lib/*.so -R
+	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr/local/lib/*.2.4 -R
+	sudo chmod 644  pkg/linux/${BUILD_TARGET}/usr/local/lib/*.2.4.9 -R
+	sudo chmod 644  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/*
+	sudo chmod 755  pkg/linux/${BUILD_TARGET}/usr/share -R
 	sudo chmod 755  pkg/linux/${BUILD_TARGET}/DEBIAN -R
 	cd  pkg/linux
 	dpkg-deb --build ${BUILD_TARGET} $(dirname ${TARGET_DIR})/horus_${BUILD_NAME}-${BUILD_TARGET}.deb
 	sudo chown `id -un`:`id -gn` ${BUILD_TARGET} -R
 	exit
 fi
-
 
 #############################
 # Rest
