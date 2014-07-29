@@ -42,6 +42,7 @@ from horus.gui.calibration import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
 
 from horus.engine.scanner import *
+from horus.util.avrHelpers import AvrDude
 
 class MainWindow(wx.Frame):
 
@@ -355,6 +356,12 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                      profile.getProfileSettingFloat('laser_angle'),
                                      profile.getProfileSettingNumpy('calibration_matrix'),
                                      profile.getProfileSettingNumpy('translation_vector'))
+
+    def updateFirmware(self):
+        avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'))
+        stdout, stderr = avr_dude.flash(extra_flags=["-D"])
+        print stdout
+        print stderr
 
     def workbenchUpdate(self):
         """ """

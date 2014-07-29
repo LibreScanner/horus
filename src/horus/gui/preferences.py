@@ -60,6 +60,8 @@ class PreferencesDialog(wx.Dialog):
 		self.languages = [row[1] for row in resources.getLanguageOptions()]
 		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(110,-1))
 
+
+		self.updateFirmware = wx.Button(self, -1, 'Update Firmware')
 		self.okButton = wx.Button(self, -1, 'Ok')
 
 		#-- Events
@@ -69,6 +71,7 @@ class PreferencesDialog(wx.Dialog):
 		self.stepDegreesText.Bind(wx.EVT_TEXT, self.onStepDegreesTextChanged)
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Close())
+		self.updateFirmware.Bind(wx.EVT_BUTTON, self.onUpdateFirmware)
 
 		#-- Fill data
 		if len(self.serialNames) > 0:
@@ -112,6 +115,10 @@ class PreferencesDialog(wx.Dialog):
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
 
+		vbox.Add(self.updateFirmware, 0, wx.ALL, 10) 
+
+		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
+
 		vbox.Add(self.okButton, 0, wx.ALL, 10)
 
 		self.SetSizer(vbox)
@@ -143,3 +150,6 @@ class PreferencesDialog(wx.Dialog):
 	def onClose(self, e):
 		self.main.updateEngine()
 		self.Destroy()
+
+	def onUpdateFirmware(self, e):
+		self.main.updateFirmware()
