@@ -438,17 +438,8 @@ class PlotPanel(Page):
 
 	def on_size(self,event):
 		factor=1
-		# pix = self.getPanel().GetClientSize()
-		# self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
 		x,y = self.getPanel().GetClientSize()  
 		self.canvas.SetClientSize((y*factor-20, (x/2)-40))
-		# self.ax.set_xlim(-150, 150)
-		# self.ax.set_ylim(0, 300)
-		# self.ax.set_zlim(-150/factor, 150/factor)
-		# self.ax.invert_xaxis()
-		# self.ax.invert_yaxis()
-		# self.ax.invert_zaxis()
-		# self.canvas.draw()
 		self.reloadMatrix()
 		self._upPanel.Layout()
 		self.Layout()
@@ -928,16 +919,16 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		vbox=wx.BoxSizer(wx.VERTICAL)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._intrinsicTitle,0,wx.ALL,20)
+		hbox.Add(self._intrinsicTitle,0,wx.ALL,0)
 		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 
 		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
-		image1=self.scale_bitmap(image1,55,55)
+
 		self._editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
 		self._editButton.Bind(wx.EVT_BUTTON,self.edit)
 
 		image2=wx.Bitmap(resources.getPathForImage("restore.png"))
-		image2=self.scale_bitmap(image2,55,55)
+
 		self._restoreButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
 		self._restoreButton.Bind(wx.EVT_BUTTON,self.restore)
 
@@ -949,7 +940,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
 
-		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.LEFT|wx.RIGHT,20)
 
 		self.loadMatrices(self,vbox)
 
@@ -958,14 +949,14 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self._startButton.Bind(wx.EVT_BUTTON,self.start)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._startButton,0,wx.ALL,20)
+		hbox.Add(self._startButton,0,wx.ALL,0)
 		
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
 		
 
-		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
+		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.BOTTOM,20)
 		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
-		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.LEFT|wx.RIGHT,20)
 
 		self.SetSizer(vbox)
 		self.Bind(wx.EVT_SIZE, self.on_size)
@@ -999,7 +990,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		boxSizer.Add((-1,50),0,wx.ALL,5)
 
-		sizer.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
+		sizer.Add(boxSizer,0,wx.EXPAND|wx.ALL,20)
 		
 		#distortion coefficients
 		self._distortionCoeffStaticText = wx.StaticBox(parent, label=_("Distortion coefficients"))
@@ -1023,12 +1014,12 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			else:
 				hboxRow2.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
 				hboxRow2.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
-		hboxRow2.Add( (-1,-1),1,wx.ALL|wx.EXPAND,5)
+		hboxRow2.Add( (-1,-1),1,wx.ALL|wx.EXPAND,0)
 		vboxAux.Add(hboxRow1,0,wx.EXPAND|wx.TOP,15)
 		vboxAux.Add(hboxRow2,0,wx.EXPAND|wx.TOP,15)
-		boxSizer.Add(vboxAux,-1,wx.EXPAND,0)
+		boxSizer.Add(vboxAux,-1,wx.EXPAND|wx.LEFT|wx.RIGHT,15)
 
-		sizer.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,30)
+		sizer.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,20)
 
 
 	def start(self,event):
@@ -1111,11 +1102,8 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 	def save(self,event):
 		print "save"
-	def scale_bitmap(self,bitmap, width, height):
-		image = wx.ImageFromBitmap(bitmap)
-		image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
-		result = wx.BitmapFromImage(image)
-		return result
+
+
 	def reload(self):
 		x,_= self.GetClientSize()
 		optimalTrimming=x/(self.scaleFactor)
@@ -1166,16 +1154,16 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		vbox=wx.BoxSizer(wx.VERTICAL)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._extrinsicTitle,0,wx.ALL,20)
+		hbox.Add(self._extrinsicTitle,0,wx.ALL,0)
 		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 
 		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
-		image1=self.scale_bitmap(image1,55,55)
+
 		self._editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
 		self._editButton.Bind(wx.EVT_BUTTON,self.edit)
 
 		image2=wx.Bitmap(resources.getPathForImage("restore.png"))
-		image2=self.scale_bitmap(image2,55,55)
+	
 		self._restoreButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
 		self._restoreButton.Bind(wx.EVT_BUTTON,self.restore)
 
@@ -1183,11 +1171,11 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		hbox.Add(self._restoreButton,0,wx.ALL,0)
 
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
-		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
+		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,00)
 
 		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
 
-		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.LEFT|wx.RIGHT,20)
 
 		#rotation matrix
 		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
@@ -1226,20 +1214,20 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		boxSizer.Add((-1,50),0,wx.ALL,5)
 
-		vbox.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
+		vbox.Add(boxSizer,0,wx.EXPAND|wx.ALL,20)
 
 		#buttons
 		self._startButton = wx.Button(self,label=_("Start"),size=(100,-1))
 		self._startButton.Bind(wx.EVT_BUTTON,self.start)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._startButton,0,wx.ALL,20)
+		hbox.Add(self._startButton,0,wx.ALL,0)
 		
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
 		
-		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
+		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.BOTTOM,20)
 		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
-		vbox.Add(vboxAux,0,wx.EXPAND,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.LEFT|wx.RIGHT,20)
 
 		self.SetSizer(vbox)
 
@@ -1298,12 +1286,6 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 	def save(self,event):
 		print "save"
-
-	def scale_bitmap(self,bitmap, width, height):
-		image = wx.ImageFromBitmap(bitmap)
-		image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
-		result = wx.BitmapFromImage(image)
-		return result
 
 	def reload(self):
 		x,_= self.GetClientSize()
