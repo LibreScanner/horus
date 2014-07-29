@@ -123,7 +123,7 @@ class PreferencesDialog(wx.Dialog):
 		profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
 
 	def onCameraIdTextChanged(self, event):
-		if self.cameraIdCombo.GetValue() is not None:
+		if len(self.cameraIdCombo.GetValue()) > 0:
 			profile.putProfileSetting('camera_id', int(self.cameraIdCombo.GetValue()[-1:]))
 
 	def onStepDegreesTextChanged(self, event):
