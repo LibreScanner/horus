@@ -1,5 +1,5 @@
 //--------------------------------------------------------------
-//-- Horus Firmware. Compatible with ZUM Shield Scann V.1
+//-- Horus Firmware. Compatible with ZUM Scan Shield V.1
 //--------------------------------------------------------------
 //-- Code based on (c) Juan Gonzalez-Gomez (Obijuan), May-2013
 //-- (c) Jesus Arroyo Torrens, October/November-2013
@@ -19,13 +19,13 @@
 //--  mmmmm is the delay in microseconds
 //--
 //-- The frame should finish one of the following characters:
-//--   lf
+//--  lf
 //--
-//--  Example:  b004500100q   --> step = 0.45º delay = 100 us
+//-- Example:  b004500100q   --> step = 0.45º delay = 100 us
 //--
-//--  The command frame is a byte. The format is the following:
+//-- The command frame is a byte. The format is the following:
 //--
-//--  10 cc vv 01
+//-- 10 cc vv 01
 //--
 //--  10 is the header
 //--  01 is the footer
@@ -34,12 +34,18 @@
 //--
 //-- Example:   10 00 01 01   --> Motor Step CW
 //--
+//-- NOTE: the command 11 00 00 11 sets configuration mode (fals default)
+//--
 //-- A complete example is presented below:
 //--
 //--    -> b004500100q\n
 //--    <- bq\n
 //--    -> 0b10000101
 //--    -> 0b10010101
+//--    -> 0b11000011
+//--    -> b010000800q\n
+//--    <- bq\n
+//--    -> 0b10000101
 //--    ...
 //--
 
@@ -103,6 +109,9 @@ int buflen = 0;
 #define BIN_LR_MASK      B00010000
 #define BIN_ONOFF_MASK   B00000100
 
+#define BIN_CONFIG_MODE  B11000011
+
+boolean config_mode = false;
 boolean cmd_ready = false;
 
 void setup()
@@ -130,31 +139,6 @@ void setup()
   
   //-- Turn on the !enable
   digitalWrite(ENABLE_PIN, LOW);
-  
-  
-  //-- Configuration Frame
-  boolean handshake = false;
- 
-  do
-  {
-    //-- Task: Read the information from the serial port
-    read_frame();
-    
-    //-- If there is a command ready or the buffer is full
-    //-- process the command!!
-    if (cmd_ready || buflen==BUFSIZE) {
-    
-      //-- Process the command
-      handshake = process_config();
-      
-      //-- Command processed!
-      cmd_ready=false;
-      buflen=0;
-    }
-  }
-  while(!handshake);
-  
-  Serial.print("bq\n");
 }
 
 void read_frame()
@@ -294,15 +278,46 @@ void Step(int step_pin, float deg)
 void loop() 
 {
   if (Serial.available()) {
-    
-    //-- Read command
-    byte cmd = Serial.read();
+    if (config_mode) {
+      //-- Configuration Frame
+      boolean handshake = false;
      
-    //-- Process the command
-    process_cmd(cmd);
-    //if (process_cmd(cmd))
-    //-- If success send acknowledge
-      //Serial.print(BIN_ACK); TODO
+      do {
+        //-- Task: Read the information from the serial port
+        read_frame();
+        
+        //-- If there is a command ready or the buffer is full
+        //-- process the command!!
+        if (cmd_ready || buflen==BUFSIZE) {
+        
+          //-- Process the command
+          handshake = process_config();
+          
+          //-- Command processed!
+          cmd_ready=false;
+          buflen=0;
+        }
+      }
+      while(!handshake);
+      
+      Serial.print("bq\n");
+  
+      config_mode = false;
+    }
+    else {
+      //-- Read command
+      byte cmd = Serial.read();
+      
+      config_mode = cmd == BIN_CONFIG_MODE;
+      
+      if (!config_mode) {
+        //-- Process the command
+        process_cmd(cmd);
+        //if (process_cmd(cmd))
+        //-- If success send acknowledge
+        //Serial.print(BIN_ACK); TODO
+      } 
+    }
   }
   
   delay(1);

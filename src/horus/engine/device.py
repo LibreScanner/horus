@@ -86,7 +86,7 @@ class Device:
 			self.serialPort = serial.Serial(self.serialName, 19200, timeout=1)
 			time.sleep(2)
 			if self.serialPort.isOpen():
-				self.performHandshake()
+				self.sendConfiguration(self.degrees, self.delay)
 			else:
 				print "Serial port is not connected."
 		except serial.SerialException:
@@ -176,14 +176,18 @@ class Device:
 		else:
 			print "Serial port is not connected."
     
-	def performHandshake(self):
+	def sendConfiguration(self, degrees, delay):
 		"""Sends the config message
 				- degrees: motor step in degrees (00.00 - 99.99)
 				- delay: motor pulse delay (0 - 99999)
 			Receives ack ("bq")
 		"""
-		frame = 'b{0:0>4}{1:0>5}q\n'.format(trunc(self.degrees * 100), self.delay) #[-10:]
+		#-- Sets config mode
+		self.sendCommand(195) # 11000011
+		#-- Sends config message
+		frame = 'b{0:0>4}{1:0>5}q\n'.format(trunc(degrees * 100), delay) #[-10:]
 		self.serialPort.write(frame)
+		#-- Receives acknowledge
 		ack = self.serialPort.readline()
 		if ack != 'bq\n':
 			print "Handshake error. Please Reset the microcontroller or reload the firmware"
