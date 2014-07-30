@@ -181,7 +181,7 @@ class PatternPanel(Page):
 	def load(self):
 
 		self.videoView = VideoView(self._upPanel)
-		self.guideView = VideoView(self._upPanel)
+		self.guideView = wx.Panel(self._upPanel)
 		
 
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
@@ -328,20 +328,86 @@ class PatternPanel(Page):
 		self.parent.Layout()
 
 	def showSpaceHelp(self):
-		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
-		if hasattr(self,'text'):
-			self.text.SetLabel(_("Press the space bar to perform captures"))
-		else:
-			self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform captures. Press space to start taking captures."))	
-	
+
+		if hasattr(self,'socketText'):
+			self.socketText.Show(False)
+			self.socketBitmap.Show(False)
+		if hasattr(self,'keyboardText'):
+			self.keyboardText.Show(True)
+			self.keyboardBitmap.Show(True)
+			# redo sizer to keep things beautiful
+			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+			vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.keyboardText,0,wx.LEFT,30)
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+			self.guideView.SetSizer(vboxGuideView)
+		else: 
+			self.createKeyboardPanel()
+		self.guideView.Layout()
+
 	def showSocketHelp(self):
-		self.guideView.setImage(wx.Image(getPathForImage("socket.png")))
-		if hasattr(self,'text'):
-			self.text.SetLabel(_("Please connect the scanner"))
+
+		if hasattr(self,'keyboardText'):
+			self.keyboardText.Show(False)
+			self.keyboardBitmap.Show(False)
+		if hasattr(self,'socketText'):
+			self.socketText.Show(True)
+			self.socketBitmap.Show(True)
+			# redo sizer to keep things awesome
+			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.socketText)
+			hbox.Add(self.socketBitmap)
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+			self.guideView.SetSizer(vboxGuideView)
 		else:
-			self.text=wx.StaticText(self.guideView,label=_("Please connect the scanner"))		
+			self.createSocketPanel()
 		self.parent.parent.Bind(wx.EVT_TOOL , self.onConnectToolClicked,self.parent.parent.connectTool)
+		self.guideView.Layout()
+
+	def createSocketPanel(self):
+		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 	
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+
+		self.socketText=wx.StaticText(self.guideView,label=_("Please connect the scanner"))
+
+		hbox.Add(self.socketText)
+
+		image = wx.Image(getPathForImage('connect.png'))
+		bitmap = wx.BitmapFromImage(image)
+		self.socketBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+
+		hbox.Add(self.socketBitmap)
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		self.guideView.SetSizer(vboxGuideView)
+		
+	def createKeyboardPanel(self):
+		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+	
+		image = wx.Image(getPathForImage("keyboard.png"))
+		bitmap = wx.BitmapFromImage(image)
+		self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
+			
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+
+		self.keyboardText=wx.StaticText(self.guideView,label=_("Use the space bar to perform captures.\nPress the space bar to start"))
+
+		hbox.Add(self.keyboardText,0,wx.LEFT,30)
+
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		self.guideView.SetSizer(vboxGuideView)
+
 	def onConnectToolClicked(self,event):
 		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 		self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
@@ -349,9 +415,7 @@ class PatternPanel(Page):
 		self.showSpaceHelp()
 	def onDisconnectToolClicked(self,event):
 		
-		self.scanner.disconnect() # Not working camera disconnect :S
-
-		# TODO: Check disconnection
+		self.scanner.disconnect() 
 		self.parent.parent.enableLabelTool(self.parent.parent.connectTool, True)
 		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,False)
 		self.parent.parent.loadInit(0)
