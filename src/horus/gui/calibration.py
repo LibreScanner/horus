@@ -224,7 +224,6 @@ class PatternPanel(Page):
 
 	def OnKeyPress(self,event):
 		"""Key bindings: if it is not started, spacebar initialize the scanner"""
-		
 			
 		if event.GetKeyCode()==32:
 			if not self.loaded:
@@ -232,7 +231,7 @@ class PatternPanel(Page):
 					self.scanner.connect()
 					self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 					self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
-
+					self.showSpaceHelp()
 				self.loaded=True
 				self.loadGrid()
 			else:
@@ -250,7 +249,9 @@ class PatternPanel(Page):
 			self.panelGrid=[]
 			for panel in range(self.rows*self.columns):
 				self.panelGrid.append(VideoView(self.gridPanel))
-				self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+				# self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255))) 
+				self.panelGrid[panel].SetBackgroundColour((221,221,221))
+				self.panelGrid[panel].setImage(wx.Image(getPathForImage("void.png")))
 				self.panelGrid[panel].index=panel
 				gs.Add(self.panelGrid[panel],0,wx.EXPAND)
 				self.panelGrid[panel].Bind(wx.EVT_LEFT_DOWN,self.onClick)
@@ -269,12 +270,12 @@ class PatternPanel(Page):
 		if self.currentGrid<(self.columns*self.rows):
 			if retval:
 				self.panelGrid[self.currentGrid].setFrame(image)
-				self.panelGrid[self.currentGrid].SetBackgroundColour((0,255,0))
+				self.panelGrid[self.currentGrid].SetBackgroundColour((45,178,0))
 				self.currentGrid+=1
 
 			else:
 				self.panelGrid[self.currentGrid].setFrame(image)
-				self.panelGrid[self.currentGrid].SetBackgroundColour((255,0,0))
+				self.panelGrid[self.currentGrid].SetBackgroundColour((217,0,0))
 		else:
 			self.currentGrid=0
 			self.panelGrid[self.currentGrid].setFrame(image)
@@ -285,8 +286,8 @@ class PatternPanel(Page):
 	def clear(self):
 		if hasattr(self,'panelGrid'):
 			for panel in self.panelGrid:
-				panel.setImage(wx.Image(getPathForImage("bq.png")))
-				panel.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+				panel.setImage(wx.Image(getPathForImage("void.png")))
+				panel.SetBackgroundColour((221,221,221))	
 			
 		self.currentGrid=0
 		self.calibration.clearData()
