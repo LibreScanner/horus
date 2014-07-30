@@ -230,7 +230,7 @@ class PatternPanel(Page):
 					self.scanner.connect()
 					self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 					self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
-				self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
+
 				self.loaded=True
 				self.loadGrid()
 			else:
@@ -347,7 +347,8 @@ class PatternPanel(Page):
 		else: 
 			self.createKeyboardPanel()
 		self.guideView.Layout()
-
+		self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
+		
 	def showSocketHelp(self):
 
 		if hasattr(self,'keyboardText'):
@@ -369,6 +370,7 @@ class PatternPanel(Page):
 			self.createSocketPanel()
 		self.parent.parent.Bind(wx.EVT_TOOL , self.onConnectToolClicked,self.parent.parent.connectTool)
 		self.guideView.Layout()
+		
 
 	def createSocketPanel(self):
 		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
@@ -413,6 +415,8 @@ class PatternPanel(Page):
 		self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
 		self.scanner.connect()
 		self.showSpaceHelp()
+		
+		
 	def onDisconnectToolClicked(self,event):
 		
 		self.scanner.disconnect() 
