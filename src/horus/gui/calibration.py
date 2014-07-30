@@ -93,7 +93,7 @@ class CalibrationWorkbench(Workbench):
 			self._patternPanel.setLayout()
 			if self._patternPanel.timer.IsRunning:
 				self._patternPanel.timer.Stop()
-				self._patternPanel.videoView.setImage(wx.Image(getPathForImage("bq.png")))
+				self._patternPanel.videoView.setImage(wx.Image(getPathForImage("novideo.png")))
 		if hasattr(self,'_plotPanel'):
 			self._plotPanel.hide()
 		self._intrinsicsPanel.Show(True)
@@ -181,6 +181,8 @@ class PatternPanel(Page):
 	def load(self):
 
 		self.videoView = VideoView(self._upPanel)
+		self.videoView.setImage(wx.Image(getPathForImage("novideo.png")))
+		self.videoView.SetBackgroundColour((0,0,0))
 		self.guideView = wx.Panel(self._upPanel)
 		
 
@@ -348,7 +350,7 @@ class PatternPanel(Page):
 			self.createKeyboardPanel()
 		self.guideView.Layout()
 		self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
-		
+
 	def showSocketHelp(self):
 
 		if hasattr(self,'keyboardText'):
