@@ -48,6 +48,7 @@ import cv2
 
 import matplotlib.cm as cm  
 import matplotlib.colors as colors
+from matplotlib import animation
 
 class CalibrationWorkbench(Workbench):
 
@@ -439,8 +440,7 @@ class PlotPanel(Page):
 		self.scaleFactor=3*80
 		
 		self.angle=0
-		self.timer = wx.Timer(self)
-		self.Bind(wx.EVT_TIMER, self.onAnimationTimer, self.timer)
+
 
 		self.load()
 
@@ -448,10 +448,11 @@ class PlotPanel(Page):
 		
 
 		self.fig = Figure(tight_layout=True)
+		# self.fig=plt.figure()
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), 1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
 
-		self.ax = self.fig.gca(projection='3d',axisbg=(random.random(),random.random(),random.random()))
+		self.ax = self.fig.gca(projection='3d',axisbg=(0.7490196,0.7490196,0.7490196,1))
 		self.getPanel().Bind(wx.EVT_SIZE, self.on_size)
 		# Parameters of the pattern
 		self.columns=self.calibration.patternColumns+2
@@ -581,17 +582,15 @@ class PlotPanel(Page):
 			self.ax.plot(rtAxisXx,rtAxisXz,rtAxisXy,linewidth=2.0,color='red')
 			self.ax.plot(rtAxisYx,rtAxisYz,rtAxisYy,linewidth=2.0,color='green')
 			self.ax.plot(rtAxisZx,rtAxisZz,rtAxisZy,linewidth=2.0,color='blue')
-			
 			self.canvas.draw()
-			# self.timer.Start(milliseconds=50) 
+			anim = animation.FuncAnimation(self.fig, self.animate,frames=360, interval=10, blit=False)
 
-	def onAnimationTimer(self,event):
-		if self.angle is 360:
-			self.angle=0
-		self.ax.view_init(30,self.angle)
-		self.canvas.draw()
-		print self.angle
-		self.angle+=1
+
+	def animate(self,i):
+
+		self.ax.view_init(30,i)
+		return self.ax.plot,
+
 	def clearPlot(self):
 		self.ax.cla()
 		self.printCanvas()
@@ -621,12 +620,16 @@ class PlotPanel(Page):
 		self.parent.SetSizer(self.ghbox)
 		self.parent.Layout()
 	def acceptCalibration(self,event):
+		
 		self.calibration.saveCalibrationMatrix()
 		self.calibration.saveDistortionVector()
+		
 		self.parent.parent.loadInit(0)
 
 	def rejectCalibration(self,event):
+		
 		self.calibration.updateProfileToAllControls()
+
 		self.parent.parent.loadInit(0)
 
 	def loadMatrices(self,parent,sizer):
