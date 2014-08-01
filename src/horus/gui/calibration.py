@@ -1000,12 +1000,13 @@ class ExtrinsicCalibrationPanel(Page):
 		self.guideView.SetSizer(vboxGuideView)
 		
 	def createPatternPosPanel(self):
+		self.guideView.SetBackgroundColour((255,255,255))
 		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
 		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 	
 		image = wx.Image(getPathForImage("patternPosition.png"))
 		bitmap = wx.BitmapFromImage(image)
-		self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+		self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition ,style=wx.BITMAP_TYPE_PNG) 
 		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
 			
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
