@@ -132,7 +132,7 @@ class CalibrationWorkbench(Workbench):
 		else:
 			self._extrinsicCalibrationPanel.Show(True)
 			self._extrinsicCalibrationPanel.guideView.Show(True)
-			self._extrinsicCalibrationPanel.getRightButton().Bind(wx.EVT_BUTTON,self._extrinsicCalibrationPanel.start)
+			
 			self._extrinsicCalibrationPanel.setLayout()
 
 	def setLayout(self):
@@ -704,7 +704,7 @@ class ExtrinsicCalibrationPanel(Page):
 		self.calibrationTimer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.Bind(wx.EVT_TIMER, self.onCalibrationTimer, self.calibrationTimer)
-		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.cancelExtrinsic)
 		self.getLeftButton().SetLabel(_("Cancel"))
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.start)
 		self.getRightButton().SetLabel(_("Next"))
@@ -718,18 +718,22 @@ class ExtrinsicCalibrationPanel(Page):
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
-		self.guideView = VideoView(self._upPanel)
+		self.videoView.setImage(wx.Image(getPathForImage("novideo.png")))
+		self.videoView.SetBackgroundColour((0,0,0))
+		self.guideView = wx.Panel(self._upPanel)
 		
 
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Extrinsic calibration (Step 1): rotating plate calibration"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
 		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Place the pattern adjusting it to the grid and let the scanner calibrate itself"))
-		
-		
-		
+
 		self.setLayout()
-	
+
+	def cancelExtrinsic(self,event):
+		self.parent.parent.loadInit(0)
+		self.calibrationTimer.Stop()
+
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
@@ -768,8 +772,8 @@ class ExtrinsicCalibrationPanel(Page):
 		retval=self.calibration.solvePnp(image)
 		if (retval and (len(self.calibration.transVectors)>1)):
 			self.plot()			
-		else:
-			print "Pattern not found"
+		# else:
+		# 	print "Pattern not found"
 
 	def start(self,event):
 		self.guideView.Show(False)
@@ -905,7 +909,9 @@ class ExtrinsicCalibrationPanel(Page):
 	def setLayout(self):
 		
 		self.getLeftButton().SetLabel(_("Cancel"))
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.cancelExtrinsic)
 		self.getRightButton().SetLabel(_("Next"))
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.start)
 		if self.scanner.isConnected:
 			self.showPatternHelp()	
 			self.getRightButton().Enable()
@@ -931,20 +937,88 @@ class ExtrinsicCalibrationPanel(Page):
 		self.parent.Layout()
 
 	def showPatternHelp(self):
-		self.guideView.setImage(wx.Image(getPathForImage("patternPosition.png")))
-		if hasattr(self,'text'):
-			self.text.SetLabel(_("Place the pattern here and press Next"))
-		else:
-			self.text=wx.StaticText(self.guideView,label=_("Place the pattern here and press Next"))	
-	
+
+		if hasattr(self,'socketText'):
+			self.socketText.Show(False)
+			self.socketBitmap.Show(False)
+		if hasattr(self,'keyboardText'):
+			self.keyboardText.Show(True)
+			self.keyboardBitmap.Show(True)
+			# redo sizer to keep things beautiful
+			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+			vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.keyboardText,0,wx.LEFT,30)
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+			self.guideView.SetSizer(vboxGuideView)
+		else: 
+			self.createPatternPosPanel()
+		self.guideView.Layout()
+		self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
+
 	def showSocketHelp(self):
-		self.guideView.setImage(wx.Image(getPathForImage("socket.png")))
-		if hasattr(self,'text'):
-			self.text.SetLabel(_("Please connect the scanner"))
+
+		if hasattr(self,'keyboardText'):
+			self.keyboardText.Show(False)
+			self.keyboardBitmap.Show(False)
+		if hasattr(self,'socketText'):
+			self.socketText.Show(True)
+			self.socketBitmap.Show(True)
+			# redo sizer to keep things awesome
+			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.socketText)
+			hbox.Add(self.socketBitmap)
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+			self.guideView.SetSizer(vboxGuideView)
 		else:
-			self.text=wx.StaticText(self.guideView,label=_("Please connect the scanner"))		
+			self.createSocketPanel()
 		self.parent.parent.Bind(wx.EVT_TOOL , self.onConnectToolClicked,self.parent.parent.connectTool)
+		self.guideView.Layout()
+
+	def createSocketPanel(self):
+		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 	
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+
+		self.socketText=wx.StaticText(self.guideView,label=_("Please connect the scanner"))
+
+		hbox.Add(self.socketText)
+
+		image = wx.Image(getPathForImage('connect.png'))
+		bitmap = wx.BitmapFromImage(image)
+		self.socketBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+
+		hbox.Add(self.socketBitmap)
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		self.guideView.SetSizer(vboxGuideView)
+		
+	def createPatternPosPanel(self):
+		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+	
+		image = wx.Image(getPathForImage("patternPosition.png"))
+		bitmap = wx.BitmapFromImage(image)
+		self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
+			
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+
+		self.keyboardText=wx.StaticText(self.guideView,label=_("Place the pattern in the right side of the plate.\nPress the Next button to start"))
+
+		hbox.Add(self.keyboardText,0,wx.LEFT,30)
+
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		self.guideView.SetSizer(vboxGuideView)
+
+
 	def onConnectToolClicked(self,event):
 		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 		self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
