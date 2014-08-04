@@ -955,11 +955,13 @@ class ExtrinsicCalibrationPanel(Page):
 			self.guideView.SetSizer(vboxGuideView)
 		else: 
 			self.createPatternPosPanel()
+		self.guideView.Bind(wx.EVT_SIZE, self.onResizeBitmap)
 		self.guideView.Layout()
 		self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
 
 	def showSocketHelp(self):
-
+		self.guideView.Unbind(wx.EVT_SIZE)
+		self.guideView.SetBackgroundColour(None)
 		if hasattr(self,'keyboardText'):
 			self.keyboardText.Show(False)
 			self.keyboardBitmap.Show(False)
@@ -1001,24 +1003,59 @@ class ExtrinsicCalibrationPanel(Page):
 		
 	def createPatternPosPanel(self):
 		self.guideView.SetBackgroundColour((255,255,255))
+		
 		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
 		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 	
-		image = wx.Image(getPathForImage("patternPosition.png"))
-		bitmap = wx.BitmapFromImage(image)
-		self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition ,style=wx.BITMAP_TYPE_PNG) 
-		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
+		self.keyboardImage = wx.Image(getPathForImage("patternPosition.png"))
+		self.refreshBitmap()
+		# bitmap = wx.BitmapFromImage(self.keyboardImage)
+		# self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition ,style=wx.BITMAP_TYPE_PNG) 
+		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL,0)
 			
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
 
 		self.keyboardText=wx.StaticText(self.guideView,label=_("Place the pattern in the right side of the plate.\nPress the Next button to start"))
 
-		hbox.Add(self.keyboardText,0,wx.LEFT,30)
-
-		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		# hbox.Add(self.keyboardText,0,wx.LEFT,30)
+		hbox.Add(self.keyboardText,0,wx.ALL,0)
 		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		# vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
 		self.guideView.SetSizer(vboxGuideView)
 
+	def onResizeBitmap(self, size):
+		self.refreshBitmap()
+
+	def refreshBitmap(self):
+		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
+		if w > 0 and h > 0:
+			print w,h
+			if hasattr(self,'keyboardBitmap'):
+				self.keyboardBitmap.Destroy()
+			bitmap = wx.BitmapFromImage(self.keyboardImage.Scale(w, h-50))
+			self.keyboardBitmap =wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition ,style=wx.BITMAP_TYPE_PNG) 
+			self.guideView.Layout()
+
+	def getBestSize(self):
+		(wwidth, wheight) = self.guideView.GetSizeTuple()
+		(width, height) = self.keyboardImage.GetSize()
+
+		if height > 0 and wheight > 0:
+			if float(width)/height > float(wwidth)/wheight:
+				nwidth  = wwidth
+				nheight = float(wwidth*height)/width
+				xoffset = 0
+				yoffset = (wheight-nheight)/2.0
+			else:
+				nwidth  = float(wheight*width) /height
+				nheight = wheight
+				xoffset = (wwidth-nwidth)/2.0
+				yoffset = 0
+
+			return (nwidth, nheight, xoffset, yoffset)
+		else:
+			return (0, 0, 0, 0)
 
 	def onConnectToolClicked(self,event):
 		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
