@@ -88,6 +88,9 @@ class CalibrationWorkbench(Workbench):
 		
 		if hasattr(self,'_extrinsicCalibrationPanel'):
 			self._extrinsicCalibrationPanel.hide()
+			self._extrinsicCalibrationPanel.timer.Stop()
+			self._extrinsicCalibrationPanel.videoView.setImage(wx.Image(getPathForImage("novideo.png")))
+		
 		if hasattr(self,'_patternPanel'):
 			self._patternPanel.loaded=False
 			self._patternPanel.Show(False)
@@ -714,7 +717,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
-		self.stopExtrinsicSamples=40
+		self.stopExtrinsicSamples=20
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
@@ -942,16 +945,19 @@ class ExtrinsicCalibrationPanel(Page):
 			self.socketText.Show(False)
 			self.socketBitmap.Show(False)
 		if hasattr(self,'keyboardText'):
+			print 'screwing'
 			self.keyboardText.Show(True)
 			self.keyboardBitmap.Show(True)
 			# redo sizer to keep things beautiful
 			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
 			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
-			vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
+			self.refreshBitmap()
+			vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL,0)
 			hbox=wx.BoxSizer(wx.HORIZONTAL)
-			hbox.Add(self.keyboardText,0,wx.LEFT,30)
-			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			hbox.Add(self.keyboardText,0,wx.ALL,0)
 			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
 			self.guideView.SetSizer(vboxGuideView)
 		else: 
 			self.createPatternPosPanel()
@@ -1030,7 +1036,6 @@ class ExtrinsicCalibrationPanel(Page):
 	def refreshBitmap(self):
 		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
 		if w > 0 and h > 0:
-			print w,h
 			if hasattr(self,'keyboardBitmap'):
 				self.keyboardBitmap.Destroy()
 			bitmap = wx.BitmapFromImage(self.keyboardImage.Scale(w, h-50))
