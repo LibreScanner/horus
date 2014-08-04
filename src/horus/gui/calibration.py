@@ -48,6 +48,7 @@ import cv2
 
 import matplotlib.cm as cm  
 import matplotlib.colors as colors
+from matplotlib import animation
 
 class CalibrationWorkbench(Workbench):
 
@@ -87,13 +88,16 @@ class CalibrationWorkbench(Workbench):
 		
 		if hasattr(self,'_extrinsicCalibrationPanel'):
 			self._extrinsicCalibrationPanel.hide()
+			self._extrinsicCalibrationPanel.timer.Stop()
+			self._extrinsicCalibrationPanel.videoView.setImage(wx.Image(getPathForImage("novideo.png")))
+		
 		if hasattr(self,'_patternPanel'):
 			self._patternPanel.loaded=False
 			self._patternPanel.Show(False)
 			self._patternPanel.setLayout()
 			if self._patternPanel.timer.IsRunning:
 				self._patternPanel.timer.Stop()
-				self._patternPanel.videoView.setImage(wx.Image(getPathForImage("bq.png")))
+				self._patternPanel.videoView.setImage(wx.Image(getPathForImage("novideo.png")))
 		if hasattr(self,'_plotPanel'):
 			self._plotPanel.hide()
 		self._intrinsicsPanel.Show(True)
@@ -131,7 +135,7 @@ class CalibrationWorkbench(Workbench):
 		else:
 			self._extrinsicCalibrationPanel.Show(True)
 			self._extrinsicCalibrationPanel.guideView.Show(True)
-			self._extrinsicCalibrationPanel.getRightButton().Bind(wx.EVT_BUTTON,self._extrinsicCalibrationPanel.start)
+			
 			self._extrinsicCalibrationPanel.setLayout()
 
 	def setLayout(self):
@@ -181,7 +185,9 @@ class PatternPanel(Page):
 	def load(self):
 
 		self.videoView = VideoView(self._upPanel)
-		self.guideView = VideoView(self._upPanel)
+		self.videoView.setImage(wx.Image(getPathForImage("novideo.png")))
+		self.videoView.SetBackgroundColour((0,0,0))
+		self.guideView = wx.Panel(self._upPanel)
 		
 
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.OnKeyPress)
@@ -222,7 +228,6 @@ class PatternPanel(Page):
 
 	def OnKeyPress(self,event):
 		"""Key bindings: if it is not started, spacebar initialize the scanner"""
-		
 			
 		if event.GetKeyCode()==32:
 			if not self.loaded:
@@ -230,7 +235,7 @@ class PatternPanel(Page):
 					self.scanner.connect()
 					self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 					self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
-				self.timer.Start(milliseconds=150)
+					self.showSpaceHelp()
 				self.loaded=True
 				self.loadGrid()
 			else:
@@ -248,7 +253,9 @@ class PatternPanel(Page):
 			self.panelGrid=[]
 			for panel in range(self.rows*self.columns):
 				self.panelGrid.append(VideoView(self.gridPanel))
-				self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+				# self.panelGrid[panel].SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255))) 
+				self.panelGrid[panel].SetBackgroundColour((221,221,221))
+				self.panelGrid[panel].setImage(wx.Image(getPathForImage("void.png")))
 				self.panelGrid[panel].index=panel
 				gs.Add(self.panelGrid[panel],0,wx.EXPAND)
 				self.panelGrid[panel].Bind(wx.EVT_LEFT_DOWN,self.onClick)
@@ -267,12 +274,12 @@ class PatternPanel(Page):
 		if self.currentGrid<(self.columns*self.rows):
 			if retval:
 				self.panelGrid[self.currentGrid].setFrame(image)
-				self.panelGrid[self.currentGrid].SetBackgroundColour((0,255,0))
+				self.panelGrid[self.currentGrid].SetBackgroundColour((45,178,0))
 				self.currentGrid+=1
 
 			else:
 				self.panelGrid[self.currentGrid].setFrame(image)
-				self.panelGrid[self.currentGrid].SetBackgroundColour((255,0,0))
+				self.panelGrid[self.currentGrid].SetBackgroundColour((217,0,0))
 		else:
 			self.currentGrid=0
 			self.panelGrid[self.currentGrid].setFrame(image)
@@ -283,8 +290,8 @@ class PatternPanel(Page):
 	def clear(self):
 		if hasattr(self,'panelGrid'):
 			for panel in self.panelGrid:
-				panel.setImage(wx.Image(getPathForImage("bq.png")))
-				panel.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+				panel.setImage(wx.Image(getPathForImage("void.png")))
+				panel.SetBackgroundColour((221,221,221))	
 			
 		self.currentGrid=0
 		self.calibration.clearData()
@@ -328,30 +335,98 @@ class PatternPanel(Page):
 		self.parent.Layout()
 
 	def showSpaceHelp(self):
-		self.guideView.setImage(wx.Image(getPathForImage("keyboard.png")))
-		if hasattr(self,'text'):
-			self.text.SetLabel(_("Press the space bar to perform captures"))
-		else:
-			self.text=wx.StaticText(self.guideView,label=_("Press the space bar to perform captures. Press space to start taking captures."))	
-	
+
+		if hasattr(self,'socketText'):
+			self.socketText.Show(False)
+			self.socketBitmap.Show(False)
+		if hasattr(self,'keyboardText'):
+			self.keyboardText.Show(True)
+			self.keyboardBitmap.Show(True)
+			# redo sizer to keep things beautiful
+			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+			vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.keyboardText,0,wx.LEFT,30)
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+			self.guideView.SetSizer(vboxGuideView)
+		else: 
+			self.createKeyboardPanel()
+		self.guideView.Layout()
+		self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
+
 	def showSocketHelp(self):
-		self.guideView.setImage(wx.Image(getPathForImage("socket.png")))
-		if hasattr(self,'text'):
-			self.text.SetLabel(_("Please connect the scanner"))
+
+		if hasattr(self,'keyboardText'):
+			self.keyboardText.Show(False)
+			self.keyboardBitmap.Show(False)
+		if hasattr(self,'socketText'):
+			self.socketText.Show(True)
+			self.socketBitmap.Show(True)
+			# redo sizer to keep things awesome
+			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.socketText)
+			hbox.Add(self.socketBitmap)
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+			self.guideView.SetSizer(vboxGuideView)
 		else:
-			self.text=wx.StaticText(self.guideView,label=_("Please connect the scanner"))		
+			self.createSocketPanel()
 		self.parent.parent.Bind(wx.EVT_TOOL , self.onConnectToolClicked,self.parent.parent.connectTool)
+		self.guideView.Layout()
+		
+
+	def createSocketPanel(self):
+		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 	
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+
+		self.socketText=wx.StaticText(self.guideView,label=_("Please connect the scanner"))
+
+		hbox.Add(self.socketText)
+
+		image = wx.Image(getPathForImage('connect.png'))
+		bitmap = wx.BitmapFromImage(image)
+		self.socketBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+
+		hbox.Add(self.socketBitmap)
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		self.guideView.SetSizer(vboxGuideView)
+		
+	def createKeyboardPanel(self):
+		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+	
+		image = wx.Image(getPathForImage("keyboard.png"))
+		bitmap = wx.BitmapFromImage(image)
+		self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
+			
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+
+		self.keyboardText=wx.StaticText(self.guideView,label=_("Use the space bar to perform captures.\nPress the space bar to start"))
+
+		hbox.Add(self.keyboardText,0,wx.LEFT,30)
+
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		self.guideView.SetSizer(vboxGuideView)
+
 	def onConnectToolClicked(self,event):
 		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 		self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
 		self.scanner.connect()
 		self.showSpaceHelp()
+		
+		
 	def onDisconnectToolClicked(self,event):
 		
-		self.scanner.disconnect() # Not working camera disconnect :S
-
-		# TODO: Check disconnection
+		self.scanner.disconnect() 
 		self.parent.parent.enableLabelTool(self.parent.parent.connectTool, True)
 		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,False)
 		self.parent.parent.loadInit(0)
@@ -368,8 +443,7 @@ class PlotPanel(Page):
 		self.scaleFactor=3*80
 		
 		self.angle=0
-		self.timer = wx.Timer(self)
-		self.Bind(wx.EVT_TIMER, self.onAnimationTimer, self.timer)
+
 
 		self.load()
 
@@ -377,10 +451,11 @@ class PlotPanel(Page):
 		
 
 		self.fig = Figure(tight_layout=True)
+		# self.fig=plt.figure()
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), 1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
 
-		self.ax = self.fig.gca(projection='3d',axisbg=(random.random(),random.random(),random.random()))
+		self.ax = self.fig.gca(projection='3d',axisbg=(0.7490196,0.7490196,0.7490196,1))
 		self.getPanel().Bind(wx.EVT_SIZE, self.on_size)
 		# Parameters of the pattern
 		self.columns=self.calibration.patternColumns+2
@@ -438,17 +513,8 @@ class PlotPanel(Page):
 
 	def on_size(self,event):
 		factor=1
-		# pix = self.getPanel().GetClientSize()
-		# self.fig.set_size_inches(pix[0]/self.fig.get_dpi(),pix[1]/self.fig.get_dpi())
 		x,y = self.getPanel().GetClientSize()  
 		self.canvas.SetClientSize((y*factor-20, (x/2)-40))
-		# self.ax.set_xlim(-150, 150)
-		# self.ax.set_ylim(0, 300)
-		# self.ax.set_zlim(-150/factor, 150/factor)
-		# self.ax.invert_xaxis()
-		# self.ax.invert_yaxis()
-		# self.ax.invert_zaxis()
-		# self.canvas.draw()
 		self.reloadMatrix()
 		self._upPanel.Layout()
 		self.Layout()
@@ -519,17 +585,15 @@ class PlotPanel(Page):
 			self.ax.plot(rtAxisXx,rtAxisXz,rtAxisXy,linewidth=2.0,color='red')
 			self.ax.plot(rtAxisYx,rtAxisYz,rtAxisYy,linewidth=2.0,color='green')
 			self.ax.plot(rtAxisZx,rtAxisZz,rtAxisZy,linewidth=2.0,color='blue')
-			
 			self.canvas.draw()
-			# self.timer.Start(milliseconds=50) 
+			anim = animation.FuncAnimation(self.fig, self.animate,frames=360, interval=10, blit=False)
 
-	def onAnimationTimer(self,event):
-		if self.angle is 360:
-			self.angle=0
-		self.ax.view_init(30,self.angle)
-		self.canvas.draw()
-		print self.angle
-		self.angle+=1
+
+	def animate(self,i):
+
+		self.ax.view_init(30,i)
+		return self.ax.plot,
+
 	def clearPlot(self):
 		self.ax.cla()
 		self.printCanvas()
@@ -559,12 +623,16 @@ class PlotPanel(Page):
 		self.parent.SetSizer(self.ghbox)
 		self.parent.Layout()
 	def acceptCalibration(self,event):
+		
 		self.calibration.saveCalibrationMatrix()
 		self.calibration.saveDistortionVector()
+		
 		self.parent.parent.loadInit(0)
 
 	def rejectCalibration(self,event):
+		
 		self.calibration.updateProfileToAllControls()
+
 		self.parent.parent.loadInit(0)
 
 	def loadMatrices(self,parent,sizer):
@@ -639,7 +707,7 @@ class ExtrinsicCalibrationPanel(Page):
 		self.calibrationTimer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.Bind(wx.EVT_TIMER, self.onCalibrationTimer, self.calibrationTimer)
-		self.getLeftButton().Bind(wx.EVT_BUTTON,self.parent.parent.loadInit)
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.cancelExtrinsic)
 		self.getLeftButton().SetLabel(_("Cancel"))
 		self.getRightButton().Bind(wx.EVT_BUTTON,self.start)
 		self.getRightButton().SetLabel(_("Next"))
@@ -649,22 +717,26 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
-		self.stopExtrinsicSamples=40
+		self.stopExtrinsicSamples=20
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
-		self.guideView = VideoView(self._upPanel)
+		self.videoView.setImage(wx.Image(getPathForImage("novideo.png")))
+		self.videoView.SetBackgroundColour((0,0,0))
+		self.guideView = wx.Panel(self._upPanel)
 		
 
 		self._title=wx.StaticText(self.getTitlePanel(),label=_("Extrinsic calibration (Step 1): rotating plate calibration"))
 		font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.FONTWEIGHT_BOLD,True)
 		self._title.SetFont(font)
 		self._subTitle=wx.StaticText(self.getTitlePanel(),label=_("Place the pattern adjusting it to the grid and let the scanner calibrate itself"))
-		
-		
-		
+
 		self.setLayout()
-	
+
+	def cancelExtrinsic(self,event):
+		self.parent.parent.loadInit(0)
+		self.calibrationTimer.Stop()
+
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
@@ -703,8 +775,8 @@ class ExtrinsicCalibrationPanel(Page):
 		retval=self.calibration.solvePnp(image)
 		if (retval and (len(self.calibration.transVectors)>1)):
 			self.plot()			
-		else:
-			print "Pattern not found"
+		# else:
+		# 	print "Pattern not found"
 
 	def start(self,event):
 		self.guideView.Show(False)
@@ -840,7 +912,9 @@ class ExtrinsicCalibrationPanel(Page):
 	def setLayout(self):
 		
 		self.getLeftButton().SetLabel(_("Cancel"))
+		self.getLeftButton().Bind(wx.EVT_BUTTON,self.cancelExtrinsic)
 		self.getRightButton().SetLabel(_("Next"))
+		self.getRightButton().Bind(wx.EVT_BUTTON,self.start)
 		if self.scanner.isConnected:
 			self.showPatternHelp()	
 			self.getRightButton().Enable()
@@ -866,20 +940,128 @@ class ExtrinsicCalibrationPanel(Page):
 		self.parent.Layout()
 
 	def showPatternHelp(self):
-		self.guideView.setImage(wx.Image(getPathForImage("patternPosition.png")))
-		if hasattr(self,'text'):
-			self.text.SetLabel(_("Place the pattern here and press Next"))
-		else:
-			self.text=wx.StaticText(self.guideView,label=_("Place the pattern here and press Next"))	
-	
+
+		if hasattr(self,'socketText'):
+			self.socketText.Show(False)
+			self.socketBitmap.Show(False)
+		if hasattr(self,'keyboardText'):
+			print 'screwing'
+			self.keyboardText.Show(True)
+			self.keyboardBitmap.Show(True)
+			# redo sizer to keep things beautiful
+			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+			self.refreshBitmap()
+			vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL,0)
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.keyboardText,0,wx.ALL,0)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			self.guideView.SetSizer(vboxGuideView)
+		else: 
+			self.createPatternPosPanel()
+		self.guideView.Bind(wx.EVT_SIZE, self.onResizeBitmap)
+		self.guideView.Layout()
+		self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
+
 	def showSocketHelp(self):
-		self.guideView.setImage(wx.Image(getPathForImage("socket.png")))
-		if hasattr(self,'text'):
-			self.text.SetLabel(_("Please connect the scanner"))
+		self.guideView.Unbind(wx.EVT_SIZE)
+		self.guideView.SetBackgroundColour(None)
+		if hasattr(self,'keyboardText'):
+			self.keyboardText.Show(False)
+			self.keyboardBitmap.Show(False)
+		if hasattr(self,'socketText'):
+			self.socketText.Show(True)
+			self.socketBitmap.Show(True)
+			# redo sizer to keep things awesome
+			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.socketText)
+			hbox.Add(self.socketBitmap)
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+			self.guideView.SetSizer(vboxGuideView)
 		else:
-			self.text=wx.StaticText(self.guideView,label=_("Please connect the scanner"))		
+			self.createSocketPanel()
 		self.parent.parent.Bind(wx.EVT_TOOL , self.onConnectToolClicked,self.parent.parent.connectTool)
+		self.guideView.Layout()
+
+	def createSocketPanel(self):
+		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 	
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+
+		self.socketText=wx.StaticText(self.guideView,label=_("Please connect the scanner"))
+
+		hbox.Add(self.socketText)
+
+		image = wx.Image(getPathForImage('connect.png'))
+		bitmap = wx.BitmapFromImage(image)
+		self.socketBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+
+		hbox.Add(self.socketBitmap)
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		self.guideView.SetSizer(vboxGuideView)
+		
+	def createPatternPosPanel(self):
+		self.guideView.SetBackgroundColour((255,255,255))
+		
+		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+	
+		self.keyboardImage = wx.Image(getPathForImage("patternPosition.png"))
+		self.refreshBitmap()
+		# bitmap = wx.BitmapFromImage(self.keyboardImage)
+		# self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition ,style=wx.BITMAP_TYPE_PNG) 
+		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL,0)
+			
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+
+		self.keyboardText=wx.StaticText(self.guideView,label=_("Place the pattern in the right side of the plate.\nPress the Next button to start"))
+
+		# hbox.Add(self.keyboardText,0,wx.LEFT,30)
+		hbox.Add(self.keyboardText,0,wx.ALL,0)
+		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+		# vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		self.guideView.SetSizer(vboxGuideView)
+
+	def onResizeBitmap(self, size):
+		self.refreshBitmap()
+
+	def refreshBitmap(self):
+		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
+		if w > 0 and h > 0:
+			if hasattr(self,'keyboardBitmap'):
+				self.keyboardBitmap.Destroy()
+			bitmap = wx.BitmapFromImage(self.keyboardImage.Scale(w, h-50))
+			self.keyboardBitmap =wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition ,style=wx.BITMAP_TYPE_PNG) 
+			self.guideView.Layout()
+
+	def getBestSize(self):
+		(wwidth, wheight) = self.guideView.GetSizeTuple()
+		(width, height) = self.keyboardImage.GetSize()
+
+		if height > 0 and wheight > 0:
+			if float(width)/height > float(wwidth)/wheight:
+				nwidth  = wwidth
+				nheight = float(wwidth*height)/width
+				xoffset = 0
+				yoffset = (wheight-nheight)/2.0
+			else:
+				nwidth  = float(wheight*width) /height
+				nheight = wheight
+				xoffset = (wwidth-nwidth)/2.0
+				yoffset = 0
+
+			return (nwidth, nheight, xoffset, yoffset)
+		else:
+			return (0, 0, 0, 0)
+
 	def onConnectToolClicked(self,event):
 		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 		self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
@@ -928,16 +1110,16 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		vbox=wx.BoxSizer(wx.VERTICAL)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._intrinsicTitle,0,wx.ALL,20)
+		hbox.Add(self._intrinsicTitle,0,wx.ALL,0)
 		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 
 		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
-		image1=self.scale_bitmap(image1,55,55)
+
 		self._editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
 		self._editButton.Bind(wx.EVT_BUTTON,self.edit)
 
 		image2=wx.Bitmap(resources.getPathForImage("restore.png"))
-		image2=self.scale_bitmap(image2,55,55)
+
 		self._restoreButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
 		self._restoreButton.Bind(wx.EVT_BUTTON,self.restore)
 
@@ -949,7 +1131,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
 
-		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.LEFT|wx.RIGHT,20)
 
 		self.loadMatrices(self,vbox)
 
@@ -958,14 +1140,14 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self._startButton.Bind(wx.EVT_BUTTON,self.start)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._startButton,0,wx.ALL,20)
+		hbox.Add(self._startButton,0,wx.ALL,0)
 		
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
 		
 
-		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
+		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.BOTTOM,20)
 		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
-		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.LEFT|wx.RIGHT,20)
 
 		self.SetSizer(vbox)
 		self.Bind(wx.EVT_SIZE, self.on_size)
@@ -999,7 +1181,7 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		boxSizer.Add((-1,50),0,wx.ALL,5)
 
-		sizer.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
+		sizer.Add(boxSizer,0,wx.EXPAND|wx.ALL,20)
 		
 		#distortion coefficients
 		self._distortionCoeffStaticText = wx.StaticBox(parent, label=_("Distortion coefficients"))
@@ -1023,12 +1205,12 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			else:
 				hboxRow2.Add( self._visualCtrlDistortionVector[i],1,wx.ALL|wx.EXPAND,5)	
 				hboxRow2.Add( self._visualDistortionVector[i],1,wx.ALL|wx.EXPAND,5)
-		hboxRow2.Add( (-1,-1),1,wx.ALL|wx.EXPAND,5)
+		hboxRow2.Add( (-1,-1),1,wx.ALL|wx.EXPAND,0)
 		vboxAux.Add(hboxRow1,0,wx.EXPAND|wx.TOP,15)
 		vboxAux.Add(hboxRow2,0,wx.EXPAND|wx.TOP,15)
-		boxSizer.Add(vboxAux,-1,wx.EXPAND,0)
+		boxSizer.Add(vboxAux,-1,wx.EXPAND|wx.LEFT|wx.RIGHT,15)
 
-		sizer.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,30)
+		sizer.Add(boxSizer,0,wx.ALIGN_LEFT|wx.ALL|wx.EXPAND,20)
 
 
 	def start(self,event):
@@ -1090,17 +1272,21 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 				
 				if self.checkFloat(self._visualCtrlMatrix[i][j].GetValue()):
 					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.WHITE)
+					self._visualCtrlMatrix[i][j].SetForegroundColour(wx.BLACK)
 				else:
 					isCorrect=False
-					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.RED)
+					self._visualCtrlMatrix[i][j].SetBackgroundColour('#FFBFBF')
+					self._visualCtrlMatrix[i][j].SetForegroundColour('#D90000')
 				
 		for i in range(len(self._vDistortionVector)):
 			
 			if self.checkFloat(self._visualCtrlDistortionVector[i].GetValue()):
 				self._visualCtrlDistortionVector[i].SetBackgroundColour(wx.WHITE)
+				self._visualCtrlDistortionVector[i].SetForegroundColour(wx.BLACK)
 			else:
 				isCorrect=False
-				self._visualCtrlDistortionVector[i].SetBackgroundColour(wx.RED)
+				self._visualCtrlDistortionVector[i].SetBackgroundColour('#FFBFBF')
+				self._visualCtrlDistortionVector[i].SetForegroundColour('#D90000')
 		return isCorrect
 	def checkFloat(self,number):
 		try:
@@ -1111,11 +1297,8 @@ class IntrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 	def save(self,event):
 		print "save"
-	def scale_bitmap(self,bitmap, width, height):
-		image = wx.ImageFromBitmap(bitmap)
-		image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
-		result = wx.BitmapFromImage(image)
-		return result
+
+
 	def reload(self):
 		x,_= self.GetClientSize()
 		optimalTrimming=x/(self.scaleFactor)
@@ -1166,16 +1349,16 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		vbox=wx.BoxSizer(wx.VERTICAL)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._extrinsicTitle,0,wx.ALL,20)
+		hbox.Add(self._extrinsicTitle,0,wx.ALL,0)
 		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 
 		image1=wx.Bitmap(resources.getPathForImage("edit.png"))
-		image1=self.scale_bitmap(image1,55,55)
+
 		self._editButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
 		self._editButton.Bind(wx.EVT_BUTTON,self.edit)
 
 		image2=wx.Bitmap(resources.getPathForImage("restore.png"))
-		image2=self.scale_bitmap(image2,55,55)
+	
 		self._restoreButton = wx.BitmapButton(self, id=-1, bitmap=image2, size = (image2.GetWidth()+5, image2.GetHeight()+5))
 		self._restoreButton.Bind(wx.EVT_BUTTON,self.restore)
 
@@ -1183,11 +1366,11 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		hbox.Add(self._restoreButton,0,wx.ALL,0)
 
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
-		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
+		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,00)
 
 		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
 
-		vbox.Add(vboxAux,0,wx.EXPAND|wx.ALIGN_TOP,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.LEFT|wx.RIGHT,20)
 
 		#rotation matrix
 		font = wx.Font(12, wx.SCRIPT, wx.NORMAL, wx.BOLD)
@@ -1226,20 +1409,20 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		boxSizer.Add((-1,50),0,wx.ALL,5)
 
-		vbox.Add(boxSizer,0,wx.EXPAND|wx.ALL,30)
+		vbox.Add(boxSizer,0,wx.EXPAND|wx.ALL,20)
 
 		#buttons
 		self._startButton = wx.Button(self,label=_("Start"),size=(100,-1))
 		self._startButton.Bind(wx.EVT_BUTTON,self.start)
 
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self._startButton,0,wx.ALL,20)
+		hbox.Add(self._startButton,0,wx.ALL,0)
 		
 		vboxAux=wx.BoxSizer(wx.VERTICAL)
 		
-		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.ALL,0)
+		vboxAux.Add(wx.StaticLine(self,wx.ID_ANY,(-1,-1),(-1,2)),1,wx.GROW | wx.BOTTOM,20)
 		vboxAux.Add(hbox,0,wx.EXPAND | wx.ALL,0)
-		vbox.Add(vboxAux,0,wx.EXPAND,0)
+		vbox.Add(vboxAux,0,wx.EXPAND|wx.LEFT|wx.RIGHT,20)
 
 		self.SetSizer(vbox)
 
@@ -1299,12 +1482,6 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 	def save(self,event):
 		print "save"
 
-	def scale_bitmap(self,bitmap, width, height):
-		image = wx.ImageFromBitmap(bitmap)
-		image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
-		result = wx.BitmapFromImage(image)
-		return result
-
 	def reload(self):
 		x,_= self.GetClientSize()
 		optimalTrimming=x/(self.scaleFactor)
@@ -1332,9 +1509,11 @@ class ExtrinsicsPanel(wx.lib.scrolledpanel.ScrolledPanel):
 				
 				if self.checkFloat(self._visualCtrlMatrix[i][j].GetValue()):
 					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.WHITE)
+					self._visualCtrlMatrix[i][j].SetForegroundColour(wx.BLACK)
 				else:
 					isCorrect=False
-					self._visualCtrlMatrix[i][j].SetBackgroundColour(wx.RED)
+					self._visualCtrlMatrix[i][j].SetBackgroundColour('#FFBFBF')
+					self._visualCtrlMatrix[i][j].SetForegroundColour('#D90000')
 				
 		return isCorrect
 
