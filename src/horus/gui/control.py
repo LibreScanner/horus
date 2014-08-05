@@ -62,12 +62,12 @@ class ControlWorkbench(Workbench):
 		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.snapshotTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
-		self.motorCCWTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Motor CCW"), wx.Bitmap(getPathForImage("motor-ccw.png")), shortHelp=_("Motor CCW"))
-		self.motorCWTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Motor CW"), wx.Bitmap(getPathForImage("motor-cw.png")), shortHelp=_("Motor CW"))
-		self.leftLaserOnTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Left Laser On"), wx.Bitmap(getPathForImage("laser-left-on.png")), shortHelp=_("Left Laser On"))
-		self.leftLaserOffTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Left Laser Off"), wx.Bitmap(getPathForImage("laser-left-off.png")), shortHelp=_("Left Laser Off"))
-		self.rightLaserOnTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Right Laser On"), wx.Bitmap(getPathForImage("laser-right-on.png")), shortHelp=_("Right Laser On"))
-		self.rightLaserOffTool = self.toolbar.AddLabelTool(wx.NewId(), _("Right Laser Off"), wx.Bitmap(getPathForImage("laser-right-off.png")), shortHelp=_("Right Laser Off"))
+		#self.motorCCWTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Motor CCW"), wx.Bitmap(getPathForImage("motor-ccw.png")), shortHelp=_("Motor CCW"))
+		#self.motorCWTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Motor CW"), wx.Bitmap(getPathForImage("motor-cw.png")), shortHelp=_("Motor CW"))
+		#self.leftLaserOnTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Left Laser On"), wx.Bitmap(getPathForImage("laser-left-on.png")), shortHelp=_("Left Laser On"))
+		##self.leftLaserOffTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Left Laser Off"), wx.Bitmap(getPathForImage("laser-left-off.png")), shortHelp=_("Left Laser Off"))
+		#self.rightLaserOnTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Right Laser On"), wx.Bitmap(getPathForImage("laser-right-on.png")), shortHelp=_("Right Laser On"))
+		#self.rightLaserOffTool = self.toolbar.AddLabelTool(wx.NewId(), _("Right Laser Off"), wx.Bitmap(getPathForImage("laser-right-off.png")), shortHelp=_("Right Laser Off"))
 		self.viewTool          = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("Camera / Device"))
 		self.toolbar.Realize()
 
@@ -77,12 +77,12 @@ class ControlWorkbench(Workbench):
 		self.enableLabelTool(self.playTool         , False)
 		self.enableLabelTool(self.stopTool         , False)
 		self.enableLabelTool(self.snapshotTool     , False)
-		self.enableLabelTool(self.motorCCWTool     , False)
-		self.enableLabelTool(self.motorCWTool      , False)
-		self.enableLabelTool(self.leftLaserOnTool  , False)
-		self.enableLabelTool(self.leftLaserOffTool , False)
-		self.enableLabelTool(self.rightLaserOnTool , False)
-		self.enableLabelTool(self.rightLaserOffTool, False)
+		#self.enableLabelTool(self.motorCCWTool     , False)
+		#self.enableLabelTool(self.motorCWTool      , False)
+		#self.enableLabelTool(self.leftLaserOnTool  , False)
+		#self.enableLabelTool(self.leftLaserOffTool , False)
+		#self.enableLabelTool(self.rightLaserOnTool , False)
+		#self.enableLabelTool(self.rightLaserOffTool, False)
 		self.enableLabelTool(self.viewTool         , True)
 
 		#-- Bind Toolbar Items
@@ -91,12 +91,12 @@ class ControlWorkbench(Workbench):
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked         , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked         , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked     , self.snapshotTool)
-		self.Bind(wx.EVT_TOOL, self.onMotorCCWToolClicked     , self.motorCCWTool)
-		self.Bind(wx.EVT_TOOL, self.onMotorCWToolClicked      , self.motorCWTool)
-		self.Bind(wx.EVT_TOOL, self.onLeftLaserOnToolClicked  , self.leftLaserOnTool)
-		self.Bind(wx.EVT_TOOL, self.onLeftLaserOffToolClicked , self.leftLaserOffTool)
-		self.Bind(wx.EVT_TOOL, self.onRightLaserOnToolClicked , self.rightLaserOnTool)
-		self.Bind(wx.EVT_TOOL, self.onRightLaserOffToolClicked, self.rightLaserOffTool)
+		#self.Bind(wx.EVT_TOOL, self.onMotorCCWToolClicked     , self.motorCCWTool)
+		#self.Bind(wx.EVT_TOOL, self.onMotorCWToolClicked      , self.motorCWTool)
+		#self.Bind(wx.EVT_TOOL, self.onLeftLaserOnToolClicked  , self.leftLaserOnTool)
+		#self.Bind(wx.EVT_TOOL, self.onLeftLaserOffToolClicked , self.leftLaserOffTool)
+		#self.Bind(wx.EVT_TOOL, self.onRightLaserOnToolClicked , self.rightLaserOnTool)
+		#self.Bind(wx.EVT_TOOL, self.onRightLaserOffToolClicked, self.rightLaserOffTool)
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked         , self.viewTool)
 
 		#-- Left Panel
@@ -106,6 +106,7 @@ class ControlWorkbench(Workbench):
 		#-- Right Views
 		self.cameraView = VideoView(self._rightPanel)
 		self.deviceView = VideoView(self._rightPanel)
+		#self.deviceView.SetBackgroundColour(wx.BLACK)
 		self.cameraView.SetBackgroundColour(wx.BLACK)
 
 		self.addToLeft(self.cameraPanel)
@@ -161,7 +162,7 @@ class ControlWorkbench(Workbench):
 		if frame is not None:
 			self.cameraView.setFrame(frame)
 
-	def onMotorCCWToolClicked(self, event):
+	"""def onMotorCCWToolClicked(self, event):
 		#self.scanner.device.enable()
 		self.scanner.device.setMotorCCW()
 		#self.scanner.device.disable()
@@ -197,7 +198,7 @@ class ControlWorkbench(Workbench):
 		self.enableLabelTool(self.rightLaserOffTool, False)
 		self.scanner.device.setRightLaserOff()
 		self.laserRight = False
-		self.updateScannerImage()
+		self.updateScannerImage()"""
 
 	def enableLabelTool(self, item, enable):
 		self.toolbar.EnableTool(item.GetId(), enable)
@@ -239,24 +240,24 @@ class ControlWorkbench(Workbench):
 			self.enableLabelTool(self.playTool         , True)
 			self.enableLabelTool(self.stopTool         , False)
 			self.enableLabelTool(self.snapshotTool     , True)
-			self.enableLabelTool(self.motorCCWTool     , True)
-			self.enableLabelTool(self.motorCWTool      , True)
-			self.enableLabelTool(self.leftLaserOnTool  , True)
-			self.enableLabelTool(self.leftLaserOffTool , False)
-			self.enableLabelTool(self.rightLaserOnTool , True)
-			self.enableLabelTool(self.rightLaserOffTool, False)
+			#self.enableLabelTool(self.motorCCWTool     , True)
+			#self.enableLabelTool(self.motorCWTool      , True)
+			#self.enableLabelTool(self.leftLaserOnTool  , True)
+			#self.enableLabelTool(self.leftLaserOffTool , False)
+			#self.enableLabelTool(self.rightLaserOnTool , True)
+			#self.enableLabelTool(self.rightLaserOffTool, False)
 		else:
 			self.enableLabelTool(self.connectTool      , True)
 			self.enableLabelTool(self.disconnectTool   , False)
 			self.enableLabelTool(self.playTool         , False)
 			self.enableLabelTool(self.stopTool         , False)
 			self.enableLabelTool(self.snapshotTool     , False)
-			self.enableLabelTool(self.motorCCWTool     , False)
-			self.enableLabelTool(self.motorCWTool      , False)
-			self.enableLabelTool(self.leftLaserOnTool  , False)
-			self.enableLabelTool(self.leftLaserOffTool , False)
-			self.enableLabelTool(self.rightLaserOnTool , False)
-			self.enableLabelTool(self.rightLaserOffTool, False)
+			#self.enableLabelTool(self.motorCCWTool     , False)
+			#self.enableLabelTool(self.motorCWTool      , False)
+			#self.enableLabelTool(self.leftLaserOnTool  , False)
+			#self.enableLabelTool(self.leftLaserOffTool , False)
+			#self.enableLabelTool(self.rightLaserOnTool , False)
+			#self.enableLabelTool(self.rightLaserOffTool, False)
 
 	def updateProfileToAllControls(self):
 		self.cameraPanel.updateProfileToAllControls()

@@ -44,8 +44,8 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.SetupScrolling()
         
         #-- Graphic elements
-        cameraParamsStaticText = wx.StaticText(self, wx.ID_ANY, _("Camera Parameters"), style=wx.ALIGN_CENTRE)
-        cameraParamsStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        cameraControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Camera Control"), style=wx.ALIGN_CENTRE)
+        cameraControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         self.brightnessText = wx.StaticText(self,label=_("Brightness"), size=(70, -1), style=wx.ALIGN_CENTRE)
         self.brightnessSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
@@ -78,7 +78,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         
-        vbox.Add(cameraParamsStaticText, 0, wx.ALL, 10)
+        vbox.Add(cameraControlStaticText, 0, wx.ALL, 10)
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)

@@ -185,8 +185,8 @@ def _(n):
 
 setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('camera_id', 0, int, 'basic', _('Camera Id'))
-setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1125)
-setting('step_delay', 800, int, 'basic', _('Step Delay')).setRange(100, 10000)
+setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.1)
+setting('step_ocr', 2000, int, 'basic', _('Step OCR')).setRange(1, 99999)
 
 setting('brightness_value', 128, int, 'advanced', _('Brightness Value')).setRange(0, 255)
 setting('contrast_value', 46, int, 'advanced', _('Brightness Value')).setRange(0, 255)

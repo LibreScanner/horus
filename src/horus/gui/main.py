@@ -329,7 +329,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.scanner.initialize(profile.getProfileSettingInteger('camera_id'),
                                 profile.getProfileSetting('serial_name'),
                                 profile.getProfileSettingFloat('step_degrees'),
-                                profile.getProfileSettingInteger('step_delay'))
+                                profile.getProfileSettingInteger('step_ocr'))
 
         #-- TODO: add camera initialize
 
