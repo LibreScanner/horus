@@ -31,6 +31,7 @@ import wx
 import wx.lib.scrolledpanel
 
 from horus.util import profile
+from horus.util import resources
 
 class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
@@ -88,13 +89,20 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.restoreButton = wx.Button(self,label=_("Restore Default"),size=(100,-1))
         self.restoreButton.Bind(wx.EVT_BUTTON,self.restoreDefault)
 
-        self.undoButton = wx.Button(self,label=_("Undo"),size=(100,-1))
+        image1=wx.Bitmap(resources.getPathForImage("undo.png"))
+
+        self.undoButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
         self.undoButton.Bind(wx.EVT_BUTTON,self.undo)
         self.undoButton.Disable()
+
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         
-        vbox.Add(cameraParamsStaticText, 0, wx.ALL, 10)
+        hbox=wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(cameraParamsStaticText, 0, wx.ALL, 10)
+        hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+        hbox.Add(self.undoButton, 0, wx.ALL, 0)
+        vbox.Add(hbox,0,wx.EXPAND|wx.LEFT|wx.RIGHT,0)
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -129,7 +137,6 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.restoreButton, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.undoButton, 0, wx.ALL^wx.BOTTOM, 18)
         vbox.Add(hbox)
 
         self.updateProfileToAllControls()
@@ -139,7 +146,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
         self.storyObjects=[]
         self.storyValues=[]
-        self.flagFirstMove=True
+        self.flagFirstMove=True # When you drag the slider, the only undoable is the first position not the ones in between
 
     def onbrightnessChanged(self,event):
         self.firstMove(event,profile.getProfileSettingInteger('brightness_value'))
@@ -202,7 +209,6 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
     def updateValue(self,objectToUndo):
         self.flagFirstMove=False
         if (objectToUndo.GetId() == self.brightnessId):
-            print "brightness!!"
             self.onbrightnessChanged(0)
         elif(objectToUndo.GetId() == self.contrastId):
             self.oncontrastChanged(0)
