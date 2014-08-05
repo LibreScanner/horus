@@ -55,10 +55,10 @@ class Camera:
 			self.maxExposure=10000.
 		else:
 			print "Operative system: ",self.system,platform.release()
-			self.maxBrightness=1
-			self.maxContrast=1
-			self.maxSaturation=1
-			self.maxExposure=1
+			self.maxBrightness=1.
+			self.maxContrast=1.
+			self.maxSaturation=1.
+			self.maxExposure=-9/200.
 
 	def connect(self):
 		""" """

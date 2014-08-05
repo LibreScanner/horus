@@ -717,7 +717,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
-		self.stopExtrinsicSamples=20
+		self.stopExtrinsicSamples=40
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
@@ -945,7 +945,7 @@ class ExtrinsicCalibrationPanel(Page):
 			self.socketText.Show(False)
 			self.socketBitmap.Show(False)
 		if hasattr(self,'keyboardText'):
-			print 'screwing'
+
 			self.keyboardText.Show(True)
 			self.keyboardBitmap.Show(True)
 			# redo sizer to keep things beautiful
