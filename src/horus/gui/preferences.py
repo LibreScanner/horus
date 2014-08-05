@@ -51,24 +51,18 @@ class PreferencesDialog(wx.Dialog):
 		self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id :"))
 		self.cameraIdNames = self.main.videoList()
 		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(123,-1))
-		self.stepDegreesLabel = wx.StaticText(self, label=_(u"Step degrees (º) :"))
-		self.stepDegreesText = wx.TextCtrl(self, value=profile.getProfileSetting('step_degrees'), size=(82,-1))
-		self.stepDelayLabel = wx.StaticText(self, label=_("Step delay (us) :"))
-		self.stepDelayText = wx.TextCtrl(self, value=profile.getProfileSetting('step_delay'), size=(92,-1))
 
 		self.languageLabel = wx.StaticText(self, label=_("Language :"))
 		self.languages = [row[1] for row in resources.getLanguageOptions()]
 		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(110,-1))
 
 
-		self.updateFirmware = wx.Button(self, -1, 'Update Firmware')
-		self.okButton = wx.Button(self, -1, 'Ok')
+		self.updateFirmware = wx.Button(self, -1, _("Update Firmware"))
+		self.okButton = wx.Button(self, -1, _("Ok"))
 
 		#-- Events
 		self.serialNameCombo.Bind(wx.EVT_TEXT, self.onSerialNameTextChanged)
 		self.cameraIdCombo.Bind(wx.EVT_TEXT, self.onCameraIdTextChanged)
-		self.stepDelayText.Bind(wx.EVT_TEXT, self.onStepDelayTextChanged)
-		self.stepDegreesText.Bind(wx.EVT_TEXT, self.onStepDegreesTextChanged)
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Close())
 		self.updateFirmware.Bind(wx.EVT_BUTTON, self.onUpdateFirmware)
@@ -82,8 +76,6 @@ class PreferencesDialog(wx.Dialog):
 		#-- Call Events
 		self.onSerialNameTextChanged(None)
 		self.onCameraIdTextChanged(None)
-		self.onStepDegreesTextChanged(None)
-		self.onStepDelayTextChanged(None)
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -96,14 +88,6 @@ class PreferencesDialog(wx.Dialog):
 		hbox = wx.BoxSizer(wx.HORIZONTAL)   
 		hbox.Add(self.cameraIdLabel, 0, wx.ALL, 10)
 		hbox.Add(self.cameraIdCombo, 0, wx.ALL, 5)
-		vbox.Add(hbox)
-		hbox = wx.BoxSizer(wx.HORIZONTAL)   
-		hbox.Add(self.stepDegreesLabel, 0, wx.ALL, 10)
-		hbox.Add(self.stepDegreesText, 0, wx.ALL, 5)
-		vbox.Add(hbox)
-		hbox = wx.BoxSizer(wx.HORIZONTAL)   
-		hbox.Add(self.stepDelayLabel, 0, wx.ALL, 10)
-		hbox.Add(self.stepDelayText, 0, wx.ALL, 5)
 		vbox.Add(hbox)
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
@@ -133,13 +117,8 @@ class PreferencesDialog(wx.Dialog):
 		if len(self.cameraIdCombo.GetValue()) > 0:
 			profile.putProfileSetting('camera_id', int(self.cameraIdCombo.GetValue()[-1:]))
 
-	def onStepDegreesTextChanged(self, event):
-		if self.stepDegreesText.GetValue() is not None:
-			profile.putProfileSetting('step_degrees', float((self.stepDegreesText.GetValue()).replace(',','.')))
-
-	def onStepDelayTextChanged(self, event):
-		if self.stepDelayText.GetValue() is not None:
-			profile.putProfileSetting('step_delay', int(self.stepDelayText.GetValue()))
+	def onUpdateFirmware(self, event):
+		self.main.updateFirmware()
 
 	def onLanguageComboChanged(self, event):
 		if profile.getPreference('language') is not self.languageCombo.GetValue():
@@ -151,5 +130,3 @@ class PreferencesDialog(wx.Dialog):
 		self.main.updateEngine()
 		self.Destroy()
 
-	def onUpdateFirmware(self, e):
-		self.main.updateFirmware()

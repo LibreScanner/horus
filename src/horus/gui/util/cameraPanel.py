@@ -39,47 +39,46 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         """"""
         wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
 
-
         self.scanner = self.GetParent().GetParent().GetParent().scanner
 
         self.SetupScrolling()
         
         #-- Graphic elements
-        cameraParamsStaticText = wx.StaticText(self, wx.ID_ANY, _("Camera Parameters"), style=wx.ALIGN_CENTRE)
-        cameraParamsStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        cameraControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Camera Control"), style=wx.ALIGN_CENTRE)
+        cameraControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        self.brightnessText = wx.StaticText(self,label=_("Brightness"))
+        self.brightnessText = wx.StaticText(self,label=_("Brightness"), size=(70, -1), style=wx.ALIGN_CENTRE)
         self.brightnessSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
         self.Bind(wx.EVT_SLIDER,self.onbrightnessChanged,self.brightnessSlider)
 
-        self.contrastText = wx.StaticText(self,label=_("Contrast"))
+        self.contrastText = wx.StaticText(self,label=_("Contrast"), size=(70, -1), style=wx.ALIGN_CENTRE)
         self.contrastSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
         self.Bind(wx.EVT_SLIDER,self.oncontrastChanged,self.contrastSlider)
 
-        self.saturationText = wx.StaticText(self,label=_("Saturation"))
+        self.saturationText = wx.StaticText(self,label=_("Saturation"), size=(70, -1), style=wx.ALIGN_CENTRE)
         self.saturationSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
         self.Bind(wx.EVT_SLIDER,self.onsaturationChanged,self.saturationSlider)
 
-        self.exposureText = wx.StaticText(self,label=_("Exposure"))
+        self.exposureText = wx.StaticText(self,label=_("Exposure"), size=(70, -1), style=wx.ALIGN_CENTRE)
         self.exposureSlider = wx.Slider(self,wx.ID_ANY,60,0,200,size=(150,-1), style=wx.SL_LABELS)
         self.Bind(wx.EVT_SLIDER,self.onexposureChanged,self.exposureSlider)
 
         self.framerates = [str(30),str(25),str(20),str(15),str(10),str(5)]
 
-        self.frameRateText = wx.StaticText(self,label=_("Frame rate"))
+        self.frameRateText = wx.StaticText(self,label=_("Frame rate"), size=(70, -1), style=wx.ALIGN_CENTRE)
         self.frameRateCombo = wx.ComboBox(self, -1, size=(150, -1), choices=self.framerates, style=wx.CB_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectFrame,self.frameRateCombo)
 
         self.resolutions = [str((1280,960)),str((1184,656)),str((1024,576)),str((960,720)),str((960,544)),str((864,480)),str((800,600)),str((800,448)),str((800,448)),str((752,416)),str((640,360)),str((544,288)),str((432,240)),str((544,288)),str((432,240)),str((352,288)),str((320,240)),str((176,144)),str((160,120))]
 
-        self.resolutionText = wx.StaticText(self,label=_("Resolution"))
+        self.resolutionText = wx.StaticText(self,label=_("Resolution"), size=(70, -1), style=wx.ALIGN_CENTRE)
         self.resolutionCombo = wx.ComboBox(self, -1,str((1280,960)), size=(150, -1), choices=self.resolutions, style=wx.CB_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectResolution,self.resolutionCombo)
 
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         
-        vbox.Add(cameraParamsStaticText, 0, wx.ALL, 10)
+        vbox.Add(cameraControlStaticText, 0, wx.ALL, 10)
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -98,18 +97,18 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         vbox.Add(hbox)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.exposureText, 0, wx.ALL^wx.BOTTOM, 18)
+        hbox.Add(self.exposureText, 0, wx.ALL, 18)
         hbox.Add(self.exposureSlider, 0, wx.ALL, 0)
         vbox.Add(hbox)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.frameRateText, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.frameRateCombo, 0, wx.ALL, 0)
+        hbox.Add(self.frameRateCombo, 0, wx.ALL^wx.LEFT, 12)
         vbox.Add(hbox)
         
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.resolutionText, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.resolutionCombo, 0, wx.ALL, 0)
+        hbox.Add(self.resolutionCombo, 0, wx.ALL^wx.LEFT, 12)
         vbox.Add(hbox)
 
         self.updateProfileToAllControls()

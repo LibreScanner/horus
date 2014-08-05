@@ -1,8 +1,9 @@
 //--------------------------------------------------------------
-//-- Horus Firmware. Compatible with ZUM Shield Scann V.1
+//-- Horus Firmware. Compatible with ZUM Scan Shield V.1
 //--------------------------------------------------------------
 //-- Code based on (c) Juan Gonzalez-Gomez (Obijuan), May-2013
 //-- (c) Jesus Arroyo Torrens, October/November-2013
+//-- (c) Mundo Reader S.L. August-2014
 //-- GPL license
 //--------------------------------------------------------------
 
@@ -11,39 +12,47 @@
 //-- The config frame contains ascii characters. The format is the 
 //-- following:
 //--
-//--  bddddmmmmmq , where
+//--  bddddddmmmmmq , where
 //--
 //--  b is the frame header
 //--  q is the frame footer
-//--  dddd is the degress in one step * 100
-//--  mmmmm is the delay in microseconds
+//--  dddddd is the degress in one step * 1000
+//--  mmmmm is the OCR A for Timer 1
 //--
 //-- The frame should finish one of the following characters:
-//--   lf
+//--  lf
 //--
-//--  Example:  b004500100q   --> step = 0.45º delay = 100 us
+//-- Example:  b00045002000q   --> step = 0.45º OCR = 2000
 //--
-//--  The command frame is a byte. The format is the following:
+//-- The command frame is a byte. The format is the following:
 //--
-//--  10 cc vv 01
+//-- 10 cc vv 01
 //--
 //--  10 is the header
 //--  01 is the footer
 //--  cc is the command: 00 motor, 01 laser right, 10 laser left, 11 laser right&left
-//--  vv is the value: laser on/off X0/X1, motor NoOp/SCW/SCCW/NoOp 00/01/10/11
+//--  vv is the value: laser on/off X0/X1, motor Dis/SCW/SCCW/En 00/01/10/11
 //--
 //-- Example:   10 00 01 01   --> Motor Step CW
 //--
+//-- NOTE: the command 11 00 00 11 sets configuration mode (false default)
+//--
 //-- A complete example is presented below:
 //--
-//--    -> b004500100q\n
+//--    -> b00045002000q\n
 //--    <- bq\n
 //--    -> 0b10000101
 //--    -> 0b10010101
+//--    -> 0b11000011
+//--    -> b01000001000q\n
+//--    <- bq\n
+//--    -> 0b10000101
 //--    ...
 //--
 
 //-----------------------------------------------------------------
+
+#include <math.h>
 
 //-- Definitions for the frames
 #define FRAME_HEADER 'b'
@@ -83,13 +92,13 @@
 
 //---------- Global variables
 
-float step_value; //-- Motor step
-int step_delay; // -- Motor delay
+float step_value = 0;
+volatile int usteps = 0;
 
-float uStep = USTEP_RESOLUTION / STEP_DEGREES;
+#define CONVERT_TO_USTEPS(value) (int) round(value * USTEP_RESOLUTION / STEP_DEGREES)
 
 //-- Buffer for storing the received commands
-#define BUFSIZE 11
+#define BUFSIZE 13
 char buffer[BUFSIZE+1];
 int buflen = 0;
 
@@ -103,7 +112,13 @@ int buflen = 0;
 #define BIN_LR_MASK      B00010000
 #define BIN_ONOFF_MASK   B00000100
 
+#define BIN_CONFIG_MODE  B11000011
+
+#define ENABLE_STEPPER_DRIVER_INTERRUPT()  TIMSK1 |= (1<<OCIE1A)
+#define DISABLE_STEPPER_DRIVER_INTERRUPT() TIMSK1 &= ~(1<<OCIE1A)
+
 boolean cmd_ready = false;
+boolean config_mode = false;
 
 void setup()
 { 
@@ -131,30 +146,48 @@ void setup()
   //-- Turn on the !enable
   digitalWrite(ENABLE_PIN, LOW);
   
+  cli();
   
-  //-- Configuration Frame
-  boolean handshake = false;
- 
-  do
-  {
-    //-- Task: Read the information from the serial port
-    read_frame();
-    
-    //-- If there is a command ready or the buffer is full
-    //-- process the command!!
-    if (cmd_ready || buflen==BUFSIZE) {
-    
-      //-- Process the command
-      handshake = process_config();
-      
-      //-- Command processed!
-      cmd_ready=false;
-      buflen=0;
-    }
+  // waveform generation = 0100 = CTC
+  TCCR1B &= ~(1<<WGM13);
+  TCCR1B |=  (1<<WGM12);
+  TCCR1A &= ~(1<<WGM11);
+  TCCR1A &= ~(1<<WGM10);
+
+  // output mode = 00 (disconnected)
+  TCCR1A &= ~(3<<COM1A0);
+  TCCR1A &= ~(3<<COM1B0);
+
+  // Set the timer pre-scaler
+  // Generally we use a divider of 8, resulting in a 2MHz timer
+  // frequency on a 16MHz MCU. If you are going to change this, be
+  // sure to regenerate speed_lookuptable.h with
+  // create_speed_lookuptable.py
+  TCCR1B = (TCCR1B & ~(0x07<<CS10)) | (2<<CS10);
+
+  OCR1A = 2000;
+  TCNT1 = 0;
+  
+  ENABLE_STEPPER_DRIVER_INTERRUPT();
+  
+  sei();
+}
+
+ISR (TIMER1_COMPA_vect) {
+  
+  int curusteps = usteps;
+  
+  //-- Sets direction and performs ustep
+  if (curusteps > 0) {
+    digitalWrite(MOTOR_DIR_PIN, HIGH);
+    Pulse(MOTOR_STEP_PIN);
+    usteps--;
   }
-  while(!handshake);
-  
-  Serial.print("bq\n");
+  else if (curusteps < 0) {
+    digitalWrite(MOTOR_DIR_PIN, LOW);
+    Pulse(MOTOR_STEP_PIN);
+    usteps++;
+  }
 }
 
 void read_frame()
@@ -193,16 +226,18 @@ boolean process_config()
     return false;
     
   //-- Check if the footer is ok
-  if (buffer[10] != FRAME_FOOTER)
+  if (buffer[12] != FRAME_FOOTER)
     return false;
 
   //-- Read step value
-  if ((step_value = read_value(1, 4, 10)) == -1)
+  if ((step_value = read_value(1, 6, 100)) == -1)
     return false;
 
-  //-- Read step delay
-  if ((step_delay = read_value(5, 9, 10000)) == -1)
+  //-- Read step OCR
+  if ((OCR1A = (int) read_value(7, 11, 10000)) == -1) {
+    OCR1A = 2000;
     return false;
+  }
 
   return true;
 }
@@ -250,23 +285,23 @@ boolean process_cmd(byte cmd)
     {
       //-- Disable
       case 0:
+        DISABLE_STEPPER_DRIVER_INTERRUPT();
         digitalWrite(ENABLE_PIN, HIGH);
         
       //-- Motor CW
       case 1:
-        digitalWrite(MOTOR_DIR_PIN, HIGH);
-        Step(MOTOR_STEP_PIN, step_value);
+        usteps += CONVERT_TO_USTEPS(step_value);
         break;
         
       //-- Motor CCW
       case 2:
-        digitalWrite(MOTOR_DIR_PIN, LOW);
-        Step(MOTOR_STEP_PIN, step_value);
+        usteps -= CONVERT_TO_USTEPS(step_value);
         break;
         
       //-- Enable
       case 3:
         digitalWrite(ENABLE_PIN, LOW);
+        ENABLE_STEPPER_DRIVER_INTERRUPT();
   
       default:
          break;
@@ -279,30 +314,54 @@ boolean process_cmd(byte cmd)
 void Pulse(int step_pin)
 {  
   digitalWrite(step_pin, LOW);
-  delayMicroseconds(step_delay);
+  float x=1./float(1+1)/float(1+2);
+  //delayMicroseconds(X);
   digitalWrite(step_pin, HIGH);
-  delayMicroseconds(step_delay);
-}
-
-void Step(int step_pin, float deg)
-{
-  int limit = uStep * deg;
-  for (int i = 0; i < limit; i++)
-    Pulse(step_pin);
 }
 
 void loop() 
 {
   if (Serial.available()) {
-    
-    //-- Read command
-    byte cmd = Serial.read();
+    if (config_mode) {
+      //-- Configuration Frame
+      boolean handshake = false;
      
-    //-- Process the command
-    process_cmd(cmd);
-    //if (process_cmd(cmd))
-    //-- If success send acknowledge
-      //Serial.print(BIN_ACK); TODO
+      do {
+        //-- Task: Read the information from the serial port
+        read_frame();
+        
+        //-- If there is a command ready or the buffer is full
+        //-- process the command!!
+        if (cmd_ready || buflen==BUFSIZE) {
+        
+          //-- Process the command
+          handshake = process_config();
+          
+          //-- Command processed!
+          cmd_ready=false;
+          buflen=0;
+        }
+      }
+      while(!handshake);
+      
+      Serial.print("bq\n");
+  
+      config_mode = false;
+    }
+    else {
+      //-- Read command
+      byte cmd = Serial.read();
+      
+      config_mode = cmd == BIN_CONFIG_MODE;
+      
+      if (!config_mode) {
+        //-- Process the command
+        process_cmd(cmd);
+        //if (process_cmd(cmd))
+        //-- If success send acknowledge
+        //Serial.print(BIN_ACK); TODO
+      } 
+    }
   }
   
   delay(1);
