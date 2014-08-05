@@ -31,6 +31,7 @@ import wx
 import wx.lib.scrolledpanel
 
 from horus.util import profile
+from horus.util.resources import *
 
 class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
@@ -39,7 +40,9 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         """"""
         wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
 
-        self.scanner = self.GetParent().GetParent().GetParent().scanner
+        self.parent = self.GetParent().GetParent().GetParent()
+
+        self.scanner = self.parent.scanner
 
         self.SetupScrolling()
 
@@ -47,8 +50,8 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         laserControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Laser Control"), style=wx.ALIGN_CENTRE)
         laserControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        laserLeftButton = wx.ToggleButton(self, -1, _("Left"))
-        laserRightButton = wx.ToggleButton(self, -1, _("Right"))
+        self.laserLeftButton = wx.ToggleButton(self, -1, _("Left"))
+        self.laserRightButton = wx.ToggleButton(self, -1, _("Right"))
 
         motorControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Motor Control"), style=wx.ALIGN_CENTRE)
         motorControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
@@ -68,8 +71,8 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.applyConfigButton.Disable()
 
         #-- Events
-        laserLeftButton.Bind(wx.EVT_TOGGLEBUTTON, self.onLeftLaserClicked)
-        laserRightButton.Bind(wx.EVT_TOGGLEBUTTON, self.onRightLaserClicked)
+        self.laserLeftButton.Bind(wx.EVT_TOGGLEBUTTON, self.onLeftLaserClicked)
+        self.laserRightButton.Bind(wx.EVT_TOGGLEBUTTON, self.onRightLaserClicked)
 
         self.stepDegreesText.Bind(wx.EVT_TEXT, lambda e: self.applyConfigButton.Enable())
         self.stepOCRText.Bind(wx.EVT_TEXT, lambda e: self.applyConfigButton.Enable())
@@ -88,8 +91,8 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)   
-        hbox.Add(laserLeftButton, 0, wx.ALL, 15)
-        hbox.Add(laserRightButton, 0, wx.ALL, 15)
+        hbox.Add(self.laserLeftButton, 0, wx.ALL, 15)
+        hbox.Add(self.laserRightButton, 0, wx.ALL, 15)
         vbox.Add(hbox)
 
         vbox.Add(motorControlStaticText, 0, wx.ALL, 10)
@@ -126,12 +129,14 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
             self.scanner.device.setLeftLaserOn()
         else:
             self.scanner.device.setLeftLaserOff()
+        self.updateScannerImage()
 
     def onRightLaserClicked(self, event):
         if event.IsChecked():
             self.scanner.device.setRightLaserOn()
         else:
             self.scanner.device.setRightLaserOff()
+        self.updateScannerImage()
 
     def onMotorEnableButtonClicked(self, event):
         self.scanner.device.enable()
@@ -157,6 +162,18 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
             self.scanner.device.sendConfiguration(profile.getProfileSettingFloat('step_degrees'), profile.getProfileSettingInteger('step_ocr'))
 
         self.applyConfigButton.Disable()
+
+    def updateScannerImage(self):
+        if self.laserLeftButton.GetValue():
+            if self.laserRightButton.GetValue():
+                self.parent.deviceView.setImage(wx.Image(getPathForImage("scannerlr.png")))
+            else:
+                self.parent.deviceView.setImage(wx.Image(getPathForImage("scannerl.png")))
+        else:
+            if self.laserRightButton.GetValue():
+                self.parent.deviceView.setImage(wx.Image(getPathForImage("scannerr.png")))
+            else:
+                self.parent.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
 
     def updateProfileToAllControls(self):
         degrees = profile.getProfileSettingFloat('step_degrees')
