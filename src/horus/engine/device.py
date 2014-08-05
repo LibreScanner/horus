@@ -38,11 +38,11 @@ class Device:
 	"""
 	ASCII Protocol
 
-		-> bddddmmmmq\n
+		-> bddddddmmmmmq\n
 		<- bq\n
 		
-	dddd : motor step * 100 (degrees)
-	mmmm : motor pulse delay (us)
+	dddddd : motor step * 1000 (degrees)
+	mmmmm : motor ustep OCR timer
 
 	Binary Protocol
 
@@ -61,21 +61,21 @@ class Device:
 			X0 : off
 			X1 : on
 		motor:
-			00 : no operation
+			00 : disable
 			01 : step cw
 			10 : step ccw
-			11 : no operation
+			11 : enable
 	"""
   
-	def __init__(self, serialName='/dev/ttyACM0', degrees=0.45, delay=2400):
-		"""Arguments: motor step, motor pulse delay"""
+	def __init__(self, serialName='/dev/ttyACM0', degrees=0.45, ocr=2000):
+		"""Arguments: motor step, motor ocr"""
 		print ">>> Initializing device ..."
 		print " - Serial Name: {0}".format(serialName)
 		print " - Step Degrees: {0}".format(degrees)
-		print " - Step Delay: {0}".format(delay)
+		print " - Step OCR Timer: {0}".format(ocr)
 		self.serialName = serialName
 		self.degrees = degrees 	#-- Motor step
-		self.delay = delay   	#-- Motor pulse delay
+		self.ocr = ocr   	#-- Motor ocr
 		self.serialPort = None
    		print ">>> Done"
 
@@ -86,7 +86,7 @@ class Device:
 			self.serialPort = serial.Serial(self.serialName, 19200, timeout=1)
 			time.sleep(2)
 			if self.serialPort.isOpen():
-				self.sendConfiguration(self.degrees, self.delay)
+				self.sendConfiguration(self.degrees, self.ocr)
 			else:
 				print "Serial port is not connected."
 		except serial.SerialException:
@@ -176,18 +176,18 @@ class Device:
 		else:
 			print "Serial port is not connected."
     
-	def sendConfiguration(self, degrees, delay):
+	def sendConfiguration(self, degrees, ocr):
 		"""Sends the config message
-				- degrees: motor step in degrees (00.00 - 99.99)
-				- delay: motor pulse delay (0 - 99999)
+				- degrees: motor step in degrees (000.000 - 999.999)
+				- ocr: motor pulse ocr (0 - 99999)
 			Receives ack ("bq")
 		"""
 		#-- Sets config mode
 		self.sendCommand(195) # 11000011
 		#-- Sends config message
-		frame = 'b{0:0>4}{1:0>5}q\n'.format(trunc(degrees * 100), delay) #[-10:]
+		frame = 'b{0:0>6}{1:0>5}q\n'.format(trunc(degrees * 1000), ocr) #[-10:]
 		self.serialPort.write(frame)
 		#-- Receives acknowledge
 		ack = self.serialPort.readline()
 		if ack != 'bq\n':
-			print "Handshake error. Please Reset the microcontroller or reload the firmware"
+			print "Config error. Please Reset the microcontroller or reload the firmware"
