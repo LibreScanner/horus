@@ -51,6 +51,14 @@ class Calibration:
 		self.transVectors=[]
 
 		self.centerEstimate=0,310
+		self.linecolor=(240,246,0)
+		self.lineThinckness=5
+		self.firstPoint=[(288,326),(4,48),(20,20),			(412,198),(550,148),		(20,20),(20,20),		(210,350),(260,680),	(140,20),(20,20),(20,340),		(288,326),(288,326),(288,326),(288,326),(288,326),(288,326)]
+		self.secondPoint=[(716,326),(596,168),(460,180),	(940,46),(940,20),			(940,20),(940,20),		(750,350),(940,680),	(940,20),(740,20),(500,500),		(716,326),(716,326),(716,326),(716,326),(716,326),(716,326)]
+		self.thirdPoint=[(718,1026),(596,1140),(460,1000),	(940,1254),(940,1260),		(730,870),(720,550),	(940,1260),(940,1260),	(940,880),(450,600),(780,1260),	(718,1026),(718,1026),(718,1026),(718,1026),(718,1026),(718,1026)]
+		self.forthPoint=[(286,1024),(4,1268),(20,1260),		(412,1140),(550,1076),		(192,870),(240,550),	(20,1260),(20,1260),	(480,740),(20,720),(20,1260),	(286,1024),(286,1024),(286,1024),(286,1024),(286,1024),(286,1024)]
+		
+		
 
 	def solvePnp(self,image):
 		
@@ -81,6 +89,7 @@ class Calibration:
 
 	def detectPrintChessboard(self,image):
 
+		
 		gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
 		self.invertedShape=gray.shape[::-1]
 		retval,corners=cv2.findChessboardCorners(gray,(self.patternColumns,self.patternRows),flags=cv2.CALIB_CB_FAST_CHECK)
@@ -89,7 +98,10 @@ class Calibration:
 			self.imagePointsStack.append(corners)
 			self.objPointsStack.append(self.objpoints)
 			cv2.drawChessboardCorners(image,(self.patternColumns,self.patternRows),corners,retval)
-			
+			# imageToGuide = cv2.transpose(image)
+			# imageToGuide = cv2.flip(image, 1)
+			# imageToGuide=cv2.cvtColor(imageToGuide,cv2.COLOR_BGR2RGB)
+			# cv2.imwrite('imageToGuide'+str(self.index)+'.jpg',imageToGuide)
 		return image,retval
 
 	def generateObjectPoints(self,patternColumns,patternRows,squareWidth):
@@ -139,6 +151,14 @@ class Calibration:
 		image = cv2.remap(image,mapx,mapy,cv2.INTER_LINEAR)
 					
 		return image
+
+	def setGuides(self,frame,currentGrid):
+		cv2.line(frame,self.firstPoint[currentGrid],self.secondPoint[currentGrid],self.linecolor,self.lineThinckness)
+		cv2.line(frame,self.secondPoint[currentGrid],self.thirdPoint[currentGrid],self.linecolor,self.lineThinckness)
+		cv2.line(frame,self.thirdPoint[currentGrid],self.forthPoint[currentGrid],self.linecolor,self.lineThinckness)
+		cv2.line(frame,self.forthPoint[currentGrid],self.firstPoint[currentGrid],self.linecolor,self.lineThinckness)
+
+		return frame
 
 # Data storage stuff
 

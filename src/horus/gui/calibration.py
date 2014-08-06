@@ -230,12 +230,15 @@ class PatternPanel(Page):
 		
 		self.getTitlePanel().SetSizer(vbox)
 		self.setLayout()
+		self.guidesOn=False
 		
 	def returnFocus(self,event):
 		self.videoView.SetFocus()
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
+		if self.guidesOn:
+			frame=self.calibration.setGuides(frame,self.currentGrid)
 		# frame=self.calibration.undistortImage(frame)
 		self.videoView.setFrame(frame)
 
@@ -260,6 +263,7 @@ class PatternPanel(Page):
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
+		self.guidesOn=True
 		if not hasattr(self,'gridPanel'):
 			self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY)
 			
@@ -300,6 +304,7 @@ class PatternPanel(Page):
 			self.currentGrid+=1
 		if self.currentGrid is (self.columns*self.rows):
 			self.getRightButton().Enable()	
+			self.guidesOn=False
 
 	def clear(self):
 		if hasattr(self,'panelGrid'):
