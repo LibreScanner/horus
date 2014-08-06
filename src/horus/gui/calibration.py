@@ -67,9 +67,12 @@ class CalibrationWorkbench(Workbench):
 		self.disconnectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
 		
 		#-- Disable Toolbar Items
-
-		self.enableLabelTool(self.connectTool      , True)
-		self.enableLabelTool(self.disconnectTool   , False)
+		if self.scanner.isConnected:
+			self.enableLabelTool(self.connectTool      , False)
+			self.enableLabelTool(self.disconnectTool   , True)
+		else:
+			self.enableLabelTool(self.connectTool      , True)
+			self.enableLabelTool(self.disconnectTool   , False)
 		
 		#-- Bind Toolbar Items
 
@@ -81,8 +84,19 @@ class CalibrationWorkbench(Workbench):
 		self._panel.parent=self
 		self._intrinsicsPanel=IntrinsicsPanel(self._panel,self.calibration)
 		self._extrinsicsPanel=ExtrinsicsPanel(self._panel,self.calibration)
-
+		self.Bind(wx.EVT_SHOW, self.onShow)
 		self.setLayout()
+
+	def onShow(self, event):
+		if event.GetShow():
+			if self.scanner.isConnected:
+				self.enableLabelTool(self.connectTool      , False)
+				self.enableLabelTool(self.disconnectTool   , True)
+			else:
+				self.enableLabelTool(self.connectTool      , True)
+				self.enableLabelTool(self.disconnectTool   , False)
+		else:
+			pass
 
 	def loadInit(self,event):
 		
@@ -717,7 +731,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
-		self.stopExtrinsicSamples=20
+		self.stopExtrinsicSamples=40
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
@@ -945,7 +959,7 @@ class ExtrinsicCalibrationPanel(Page):
 			self.socketText.Show(False)
 			self.socketBitmap.Show(False)
 		if hasattr(self,'keyboardText'):
-			print 'screwing'
+
 			self.keyboardText.Show(True)
 			self.keyboardBitmap.Show(True)
 			# redo sizer to keep things beautiful
