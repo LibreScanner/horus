@@ -86,7 +86,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.resolutionCombo = wx.ComboBox(self, -1,str((1280,960)), size=(150, -1), choices=self.resolutions, style=wx.CB_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectResolution,self.resolutionCombo)
 
-        self.restoreButton = wx.Button(self,label=_("Restore Default"),size=(100,-1))
+        self.restoreButton = wx.Button(self,label=_("Restore Default"),size=(200,-1))
         self.restoreButton.Bind(wx.EVT_BUTTON,self.restoreDefault)
 
         image1=wx.Bitmap(resources.getPathForImage("undo.png"))
@@ -107,37 +107,43 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.brightnessText, 0, wx.ALL^wx.BOTTOM, 18)
+        hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
         hbox.Add(self.brightnessSlider, 0, wx.ALL, 0)
-        vbox.Add(hbox)
+        vbox.Add(hbox,0,wx.EXPAND,0)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.contrastText, 0, wx.ALL^wx.BOTTOM, 18)
+        hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
         hbox.Add(self.contrastSlider, 0, wx.ALL, 0)
-        vbox.Add(hbox)
+        vbox.Add(hbox,0,wx.EXPAND,0)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.saturationText, 0, wx.ALL^wx.BOTTOM, 18)
+        hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
         hbox.Add(self.saturationSlider, 0, wx.ALL, 0)
-        vbox.Add(hbox)
+        vbox.Add(hbox,0,wx.EXPAND,0)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.exposureText, 0, wx.ALL^wx.BOTTOM, 18)
+        hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
         hbox.Add(self.exposureSlider, 0, wx.ALL, 0)
-        vbox.Add(hbox)
+        vbox.Add(hbox,0,wx.EXPAND,0)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.frameRateText, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.frameRateCombo, 0, wx.ALL, 0)
-        vbox.Add(hbox)
+        hbox.Add(self.frameRateText, 0, wx.ALL, 18)
+        hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+        hbox.Add(self.frameRateCombo, 0, wx.TOP, 10)
+        vbox.Add(hbox,0,wx.EXPAND,0)
         
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.resolutionText, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.resolutionCombo, 0, wx.ALL, 0)
-        vbox.Add(hbox)
+        hbox.Add(self.resolutionText, 0, wx.ALL, 18)
+        hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+        hbox.Add(self.resolutionCombo, 0, wx.TOP, 10)
+        vbox.Add(hbox,0,wx.EXPAND,0)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.restoreButton, 0, wx.ALL^wx.BOTTOM, 18)
-        vbox.Add(hbox)
+        vbox.Add(hbox,0,wx.ALIGN_CENTRE,0)
 
         self.updateProfileToAllControls()
         
@@ -215,7 +221,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         elif(objectToUndo.GetId() == self.saturationId):
             self.onsaturationChanged(0)
         elif(objectToUndo.GetId() == self.exposureId):
-            self.exposureChanged(0)
+            self.onexposureChanged(0)
         self.flagFirstMove=True
 
     def restoreDefault(self,event):
