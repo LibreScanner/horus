@@ -43,7 +43,8 @@ class Camera:
 
 		#todo put these lists in preferences
 		self.framerates = [30,25,20,15,10,5]
-		self.resolutions = [(1280,960),(1184,656),(1024,576),(960,720),(960,544),(864,480),(800,600),(800,448),(800,448),(752,416),(640,360),(544,288),(432,240),(544,288),(432,240),(352,288),(320,240),(176,144),(160,120)]
+		self.resolutions = [(1280,960),(960,720),(800,600),(320,240),(160,120)]
+
 		self.system=platform.system()
 
 		self.fps=self.framerates[profile.getProfileSettingInteger('framerate_value')]
@@ -130,6 +131,12 @@ class Camera:
 
 			actualWidth=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
 			actualHeight=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+
+	def getResolution(self):
+		resolution=profile.getProfileSettingInteger('resolution_value')
+		width,height=self.resolutions[resolution]
+
+		return width,height
 
 	def setCameraControl(self,brightness,contrast,saturation,exposure,fps,resolution):
 		self.setBrightness(brightness)

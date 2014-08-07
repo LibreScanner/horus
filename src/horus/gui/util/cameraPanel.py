@@ -82,7 +82,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.frameRateCombo = wx.ComboBox(self, -1, size=(150, -1), choices=self.framerates, style=wx.CB_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectFrame,self.frameRateCombo)
 
-        self.resolutions = [str((1280,960)),str((1184,656)),str((1024,576)),str((960,720)),str((960,544)),str((864,480)),str((800,600)),str((800,448)),str((800,448)),str((752,416)),str((640,360)),str((544,288)),str((432,240)),str((544,288)),str((432,240)),str((352,288)),str((320,240)),str((176,144)),str((160,120))]
+        self.resolutions = [str((1280,960)),str((960,720)),str((800,600)),str((320,240)),str((160,120))]
 
         self.resolutionText = wx.StaticText(self,label=_("Resolution"), size=(70, -1), style=wx.ALIGN_CENTRE)
         self.resolutionCombo = wx.ComboBox(self, -1,str((1280,960)), size=(150, -1), choices=self.resolutions, style=wx.CB_READONLY)

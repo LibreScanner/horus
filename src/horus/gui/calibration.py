@@ -195,6 +195,9 @@ class PatternPanel(Page):
 		# set quantity of photos to take
 		self.rows=2
 		self.columns=6
+
+		self.storyboard=1
+
 		self.load() 
 	def load(self):
 
@@ -230,12 +233,15 @@ class PatternPanel(Page):
 		
 		self.getTitlePanel().SetSizer(vbox)
 		self.setLayout()
+		self.guidesOn=False
 		
 	def returnFocus(self,event):
 		self.videoView.SetFocus()
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(True)
+		if self.guidesOn:
+			frame=self.calibration.setGuides(frame,self.currentGrid)
 		# frame=self.calibration.undistortImage(frame)
 		self.videoView.setFrame(frame)
 
@@ -250,8 +256,26 @@ class PatternPanel(Page):
 					self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
 					self.parent.parent.enableLabelTool(self.parent.parent.connectTool,False)
 					self.showSpaceHelp()
-				self.loaded=True
-				self.loadGrid()
+				if self.storyboard==1:
+					self.storyboard+=1
+					self.keyboardImage = wx.Image(getPathForImage("instructions2.png"))
+					bitmap = wx.BitmapFromImage(self.keyboardImage)
+					self.keyboardBitmap.SetBitmap(bitmap)
+					self.refreshBitmap()
+				elif self.storyboard==2:
+					self.storyboard+=1
+					self.keyboardImage = wx.Image(getPathForImage("instructions3.png"))
+					bitmap = wx.BitmapFromImage(self.keyboardImage)
+					self.keyboardBitmap.SetBitmap(bitmap)
+					self.refreshBitmap()
+				elif self.storyboard==3:
+					self.storyboard=1
+					self.keyboardImage = wx.Image(getPathForImage("instructions1.png"))
+					bitmap = wx.BitmapFromImage(self.keyboardImage)
+					self.keyboardBitmap.SetBitmap(bitmap)
+					self.refreshBitmap()
+					self.loaded=True
+					self.loadGrid()
 			else:
 
 				frame = self.scanner.camera.captureImage(False)
@@ -260,6 +284,10 @@ class PatternPanel(Page):
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
+		width,height=self.scanner.camera.getResolution()
+		# Note: height and width are inverted since the image is flipped
+		self.calibration.generateGuides(height,width)
+		self.guidesOn=True
 		if not hasattr(self,'gridPanel'):
 			self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY)
 			
@@ -300,6 +328,7 @@ class PatternPanel(Page):
 			self.currentGrid+=1
 		if self.currentGrid is (self.columns*self.rows):
 			self.getRightButton().Enable()	
+			self.guidesOn=False
 
 	def clear(self):
 		if hasattr(self,'panelGrid'):
@@ -312,10 +341,11 @@ class PatternPanel(Page):
 
 	def onClick(self,event):
 		# TODO removable on click
-		print event.GetEventObject()
-		obj=event.GetEventObject()
-		obj.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
-		print obj.index
+		# print event.GetEventObject()
+		# obj=event.GetEventObject()
+		# obj.SetBackgroundColour((random.randrange(255),random.randrange(255),random.randrange(255)))	
+		# print obj.index
+		pass
 
 	def calibrateCamera(self,event):
 		self.calibration.calibrationFromImages()
@@ -349,11 +379,16 @@ class PatternPanel(Page):
 		self.parent.Layout()
 
 	def showSpaceHelp(self):
-
+		self.storyboard=1
+		self.guidesOn=False
 		if hasattr(self,'socketText'):
 			self.socketText.Show(False)
 			self.socketBitmap.Show(False)
 		if hasattr(self,'keyboardText'):
+			self.keyboardImage = wx.Image(getPathForImage("instructions1.png"))
+			bitmap = wx.BitmapFromImage(self.keyboardImage)
+			self.keyboardBitmap.SetBitmap(bitmap)
+			self.refreshBitmap()		
 			self.keyboardText.Show(True)
 			self.keyboardBitmap.Show(True)
 			# redo sizer to keep things beautiful
@@ -367,11 +402,13 @@ class PatternPanel(Page):
 			self.guideView.SetSizer(vboxGuideView)
 		else: 
 			self.createKeyboardPanel()
+		self.guideView.Bind(wx.EVT_SIZE, self.onResizeBitmap)
 		self.guideView.Layout()
 		self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
 
 	def showSocketHelp(self):
-
+		if hasattr(self,'UnBind'):
+			self.guideView.UnBind(wx.EVT_SIZE)
 		if hasattr(self,'keyboardText'):
 			self.keyboardText.Show(False)
 			self.keyboardBitmap.Show(False)
@@ -416,20 +453,53 @@ class PatternPanel(Page):
 		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
 		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 	
-		image = wx.Image(getPathForImage("keyboard.png"))
-		bitmap = wx.BitmapFromImage(image)
+		self.keyboardImage = wx.Image(getPathForImage("instructions1.png"))
+		bitmap=wx.BitmapFromImage(self.keyboardImage)
 		self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
+
+		self.refreshBitmap()
 		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
 			
 		hbox=wx.BoxSizer(wx.HORIZONTAL)
 
-		self.keyboardText=wx.StaticText(self.guideView,label=_("Use the space bar to perform captures.\nPress the space bar to start"))
+		self.keyboardText=wx.StaticText(self.guideView,label=_("Press the space bar to continue"))
 
 		hbox.Add(self.keyboardText,0,wx.LEFT,30)
 
 		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
 		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
 		self.guideView.SetSizer(vboxGuideView)
+
+	def onResizeBitmap(self, size):
+		self.refreshBitmap()
+
+	def refreshBitmap(self):
+		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
+		if w > 0 and h > 0:
+
+			bitmap = wx.BitmapFromImage(self.keyboardImage.Scale(w, h-50))
+			self.keyboardBitmap.SetBitmap(bitmap) 
+			self.guideView.Layout()
+
+	def getBestSize(self):
+		(wwidth, wheight) = self.guideView.GetSizeTuple()
+		(width, height) = self.keyboardImage.GetSize()
+
+		if height > 0 and wheight > 0:
+			if float(width)/height > float(wwidth)/wheight:
+				nwidth  = wwidth
+				nheight = float(wwidth*height)/width
+				xoffset = 0
+				yoffset = (wheight-nheight)/2.0
+			else:
+				nwidth  = float(wheight*width) /height
+				nheight = wheight
+				xoffset = (wwidth-nwidth)/2.0
+				yoffset = 0
+
+			return (nwidth, nheight, xoffset, yoffset)
+		else:
+			return (0, 0, 0, 0)
 
 	def onConnectToolClicked(self,event):
 		self.parent.parent.enableLabelTool(self.parent.parent.disconnectTool,True)
@@ -458,12 +528,10 @@ class PlotPanel(Page):
 		
 		self.angle=0
 
-
 		self.load()
 
 	def load(self):
 		
-
 		self.fig = Figure(tight_layout=True)
 		# self.fig=plt.figure()
 		self.canvas = FigureCanvasWxAgg( self.getPanel(), 1, self.fig)
