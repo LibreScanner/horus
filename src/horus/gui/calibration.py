@@ -263,6 +263,9 @@ class PatternPanel(Page):
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
+		width,height=self.scanner.camera.getResolution()
+		# Note: height and width are inverted since the image is flipped
+		self.calibration.generateGuides(height,width)
 		self.guidesOn=True
 		if not hasattr(self,'gridPanel'):
 			self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY)
