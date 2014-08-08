@@ -83,15 +83,36 @@ class Device:
 		""" Opens serial port and performs handshake"""
 		print ">>> Connecting device ..."
 		try:
-			self.serialPort = serial.Serial(self.serialName, 19200, timeout=1)
-			time.sleep(2)
+			self.serialPort = serial.Serial(self.serialName, 9600, timeout=0.1)
 			if self.serialPort.isOpen():
-				self.sendConfiguration(self.degrees, self.ocr)
+
+				#-- Force Reset and flush
+				self.serialPort.setDTR(False)
+				time.sleep(0.022)
+				self.serialPort.flushInput()
+				self.serialPort.flushOutput()
+				self.serialPort.setDTR(True)
+
+				#-- Check Handshake
+				while 1:
+					version = self.serialPort.readline()
+					if len(version) > 6:
+						break
+				if version == 'horus.1\n':
+					if not self.sendConfiguration(self.degrees, self.ocr):
+						print ">>> Error"
+						return False
+				else:
+					print ">>> Error"
+					return False
 			else:
 				print "Serial port is not connected."
+				print ">>> Error"
+				return False
 		except serial.SerialException:
 			sys.stderr.write("Error opening the port {0}\n".format(self.serialName))
 			self.serialPort = None
+			print ">>> Error"
 			return False
 		print ">>> Done"
 		return True
@@ -105,6 +126,7 @@ class Device:
 					self.serialPort.close()
 		except serial.SerialException:
 			sys.stderr.write("Error closing the port {0}\n".format(self.serialName))
+			print ">>> Error"
 			return False
 		print ">>> Done"
 		return True
@@ -171,7 +193,7 @@ class Device:
 
 	def sendCommand(self, cmd):
 		"""Sends the command"""
-		if self.serialPort is not None:
+		if self.serialPort is not None and self.serialPort.isOpen():
 			self.serialPort.write(chr(cmd))
 		else:
 			print "Serial port is not connected."
@@ -184,10 +206,16 @@ class Device:
 		"""
 		#-- Sets config mode
 		self.sendCommand(195) # 11000011
+
 		#-- Sends config message
 		frame = 'b{0:0>6}{1:0>5}q\n'.format(trunc(degrees * 1000), ocr) #[-10:]
 		self.serialPort.write(frame)
+
 		#-- Receives acknowledge
+		ack = self._checkAcknowledge()
+
+		return ack
+
+	def _checkAcknowledge(self):
 		ack = self.serialPort.readline()
-		if ack != 'bq\n':
-			print "Config error. Please Reset the microcontroller or reload the firmware"
+		return ack == 'bq\n'

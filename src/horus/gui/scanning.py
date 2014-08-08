@@ -165,7 +165,8 @@ class ScanningWorkbench(Workbench):
 
 	def onConnectToolClicked(self, event):
 		self.updateToolbarStatus(True)
-		self.scanner.connect()
+		if not self.scanner.connect():
+			self.updateToolbarStatus(False)
 
 	def onDisconnectToolClicked(self, event):
 		self.scanner.disconnect()

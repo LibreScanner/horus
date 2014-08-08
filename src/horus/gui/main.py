@@ -331,7 +331,14 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                 profile.getProfileSettingFloat('step_degrees'),
                                 profile.getProfileSettingInteger('step_ocr'))
 
-        #-- TODO: add camera initialize
+        self.scanner.camera.initialize(profile.getProfileSettingInteger('brightness_value'),
+                                       profile.getProfileSettingInteger('contrast_value'),
+                                       profile.getProfileSettingInteger('saturation_value'),
+                                       profile.getProfileSettingInteger('exposure_value'),
+                                       profile.getProfileSettingInteger('framerate_value'),
+                                       profile.getProfileSettingInteger('resolution_value'))
+
+        width, height = self.scanner.camera.getResolution()
 
         self.scanner.core.initialize(profile.getProfileSetting('img_type'),
                                      profile.getProfileSettingBool('blur'),

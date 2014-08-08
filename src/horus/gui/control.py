@@ -114,17 +114,15 @@ class ControlWorkbench(Workbench):
 
 	def onConnectToolClicked(self, event):
 		self.updateToolbarStatus(True)
+		if not self.scanner.connect():
+			self.updateToolbarStatus(False)
 
 		self.laserLeft = False
 		self.laserRight = False
 
-		self.scanner.connect()
-
 	def onDisconnectToolClicked(self, event):
-		self.scanner.disconnect() # Not working camera disconnect :S
-
-		# TODO: Check disconnection
-		self.updateToolbarStatus(False)
+		if self.scanner.disconnect():
+			self.updateToolbarStatus(False)
 
 	def onPlayToolClicked(self, event):
 		self.enableLabelTool(self.playTool, False)

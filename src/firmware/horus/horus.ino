@@ -78,8 +78,8 @@
 //    - Step:   7
 //    - Dir:    8
 
-#define LASER_LEFT_PIN    2
-#define LASER_RIGHT_PIN   3
+#define LASER_LEFT_PIN    3
+#define LASER_RIGHT_PIN   2
 
 #define MOTOR_STEP_PIN   12
 #define MOTOR_DIR_PIN    13
@@ -123,7 +123,7 @@ boolean config_mode = false;
 void setup()
 { 
   //-- Configure the serial port
-  Serial.begin(19200);
+  Serial.begin(9600);
   
   //-- Configure the lasers
   pinMode(LASER_LEFT_PIN, OUTPUT);
@@ -143,8 +143,8 @@ void setup()
   //-- Configure !enable
   pinMode(ENABLE_PIN, OUTPUT);
   
-  //-- Turn on the !enable
-  digitalWrite(ENABLE_PIN, LOW);
+  //-- Turn off the !enable
+  digitalWrite(ENABLE_PIN, HIGH);
   
   cli();
   
@@ -168,9 +168,9 @@ void setup()
   OCR1A = 2000;
   TCNT1 = 0;
   
-  ENABLE_STEPPER_DRIVER_INTERRUPT();
-  
   sei();
+
+  Serial.print("horus.1\n");
 }
 
 ISR (TIMER1_COMPA_vect) {
@@ -321,34 +321,34 @@ void Pulse(int step_pin)
 
 void loop() 
 {
-  if (Serial.available()) {
-    if (config_mode) {
-      //-- Configuration Frame
-      boolean handshake = false;
-     
-      do {
-        //-- Task: Read the information from the serial port
-        read_frame();
-        
-        //-- If there is a command ready or the buffer is full
-        //-- process the command!!
-        if (cmd_ready || buflen==BUFSIZE) {
-        
-          //-- Process the command
-          handshake = process_config();
-          
-          //-- Command processed!
-          cmd_ready=false;
-          buflen=0;
-        }
-      }
-      while(!handshake);
+  if (config_mode) {
+    //-- Configuration Frame
+    boolean handshake = false;
+   
+    do {
+      //-- Task: Read the information from the serial port
+      read_frame();
       
-      Serial.print("bq\n");
-  
-      config_mode = false;
+      //-- If there is a command ready or the buffer is full
+      //-- process the command!!
+      if (cmd_ready || buflen==BUFSIZE) {
+      
+        //-- Process the command
+        handshake = process_config();
+        
+        //-- Command processed!
+        cmd_ready=false;
+        buflen=0;
+      }
     }
-    else {
+    while(!handshake);
+    
+    Serial.print("bq\n");
+
+    config_mode = false;
+  }
+  else {
+    if (Serial.available()) {
       //-- Read command
       byte cmd = Serial.read();
       
@@ -360,7 +360,7 @@ void loop()
         //if (process_cmd(cmd))
         //-- If success send acknowledge
         //Serial.print(BIN_ACK); TODO
-      } 
+      }
     }
   }
   
