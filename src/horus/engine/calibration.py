@@ -37,9 +37,9 @@ class Calibration:
 	def __init__(self, parent):
 
 		self.parent=parent
-		self.patternRows=11 # points_per_column
-		self.patternColumns=6 # points_per_row
-		self.squareWidth=13 # milimeters of each square's side
+		self.patternRows=profile.getProfileSettingInteger('pattern_rows') # points_per_column
+		self.patternColumns=profile.getProfileSettingInteger('pattern_columns') # points_per_row
+		self.squareWidth=profile.getProfileSettingInteger('square_width') # milimeters of each square's side
 
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
 
