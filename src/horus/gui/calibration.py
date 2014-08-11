@@ -821,12 +821,13 @@ class ExtrinsicCalibrationPanel(Page):
 
 
 	def onTimer(self, event):
-		frame = self.scanner.camera.captureImage(True)
+		frame = self.scanner.camera.captureImage(False)
 		self.videoView.setFrame(frame)
 
 	def onCalibrationTimer(self,event):
 		frame = self.scanner.camera.captureImage(False)
-		self.scanner.device.setMotorCCW()
+		self.scanner.device.setMotorCW()
+		self.scanner.device.setMotorCW()
 		
 		self.addToPlot(frame)
 		if len(self.calibration.transVectors)> self.stopExtrinsicSamples:
@@ -896,13 +897,23 @@ class ExtrinsicCalibrationPanel(Page):
 		transVectors=self.calibration.transVectors
 		
 		self.x2D=np.array([])
+		self.y2D=np.array([])
 		self.z2D=np.array([])
 		for transUnit in transVectors:
+
 			self.x2D=np.hstack((self.x2D,transUnit[0][0]))
+			self.y2D=np.hstack((self.y2D,transUnit[1][0]))
 			self.z2D=np.hstack((self.z2D,transUnit[2][0]))
-		
+
 		self.x2D=np.r_[self.x2D]
+		self.y2D=np.r_[self.y2D]
 		self.z2D=np.r_[self.z2D]
+		# print self.y2D
+		# print "length",len(self.y2D)
+
+		meanY= np.sum(self.y2D)/len(self.y2D)
+
+		self.y=(meanY+6.71+11*self.calibration.squareWidth)
 
 		Ri,center = self.calibration.optimizeCircle(self.x2D,self.z2D)
 		
@@ -953,7 +964,7 @@ class ExtrinsicCalibrationPanel(Page):
 		
 		self.ax.grid()
 
-		label= "Center: xc="+str(self.xc)+" zc="+str(self.zc)
+		label= "Center: xc="+str(self.xc)+" zc="+str(self.zc)+ " t2="+str(self.y)
 		self.ax.set_title(label)
 
 		self.on_size(0)
@@ -981,15 +992,15 @@ class ExtrinsicCalibrationPanel(Page):
 
 	def clearPlot(self):
 		if hasattr(self,'circlePlot'):
-			
-			self.circlePlot.pop().remove()
-			self.centerPlot.pop().remove()
+			if self.circlePlot:
+				self.circlePlot.pop().remove()
+				self.centerPlot.pop().remove()
 
-			self.ax.grid()
-			for coll in self.residuContour.collections:
-				self.ax.collections.remove(coll)
-			for coll in self.residuColors.collections:
-				self.ax.collections.remove(coll)
+				self.ax.grid()
+				for coll in self.residuContour.collections:
+					self.ax.collections.remove(coll)
+				for coll in self.residuColors.collections:
+					self.ax.collections.remove(coll)
 
 	def setLayout(self):
 		
@@ -1160,7 +1171,7 @@ class ExtrinsicCalibrationPanel(Page):
 		self.parent.parent.loadInit(0)
 
 	def acceptCalibration(self,event):
-		self.calibration.setExtrinsic(self.xc, self.zc)
+		self.calibration.setExtrinsic(self.xc,self.y, self.zc)
 
 		self.parent.parent.loadInit(0)
 

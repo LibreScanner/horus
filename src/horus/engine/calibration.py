@@ -37,9 +37,9 @@ class Calibration:
 	def __init__(self, parent):
 
 		self.parent=parent
-		self.patternRows=11 # points_per_column
-		self.patternColumns=6 # points_per_row
-		self.squareWidth=13 # milimeters of each square's side
+		self.patternRows=profile.getProfileSettingInteger('pattern_rows') # points_per_column
+		self.patternColumns=profile.getProfileSettingInteger('pattern_columns') # points_per_row
+		self.squareWidth=profile.getProfileSettingInteger('square_width') # milimeters of each square's side
 
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
 
@@ -74,6 +74,7 @@ class Calibration:
 			cv2.cornerSubPix(gray,corners,winSize=(11,11),zeroZone=(-1,-1),criteria=self.criteria)
 			ret,rvecs,tvecs=cv2.solvePnP(self.objpoints,corners,self._calMatrix,self._distortionVector)
 			self.transVectors.append(tvecs)
+			# print (self.transVectors[2]+6.71+11*self.squareWidth)
 		
 		return retval
 
@@ -135,9 +136,10 @@ class Calibration:
 		Ri = self.calc_R(*c)
 		return Ri - Ri.mean()
 
-	def setExtrinsic(self,xc,zc):
+	def setExtrinsic(self,xc,y,zc):
 		
 		self._transMatrix.itemset((0),xc)
+		self._transMatrix.itemset((1),y)
 		self._transMatrix.itemset((2),zc)
 		self.saveTranslationVector()
 
@@ -176,7 +178,7 @@ class Calibration:
 
 
 
-# Data storage stuff
+	# Data storage stuff
 
 	def updateProfileToAllControls(self):
 
