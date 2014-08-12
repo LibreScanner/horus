@@ -262,18 +262,30 @@ class PatternPanel(Page):
 					bitmap = wx.BitmapFromImage(self.keyboardImage)
 					self.keyboardBitmap.SetBitmap(bitmap)
 					self.refreshBitmap()
+					self.keyboardNumber.SetLabel("2")
+					self.keyboardText.SetLabel(_("Move it according to the yellow lines"))
+					self.point1.SetForegroundColour((186,186,186))
+					self.point2.SetForegroundColour((240,246,0))
 				elif self.storyboard==2:
 					self.storyboard+=1
 					self.keyboardImage = wx.Image(getPathForImage("instructions3.png"))
 					bitmap = wx.BitmapFromImage(self.keyboardImage)
 					self.keyboardBitmap.SetBitmap(bitmap)
 					self.refreshBitmap()
+					self.keyboardNumber.SetLabel("3")
+					self.keyboardText.SetLabel(_("Press spacebar to perform captures"))
+					self.point2.SetForegroundColour((186,186,186))
+					self.point3.SetForegroundColour((240,246,0))
 				elif self.storyboard==3:
 					self.storyboard=1
 					self.keyboardImage = wx.Image(getPathForImage("instructions1.png"))
 					bitmap = wx.BitmapFromImage(self.keyboardImage)
 					self.keyboardBitmap.SetBitmap(bitmap)
 					self.refreshBitmap()
+					self.keyboardNumber.SetLabel("1")
+					self.keyboardText.SetLabel(_("Place the pattern in the plate"))
+					self.point3.SetForegroundColour((186,186,186))
+					self.point1.SetForegroundColour((240,246,0))
 					self.loaded=True
 					self.loadGrid()
 			else:
@@ -389,16 +401,38 @@ class PatternPanel(Page):
 			bitmap = wx.BitmapFromImage(self.keyboardImage)
 			self.keyboardBitmap.SetBitmap(bitmap)
 			self.refreshBitmap()		
+
+			self.keyboardNumber.SetLabel("1")
+			self.keyboardText.SetLabel(_("Place the pattern in the plate"))
+			self.point1.SetForegroundColour((240,246,0))
+			self.point2.SetForegroundColour((186,186,186))
+			self.point3.SetForegroundColour((186,186,186))
 			self.keyboardText.Show(True)
 			self.keyboardBitmap.Show(True)
 			# redo sizer to keep things beautiful
 			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
 			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
-			vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
 			hbox=wx.BoxSizer(wx.HORIZONTAL)
-			hbox.Add(self.keyboardText,0,wx.LEFT,30)
+		
+			hbox.Add(self.keyboardNumber,0,wx.ALIGN_CENTER|wx.ALL,0)
+
+			hbox.Add(self.keyboardText,0,wx.ALIGN_CENTER|wx.ALL,10)
+			hbox.Add(self.keyboardBitmap,1,wx.LEFT,100)
+		
 			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+
+			hbox2=wx.BoxSizer(wx.HORIZONTAL)
+			hbox2.Add(self.spaceText,0,wx.ALL,0)
+
+			hbox=wx.BoxSizer(wx.HORIZONTAL)
+			hbox.Add(self.point1,0,wx.ALIGN_CENTER|wx.ALL,0)
+			hbox.Add(self.point2,0,wx.ALIGN_CENTER|wx.ALL,0)
+			hbox.Add(self.point3,0,wx.ALIGN_CENTER|wx.ALL,0)
+
 			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+			
+			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+			vboxGuideView.Add(hbox2,0,wx.ALL|wx.ALIGN_CENTER,0)
 			self.guideView.SetSizer(vboxGuideView)
 		else: 
 			self.createKeyboardPanel()
@@ -452,22 +486,57 @@ class PatternPanel(Page):
 	def createKeyboardPanel(self):
 		vboxGuideView=wx.BoxSizer(wx.VERTICAL)
 		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
-	
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+		
+		self.keyboardNumber=wx.StaticText(self.guideView,label=_("1"))
+		font = wx.Font(pointSize=20,family=wx.FONTFAMILY_DECORATIVE,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_BOLD)
+		self.keyboardNumber.SetForegroundColour((186,186,186))
+		self.keyboardNumber.SetFont(font)
+
+		hbox.Add(self.keyboardNumber,0,wx.ALIGN_CENTER|wx.ALL,0)
+
 		self.keyboardImage = wx.Image(getPathForImage("instructions1.png"))
 		bitmap=wx.BitmapFromImage(self.keyboardImage)
 		self.keyboardBitmap = wx.StaticBitmap(self.guideView, -1, bitmap,wx.DefaultPosition, style=wx.BITMAP_TYPE_PNG) 
 
 		self.refreshBitmap()
-		vboxGuideView.Add(self.keyboardBitmap,0,wx.ALL|wx.ALIGN_CENTER,0)
-			
-		hbox=wx.BoxSizer(wx.HORIZONTAL)
 
-		self.keyboardText=wx.StaticText(self.guideView,label=_("Press the space bar to continue"))
+		self.keyboardText=wx.StaticText(self.guideView,label=_("Place the pattern in the plate"))
+		font = wx.Font(pointSize=16,family=wx.FONTFAMILY_DECORATIVE,style=wx.FONTSTYLE_ITALIC,weight=wx.FONTWEIGHT_NORMAL)
+		self.keyboardText.SetFont(font)
+		self.keyboardText.SetForegroundColour((186,186,186))
 
-		hbox.Add(self.keyboardText,0,wx.LEFT,30)
-
+		hbox.Add(self.keyboardText,0,wx.ALIGN_CENTER|wx.ALL,10)
+		hbox.Add(self.keyboardBitmap,0,wx.LEFT,100)
+		
 		vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
+
+		hbox2=wx.BoxSizer(wx.HORIZONTAL)
+		self.spaceText=wx.StaticText(self.guideView,label=_("Press spacebar to continue"))
+		hbox2.Add(self.spaceText,0,wx.ALL,0)
+
+
+		self.point1=wx.StaticText(self.guideView,label=_("."),style=wx.ALIGN_TOP)
+		self.point2=wx.StaticText(self.guideView,label=_("."),style=wx.ALIGN_TOP)
+		self.point3=wx.StaticText(self.guideView,label=_("."),style=wx.ALIGN_TOP)
+		font = wx.Font(pointSize=50,family=wx.FONTFAMILY_ROMAN,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_BOLD)
+		
+		self.point1.SetFont(font)
+		self.point1.SetForegroundColour((240,246,0))
+		self.point2.SetFont(font)
+		self.point2.SetForegroundColour((186,186,186))
+		self.point3.SetFont(font)
+		self.point3.SetForegroundColour((186,186,186))
+
+		hbox=wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.point1,0,wx.ALL,0)
+		hbox.Add(self.point2,0,wx.ALL,0)
+		hbox.Add(self.point3,0,wx.ALL,0)
+
 		vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
+		vboxGuideView.Add(hbox,0,wx.ALIGN_CENTER,0)
+		vboxGuideView.Add(hbox2,0,wx.ALIGN_CENTER,0)
+		
 		self.guideView.SetSizer(vboxGuideView)
 
 	def onResizeBitmap(self, size):
@@ -477,7 +546,7 @@ class PatternPanel(Page):
 		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
 		if w > 0 and h > 0:
 
-			bitmap = wx.BitmapFromImage(self.keyboardImage.Scale(w, h-50))
+			bitmap = wx.BitmapFromImage(self.keyboardImage.Scale(w/3, h/3))
 			self.keyboardBitmap.SetBitmap(bitmap) 
 			self.guideView.Layout()
 
