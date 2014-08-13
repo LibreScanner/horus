@@ -74,7 +74,7 @@ class ControlWorkbench(Workbench):
 		self.enableLabelTool(self.disconnectTool   , False)
 		self.enableLabelTool(self.playTool         , False)
 		self.enableLabelTool(self.stopTool         , False)
-		self.enableLabelTool(self.undistortTool         , False)
+		self.enableLabelTool(self.undistortTool    , False)
 		self.enableLabelTool(self.snapshotTool     , False)
 		self.enableLabelTool(self.viewTool         , True)
 
@@ -83,7 +83,7 @@ class ControlWorkbench(Workbench):
 		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , self.disconnectTool)
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked         , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked         , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onUndistortToolClicked         , self.undistortTool)
+		self.Bind(wx.EVT_TOOL, self.onUndistortToolClicked    , self.undistortTool)
 		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked     , self.snapshotTool)
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked         , self.viewTool)
 
