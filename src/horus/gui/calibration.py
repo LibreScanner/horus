@@ -242,7 +242,7 @@ class PatternPanel(Page):
 		frame = self.scanner.camera.captureImage(True)
 		if self.guidesOn:
 			frame=self.calibration.setGuides(frame,self.currentGrid)
-		# frame=self.calibration.undistortImage(frame)
+		frame=self.calibration.undistortImage(frame)
 		self.videoView.setFrame(frame)
 
 
@@ -430,7 +430,7 @@ class PatternPanel(Page):
 			hbox.Add(self.point3,0,wx.ALIGN_CENTER|wx.ALL,0)
 
 			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)	
-			
+
 			vboxGuideView.Add(hbox,0,wx.ALL|wx.ALIGN_CENTER,0)
 			vboxGuideView.Add(hbox2,0,wx.ALL|wx.ALIGN_CENTER,0)
 			self.guideView.SetSizer(vboxGuideView)
