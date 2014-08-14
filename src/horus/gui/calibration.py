@@ -56,6 +56,7 @@ class CalibrationWorkbench(Workbench):
 		Workbench.__init__(self, parent, 1, 1)
 		self.parent=parent
 		self.scanner = self.GetParent().scanner
+		self.scanner.camera.setWorkbench('calibration')
 		self.calibration = self.GetParent().calibration
 		self.load()
 
@@ -89,6 +90,7 @@ class CalibrationWorkbench(Workbench):
 
 	def onShow(self, event):
 		if event.GetShow():
+			self.scanner.camera.setWorkbench('calibration')
 			if self.scanner.isConnected:
 				self.enableLabelTool(self.connectTool      , False)
 				self.enableLabelTool(self.disconnectTool   , True)

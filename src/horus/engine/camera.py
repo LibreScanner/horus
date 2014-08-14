@@ -151,6 +151,7 @@ class Camera:
 		self.currentWorkbench=workbench
 		self.setCameraControlFromProfile()
 
+
 	def setCameraControlFromProfile(self):
 
 		brightness=profile.getProfileSettingInteger('brightness_value_'+self.currentWorkbench)

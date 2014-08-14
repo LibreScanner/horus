@@ -43,6 +43,7 @@ class ControlWorkbench(Workbench):
 		self.viewCamera = True
 
 		self.scanner = self.GetParent().scanner
+		self.scanner.camera.setWorkbench('control')
 		self.calibration = self.GetParent().calibration
 		self.undistort=True
 		self.load()
@@ -131,6 +132,7 @@ class ControlWorkbench(Workbench):
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateToolbarStatus(self.scanner.isConnected)
+			self.scanner.camera.setWorkbench('control')
 		else:
 			pass
 			#self.onStopToolClicked(None)
