@@ -34,7 +34,7 @@ from horus.gui.util.cameraPanel import *
 from horus.gui.util.videoView import *
 from horus.gui.util.devicePanel import *
 from horus.gui.util.videoView import *
-
+import cv2
 class ControlWorkbench(Workbench):
 
 	def __init__(self, parent):
@@ -43,7 +43,9 @@ class ControlWorkbench(Workbench):
 		self.viewCamera = True
 
 		self.scanner = self.GetParent().scanner
-
+		self.scanner.camera.setWorkbench('control')
+		self.calibration = self.GetParent().calibration
+		self.undistort=True
 		self.load()
 
 		self.laserLeft = False
@@ -53,6 +55,7 @@ class ControlWorkbench(Workbench):
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 
 		self.Bind(wx.EVT_SHOW, self.onShow)
+		self.undistortCounter=0 # The software cannot handle realtime undistort processing, joining threads should be implemented for optimal perfomrance
 
 	def load(self):
 
@@ -61,6 +64,8 @@ class ControlWorkbench(Workbench):
 		self.disconnectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
 		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
+		self.undistortTool      = self.toolbar.AddCheckTool(id=wx.NewId(),bitmap= wx.Bitmap(getPathForImage("undistort.png")),bmpDisabled=wx.Bitmap(getPathForImage("undistortOff.png")), shortHelp=_("Undistort"))
+		
 		self.snapshotTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
 		self.viewTool          = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("Camera / Device"))
 		self.toolbar.Realize()
@@ -70,6 +75,7 @@ class ControlWorkbench(Workbench):
 		self.enableLabelTool(self.disconnectTool   , False)
 		self.enableLabelTool(self.playTool         , False)
 		self.enableLabelTool(self.stopTool         , False)
+		self.enableLabelTool(self.undistortTool    , False)
 		self.enableLabelTool(self.snapshotTool     , False)
 		self.enableLabelTool(self.viewTool         , True)
 
@@ -78,6 +84,7 @@ class ControlWorkbench(Workbench):
 		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , self.disconnectTool)
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked         , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked         , self.stopTool)
+		self.Bind(wx.EVT_TOOL, self.onUndistortToolClicked    , self.undistortTool)
 		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked     , self.snapshotTool)
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked         , self.viewTool)
 
@@ -100,14 +107,32 @@ class ControlWorkbench(Workbench):
 
 		self.updateView()
 
+	def onUndistortToolClicked(self,event):
+		if self.undistortTool.IsToggled():
+			self.undistort=True
+		else:
+			self.undistort=False
+
+
 	def onTimer(self, event):
+		
 		frame = self.scanner.camera.captureImage()
 		if frame is not None:
-			self.cameraView.setFrame(frame)
+
+			if self.undistort:
+				if self.undistortCounter==1:
+					self.undistortCounter=0
+					frame=self.calibration.undistortImage(frame)
+					self.cameraView.setFrame(frame)
+				else:
+					self.undistortCounter+=1
+			else:
+				self.cameraView.setFrame(frame)
 
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateToolbarStatus(self.scanner.isConnected)
+			self.scanner.camera.setWorkbench('control')
 		else:
 			pass
 			#self.onStopToolClicked(None)
@@ -129,7 +154,7 @@ class ControlWorkbench(Workbench):
 	def onPlayToolClicked(self, event):
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
-		mseconds= 1000/self.scanner.camera.fps
+		mseconds= 1000/(self.scanner.camera.fps)
 		self.timer.Start(milliseconds=mseconds)
 
 	def onStopToolClicked(self, event):
@@ -171,6 +196,7 @@ class ControlWorkbench(Workbench):
 			self.enableLabelTool(self.playTool         , True)
 			self.enableLabelTool(self.stopTool         , False)
 			self.enableLabelTool(self.snapshotTool     , True)
+			self.enableLabelTool(self.undistortTool    , True)
 			#self.enableLabelTool(self.motorCCWTool     , True)
 			#self.enableLabelTool(self.motorCWTool      , True)
 			#self.enableLabelTool(self.leftLaserOnTool  , True)
@@ -183,6 +209,7 @@ class ControlWorkbench(Workbench):
 			self.enableLabelTool(self.playTool         , False)
 			self.enableLabelTool(self.stopTool         , False)
 			self.enableLabelTool(self.snapshotTool     , False)
+			self.enableLabelTool(self.undistortTool    , False)
 			#self.enableLabelTool(self.motorCCWTool     , False)
 			#self.enableLabelTool(self.motorCWTool      , False)
 			#self.enableLabelTool(self.leftLaserOnTool  , False)

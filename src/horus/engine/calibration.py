@@ -153,6 +153,7 @@ class Calibration:
 		self.mean_error=mean_error
 
 	def undistortImage(self,image):
+
 		mapx,mapy = cv2.initUndistortRectifyMap(self._calMatrix,self._distortionVector,R=None,newCameraMatrix=self._newCameraMatrix,size=(self.w,self.h),m1type=5)
 		image = cv2.remap(image,mapx,mapy,cv2.INTER_LINEAR)
 					

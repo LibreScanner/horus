@@ -44,11 +44,12 @@ class Camera:
 		#todo put these lists in preferences
 		self.framerates = [30,25,20,15,10,5]
 		self.resolutions = [(1280,960),(960,720),(800,600),(320,240),(160,120)]
+		self.currentWorkbench='control'
 
 		self.system=platform.system()
 
-		self.fps=self.framerates[profile.getProfileSettingInteger('framerate_value')]
-		self.width,self.height=self.resolutions[profile.getProfileSettingInteger('resolution_value')]
+		self.fps=self.framerates[profile.getProfileSettingInteger('framerate_value_'+self.currentWorkbench)]
+		self.width,self.height=self.resolutions[profile.getProfileSettingInteger('resolution_value_'+self.currentWorkbench)]
 		if self.system=='Linux':
 			self.maxBrightness=255.
 			self.maxContrast=255.
@@ -133,7 +134,7 @@ class Camera:
 			actualHeight=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
 
 	def getResolution(self):
-		resolution=profile.getProfileSettingInteger('resolution_value')
+		resolution=profile.getProfileSettingInteger('resolution_value_'+self.currentWorkbench)
 		width,height=self.resolutions[resolution]
 
 		return width,height
@@ -146,21 +147,26 @@ class Camera:
 		self.setFps(fps)
 		self.setResolution(resolution)
 
+	def setWorkbench(self,workbench):
+		self.currentWorkbench=workbench
+		self.setCameraControlFromProfile()
+
+
 	def setCameraControlFromProfile(self):
 
-		brightness=profile.getProfileSettingInteger('brightness_value')
+		brightness=profile.getProfileSettingInteger('brightness_value_'+self.currentWorkbench)
 		self.setBrightness(brightness)
 		
-		contrast=profile.getProfileSettingInteger('contrast_value')
+		contrast=profile.getProfileSettingInteger('contrast_value_'+self.currentWorkbench)
 		self.setContrast(contrast)
 		
-		saturation=profile.getProfileSettingInteger('saturation_value')
+		saturation=profile.getProfileSettingInteger('saturation_value_'+self.currentWorkbench)
 		self.setSaturation(saturation)
 		
-		exposure=profile.getProfileSettingInteger('exposure_value')
+		exposure=profile.getProfileSettingInteger('exposure_value_'+self.currentWorkbench)
 		self.setExposure(exposure)
-		framerate=profile.getProfileSettingInteger('framerate_value')
+		framerate=profile.getProfileSettingInteger('framerate_value_'+self.currentWorkbench)
 		self.setFps(framerate)
 		
-		resolution=profile.getProfileSettingInteger('resolution_value')
+		resolution=profile.getProfileSettingInteger('resolution_value_'+self.currentWorkbench)
 		self.setResolution(resolution)

@@ -159,6 +159,7 @@ class ScanningWorkbench(Workbench):
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateToolbarStatus(self.scanner.isConnected)
+			self.scanner.camera.setWorkbench('scanning')
 		else:
 			pass
 			#self.onStopToolClicked(None)
