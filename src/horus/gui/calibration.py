@@ -244,7 +244,7 @@ class PatternPanel(Page):
 		frame = self.scanner.camera.captureImage(True)
 		if self.guidesOn:
 			frame=self.calibration.setGuides(frame,self.currentGrid)
-		frame=self.calibration.undistortImage(frame)
+		# frame=self.calibration.undistortImage(frame)
 		self.videoView.setFrame(frame)
 
 
@@ -410,7 +410,12 @@ class PatternPanel(Page):
 			self.point2.SetForegroundColour((186,186,186))
 			self.point3.SetForegroundColour((186,186,186))
 			self.keyboardText.Show(True)
-			self.keyboardBitmap.Show(True)
+			self.keyboardBitmap.Show(True)	
+			self.spaceText.Show(True)
+			self.keyboardNumber.Show(True)
+			self.point1.Show(True)
+			self.point2.Show(True)
+			self.point3.Show(True)
 			# redo sizer to keep things beautiful
 			vboxGuideView=wx.BoxSizer(wx.VERTICAL)
 			vboxGuideView.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
@@ -447,7 +452,12 @@ class PatternPanel(Page):
 			self.guideView.UnBind(wx.EVT_SIZE)
 		if hasattr(self,'keyboardText'):
 			self.keyboardText.Show(False)
+			self.spaceText.Show(False)
 			self.keyboardBitmap.Show(False)
+			self.keyboardNumber.Show(False)
+			self.point1.Show(False)
+			self.point2.Show(False)
+			self.point3.Show(False)
 		if hasattr(self,'socketText'):
 			self.socketText.Show(True)
 			self.socketBitmap.Show(True)
