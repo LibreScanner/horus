@@ -50,6 +50,8 @@ class ControlWorkbench(WorkbenchConnection):
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
 	def load(self):
 		#-- Toolbar Configuration
 		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
@@ -59,16 +61,16 @@ class ControlWorkbench(WorkbenchConnection):
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
-		self.enableLabelTool(self.playTool         , False)
-		self.enableLabelTool(self.stopTool         , False)
-		self.enableLabelTool(self.snapshotTool     , False)
-		self.enableLabelTool(self.viewTool         , True)
+		self.enableLabelTool(self.playTool    , False)
+		self.enableLabelTool(self.stopTool    , False)
+		self.enableLabelTool(self.snapshotTool, False)
+		self.enableLabelTool(self.viewTool    , True)
 
 		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked         , self.playTool)
-		self.Bind(wx.EVT_TOOL, self.onStopToolClicked         , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked     , self.snapshotTool)
-		self.Bind(wx.EVT_TOOL, self.onViewToolClicked         , self.viewTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked    , self.playTool)
+		self.Bind(wx.EVT_TOOL, self.onStopToolClicked    , self.stopTool)
+		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked, self.snapshotTool)
+		self.Bind(wx.EVT_TOOL, self.onViewToolClicked    , self.viewTool)
 
 		#-- Left Panel
 		self.cameraPanel = CameraPanel(self._leftPanel)
@@ -88,6 +90,10 @@ class ControlWorkbench(WorkbenchConnection):
 		self.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
 
 		self.updateView()
+
+	def onShow(self, event):
+		if not event.GetShow():
+			self.onStopToolClicked(None)
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage()

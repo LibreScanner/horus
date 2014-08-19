@@ -110,8 +110,6 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         hbox.Add(self.resolutionText, 0, wx.ALL^wx.BOTTOM, 18)
         hbox.Add(self.resolutionCombo, 0, wx.ALL^wx.LEFT, 12)
         vbox.Add(hbox)
-
-        self.updateProfileToAllControls()
         
         self.SetSizer(vbox)
         self.Centre()
@@ -120,7 +118,6 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
         value=self.brightnessSlider.GetValue()  
         profile.putProfileSetting('brightness_value', value)
         self.scanner.camera.setBrightness(value)
-        
 
     def oncontrastChanged(self,event):
         value=self.contrastSlider.GetValue()    

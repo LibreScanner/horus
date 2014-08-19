@@ -28,7 +28,6 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import cv2, platform
-from horus.util import profile
 
 class Camera:
 	""" """
@@ -51,8 +50,7 @@ class Camera:
 							(432,240),(544,288),(432,240),
 							(352,288),(320,240),(176,144),(160,120)]
 
-		self.fps = self.framerates[profile.getProfileSettingInteger('framerate_value')]
-		self.width, self.height = self.resolutions[profile.getProfileSettingInteger('resolution_value')]
+		self.fps = 30
 
 		if platform.system()=='Linux':
 			self.maxBrightness=255.
@@ -73,6 +71,7 @@ class Camera:
 		self.setExposure(exposure)
 		self.setFps(fps)
 		self.setResolution(resolution)
+		self.width, self.height = self.resolutions[resolution]
 
 	def connect(self):
 		""" """
@@ -120,60 +119,33 @@ class Camera:
 		if self.isConnected:
 			value=int(value)/self.maxBrightness
 			self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
-			profile.putProfileSetting('brightness_value', value)
 
 	def setContrast(self,value):
 		if self.isConnected:
 			value=int(value)/self.maxContrast
 			self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
-			profile.putProfileSetting('contrast_value', value)
 
 	def setSaturation(self,value):
 		if self.isConnected:
 			value=int(value)/self.maxSaturation
 			self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
-			profile.putProfileSetting('saturation_value', value)
 
 	def setExposure(self,value):
 		if self.isConnected:
 			value=int(value)/self.maxExposure
 			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
-			profile.putProfileSetting('exposure_value', value)
 
 	def setFps(self,value):
 		if self.isConnected:
 			self.fps=self.framerates[value]
 			self.capture.set(cv2.cv.CV_CAP_PROP_FPS,self.fps)
-			profile.putProfileSetting('framerate_value', value)
 
 	def setResolution(self,value):
 		if self.isConnected:
-			width,height=self.resolutions[value]
+			self.width, self.height = self.resolutions[value]
 
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH,width)
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,height)
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.width)
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.height)
 
-			actualWidth=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
-			actualHeight=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
-
-			profile.putProfileSetting('resolution_value', value)
-
-	def setCameraControlFromProfile(self):
-
-		brightness=profile.getProfileSettingInteger('brightness_value')
-		self.setBrightness(brightness)
-		
-		contrast=profile.getProfileSettingInteger('contrast_value')
-		self.setContrast(contrast)
-		
-		saturation=profile.getProfileSettingInteger('saturation_value')
-		self.setSaturation(saturation)
-		
-		exposure=profile.getProfileSettingInteger('exposure_value')
-		self.setExposure(exposure)
-
-		framerate=profile.getProfileSettingInteger('framerate_value')
-		self.setFps(framerate)
-		
-		resolution=profile.getProfileSettingInteger('resolution_value')
-		self.setResolution(resolution)
+			actualWidth = self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
+			actualHeight = self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
