@@ -62,6 +62,7 @@ class WorkbenchConnection(Workbench):
 		self.updateStatus(True)
 		if not self.scanner.connect():
 			self.updateStatus(False)
+			self.GetParent().onPreferences(None)
 
 	def onDisconnectToolClicked(self, event):
 		if self.scanner.disconnect():

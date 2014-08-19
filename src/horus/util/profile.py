@@ -184,7 +184,7 @@ def _(n):
 #-- Settings
 
 setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
-setting('camera_id', 0, int, 'basic', _('Camera Id'))
+setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
 setting('feed_rate', 200, int, 'basic', _('Feed Rate')).setRange(1, 100000)
 

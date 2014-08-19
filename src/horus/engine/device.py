@@ -69,11 +69,14 @@ class Device:
 				self.serialPort.flushOutput()
 				self.serialPort.setDTR(True)
 
+				tries = 20
 				#-- Check Handshake
-				while 1:
+				while tries:
 					version = self.serialPort.readline()
 					if len(version) > 20:
 						break
+					tries -= 1
+					time.sleep(0.1)
 				if version != "Grbl 0.9g ['$' for help]\r\n":
 					print ">>> Error"
 					return False

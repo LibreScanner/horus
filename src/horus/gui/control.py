@@ -93,7 +93,10 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def onShow(self, event):
 		if not event.GetShow():
-			self.onStopToolClicked(None)
+			try:
+				self.onStopToolClicked(None)
+			except:
+				pass
 
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage()
