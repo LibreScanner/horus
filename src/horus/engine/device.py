@@ -105,16 +105,16 @@ class Device:
 
 	def enable(self):
 		"""Enables motor"""
-		self.sendCommand("M17")
+		return self._checkAcknowledge(self.sendCommand("M17"))
 
 	def disable(self):
 		"""Disables motor"""
-		self.sendCommand("M18")
+		return self._checkAcknowledge(self.sendCommand("M18"))
 
 	def setSpeedMotor(self, feedRate):
 		"""Sets motor feed rate"""
 		self.feedRate = feedRate
-		self.sendCommand("G1F{0}".format(self.feedRate))
+		return self._checkAcknowledge(self.sendCommand("G1F{0}".format(self.feedRate)))
 
 	def setRelativePosition(self, pos):
 		self._position += pos * 0.03555555
@@ -122,35 +122,33 @@ class Device:
 	def setAbsolutePosition(self, pos):
 		self._position = pos * 0.03555555
 
-	def setMoveMotor(self, pos):
+	def setMoveMotor(self):
 		"""Moves the motor"""
-		self.sendCommand("G1X{0}".format(self._position))
+		return self._checkAcknowledge(self.sendCommand("G1X{0}".format(self._position)))
    
 	def setRightLaserOn(self):
 		"""Turns right laser on"""
-		self.sendCommand("M71T1")
+		return self._checkAcknowledge(self.sendCommand("M71T1"))
 	 
 	def setLeftLaserOn(self):
 		"""Turns left laser on"""
-		self.sendCommand("M71T2")
+		return self._checkAcknowledge(self.sendCommand("M71T2"))
 	
 	def setRightLaserOff(self):
 		"""Turns right laser off"""
-		self.sendCommand("M70T1")
+		return self._checkAcknowledge(self.sendCommand("M70T1"))
 	 
 	def setLeftLaserOff(self):
 		"""Turns left laser off"""
-		self.sendCommand("M70T2")
+		return self._checkAcknowledge(self.sendCommand("M70T2"))
 
 	def sendCommand(self, cmd):
 		"""Sends the command"""
 		if self.serialPort is not None and self.serialPort.isOpen():
 			self.serialPort.write(cmd+"\r\n")
-			return self._checkAcknowledge()
+			return ''.join(self.serialPort.readlines())
 		else:
 			print "Serial port is not connected."
 
-	def _checkAcknowledge(self):
-		ack = self.serialPort.readline()
-		ack += self.serialPort.readline()
-		return ack  == "ok\r\nok\r\n"
+	def _checkAcknowledge(self, ack):
+		return ack.endswith("ok\r\nok\r\n")

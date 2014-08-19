@@ -327,9 +327,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateEngine(self):
         self.scanner.initialize(profile.getProfileSettingInteger('camera_id'),
-                                profile.getProfileSetting('serial_name'),
-                                profile.getProfileSettingFloat('step_degrees'),
-                                profile.getProfileSettingInteger('step_ocr'))
+                                profile.getProfileSetting('serial_name'))
 
         self.scanner.camera.initialize(profile.getProfileSettingInteger('brightness_value'),
                                        profile.getProfileSettingInteger('contrast_value'),

@@ -56,33 +56,32 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         motorControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Motor Control"), style=wx.ALIGN_CENTRE)
         motorControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        stepDegreesLabel = wx.StaticText(self, label=_(u"Step degrees (º) :"))
-        self.stepDegreesText = wx.TextCtrl(self, value=profile.getProfileSetting('step_degrees'), size=(70,-1))
-        stepOCRLabel = wx.StaticText(self, label=_("Step OCR timer:"))
-        self.stepOCRText = wx.TextCtrl(self, value=profile.getProfileSetting('step_ocr'), size=(78,-1))
+        stepDegreesLabel = wx.StaticText(self, label=_("Step"))
+        self.stepDegreesText = wx.TextCtrl(self, value=profile.getProfileSetting('step_degrees'), size=(60,-1))
+        feedRateLabel = wx.StaticText(self, label=_("Speed"))
+        self.feedRateText = wx.TextCtrl(self, value=profile.getProfileSetting('feed_rate'), size=(60,-1))
 
-        motorEnableButton = wx.Button(self, -1, _("Enable"))
-        motorDisableButton = wx.Button(self, -1, _("Disable"))
+        self.motorEnableButton = wx.ToggleButton(self, -1, _("Enable"))
+        self.motorMoveButton = wx.Button(self, -1, _("Move"))
 
-        motorCCWButton = wx.Button(self, -1, _("CCW Step"))
-        motorCWButton = wx.Button(self, -1, _("CW Step"))
+        gcodeCommandsStaticText = wx.StaticText(self, wx.ID_ANY, _("Gcode commands"), style=wx.ALIGN_CENTRE)
+        gcodeCommandsStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        self.applyConfigButton = wx.Button(self, -1, _("Apply Configuration"), size=(200,-1))
-        self.applyConfigButton.Disable()
+        self.gcodeRequestText = wx.TextCtrl(self, size=(145,-1))
+        self.gcodeSendButton = wx.Button(self, -1, _("Send"))
+        self.gcodeResponseText = wx.TextCtrl(self, style= wx.TE_MULTILINE)
 
         #-- Events
         self.laserLeftButton.Bind(wx.EVT_TOGGLEBUTTON, self.onLeftLaserClicked)
         self.laserRightButton.Bind(wx.EVT_TOGGLEBUTTON, self.onRightLaserClicked)
 
-        self.stepDegreesText.Bind(wx.EVT_TEXT, lambda e: self.applyConfigButton.Enable())
-        self.stepOCRText.Bind(wx.EVT_TEXT, lambda e: self.applyConfigButton.Enable())
+        self.stepDegreesText.Bind(wx.EVT_TEXT, self.onStepDegreesTextChanged)
+        self.feedRateText.Bind(wx.EVT_TEXT, self.onFeedRateTextChanged)
 
-        motorEnableButton.Bind(wx.EVT_BUTTON, self.onMotorEnableButtonClicked)
-        motorDisableButton.Bind(wx.EVT_BUTTON, self.onMotorDisableButtonClicked)
-        motorCCWButton.Bind(wx.EVT_BUTTON, self.onMotorCCWButtonClicked)
-        motorCWButton.Bind(wx.EVT_BUTTON, self.onMotorCWButtonClicked)
+        self.motorEnableButton.Bind(wx.EVT_TOGGLEBUTTON, self.onMotorEnableButtonClicked)
+        self.motorMoveButton.Bind(wx.EVT_BUTTON, self.onMotorMoveButtonClicked)
 
-        self.applyConfigButton.Bind(wx.EVT_BUTTON, self.onApplyConfigurationClicked)
+        self.gcodeSendButton.Bind(wx.EVT_BUTTON, self.onGcodeSendButtonClicked)
 
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -91,36 +90,34 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)   
-        hbox.Add(self.laserLeftButton, 0, wx.ALL, 15)
-        hbox.Add(self.laserRightButton, 0, wx.ALL, 15)
+        hbox.Add(self.laserLeftButton, 0, wx.ALL, 12)
+        hbox.Add(self.laserRightButton, 0, wx.ALL, 12)
         vbox.Add(hbox)
 
         vbox.Add(motorControlStaticText, 0, wx.ALL, 10)
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)   
-        hbox.Add(stepDegreesLabel, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.stepDegreesText, 0, wx.ALL^wx.LEFT, 12)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(stepDegreesLabel, 0, wx.ALL^wx.BOTTOM^wx.RIGHT, 18)
+        hbox.Add(self.stepDegreesText, 0, wx.ALL^wx.BOTTOM, 12)
+        hbox.Add(feedRateLabel, 0, wx.ALL^wx.RIGHT^wx.LEFT, 18)
+        hbox.Add(self.feedRateText, 0, wx.ALL^wx.RIGHT, 12)
         vbox.Add(hbox)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)   
-        hbox.Add(stepOCRLabel, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.stepOCRText, 0, wx.ALL^wx.LEFT, 12)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.motorMoveButton, 0, wx.ALL, 12)
+        hbox.Add(self.motorEnableButton, 0, wx.ALL^wx.BOTTOM, 12)
         vbox.Add(hbox)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)   
-        hbox.Add(motorEnableButton, 0, wx.ALL^wx.BOTTOM, 15)
-        hbox.Add(motorDisableButton, 0, wx.ALL^wx.BOTTOM, 15)
+        vbox.Add(gcodeCommandsStaticText, 0, wx.ALL, 10)
+        vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.gcodeRequestText, 0, wx.ALL^wx.RIGHT, 12)
+        hbox.Add(self.gcodeSendButton, 0, wx.ALL, 12)
         vbox.Add(hbox)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)   
-        hbox.Add(motorCCWButton, 0, wx.ALL, 15)
-        hbox.Add(motorCWButton, 0, wx.ALL, 15)
-        vbox.Add(hbox)
-
-        vbox.Add((0, 0), 1, wx.EXPAND)
-
-        vbox.Add(self.applyConfigButton, 0, wx.ALL, 15)
+        vbox.Add(self.gcodeResponseText, 1, wx.ALL|wx.EXPAND^wx.RIGHT, 10)
 
         self.SetSizer(vbox)
 
@@ -139,29 +136,32 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.updateScannerImage()
 
     def onMotorEnableButtonClicked(self, event):
-        self.scanner.device.enable()
+        if event.IsChecked():
+            self.motorEnableButton.SetLabel(_("Disable"))
+            self.scanner.device.enable()
+        else:
+            self.motorEnableButton.SetLabel(_("Enable"))
+            self.scanner.device.disable()
 
-    def onMotorDisableButtonClicked(self, event):
-        self.scanner.device.disable()
-
-    def onMotorCCWButtonClicked(self, event):
-        self.scanner.device.setMotorCCW()
-
-    def onMotorCWButtonClicked(self, event):
-        self.scanner.device.setMoveMotor(float((self.stepDegreesText.GetValue()).replace(',','.')))
-
-    def onApplyConfigurationClicked(self, event):
-
+    def onMotorMoveButtonClicked(self, event):
+        if self.feedRateText.GetValue() is not None:
+            self.scanner.device.setSpeedMotor(int(self.feedRateText.GetValue()))
         if self.stepDegreesText.GetValue() is not None:
+            self.scanner.device.setRelativePosition(float((self.stepDegreesText.GetValue()).replace(',','.')))
+            self.scanner.device.setMoveMotor()
+
+    def onStepDegreesTextChanged(self, event):
+        if self.stepDegreesText.GetValue() is not None and len(self.stepDegreesText.GetValue()) > 0:
             profile.putProfileSetting('step_degrees', float((self.stepDegreesText.GetValue()).replace(',','.')))
 
-        if self.stepOCRText.GetValue() is not None:
-            profile.putProfileSetting('step_ocr', int(self.stepOCRText.GetValue()))
+    def onFeedRateTextChanged(self, event):
+        if self.feedRateText.GetValue() is not None and len(self.feedRateText.GetValue()) > 0:
+            profile.putProfileSetting('feed_rate', int(self.feedRateText.GetValue()))
 
+    def onGcodeSendButtonClicked(self, event):
         if self.scanner.isConnected:
-            self.scanner.device.sendConfiguration(profile.getProfileSettingFloat('step_degrees'), profile.getProfileSettingInteger('step_ocr'))
-
-        self.applyConfigButton.Disable()
+            ret = self.scanner.device.sendCommand(self.gcodeRequestText.GetValue())
+            self.gcodeResponseText.SetValue(ret)
 
     def updateScannerImage(self):
         if self.laserLeftButton.GetValue():
@@ -178,10 +178,5 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
     def updateProfileToAllControls(self):
         degrees = profile.getProfileSettingFloat('step_degrees')
         self.stepDegreesText.SetValue(str(degrees))
-        ocr = profile.getProfileSettingInteger('step_ocr')
-        self.stepOCRText.SetValue(str(ocr))
-
-        if self.scanner.isConnected:
-            self.scanner.device.sendConfiguration(degrees, ocr)
-
-        self.applyConfigButton.Disable()
+        feedRate = profile.getProfileSettingInteger('feed_rate')
+        self.feedRateText.SetValue(str(feedRate))
