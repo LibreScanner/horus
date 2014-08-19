@@ -40,7 +40,8 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		""""""
 		wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
 
-		self.scanner = self.GetParent().GetParent().GetParent().scanner
+		self.main = self.GetParent().GetParent().GetParent()
+		self.scanner = self.main.scanner
 
 		self.SetupScrolling()
 		
@@ -53,12 +54,10 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		cameraControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Camera Control"), style=wx.ALIGN_CENTRE)
 		cameraControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-
 		self.brightnessText = wx.StaticText(self,label=_("Brightness"))
 		self.brightnessSlider = wx.Slider(self,self.brightnessId,1,0,255,size=(150,-1), style=wx.SL_LABELS)
 		self.Bind(wx.EVT_SCROLL_THUMBRELEASE,self.release,self.brightnessSlider)
-		self.Bind(wx.EVT_SCROLL_THUMBTRACK,self.onbrightnessChanged,self.brightnessSlider)
-		
+		self.Bind(wx.EVT_SCROLL_THUMBTRACK,self.onbrightnessChanged,self.brightnessSlider)		
 
 		self.contrastText = wx.StaticText(self,label=_("Contrast"))
 		self.contrastSlider = wx.Slider(self,self.contrastId,1,0,255,size=(150,-1), style=wx.SL_LABELS)
@@ -74,7 +73,6 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self.exposureSlider = wx.Slider(self,self.exposureId,60,0,200,size=(150,-1), style=wx.SL_LABELS)
 		self.Bind(wx.EVT_SCROLL_THUMBTRACK,self.onexposureChanged,self.exposureSlider)
 		self.Bind(wx.EVT_SCROLL_THUMBRELEASE,self.release,self.exposureSlider)
-
 
 		self.framerates = [str(30),str(25),str(20),str(15),str(10),str(5)]
 
@@ -177,8 +175,9 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self.flagFirstMove=True # When you drag the slider, the only undoable is the first position not the ones in between
 
 	def onSelectWorkbenchesCombo(self,event):
-		value=self.workbenchesList[int(event.GetSelection())]
-		self.currentWorkbench=value
+		value = self.workbenchesList[int(event.GetSelection())]
+		self.currentWorkbench = value
+		profile.putProfileSetting('workbench', value)
 		self.updateProfileToAllControls()
 
 	def onbrightnessChanged(self,event):
@@ -264,7 +263,6 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			self.GetParent().GetParent().GetParent().timer.Start(milliseconds=(1000/self.scanner.camera.fps))
 			exposure=profile.getProfileSettingInteger('exposure_value_'+self.currentWorkbench)
 			self.scanner.camera.setExposure(exposure)
-		
 
 	def updateProfileToAllControls(self):
 		brightness=profile.getProfileSettingInteger('brightness_value_'+self.currentWorkbench)

@@ -9,12 +9,12 @@
 # Date: March 2014                                                      #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
-# This program is free software: you can redibute it and/or modify  #
+# This program is free software: you can redibute it and/or modify      #
 # it under the terms of the GNU General Public License as published by  #
 # the Free Software Foundation, either version 3 of the License, or     #
 # (at your option) any later version.                                   #
 #                                                                       #
-# This program is dibuted in the hope that it will be useful,       #
+# This program is dibuted in the hope that it will be useful,           #
 # but WITHOUT ANY WARRANTY; without even the implied warranty of        #
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
 # GNU General Public License for more details.                          #
@@ -27,8 +27,8 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import cv2, platform
-from horus.util import profile
+import cv2
+import platform
 
 class Camera:
 	""" """
@@ -38,18 +38,21 @@ class Camera:
 		print ">>> Initializing camera ..."
 		print " - Camera ID: {0}".format(cameraId)
 		self.cameraId = cameraId
-		self.isConnected=False
 		print ">>> Done"
+
+		self.isConnected = False
 
 		#todo put these lists in preferences
 		self.framerates = [30,25,20,15,10,5]
+
 		self.resolutions = [(1280,960),(960,720),(800,600),(320,240),(160,120)]
-		self.currentWorkbench='control'
 
-		self.system=platform.system()
+		self.system = platform.system()
 
-		self.fps=self.framerates[profile.getProfileSettingInteger('framerate_value_'+self.currentWorkbench)]
-		self.width,self.height=self.resolutions[profile.getProfileSettingInteger('resolution_value_'+self.currentWorkbench)]
+		self.fps = 30
+		self.width = 800
+		self.height = 600
+		
 		if self.system=='Linux':
 			self.maxBrightness=255.
 			self.maxContrast=255.
@@ -62,23 +65,37 @@ class Camera:
 			self.maxSaturation=1.
 			self.maxExposure=-9/200.
 
+	def initialize(self, brightness, contrast, saturation, exposure, fps, resolution):
+		self.setBrightness(brightness)
+		self.setContrast(contrast)
+		self.setSaturation(saturation)
+		self.setExposure(exposure)
+		self.setFps(fps)
+		self.setResolution(resolution)
+		self.width, self.height = self.resolutions[resolution]
+
 	def connect(self):
 		""" """
 		print ">>> Connecting camera ..."
-		self.isConnected=True
 		self.capture = cv2.VideoCapture(self.cameraId)
-		self.setCameraControlFromProfile()
-		##
-		self.captureImage(flush=True)
-		##
-		print ">>> Done"
+		if self.capture.isOpened():
+			self.captureImage(flush=True)
+			print ">>> Done"
+			self.isConnected = True
+		else:
+			print ">>> Error"
+			self.isConnected = False
+		return self.isConnected
 		
 	def disconnect(self):
 		""" """
 		print ">>> Disconnecting camera ..."
-		self.capture.release()
-		self.isConnected=False
+		if self.capture is not None:
+			if self.capture.isOpened():
+				self.capture.release()
+			self.isConnected = False
 		print ">>> Done"
+		return True
 
 	def captureImage(self, mirror=False, flush=False):
 		""" If mirror is set to True, the image will be displayed as a mirror, 
@@ -96,77 +113,36 @@ class Camera:
 		else:
 			return None
 
-	def setBrightness(self,value):
+	def getResolution(self):
+		return self.height, self.width
+
+	def setBrightness(self, value):
 		if self.isConnected:
-			value=int(value)/self.maxBrightness
-			self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS,value)
+			value = int(value)/self.maxBrightness
+			self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
 
-	def setContrast(self,value):
+	def setContrast(self, value):
 		if self.isConnected:
-			value=int(value)/self.maxContrast
-			self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST,value)
+			value = int(value)/self.maxContrast
+			self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
 
-
-	def setSaturation(self,value):
+	def setSaturation(self, value):
 		if self.isConnected:
-			value=int(value)/self.maxSaturation
-			self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION,value)
+			value = int(value)/self.maxSaturation
+			self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
 
-
-	def setExposure(self,value):
+	def setExposure(self, value):
 		if self.isConnected:
-			value=int(value)/self.maxExposure
-			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE,value)
+			value = int(value)/self.maxExposure
+			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 
-	def setFps(self,value):
+	def setFps(self, value):
 		if self.isConnected:
-			self.fps=self.framerates[value]
+			self.fps = self.framerates[value]
 			self.capture.set(cv2.cv.CV_CAP_PROP_FPS,self.fps)
 
-	def setResolution(self,value):
+	def setResolution(self, value):
 		if self.isConnected:
-			width,height=self.resolutions[value]
-
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH,width)
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,height)
-
-			actualWidth=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
-			actualHeight=self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
-
-	def getResolution(self):
-		resolution=profile.getProfileSettingInteger('resolution_value_'+self.currentWorkbench)
-		width,height=self.resolutions[resolution]
-
-		return width,height
-
-	def setCameraControl(self,brightness,contrast,saturation,exposure,fps,resolution):
-		self.setBrightness(brightness)
-		self.setContrast(contrast)
-		self.setSaturation(saturation)
-		self.setExposure(exposure)
-		self.setFps(fps)
-		self.setResolution(resolution)
-
-	def setWorkbench(self,workbench):
-		self.currentWorkbench=workbench
-		self.setCameraControlFromProfile()
-
-
-	def setCameraControlFromProfile(self):
-
-		brightness=profile.getProfileSettingInteger('brightness_value_'+self.currentWorkbench)
-		self.setBrightness(brightness)
-		
-		contrast=profile.getProfileSettingInteger('contrast_value_'+self.currentWorkbench)
-		self.setContrast(contrast)
-		
-		saturation=profile.getProfileSettingInteger('saturation_value_'+self.currentWorkbench)
-		self.setSaturation(saturation)
-		
-		exposure=profile.getProfileSettingInteger('exposure_value_'+self.currentWorkbench)
-		self.setExposure(exposure)
-		framerate=profile.getProfileSettingInteger('framerate_value_'+self.currentWorkbench)
-		self.setFps(framerate)
-		
-		resolution=profile.getProfileSettingInteger('resolution_value_'+self.currentWorkbench)
-		self.setResolution(resolution)
+			self.width, self.height = self.resolutions[value]
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.width)
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.height)

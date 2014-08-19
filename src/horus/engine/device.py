@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: August 2014                                                     #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -36,62 +36,58 @@ from math import trunc
 class Device:
 	"""Device class. For accessing to the scanner device"""
 	"""
-	ASCII Protocol
+	Gcode commands:
 
-		-> bddddddmmmmmq\n
-		<- bq\n
-		
-	dddddd : motor step * 1000 (degrees)
-	mmmmm : motor ustep OCR timer
+		G1 Fnnn : feed rate
+		G1 Xnnn : move motor
 
-	Binary Protocol
+		M70 Tn  : switch off laser n
+		M71 Tn  : switch on laser n
 
-		-> 10ccvv01
-
-	cc : command
-
-		00 : motor
-		01 : laser right
-		10 : laser left
-		11 : laser right & left
-		
-	vv : value
-
-		laser:
-			X0 : off
-			X1 : on
-		motor:
-			00 : disable
-			01 : step cw
-			10 : step ccw
-			11 : enable
 	"""
   
-	def __init__(self, serialName='/dev/ttyACM0', degrees=0.45, ocr=2000):
-		"""Arguments: motor step, motor ocr"""
+	def __init__(self, serialName='/dev/ttyACM0'):
+		""" """
 		print ">>> Initializing device ..."
 		print " - Serial Name: {0}".format(serialName)
-		print " - Step Degrees: {0}".format(degrees)
-		print " - Step OCR Timer: {0}".format(ocr)
 		self.serialName = serialName
-		self.degrees = degrees 	#-- Motor step
-		self.ocr = ocr   	#-- Motor ocr
 		self.serialPort = None
+		self._position = 0
    		print ">>> Done"
 
 	def connect(self):
 		""" Opens serial port and performs handshake"""
 		print ">>> Connecting device ..."
 		try:
-			self.serialPort = serial.Serial(self.serialName, 19200, timeout=1)
-			time.sleep(2)
+			self.serialPort = serial.Serial(self.serialName, 9600, timeout=0.1)
 			if self.serialPort.isOpen():
-				self.sendConfiguration(self.degrees, self.ocr)
+
+				#-- Force Reset and flush
+				self.serialPort.setDTR(False)
+				time.sleep(0.022)
+				self.serialPort.flushInput()
+				self.serialPort.flushOutput()
+				self.serialPort.setDTR(True)
+
+				tries = 20
+				#-- Check Handshake
+				while tries:
+					version = self.serialPort.readline()
+					if len(version) > 20:
+						break
+					tries -= 1
+					time.sleep(0.1)
+				if version != "Grbl 0.9g ['$' for help]\r\n":
+					print ">>> Error"
+					return False
 			else:
 				print "Serial port is not connected."
+				print ">>> Error"
+				return False
 		except serial.SerialException:
 			sys.stderr.write("Error opening the port {0}\n".format(self.serialName))
 			self.serialPort = None
+			print ">>> Error"
 			return False
 		print ">>> Done"
 		return True
@@ -105,89 +101,57 @@ class Device:
 					self.serialPort.close()
 		except serial.SerialException:
 			sys.stderr.write("Error closing the port {0}\n".format(self.serialName))
+			print ">>> Error"
 			return False
 		print ">>> Done"
 		return True
 
 	def enable(self):
 		"""Enables motor"""
-		self.sendCommand(141) # 10001101
-		#ack = self.serialPort.read() # TODO: use ack
+		return self._checkAcknowledge(self.sendCommand("M17"))
 
 	def disable(self):
 		"""Disables motor"""
-		self.sendCommand(129) # 10000001
-		#ack = self.serialPort.read() # TODO: use ack
+		return self._checkAcknowledge(self.sendCommand("M18"))
 
-	def enable(self):
-		"""Enables motor"""
-		self.sendCommand(141) # 10001101
-		#ack = self.serialPort.read() # TODO: use ack
+	def setSpeedMotor(self, feedRate):
+		"""Sets motor feed rate"""
+		self.feedRate = feedRate
+		return self._checkAcknowledge(self.sendCommand("G1F{0}".format(self.feedRate)))
 
-	def disable(self):
-		"""Disables motor"""
-		self.sendCommand(129) # 10000001
-		#ack = self.serialPort.read() # TODO: use ack
+	def setRelativePosition(self, pos):
+		self._position += pos * 0.03555555
 
-	def setMotorCW(self):
-		"""Performs a motor step clockwise"""
-		self.sendCommand(133) # 10000101
-		#ack = self.serialPort.read() # TODO: use ack
-    
-	def setMotorCCW(self):
-		"""Performs a motor step counterclockwise"""
-		self.sendCommand(137) # 10001001
-		#ack = self.serialPort.read() # TODO: use ack
+	def setAbsolutePosition(self, pos):
+		self._position = pos * 0.03555555
+
+	def setMoveMotor(self):
+		"""Moves the motor"""
+		return self._checkAcknowledge(self.sendCommand("G1X{0}".format(self._position)))
    
 	def setRightLaserOn(self):
 		"""Turns right laser on"""
-		self.sendCommand(149) # 10010101
-		#ack = self.serialPort.read() # TODO: use ack
+		return self._checkAcknowledge(self.sendCommand("M71T1"))
 	 
 	def setLeftLaserOn(self):
 		"""Turns left laser on"""
-		self.sendCommand(165) # 10100101
-		#ack = self.serialPort.read() # TODO: use ack
-	
-	def setBothLaserOn(self):
-		"""Turns both laser on"""
-		self.sendCommand(181) # 10110101
-		#ack = self.serialPort.read() # TODO: use ack
+		return self._checkAcknowledge(self.sendCommand("M71T2"))
 	
 	def setRightLaserOff(self):
-		"""Turns right laser on"""
-		self.sendCommand(145) # 10010001
-		#ack = self.serialPort.read() # TODO: use ack
+		"""Turns right laser off"""
+		return self._checkAcknowledge(self.sendCommand("M70T1"))
 	 
 	def setLeftLaserOff(self):
-		"""Turns left laser on"""
-		self.sendCommand(161) # 10100001
-		#ack = self.serialPort.read() # TODO: use ack
-	
-	def setBothLaserOff(self):
-		"""Turns both laser on"""
-		self.sendCommand(177) # 10110001
-		#ack = self.serialPort.read() # TODO: use ack
+		"""Turns left laser off"""
+		return self._checkAcknowledge(self.sendCommand("M70T2"))
 
 	def sendCommand(self, cmd):
 		"""Sends the command"""
-		if self.serialPort is not None:
-			self.serialPort.write(chr(cmd))
+		if self.serialPort is not None and self.serialPort.isOpen():
+			self.serialPort.write(cmd+"\r\n")
+			return ''.join(self.serialPort.readlines())
 		else:
 			print "Serial port is not connected."
-    
-	def sendConfiguration(self, degrees, ocr):
-		"""Sends the config message
-				- degrees: motor step in degrees (000.000 - 999.999)
-				- ocr: motor pulse ocr (0 - 99999)
-			Receives ack ("bq")
-		"""
-		#-- Sets config mode
-		self.sendCommand(195) # 11000011
-		#-- Sends config message
-		frame = 'b{0:0>6}{1:0>5}q\n'.format(trunc(degrees * 1000), ocr) #[-10:]
-		self.serialPort.write(frame)
-		#-- Receives acknowledge
-		ack = self.serialPort.readline()
-		if ack != 'bq\n':
-			print "Config error. Please Reset the microcontroller or reload the firmware"
+
+	def _checkAcknowledge(self, ack):
+		return ack.endswith("ok\r\nok\r\n")

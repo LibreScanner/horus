@@ -27,37 +27,30 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from horus.gui.util.workbench import *
+from horus.util.resources import *
+from horus.util import profile
+
 from horus.gui.util.videoPanel import *
 from horus.gui.util.videoView import *
 from horus.gui.util.scenePanel import *
 from horus.gui.util.sceneView import *
+from horus.gui.util.workbenchConnection import *
 
-from horus.util.resources import *
-from horus.util import profile
-
-class ScanningWorkbench(Workbench):
+class ScanningWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent, 0, 1)
+		WorkbenchConnection.__init__(self, parent, 0, 1)
 
 		self.view3D = False
 		self.showVideoViews = False
-
-		self.scanner = self.GetParent().scanner
 
 		self.load()
 
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
 	def load(self):
-
 		#-- Toolbar Configuration
-		self.connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
-		self.disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
 		self.playTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
@@ -67,8 +60,6 @@ class ScanningWorkbench(Workbench):
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked   , self.connectTool)
-		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked, self.disconnectTool)
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked      , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked      , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , self.resumeTool)
@@ -158,11 +149,8 @@ class ScanningWorkbench(Workbench):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateToolbarStatus(self.scanner.isConnected)
-			self.scanner.camera.setWorkbench('scanning')
-		else:
-			pass
-			#self.onStopToolClicked(None)
+			profile.setProfileSetting('scanning')
+			self.GetParent().updateEngineProfile()
 
 	def onConnectToolClicked(self, event):
 		self.updateToolbarStatus(True)
@@ -219,24 +207,17 @@ class ScanningWorkbench(Workbench):
 			self.videoView.Show()
 		self.Layout()
 
-	def enableLabelTool(self, item, enable):
-		self.toolbar.EnableTool(item.GetId(), enable)
-
 	def updateToolbarStatus(self, status):
 		if status:
-			self.enableLabelTool(self.connectTool   , False)
-			self.enableLabelTool(self.disconnectTool, True)
-			self.enableLabelTool(self.playTool      , True)
-			self.enableLabelTool(self.stopTool      , False)
-			self.enableLabelTool(self.resumeTool    , True)
-			self.enableLabelTool(self.pauseTool     , False)
+			self.enableLabelTool(self.playTool  , True)
+			self.enableLabelTool(self.stopTool  , False)
+			self.enableLabelTool(self.resumeTool, True)
+			self.enableLabelTool(self.pauseTool , False)
 		else:
-			self.enableLabelTool(self.connectTool   , True)
-			self.enableLabelTool(self.disconnectTool, False)
-			self.enableLabelTool(self.playTool      , False)
-			self.enableLabelTool(self.stopTool      , False)
-			self.enableLabelTool(self.resumeTool    , False)
-			self.enableLabelTool(self.pauseTool     , False)
+			self.enableLabelTool(self.playTool  , False)
+			self.enableLabelTool(self.stopTool  , False)
+			self.enableLabelTool(self.resumeTool, False)
+			self.enableLabelTool(self.pauseTool , False)
 
 	def updateProfileToAllControls(self):
 		self.videoPanel.updateProfileToAllControls()

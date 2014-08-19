@@ -29,23 +29,22 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 from horus.util.resources import *
 
-from horus.gui.util.workbench import *
 from horus.gui.util.cameraPanel import *
 from horus.gui.util.videoView import *
 from horus.gui.util.devicePanel import *
 from horus.gui.util.videoView import *
-import cv2
-class ControlWorkbench(Workbench):
+from horus.gui.util.workbenchConnection import *
+
+class ControlWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent, 0, 1)
+		WorkbenchConnection.__init__(self, parent, 0, 1)
 
 		self.viewCamera = True
 
-		self.scanner = self.GetParent().scanner
-		self.scanner.camera.setWorkbench('control')
 		self.calibration = self.GetParent().calibration
-		self.undistort=True
+		self.undistort = True
+
 		self.load()
 
 		self.laserLeft = False
@@ -55,13 +54,10 @@ class ControlWorkbench(Workbench):
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 
 		self.Bind(wx.EVT_SHOW, self.onShow)
-		self.undistortCounter=0 # The software cannot handle realtime undistort processing, joining threads should be implemented for optimal perfomrance
+		self.undistortCounter = 0 # The software cannot handle realtime undistort processing, joining threads should be implemented for optimal perfomrance
 
 	def load(self):
-
 		#-- Toolbar Configuration
-		self.connectTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
-		self.disconnectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
 		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.undistortTool      = self.toolbar.AddCheckTool(id=wx.NewId(),bitmap= wx.Bitmap(getPathForImage("undistort.png")),bmpDisabled=wx.Bitmap(getPathForImage("undistortOff.png")), shortHelp=_("Undistort"))
@@ -71,22 +67,18 @@ class ControlWorkbench(Workbench):
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
-		self.enableLabelTool(self.connectTool      , True)
-		self.enableLabelTool(self.disconnectTool   , False)
-		self.enableLabelTool(self.playTool         , False)
-		self.enableLabelTool(self.stopTool         , False)
-		self.enableLabelTool(self.undistortTool    , False)
-		self.enableLabelTool(self.snapshotTool     , False)
-		self.enableLabelTool(self.viewTool         , True)
+		self.enableLabelTool(self.playTool     , False)
+		self.enableLabelTool(self.stopTool     , False)
+		self.enableLabelTool(self.snapshotTool , False)
+		self.enableLabelTool(self.undistortTool, False)
+		self.enableLabelTool(self.viewTool     , True)
 
 		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked      , self.connectTool)
-		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , self.disconnectTool)
-		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked         , self.playTool)
-		self.Bind(wx.EVT_TOOL, self.onStopToolClicked         , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onUndistortToolClicked    , self.undistortTool)
-		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked     , self.snapshotTool)
-		self.Bind(wx.EVT_TOOL, self.onViewToolClicked         , self.viewTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked     , self.playTool)
+		self.Bind(wx.EVT_TOOL, self.onStopToolClicked     , self.stopTool)
+		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.snapshotTool)
+		self.Bind(wx.EVT_TOOL, self.onUndistortToolClicked, self.undistortTool)
+		self.Bind(wx.EVT_TOOL, self.onViewToolClicked     , self.viewTool)
 
 		#-- Left Panel
 		self.cameraPanel = CameraPanel(self._leftPanel)
@@ -107,12 +99,12 @@ class ControlWorkbench(Workbench):
 
 		self.updateView()
 
-	def onUndistortToolClicked(self,event):
-		if self.undistortTool.IsToggled():
-			self.undistort=True
-		else:
-			self.undistort=False
-
+	def onShow(self, event):
+		if not event.GetShow():
+			try:
+				self.onStopToolClicked(None)
+			except:
+				pass
 
 	def onTimer(self, event):
 		
@@ -131,25 +123,8 @@ class ControlWorkbench(Workbench):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateToolbarStatus(self.scanner.isConnected)
-			self.scanner.camera.setWorkbench('control')
-		else:
-			pass
-			#self.onStopToolClicked(None)
-
-	def onConnectToolClicked(self, event):
-		self.updateToolbarStatus(True)
-
-		self.laserLeft = False
-		self.laserRight = False
-
-		self.scanner.connect()
-
-	def onDisconnectToolClicked(self, event):
-		self.scanner.disconnect() # Not working camera disconnect :S
-
-		# TODO: Check disconnection
-		self.updateToolbarStatus(False)
+			profile.setProfileSetting('control')
+			self.GetParent().updateEngineProfile()
 
 	def onPlayToolClicked(self, event):
 		self.enableLabelTool(self.playTool, False)
@@ -168,8 +143,8 @@ class ControlWorkbench(Workbench):
 		if frame is not None:
 			self.cameraView.setFrame(frame)
 
-	def enableLabelTool(self, item, enable):
-		self.toolbar.EnableTool(item.GetId(), enable)
+	def onUndistortToolClicked(self,event):
+		self.undistort = self.undistortTool.IsToggled()
 
 	def onViewToolClicked(self, event):
 		self.viewCamera = not self.viewCamera
@@ -191,31 +166,17 @@ class ControlWorkbench(Workbench):
 
 	def updateToolbarStatus(self, status):
 		if status:
-			self.enableLabelTool(self.connectTool      , False)
-			self.enableLabelTool(self.disconnectTool   , True)
-			self.enableLabelTool(self.playTool         , True)
-			self.enableLabelTool(self.stopTool         , False)
-			self.enableLabelTool(self.snapshotTool     , True)
-			self.enableLabelTool(self.undistortTool    , True)
-			#self.enableLabelTool(self.motorCCWTool     , True)
-			#self.enableLabelTool(self.motorCWTool      , True)
-			#self.enableLabelTool(self.leftLaserOnTool  , True)
-			#self.enableLabelTool(self.leftLaserOffTool , False)
-			#self.enableLabelTool(self.rightLaserOnTool , True)
-			#self.enableLabelTool(self.rightLaserOffTool, False)
+			self.enableLabelTool(self.playTool     , True)
+			self.enableLabelTool(self.stopTool     , False)
+			self.enableLabelTool(self.snapshotTool , True)
+			self.enableLabelTool(self.undistortTool, True)
+			self.laserLeft = False
+			self.laserRight = False
 		else:
-			self.enableLabelTool(self.connectTool      , True)
-			self.enableLabelTool(self.disconnectTool   , False)
-			self.enableLabelTool(self.playTool         , False)
-			self.enableLabelTool(self.stopTool         , False)
-			self.enableLabelTool(self.snapshotTool     , False)
-			self.enableLabelTool(self.undistortTool    , False)
-			#self.enableLabelTool(self.motorCCWTool     , False)
-			#self.enableLabelTool(self.motorCWTool      , False)
-			#self.enableLabelTool(self.leftLaserOnTool  , False)
-			#self.enableLabelTool(self.leftLaserOffTool , False)
-			#self.enableLabelTool(self.rightLaserOnTool , False)
-			#self.enableLabelTool(self.rightLaserOffTool, False)
+			self.enableLabelTool(self.playTool     , False)
+			self.enableLabelTool(self.stopTool     , False)
+			self.enableLabelTool(self.snapshotTool , False)
+			self.enableLabelTool(self.undistortTool, False)
 
 	def updateProfileToAllControls(self):
 		self.cameraPanel.updateProfileToAllControls()

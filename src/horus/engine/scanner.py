@@ -63,21 +63,27 @@ class Scanner(wx.PyControl):
 		self.degrees = degrees
 		self.core.setDegrees(degrees)
 		self.camera = Camera(cameraId)
-		self.device = Device(serialName, degrees, delay)
+		self.device = Device(serialName)
 
 	def connect(self):
 		""" """
-		self.isConnected = True # TODO: Fake state
-
-		self.camera.connect()
-		return self.device.connect()
+		if self.camera.connect():
+			if self.device.connect():
+				self.isConnected = True
+			else:
+				self.camera.disconnect()
+				self.isConnected = False
+		else:
+			self.isConnected = False
+		
+		return self.isConnected
 		
 	def disconnect(self):
-		""" """
-		self.isConnected = False # TODO: Fake state
-		
+		""" """		
 		self.camera.disconnect()
-		return self.device.disconnect()
+		self.device.disconnect()
+		self.isConnected = False
+		return True # Fake
 		
 	def getCore(self):
 		""" """

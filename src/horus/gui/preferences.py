@@ -45,14 +45,14 @@ class PreferencesDialog(wx.Dialog):
 
 		#-- Graphic elements
 		self.conParamsStaticText = wx.StaticText(self, -1, _("Connection Parameters"), style=wx.ALIGN_CENTRE)
-		self.serialNameLabel = wx.StaticText(self, label=_("Serial Name :"))
+		self.serialNameLabel = wx.StaticText(self, label=_("Serial Name"))
 		self.serialNames = self.main.serialList()
-		self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(110,-1))
-		self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id :"))
+		self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(140,-1))
+		self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id"))
 		self.cameraIdNames = self.main.videoList()
-		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(123,-1))
+		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(143,-1))
 
-		self.languageLabel = wx.StaticText(self, label=_("Language :"))
+		self.languageLabel = wx.StaticText(self, label=_("Language"))
 		self.languages = [row[1] for row in resources.getLanguageOptions()]
 		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(110,-1))
 
@@ -68,10 +68,19 @@ class PreferencesDialog(wx.Dialog):
 		self.updateFirmware.Bind(wx.EVT_BUTTON, self.onUpdateFirmware)
 
 		#-- Fill data
+		currentSerial = profile.getProfileSetting('serial_name')
 		if len(self.serialNames) > 0:
-			self.serialNameCombo.SetValue(self.serialNames[0])
+			if currentSerial not in self.serialNames:
+				self.serialNameCombo.SetValue(self.serialNames[0])
+			else:
+				self.serialNameCombo.SetValue(currentSerial)
+
+		currentVideoId = profile.getProfileSetting('camera_id')
 		if len(self.cameraIdNames) > 0:
-			self.cameraIdCombo.SetValue(self.cameraIdNames[0])
+			if currentVideoId not in self.cameraIdNames:
+				self.cameraIdCombo.SetValue(self.cameraIdNames[0])
+			else:
+				self.cameraIdCombo.SetValue(currentVideoId)		
 
 		#-- Call Events
 		self.onSerialNameTextChanged(None)
@@ -82,7 +91,7 @@ class PreferencesDialog(wx.Dialog):
 		    
 		vbox.Add(self.conParamsStaticText, 0, wx.ALL, 10)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.serialNameLabel, 0, wx.ALL, 10)
+		hbox.Add(self.serialNameLabel, 0, wx.ALL^wx.RIGHT, 10)
 		hbox.Add(self.serialNameCombo, 0, wx.ALL, 5)
 		vbox.Add(hbox)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)   
@@ -111,11 +120,12 @@ class PreferencesDialog(wx.Dialog):
 		self.Fit()
 
 	def onSerialNameTextChanged(self, event):
-		profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
+		if len(self.serialNameCombo.GetValue()):
+			profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
 
 	def onCameraIdTextChanged(self, event):
 		if len(self.cameraIdCombo.GetValue()) > 0:
-			profile.putProfileSetting('camera_id', int(self.cameraIdCombo.GetValue()[-1:]))
+			profile.putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
 
 	def onUpdateFirmware(self, event):
 		self.main.updateFirmware()

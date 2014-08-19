@@ -51,19 +51,24 @@ class MainWindow(wx.Frame):
                                                 size=(640+300,480+100))
         ###-- Initialize Engine
 
-        #-- TODO: only if profile setting is None or it isn't working
-
+        #-- Serial Name initialization
         serialList = self.serialList()
+        currentSerial = profile.getProfileSetting('serial_name')
         if len(serialList) > 0:
-            profile.putProfileSetting('serial_name', serialList[0])
-        # videoList = self.videoList()
-        # if len(videoList) > 0:
-        #     profile.putProfileSetting('camera_id', int(videoList[0][-1:]))
+            if currentSerial not in serialList:
+                profile.putProfileSetting('serial_name', serialList[0])
+
+        #-- Video Id initialization
+        videoList = self.videoList()
+        currentVideoId = profile.getProfileSetting('camera_id')
+        if len(videoList) > 0:
+            if currentVideoId not in videoList:
+                profile.putProfileSetting('camera_id', videoList[0])
             
         self.scanner = Scanner(self)
         self.calibration = Calibration(self)
 
-        self.updateEngine()
+        self.updateEngineProfile()
 
         ###-- Initialize GUI
 
@@ -325,13 +330,20 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.workbenchUpdate()
         self.Layout()
 
-    def updateEngine(self):
-        self.scanner.initialize(profile.getProfileSettingInteger('camera_id'),
-                                profile.getProfileSetting('serial_name'),
-                                profile.getProfileSettingFloat('step_degrees'),
-                                profile.getProfileSettingInteger('step_ocr'))
+    def updateEngineProfile(self):
+        self.scanner.initialize(int(profile.getProfileSetting('camera_id')[-1:]),
+                                profile.getProfileSetting('serial_name'))
 
-        #-- TODO: add camera initialize
+        workbench = profile.getProfileSetting('workbench')
+
+        self.scanner.camera.initialize(profile.getProfileSettingInteger('brightness_value_' + workbench),
+                                       profile.getProfileSettingInteger('contrast_value_' + workbench),
+                                       profile.getProfileSettingInteger('saturation_value_' + workbench),
+                                       profile.getProfileSettingInteger('exposure_value_' + workbench),
+                                       profile.getProfileSettingInteger('framerate_value_' + workbench),
+                                       profile.getProfileSettingInteger('resolution_value_' + workbench))
+
+        width, height = self.scanner.camera.getResolution()
 
         self.scanner.core.initialize(profile.getProfileSetting('img_type'),
                                      profile.getProfileSettingBool('blur'),
@@ -399,38 +411,38 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.Layout()
 
     def serialList(self):
-        return self._deviceList("SERIALCOMM", ['/dev/ttyACM*', '/dev/ttyUSB*', "/dev/tty.usb*", "/dev/cu.*", "/dev/rfcomm*"])
-
-    def videoList(self):
-        return self._deviceList("VIDEO", ['/dev/video*'])
-
-    def _deviceList(self, win_devices, linux_devices):
         baselist=[]
         if os.name=="nt":
-            if win_devices=="VIDEO":
-                for i in range(10):
-                    cap = cv2.VideoCapture(i)
-                    if cap.isOpened() == False:
-                        break
-                    cap.release()
-                    baselist.append(str(i))
-            else:
-                import _winreg
-                try:
-                    key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\" + win_devices)
-                    i=0
-                    while True:
-                        try:
-                            values = _winreg.EnumValue(key, i)
-                        except:
-                            return baselist
-                        if 'USBSER' in values[0]:
-                            baselist.append(values[1])
-                        i+=1
-                except:
-                    return baselist
+            import _winreg
+            try:
+                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM")
+                i=0
+                while True:
+                    try:
+                        values = _winreg.EnumValue(key, i)
+                    except:
+                        return baselist
+                    if 'USBSER' in values[0]:
+                        baselist.append(values[1])
+                    i+=1
+            except:
+                return baselist
         else:
-            for device in linux_devices:
+            for device in ['/dev/ttyACM*', '/dev/ttyUSB*', "/dev/tty.usb*", "/dev/cu.*", "/dev/rfcomm*"]:
+                baselist = baselist + glob.glob(device)
+        return baselist
+
+    def videoList(self):
+        baselist=[]
+        if os.name=="nt":
+            for i in range(10):
+                cap = cv2.VideoCapture(i)
+                if not cap.isOpened():
+                    break
+                cap.release()
+                baselist.append(str(i))
+        else:
+            for device in ['/dev/video*']:
                 baselist = baselist + glob.glob(device)
         return baselist
 
