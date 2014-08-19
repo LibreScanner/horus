@@ -91,9 +91,9 @@ class Camera:
 		""" """
 		print ">>> Disconnecting camera ..."
 		if self.capture is not None:
-			if not self.capture.isOpened():
+			if self.capture.isOpened():
 				self.capture.release()
-				self.isConnected = False
+			self.isConnected = False
 		print ">>> Done"
 		return True
 

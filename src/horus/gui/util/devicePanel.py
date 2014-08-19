@@ -148,7 +148,7 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.scanner.device.setMotorCCW()
 
     def onMotorCWButtonClicked(self, event):
-        self.scanner.device.setMotorCW()
+        self.scanner.device.setMoveMotor(float((self.stepDegreesText.GetValue()).replace(',','.')))
 
     def onApplyConfigurationClicked(self, event):
 

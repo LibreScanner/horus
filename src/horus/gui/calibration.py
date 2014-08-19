@@ -27,7 +27,7 @@
 __author__ = u"Carlos Crespo <carlos.crespo@bq.com>"
 __license__ = u"GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from horus.gui.util.workbench import *
+from horus.gui.util.workbenchConnection import *
 from horus.gui.util.page import *
 from horus.gui.util.videoView import *
 from horus.util import resources
@@ -50,34 +50,15 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 from matplotlib import animation
 
-class CalibrationWorkbench(Workbench):
+class CalibrationWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
-		Workbench.__init__(self, parent, 1, 1)
+		WorkbenchConnection.__init__(self, parent, 1, 1)
 		self.parent=parent
-		self.scanner = self.GetParent().scanner
 		self.calibration = self.GetParent().calibration
 		self.load()
 
 	def load(self):
-
-		#-- Toolbar Configuration
-
-		self.connectTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
-		self.disconnectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
-		
-		#-- Disable Toolbar Items
-
-		self.enableLabelTool(self.connectTool      , True)
-		self.enableLabelTool(self.disconnectTool   , False)
-		
-		#-- Bind Toolbar Items
-
-		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked      , self.connectTool)
-		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked   , self.disconnectTool)
-		
-		self.toolbar.Realize()
-
 		self._panel.parent=self
 		self._intrinsicsPanel=IntrinsicsPanel(self._panel,self.calibration)
 		self._extrinsicsPanel=ExtrinsicsPanel(self._panel,self.calibration)
@@ -145,22 +126,6 @@ class CalibrationWorkbench(Workbench):
 		self.initHbox.Add(self._extrinsicsPanel,1,wx.EXPAND|wx.ALL,10)
 		self._panel.SetSizer(self.initHbox)
 		self.Layout()
-
-	def enableLabelTool(self, item, enable):
-		self.toolbar.EnableTool(item.GetId(), enable)
-
-	def onConnectToolClicked(self, event):
-		self.enableLabelTool(self.disconnectTool,True)
-		self.enableLabelTool(self.connectTool,False)
-		self.scanner.connect()
-
-	def onDisconnectToolClicked(self, event):
-		self.scanner.disconnect() # Not working camera disconnect :S
-
-		# TODO: Check disconnection
-		self.enableLabelTool(self.connectTool, True)
-		self.enableLabelTool(self.disconnectTool,False)
-		self.loadInit(0)
 		
 class PatternPanel(Page):
 	def __init__(self,parent,scanner,calibration):

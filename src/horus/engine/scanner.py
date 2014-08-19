@@ -63,7 +63,7 @@ class Scanner(wx.PyControl):
 		self.degrees = degrees
 		self.core.setDegrees(degrees)
 		self.camera = Camera(cameraId)
-		self.device = Device(serialName, degrees, delay)
+		self.device = Device(serialName)
 
 	def connect(self):
 		""" """
