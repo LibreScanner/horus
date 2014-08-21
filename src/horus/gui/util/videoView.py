@@ -34,7 +34,7 @@ from horus.util.resources import *
 class VideoView(wx.Panel):
 
 	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, style=wx.SIMPLE_BORDER)
+		wx.Panel.__init__(self, parent) #, style=wx.SIMPLE_BORDER)
 
 		self.xOffset = 0
 		self.yOffset = 0

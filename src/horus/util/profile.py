@@ -192,7 +192,7 @@ setting('brightness_control', 116, int, 'advanced', _('Brightness')).setRange(0,
 setting('contrast_control', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_control', 12, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_control', 102, int, 'advanced', _('Exposure')).setRange(0, 10000)
-setting('framerate_control', 30, int, 'advanced', _('Framerate')).setRange(0, 5)
+setting('framerate_control', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
 setting('camera_width_control', 800, int, 'advanced', _('Camera Width')).setRange(1)
 setting('camera_height_control', 600, int, 'advanced', _('Camera Height')).setRange(1)
 
@@ -200,7 +200,7 @@ setting('brightness_calibration', 116, int, 'advanced', _('Brightness')).setRang
 setting('contrast_calibration', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_calibration', 12, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_calibration', 102, int, 'advanced', _('Exposure')).setRange(0, 10000)
-setting('framerate_calibration', 30, int, 'advanced', _('Framerate')).setRange(0, 5)
+setting('framerate_calibration', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
 setting('camera_width_calibration', 800, int, 'advanced', _('Camera Width')).setRange(1)
 setting('camera_height_calibration', 600, int, 'advanced', _('Camera Height')).setRange(1)
 
@@ -208,7 +208,7 @@ setting('brightness_scanning', 116, int, 'advanced', _('Brightness')).setRange(0
 setting('contrast_scanning', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_scanning', 12, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_scanning', 102, int, 'advanced', _('Exposure')).setRange(0, 10000)
-setting('framerate_scanning', 30, int, 'advanced', _('Framerate')).setRange(0, 5)
+setting('framerate_scanning', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
 setting('camera_width_scanning', 800, int, 'advanced', _('Camera Width')).setRange(1)
 setting('camera_height_scanning', 600, int, 'advanced', _('Camera Height')).setRange(1)
 

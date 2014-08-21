@@ -40,10 +40,10 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		""""""
 		wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
 
+		self.SetupScrolling()
+
 		self.main = self.GetParent().GetParent().GetParent()
 		self.scanner = self.main.scanner
-
-		self.SetupScrolling()
 
 		##-- TODO: Refactor
 		
@@ -213,7 +213,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		if self.scanner.isConnected:
 			self.GetParent().GetParent().GetParent().timer.Stop()
 			self.scanner.camera.setFps(value)
-			if self.scanner.camera.fps > 0:
+			if self.main.playing and self.scanner.camera.fps > 0:
 				self.GetParent().GetParent().GetParent().timer.Start(milliseconds=(1000/self.scanner.camera.fps))
 		
 	def OnSelectResolution(self,event):
@@ -264,10 +264,11 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			profile.resetProfileSetting('saturation_'+self.currentWorkbench)
 			profile.resetProfileSetting('exposure_'+self.currentWorkbench)
 			profile.resetProfileSetting('framerate_'+self.currentWorkbench)
-			profile.resetProfileSetting('resolution_'+self.currentWorkbench)
+			profile.resetProfileSetting('camera_width_'+self.currentWorkbench)
+			profile.resetProfileSetting('camera_height_'+self.currentWorkbench)
 			self.GetParent().GetParent().GetParent().timer.Stop()
 			self.updateProfileToAllControls()
-			if self.scanner.camera.fps > 0:
+			if self.main.playing and self.scanner.camera.fps > 0:
 				self.GetParent().GetParent().GetParent().timer.Start(milliseconds=(1000/self.scanner.camera.fps))
 			exposure=profile.getProfileSettingInteger('exposure_'+self.currentWorkbench)
 			self.scanner.camera.setExposure(exposure)
