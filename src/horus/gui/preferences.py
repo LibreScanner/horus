@@ -137,6 +137,5 @@ class PreferencesDialog(wx.Dialog):
 			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
 
 	def onClose(self, e):
-		self.main.updateEngine()
 		self.Destroy()
 

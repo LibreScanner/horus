@@ -31,6 +31,7 @@ from horus.gui.util.workbenchConnection import *
 from horus.gui.util.page import *
 from horus.gui.util.videoView import *
 from horus.util import resources
+from horus.util import profile
 
 import wx.lib.scrolledpanel
 
@@ -65,11 +66,6 @@ class CalibrationWorkbench(WorkbenchConnection):
 		self._extrinsicsPanel=ExtrinsicsPanel(self._panel,self.calibration)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 		self.setLayout()
-
-	def onShow(self, event):
-		if event.GetShow():
-			profile.setProfileSetting('calibration')
-			self.GetParent().updateEngineProfile()
 
 	def loadInit(self,event):
 		

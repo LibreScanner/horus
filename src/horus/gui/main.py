@@ -250,6 +250,7 @@ class MainWindow(wx.Frame):
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
         wx.CallAfter(prefDialog.Show)
+        self.updateScannerProfile()
 
     def onWorkbenchSelectorClicked(self, event):
         """ """
@@ -331,20 +332,28 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.Layout()
 
     def updateEngineProfile(self):
+        self.updateScannerProfile()
+        self.updateCoreProfile()
+        self.updateCameraCurrentProfile()
+
+    def updateScannerProfile(self):
         self.scanner.initialize(int(profile.getProfileSetting('camera_id')[-1:]),
                                 profile.getProfileSetting('serial_name'))
 
-        workbench = profile.getProfileSetting('workbench')
+    def updateCameraCurrentProfile(self):
+        self.updateCameraProfile(profile.getPreference('workbench'))
 
-        self.scanner.camera.initialize(profile.getProfileSettingInteger('brightness_value_' + workbench),
-                                       profile.getProfileSettingInteger('contrast_value_' + workbench),
-                                       profile.getProfileSettingInteger('saturation_value_' + workbench),
-                                       profile.getProfileSettingInteger('exposure_value_' + workbench),
-                                       profile.getProfileSettingInteger('framerate_value_' + workbench),
-                                       profile.getProfileSettingInteger('resolution_value_' + workbench))
+    def updateCameraProfile(self, workbench):
+        if workbench in ['control', 'calibration', 'scanning']:
+            self.scanner.camera.initialize(profile.getProfileSettingInteger('brightness_' + workbench),
+                                           profile.getProfileSettingInteger('contrast_' + workbench),
+                                           profile.getProfileSettingInteger('saturation_' + workbench),
+                                           profile.getProfileSettingInteger('exposure_' + workbench),
+                                           profile.getProfileSettingInteger('framerate_' + workbench),
+                                           profile.getProfileSettingInteger('camera_width_' + workbench),
+                                           profile.getProfileSettingInteger('camera_height_' + workbench))
 
-        width, height = self.scanner.camera.getResolution()
-
+    def updateCoreProfile(self):
         self.scanner.core.initialize(profile.getProfileSetting('img_type'),
                                      profile.getProfileSettingBool('blur'),
                                      profile.getProfileSettingInteger('blur_value'),
@@ -363,8 +372,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                      profile.getProfileSettingInteger('max_h'),
                                      profile.getProfileSettingInteger('z_offset'),
                                      profile.getProfileSettingFloat('step_degrees'),
-                                     profile.getProfileSettingInteger('camera_width'),
-                                     profile.getProfileSettingInteger('camera_height'),
+                                     profile.getProfileSettingInteger('camera_width_scanning'),
+                                     profile.getProfileSettingInteger('camera_height_scanning'),
                                      profile.getProfileSettingFloat('laser_angle'),
                                      profile.getProfileSettingNumpy('calibration_matrix'),
                                      profile.getProfileSettingNumpy('translation_vector'))
@@ -407,6 +416,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
+
+        self.updateCameraProfile(currentWorkbench)
 
         self.Layout()
 

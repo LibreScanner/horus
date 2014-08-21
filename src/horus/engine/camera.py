@@ -32,47 +32,39 @@ import platform
 
 class Camera:
 	""" """
-
 	def __init__(self, cameraId=0):
 		""" """
 		print ">>> Initializing camera ..."
 		print " - Camera ID: {0}".format(cameraId)
 		self.cameraId = cameraId
-		print ">>> Done"
 
 		self.isConnected = False
 
-		#todo put these lists in preferences
-		self.framerates = [30,25,20,15,10,5]
-
-		self.resolutions = [(1280,960),(960,720),(800,600),(320,240),(160,120)]
-
-		self.system = platform.system()
-
 		self.fps = 30
+
 		self.width = 800
 		self.height = 600
 		
-		if self.system=='Linux':
-			self.maxBrightness=255.
-			self.maxContrast=255.
-			self.maxSaturation=255.
-			self.maxExposure=10000.
+		if platform.system()=='Linux':
+			self.maxBrightness = 255.
+			self.maxContrast = 255.
+			self.maxSaturation = 255.
+			self.maxExposure = 10000.
 		else:
 			print "Operative system: ",self.system,platform.release()
-			self.maxBrightness=1.
-			self.maxContrast=1.
-			self.maxSaturation=1.
-			self.maxExposure=-9/200.
+			self.maxBrightness = 1.
+			self.maxContrast = 1.
+			self.maxSaturation = 1.
+			self.maxExposure = -9/200.
 
-	def initialize(self, brightness, contrast, saturation, exposure, fps, resolution):
+	def initialize(self, brightness, contrast, saturation, exposure, fps, width, height):
 		self.setBrightness(brightness)
 		self.setContrast(contrast)
 		self.setSaturation(saturation)
 		self.setExposure(exposure)
 		self.setFps(fps)
-		self.setResolution(resolution)
-		self.width, self.height = self.resolutions[resolution]
+		self.setWidth(width)
+		self.setHeight(height)
 
 	def connect(self):
 		""" """
@@ -98,7 +90,7 @@ class Camera:
 		return True
 
 	def captureImage(self, mirror=False, flush=False):
-		""" If mirror is set to True, the image will be displayed as a mirror, 
+		""" If mirror is set to True, the image will be displayed as a mirror,
 		otherwise it will be displayed as the camera sees it"""
 		if flush:
 			for i in range(0,2):
@@ -114,7 +106,7 @@ class Camera:
 			return None
 
 	def getResolution(self):
-		return self.height, self.width
+		return self.height, self.width #-- Inverted values because of transpose
 
 	def setBrightness(self, value):
 		if self.isConnected:
@@ -138,11 +130,15 @@ class Camera:
 
 	def setFps(self, value):
 		if self.isConnected:
-			self.fps = self.framerates[value]
-			self.capture.set(cv2.cv.CV_CAP_PROP_FPS,self.fps)
+			self.fps = value
+			self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
 
-	def setResolution(self, value):
+	def setWidth(self, value):
 		if self.isConnected:
-			self.width, self.height = self.resolutions[value]
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.width)
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.height)
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
+			self.width = self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
+
+	def setHeight(self, value):
+		if self.isConnected:
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)
+			self.height = self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)

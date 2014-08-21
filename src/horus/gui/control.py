@@ -28,6 +28,7 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 from horus.util.resources import *
+from horus.util import profile
 
 from horus.gui.util.cameraPanel import *
 from horus.gui.util.videoView import *
@@ -44,6 +45,7 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.calibration = self.GetParent().calibration
 		self.undistort = True
+		##-- TODO: move undistort to Camera class
 
 		self.load()
 
@@ -100,7 +102,9 @@ class ControlWorkbench(WorkbenchConnection):
 		self.updateView()
 
 	def onShow(self, event):
-		if not event.GetShow():
+		if event.GetShow():
+			self.updateStatus(self.scanner.isConnected)
+		else:
 			try:
 				self.onStopToolClicked(None)
 			except:
@@ -121,16 +125,12 @@ class ControlWorkbench(WorkbenchConnection):
 			else:
 				self.cameraView.setFrame(frame)
 
-	def onShow(self, event):
-		if event.GetShow():
-			profile.setProfileSetting('control')
-			self.GetParent().updateEngineProfile()
-
 	def onPlayToolClicked(self, event):
-		self.enableLabelTool(self.playTool, False)
-		self.enableLabelTool(self.stopTool, True)
-		mseconds= 1000/(self.scanner.camera.fps)
-		self.timer.Start(milliseconds=mseconds)
+		if self.scanner.camera.fps > 0:
+			self.enableLabelTool(self.playTool, False)
+			self.enableLabelTool(self.stopTool, True)
+			mseconds = 1000/(self.scanner.camera.fps)
+			self.timer.Start(milliseconds=mseconds)
 
 	def onStopToolClicked(self, event):
 		self.enableLabelTool(self.playTool, True)

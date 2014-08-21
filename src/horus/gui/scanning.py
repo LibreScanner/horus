@@ -147,11 +147,6 @@ class ScanningWorkbench(WorkbenchConnection):
 				if len(pointCloud[0]) > 0:
 					self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
-	def onShow(self, event):
-		if event.GetShow():
-			profile.setProfileSetting('scanning')
-			self.GetParent().updateEngineProfile()
-
 	def onConnectToolClicked(self, event):
 		self.updateToolbarStatus(True)
 		self.scanner.connect()
