@@ -77,7 +77,11 @@ class Device:
 						break
 					tries -= 1
 					time.sleep(0.1)
-				if version != "Grbl 0.9g ['$' for help]\r\n":
+				if version == "Grbl 0.9g ['$' for help]\r\n":
+					self.setSpeedMotor(10)
+					self.setAbsolutePosition(0)
+					self.enable()
+				else:
 					print ">>> Error"
 					return False
 			else:

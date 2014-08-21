@@ -222,6 +222,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		w = int(resolution.split(',')[0])
 		profile.putProfileSetting('camera_width_' + self.currentWorkbench, w)
 		profile.putProfileSetting('camera_height_' + self.currentWorkbench, h)
+		print "Select Resolution"
 		self.scanner.camera.setWidth(w)
 		self.scanner.camera.setHeight(h)
 

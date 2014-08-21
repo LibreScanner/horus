@@ -65,6 +65,7 @@ class Camera:
 		self.setFps(fps)
 		self.setWidth(width)
 		self.setHeight(height)
+		self._updateResolution()
 
 	def connect(self):
 		""" """
@@ -135,10 +136,13 @@ class Camera:
 
 	def setWidth(self, value):
 		if self.isConnected:
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
-			self.width = self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)	
 
 	def setHeight(self, value):
 		if self.isConnected:
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)
-			self.height = self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)	
+
+	def _updateResolution(self):
+		if self.isConnected:
+			self.width = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
+			self.height = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
