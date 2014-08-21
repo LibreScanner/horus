@@ -468,9 +468,15 @@ class MainWorkbench(wx.Panel):
 
         self._title = wx.Panel(self)
         self._panel = wx.Panel(self)
-        self._leftPanel = ItemWorkbench(self._panel, _("Control"))
-        self._middlePanel = ItemWorkbench(self._panel, _("Calibration"))
-        self._rightPanel = ItemWorkbench(self._panel, _("Scanning"))
+        self._leftPanel = ItemWorkbench(self._panel, titleText=_("Control"), 
+                                                     description=_("In this workbench you can configure all the camera parameters, test the lasers and control the motor using gcodes."),
+                                                     image=wx.Image(resources.getPathForImage("control.png")))
+        self._middlePanel = ItemWorkbench(self._panel, titleText=_("Calibration"), 
+                                                       description=_("In this workbench you can perform intrinsic calibration of the camera and extrinsic calibration of the device."),
+                                                       image=wx.Image(resources.getPathForImage("calibration.png")))
+        self._rightPanel = ItemWorkbench(self._panel, titleText=_("Scanning"), 
+                                                      description=_("In this workbench you can start and stop the scanning process and also visualize in real time the 3D point cloud."),
+                                                      image=wx.Image(resources.getPathForImage("scanning.png")))
 
         #self._title.SetBackgroundColour(wx.WHITE)
         #self._panel.SetBackgroundColour(wx.BLACK)
@@ -516,7 +522,7 @@ from horus.gui.util.videoView import *
 
 class ItemWorkbench(wx.Panel):
 
-    def __init__(self, parent, titleText="Workbench", description="Workbench description", buttonText="Go"):
+    def __init__(self, parent, titleText="Workbench", description="Workbench description", image=None, buttonText="Go"):
         wx.Panel.__init__(self, parent)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -533,7 +539,8 @@ class ItemWorkbench(wx.Panel):
         titleText.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         descText = wx.StaticText(content, label=description)
         imageView = VideoView(self)
-        imageView.setImage(wx.Image(resources.getPathForImage("horus.png")))
+        if image is not None:
+            imageView.setImage(image)
         self.buttonGo = wx.Button(content, wx.NewId(), label=buttonText)
 
         titleBox.Add(titleText, 0, wx.ALL|wx.EXPAND, 10)
