@@ -160,7 +160,7 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
 
     def onGcodeSendButtonClicked(self, event):
         if self.scanner.isConnected:
-            ret = self.scanner.device.sendCommand(self.gcodeRequestText.GetValue())
+            ret = self.scanner.device.sendCommand(self.gcodeRequestText.GetValue(), ret=True, readLines=True)
             self.gcodeResponseText.SetValue(ret)
 
     def updateScannerImage(self):

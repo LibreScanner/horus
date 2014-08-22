@@ -120,46 +120,45 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.workbenchText, 0, wx.ALL, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.workbenchesCombo, 0, wx.TOP, 10)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.brightnessText, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.brightnessSlider, 0, wx.ALL, 0)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.contrastText, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.contrastSlider, 0, wx.ALL, 0)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.saturationText, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.saturationSlider, 0, wx.ALL, 0)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 
 		hbox.Add(self.exposureText, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
-
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.exposureSlider, 0, wx.ALL, 0)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 
 		hbox.Add(self.frameRateText, 0, wx.ALL, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.frameRateCombo, 0, wx.TOP, 10)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 		
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.resolutionText, 0, wx.ALL, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.resolutionCombo, 0, wx.TOP, 10)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 

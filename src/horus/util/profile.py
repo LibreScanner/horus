@@ -237,7 +237,7 @@ setting('z_offset', 0, int, 'advanced', _('Z Offset')).setRange(-50, 50)
 setting('laser_angle', 60.0, float, 'basic', _('Laser Angle'))
 
 setting('machine_name', '', str, 'machine', 'hidden')
-setting('machine_type', 'cyclops', str, 'machine', 'hidden')
+setting('machine_type', 'ciclop', str, 'machine', 'hidden')
 setting('machine_width', '200', float, 'machine', 'hidden').setLabel(_("Maximum width (mm)"), _("Size of the machine in mm"))
 setting('machine_depth', '200', float, 'machine', 'hidden').setLabel(_("Maximum depth (mm)"), _("Size of the machine in mm"))
 setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum height (mm)"), _("Size of the machine in mm"))
@@ -696,7 +696,7 @@ def getMachineSizePolygons():
 			circle.append([math.cos(float(n)/steps*2*math.pi) * size[0]/2, math.sin(float(n)/steps*2*math.pi) * size[1]/2])
 		ret.append(numpy.array(circle, numpy.float32))
 
-	"""if getMachineSetting('machine_type') == 'cyclops':
+	"""if getMachineSetting('machine_type') == 'ciclop':
 		w = 20
 		h = 20
 		ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))

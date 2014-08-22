@@ -333,7 +333,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateEngineProfile(self):
         self.updateScannerProfile()
-        self.updateCoreProfile()
+        self.updateCoreCurrentProfile()
         self.updateCameraCurrentProfile()
 
     def updateScannerProfile(self):
@@ -353,30 +353,37 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                            profile.getProfileSettingInteger('camera_width_' + workbench),
                                            profile.getProfileSettingInteger('camera_height_' + workbench))
 
-    def updateCoreProfile(self):
-        self.scanner.core.initialize(profile.getProfileSetting('img_type'),
-                                     profile.getProfileSettingBool('blur'),
-                                     profile.getProfileSettingInteger('blur_value'),
-                                     profile.getProfileSettingBool('open'),
-                                     profile.getProfileSettingInteger('open_value'),
-                                     np.array([profile.getProfileSettingNumpy('min_h'),
-                                               profile.getProfileSettingNumpy('min_s'),
-                                               profile.getProfileSettingNumpy('min_v')],np.uint8),
-                                     np.array([profile.getProfileSettingNumpy('max_h'),
-                                               profile.getProfileSettingNumpy('max_s'),
-                                               profile.getProfileSettingNumpy('max_v')],np.uint8),
-                                     profile.getProfileSettingBool('use_compact'),
-                                     profile.getProfileSettingInteger('min_rho'),
-                                     profile.getProfileSettingInteger('max_rho'),
-                                     profile.getProfileSettingInteger('min_h'),
-                                     profile.getProfileSettingInteger('max_h'),
-                                     profile.getProfileSettingInteger('z_offset'),
-                                     profile.getProfileSettingFloat('step_degrees'),
-                                     profile.getProfileSettingInteger('camera_width_scanning'),
-                                     profile.getProfileSettingInteger('camera_height_scanning'),
-                                     profile.getProfileSettingFloat('laser_angle'),
-                                     profile.getProfileSettingNumpy('calibration_matrix'),
-                                     profile.getProfileSettingNumpy('translation_vector'))
+            self.scanner.core.setResolution(profile.getProfileSettingInteger('camera_height_scanning'),
+                                            profile.getProfileSettingInteger('camera_width_scanning'))
+
+    def updateCoreCurrentProfile(self):
+        self.updateCoreProfile(profile.getPreference('workbench'))
+
+    def updateCoreProfile(self, workbench):
+        if workbench in ['scanning']:
+            self.scanner.core.initialize(profile.getProfileSetting('img_type'),
+                                         profile.getProfileSettingBool('blur'),
+                                         profile.getProfileSettingInteger('blur_value'),
+                                         profile.getProfileSettingBool('open'),
+                                         profile.getProfileSettingInteger('open_value'),
+                                         np.array([profile.getProfileSettingNumpy('min_h'),
+                                                   profile.getProfileSettingNumpy('min_s'),
+                                                   profile.getProfileSettingNumpy('min_v')],np.uint8),
+                                         np.array([profile.getProfileSettingNumpy('max_h'),
+                                                   profile.getProfileSettingNumpy('max_s'),
+                                                   profile.getProfileSettingNumpy('max_v')],np.uint8),
+                                         profile.getProfileSettingBool('use_compact'),
+                                         profile.getProfileSettingInteger('min_rho'),
+                                         profile.getProfileSettingInteger('max_rho'),
+                                         profile.getProfileSettingInteger('min_h'),
+                                         profile.getProfileSettingInteger('max_h'),
+                                         profile.getProfileSettingInteger('z_offset'),
+                                         profile.getProfileSettingFloat('step_degrees'),
+                                         profile.getProfileSettingInteger('camera_height_scanning'),
+                                         profile.getProfileSettingInteger('camera_width_scanning'),
+                                         profile.getProfileSettingFloat('laser_angle'),
+                                         profile.getProfileSettingNumpy('calibration_matrix'),
+                                         profile.getProfileSettingNumpy('translation_vector'))
 
     def updateFirmware(self):
         avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'))
@@ -418,6 +425,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
 
         self.updateCameraProfile(currentWorkbench)
+        self.updateCoreProfile(currentWorkbench)
 
         self.Layout()
 

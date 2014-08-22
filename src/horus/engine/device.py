@@ -59,7 +59,7 @@ class Device:
 		""" Opens serial port and performs handshake"""
 		print ">>> Connecting device ..."
 		try:
-			self.serialPort = serial.Serial(self.serialName, 9600, timeout=0.1)
+			self.serialPort = serial.Serial(self.serialName, 9600, timeout=0.5)
 			if self.serialPort.isOpen():
 
 				#-- Force Reset and flush
@@ -80,7 +80,7 @@ class Device:
 				if version == "Grbl 0.9g ['$' for help]\r\n":
 					self.setSpeedMotor(10)
 					self.setAbsolutePosition(0)
-					self.enable()
+					#self.enable()
 				else:
 					print ">>> Error"
 					return False
@@ -112,16 +112,16 @@ class Device:
 
 	def enable(self):
 		"""Enables motor"""
-		return self._checkAcknowledge(self.sendCommand("M17"))
+		return self.sendCommand("M17")
 
 	def disable(self):
 		"""Disables motor"""
-		return self._checkAcknowledge(self.sendCommand("M18"))
+		return self.sendCommand("M18")
 
 	def setSpeedMotor(self, feedRate):
 		"""Sets motor feed rate"""
 		self.feedRate = feedRate
-		return self._checkAcknowledge(self.sendCommand("G1F{0}".format(self.feedRate)))
+		return self.sendCommand("G1F{0}".format(self.feedRate))
 
 	def setRelativePosition(self, pos):
 		self._position += pos * 0.03555555
@@ -131,31 +131,36 @@ class Device:
 
 	def setMoveMotor(self):
 		"""Moves the motor"""
-		return self._checkAcknowledge(self.sendCommand("G1X{0}".format(self._position)))
+		self.sendCommand("G1X{0}".format(self._position))
    
 	def setRightLaserOn(self):
 		"""Turns right laser on"""
-		return self._checkAcknowledge(self.sendCommand("M71T1"))
+		self.sendCommand("M71T1", ret=False)
 	 
 	def setLeftLaserOn(self):
 		"""Turns left laser on"""
-		return self._checkAcknowledge(self.sendCommand("M71T2"))
+		self.sendCommand("M71T2", ret=False)
 	
 	def setRightLaserOff(self):
 		"""Turns right laser off"""
-		return self._checkAcknowledge(self.sendCommand("M70T1"))
+		self.sendCommand("M70T1", ret=False)
 	 
 	def setLeftLaserOff(self):
 		"""Turns left laser off"""
-		return self._checkAcknowledge(self.sendCommand("M70T2"))
+		self.sendCommand("M70T2", ret=False)
 
-	def sendCommand(self, cmd):
+	def sendCommand(self, cmd, ret=True, readLines=False):
 		"""Sends the command"""
 		if self.serialPort is not None and self.serialPort.isOpen():
+			self.serialPort.flushInput()
 			self.serialPort.write(cmd+"\r\n")
-			return ''.join(self.serialPort.readlines())
+			if ret:
+				if readLines:
+					return ''.join(self.serialPort.readlines())
+				else:
+					return ''.join(self.serialPort.readline())
 		else:
 			print "Serial port is not connected."
 
 	def _checkAcknowledge(self, ack):
-		return ack.endswith("ok\r\nok\r\n")
+		return ack.endswith("\r\n") #ok

@@ -126,34 +126,54 @@ class Scanner(wx.PyControl):
 		""" """
 		#-- Initialize angle
 		self.theta = 0
-		
+
+		degrees = -0.45
+
+		self.device.setSpeedMotor(10)
 		self.device.enable()
+
+		self.core.setDegrees(degrees)
 
 		while self.captureFlag:
 			begin = datetime.datetime.now()
-			
+
 			#-- Get images
 			if self.useLeftLaser:
 				self.device.setLeftLaserOff()
 			else:
 				self.device.setRightLaserOff()
+
+			imgLas = self.camera.captureImage(flush=True)
 			imgRaw = self.camera.captureImage(flush=False)
+
 			if self.useLeftLaser:
 				self.device.setLeftLaserOn()
 			else:
 				self.device.setRightLaserOn()
+
+			"""if self.useLeftLaser:
+				self.device.setLeftLaserOn()
+			else:
+				self.device.setRightLaserOn()
+
+			imgRaw = self.camera.captureImage(flush=False)
 			imgLas = self.camera.captureImage(flush=False)
 
+			if self.useLeftLaser:
+				self.device.setLeftLaserOff()
+			else:
+				self.device.setRightLaserOff()"""
+
 			#-- Move motor
-			self.device.setMotorCW()
-			time.sleep(0.06)
+			self.device.setRelativePosition(degrees)
+			self.device.setMoveMotor()
 
 			#-- Put images into the queue
 			self.imageQueue.put((imgRaw, imgLas))
 			
 			#-- Check stop condition
-			self.theta += self.degrees
-			if self.theta >= 360:
+			self.theta += degrees
+			if abs(self.theta) >= 360:
 				self.stop()
 			
 			end = datetime.datetime.now()

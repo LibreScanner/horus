@@ -94,10 +94,9 @@ class Camera:
 		""" If mirror is set to True, the image will be displayed as a mirror,
 		otherwise it will be displayed as the camera sees it"""
 		if flush:
-			for i in range(0,2):
-				self.capture.read()
+			for i in range(0,1):
+				self.capture.grab()
 		ret, image = self.capture.read()
-
 		if ret:
 			image = cv2.transpose(image)
 			if not mirror:
@@ -136,7 +135,7 @@ class Camera:
 
 	def setWidth(self, value):
 		if self.isConnected:
-			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)	
+			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
 
 	def setHeight(self, value):
 		if self.isConnected:
