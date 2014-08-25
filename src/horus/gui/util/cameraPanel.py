@@ -40,10 +40,12 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		""""""
 		wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
 
+		self.SetupScrolling()
+
 		self.main = self.GetParent().GetParent().GetParent()
 		self.scanner = self.main.scanner
 
-		self.SetupScrolling()
+		##-- TODO: Refactor
 		
 		self.brightnessId=8416 # BRIGhtness
 		self.contrastId=6017 # CONTrast
@@ -118,46 +120,45 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.workbenchText, 0, wx.ALL, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.workbenchesCombo, 0, wx.TOP, 10)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.brightnessText, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.brightnessSlider, 0, wx.ALL, 0)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.contrastText, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.contrastSlider, 0, wx.ALL, 0)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.saturationText, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.saturationSlider, 0, wx.ALL, 0)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 
 		hbox.Add(self.exposureText, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
-
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.exposureSlider, 0, wx.ALL, 0)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 
 		hbox.Add(self.frameRateText, 0, wx.ALL, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.frameRateCombo, 0, wx.TOP, 10)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 		
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.resolutionText, 0, wx.ALL, 18)
-		hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
+		#hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
 		hbox.Add(self.resolutionCombo, 0, wx.TOP, 10)
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
@@ -181,42 +182,48 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self.updateProfileToAllControls()
 
 	def onbrightnessChanged(self,event):
-		self.firstMove(event,profile.getProfileSettingInteger('brightness_value_'+self.currentWorkbench))
+		self.firstMove(event,profile.getProfileSettingInteger('brightness_'+self.currentWorkbench))
 		value=self.brightnessSlider.GetValue()  
-		profile.putProfileSetting('brightness_value_'+self.currentWorkbench, value)
+		profile.putProfileSetting('brightness_'+self.currentWorkbench, value)
 		self.scanner.camera.setBrightness(value)
 		
 
 	def oncontrastChanged(self,event):
-		self.firstMove(event,profile.getProfileSettingInteger('contrast_value_'+self.currentWorkbench))
+		self.firstMove(event,profile.getProfileSettingInteger('contrast_'+self.currentWorkbench))
 		value=self.contrastSlider.GetValue()    
-		profile.putProfileSetting('contrast_value_'+self.currentWorkbench, value)
+		profile.putProfileSetting('contrast_'+self.currentWorkbench, value)
 		self.scanner.camera.setContrast(value)
 
 	def onsaturationChanged(self,event):
-		self.firstMove(event,profile.getProfileSettingInteger('saturation_value_'+self.currentWorkbench))
+		self.firstMove(event,profile.getProfileSettingInteger('saturation_'+self.currentWorkbench))
 		value=self.saturationSlider.GetValue()  
-		profile.putProfileSetting('saturation_value_'+self.currentWorkbench, value)
+		profile.putProfileSetting('saturation_'+self.currentWorkbench, value)
 		self.scanner.camera.setSaturation(value)
 
 	def onexposureChanged(self,event):
-		self.firstMove(event,profile.getProfileSettingInteger('exposure_value_'+self.currentWorkbench))
+		self.firstMove(event,profile.getProfileSettingInteger('exposure_'+self.currentWorkbench))
 		value=self.exposureSlider.GetValue()    
-		profile.putProfileSetting('exposure_value_'+self.currentWorkbench, value)
+		profile.putProfileSetting('exposure_'+self.currentWorkbench, value)
 		self.scanner.camera.setExposure(value)
 
 	def OnSelectFrame(self,event):
-		value= int(event.GetSelection())
-		profile.putProfileSetting('framerate_value_'+self.currentWorkbench, value)
+		value= int(self.frameRateCombo.GetValue())
+		profile.putProfileSetting('framerate_'+self.currentWorkbench, value)
 		if self.scanner.isConnected:
 			self.GetParent().GetParent().GetParent().timer.Stop()
 			self.scanner.camera.setFps(value)
-			self.GetParent().GetParent().GetParent().timer.Start(milliseconds=(1000/self.scanner.camera.fps))
+			if self.main.playing and self.scanner.camera.fps > 0:
+				self.GetParent().GetParent().GetParent().timer.Start(milliseconds=(1000/self.scanner.camera.fps))
 		
 	def OnSelectResolution(self,event):
-		value= event.GetSelection()
-		profile.putProfileSetting('resolution_value_'+self.currentWorkbench, value)
-		self.scanner.camera.setResolution(value)
+		resolution = self.resolutionCombo.GetValue().replace('(', '').replace(')', '')
+		h = int(resolution.split(',')[1])
+		w = int(resolution.split(',')[0])
+		profile.putProfileSetting('camera_width_' + self.currentWorkbench, w)
+		profile.putProfileSetting('camera_height_' + self.currentWorkbench, h)
+		print "Select Resolution"
+		self.scanner.camera.setWidth(w)
+		self.scanner.camera.setHeight(h)
 
 	def release(self,event):
 		self.flagFirstMove=True
@@ -252,39 +259,44 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 
 	def restoreDefault(self,event):
 		if self.scanner.isConnected:
-			profile.resetProfileSetting('brightness_value_'+self.currentWorkbench)
-			profile.resetProfileSetting('contrast_value_'+self.currentWorkbench)
-			profile.resetProfileSetting('saturation_value_'+self.currentWorkbench)
-			profile.resetProfileSetting('exposure_value_'+self.currentWorkbench)
-			profile.resetProfileSetting('framerate_value_'+self.currentWorkbench)
-			profile.resetProfileSetting('resolution_value_'+self.currentWorkbench)
+			profile.resetProfileSetting('brightness_'+self.currentWorkbench)
+			profile.resetProfileSetting('contrast_'+self.currentWorkbench)
+			profile.resetProfileSetting('saturation_'+self.currentWorkbench)
+			profile.resetProfileSetting('exposure_'+self.currentWorkbench)
+			profile.resetProfileSetting('framerate_'+self.currentWorkbench)
+			profile.resetProfileSetting('camera_width_'+self.currentWorkbench)
+			profile.resetProfileSetting('camera_height_'+self.currentWorkbench)
 			self.GetParent().GetParent().GetParent().timer.Stop()
 			self.updateProfileToAllControls()
-			self.GetParent().GetParent().GetParent().timer.Start(milliseconds=(1000/self.scanner.camera.fps))
-			exposure=profile.getProfileSettingInteger('exposure_value_'+self.currentWorkbench)
+			if self.main.playing and self.scanner.camera.fps > 0:
+				self.GetParent().GetParent().GetParent().timer.Start(milliseconds=(1000/self.scanner.camera.fps))
+			exposure=profile.getProfileSettingInteger('exposure_'+self.currentWorkbench)
 			self.scanner.camera.setExposure(exposure)
 
 	def updateProfileToAllControls(self):
-		brightness=profile.getProfileSettingInteger('brightness_value_'+self.currentWorkbench)
+		brightness=profile.getProfileSettingInteger('brightness_' + self.currentWorkbench)
 		self.brightnessSlider.SetValue(brightness)
 		self.scanner.camera.setBrightness(brightness)
 
-		contrast=profile.getProfileSettingInteger('contrast_value_'+self.currentWorkbench)
+		contrast=profile.getProfileSettingInteger('contrast_' + self.currentWorkbench)
 		self.contrastSlider.SetValue(contrast)
 		self.scanner.camera.setContrast(contrast)
 
-		saturation=profile.getProfileSettingInteger('saturation_value_'+self.currentWorkbench)
+		saturation=profile.getProfileSettingInteger('saturation_' + self.currentWorkbench)
 		self.saturationSlider.SetValue(saturation)
 		self.scanner.camera.setSaturation(saturation)
 
-		exposure=profile.getProfileSettingInteger('exposure_value_'+self.currentWorkbench)
+		exposure=profile.getProfileSettingInteger('exposure_' + self.currentWorkbench)
 		self.exposureSlider.SetValue(exposure)
 		self.scanner.camera.setExposure(exposure)
 
-		framerate=profile.getProfileSettingInteger('framerate_value_'+self.currentWorkbench)
-		self.frameRateCombo.SetSelection(framerate)
+		framerate=profile.getProfileSettingInteger('framerate_' + self.currentWorkbench)
+		self.frameRateCombo.SetValue(str(framerate))
 		self.scanner.camera.setFps(framerate)
 
-		resolution=profile.getProfileSettingInteger('resolution_value_'+self.currentWorkbench)
-		self.resolutionCombo.SetSelection(resolution)
-		self.scanner.camera.setResolution(resolution)
+		camera_width = profile.getProfileSettingInteger('camera_width_' + self.currentWorkbench)
+		camera_height = profile.getProfileSettingInteger('camera_height_' + self.currentWorkbench)
+		resolution=(camera_width, camera_height)
+		self.resolutionCombo.SetValue(str(resolution))
+		self.scanner.camera.setWidth(camera_width)
+		self.scanner.camera.setHeight(camera_height)

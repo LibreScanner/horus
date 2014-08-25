@@ -69,7 +69,7 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
 
         self.gcodeRequestText = wx.TextCtrl(self, size=(145,-1))
         self.gcodeSendButton = wx.Button(self, -1, _("Send"))
-        self.gcodeResponseText = wx.TextCtrl(self, style= wx.TE_MULTILINE)
+        self.gcodeResponseText = wx.TextCtrl(self, value="['$' for help]", style= wx.TE_MULTILINE)
 
         #-- Events
         self.laserLeftButton.Bind(wx.EVT_TOGGLEBUTTON, self.onLeftLaserClicked)
@@ -160,7 +160,7 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
 
     def onGcodeSendButtonClicked(self, event):
         if self.scanner.isConnected:
-            ret = self.scanner.device.sendCommand(self.gcodeRequestText.GetValue())
+            ret = self.scanner.device.sendCommand(self.gcodeRequestText.GetValue(), ret=True, readLines=True)
             self.gcodeResponseText.SetValue(ret)
 
     def updateScannerImage(self):

@@ -250,6 +250,7 @@ class MainWindow(wx.Frame):
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
         wx.CallAfter(prefDialog.Show)
+        self.updateScannerProfile()
 
     def onWorkbenchSelectorClicked(self, event):
         """ """
@@ -331,43 +332,58 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.Layout()
 
     def updateEngineProfile(self):
+        self.updateScannerProfile()
+        self.updateCoreCurrentProfile()
+        self.updateCameraCurrentProfile()
+
+    def updateScannerProfile(self):
         self.scanner.initialize(int(profile.getProfileSetting('camera_id')[-1:]),
                                 profile.getProfileSetting('serial_name'))
 
-        workbench = profile.getProfileSetting('workbench')
+    def updateCameraCurrentProfile(self):
+        self.updateCameraProfile(profile.getPreference('workbench'))
 
-        self.scanner.camera.initialize(profile.getProfileSettingInteger('brightness_value_' + workbench),
-                                       profile.getProfileSettingInteger('contrast_value_' + workbench),
-                                       profile.getProfileSettingInteger('saturation_value_' + workbench),
-                                       profile.getProfileSettingInteger('exposure_value_' + workbench),
-                                       profile.getProfileSettingInteger('framerate_value_' + workbench),
-                                       profile.getProfileSettingInteger('resolution_value_' + workbench))
+    def updateCameraProfile(self, workbench):
+        if workbench in ['control', 'calibration', 'scanning']:
+            self.scanner.camera.initialize(profile.getProfileSettingInteger('brightness_' + workbench),
+                                           profile.getProfileSettingInteger('contrast_' + workbench),
+                                           profile.getProfileSettingInteger('saturation_' + workbench),
+                                           profile.getProfileSettingInteger('exposure_' + workbench),
+                                           profile.getProfileSettingInteger('framerate_' + workbench),
+                                           profile.getProfileSettingInteger('camera_width_' + workbench),
+                                           profile.getProfileSettingInteger('camera_height_' + workbench))
 
-        width, height = self.scanner.camera.getResolution()
+            self.scanner.core.setResolution(profile.getProfileSettingInteger('camera_height_scanning'),
+                                            profile.getProfileSettingInteger('camera_width_scanning'))
 
-        self.scanner.core.initialize(profile.getProfileSetting('img_type'),
-                                     profile.getProfileSettingBool('blur'),
-                                     profile.getProfileSettingInteger('blur_value'),
-                                     profile.getProfileSettingBool('open'),
-                                     profile.getProfileSettingInteger('open_value'),
-                                     np.array([profile.getProfileSettingNumpy('min_h'),
-                                               profile.getProfileSettingNumpy('min_s'),
-                                               profile.getProfileSettingNumpy('min_v')],np.uint8),
-                                     np.array([profile.getProfileSettingNumpy('max_h'),
-                                               profile.getProfileSettingNumpy('max_s'),
-                                               profile.getProfileSettingNumpy('max_v')],np.uint8),
-                                     profile.getProfileSettingBool('use_compact'),
-                                     profile.getProfileSettingInteger('min_rho'),
-                                     profile.getProfileSettingInteger('max_rho'),
-                                     profile.getProfileSettingInteger('min_h'),
-                                     profile.getProfileSettingInteger('max_h'),
-                                     profile.getProfileSettingInteger('z_offset'),
-                                     profile.getProfileSettingFloat('step_degrees'),
-                                     profile.getProfileSettingInteger('camera_width'),
-                                     profile.getProfileSettingInteger('camera_height'),
-                                     profile.getProfileSettingFloat('laser_angle'),
-                                     profile.getProfileSettingNumpy('calibration_matrix'),
-                                     profile.getProfileSettingNumpy('translation_vector'))
+    def updateCoreCurrentProfile(self):
+        self.updateCoreProfile(profile.getPreference('workbench'))
+
+    def updateCoreProfile(self, workbench):
+        if workbench in ['scanning']:
+            self.scanner.core.initialize(profile.getProfileSetting('img_type'),
+                                         profile.getProfileSettingBool('blur'),
+                                         profile.getProfileSettingInteger('blur_value'),
+                                         profile.getProfileSettingBool('open'),
+                                         profile.getProfileSettingInteger('open_value'),
+                                         np.array([profile.getProfileSettingNumpy('min_h'),
+                                                   profile.getProfileSettingNumpy('min_s'),
+                                                   profile.getProfileSettingNumpy('min_v')],np.uint8),
+                                         np.array([profile.getProfileSettingNumpy('max_h'),
+                                                   profile.getProfileSettingNumpy('max_s'),
+                                                   profile.getProfileSettingNumpy('max_v')],np.uint8),
+                                         profile.getProfileSettingBool('use_compact'),
+                                         profile.getProfileSettingInteger('min_rho'),
+                                         profile.getProfileSettingInteger('max_rho'),
+                                         profile.getProfileSettingInteger('min_h'),
+                                         profile.getProfileSettingInteger('max_h'),
+                                         profile.getProfileSettingInteger('z_offset'),
+                                         profile.getProfileSettingFloat('step_degrees'),
+                                         profile.getProfileSettingInteger('camera_height_scanning'),
+                                         profile.getProfileSettingInteger('camera_width_scanning'),
+                                         profile.getProfileSettingFloat('laser_angle'),
+                                         profile.getProfileSettingNumpy('calibration_matrix'),
+                                         profile.getProfileSettingNumpy('translation_vector'))
 
     def updateFirmware(self):
         avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'))
@@ -407,6 +423,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
+
+        self.updateCameraProfile(currentWorkbench)
+        self.updateCoreProfile(currentWorkbench)
 
         self.Layout()
 
@@ -457,9 +476,15 @@ class MainWorkbench(wx.Panel):
 
         self._title = wx.Panel(self)
         self._panel = wx.Panel(self)
-        self._leftPanel = ItemWorkbench(self._panel, _("Control"))
-        self._middlePanel = ItemWorkbench(self._panel, _("Calibration"))
-        self._rightPanel = ItemWorkbench(self._panel, _("Scanning"))
+        self._leftPanel = ItemWorkbench(self._panel, titleText=_("Control"), 
+                                                     description=_("In this workbench you can configure all the camera parameters, test the lasers and control the motor using gcodes."),
+                                                     image=wx.Image(resources.getPathForImage("control.png")))
+        self._middlePanel = ItemWorkbench(self._panel, titleText=_("Calibration"), 
+                                                       description=_("In this workbench you can perform intrinsic calibration of the camera and extrinsic calibration of the device."),
+                                                       image=wx.Image(resources.getPathForImage("calibration.png")))
+        self._rightPanel = ItemWorkbench(self._panel, titleText=_("Scanning"), 
+                                                      description=_("In this workbench you can start and stop the scanning process and also visualize in real time the 3D point cloud."),
+                                                      image=wx.Image(resources.getPathForImage("scanning.png")))
 
         #self._title.SetBackgroundColour(wx.WHITE)
         #self._panel.SetBackgroundColour(wx.BLACK)
@@ -505,7 +530,7 @@ from horus.gui.util.videoView import *
 
 class ItemWorkbench(wx.Panel):
 
-    def __init__(self, parent, titleText="Workbench", description="Workbench description", buttonText="Go"):
+    def __init__(self, parent, titleText="Workbench", description="Workbench description", image=None, buttonText="Go"):
         wx.Panel.__init__(self, parent)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -522,7 +547,8 @@ class ItemWorkbench(wx.Panel):
         titleText.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         descText = wx.StaticText(content, label=description)
         imageView = VideoView(self)
-        imageView.setImage(wx.Image(resources.getPathForImage("horus.png")))
+        if image is not None:
+            imageView.setImage(image)
         self.buttonGo = wx.Button(content, wx.NewId(), label=buttonText)
 
         titleBox.Add(titleText, 0, wx.ALL|wx.EXPAND, 10)

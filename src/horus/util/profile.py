@@ -188,26 +188,29 @@ setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
 setting('feed_rate', 200, int, 'basic', _('Feed Rate')).setRange(1, 100000)
 
-setting('brightness_value_control', 116, int, 'advanced', _('Brightness Value')).setRange(0, 255)
-setting('contrast_value_control', 37, int, 'advanced', _('Contrast Value')).setRange(0, 255)
-setting('saturation_value_control', 12, int, 'advanced', _('Saturation Value')).setRange(0, 255)
-setting('exposure_value_control', 102, int, 'advanced', _('Exposure Value')).setRange(0, 10000)
-setting('framerate_value_control', 0, int, 'advanced', _('Framerate Value')).setRange(0, 5)
-setting('resolution_value_control', 0, int, 'advanced', _('Resolution Value')).setRange(0, 4)
+setting('brightness_control', 116, int, 'advanced', _('Brightness')).setRange(0, 255)
+setting('contrast_control', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
+setting('saturation_control', 12, int, 'advanced', _('Saturation')).setRange(0, 255)
+setting('exposure_control', 102, int, 'advanced', _('Exposure')).setRange(0, 10000)
+setting('framerate_control', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
+setting('camera_width_control', 800, int, 'advanced', _('Camera Width')).setRange(1)
+setting('camera_height_control', 600, int, 'advanced', _('Camera Height')).setRange(1)
 
-setting('brightness_value_calibration', 116, int, 'advanced', _('Brightness Value')).setRange(0, 255)
-setting('contrast_value_calibration', 37, int, 'advanced', _('Contrast Value')).setRange(0, 255)
-setting('saturation_value_calibration', 12, int, 'advanced', _('Saturation Value')).setRange(0, 255)
-setting('exposure_value_calibration', 102, int, 'advanced', _('Exposure Value')).setRange(0, 10000)
-setting('framerate_value_calibration', 0, int, 'advanced', _('Framerate Value')).setRange(0, 5)
-setting('resolution_value_calibration', 0, int, 'advanced', _('Resolution Value')).setRange(0, 4)
+setting('brightness_calibration', 116, int, 'advanced', _('Brightness')).setRange(0, 255)
+setting('contrast_calibration', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
+setting('saturation_calibration', 12, int, 'advanced', _('Saturation')).setRange(0, 255)
+setting('exposure_calibration', 102, int, 'advanced', _('Exposure')).setRange(0, 10000)
+setting('framerate_calibration', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
+setting('camera_width_calibration', 800, int, 'advanced', _('Camera Width')).setRange(1)
+setting('camera_height_calibration', 600, int, 'advanced', _('Camera Height')).setRange(1)
 
-setting('brightness_value_scanning', 116, int, 'advanced', _('Brightness Value')).setRange(0, 255)
-setting('contrast_value_scanning', 37, int, 'advanced', _('Contrast Value')).setRange(0, 255)
-setting('saturation_value_scanning', 12, int, 'advanced', _('Saturation Value')).setRange(0, 255)
-setting('exposure_value_scanning', 102, int, 'advanced', _('Exposure Value')).setRange(0, 10000)
-setting('framerate_value_scanning', 0, int, 'advanced', _('Framerate Value')).setRange(0, 5)
-setting('resolution_value_scanning', 0, int, 'advanced', _('Resolution Value')).setRange(0, 4)
+setting('brightness_scanning', 116, int, 'advanced', _('Brightness')).setRange(0, 255)
+setting('contrast_scanning', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
+setting('saturation_scanning', 12, int, 'advanced', _('Saturation')).setRange(0, 255)
+setting('exposure_scanning', 102, int, 'advanced', _('Exposure')).setRange(0, 10000)
+setting('framerate_scanning', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
+setting('camera_width_scanning', 800, int, 'advanced', _('Camera Width')).setRange(1)
+setting('camera_height_scanning', 600, int, 'advanced', _('Camera Height')).setRange(1)
 
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Blur'))
 
@@ -233,11 +236,8 @@ setting('z_offset', 0, int, 'advanced', _('Z Offset')).setRange(-50, 50)
 
 setting('laser_angle', 60.0, float, 'basic', _('Laser Angle'))
 
-setting('camera_width', 600, int, 'advanced', _('Camera Width'))
-setting('camera_height', 800, int, 'advanced', _('Camera Height'))
-
 setting('machine_name', '', str, 'machine', 'hidden')
-setting('machine_type', 'cyclops', str, 'machine', 'hidden')
+setting('machine_type', 'ciclop', str, 'machine', 'hidden')
 setting('machine_width', '200', float, 'machine', 'hidden').setLabel(_("Maximum width (mm)"), _("Size of the machine in mm"))
 setting('machine_depth', '200', float, 'machine', 'hidden').setLabel(_("Maximum depth (mm)"), _("Size of the machine in mm"))
 setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum height (mm)"), _("Size of the machine in mm"))
@@ -696,7 +696,7 @@ def getMachineSizePolygons():
 			circle.append([math.cos(float(n)/steps*2*math.pi) * size[0]/2, math.sin(float(n)/steps*2*math.pi) * size[1]/2])
 		ret.append(numpy.array(circle, numpy.float32))
 
-	"""if getMachineSetting('machine_type') == 'cyclops':
+	"""if getMachineSetting('machine_type') == 'ciclop':
 		w = 20
 		h = 20
 		ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))

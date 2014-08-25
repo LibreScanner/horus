@@ -95,8 +95,7 @@ class Core:
 
 		self.degrees = degrees
 
-		self.width = width
-		self.height = height
+		self.setResolution(width, height)
 
 		#-- Calibration parameters
 		if calibrationMatrix is not None:
@@ -138,6 +137,10 @@ class Core:
 		if not useLeftLaser:
 			self.M_rho = np.fliplr(self.M_rho)
 			self.M_z = np.fliplr(self.M_z)
+
+	def setResolution(self, width, height):
+		self.width = width
+		self.height = height
 
 	def setBlur(self, enable, value):
 		self.blurEnable = enable

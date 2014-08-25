@@ -31,6 +31,7 @@ from horus.gui.util.workbenchConnection import *
 from horus.gui.util.page import *
 from horus.gui.util.videoView import *
 from horus.util import resources
+from horus.util import profile
 
 import wx.lib.scrolledpanel
 
@@ -63,13 +64,8 @@ class CalibrationWorkbench(WorkbenchConnection):
 		self._panel.parent=self
 		self._intrinsicsPanel=IntrinsicsPanel(self._panel,self.calibration)
 		self._extrinsicsPanel=ExtrinsicsPanel(self._panel,self.calibration)
-		self.Bind(wx.EVT_SHOW, self.onShow)
+		self._panel.Disable()
 		self.setLayout()
-
-	def onShow(self, event):
-		if event.GetShow():
-			profile.setProfileSetting('calibration')
-			self.GetParent().updateEngineProfile()
 
 	def loadInit(self,event):
 		
@@ -92,6 +88,22 @@ class CalibrationWorkbench(WorkbenchConnection):
 		self._extrinsicsPanel.Show(True)
 		self._extrinsicsPanel.reload()
 		self.setLayout()
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.updateStatus(self.scanner.isConnected)	
+		else:
+			try:
+				self.timer.Stop()
+				self.calibrationTimer.Stop()
+			except:
+				pass
+
+	def updateToolbarStatus(self, status):
+		if status:
+			self._panel.Enable()
+		else:
+			self._panel.Disable()
 
 	def loadPagePattern(self,event):
 		self._intrinsicsPanel.Show(False)
@@ -253,9 +265,9 @@ class PatternPanel(Page):
 		
 	def loadGrid(self):
 		self.guideView.Show(False)
-		width,height=self.scanner.camera.getResolution()
+		width, height=self.scanner.camera.getResolution()
 		# Note: height and width are inverted since the image is flipped
-		self.calibration.generateGuides(height,width)
+		self.calibration.generateGuides(width,height)
 		self.guidesOn=True
 		if not hasattr(self,'gridPanel'):
 			self.gridPanel=wx.Panel(self._upPanel, id=wx.ID_ANY)
@@ -400,7 +412,8 @@ class PatternPanel(Page):
 			self.createKeyboardPanel()
 		self.guideView.Bind(wx.EVT_SIZE, self.onResizeBitmap)
 		self.guideView.Layout()
-		self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
+		if self.scanner.camera.fps > 0:
+			self.timer.Start(milliseconds=1000/self.scanner.camera.fps)
 
 	def showSocketHelp(self):
 		if hasattr(self,'UnBind'):
@@ -835,7 +848,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 		self.workingOnExtrinsic=True
 		self.isFirstPlot=True
-		self.stopExtrinsicSamples=40
+		self.stopExtrinsicSamples=17
 
 	def load(self):
 		self.videoView = VideoView(self._upPanel)
@@ -855,18 +868,19 @@ class ExtrinsicCalibrationPanel(Page):
 		self.parent.parent.loadInit(0)
 		self.calibrationTimer.Stop()
 
-
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage(False)
 		self.videoView.setFrame(frame)
 
 	def onCalibrationTimer(self,event):
 		frame = self.scanner.camera.captureImage(False)
-		self.scanner.device.setMotorCW()
-		self.scanner.device.setMotorCW()
+		self.scanner.device.setSpeedMotor(200)
+		self.scanner.device.setRelativePosition(-5)
+		self.scanner.device.enable()
+		self.scanner.device.setMoveMotor()
 		
 		self.addToPlot(frame)
-		if len(self.calibration.transVectors)> self.stopExtrinsicSamples:
+		if len(self.calibration.transVectors) >= self.stopExtrinsicSamples:
 			delattr(self,'circlePlot')
 			self.calibrationTimer.Stop()
 			self.getLeftButton().SetLabel(_("Reject"))
@@ -886,7 +900,7 @@ class ExtrinsicCalibrationPanel(Page):
 			
 		elif event.GetKeyCode()==32:
 			frame = self.scanner.camera.captureImage(True)
-			self.scanner.device.setMotorCCW()
+			#self.scanner.device.setMotorCCW()
 			
 			self.addToPlot(frame)
 

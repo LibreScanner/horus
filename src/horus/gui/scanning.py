@@ -71,6 +71,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.videoPanel = VideoPanel(self._leftPanel)
 		self.scenePanel = ScenePanel(self._leftPanel)
 
+		self.videoPanel.Disable()
+		self.scenePanel.Disable()
+
 		#-- Right Views
 		self.videoView = VideoView(self._rightPanel)
 		self.sceneView = SceneView(self._rightPanel)
@@ -90,6 +93,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(10,15+120))
 		self.buttonBin  = wx.RadioButton(self.videoView, wx.NewId(), _("Binary"), pos=(10,15+160))
 
+		self.buttonShowVideoViews.Hide()
 		self.buttonRaw.Hide()
 		self.buttonLas.Hide()
 		self.buttonDiff.Hide()
@@ -147,19 +151,6 @@ class ScanningWorkbench(WorkbenchConnection):
 				if len(pointCloud[0]) > 0:
 					self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
-	def onShow(self, event):
-		if event.GetShow():
-			profile.setProfileSetting('scanning')
-			self.GetParent().updateEngineProfile()
-
-	def onConnectToolClicked(self, event):
-		self.updateToolbarStatus(True)
-		self.scanner.connect()
-
-	def onDisconnectToolClicked(self, event):
-		self.scanner.disconnect()
-		self.updateToolbarStatus(False)
-
 	def onPlayToolClicked(self, event):
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
@@ -213,11 +204,21 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.resumeTool, True)
 			self.enableLabelTool(self.pauseTool , False)
+			self.videoPanel.Enable()
+			self.scenePanel.Enable()
+			self.buttonShowVideoViews.Show()
 		else:
 			self.enableLabelTool(self.playTool  , False)
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.resumeTool, False)
 			self.enableLabelTool(self.pauseTool , False)
+			self.videoPanel.Disable()
+			self.scenePanel.Disable()
+			self.buttonShowVideoViews.Hide()
+			self.buttonRaw.Hide()
+			self.buttonLas.Hide()
+			self.buttonDiff.Hide()
+			self.buttonBin.Hide()
 
 	def updateProfileToAllControls(self):
 		self.videoPanel.updateProfileToAllControls()

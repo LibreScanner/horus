@@ -548,7 +548,7 @@ class SceneView(openglGui.glGuiPanel):
 		size = [profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')]
 
 		machine = profile.getMachineSetting('machine_type')
-		if machine.startswith('cyclops'):
+		if machine.startswith('ciclop'):
 
 			#-- Platform
 			if machine not in self._platformMesh:
@@ -566,7 +566,7 @@ class SceneView(openglGui.glGuiPanel):
 			#-- Text
 			"""
 			if not hasattr(self._platformMesh[machine], 'texture'):
-				self._platformMesh[machine].texture = openglHelpers.loadGLTexture('Cyclopsbackplate.png')
+				self._platformMesh[machine].texture = openglHelpers.loadGLTexture('Ciclopbackplate.png')
 			glBindTexture(GL_TEXTURE_2D, self._platformMesh[machine].texture)
 			glEnable(GL_TEXTURE_2D)
 			glPushMatrix()
