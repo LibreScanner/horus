@@ -319,6 +319,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def updateProfileToAllControls(self):
         """ """
         self.controlWorkbench.updateProfileToAllControls()
+        self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
 
         if profile.getPreferenceBool('workbench_selector'):

@@ -244,13 +244,14 @@ setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum
 setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_("Machine center 0,0"), _("Machines firmware defines the center of the bed as 0,0 instead of the front left corner."))
 setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden').setLabel(_("Build area shape"), _("The shape of machine build area."))
 
-setting('calibration_matrix',([[  1.41776981e+03  , 0.00000000e+00 ,  4.7734296e+02], [  0.00000000e+00 ,  1.41266337e+03  , 6.5224409e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]])
-		,numpy.ndarray,'advanced',_('Calibration Matrix'))
+setting('calibration_matrix',([[  1.41776981e+03  , 0.00000000e+00 ,  4.7734296e+02], [  0.00000000e+00 ,  1.41266337e+03  , 6.5224409e+02], [  0.00000000e+00 ,  0.00000000e+00  , 1.00000000e+00]]) ,numpy.ndarray,'advanced',_('Calibration Matrix'))
 setting('distortion_vector',([ 0.04002 ,-0.14927 , 0.00223 , -0.00044 , 0.0]),numpy.ndarray,'advanced',_('Distortion Vector'))
-		
-setting('rotation_matrix',([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]]),numpy.ndarray,'advanced',_('Rotation Matrix'))
-		
-setting('translation_vector',([[  -5.56044557],[  73.33950448], [ 328.54553044]]),numpy.ndarray,'advanced',_('Translation Matrix'))
+
+setting('laser_coordinates',([[ 300.0, 300.0 ], [300.0, 300.0]]) ,numpy.ndarray,'advanced',_('Laser Coordinates'))
+setting('laser_depth',([[ 320.0, 320.0 ], [320.0, 320.0]]),numpy.ndarray,'advanced',_('Laser Depth'))
+	
+setting('rotation_matrix',([[ 0.99970814 , 0.02222752 ,-0.00946474], [ 0.00930233 , 0.00739852 , 0.99992936],[ 0.02229597, -0.99972556 , 0.00718959]]) ,numpy.ndarray,'advanced',_('Rotation Matrix'))
+setting('translation_vector',([  -5.56044557,  73.33950448,  328.54553044]),numpy.ndarray,'advanced',_('Translation Matrix'))
 		
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 

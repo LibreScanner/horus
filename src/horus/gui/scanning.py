@@ -39,7 +39,7 @@ from horus.gui.util.workbenchConnection import *
 class ScanningWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
-		WorkbenchConnection.__init__(self, parent, 0, 1)
+		WorkbenchConnection.__init__(self, parent, leftSize=0, rightSize=1)
 
 		self.view3D = False
 		self.showVideoViews = False

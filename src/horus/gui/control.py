@@ -27,7 +27,6 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import time
 
 from horus.util.resources import *
 from horus.util import profile
@@ -41,7 +40,7 @@ from horus.gui.util.workbenchConnection import *
 class ControlWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
-		WorkbenchConnection.__init__(self, parent, 0, 1)
+		WorkbenchConnection.__init__(self, parent, leftSize=0, rightSize=1)
 
 		self.viewCamera = True
 
@@ -116,19 +115,9 @@ class ControlWorkbench(WorkbenchConnection):
 				pass
 
 	def onTimer(self, event):
-		#begin = time.time()
 		frame = self.scanner.camera.captureImage()
-		#end = time.time()
 		if frame is not None:
 			self.cameraView.setFrame(frame)
-		"""if self.undistort:
-		if self.undistortCounter==1:
-		self.undistortCounter=0
-		frame=self.calibration.undistortImage(frame)
-		self.cameraView.setFrame(frame)
-		else:
-		self.undistortCounter+=1 else:"""
-		#print end - begin
 
 	def onPlayToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
