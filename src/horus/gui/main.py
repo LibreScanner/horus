@@ -334,8 +334,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateEngineProfile(self):
         self.updateScannerProfile()
-        self.updateCoreCurrentProfile()
-        self.updateCameraCurrentProfile()
+        #self.updateCoreCurrentProfile()
+        #self.updateCameraCurrentProfile()
 
     def updateScannerProfile(self):
         self.scanner.initialize(int(profile.getProfileSetting('camera_id')[-1:]),
@@ -384,6 +384,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                          profile.getProfileSettingInteger('camera_width_scanning'),
                                          profile.getProfileSettingFloat('laser_angle'),
                                          profile.getProfileSettingNumpy('calibration_matrix'),
+                                         profile.getProfileSettingNumpy('laser_coordinates'),
+                                         profile.getProfileSettingNumpy('laser_depth'),
+                                         profile.getProfileSettingNumpy('rotation_matrix'),
                                          profile.getProfileSettingNumpy('translation_vector'))
 
     def updateFirmware(self):

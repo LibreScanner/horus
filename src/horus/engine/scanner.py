@@ -151,19 +151,6 @@ class Scanner(wx.PyControl):
 			else:
 				self.device.setRightLaserOn()
 
-			"""if self.useLeftLaser:
-				self.device.setLeftLaserOn()
-			else:
-				self.device.setRightLaserOn()
-
-			imgRaw = self.camera.captureImage(flush=False)
-			imgLas = self.camera.captureImage(flush=False)
-
-			if self.useLeftLaser:
-				self.device.setLeftLaserOff()
-			else:
-				self.device.setRightLaserOff()"""
-
 			#-- Move motor
 			self.device.setRelativePosition(degrees)
 			self.device.setMoveMotor()
@@ -184,12 +171,13 @@ class Scanner(wx.PyControl):
 	def processThread(self):
 		""" """
 		while self.processFlag:
-			begin = datetime.datetime.now()
 
 			#-- Get images
 			images = self.imageQueue.get()
 			self.imageQueue.task_done()
 
+			begin = datetime.datetime.now()
+			
 			#-- Generate Point Cloud
 			points, colors = self.core.getPointCloud(images[0], images[1])
 
