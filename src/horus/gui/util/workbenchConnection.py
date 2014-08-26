@@ -30,12 +30,14 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 from horus.util.resources import *
 from horus.gui.util.workbench import *
 
+from horus.engine.scanner import *
+
 class WorkbenchConnection(Workbench):
 
 	def __init__(self, parent):
 		Workbench.__init__(self, parent)
 
-		self.scanner = self.GetParent().scanner
+		self.scanner = Scanner.Instance()
 
 		#-- Toolbar Configuration
 		self.connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))

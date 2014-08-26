@@ -40,7 +40,7 @@ class Singleton:
             return self._instance
 
     def __call__(self):
-        raise TypeError('Singletons must be accessed through `Instance()`.')
+        raise TypeError('Singletons must be accessed through `Instance()`')
 
     def __instancecheck__(self, inst):
         return isinstance(inst, self._decorated)

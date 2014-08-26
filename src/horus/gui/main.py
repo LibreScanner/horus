@@ -65,7 +65,7 @@ class MainWindow(wx.Frame):
             if currentVideoId not in videoList:
                 profile.putProfileSetting('camera_id', videoList[0])
             
-        self.scanner = Scanner(self)
+        self.scanner = Scanner.Instance()
 
         self.updateEngineProfile()
 

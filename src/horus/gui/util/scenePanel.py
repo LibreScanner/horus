@@ -32,6 +32,8 @@ import wx.lib.scrolledpanel
 
 from horus.util import profile
 
+from horus.engine.scanner import *
+
 class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     """
@@ -39,7 +41,7 @@ class ScenePanel(wx.lib.scrolledpanel.ScrolledPanel):
         """"""
         wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
 
-        self.scanner = self.GetParent().GetParent().GetParent().scanner
+        self.scanner = Scanner.Instance()
 
         self.SetupScrolling()
         

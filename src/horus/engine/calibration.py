@@ -35,17 +35,20 @@ from scipy import optimize
 from horus.util import profile
 from horus.util.singleton import *
 
+from horus.engine.scanner import *
+
 @Singleton
 class Calibration:
 
 	def __init__(self):
-		pass
+		self.scanner = Scanner.Instance()
 
 	def performCameraIntrinsicsCalibration(self):
-		return 
+		pass
 
 	def performLaserTriangulationCalibration(self):
-		pass
+		if self.scanner.isConnected:
+			pass
 
 	def performPlatformExtrinsicsCalibration(self):
 		pass
