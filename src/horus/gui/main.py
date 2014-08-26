@@ -66,7 +66,6 @@ class MainWindow(wx.Frame):
                 profile.putProfileSetting('camera_id', videoList[0])
             
         self.scanner = Scanner(self)
-        self.calibration = Calibration(self)
 
         self.updateEngineProfile()
 

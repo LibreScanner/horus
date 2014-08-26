@@ -7,8 +7,7 @@
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
 # Date: August 2014                                                     #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
-#         Carlos Crespo <carlos.crespo@bq.com>                          #
+# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
@@ -28,24 +27,20 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import cv2
-import numpy as np
-from scipy import optimize  
+class Singleton:
 
-from horus.util import profile
-from horus.util.singleton import *
+    def __init__(self, decorated):
+        self._decorated = decorated
 
-@Singleton
-class Calibration:
+    def Instance(self):
+        try:
+            return self._instance
+        except AttributeError:
+            self._instance = self._decorated()
+            return self._instance
 
-	def __init__(self):
-		pass
+    def __call__(self):
+        raise TypeError('Singletons must be accessed through `Instance()`.')
 
-	def performCameraIntrinsicsCalibration(self):
-		return 
-
-	def performLaserTriangulationCalibration(self):
-		pass
-
-	def performPlatformExtrinsicsCalibration(self):
-		pass
+    def __instancecheck__(self, inst):
+        return isinstance(inst, self._decorated)

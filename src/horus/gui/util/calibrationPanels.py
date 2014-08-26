@@ -192,17 +192,16 @@ class LaserTriangulationParameters(wx.Panel):
         depthText = wx.StaticText(self, label=_("Depth"))
         depthText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        self.depthTexts = [0]*2
-        self.depthValues = [0]*2
+        self.depthText = 0
+        self.depthValue = 0
 
-        depthBox = wx.BoxSizer(wx.HORIZONTAL)
+        depthBox = wx.BoxSizer(wx.VERTICAL)
         depthPanel.SetSizer(depthBox)
-        for i in range(2):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
-            self.depthTexts[i] = wx.TextCtrl(depthPanel, wx.ID_ANY, "")
-            self.depthTexts[i].SetEditable(False)
-            ibox.Add(self.depthTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            depthBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+        ibox = wx.BoxSizer(wx.HORIZONTAL)
+        self.depthText = wx.TextCtrl(depthPanel, wx.ID_ANY, "")
+        self.depthText.SetEditable(False)
+        ibox.Add(self.depthText, 1, wx.ALL|wx.EXPAND, 2)
+        depthBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
         vbox.Add(coordinatesText, 0, wx.ALL|wx.EXPAND, 5)
        	vbox.Add(coordinatesPanel, 0, wx.ALL|wx.EXPAND, 2)
@@ -219,13 +218,12 @@ class LaserTriangulationParameters(wx.Panel):
                 self.coordinatesTexts[i][j].SetEditable(enable)
                 if not enable:
                     self.coordinatesValues[i][j] = float(self.coordinatesTexts[i][j].GetValue())
-        for i in range(2):
-            self.depthTexts[i].SetEditable(enable)
-            if not enable:
-                self.depthValues[i] = float(self.depthTexts[i].GetValue())
+        self.depthText.SetEditable(enable)
+        if not enable:
+            self.depthValue = float(self.depthText.GetValue())
         if not enable:
             profile.putProfileSettingNumpy('laser_coordinates', self.coordinatesValues)
-            profile.putProfileSettingNumpy('laser_depth', self.depthValues)
+            profile.putProfileSettingFloat('laser_depth', self.depthValue)
 
     def onButtonDefaultPressed(self, event):
         profile.resetProfileSetting('laser_coordinates')
@@ -238,8 +236,7 @@ class LaserTriangulationParameters(wx.Panel):
     		for j in range(2):
     			self.coordinatesTexts[i][j].SetValue(str(round(laserCoordinates[i][j], 3)))
     	laserDepth = profile.getProfileSettingNumpy('laser_depth')
-    	for i in range(2):
-    		self.depthTexts[i].SetValue(str(round(laserDepth[i], 3)))
+    	self.depthText.SetValue(str(round(laserDepth, 3)))
 
 
 class PlatformExtrinsicsParameters(wx.Panel):

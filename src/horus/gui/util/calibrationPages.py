@@ -33,6 +33,9 @@ from horus.gui.util.calibrationPanels import *
 
 from horus.util import resources
 
+from horus.engine.calibration import *
+
+
 class LaserTriangulationMainPage(Page):
 
 	def __init__(self, parent, buttonCancelCallback=None, buttonPerformCallback=None):
@@ -83,6 +86,16 @@ class LaserTriangulationResultPage(Page):
 
 		self.addToPanel(laserTriangulationParameters, 1)
 		self.addToPanel(vbox, 3)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.performCalibration()
+
+	def performCalibration(self):
+		Calibration.Instance().performLaserTriangulationCalibration()
 
 
 class LaserTriangulationImageSequence(wx.Panel):
