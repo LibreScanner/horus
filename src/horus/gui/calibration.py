@@ -70,7 +70,8 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.laserTriangulationResultPage = LaserTriangulationResultPage(self._panel,
                                                                          buttonRejectCallback=self.onLaserTriangulationRejectCallback,
-                                                                         buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
+                                                                         buttonAcceptCallback=self.onLaserTriangulationAcceptCallback,
+                                                                         onFinishCallback=None)
 
         self.laserTriangulationMainPage.Hide()
         self.laserTriangulationResultPage.Hide()

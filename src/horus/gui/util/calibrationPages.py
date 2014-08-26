@@ -64,7 +64,7 @@ class LaserTriangulationMainPage(Page):
 
 class LaserTriangulationResultPage(Page):
 
-	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
+	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None, onFinishCallback=None):
 		Page.__init__(self, parent,
 							title=_("Laser Triangulation"),
 							left=_("Reject"),
@@ -73,18 +73,20 @@ class LaserTriangulationResultPage(Page):
 							buttonRightCallback=buttonAcceptCallback,
 							panelOrientation=wx.HORIZONTAL)
 
+		self.onFinishCallback = onFinishCallback
+
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
-		laserTriangulationParameters = LaserTriangulationParameters(self._panel)
+		self.laserTriangulationParameters = LaserTriangulationParameters(self._panel)
 
-		leftLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Left Laser Image Sequence")
-		rightLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Right Laser Image Sequence")
+		self.leftLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Left Laser Image Sequence")
+		self.rightLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Right Laser Image Sequence")
 
 		#-- Layout
-		vbox.Add(leftLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
-		vbox.Add(rightLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
+		vbox.Add(self.leftLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
+		vbox.Add(self.rightLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
 
-		self.addToPanel(laserTriangulationParameters, 1)
+		self.addToPanel(self.laserTriangulationParameters, 1)
 		self.addToPanel(vbox, 3)
 
 		#-- Events
@@ -95,7 +97,21 @@ class LaserTriangulationResultPage(Page):
 			self.performCalibration()
 
 	def performCalibration(self):
-		Calibration.Instance().performLaserTriangulationCalibration()
+		ret = Calibration.Instance().performLaserTriangulationCalibration()
+		coordinates = ret[0]
+		print coordinates
+		images = ret[1]
+		#TODO: Update laserTriangulationParameters
+		self.leftLaserImageSequence.imageLas.setFrame(images[0][0])
+		self.leftLaserImageSequence.imageGray.setFrame(images[0][1])
+		self.leftLaserImageSequence.imageBin.setFrame(images[0][2])
+		self.leftLaserImageSequence.imageLine.setFrame(images[0][3])
+		self.rightLaserImageSequence.imageLas.setFrame(images[1][0])
+		self.rightLaserImageSequence.imageGray.setFrame(images[1][1])
+		self.rightLaserImageSequence.imageBin.setFrame(images[1][2])
+		self.rightLaserImageSequence.imageLine.setFrame(images[1][3])
+		if self.onFinishCallback is not None:
+			self.onFinishCallback(ret)
 
 
 class LaserTriangulationImageSequence(wx.Panel):
@@ -110,19 +126,22 @@ class LaserTriangulationImageSequence(wx.Panel):
 		titleText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
 		panel = wx.Panel(self)
-		imageLaser = VideoView(panel)
-		imageBin = VideoView(panel)
-		imageLine = VideoView(panel)
+		self.imageLas = VideoView(panel)
+		self.imageGray = VideoView(panel)
+		self.imageBin = VideoView(panel)
+		self.imageLine = VideoView(panel)
 
-		imageLaser.SetBackgroundColour(wx.BLACK)
-		imageBin.SetBackgroundColour(wx.BLACK)
-		imageLine.SetBackgroundColour(wx.BLACK)
+		self.imageLas.SetBackgroundColour('#AAAAAA')
+		self.imageGray.SetBackgroundColour('#AAAAAA')
+		self.imageBin.SetBackgroundColour('#AAAAAA')
+		self.imageLine.SetBackgroundColour('#AAAAAA')
 
 		#-- Layout
 		vbox.Add(titleText, 0, wx.ALL|wx.EXPAND, 5)
-		hbox.Add(imageLaser, 1, wx.ALL|wx.EXPAND, 3)
-		hbox.Add(imageBin, 1, wx.ALL|wx.EXPAND, 3)
-		hbox.Add(imageLine, 1, wx.ALL|wx.EXPAND, 3)
+		hbox.Add(self.imageLas, 1, wx.ALL|wx.EXPAND, 3)
+		hbox.Add(self.imageGray, 1, wx.ALL|wx.EXPAND, 3)
+		hbox.Add(self.imageBin, 1, wx.ALL|wx.EXPAND, 3)
+		hbox.Add(self.imageLine, 1, wx.ALL|wx.EXPAND, 3)
 		panel.SetSizer(hbox)
 		vbox.Add(panel, 1, wx.ALL|wx.EXPAND, 3)
 

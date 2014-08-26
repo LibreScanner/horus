@@ -90,11 +90,11 @@ class Camera:
 		print ">>> Done"
 		return True
 
-	def captureImage(self, mirror=False, flush=False):
+	def captureImage(self, mirror=False, flush=False, flushValue=1):
 		""" If mirror is set to True, the image will be displayed as a mirror,
 		otherwise it will be displayed as the camera sees it"""
 		if flush:
-			for i in range(0,1):
+			for i in range(0,flushValue):
 				self.capture.grab()
 		ret, image = self.capture.read()
 		if ret:
