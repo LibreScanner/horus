@@ -40,7 +40,7 @@ from horus.gui.util.workbenchConnection import *
 class ControlWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
-		WorkbenchConnection.__init__(self, parent, leftSize=0, rightSize=1)
+		WorkbenchConnection.__init__(self, parent)
 
 		self.viewCamera = True
 
@@ -84,22 +84,22 @@ class ControlWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked     , self.viewTool)
 
 		#-- Left Panel
-		self.cameraPanel = CameraPanel(self._leftPanel)
-		self.devicePanel = DevicePanel(self._leftPanel)
+		self.cameraPanel = CameraPanel(self._panel)
+		self.devicePanel = DevicePanel(self._panel)
 
 		self.cameraPanel.Disable()
 		self.devicePanel.Disable()
 
 		#-- Right Views
-		self.cameraView = VideoView(self._rightPanel)
-		self.deviceView = VideoView(self._rightPanel)
+		self.cameraView = VideoView(self._panel)
+		self.deviceView = VideoView(self._panel)
 		self.cameraView.SetBackgroundColour(wx.BLACK)
 
-		self.addToLeft(self.cameraPanel)
-		self.addToRight(self.cameraView)
+		self.addToPanel(self.cameraPanel, 0)
+		self.addToPanel(self.cameraView, 1)
 
-		self.addToLeft(self.devicePanel)
-		self.addToRight(self.deviceView)
+		self.addToPanel(self.devicePanel, 0)
+		self.addToPanel(self.deviceView, 1)
 
 		self.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
 

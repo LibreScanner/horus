@@ -39,7 +39,7 @@ from horus.gui.util.workbenchConnection import *
 class ScanningWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
-		WorkbenchConnection.__init__(self, parent, leftSize=0, rightSize=1)
+		WorkbenchConnection.__init__(self, parent)
 
 		self.view3D = False
 		self.showVideoViews = False
@@ -68,23 +68,23 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked      , self.viewTool)
 
 		#-- Left Panel
-		self.videoPanel = VideoPanel(self._leftPanel)
-		self.scenePanel = ScenePanel(self._leftPanel)
+		self.videoPanel = VideoPanel(self._panel)
+		self.scenePanel = ScenePanel(self._panel)
 
 		self.videoPanel.Disable()
 		self.scenePanel.Disable()
 
 		#-- Right Views
-		self.videoView = VideoView(self._rightPanel)
-		self.sceneView = SceneView(self._rightPanel)
+		self.videoView = VideoView(self._panel)
+		self.sceneView = SceneView(self._panel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
 
-		self.addToLeft(self.scenePanel)
-		self.addToRight(self.sceneView)
+		self.addToPanel(self.scenePanel, 0)
+		self.addToPanel(self.sceneView, 1)
 
-		self.addToLeft(self.videoPanel)
-		self.addToRight(self.videoView)
+		self.addToPanel(self.videoPanel, 0)
+		self.addToPanel(self.videoView, 1)
 
 		#-- Video View Selector
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))

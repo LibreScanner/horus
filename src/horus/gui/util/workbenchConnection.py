@@ -32,8 +32,8 @@ from horus.gui.util.workbench import *
 
 class WorkbenchConnection(Workbench):
 
-	def __init__(self, parent, leftSize=1, middleSize=None, rightSize=1):
-		Workbench.__init__(self, parent, leftSize, middleSize, rightSize)
+	def __init__(self, parent):
+		Workbench.__init__(self, parent)
 
 		self.scanner = self.GetParent().scanner
 
