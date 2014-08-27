@@ -92,28 +92,33 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+80))
 		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(10,15+120))
 		self.buttonBin  = wx.RadioButton(self.videoView, wx.NewId(), _("Binary"), pos=(10,15+160))
+		self.buttonLine = wx.RadioButton(self.videoView, wx.NewId(), _("Line"), pos=(10,15+200))
 
 		self.buttonShowVideoViews.Hide()
 		self.buttonRaw.Hide()
 		self.buttonLas.Hide()
 		self.buttonDiff.Hide()
 		self.buttonBin.Hide()
+		self.buttonLine.Hide()
 
 		self.buttonRaw.SetForegroundColour(wx.WHITE)
 		self.buttonLas.SetForegroundColour(wx.WHITE)
 		self.buttonDiff.SetForegroundColour(wx.WHITE)
 		self.buttonBin.SetForegroundColour(wx.WHITE)
+		self.buttonLine.SetForegroundColour(wx.WHITE)
 
 		self.buttonRaw.SetBackgroundColour(wx.BLACK)
 		self.buttonLas.SetBackgroundColour(wx.BLACK)
 		self.buttonDiff.SetBackgroundColour(wx.BLACK)
 		self.buttonBin.SetBackgroundColour(wx.BLACK)
+		self.buttonLine.SetBackgroundColour(wx.BLACK)
 
 		self.Bind(wx.EVT_BUTTON, self.onShowVideoViews, self.buttonShowVideoViews)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonRaw)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLas)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonDiff)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
 		
 		self.updateView()
 
@@ -124,17 +129,20 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.buttonLas.Show()
 			self.buttonDiff.Show()
 			self.buttonBin.Show()
+			self.buttonLine.Show()
 		else:
 			self.buttonRaw.Hide()
 			self.buttonLas.Hide()
 			self.buttonDiff.Hide()
 			self.buttonBin.Hide()
+			self.buttonLine.Hide()
 
 	def onSelectVideoView(self, event):
 		selectedView = {self.buttonRaw.GetId()  : 'raw',
 						self.buttonLas.GetId()  : 'las',
 						self.buttonDiff.GetId() : 'diff',
-						self.buttonBin.GetId()  : 'bin'}.get(event.GetId())
+						self.buttonBin.GetId()  : 'bin',
+						self.buttonLine.GetId() : 'line'}.get(event.GetId())
 
 		self.scanner.core.setImageType(selectedView)
 		profile.putProfileSetting('img_type', selectedView)
