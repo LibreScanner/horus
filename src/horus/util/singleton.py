@@ -27,62 +27,20 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from horus.util.resources import *
-from horus.gui.util.workbench import *
+class Singleton:
 
-from horus.engine.scanner import *
+    def __init__(self, decorated):
+        self._decorated = decorated
 
-class WorkbenchConnection(Workbench):
+    def Instance(self):
+        try:
+            return self._instance
+        except AttributeError:
+            self._instance = self._decorated()
+            return self._instance
 
-	def __init__(self, parent):
-		Workbench.__init__(self, parent)
+    def __call__(self):
+        raise TypeError('Singletons must be accessed through `Instance()`')
 
-		self.scanner = Scanner.Instance()
-
-		#-- Toolbar Configuration
-		self.connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
-		self.disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
-		self.toolbar.Realize()
-
-		#-- Disable Toolbar Items
-		self.enableLabelTool(self.connectTool   , True)
-		self.enableLabelTool(self.disconnectTool, False)
-
-		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onConnectToolClicked   , self.connectTool)
-		self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked, self.disconnectTool)
-
-		self.Layout()
-
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
-	def onShow(self, event):
-		if event.GetShow():
-			self.updateStatus(self.scanner.isConnected)
-
-	def onConnectToolClicked(self, event):
-		self.updateStatus(True)
-		if not self.scanner.connect():
-			self.updateStatus(False)
-			self.GetParent().onPreferences(None)
-		else:
-			self.GetParent().updateCameraCurrentProfile()
-
-	def onDisconnectToolClicked(self, event):
-		if self.scanner.disconnect():
-			self.updateStatus(False)
-
-	def enableLabelTool(self, item, enable):
-		self.toolbar.EnableTool(item.GetId(), enable)
-
-	def updateStatus(self, status):
-		if status:
-			self.enableLabelTool(self.connectTool   , False)
-			self.enableLabelTool(self.disconnectTool, True)
-		else:
-			self.enableLabelTool(self.connectTool   , True)
-			self.enableLabelTool(self.disconnectTool, False)
-		self.updateToolbarStatus(status)
-
-	def updateToolbarStatus(self, status):
-		pass
+    def __instancecheck__(self, inst):
+        return isinstance(inst, self._decorated)

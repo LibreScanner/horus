@@ -31,39 +31,25 @@ import wx
 
 class Workbench(wx.Panel):
 
-	def __init__(self, parent, leftSize=1, rightSize=1):
+	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		self.leftBox = wx.BoxSizer(wx.VERTICAL)
-		self.rightBox = wx.BoxSizer(wx.VERTICAL)
+		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
 
 		self.toolbar = wx.ToolBar(self)
 		self._panel = wx.Panel(self)
-		self._leftPanel = wx.Panel(self._panel)
-		self._rightPanel = wx.Panel(self._panel)
 
 		vbox.Add(self.toolbar, 0, wx.ALL|wx.EXPAND, 1)
 		vbox.Add(self._panel, 1, wx.ALL|wx.EXPAND, 1)
 
-		hbox.Add(self._leftPanel, leftSize, wx.ALL|wx.EXPAND, 2)
-		hbox.Add(self._rightPanel, rightSize, wx.ALL|wx.EXPAND, 2)
-
-		self._leftPanel.SetSizer(self.leftBox)
-		self._rightPanel.SetSizer(self.rightBox)
-		self._panel.SetSizer(hbox)
+		self._panel.SetSizer(self.hbox)
 		self._panel.Layout()
 
 		self.SetSizer(vbox)
 		self.Layout()
 		self.Hide()
 
-	def getPanel(self):
-		return self._panel
-
-	def addToLeft(self, _object):
-		self.leftBox.Add(_object, 1, wx.ALL|wx.EXPAND, 3)
-
-	def addToRight(self, _object):
-		self.rightBox.Add(_object, 1, wx.ALL|wx.EXPAND, 3)
+	def addToPanel(self, _object, _size):
+		if _object is not None:
+			self.hbox.Add(_object, _size, wx.ALL|wx.EXPAND, 3)

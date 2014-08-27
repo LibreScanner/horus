@@ -27,8 +27,6 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
-
 import Queue
 import threading
 
@@ -38,16 +36,14 @@ from horus.engine.core import *
 from horus.engine.camera import *
 from horus.engine.device import *
 
-class Scanner(wx.PyControl):
+from horus.util.singleton import *
+
+@Singleton
+class Scanner:
 	"""Scanner class. For managing scanner"""
-	"""
-	"""
 
-	def __init__(self, parent):
+	def __init__(self):
 		""" """
-		wx.PyControl.__init__(self, parent)
-		self.Hide()
-
 		self.isConnected = False
 
 		self.useLeftLaser = True
@@ -151,19 +147,6 @@ class Scanner(wx.PyControl):
 			else:
 				self.device.setRightLaserOn()
 
-			"""if self.useLeftLaser:
-				self.device.setLeftLaserOn()
-			else:
-				self.device.setRightLaserOn()
-
-			imgRaw = self.camera.captureImage(flush=False)
-			imgLas = self.camera.captureImage(flush=False)
-
-			if self.useLeftLaser:
-				self.device.setLeftLaserOff()
-			else:
-				self.device.setRightLaserOff()"""
-
 			#-- Move motor
 			self.device.setRelativePosition(degrees)
 			self.device.setMoveMotor()
@@ -184,12 +167,13 @@ class Scanner(wx.PyControl):
 	def processThread(self):
 		""" """
 		while self.processFlag:
-			begin = datetime.datetime.now()
 
 			#-- Get images
 			images = self.imageQueue.get()
 			self.imageQueue.task_done()
 
+			begin = datetime.datetime.now()
+			
 			#-- Generate Point Cloud
 			points, colors = self.core.getPointCloud(images[0], images[1])
 

@@ -9,12 +9,12 @@
 # Date: March 2014                                                      #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
-# This program is free software: you can redibute it and/or modify      #
+# This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
 # the Free Software Foundation, either version 3 of the License, or     #
 # (at your option) any later version.                                   #
 #                                                                       #
-# This program is dibuted in the hope that it will be useful,           #
+# This program is distributed in the hope that it will be useful,       #
 # but WITHOUT ANY WARRANTY; without even the implied warranty of        #
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
 # GNU General Public License for more details.                          #
@@ -90,11 +90,11 @@ class Camera:
 		print ">>> Done"
 		return True
 
-	def captureImage(self, mirror=False, flush=False):
+	def captureImage(self, mirror=False, flush=False, flushValue=1):
 		""" If mirror is set to True, the image will be displayed as a mirror,
 		otherwise it will be displayed as the camera sees it"""
 		if flush:
-			for i in range(0,1):
+			for i in range(0,flushValue):
 				self.capture.grab()
 		ret, image = self.capture.read()
 		if ret:

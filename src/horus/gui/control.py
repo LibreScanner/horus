@@ -27,7 +27,6 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import time
 
 from horus.util.resources import *
 from horus.util import profile
@@ -41,7 +40,7 @@ from horus.gui.util.workbenchConnection import *
 class ControlWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
-		WorkbenchConnection.__init__(self, parent, 0, 1)
+		WorkbenchConnection.__init__(self, parent)
 
 		self.viewCamera = True
 
@@ -85,22 +84,22 @@ class ControlWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked     , self.viewTool)
 
 		#-- Left Panel
-		self.cameraPanel = CameraPanel(self._leftPanel)
-		self.devicePanel = DevicePanel(self._leftPanel)
+		self.cameraPanel = CameraPanel(self._panel)
+		self.devicePanel = DevicePanel(self._panel)
 
 		self.cameraPanel.Disable()
 		self.devicePanel.Disable()
 
 		#-- Right Views
-		self.cameraView = VideoView(self._rightPanel)
-		self.deviceView = VideoView(self._rightPanel)
+		self.cameraView = VideoView(self._panel)
+		self.deviceView = VideoView(self._panel)
 		self.cameraView.SetBackgroundColour(wx.BLACK)
 
-		self.addToLeft(self.cameraPanel)
-		self.addToRight(self.cameraView)
+		self.addToPanel(self.cameraPanel, 0)
+		self.addToPanel(self.cameraView, 1)
 
-		self.addToLeft(self.devicePanel)
-		self.addToRight(self.deviceView)
+		self.addToPanel(self.devicePanel, 0)
+		self.addToPanel(self.deviceView, 1)
 
 		self.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
 
@@ -116,19 +115,9 @@ class ControlWorkbench(WorkbenchConnection):
 				pass
 
 	def onTimer(self, event):
-		#begin = time.time()
 		frame = self.scanner.camera.captureImage()
-		#end = time.time()
 		if frame is not None:
 			self.cameraView.setFrame(frame)
-		"""if self.undistort:
-		if self.undistortCounter==1:
-		self.undistortCounter=0
-		frame=self.calibration.undistortImage(frame)
-		self.cameraView.setFrame(frame)
-		else:
-		self.undistortCounter+=1 else:"""
-		#print end - begin
 
 	def onPlayToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
