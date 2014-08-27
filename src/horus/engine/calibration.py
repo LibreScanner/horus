@@ -30,7 +30,10 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import cv2
 import numpy as np
+from numpy import linalg
 from scipy import optimize  
+
+import time
 
 from horus.util import profile
 from horus.util.singleton import *
@@ -49,86 +52,105 @@ class Calibration:
 	def performLaserTriangulationCalibration(self):
 		if self.scanner.isConnected:
 
-			u1L = u2L = u1R = u2R = None
-
 			device = self.scanner.device
 			camera = self.scanner.camera
 
-			##-- Left Laser
+			##-- Load profile parameters
+			calMatrix = profile.getProfileSettingNumpy('calibration_matrix')
+			distortionVector = profile.getProfileSettingNumpy('distortion_vector')
+			patternRows = profile.getProfileSettingInteger('pattern_rows') # points_per_column
+			patternColumns = profile.getProfileSettingInteger('pattern_columns') # points_per_row
+			squareWidth = profile.getProfileSettingInteger('square_width') # milimeters of each square's side
+
+			objpoints = self.generateObjectPoints(patternColumns, patternRows, squareWidth)
+
+			##-- Switch off lasers
+			device.setLeftLaserOff()
+			device.setRightLaserOff()
+
+			##-- Move pattern until ||(R-I)|| < e  ->function
+			epsilon = 0.04
+			distance = np.inf
+			I = np.identity(3)
+			angle = 90
+			z = None
+			device.setRelativePosition(angle)
+			device.setSpeedMotor(50)
+			device.enable()
+			while distance > epsilon:
+				imgRaw = camera.captureImage(flush=True, flushValue=2)
+				ret = self.solvePnp(imgRaw, objpoints, calMatrix, distortionVector, patternColumns, patternRows)
+				if ret is not None:
+					if ret[0]:
+						R = ret[1]
+						z = ret[2][2]
+						distance = linalg.norm(R-I)
+						angle = np.min((distance - epsilon) * 10, 0.5)
+						#print distance
+						#print angle
+				device.setRelativePosition(angle)
+				device.setSpeedMotor(50)
+				device.setMoveMotor()
 
 			#-- Get images
-			device.setLeftLaserOff()
-			imgRawL = camera.captureImage(flush=True, flushValue=2)
+			imgRaw = camera.captureImage(flush=True, flushValue=2)
 			device.setLeftLaserOn()
 			imgLasL = camera.captureImage(flush=True, flushValue=2)
 			device.setLeftLaserOff()
-
-			height, width, depth = imgRawL.shape
-			imgLineL = np.zeros((height,width,depth), np.uint8)
-
-			diffL = cv2.subtract(imgLasL, imgRawL)
-			rL,gL,bL = cv2.split(diffL)
-			imgGrayL = cv2.merge((rL,rL,rL))
-			edgesL = cv2.threshold(rL, 30.0, 255.0, cv2.THRESH_BINARY)[1]
-			edges3L = cv2.merge((edgesL,edgesL,edgesL))
-			linesL = cv2.HoughLines(edgesL, 1, np.pi/180, 200)
-
-			if linesL is not None:
-				rho, theta = linesL[0][0]
-
-				#-- Draw line
-				a = np.cos(theta)
-				b = np.sin(theta)
-				x0 = a*rho
-				y0 = b*rho
-				x1 = int(x0 + 1000*(-b))
-				y1 = int(y0 + 1000*(a))
-				x2 = int(x0 - 1000*(-b))
-				y2 = int(y0 - 1000*(a))
-				cv2.line(imgLineL,(x1,y1),(x2,y2),(255,255,255),3)
-
-				#-- Calculate coordinates
-				u1L = rho / np.cos(theta)
-				u2L = u1L - height * np.tan(theta)
-
-			##-- Right Laser
-
-			#-- Get images
-			imgRawR = imgRawL
 			device.setRightLaserOn()
 			imgLasR = camera.captureImage(flush=True, flushValue=2)
 			device.setRightLaserOff()
 
-			height, width, depth = imgRawR.shape
-			imgLineR = np.zeros((height,width,depth), np.uint8)
+			##-- Obtain Left Laser Line
+			retL = self.obtainLine(imgRaw, imgLasL)
 
-			diffR = cv2.subtract(imgLasR, imgRawR)
-			rR,gR,bR = cv2.split(diffR)
-			imgGrayR = cv2.merge((rR,rR,rR))
-			edgesR = cv2.threshold(rR, 30.0, 255.0, cv2.THRESH_BINARY)[1]
-			edges3R = cv2.merge((edgesR,edgesR,edgesR))
-			linesR = cv2.HoughLines(edgesR, 1, np.pi/180, 200)
+			##-- Obtain Right Laser Line
+			retR = self.obtainLine(imgRaw, imgLasR)
 
-			if linesR is not None:
-				rho, theta = linesR[0][0]
+			#-- Disable motor
+			device.disable()
 
-				#-- Draw line
-				a = np.cos(theta)
-				b = np.sin(theta)
-				x0 = a*rho
-				y0 = b*rho
-				x1 = int(x0 + 1000*(-b))
-				y1 = int(y0 + 1000*(a))
-				x2 = int(x0 - 1000*(-b))
-				y2 = int(y0 - 1000*(a))
-				cv2.line(imgLineR,(x1,y1),(x2,y2),(255,255,255),3)
+			return [z, [retL[0], retR[0]], [retL[1], retR[1]]]
 
-				#-- Calculate coordinates
-				u1R = rho / np.cos(theta)
-				u2R = u1R - height * np.tan(theta)
+	def obtainLine(self, imgRaw, imgLas):
+		u1 = u2 = None
 
-			return (((u1L, u2L), (u1R, u2R)),
-					((imgLasL, imgGrayL, edges3L, imgLineL), (imgLasR, imgGrayR, edges3R, imgLineR)))
+		height, width, depth = imgRaw.shape
+		imgLine = np.zeros((height,width,depth), np.uint8)
+
+		diff = cv2.subtract(imgLas, imgRaw)
+		r,g,b = cv2.split(diff)
+		imgGray = cv2.merge((r,r,r))
+		edges = cv2.threshold(r, 30.0, 255.0, cv2.THRESH_BINARY)[1]
+		edges3 = cv2.merge((edges,edges,edges))
+		lines = cv2.HoughLines(edges, 1, np.pi/180, 200)
+
+		if lines is not None:
+			rho, theta = lines[0][0]
+			#-- Calculate coordinates
+			u1 = rho / np.cos(theta)
+			u2 = u1 - height * np.tan(theta)
+			#-- Draw line
+			cv2.line(imgLine,(int(round(u1)),0),(int(round(u2)),height-1),(255,0,0),5)
+
+		return [[u1, u2], [imgLas, imgGray, edges3, imgLine]]
+
+	def solvePnp(self, image, objpoints, calMatrix, distortionVector, patternColumns, patternRows):
+		gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+		# the fast check flag reduces significantly the computation time if the pattern is out of sight 
+		retval, corners = cv2.findChessboardCorners(gray, (patternColumns,patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
+		
+		if retval:
+			criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
+			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=criteria)
+			ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, calMatrix, distortionVector)
+			return (ret, cv2.Rodrigues(rvecs)[0], tvecs)
+
+	def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
+		objp = np.zeros((patternRows*patternColumns,3), np.float32)
+		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
+		objp = np.multiply(objp, squareWidth)
+		return objp
 
 	def performPlatformExtrinsicsCalibration(self):
 		pass

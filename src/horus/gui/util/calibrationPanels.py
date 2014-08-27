@@ -217,26 +217,40 @@ class LaserTriangulationParameters(wx.Panel):
             for j in range(2):
                 self.coordinatesTexts[i][j].SetEditable(enable)
                 if not enable:
-                    self.coordinatesValues[i][j] = float(self.coordinatesTexts[i][j].GetValue())
+                    self.coordinatesValues[i][j] = round(float(self.coordinatesTexts[i][j].GetValue()), 3)
         self.depthText.SetEditable(enable)
         if not enable:
-            self.depthValue = float(self.depthText.GetValue())
-        if not enable:
-            profile.putProfileSettingNumpy('laser_coordinates', self.coordinatesValues)
-            profile.putProfileSettingFloat('laser_depth', self.depthValue)
+            self.depthValue = round(float(self.depthText.GetValue()), 3)
+            updateControlsToProfile(self.coordinatesValues, self.depthValue)
 
     def onButtonDefaultPressed(self, event):
         profile.resetProfileSetting('laser_coordinates')
         profile.resetProfileSetting('laser_depth')
         self.updateProfileToAllControls()
 
+    def updateAllControls(self, laserCoordinates, laserDepth):
+        for i in range(2):
+            for j in range(2):
+                if laserCoordinates[i][j] is not None:
+                    self.coordinatesValues[i][j] = round(laserCoordinates[i][j], 3)
+                    self.coordinatesTexts[i][j].SetValue(str(self.coordinatesValues[i][j]))
+                else:
+                    self.coordinatesTexts[i][j].SetValue("")
+        if laserDepth is not None:
+            self.depthValue = round(laserDepth, 3)
+            self.depthText.SetValue(str(self.depthValue))
+        else:
+            self.depthText.SetValue("")
+
+    def updateAllControlsToProfile(self, laserCoordinates, laserDepth):
+        self.updateAllControls(laserCoordinates, laserDepth)
+        profile.putProfileSettingNumpy('laser_coordinates', laserCoordinates)
+        profile.putProfileSetting('laser_depth', laserDepth)
+
     def updateProfileToAllControls(self):
     	laserCoordinates = profile.getProfileSettingNumpy('laser_coordinates')
-    	for i in range(2):
-    		for j in range(2):
-    			self.coordinatesTexts[i][j].SetValue(str(round(laserCoordinates[i][j], 3)))
     	laserDepth = profile.getProfileSettingNumpy('laser_depth')
-    	self.depthText.SetValue(str(round(laserDepth, 3)))
+        self.updateAllControls(laserCoordinates, laserDepth)
 
 
 class PlatformExtrinsicsParameters(wx.Panel):

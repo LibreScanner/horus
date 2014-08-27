@@ -115,7 +115,9 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onLaserTriangulationRejectCallback(self):
-        self.laserTriangulationMainPage.Show()
+        self.cameraIntrinsicsPanel.Show()
+        self.laserTriangulationPanel.Show()
+        self.platformExtrinsicsPanel.Show()
         self.laserTriangulationResultPage.Hide()
         self.Layout()
 
@@ -124,6 +126,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationPanel.Show()
         self.platformExtrinsicsPanel.Show()
         self.laserTriangulationResultPage.Hide()
+        self.updateProfileToAllControls()
         self.Layout()
 
     def updateToolbarStatus(self, status):

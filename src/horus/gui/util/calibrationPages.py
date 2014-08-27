@@ -98,21 +98,20 @@ class LaserTriangulationResultPage(Page):
 
 	def performCalibration(self):
 		ret = Calibration.Instance().performLaserTriangulationCalibration()
-		coordinates = ret[0]
-		print coordinates
-		images = ret[1]
-		#TODO: Update laserTriangulationParameters
-		self.leftLaserImageSequence.imageLas.setFrame(images[0][0])
-		self.leftLaserImageSequence.imageGray.setFrame(images[0][1])
-		self.leftLaserImageSequence.imageBin.setFrame(images[0][2])
-		self.leftLaserImageSequence.imageLine.setFrame(images[0][3])
-		self.rightLaserImageSequence.imageLas.setFrame(images[1][0])
-		self.rightLaserImageSequence.imageGray.setFrame(images[1][1])
-		self.rightLaserImageSequence.imageBin.setFrame(images[1][2])
-		self.rightLaserImageSequence.imageLine.setFrame(images[1][3])
+
+		self.laserTriangulationParameters.updateAllControlsToProfile(ret[1], ret[0])
+
+		self.leftLaserImageSequence.imageLas.setFrame(ret[2][0][0])
+		self.leftLaserImageSequence.imageGray.setFrame(ret[2][0][1])
+		self.leftLaserImageSequence.imageBin.setFrame(ret[2][0][2])
+		self.leftLaserImageSequence.imageLine.setFrame(ret[2][0][3])
+		self.rightLaserImageSequence.imageLas.setFrame(ret[2][1][0])
+		self.rightLaserImageSequence.imageGray.setFrame(ret[2][1][1])
+		self.rightLaserImageSequence.imageBin.setFrame(ret[2][1][2])
+		self.rightLaserImageSequence.imageLine.setFrame(ret[2][1][3])
+
 		if self.onFinishCallback is not None:
 			self.onFinishCallback(ret)
-
 
 class LaserTriangulationImageSequence(wx.Panel):
 

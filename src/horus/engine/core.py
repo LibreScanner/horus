@@ -195,7 +195,7 @@ class Core:
 
 	def getDiffImage(self, img1, img2):
 		""" """
-		return cv2.absdiff(img1, img2)
+		return cv2.subtract(img1, img2)
 
 	def imageProcessing(self, image):
 		""" """
@@ -256,7 +256,7 @@ class Core:
  		#-- Update Raw, Laser and Diff images
 		self.imgRaw = imageRaw
 		self.imgLas = imageLas
-		self.imgDiff = self.getDiffImage(imageRaw, imageLas)
+		self.imgDiff = self.getDiffImage(imageLas, imageRaw)
 
 		src = self.imageProcessing(self.imgDiff)
 
