@@ -102,6 +102,8 @@ class Core:
 
 		self.setResolution(width, height)
 
+		self.W = np.ones((height,width))*np.linspace(0,width-1,width)
+
 		#-- Constant Parameters initialization
 		self.rad = math.pi / 180.0
 
@@ -123,12 +125,11 @@ class Core:
 			u22 = laserCoordinates[1][1]
 
 		if laserDepth is not None:
-			z1 = laserDepth[0][0] #[0]
-			z2 = laserDepth[0][1] #[1]
+			z = laserDepth
 
 		#-- Determine point cloud X, Y, Z matrices in camera coordinates
 
-		zl = z1 * (1 + (u11 - cx + ((u12-u11)/height) * np.linspace(0,height-1,height)) / (fx * math.tan(alpha)))
+		zl = z * (1 + (u11 - cx + ((u12-u11)/height) * np.linspace(0,height-1,height)) / (fx * math.tan(alpha)))
 
 		a = (np.linspace(0,width-1,width) - cx) / fx
 		b = (np.linspace(0,height-1,height) - cy) / fy
@@ -143,7 +144,7 @@ class Core:
 		T = np.matrix(translationVector)
 
 		Rt = R.T
-		RT = R.T*T.T
+		RT = R.T*T
 
 		self.Xw = (Rt[0,0] * Xc + Rt[0,1] * Yc + Rt[0,2] * Zc - RT[0]).T
 		self.Yw = (Rt[1,0] * Xc + Rt[1,1] * Yc + Rt[1,2] * Zc - RT[1]).T
@@ -213,7 +214,7 @@ class Core:
 
 		return cv2.inRange(imageHSV, self.colorMin, self.colorMax)
 
-	def pointCloudGeneration(self, imageDiff, imageRaw, src):
+	def pointCloudGeneration(self, imageRaw, src):
 		""" """
 		#-- Line generation
 		s = src.sum(1)
@@ -224,6 +225,9 @@ class Core:
 		else:
 			w = (self.W * src).sum(1)
 			l = (w[v] / s[v].T).astype(int)
+
+		self.imgLine = np.zeros_like(imageRaw)
+		self.imgLine[v,l] = 255.0
 
 		#-- Obtaining point cloud
 		xw = self.Xw[v,l]
@@ -261,12 +265,10 @@ class Core:
 		src = self.imageProcessing(self.imgDiff)
 
 		temp = np.zeros_like(self.imgDiff)
-		temp[:,:,0] = src
-		temp[:,:,1] = src
-		temp[:,:,2] = src
+		temp[:,:,0] = temp[:,:,1] = temp[:,:,2] = src
 		self.imgBin = temp
 
-		points, colors, rho, z = self.pointCloudGeneration(self.imgDiff, imageRaw, src)
+		points, colors, rho, z = self.pointCloudGeneration(imageRaw, src)
 
 		if points != None and colors != None:
 			points, colors = self.pointCloudFilter(points, colors, rho, z)
