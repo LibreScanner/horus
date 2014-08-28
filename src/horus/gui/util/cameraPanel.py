@@ -88,6 +88,9 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self.resolutionCombo = wx.ComboBox(self, -1,str((1280,960)), size=(150, -1), choices=self.resolutions, style=wx.CB_READONLY)
 		self.Bind(wx.EVT_COMBOBOX, self.OnSelectResolution,self.resolutionCombo)
 
+		self.useDistortionCheckBox = wx.CheckBox(self, label=_("Use distortion"))
+		self.Bind(wx.EVT_CHECKBOX, self.onUseDistortionChanged, self.useDistortionCheckBox)
+
 		self.restoreButton = wx.Button(self,label=_("Restore Default"),size=(200,-1))
 		self.restoreButton.Bind(wx.EVT_BUTTON,self.restoreDefault)
 
@@ -163,6 +166,10 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		vbox.Add(hbox,0,wx.EXPAND,0)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.useDistortionCheckBox, 0, wx.ALL, 18)
+		vbox.Add(hbox,0,wx.EXPAND,0)
+
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.restoreButton, 0, wx.ALL, 18)
 		
 		vbox.Add(hbox,0,wx.ALIGN_CENTRE,0)
@@ -186,7 +193,6 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		value=self.brightnessSlider.GetValue()  
 		profile.putProfileSetting('brightness_'+self.currentWorkbench, value)
 		self.scanner.camera.setBrightness(value)
-		
 
 	def oncontrastChanged(self,event):
 		self.firstMove(event,profile.getProfileSettingInteger('contrast_'+self.currentWorkbench))
@@ -224,6 +230,12 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		print "Select Resolution"
 		self.scanner.camera.setWidth(w)
 		self.scanner.camera.setHeight(h)
+
+	def onUseDistortionChanged(self, event):
+		self.firstMove(event,profile.getProfileSettingBool('use_distortion'))
+		value = self.useDistortionCheckBox.GetValue()
+		profile.putProfileSetting('use_distortion', value)
+		self.scanner.camera.setUseDistortion(value)
 
 	def release(self,event):
 		self.flagFirstMove=True
@@ -266,6 +278,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 			profile.resetProfileSetting('framerate_'+self.currentWorkbench)
 			profile.resetProfileSetting('camera_width_'+self.currentWorkbench)
 			profile.resetProfileSetting('camera_height_'+self.currentWorkbench)
+			profile.resetProfileSetting('use_distortion')
 			self.GetParent().GetParent().GetParent().timer.Stop()
 			self.updateProfileToAllControls()
 			if self.main.playing and self.scanner.camera.fps > 0:
@@ -300,3 +313,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self.resolutionCombo.SetValue(str(resolution))
 		self.scanner.camera.setWidth(camera_width)
 		self.scanner.camera.setHeight(camera_height)
+
+		useDistortion=profile.getProfileSettingBool('use_distortion')
+		self.useDistortionCheckBox.SetValue(useDistortion)
+		self.scanner.camera.setUseDistortion(useDistortion)

@@ -44,6 +44,12 @@ class Camera:
 
 		self.width = 800
 		self.height = 600
+
+		self.useDistortion = False
+
+		self.cameraMatrix = None
+		self.distortionVector = None
+		self.distCameraMatrix = None
 		
 		if platform.system()=='Linux':
 			self.maxBrightness = 255.
@@ -57,7 +63,7 @@ class Camera:
 			self.maxSaturation = 1.
 			self.maxExposure = -9/200.
 
-	def initialize(self, brightness, contrast, saturation, exposure, fps, width, height):
+	def initialize(self, brightness, contrast, saturation, exposure, fps, width, height, cameraMatrix, distortionVector, useDistortion):
 		self.setBrightness(brightness)
 		self.setContrast(contrast)
 		self.setSaturation(saturation)
@@ -66,6 +72,10 @@ class Camera:
 		self.setWidth(width)
 		self.setHeight(height)
 		self._updateResolution()
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
+		self.distCameraMatrix = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distortionVector, (self.width,self.height), alpha=1)[0]
+		self.setUseDistortion(useDistortion)
 
 	def connect(self):
 		""" """
@@ -94,10 +104,18 @@ class Camera:
 		""" If mirror is set to True, the image will be displayed as a mirror,
 		otherwise it will be displayed as the camera sees it"""
 		if flush:
-			for i in range(0,flushValue):
+			for i in range(0, flushValue):
 				self.capture.grab()
 		ret, image = self.capture.read()
 		if ret:
+			if self.useDistortion and \
+			   self.cameraMatrix is not None and \
+			   self.distortionVector is not None and \
+			   self.distCameraMatrix is not None:
+				mapx, mapy = cv2.initUndistortRectifyMap(self.cameraMatrix, self.distortionVector,
+														 R=None, newCameraMatrix=self.distCameraMatrix,
+														 size=(self.width, self.height), m1type=5)
+				image = cv2.remap(image, mapx, mapy, cv2.INTER_LINEAR)
 			image = cv2.transpose(image)
 			if not mirror:
 				image = cv2.flip(image, 1)
@@ -145,3 +163,6 @@ class Camera:
 		if self.isConnected:
 			self.width = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
 			self.height = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
+
+	def setUseDistortion(self, value):
+		self.useDistortion = value
