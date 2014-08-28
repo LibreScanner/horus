@@ -47,7 +47,8 @@ class Calibration:
 		self.scanner = Scanner.Instance()
 
 	def performCameraIntrinsicsCalibration(self):
-		pass
+		if self.scanner.isConnected:
+			pass
 
 	def performLaserTriangulationCalibration(self):
 		if self.scanner.isConnected:
@@ -68,29 +69,13 @@ class Calibration:
 			device.setLeftLaserOff()
 			device.setRightLaserOff()
 
-			##-- Move pattern until ||(R-I)|| < e  ->function
-			epsilon = 0.04
-			distance = np.inf
-			I = np.identity(3)
-			angle = 90
-			z = None
-			device.setRelativePosition(angle)
-			device.setSpeedMotor(50)
+			##-- Move pattern until ||(R-I)|| < e
+			device.setSpeedMotor(1)
 			device.enable()
-			while distance > epsilon:
-				imgRaw = camera.captureImage(flush=True, flushValue=2)
-				ret = self.solvePnp(imgRaw, objpoints, calMatrix, distortionVector, patternColumns, patternRows)
-				if ret is not None:
-					if ret[0]:
-						R = ret[1]
-						z = ret[2][2]
-						distance = linalg.norm(R-I)
-						angle = np.min((distance - epsilon) * 10, 0.5)
-						#print distance
-						#print angle
-				device.setRelativePosition(angle)
-				device.setSpeedMotor(50)
-				device.setMoveMotor()
+
+			z = self.getPatternDepth(device, camera, objpoints, calMatrix, distortionVector, patternColumns, patternRows)
+
+			time.sleep(0.5)
 
 			#-- Get images
 			imgRaw = camera.captureImage(flush=True, flushValue=2)
@@ -112,6 +97,34 @@ class Calibration:
 
 			return [z, [retL[0], retR[0]], [retL[1], retR[1]]]
 
+	def getPatternDepth(self, device, camera, objpoints, calMatrix, distortionVector, patternColumns, patternRows):
+		epsilon = 0.05
+		distance = np.inf
+		distanceAnt = np.inf
+		I = np.identity(3)
+		angle = 20
+		z = None
+		device.setRelativePosition(angle)
+		device.setSpeedMotor(50)
+		while distance > epsilon:
+			image = camera.captureImage(flush=True, flushValue=2)
+			ret = self.solvePnp(image, objpoints, calMatrix, distortionVector, patternColumns, patternRows)
+			if ret is not None:
+				if ret[0]:
+					R = ret[1]
+					z = ret[2][2]
+					distance = linalg.norm(R-I)
+					if distance < epsilon or distanceAnt < distance:
+						break
+					distanceAnt = distance
+					angle = np.max(((distance-epsilon) * 20, 0.3))
+			device.setRelativePosition(angle)
+			device.setMoveMotor()
+
+		print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
+
+		return z
+
 	def obtainLine(self, imgRaw, imgLas):
 		u1 = u2 = None
 
@@ -120,8 +133,10 @@ class Calibration:
 
 		diff = cv2.subtract(imgLas, imgRaw)
 		r,g,b = cv2.split(diff)
+		kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(3,3))
+		r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
 		imgGray = cv2.merge((r,r,r))
-		edges = cv2.threshold(r, 30.0, 255.0, cv2.THRESH_BINARY)[1]
+		edges = cv2.threshold(r, 20.0, 255.0, cv2.THRESH_BINARY)[1]
 		edges3 = cv2.merge((edges,edges,edges))
 		lines = cv2.HoughLines(edges, 1, np.pi/180, 200)
 

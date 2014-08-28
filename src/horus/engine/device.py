@@ -59,7 +59,7 @@ class Device:
 		""" Opens serial port and performs handshake"""
 		print ">>> Connecting device ..."
 		try:
-			self.serialPort = serial.Serial(self.serialName, 9600, timeout=0.5)
+			self.serialPort = serial.Serial(self.serialName, 9600, timeout=2)
 			if self.serialPort.isOpen():
 
 				#-- Force Reset and flush

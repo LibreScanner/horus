@@ -486,7 +486,7 @@ class MainWorkbench(wx.Panel):
                                                      description=_("In this workbench you can configure all the camera parameters, test the lasers and control the motor using gcodes."),
                                                      image=wx.Image(resources.getPathForImage("control.png")))
         self._middlePanel = ItemWorkbench(self._panel, titleText=_("Calibration"), 
-                                                       description=_("In this workbench you can perform intrinsic calibration of the camera and extrinsic calibration of the device."),
+                                                       description=_("In this workbench you can perform intrinsic calibration of the camera, lasers triangulation and extrinsic calibration of the device."),
                                                        image=wx.Image(resources.getPathForImage("calibration.png")))
         self._rightPanel = ItemWorkbench(self._panel, titleText=_("Scanning"), 
                                                       description=_("In this workbench you can start and stop the scanning process and also visualize in real time the 3D point cloud."),
