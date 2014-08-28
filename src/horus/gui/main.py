@@ -351,7 +351,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                            profile.getProfileSettingInteger('exposure_' + workbench),
                                            profile.getProfileSettingInteger('framerate_' + workbench),
                                            profile.getProfileSettingInteger('camera_width_' + workbench),
-                                           profile.getProfileSettingInteger('camera_height_' + workbench))
+                                           profile.getProfileSettingInteger('camera_height_' + workbench),
+                                           profile.getProfileSettingNumpy('calibration_matrix'),
+                                           profile.getProfileSettingNumpy('distortion_vector'),
+                                           profile.getProfileSettingInteger('use_distortion'))
 
             self.scanner.core.setResolution(profile.getProfileSettingInteger('camera_height_scanning'),
                                             profile.getProfileSettingInteger('camera_width_scanning'))
