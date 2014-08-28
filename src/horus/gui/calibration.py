@@ -874,7 +874,7 @@ class ExtrinsicCalibrationPanel(Page):
 
 	def onCalibrationTimer(self,event):
 		frame = self.scanner.camera.captureImage(False)
-		self.scanner.device.setSpeedMotor(200)
+		self.scanner.device.setSpeedMotor(50)
 		self.scanner.device.setRelativePosition(-5)
 		self.scanner.device.enable()
 		self.scanner.device.setMoveMotor()
