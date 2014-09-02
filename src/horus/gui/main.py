@@ -30,6 +30,7 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import wx._core
 
 import os
+import time
 
 from horus.engine.scanner import *
 from horus.engine.calibration import *
@@ -406,7 +407,11 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateFirmware(self):
         avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'))
-        stdout, stderr = avr_dude.flash(extra_flags=["-D"])
+        stdout, stderr = avr_dude.flash(hex_path=resources.getPathForFirmware("eeprom_clear.hex"), extra_flags=["-D"])
+        print stdout
+        print stderr
+        time.sleep(4) #-- time to clear eeprom
+        stdout, stderr = avr_dude.flash(hex_path=resources.getPathForFirmware("horus.hex"), extra_flags=["-D"])
         print stdout
         print stderr
 
