@@ -66,6 +66,7 @@ class MainWindow(wx.Frame):
                 profile.putProfileSetting('camera_id', videoList[0])
             
         self.scanner = Scanner.Instance()
+        self.calibration = Calibration.Instance()
 
         self.updateEngineProfile()
 
@@ -335,6 +336,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateScannerProfile()
         #self.updateCoreCurrentProfile()
         #self.updateCameraCurrentProfile()
+        self.updateCalibrationCurrentProfile()
 
     def updateScannerProfile(self):
         self.scanner.initialize(int(profile.getProfileSetting('camera_id')[-1:]),
@@ -352,7 +354,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                            profile.getProfileSettingInteger('framerate_' + workbench),
                                            profile.getProfileSettingInteger('camera_width_' + workbench),
                                            profile.getProfileSettingInteger('camera_height_' + workbench),
-                                           profile.getProfileSettingNumpy('calibration_matrix'),
+                                           profile.getProfileSettingNumpy('camera_matrix'),
                                            profile.getProfileSettingNumpy('distortion_vector'),
                                            profile.getProfileSettingInteger('use_distortion'))
 
@@ -385,11 +387,22 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                          profile.getProfileSettingInteger('camera_height_scanning'),
                                          profile.getProfileSettingInteger('camera_width_scanning'),
                                          profile.getProfileSettingFloat('laser_angle'),
-                                         profile.getProfileSettingNumpy('calibration_matrix'),
+                                         profile.getProfileSettingNumpy('camera_matrix'),
                                          profile.getProfileSettingNumpy('laser_coordinates'),
                                          profile.getProfileSettingNumpy('laser_depth'),
                                          profile.getProfileSettingNumpy('rotation_matrix'),
                                          profile.getProfileSettingNumpy('translation_vector'))
+    
+    def updateCalibrationCurrentProfile(self):
+        self.updateCalibrationProfile(profile.getPreference('workbench'))
+
+    def updateCalibrationProfile(self, workbench):
+        if workbench in ['calibration', 'scanning']:
+            self.calibration.initialize(profile.getProfileSettingNumpy('camera_matrix'),
+                                        profile.getProfileSettingNumpy('distortion_vector'),
+                                        profile.getProfileSettingInteger('pattern_rows'),
+                                        profile.getProfileSettingInteger('pattern_columns'),
+                                        profile.getProfileSettingInteger('square_width'))
 
     def updateFirmware(self):
         avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'))
@@ -432,6 +445,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
         self.updateCameraProfile(currentWorkbench)
         self.updateCoreProfile(currentWorkbench)
+        self.updateCalibrationProfile(currentWorkbench)
 
         self.Layout()
 

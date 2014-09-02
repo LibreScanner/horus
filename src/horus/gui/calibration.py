@@ -92,6 +92,9 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.Layout()
 
+    def updateToolbarStatus(self, status):
+        self.cameraIntrinsicsMainPage.videoManagement(event.GetShow())
+
     def onCameraIntrinsicsStartCallback(self):
         self.cameraIntrinsicsPanel.Hide()
         self.laserTriangulationPanel.Hide()
@@ -156,7 +159,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.laserTriangulationPanel.buttonStart.Enable()
             self.platformExtrinsicsPanel.buttonStart.Enable()
         else:
-            #self.cameraIntrinsicsPanel.buttonStart.Disable()
+            self.cameraIntrinsicsPanel.buttonStart.Disable()
             self.laserTriangulationPanel.buttonStart.Disable()
             self.platformExtrinsicsPanel.buttonStart.Disable()
 

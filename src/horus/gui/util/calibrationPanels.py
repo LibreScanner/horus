@@ -143,23 +143,31 @@ class CameraIntrinsicsParameters(wx.Panel):
             if not enable:
                     self.distortionValues[i] = float(self.distortionTexts[i].GetValue())
         if not enable:
-            profile.putProfileSettingNumpy('calibration_matrix', self.cameraValues)
-            profile.putProfileSettingNumpy('distortion_vector', self.distortionValues)
+            self.updateProfileToAllControls()
 
     def onButtonDefaultPressed(self, event):
-        profile.resetProfileSetting('calibration_matrix')
+        profile.resetProfileSetting('camera_matrix')
         profile.resetProfileSetting('distortion_vector')
         self.updateProfileToAllControls()
 
-    def updateProfileToAllControls(self):
-        cameraMatrix = profile.getProfileSettingNumpy('calibration_matrix')
+    def updateAllControls(self, cameraMatrix, distortionVector):
         for i in range(3):
             for j in range(3):
-                self.cameraTexts[i][j].SetValue(str(round(cameraMatrix[i][j], 3)))
-        distortionVector = profile.getProfileSettingNumpy('distortion_vector')
+                self.cameraValues[i][j] = round(cameraMatrix[i][j], 3)
+                self.cameraTexts[i][j].SetValue(str(self.cameraValues[i][j]))
         for i in range(5):
-            self.distortionTexts[i].SetValue(str(round(distortionVector[i], 4)))
+            self.distortionValues[i] = round(distortionVector[i], 4)
+            self.distortionTexts[i].SetValue(str(self.distortionValues[i]))
 
+    def updateAllControlsToProfile(self, cameraMatrix, distortionVector):
+        self.updateAllControls(cameraMatrix, distortionVector)
+        profile.putProfileSettingNumpy('camera_matrix', cameraMatrix)
+        profile.putProfileSettingNumpy('distortion_vector', distortionVector)
+
+    def updateProfileToAllControls(self):
+        cameraMatrix = profile.getProfileSettingNumpy('camera_matrix')
+        distortionVector = profile.getProfileSettingNumpy('distortion_vector')
+        self.updateAllControls(cameraMatrix, distortionVector)
 
 class LaserTriangulationParameters(wx.Panel):
 
