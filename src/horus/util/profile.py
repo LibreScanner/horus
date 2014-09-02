@@ -244,7 +244,7 @@ setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum
 setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_("Machine center 0,0"), _("Machines firmware defines the center of the bed as 0,0 instead of the front left corner."))
 setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden').setLabel(_("Build area shape"), _("The shape of machine build area."))
 
-setting('calibration_matrix', ([[1.4177e+03,0,4.7734e+02],[0,1.4126e+03,6.5224e+02],[0,0,1]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
+setting('camera_matrix', ([[1.4177e+03,0,4.7734e+02],[0,1.4126e+03,6.5224e+02],[0,0,1]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
 setting('distortion_vector',([0.0,0.0,0.0,0.0,0.0]),numpy.ndarray,'advanced',_('Distortion Vector'))
 setting('use_distortion', False, bool, 'advanced', _('Use Distortion'))
 

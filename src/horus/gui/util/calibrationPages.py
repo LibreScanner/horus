@@ -33,7 +33,286 @@ from horus.gui.util.calibrationPanels import *
 
 from horus.util import resources
 
+from horus.engine.scanner import *
 from horus.engine.calibration import *
+
+class CameraIntrinsicsMainPage(Page):
+
+	def __init__(self, parent, buttonCancelCallback=None, buttonPerformCallback=None):
+		Page.__init__(self, parent,
+							title=_("Camera Intrinsics"),
+							left=_("Cancel"),
+							right=_("Perform"),
+							buttonLeftCallback=buttonCancelCallback,
+							buttonRightCallback=buttonPerformCallback,
+							panelOrientation=wx.HORIZONTAL)
+
+		self.scanner = Scanner.Instance()
+		self.calibration = Calibration.Instance()
+
+		#-- Video View
+		self.videoView = VideoView(self._panel)
+		self.videoView.SetBackgroundColour(wx.BLACK)
+		self.videoView.setImage(wx.Image(resources.getPathForImage("bq.png")))
+		
+		#--Guide Panel
+		self.guidePanel = wx.Panel(self._panel)
+		guideBox = wx.BoxSizer(wx.VERTICAL)
+
+		self.guideTitleText = wx.StaticText(self.guidePanel)
+		self.guideTitleText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+		self.guideTitleText.SetFont( wx.Font(pointSize=16,family=wx.FONTFAMILY_DECORATIVE,style=wx.FONTSTYLE_ITALIC,weight=wx.FONTWEIGHT_NORMAL))
+		self.guideTitleText.SetForegroundColour((100,100,100))
+
+		self.guideImage = VideoView(self.guidePanel)
+
+		self.guideProgress = VideoView(self.guidePanel)
+		self.guideProgress.size = (100,100)
+
+		guideSpacebarText = wx.StaticText(self.guidePanel, label=_("Press spacebar to continue"))
+
+		guideBox.Add(self.guideTitleText, 0, wx.CENTER, 3)
+		guideBox.Add((0, 0), 1, wx.EXPAND)
+		guideBox.Add(self.guideImage, 10, wx.ALL|wx.EXPAND, 3)
+		guideBox.Add((0, 0), 2, wx.EXPAND)
+		guideBox.Add(self.guideProgress, 0, wx.ALL|wx.EXPAND|wx.CENTER, 3)
+		guideBox.Add((0, 0), 1, wx.EXPAND)
+		guideBox.Add(guideSpacebarText, 0, wx.CENTER, 3)
+
+		self.guidePanel.SetSizer(guideBox)
+
+		#-- Image Grid Panel
+		self.imageGridPanel = wx.Panel(self._panel)
+		self.rows, self.columns = 2, 6
+		self.panelGrid = []
+		self.gridSizer = wx.GridSizer(self.rows, self.columns, 3, 3)
+		for panel in range(self.rows*self.columns):
+			self.panelGrid.append(VideoView(self.imageGridPanel))
+			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
+			self.panelGrid[panel].setImage(wx.Image(getPathForImage("void.png")))
+			self.gridSizer.Add(self.panelGrid[panel], 0, wx.ALL|wx.EXPAND)
+		self.imageGridPanel.SetSizer(self.gridSizer)
+
+		self.addToPanel(self.videoView, 2)
+		self.addToPanel(self.guidePanel, 3)
+		self.addToPanel(self.imageGridPanel, 3)
+
+		self.initialize()
+
+		self.timer = wx.Timer(self)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+		self.videoView.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
+		
+		self.videoView.SetFocus()
+
+		self.Layout()
+
+	def initialize(self):
+		self.guidePage = 0
+		self.guidePanel.Show()
+		self.imageGridPanel.Hide()
+		self.guideTitleText.SetLabel("1. Place the pattern in the plate")
+		self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-1.png")))
+		self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-1.png")))
+		self._rightButton.Disable()
+		self.currentGrid = 0
+		for panel in range(self.rows*self.columns):
+			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
+			self.panelGrid[panel].setImage(wx.Image(getPathForImage("void.png")))
+
+	def onShow(self, event):
+		self.videoManagement(event.GetShow())
+
+	def videoManagement(self, status):
+		if status:
+			if not self.timer.IsRunning():
+				if self.scanner.camera.fps > 0:
+					mseconds = 1000/(self.scanner.camera.fps)
+					self.timer.Start(milliseconds=mseconds)
+					self.calibration.clearImageStack()
+		else:
+			self.timer.Stop()
+			self.initialize()
+
+	def onTimer(self, event):
+		if self.scanner.isConnected:
+			frame = self.scanner.camera.captureImage(mirror=True)
+			if frame is not None:
+				if self.guidePage == 3:
+					self.calibration.setGuides(frame, self.currentGrid)
+				self.videoView.setFrame(frame)
+
+	def onKeyPress(self, event):
+		if event.GetKeyCode() == 32: #-- spacebar
+			if self.guidePage == 0:
+				self.guideTitleText.SetLabel("2. Move it using the yellow lines as reference")
+				self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-2.png")))
+				self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-2.png")))
+				self.guidePage = 1
+			elif self.guidePage == 1:
+				self.guideTitleText.SetLabel("3. Press spacebar to perform captures")
+				self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-3.png")))
+				self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-3.png")))
+				self.guidePage = 2
+			elif self.guidePage == 2:
+				self.guidePanel.Hide()
+				self.imageGridPanel.Show()
+				self.Layout()
+				width, height = self.scanner.camera.getResolution()
+				self.calibration.generateGuides(width, height)
+				self.guidePage = 3
+			elif self.guidePage == 3:
+				if self.scanner.isConnected:
+					frame = self.scanner.camera.captureImage(mirror=False, flush=True)
+					retval, frame = self.calibration.detectChessboard(frame)
+					frame = cv2.flip(frame, 1) #-- Mirror
+					self.addFrameToGrid(retval, frame)
+
+	def addFrameToGrid(self, retval, image):
+		if self.currentGrid < (self.columns*self.rows):
+			if retval:
+				self.panelGrid[self.currentGrid].setFrame(image)
+				self.panelGrid[self.currentGrid].SetBackgroundColour((45,178,0))
+				self.currentGrid += 1
+			else:
+				self.panelGrid[self.currentGrid].setFrame(image)
+				self.panelGrid[self.currentGrid].SetBackgroundColour((217,0,0))
+
+		if self.currentGrid is (self.columns*self.rows):
+			self._rightButton.Enable()
+
+
+class CameraIntrinsicsResultPage(Page):
+
+	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
+		Page.__init__(self, parent,
+							title=_("Camera Intrinsics"),
+							left=_("Reject"),
+							right=_("Accept"),
+							buttonLeftCallback=buttonRejectCallback,
+							buttonRightCallback=buttonAcceptCallback,
+							panelOrientation=wx.HORIZONTAL)
+
+		self.calibration = Calibration.Instance()
+
+		self.cameraIntrinsicsParameters = CameraIntrinsicsParameters(self._panel)
+
+		#-- 3D Plot Panel
+		self.plotPanel = PlotPanel(self._panel)
+
+		self.addToPanel(self.cameraIntrinsicsParameters, 1)
+		self.addToPanel(self.plotPanel, 2)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.performCalibration()
+
+	def performCalibration(self):
+		self.plotPanel.Hide()
+		self.plotPanel.clear()
+		ret = self.calibration.calibrationFromImages()
+		self.plotPanel.add(ret[2], ret[3])
+		self.cameraIntrinsicsParameters.updateAllControlsToProfile(ret[0], ret[1])
+		self.plotPanel.Show()
+
+
+import random
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+
+class PlotPanel(wx.Panel):
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent)
+		self.calibration = Calibration.Instance()
+
+		self.initialize()
+
+	def initialize(self):
+		self.fig = Figure(tight_layout=False)
+		self.canvas = FigureCanvasWxAgg(self, 1, self.fig)
+		self.canvas.SetExtraStyle(wx.EXPAND)
+
+		#self.ax = Axes3D(self.fig)
+		self.ax = self.fig.gca(projection='3d', axisbg=(0.7490196,0.7490196,0.7490196,1))
+
+		# Parameters of the pattern
+		self.columns = 6
+		self.rows = 11
+		self.squareWidth = 13
+		
+		self.printCanvas()
+
+		self.Bind(wx.EVT_SIZE, self.onSize)
+		self.Layout()
+
+	def onSize(self,event):
+		self.canvas.SetClientSize(self.GetClientSize())
+		self.Layout()
+		event.Skip()
+
+	def printCanvas(self):
+		self.ax.plot([0,50], [0,0], [0,0], linewidth=3.0, color='red')
+		self.ax.plot([0,0], [0,0], [0,50], linewidth=3.0, color='green')
+		self.ax.plot([0,0], [0,50], [0,0], linewidth=3.0, color='blue')
+
+		self.ax.set_xlabel('X')
+		self.ax.set_ylabel('Z')
+		self.ax.set_zlabel('Y')
+		self.ax.set_xlim(-150, 150)
+		self.ax.set_ylim(0, 500)
+		self.ax.set_zlim(-150, 150)
+		self.ax.invert_xaxis()
+		self.ax.invert_yaxis()
+		self.ax.invert_zaxis()
+
+	def add(self, rvecs, tvecs):
+		w = self.columns * self.squareWidth 
+		h = self.rows * self.squareWidth
+
+		p = np.array([[0,0,0],[w,0,0],[w,h,0],[0,h,0],[0,0,0]])
+		n = np.array([[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]])
+
+		c = np.array([[30,0,0],[0,30,0],[0,0,30]])
+
+		for ind, transvector in enumerate(rvecs):
+
+			R = cv2.Rodrigues(transvector)[0]
+			t = tvecs[ind]
+
+			points = (np.dot(R, p.T) + np.array([t,t,t,t,t]).T)[0]
+			normals = np.dot(R, n.T)
+
+			X = np.array([points[0], normals[0]])
+			Y = np.array([points[1], normals[1]])
+			Z = np.array([points[2], normals[2]])
+
+			coords = (np.dot(R, c.T) + np.array([t,t,t]).T)[0]
+
+			CX = coords[0]
+			CY = coords[1]
+			CZ = coords[2]
+
+			color = (random.random(),random.random(),random.random(), 0.8)
+
+			self.ax.plot_surface(X, Z, Y, linewidth=0, color=color)
+
+			self.ax.plot([t[0][0],CX[0]], [t[2][0],CZ[0]], [t[1][0],CY[0]], linewidth=2.0, color='red')
+			self.ax.plot([t[0][0],CX[1]], [t[2][0],CZ[1]], [t[1][0],CY[1]], linewidth=2.0, color='green')
+			self.ax.plot([t[0][0],CX[2]], [t[2][0],CZ[2]], [t[1][0],CY[2]], linewidth=2.0, color='blue')
+			self.canvas.draw()
+		
+		self.Layout()
+
+	def clear(self):
+		self.ax.cla()
+		self.printCanvas()
 
 
 class LaserTriangulationMainPage(Page):
@@ -64,7 +343,7 @@ class LaserTriangulationMainPage(Page):
 
 class LaserTriangulationResultPage(Page):
 
-	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None, onFinishCallback=None):
+	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
 		Page.__init__(self, parent,
 							title=_("Laser Triangulation"),
 							left=_("Reject"),
@@ -72,8 +351,6 @@ class LaserTriangulationResultPage(Page):
 							buttonLeftCallback=buttonRejectCallback,
 							buttonRightCallback=buttonAcceptCallback,
 							panelOrientation=wx.HORIZONTAL)
-
-		self.onFinishCallback = onFinishCallback
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -109,9 +386,6 @@ class LaserTriangulationResultPage(Page):
 		self.rightLaserImageSequence.imageGray.setFrame(ret[2][1][1])
 		self.rightLaserImageSequence.imageBin.setFrame(ret[2][1][2])
 		self.rightLaserImageSequence.imageLine.setFrame(ret[2][1][3])
-
-		if self.onFinishCallback is not None:
-			self.onFinishCallback(ret)
 
 class LaserTriangulationImageSequence(wx.Panel):
 

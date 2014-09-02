@@ -44,8 +44,6 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.viewCamera = True
 
-		self.playing = False
-
 		self.load()
 
 		self.laserLeft = False
@@ -118,13 +116,11 @@ class ControlWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.stopTool, True)
 			mseconds = 1000/(self.scanner.camera.fps)
 			self.timer.Start(milliseconds=mseconds)
-			self.playing = True
 
 	def onStopToolClicked(self, event):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.timer.Stop()
-		self.playing = False
 		self.cameraView.setDefaultImage()
 
 	def onSnapshotToolClicked(self, event):

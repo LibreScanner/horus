@@ -46,8 +46,82 @@ class Calibration:
 	def __init__(self):
 		self.scanner = Scanner.Instance()
 
-	def performCameraIntrinsicsCalibration(self):
-		pass
+	def initialize(self, cameraMatrix, distortionVector, patternRows, patternColumns, squareWidth):
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
+		self.patternRows = patternRows # points_per_column
+		self.patternColumns = patternColumns # points_per_row
+		self.squareWidth = squareWidth # milimeters of each square's side
+
+		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
+
+		self.imagePointsStack=[]
+		self.objPointsStack=[]
+
+		self.thickness = 20
+
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
+
+		#-- Camera Intrinsics Guide Lines
+		self.firstPointData  = [(270,250),(4,48),(20,20),(412,198),(550,148),(20,20),(20,20),(210,350),(260,680),(140,20),(20,20),(20,340)]
+		self.secondPointData = [(725,250),(596,168),(460,180),(940,46),(940,20),(940,20),(940,20),(750,350),(700,680),(940,20),(740,20),(500,500)]
+		self.thirdPointData  = [(725,1024),(596,1140),(460,1000),(940,1254),(940,1260),(730,870),(720,550),(940,1260),(940,1260),(940,880),(450,600),(780,1260)]
+		self.forthPointData  = [(270,1024),(4,1268),(20,1260),(412,1140),(550,1076),(192,870),(240,550),(20,1260),(20,1260),(480,740),(20,720),(20,1260)]
+
+	def generateGuides(self, width, height):
+		xfactor = width / 960.
+		yfactor = height / 1280.
+		self.thickness = int(round(20*xfactor))
+		self.firstPoint=[(int(a*xfactor),int(b*yfactor)) for (a,b) in self.firstPointData]
+		self.secondPoint=[(int(a*xfactor),int(b*yfactor)) for (a,b) in self.secondPointData]
+		self.thirdPoint=[(int(a*xfactor),int(b*yfactor)) for (a,b) in self.thirdPointData]
+		self.forthPoint=[(int(a*xfactor),int(b*yfactor)) for (a,b) in self.forthPointData]
+
+	def setGuides(self, frame, currentGrid):
+		if currentGrid < len(self.firstPoint):
+			cv2.line(frame, self.firstPoint[currentGrid], self.secondPoint[currentGrid], (240,240,140), self.thickness)
+			cv2.line(frame, self.secondPoint[currentGrid], self.thirdPoint[currentGrid], (240,240,140), self.thickness)
+			cv2.line(frame, self.thirdPoint[currentGrid], self.forthPoint[currentGrid], (240,240,140), self.thickness)
+			cv2.line(frame, self.forthPoint[currentGrid], self.firstPoint[currentGrid], (240,240,140), self.thickness)
+		return frame
+
+	def detectChessboard(self, frame):
+		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+		self.shape = gray.shape
+		retval, corners = cv2.findChessboardCorners(gray, (self.patternColumns,self.patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
+		if retval:
+			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=self.criteria)
+			self.imagePointsStack.append(corners)
+			self.objPointsStack.append(self.objpoints)
+			cv2.drawChessboardCorners(frame, (self.patternColumns,self.patternRows), corners, retval)
+		return retval, frame
+
+	def calibrationFromImages(self):
+		ret = cv2.calibrateCamera(self.objPointsStack, self.imagePointsStack, self.shape)
+		
+		if ret[0]:
+			self.cameraMatrix = ret[1]
+			self.distortionVector = ret[2][0]
+			return self.cameraMatrix, self.distortionVector, ret[3], ret[4]
+		else:
+			"Calibrate Camera Error"
+
+		#self.meanError()
+
+	"""def meanError(self):
+		mean_error = 0
+		for i in xrange(len(self.objPointsStack)):
+			imgpoints2,_=cv2.projectPoints(self.objPointsStack[i],self.rvecs[i],self.tvecs[i],self.cameraMatrix,self._distortionVector)
+			error=cv2.norm(self.imagePointsStack[i],imgpoints2,cv2.NORM_L2)/len(imgpoints2)
+			mean_error+=error
+		self.mean_error=mean_error"""
+
+	def clearImageStack(self):
+		if hasattr(self, 'imagePointsStack'):
+			del self.imagePointsStack[:]
+		if hasattr(self, 'objPointsStack'):
+			del self.objPointsStack[:]
+
 
 	def performLaserTriangulationCalibration(self):
 		if self.scanner.isConnected:
@@ -55,42 +129,17 @@ class Calibration:
 			device = self.scanner.device
 			camera = self.scanner.camera
 
-			##-- Load profile parameters
-			calMatrix = profile.getProfileSettingNumpy('calibration_matrix')
-			distortionVector = profile.getProfileSettingNumpy('distortion_vector')
-			patternRows = profile.getProfileSettingInteger('pattern_rows') # points_per_column
-			patternColumns = profile.getProfileSettingInteger('pattern_columns') # points_per_row
-			squareWidth = profile.getProfileSettingInteger('square_width') # milimeters of each square's side
-
-			objpoints = self.generateObjectPoints(patternColumns, patternRows, squareWidth)
-
 			##-- Switch off lasers
 			device.setLeftLaserOff()
 			device.setRightLaserOff()
 
-			##-- Move pattern until ||(R-I)|| < e  ->function
-			epsilon = 0.04
-			distance = np.inf
-			I = np.identity(3)
-			angle = 90
-			z = None
-			device.setRelativePosition(angle)
-			device.setSpeedMotor(50)
+			##-- Move pattern until ||(R-I)|| < e
+			device.setSpeedMotor(1)
 			device.enable()
-			while distance > epsilon:
-				imgRaw = camera.captureImage(flush=True, flushValue=2)
-				ret = self.solvePnp(imgRaw, objpoints, calMatrix, distortionVector, patternColumns, patternRows)
-				if ret is not None:
-					if ret[0]:
-						R = ret[1]
-						z = ret[2][2]
-						distance = linalg.norm(R-I)
-						angle = np.min((distance - epsilon) * 10, 0.5)
-						#print distance
-						#print angle
-				device.setRelativePosition(angle)
-				device.setSpeedMotor(50)
-				device.setMoveMotor()
+
+			z = self.getPatternDepth(device, camera, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+
+			time.sleep(0.5)
 
 			#-- Get images
 			imgRaw = camera.captureImage(flush=True, flushValue=2)
@@ -112,6 +161,34 @@ class Calibration:
 
 			return [z, [retL[0], retR[0]], [retL[1], retR[1]]]
 
+	def getPatternDepth(self, device, camera, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):
+		epsilon = 0.05
+		distance = np.inf
+		distanceAnt = np.inf
+		I = np.identity(3)
+		angle = 20
+		z = None
+		device.setRelativePosition(angle)
+		device.setSpeedMotor(50)
+		while distance > epsilon:
+			image = camera.captureImage(flush=True, flushValue=2)
+			ret = self.solvePnp(image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows)
+			if ret is not None:
+				if ret[0]:
+					R = ret[1]
+					z = ret[2][2]
+					distance = linalg.norm(R-I)
+					if distance < epsilon or distanceAnt < distance:
+						break
+					distanceAnt = distance
+					angle = np.max(((distance-epsilon) * 20, 0.3))
+			device.setRelativePosition(angle)
+			device.setMoveMotor()
+
+		print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
+
+		return z
+
 	def obtainLine(self, imgRaw, imgLas):
 		u1 = u2 = None
 
@@ -120,8 +197,10 @@ class Calibration:
 
 		diff = cv2.subtract(imgLas, imgRaw)
 		r,g,b = cv2.split(diff)
+		kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(3,3))
+		r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
 		imgGray = cv2.merge((r,r,r))
-		edges = cv2.threshold(r, 30.0, 255.0, cv2.THRESH_BINARY)[1]
+		edges = cv2.threshold(r, 20.0, 255.0, cv2.THRESH_BINARY)[1]
 		edges3 = cv2.merge((edges,edges,edges))
 		lines = cv2.HoughLines(edges, 1, np.pi/180, 200)
 
@@ -135,7 +214,7 @@ class Calibration:
 
 		return [[u1, u2], [imgLas, imgGray, edges3, imgLine]]
 
-	def solvePnp(self, image, objpoints, calMatrix, distortionVector, patternColumns, patternRows):
+	def solvePnp(self, image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):
 		gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 		# the fast check flag reduces significantly the computation time if the pattern is out of sight 
 		retval, corners = cv2.findChessboardCorners(gray, (patternColumns,patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
@@ -143,7 +222,7 @@ class Calibration:
 		if retval:
 			criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
 			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=criteria)
-			ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, calMatrix, distortionVector)
+			ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, distortionVector)
 			return (ret, cv2.Rodrigues(rvecs)[0], tvecs)
 
 	def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
@@ -151,6 +230,7 @@ class Calibration:
 		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
 		objp = np.multiply(objp, squareWidth)
 		return objp
+
 
 	def performPlatformExtrinsicsCalibration(self):
 		pass
