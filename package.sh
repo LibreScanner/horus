@@ -95,7 +95,7 @@ if (( ${BUILD_OPENCV} )); then
 		cd LIN
 		git clone https://github.com/bq/opencv.git
 		cd opencv; git pull
-		#rm -rf release
+		rm -rf release
 		mkdir -p release
 		cd release
 		if [ "$BUILD_TARGET" = "debian_i386" ]; then
@@ -117,7 +117,7 @@ if (( ${BUILD_OPENCV} )); then
 		cp -a LIN/opencv/release/lib/*.2.4 pkg/linux/${BUILD_TARGET}/usr/local/lib/
 		cp -a LIN/opencv/release/lib/*.so pkg/linux/${BUILD_TARGET}/usr/local/lib/
 		rm -rf pkg/linux/${BUILD_TARGET}/usr/local/lib/cv2.so
-		#rm -rf LIN/opencv/release
+		rm -rf LIN/opencv/release
 		#rm -rf LIN
 	fi
 fi
