@@ -4,7 +4,7 @@ Section: misc
 Priority: optional
 Architecture: i386
 Essential: no
-Depends: python-wxgtk2.8, python-opengl, python-serial, python-numpy, python-pyglet, python-matplotlib, python-scipy, python-opencv, libftdi1:i386
+Depends: python-wxgtk2.8, python-opengl, python-serial, python-numpy, python-pyglet, python-matplotlib, python-scipy, python-opencv, libftdi1
 Maintainer: Jesus Arroyo <jesus.arroyo@bq.com>
 Provides: horus
 Installed-Size: 10000
