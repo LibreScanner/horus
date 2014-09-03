@@ -13,6 +13,8 @@ BUILD_TARGET=${1:-none}
 #BUILD_TARGET=debian_i386
 #BUILD_TARGET=debian_amd64
 
+MAKE_ARGS=${2}
+
 ##Do we need to create the final archive
 ARCHIVE_FOR_DISTRIBUTION=1
 ##Which version name are we appending to the final archive
@@ -107,7 +109,7 @@ if (( ${BUILD_OPENCV} )); then
 				  -D WITH_V4L=ON -D WITH_FFMPEG=OFF -D WITH_OPENGL=OFF -D BUILD_opencv_gpu=OFF -D BUILD_opencv_gpu=OFF -D BUILD_opencv_ocl=OFF -D BUILD_opencv_nonfree=OFF \
 				  -D BUILD_opencv_stitching=OFF -D BUILD_opencv_superres=OFF -D BUILD_opencv_ts=OFF -D BUILD_opencv_videostab=OFF ..
 		fi
-		make -j3
+		make "$MAKE_ARGS"
 		cd ../../..
 		rm -rf pkg/linux/${BUILD_TARGET}/usr/local/lib
 		mkdir -p  pkg/linux/${BUILD_TARGET}/usr/local/lib/python2.7/dist-packages/
