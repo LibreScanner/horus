@@ -75,7 +75,7 @@ class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
 		self.Bind(wx.EVT_SCROLL_THUMBRELEASE,self.release,self.saturationSlider)
 
 		self.exposureText = wx.StaticText(self,label=_("Exposure"))
-		self.exposureSlider = wx.Slider(self,self.exposureId,60,0,200,size=(150,-1), style=wx.SL_LABELS)
+		self.exposureSlider = wx.Slider(self,self.exposureId,60,0,300,size=(150,-1), style=wx.SL_LABELS)
 		self.Bind(wx.EVT_SCROLL_THUMBTRACK,self.onexposureChanged,self.exposureSlider)
 		self.Bind(wx.EVT_SCROLL_THUMBRELEASE,self.release,self.exposureSlider)
 
