@@ -126,14 +126,12 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
             self.scanner.device.setLeftLaserOn()
         else:
             self.scanner.device.setLeftLaserOff()
-        self.updateScannerImage()
 
     def onRightLaserClicked(self, event):
         if event.IsChecked():
             self.scanner.device.setRightLaserOn()
         else:
             self.scanner.device.setRightLaserOff()
-        self.updateScannerImage()
 
     def onMotorEnableButtonClicked(self, event):
         if event.IsChecked():
@@ -162,18 +160,6 @@ class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
         if self.scanner.isConnected:
             ret = self.scanner.device.sendCommand(self.gcodeRequestText.GetValue(), ret=True, readLines=True)
             self.gcodeResponseText.SetValue(ret)
-
-    def updateScannerImage(self):
-        if self.laserLeftButton.GetValue():
-            if self.laserRightButton.GetValue():
-                self.parent.deviceView.setImage(wx.Image(getPathForImage("scannerlr.png")))
-            else:
-                self.parent.deviceView.setImage(wx.Image(getPathForImage("scannerl.png")))
-        else:
-            if self.laserRightButton.GetValue():
-                self.parent.deviceView.setImage(wx.Image(getPathForImage("scannerr.png")))
-            else:
-                self.parent.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
 
     def updateProfileToAllControls(self):
         degrees = profile.getProfileSettingFloat('step_degrees')

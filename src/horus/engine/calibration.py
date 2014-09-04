@@ -46,12 +46,13 @@ class Calibration:
 	def __init__(self):
 		self.scanner = Scanner.Instance()
 
-	def initialize(self, cameraMatrix, distortionVector, patternRows, patternColumns, squareWidth):
+	def initialize(self, cameraMatrix, distortionVector, patternRows, patternColumns, squareWidth, useDistortion):
 		self.cameraMatrix = cameraMatrix
 		self.distortionVector = distortionVector
 		self.patternRows = patternRows # points_per_column
 		self.patternColumns = patternColumns # points_per_row
 		self.squareWidth = squareWidth # milimeters of each square's side
+		self.useDistortion = useDistortion
 
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
 
@@ -67,6 +68,10 @@ class Calibration:
 		self.secondPointData = [(725,250),(596,168),(460,180),(940,46),(940,20),(940,20),(940,20),(750,350),(700,680),(940,20),(740,20),(500,500)]
 		self.thirdPointData  = [(725,1024),(596,1140),(460,1000),(940,1254),(940,1260),(730,870),(720,550),(940,1260),(940,1260),(940,880),(450,600),(780,1260)]
 		self.forthPointData  = [(270,1024),(4,1268),(20,1260),(412,1140),(550,1076),(192,870),(240,550),(20,1260),(20,1260),(480,740),(20,720),(20,1260)]
+
+	def setIntrinsics(self, cameraMatrix, distortionVector):
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
 
 	def generateGuides(self, width, height):
 		xfactor = width / 960.
@@ -137,7 +142,7 @@ class Calibration:
 			device.setSpeedMotor(1)
 			device.enable()
 
-			z = self.getPatternDepth(device, camera, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+			z = self.getPatternDepth(device, camera)
 
 			time.sleep(0.5)
 
@@ -164,7 +169,7 @@ class Calibration:
 			else:
 				return None
 
-	def getPatternDepth(self, device, camera, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):
+	def getPatternDepth(self, device, camera):
 		epsilon = 0.05
 		distance = np.inf
 		distanceAnt = np.inf
@@ -176,7 +181,7 @@ class Calibration:
 		device.setSpeedMotor(50)
 		while distance > epsilon and tries > 0:
 			image = camera.captureImage(flush=True, flushValue=2)
-			ret = self.solvePnp(image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows)
+			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 			if ret is not None:
 				if ret[0]:
 					R = ret[1]
@@ -228,7 +233,10 @@ class Calibration:
 		if retval:
 			criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
 			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=criteria)
-			ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, distortionVector)
+			if self.useDistortion:
+				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, distortionVector)
+			else:
+				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, None)
 			return (ret, cv2.Rodrigues(rvecs)[0], tvecs)
 
 	def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
