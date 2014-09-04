@@ -49,7 +49,7 @@ class MainWindow(wx.Frame):
 
     def __init__(self):
         super(MainWindow, self).__init__(None, title=_("Horus: 3d scanning for everyone"),
-                                                size=(640+300,480+100))
+                                                size=(640+300,480+130))
         ###-- Initialize Engine
 
         #-- Serial Name initialization
@@ -357,7 +357,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                            profile.getProfileSettingInteger('camera_height_' + workbench),
                                            profile.getProfileSettingNumpy('camera_matrix'),
                                            profile.getProfileSettingNumpy('distortion_vector'),
-                                           profile.getProfileSettingInteger('use_distortion'))
+                                           profile.getProfileSettingInteger('use_distortion_' + workbench))
 
             self.scanner.core.setResolution(profile.getProfileSettingInteger('camera_height_scanning'),
                                             profile.getProfileSettingInteger('camera_width_scanning'))
@@ -398,12 +398,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCalibrationProfile(profile.getPreference('workbench'))
 
     def updateCalibrationProfile(self, workbench):
-        if workbench in ['calibration', 'scanning']:
+        if workbench in ['calibration']:
             self.calibration.initialize(profile.getProfileSettingNumpy('camera_matrix'),
                                         profile.getProfileSettingNumpy('distortion_vector'),
                                         profile.getProfileSettingInteger('pattern_rows'),
                                         profile.getProfileSettingInteger('pattern_columns'),
-                                        profile.getProfileSettingInteger('square_width'))
+                                        profile.getProfileSettingInteger('square_width'),
+                                        profile.getProfileSettingInteger('use_distortion_calibration'))
 
     def updateFirmware(self):
         avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'))

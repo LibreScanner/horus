@@ -31,11 +31,18 @@ import wx
 
 from horus.util import profile
 
+from horus.engine.scanner import *
+from horus.engine.calibration import *
+
 class CalibrationWorkbenchPanel(wx.Panel):
 
     def __init__(self, parent, titleText="Workbench", parametersType=None, buttonStartCallback=None, description="Workbench description"):
 
         wx.Panel.__init__(self, parent)
+
+        ##
+        self.scanner = Scanner.Instance()
+        self.calibration = Calibration.Instance()
 
         self.buttonStartCallback = buttonStartCallback
 
@@ -143,7 +150,7 @@ class CameraIntrinsicsParameters(wx.Panel):
             if not enable:
                     self.distortionValues[i] = float(self.distortionTexts[i].GetValue())
         if not enable:
-            self.updateAllControlsToProfile(self.cameraValues, self.distortionValuess)
+            self.updateAllControlsToProfile(self.cameraValues, self.distortionValues)
 
     def onButtonDefaultPressed(self, event):
         profile.resetProfileSetting('camera_matrix')
@@ -159,10 +166,15 @@ class CameraIntrinsicsParameters(wx.Panel):
             self.distortionValues[i] = round(distortionVector[i], 4)
             self.distortionTexts[i].SetValue(str(self.distortionValues[i]))
 
+        if hasattr(self, 'calibration'):
+            self.calibration.setIntrinsics(cameraMatrix, distortionVector) ## TODO: remove setIntrinsics on calibration
+        if hasattr(self, 'scanner'):
+            self.scanner.camera.setIntrinsics(cameraMatrix, distortionVector)
+
     def updateAllControlsToProfile(self, cameraMatrix, distortionVector):
-        self.updateAllControls(cameraMatrix, distortionVector)
         profile.putProfileSettingNumpy('camera_matrix', cameraMatrix)
         profile.putProfileSettingNumpy('distortion_vector', distortionVector)
+        self.updateAllControls(cameraMatrix, distortionVector)
 
     def updateProfileToAllControls(self):
         cameraMatrix = profile.getProfileSettingNumpy('camera_matrix')
@@ -251,9 +263,9 @@ class LaserTriangulationParameters(wx.Panel):
             self.depthText.SetValue("")
 
     def updateAllControlsToProfile(self, laserCoordinates, laserDepth):
-        self.updateAllControls(laserCoordinates, laserDepth)
         profile.putProfileSettingNumpy('laser_coordinates', laserCoordinates)
         profile.putProfileSetting('laser_depth', laserDepth)
+        self.updateAllControls(laserCoordinates, laserDepth)
 
     def updateProfileToAllControls(self):
     	laserCoordinates = profile.getProfileSettingNumpy('laser_coordinates')
@@ -347,9 +359,9 @@ class PlatformExtrinsicsParameters(wx.Panel):
                 self.translationTexts[i].SetValue("")
 
     def updateAllControlsToProfile(self, rotationMatrix, translationVector):
-        self.updateAllControls(rotationMatrix, translationVector)
         profile.putProfileSettingNumpy('rotation_matrix', rotationMatrix)
         profile.putProfileSettingNumpy('translation_vector', translationVector)
+        self.updateAllControls(rotationMatrix, translationVector)
 
     def updateProfileToAllControls(self):
         rotationMatrix = profile.getProfileSettingNumpy('rotation_matrix')

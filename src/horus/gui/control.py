@@ -37,17 +37,18 @@ from horus.gui.util.devicePanel import *
 from horus.gui.util.videoView import *
 from horus.gui.util.workbenchConnection import *
 
+from horus.engine.scanner import *
+
 class ControlWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
 		WorkbenchConnection.__init__(self, parent)
 
-		self.viewCamera = True
+		self.playing = False
 
 		self.load()
 
-		self.laserLeft = False
-		self.laserRight = False
+		self.scanner = Scanner.Instance()
 
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
@@ -59,42 +60,31 @@ class ControlWorkbench(WorkbenchConnection):
 		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.snapshotTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
-		self.viewTool          = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("Camera / Device"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
 		self.enableLabelTool(self.playTool     , False)
 		self.enableLabelTool(self.stopTool     , False)
 		self.enableLabelTool(self.snapshotTool , False)
-		self.enableLabelTool(self.viewTool     , True)
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked     , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked     , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.snapshotTool)
-		self.Bind(wx.EVT_TOOL, self.onViewToolClicked     , self.viewTool)
 
-		#-- Left Panel
 		self.cameraPanel = CameraPanel(self._panel)
 		self.devicePanel = DevicePanel(self._panel)
 
 		self.cameraPanel.Disable()
 		self.devicePanel.Disable()
 
-		#-- Right Views
-		self.cameraView = VideoView(self._panel)
-		self.deviceView = VideoView(self._panel)
-		self.cameraView.SetBackgroundColour(wx.BLACK)
+		self.videoView = VideoView(self._panel)
+		self.videoView.SetBackgroundColour(wx.BLACK)
 
+		#-- Layout
 		self.addToPanel(self.cameraPanel, 0)
-		self.addToPanel(self.cameraView, 1)
-
+		self.addToPanel(self.videoView, 1)
 		self.addToPanel(self.devicePanel, 0)
-		self.addToPanel(self.deviceView, 1)
-
-		self.deviceView.setImage(wx.Image(getPathForImage("scanner.png")))
-
-		self.updateView()
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -108,43 +98,30 @@ class ControlWorkbench(WorkbenchConnection):
 	def onTimer(self, event):
 		frame = self.scanner.camera.captureImage()
 		if frame is not None:
-			self.cameraView.setFrame(frame)
+			self.videoView.setFrame(frame)
 
 	def onPlayToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
+			self.playing = True
 			self.enableLabelTool(self.playTool, False)
 			self.enableLabelTool(self.stopTool, True)
-			mseconds = 1000/(self.scanner.camera.fps)
+			mseconds = 1000 / (self.scanner.camera.fps)
+			if self.cameraPanel.useDistortion:
+				mseconds *= 2.0
 			self.timer.Start(milliseconds=mseconds)
+			self.scanner.camera.setUseDistortion(self.cameraPanel.useDistortion)
 
 	def onStopToolClicked(self, event):
+		self.playing = False
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.timer.Stop()
-		self.cameraView.setDefaultImage()
+		self.videoView.setDefaultImage()
 
 	def onSnapshotToolClicked(self, event):
 		frame = self.scanner.camera.captureImage()
 		if frame is not None:
-			self.cameraView.setFrame(frame)
-
-	def onViewToolClicked(self, event):
-		self.viewCamera = not self.viewCamera
-		profile.putPreference('view_camera', self.viewCamera)
-		self.updateView()
-
-	def updateView(self):
-		if self.viewCamera:
-			self.cameraPanel.Show()
-			self.cameraView.Show()
-			self.devicePanel.Hide()
-			self.deviceView.Hide()
-		else:
-			self.cameraPanel.Hide()
-			self.cameraView.Hide()
-			self.devicePanel.Show()
-			self.deviceView.Show()
-		self.Layout()
+			self.videoView.setFrame(frame)
 
 	def updateToolbarStatus(self, status):
 		if status:
@@ -153,8 +130,6 @@ class ControlWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.snapshotTool , True)
 			self.cameraPanel.Enable()
 			self.devicePanel.Enable()
-			self.laserLeft = False
-			self.laserRight = False
 		else:
 			self.enableLabelTool(self.playTool     , False)
 			self.enableLabelTool(self.stopTool     , False)
@@ -165,5 +140,3 @@ class ControlWorkbench(WorkbenchConnection):
 	def updateProfileToAllControls(self):
 		self.cameraPanel.updateProfileToAllControls()
 		self.devicePanel.updateProfileToAllControls()
-		self.viewCamera = profile.getPreferenceBool('view_camera')
-		self.updateView()

@@ -76,6 +76,10 @@ class Camera:
 		self.distCameraMatrix = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distortionVector, (self.width,self.height), alpha=1)[0]
 		self.setUseDistortion(useDistortion)
 
+	def setIntrinsics(self, cameraMatrix, distortionVector):
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
+
 	def connect(self):
 		""" """
 		print ">>> Connecting camera ..."
