@@ -34,16 +34,14 @@ from horus.util import profile
 
 from horus.engine.scanner import *
 
-class VideoPanel(wx.lib.scrolledpanel.ScrolledPanel):
+class VideoPanel(wx.Panel):
     """
     """
     def __init__(self, parent):
         """"""
-        wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
+        wx.Panel.__init__(self, parent=parent, size=(270, 0))
         
         self.scanner = Scanner.Instance()
-
-        self.SetupScrolling()
         
         #-- Graphic elements
         imgProcStaticText = wx.StaticText(self, wx.ID_ANY, _("Image Processing"), style=wx.ALIGN_CENTRE)

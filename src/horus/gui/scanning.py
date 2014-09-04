@@ -67,24 +67,34 @@ class ScanningWorkbench(WorkbenchConnection):
 		#self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
 		self.Bind(wx.EVT_TOOL, self.onViewToolClicked      , self.viewTool)
 
-		#-- Left Panel
-		self.videoPanel = VideoPanel(self._panel)
-		self.scenePanel = ScenePanel(self._panel)
-
+		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(270,-1))
+		self.scrollPanel.SetAutoLayout(1)
+		self.scrollPanel.SetupScrolling(scroll_x=False)
+		self.videoPanel = VideoPanel(self.scrollPanel)
+		self.scenePanel = ScenePanel(self.scrollPanel)
 		self.videoPanel.Disable()
 		self.scenePanel.Disable()
 
-		#-- Right Views
-		self.videoView = VideoView(self._panel)
-		self.sceneView = SceneView(self._panel)
+		self.splitterWindow = wx.SplitterWindow(self._panel)
+		self.splitterWindow.SetBackgroundColour(wx.GREEN)
+
+		self.videoView = VideoView(self.splitterWindow)
+		self.sceneView = SceneView(self.splitterWindow)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
 
-		self.addToPanel(self.scenePanel, 0)
-		self.addToPanel(self.sceneView, 1)
+		self.splitterWindow.SplitVertically(self.videoView, self.sceneView)
+		self.splitterWindow.SetMinimumPaneSize(200)
 
-		self.addToPanel(self.videoPanel, 0)
-		self.addToPanel(self.videoView, 1)
+		#-- Layout
+		vsbox = wx.BoxSizer(wx.VERTICAL)
+		vsbox.Add(self.videoPanel, 0, wx.ALL|wx.EXPAND, 2)
+		vsbox.Add(self.scenePanel, 0, wx.ALL|wx.EXPAND, 2)
+		self.scrollPanel.SetSizer(vsbox)
+		vsbox.Fit(self.scrollPanel)
+
+		self.addToPanel(self.scrollPanel, 0)
+		self.addToPanel(self.splitterWindow, 1)
 
 		#-- Video View Selector
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
@@ -120,7 +130,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
 		
-		self.updateView()
+		#self.updateView()
+
+		self.Layout()
 
 	def onShowVideoViews(self, event):
 		self.showVideoViews = not self.showVideoViews
@@ -191,7 +203,7 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onViewToolClicked(self, event):
 		self.view3D = not self.view3D
 		profile.putPreference('view_3d', self.view3D)
-		self.updateView()
+		#self.updateView()
 
 	def updateView(self):
 		if self.view3D:
@@ -232,4 +244,4 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.videoPanel.updateProfileToAllControls()
 		self.scenePanel.updateProfileToAllControls()
 		self.view3D = profile.getPreferenceBool('view_3d')
-		self.updateView()
+		#self.updateView()
