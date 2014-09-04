@@ -57,7 +57,6 @@ class Camera:
 			self.maxSaturation = 255.
 			self.maxExposure = 10000.
 		else:
-			print "Operative system: ",self.system,platform.release()
 			self.maxBrightness = 1.
 			self.maxContrast = 1.
 			self.maxSaturation = 1.

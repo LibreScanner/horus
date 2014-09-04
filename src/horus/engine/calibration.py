@@ -96,7 +96,7 @@ class Calibration:
 			cv2.drawChessboardCorners(frame, (self.patternColumns,self.patternRows), corners, retval)
 		return retval, frame
 
-	def calibrationFromImages(self):
+	def performCameraIntrinsicsCalibration(self):
 		ret = cv2.calibrateCamera(self.objPointsStack, self.imagePointsStack, self.shape)
 		
 		if ret[0]:
@@ -159,7 +159,10 @@ class Calibration:
 			#-- Disable motor
 			device.disable()
 
-			return [z, [retL[0], retR[0]], [retL[1], retR[1]]]
+			if z is not None:
+				return [z, [retL[0], retR[0]], [retL[1], retR[1]]]
+			else:
+				return None
 
 	def getPatternDepth(self, device, camera, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):
 		epsilon = 0.05
@@ -168,9 +171,10 @@ class Calibration:
 		I = np.identity(3)
 		angle = 20
 		z = None
+		tries = 5
 		device.setRelativePosition(angle)
 		device.setSpeedMotor(50)
-		while distance > epsilon:
+		while distance > epsilon and tries > 0:
 			image = camera.captureImage(flush=True, flushValue=2)
 			ret = self.solvePnp(image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows)
 			if ret is not None:
@@ -182,6 +186,8 @@ class Calibration:
 						break
 					distanceAnt = distance
 					angle = np.max(((distance-epsilon) * 20, 0.3))
+			else:
+				tries -= 1
 			device.setRelativePosition(angle)
 			device.setMoveMotor()
 
@@ -233,4 +239,70 @@ class Calibration:
 
 
 	def performPlatformExtrinsicsCalibration(self):
-		pass
+		if self.scanner.isConnected:
+
+			device = self.scanner.device
+			camera = self.scanner.camera
+
+			x = []
+			y = []
+			z = []
+
+			ret = False
+
+			##-- Switch off lasers
+			device.setLeftLaserOff()
+			device.setRightLaserOff()
+
+			##-- Move pattern 180 degrees
+			step = 5 # degrees
+			angle = 0
+			device.setSpeedMotor(1)
+			device.enable()
+			device.setSpeedMotor(200)
+			while angle <= 180:
+				angle += step
+				t = self.getPatternPosition(step, device, camera)
+				if t is not None:
+					x += [t[0][0]]
+					y += [t[1][0]]
+					z += [t[2][0]]
+
+			#-- Obtain Circle
+			if len(x) > 0: # len(z) > 0 too
+				ret = True
+				Ri, center = self.optimizeCircle(x, z)
+
+			#-- Disable motor
+			device.disable()
+
+			if ret:
+				return [[x,y,z], Ri, center]
+			else:
+				return None
+
+	def getPatternPosition(self, step, device, camera):
+		t = None
+		image = camera.captureImage(flush=True, flushValue=2)
+		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+		if ret is not None:
+			if ret[0]:
+				t = ret[2]
+		device.setRelativePosition(step)
+		device.setMoveMotor()
+		return t
+
+	def optimizeCircle(self, x2D, z2D):
+		self.x2D = x2D
+		self.z2D = z2D
+		centerEstimate = 0, 310
+ 		center = optimize.leastsq(self.f, centerEstimate)[0]
+		Ri = self.calc_R(*center)
+		return Ri, center
+
+	def calc_R(self, xc, zc):
+		return np.sqrt((self.x2D-xc)**2 + (self.z2D-zc)**2)
+
+	def f(self, c):
+		Ri = self.calc_R(*c)
+		return Ri - Ri.mean()
