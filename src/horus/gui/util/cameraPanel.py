@@ -34,17 +34,18 @@ import wx.lib.scrolledpanel
 from horus.util import profile
 from horus.util import resources
 
-class CameraPanel(wx.lib.scrolledpanel.ScrolledPanel):
+from horus.engine.scanner import *
+
+class CameraPanel(wx.Panel):
 	"""
 	"""
 	def __init__(self, parent):
 		""""""
-		wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
+		wx.Panel.__init__(self, parent=parent, size=(270, 0))
 
-		self.SetupScrolling()
+		self.main = self.GetParent().GetParent().GetParent()
 
-		self.main = self.GetParent().GetParent()
-		self.scanner = self.main.scanner
+		self.scanner = Scanner.Instance()
 
 		##-- TODO: Refactor
 		

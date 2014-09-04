@@ -28,23 +28,22 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import wx
-import wx.lib.scrolledpanel
 
 from horus.util import profile
 from horus.util.resources import *
 
-class DevicePanel(wx.lib.scrolledpanel.ScrolledPanel):
+from horus.engine.scanner import *
+
+class DevicePanel(wx.Panel):
     """
     """
     def __init__(self, parent):
         """"""
-        wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent=parent, size=(270, 0))
+        wx.Panel.__init__(self, parent=parent, size=(270, 0))
 
         self.parent = self.GetParent().GetParent().GetParent()
 
-        self.scanner = self.parent.scanner
-
-        self.SetupScrolling()
+        self.scanner = Scanner.Instance()
 
         #-- Graphic elements
         laserControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Laser Control"), style=wx.ALIGN_CENTRE)
