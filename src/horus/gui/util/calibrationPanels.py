@@ -143,7 +143,7 @@ class CameraIntrinsicsParameters(wx.Panel):
             if not enable:
                     self.distortionValues[i] = float(self.distortionTexts[i].GetValue())
         if not enable:
-            self.updateProfileToAllControls()
+            self.updateAllControlsToProfile(self.cameraValues, self.distortionValuess)
 
     def onButtonDefaultPressed(self, event):
         profile.resetProfileSetting('camera_matrix')
@@ -229,7 +229,7 @@ class LaserTriangulationParameters(wx.Panel):
         self.depthText.SetEditable(enable)
         if not enable:
             self.depthValue = round(float(self.depthText.GetValue()), 3)
-            updateControlsToProfile(self.coordinatesValues, self.depthValue)
+            self.updateAllControlsToProfile(self.coordinatesValues, self.depthValue)
 
     def onButtonDefaultPressed(self, event):
         profile.resetProfileSetting('laser_coordinates')
@@ -305,9 +305,9 @@ class PlatformExtrinsicsParameters(wx.Panel):
             translationBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
         vbox.Add(rotationText, 0, wx.ALL|wx.EXPAND, 5)
-       	vbox.Add(rotationPanel, 0, wx.ALL|wx.EXPAND, 2)
+        vbox.Add(rotationPanel, 0, wx.ALL|wx.EXPAND, 2)
         vbox.Add(translationText, 0, wx.ALL|wx.EXPAND, 5)
-       	vbox.Add(translationPanel, 0, wx.ALL|wx.EXPAND, 2)
+        vbox.Add(translationPanel, 0, wx.ALL|wx.EXPAND, 2)
 
         self.SetSizer(vbox)
         self.Layout
@@ -324,19 +324,34 @@ class PlatformExtrinsicsParameters(wx.Panel):
             if not enable:
                 self.translationValues[i] = float(self.translationTexts[i].GetValue())
         if not enable:
-            profile.putProfileSettingNumpy('rotation_matrix', self.rotationValues)
-            profile.putProfileSettingNumpy('translation_vector', self.translationValues)
+            self.updateAllControlsToProfile(self.rotationValues, self.translationValues)
 
     def onButtonDefaultPressed(self, event):
         profile.resetProfileSetting('rotation_matrix')
         profile.resetProfileSetting('translation_vector')
         self.updateProfileToAllControls()
 
+    def updateAllControls(self, rotationMatrix, translationVector):
+        for i in range(3):
+            for j in range(3):
+                if rotationMatrix[i][j] is not None:
+                    self.rotationValues[i][j] = round(rotationMatrix[i][j], 3)
+                    self.rotationTexts[i][j].SetValue(str(self.rotationValues[i][j]))
+                else:
+                    self.rotationTexts[i][j].SetValue("")
+        for i in range(3):
+            if translationVector[i] is not None:
+                self.translationValues[i] = round(translationVector[i], 3)
+                self.translationTexts[i].SetValue(str(self.translationValues[i]))
+            else:
+                self.translationTexts[i].SetValue("")
+
+    def updateAllControlsToProfile(self, rotationMatrix, translationVector):
+        self.updateAllControls(rotationMatrix, translationVector)
+        profile.putProfileSettingNumpy('rotation_matrix', rotationMatrix)
+        profile.putProfileSettingNumpy('translation_vector', translationVector)
+
     def updateProfileToAllControls(self):
-    	rotationMatrix = profile.getProfileSettingNumpy('rotation_matrix')
-    	for i in range(3):
-    		for j in range(3):
-    			self.rotationTexts[i][j].SetValue(str(round(rotationMatrix[i][j], 3)))
-    	translationVector = profile.getProfileSettingNumpy('translation_vector')
-    	for i in range(3):
-    		self.translationTexts[i].SetValue(str(round(translationVector[i], 4)))
+        rotationMatrix = profile.getProfileSettingNumpy('rotation_matrix')
+        translationVector = profile.getProfileSettingNumpy('translation_vector')
+        self.updateAllControls(rotationMatrix, translationVector)

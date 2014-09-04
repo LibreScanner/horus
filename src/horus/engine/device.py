@@ -78,7 +78,7 @@ class Device:
 					tries -= 1
 					time.sleep(0.1)
 				if version == "Grbl 0.9g ['$' for help]\r\n":
-					self.setSpeedMotor(10)
+					self.setSpeedMotor(1)
 					self.setAbsolutePosition(0)
 					#self.enable()
 				else:

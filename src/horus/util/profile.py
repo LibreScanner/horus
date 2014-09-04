@@ -513,7 +513,7 @@ def getProfileSettingNumpy(name):
 
 		return numpy.array(eval(setting, {}, {}))
 	except:
-		return False
+		return []
 
 def putProfileSetting(name, value):
 	""" Store a certain value in a profile setting. """

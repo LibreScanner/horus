@@ -201,7 +201,7 @@ class CameraIntrinsicsResultPage(Page):
 		self.cameraIntrinsicsParameters = CameraIntrinsicsParameters(self._panel)
 
 		#-- 3D Plot Panel
-		self.plotPanel = PlotPanel(self._panel)
+		self.plotPanel = Plot3DPanel(self._panel)
 
 		self.addToPanel(self.cameraIntrinsicsParameters, 1)
 		self.addToPanel(self.plotPanel, 2)
@@ -216,7 +216,7 @@ class CameraIntrinsicsResultPage(Page):
 	def performCalibration(self):
 		self.plotPanel.Hide()
 		self.plotPanel.clear()
-		ret = self.calibration.calibrationFromImages()
+		ret = self.calibration.performCameraIntrinsicsCalibration()
 		self.plotPanel.add(ret[2], ret[3])
 		self.cameraIntrinsicsParameters.updateAllControlsToProfile(ret[0], ret[1])
 		self.plotPanel.Show()
@@ -227,7 +227,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
-class PlotPanel(wx.Panel):
+class Plot3DPanel(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 		self.calibration = Calibration.Instance()
@@ -376,16 +376,17 @@ class LaserTriangulationResultPage(Page):
 	def performCalibration(self):
 		ret = Calibration.Instance().performLaserTriangulationCalibration()
 
-		self.laserTriangulationParameters.updateAllControlsToProfile(ret[1], ret[0])
+		if ret is not None:
+			self.laserTriangulationParameters.updateAllControlsToProfile(ret[1], ret[0])
 
-		self.leftLaserImageSequence.imageLas.setFrame(ret[2][0][0])
-		self.leftLaserImageSequence.imageGray.setFrame(ret[2][0][1])
-		self.leftLaserImageSequence.imageBin.setFrame(ret[2][0][2])
-		self.leftLaserImageSequence.imageLine.setFrame(ret[2][0][3])
-		self.rightLaserImageSequence.imageLas.setFrame(ret[2][1][0])
-		self.rightLaserImageSequence.imageGray.setFrame(ret[2][1][1])
-		self.rightLaserImageSequence.imageBin.setFrame(ret[2][1][2])
-		self.rightLaserImageSequence.imageLine.setFrame(ret[2][1][3])
+			self.leftLaserImageSequence.imageLas.setFrame(ret[2][0][0])
+			self.leftLaserImageSequence.imageGray.setFrame(ret[2][0][1])
+			self.leftLaserImageSequence.imageBin.setFrame(ret[2][0][2])
+			self.leftLaserImageSequence.imageLine.setFrame(ret[2][0][3])
+			self.rightLaserImageSequence.imageLas.setFrame(ret[2][1][0])
+			self.rightLaserImageSequence.imageGray.setFrame(ret[2][1][1])
+			self.rightLaserImageSequence.imageBin.setFrame(ret[2][1][2])
+			self.rightLaserImageSequence.imageLine.setFrame(ret[2][1][3])
 
 class LaserTriangulationImageSequence(wx.Panel):
 
@@ -420,3 +421,163 @@ class LaserTriangulationImageSequence(wx.Panel):
 
 		self.SetSizer(vbox)
 		self.Layout()
+
+
+class PlatformExtrinsicsMainPage(Page):
+
+	def __init__(self, parent, buttonCancelCallback=None, buttonPerformCallback=None):
+		Page.__init__(self, parent,
+							title=_("Platform Extrinsics"),
+							left=_("Cancel"),
+							right=_("Perform"),
+							buttonLeftCallback=buttonCancelCallback,
+							buttonRightCallback=buttonPerformCallback,
+							panelOrientation=wx.VERTICAL)
+
+		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
+
+		imageView = VideoView(self._panel)
+		imageView.setImage(wx.Image(resources.getPathForImage("patternPosition.png")))
+		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
+		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+
+		detailsBox.Add((0, 0), 1, wx.EXPAND)
+		detailsBox.Add(detailsText, 0, wx.ALL|wx.EXPAND, 3)
+		detailsBox.Add((0, 0), 1, wx.EXPAND)
+
+		self.addToPanel(imageView, 1)
+		self.addToPanel(detailsBox, 0)
+
+
+class PlatformExtrinsicsResultPage(Page):
+
+	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
+		Page.__init__(self, parent,
+							title=_("Platform Extrinsics"),
+							left=_("Reject"),
+							right=_("Accept"),
+							buttonLeftCallback=buttonRejectCallback,
+							buttonRightCallback=buttonAcceptCallback,
+							panelOrientation=wx.HORIZONTAL)
+
+		vbox = wx.BoxSizer(wx.VERTICAL)
+
+		self.platformExtrinsicsParameters = PlatformExtrinsicsParameters(self._panel)
+		self.plotPanel = Plot2DPanel(self._panel)
+
+		#-- Layout
+
+		self.addToPanel(self.platformExtrinsicsParameters, 1)
+		self.addToPanel(self.plotPanel, 3)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.performCalibration()
+
+	def performCalibration(self):
+		self.plotPanel.Hide()
+		self.plotPanel.clear()
+		ret = Calibration.Instance().performPlatformExtrinsicsCalibration()
+		if ret is not None:
+			xc, zc = ret[2]
+			yc = np.mean(ret[0][1]) + 150 #offset
+			self.plotPanel.add(ret)
+			self.platformExtrinsicsParameters.updateAllControlsToProfile(np.array([[0,-1,0],[0,0,-1],[-1,0,0]]), np.array([xc, yc, zc]))
+		self.plotPanel.Show()
+
+
+import matplotlib.cm as cm  
+import matplotlib.colors as colors
+
+class Plot2DPanel(wx.Panel):
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent)
+		self.calibration = Calibration.Instance()
+
+		self.initialize()
+
+	def initialize(self):
+		self.fig = Figure()
+		self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
+		self.canvas.SetExtraStyle(wx.EXPAND)
+
+		self.ax = self.fig.gca()
+		self.ax.axis('equal')
+
+		self.x2D = np.array([])
+		self.z2D = np.array([])
+		
+		self.ax.set_xlabel('x')
+		self.ax.set_ylabel('z')
+
+		self.xmin = 0
+		self.xmax = 1
+		self.ymin = 0
+		self.ymax = 1
+
+		self.Bind(wx.EVT_SIZE, self.onSize)
+		self.Layout()
+
+	def onSize(self,event):
+		self.canvas.SetClientSize(self.GetClientSize())
+		self.ax.set_xlim(xmin=self.xmin, xmax=self.xmax)
+		self.ax.set_ylim(ymin=self.ymin, ymax=self.ymax)
+		self.canvas.draw()
+		self.Layout()
+
+	def add(self, args):
+		tvecs = args[0]
+		Ri = args[1]
+		xc, zc = center = args[2]
+
+		R = Ri.mean()
+
+		x2D = tvecs[0]
+		y2D = tvecs[1]
+		z2D = tvecs[2]
+
+		theta_fit = np.linspace(-np.pi, np.pi, 180)
+
+		x_fit2 = xc + R*np.cos(theta_fit)
+		z_fit2 = zc + R*np.sin(theta_fit)
+
+		self.ax.plot(x_fit2, z_fit2, 'k--', lw=2)
+		self.ax.plot([xc], [zc], 'gD', mec='r', mew=1)
+		self.ax.plot(x2D, z2D, 'ro', label='Pattern corner', ms=8, mec='b', mew=1)
+
+		self.xmin = (xc-R)/1.05
+		self.xmax = (xc+R)*1.05
+		self.ymin = (zc-R)/1.05
+		self.ymax = (zc+R)*1.05
+
+		vmin = min(self.xmin, self.ymin)
+		vmax = max(self.xmax, self.ymax)
+
+		nb_pts = 100
+
+		xg, zg = np.ogrid[vmin-4*R:(vmin+4*R):nb_pts*1j, vmax-4*R:vmax+R:nb_pts*1j]
+		xg = xg[..., np.newaxis]
+		zg = zg[..., np.newaxis]
+
+		Rig    = np.sqrt( (xg - x2D)**2 + (zg - z2D)**2 )
+		Rig_m  = Rig.mean(axis=2)[..., np.newaxis]  
+		residu = np.sum( (Rig-Rig_m)**2 ,axis=2)
+		lvl = np.exp(np.linspace(np.log(residu.min()), np.log(residu.max()), 15))
+
+		self.ax.contourf(xg.flat, zg.flat, residu.T, lvl, alpha=0.4, cmap=cm.Purples_r) # , norm=colors.LogNorm())
+		self.ax.contour (xg.flat, zg.flat, residu.T, lvl, alpha=0.8, colors="lightblue")
+
+		self.ax.grid()
+		self.ax.set_title("Center: xc = "+str(xc)+"  zc = "+str(zc))
+
+		self.canvas.draw()
+
+		self.onSize(None)
+		
+		self.Layout()
+
+	def clear(self):
+		self.ax.cla()

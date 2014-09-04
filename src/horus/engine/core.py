@@ -144,7 +144,7 @@ class Core:
 		T = np.matrix(translationVector)
 
 		Rt = R.T
-		RT = R.T*T
+		RT = R.T*T.T
 
 		self.Xw = (Rt[0,0] * Xc + Rt[0,1] * Yc + Rt[0,2] * Zc - RT[0]).T
 		self.Yw = (Rt[1,0] * Xc + Rt[1,1] * Yc + Rt[1,2] * Zc - RT[1]).T
