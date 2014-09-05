@@ -32,11 +32,9 @@ import wx.lib.scrolledpanel
 from horus.util.resources import *
 from horus.util import profile
 
-from horus.gui.util.cameraPanel import *
+from horus.gui.util.controlPanels import *
 from horus.gui.util.videoView import *
-from horus.gui.util.devicePanel import *
-from horus.gui.util.videoView import *
-from horus.gui.util.workbenchConnection import *
+from horus.gui.util.workbench import *
 
 from horus.engine.scanner import *
 

@@ -29,7 +29,7 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 from horus.util import profile
 
-from horus.gui.util.workbenchConnection import *
+from horus.gui.util.workbench import *
 from horus.gui.util.calibrationPanels import *
 from horus.gui.util.calibrationPages import *
 

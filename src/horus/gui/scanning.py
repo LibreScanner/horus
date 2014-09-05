@@ -30,11 +30,10 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 from horus.util.resources import *
 from horus.util import profile
 
-from horus.gui.util.videoPanel import *
+from horus.gui.util.scanningPanels import *
 from horus.gui.util.videoView import *
-from horus.gui.util.scenePanel import *
 from horus.gui.util.sceneView import *
-from horus.gui.util.workbenchConnection import *
+from horus.gui.util.workbench import *
 
 class ScanningWorkbench(WorkbenchConnection):
 
@@ -55,8 +54,8 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.stopTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
 		self.pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("pause.png")), shortHelp=_("Pause"))
-		#self.deleteTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
-		self.viewTool       = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("3D / Camera"))
+		self.deleteTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
+		#self.viewTool       = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("3D / Camera"))
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
@@ -64,8 +63,8 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked      , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , self.resumeTool)
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , self.pauseTool)
-		#self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
-		self.Bind(wx.EVT_TOOL, self.onViewToolClicked      , self.viewTool)
+		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
+		#self.Bind(wx.EVT_TOOL, self.onViewToolClicked      , self.viewTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(270,-1))
 		self.scrollPanel.SetAutoLayout(1)
