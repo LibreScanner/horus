@@ -263,9 +263,13 @@ setting('square_width', 13, int, 'advanced', _('Square width'))
 ##-- Preferences
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
+setting('view_workbench_selector', False, bool, 'preference', 'hidden')
 setting('workbench', 'main', ['none', 'main', 'control', 'calibration', 'scanning'], 'preference', 'hidden')
-setting('workbench_selector', True, bool, 'preference', 'hidden')
-setting('view_3d', True, bool, 'preference', 'hidden')
+setting('view_control_panel', True, bool, 'preference', 'hidden')
+setting('view_control_video', True, bool, 'preference', 'hidden')
+setting('view_scanning_panel', False, bool, 'preference', 'hidden')
+setting('view_scanning_video', False, bool, 'preference', 'hidden')
+setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 
 # TODO: change default last file
 setting('lastFile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')

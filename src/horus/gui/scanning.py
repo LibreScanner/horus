@@ -40,7 +40,6 @@ class ScanningWorkbench(WorkbenchConnection):
 	def __init__(self, parent):
 		WorkbenchConnection.__init__(self, parent)
 
-		self.view3D = False
 		self.showVideoViews = False
 
 		self.load()
@@ -55,7 +54,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
 		self.pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("pause.png")), shortHelp=_("Pause"))
 		self.deleteTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
-		#self.viewTool       = self.toolbar.AddLabelTool(wx.NewId(), _("View"), wx.Bitmap(getPathForImage("view.png")), shortHelp=_("3D / Camera"))
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
@@ -64,7 +62,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , self.resumeTool)
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , self.pauseTool)
 		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
-		#self.Bind(wx.EVT_TOOL, self.onViewToolClicked      , self.viewTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(270,-1))
 		self.scrollPanel.SetAutoLayout(1)
@@ -128,8 +125,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonDiff)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
-		
-		#self.updateView()
 
 		self.Layout()
 
@@ -199,24 +194,6 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onDeleteToolClicked(self, event):
 		self.sceneView._clearScene()
 
-	def onViewToolClicked(self, event):
-		self.view3D = not self.view3D
-		profile.putPreference('view_3d', self.view3D)
-		#self.updateView()
-
-	def updateView(self):
-		if self.view3D:
-			self.videoPanel.Hide()
-			self.videoView.Hide()
-			self.scenePanel.Show()
-			self.sceneView.Show()
-		else:
-			self.scenePanel.Hide()
-			self.sceneView.Hide()
-			self.videoPanel.Show()
-			self.videoView.Show()
-		self.Layout()
-
 	def updateToolbarStatus(self, status):
 		if status:
 			self.enableLabelTool(self.playTool  , True)
@@ -242,5 +219,3 @@ class ScanningWorkbench(WorkbenchConnection):
 	def updateProfileToAllControls(self):
 		self.videoPanel.updateProfileToAllControls()
 		self.scenePanel.updateProfileToAllControls()
-		self.view3D = profile.getPreferenceBool('view_3d')
-		#self.updateView()

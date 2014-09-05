@@ -113,6 +113,15 @@ class MainWindow(wx.Frame):
         self.menuWorkbenchCalibration = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Calibration"))
         self.menuWorkbenchScanning = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Scanning"))
         menuView.AppendMenu(wx.NewId(), _("Workbench"), self.menuWorkbench)
+        self.menuControl = wx.Menu()
+        self.menuControlPanel = self.menuControl.AppendCheckItem(wx.NewId(), _("Panel"))
+        self.menuControlVideo = self.menuControl.AppendCheckItem(wx.NewId(), _("Video"))
+        menuView.AppendMenu(wx.NewId(), _("Control"), self.menuControl)
+        self.menuScanning = wx.Menu()
+        self.menuScanningPanel = self.menuScanning.AppendCheckItem(wx.NewId(), _("Panel"))
+        self.menuScanningVideo = self.menuScanning.AppendCheckItem(wx.NewId(), _("Video"))
+        self.menuScanningScene = self.menuScanning.AppendCheckItem(wx.NewId(), _("Scene"))
+        menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
         menuBar.Append(menuView, _("View"))
 
         #-- Menu Help
@@ -166,6 +175,11 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchControl)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchCalibration)
         self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchScanning)
+        self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
+        self.Bind(wx.EVT_MENU, self.onControlVideoClicked, self.menuControlVideo)
+        self.Bind(wx.EVT_MENU, self.onScanningPanelClicked, self.menuScanningPanel)
+        self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningVideo)
+        self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningScene)
 
         self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
 
@@ -181,33 +195,29 @@ class MainWindow(wx.Frame):
         wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
         wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
         wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-
         dlg.SetWildcard(wildcardFilter)
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-        filename = dlg.GetPath()
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            if filename is not None:
+                profile.putPreference('lastFile', filename)
+                self.scanningWorkbench.sceneView.loadFile(filename)
         dlg.Destroy()
-        if filename is not None:
-            profile.putPreference('lastFile', filename)
-            self.scanningWorkbench.sceneView.loadFile(filename)
 
     def onSaveModel(self, event):
+        import platform
         if self.scanningWorkbench.sceneView._object is None:
             return
-
         dlg=wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
         fileExtensions = meshLoader.saveSupportedExtensions()
         wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
         wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
         dlg.SetWildcard(wildcardFilter)
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-        filename = dlg.GetPath()
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
+                profileFile += '.ply'
+            meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
         dlg.Destroy()
-
-        meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
 
     def onClearModel(self, event):
         self.scanningWorkbench.sceneView._clearScene()
@@ -255,12 +265,69 @@ class MainWindow(wx.Frame):
 
     def onWorkbenchSelectorClicked(self, event):
         """ """
-        if self.menuWorkbenchSelector.IsChecked():
+        checked = self.menuWorkbenchSelector.IsChecked()
+        profile.putPreference('view_workbench_selector', checked)
+        if checked:
             self.comboBoxWorkbench.Show()
-            profile.putPreference('workbench_selector', True)
         else:
             self.comboBoxWorkbench.Hide()
-            profile.putPreference('workbench_selector', False)
+        self.Layout()
+
+    def onControlPanelClicked(self, event):
+        """ """
+        checked = self.menuControlPanel.IsChecked()
+        profile.putPreference('view_control_panel', checked)
+        if checked:
+            self.controlWorkbench.scrollPanel.Show()
+        else:
+            self.controlWorkbench.scrollPanel.Hide()
+        self.Layout()
+
+    def onControlVideoClicked(self, event):
+        """ """
+        checked = self.menuControlVideo.IsChecked()
+        profile.putPreference('view_control_video', checked)
+        if checked:
+            self.controlWorkbench.videoView.Show()
+        else:
+            self.controlWorkbench.videoView.Hide()
+        self.Layout()
+
+    def onScanningPanelClicked(self, event):
+        """ """
+        checked = self.menuScanningPanel.IsChecked()
+        profile.putPreference('view_scanning_panel', checked)
+        if checked:
+            self.scanningWorkbench.scrollPanel.Show()
+        else:
+            self.scanningWorkbench.scrollPanel.Hide()
+        self.Layout()
+
+    def onScanningVideoSceneClicked(self, event):
+        """ """
+        checkedVideo = self.menuScanningVideo.IsChecked()
+        checkedScene = self.menuScanningScene.IsChecked()
+        profile.putPreference('view_scanning_video', checkedVideo)
+        profile.putPreference('view_scanning_scene', checkedScene)
+        self.scanningWorkbench.splitterWindow.Unsplit()
+        if checkedVideo:
+            self.scanningWorkbench.videoView.Show()
+            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.sceneView)
+            if checkedScene:
+                self.scanningWorkbench.sceneView.Show()
+            else:
+                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.splitterWindow.Unsplit()
+        else:
+            self.scanningWorkbench.videoView.Hide()
+            if checkedScene:
+                self.scanningWorkbench.sceneView.Show()
+                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.sceneView, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.splitterWindow.Unsplit()
+            else:
+                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.splitterWindow.Unsplit()
+                
         self.Layout()
 
     def onWorkbenchSelected(self, event):
@@ -323,12 +390,58 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
 
-        if profile.getPreferenceBool('workbench_selector'):
+        if profile.getPreferenceBool('view_workbench_selector'):
             self.comboBoxWorkbench.Show()
             self.menuWorkbenchSelector.Check(True)
         else:
             self.comboBoxWorkbench.Hide()
             self.menuWorkbenchSelector.Check(False)
+
+        if profile.getPreferenceBool('view_control_panel'):
+            self.controlWorkbench.scrollPanel.Show()
+            self.menuControlPanel.Check(True)
+        else:
+            self.controlWorkbench.scrollPanel.Hide()
+            self.menuControlPanel.Check(False)
+
+        if profile.getPreferenceBool('view_control_video'):
+            self.controlWorkbench.videoView.Show()
+            self.menuControlVideo.Check(True)
+        else:
+            self.controlWorkbench.videoView.Hide()
+            self.menuControlVideo.Check(False)
+
+        if profile.getPreferenceBool('view_scanning_panel'):
+            self.scanningWorkbench.scrollPanel.Show()
+            self.menuScanningPanel.Check(True)
+        else:
+            self.scanningWorkbench.scrollPanel.Hide()
+            self.menuScanningPanel.Check(False)
+
+        checkedVideo = profile.getPreferenceBool('view_scanning_video')
+        checkedScene = profile.getPreferenceBool('view_scanning_scene')
+
+        self.menuScanningVideo.Check(checkedVideo)
+        self.menuScanningScene.Check(checkedScene)
+
+        self.scanningWorkbench.splitterWindow.Unsplit()
+        if checkedVideo:
+            self.scanningWorkbench.videoView.Show()
+            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.sceneView)
+            if checkedScene:
+                self.scanningWorkbench.sceneView.Show()
+            else:
+                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.splitterWindow.Unsplit()
+        else:
+            self.scanningWorkbench.videoView.Hide()
+            if checkedScene:
+                self.scanningWorkbench.sceneView.Show()
+                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.sceneView, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.splitterWindow.Unsplit()
+            else:
+                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.splitterWindow.Unsplit()
 
         self.workbenchUpdate()
         self.Layout()
