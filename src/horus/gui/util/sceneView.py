@@ -557,7 +557,7 @@ class SceneView(openglGui.glGuiPanel):
 					self._platformMesh[machine] = mesh
 				else:
 					self._platformMesh[machine] = None
-				self._platformMesh[machine]._drawOffset = numpy.array([0,0,10.1], numpy.float32)
+				self._platformMesh[machine]._drawOffset = numpy.array([0,0,8.05], numpy.float32)
 			glColor4f(0.6,0.6,0.6,0.5)
 			self._objectShader.bind()
 			self._renderObject(self._platformMesh[machine], False)

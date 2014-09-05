@@ -68,7 +68,7 @@ class DevicePanel(wx.Panel):
 
         self.gcodeRequestText = wx.TextCtrl(self, size=(145,-1))
         self.gcodeSendButton = wx.Button(self, -1, _("Send"))
-        self.gcodeResponseText = wx.TextCtrl(self, value="['$' for help]", style= wx.TE_MULTILINE)
+        self.gcodeResponseText = wx.TextCtrl(self, value="['$' for help]", size=(-1,250), style= wx.TE_MULTILINE)
 
         #-- Events
         self.laserLeftButton.Bind(wx.EVT_TOGGLEBUTTON, self.onLeftLaserClicked)
