@@ -124,7 +124,7 @@ class MainWindow(wx.Frame):
         #-- Menu Help
         menuHelp = wx.Menu()
         menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
-        menuWelcome = menuHelp.Append(wx.ID_ABOUT, _("Welcome"))
+        menuWelcome = menuHelp.Append(wx.ID_ANY, _("Welcome"))
         menuBar.Append(menuHelp, _("Help"))
 
         self.SetMenuBar(menuBar)
@@ -212,7 +212,7 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
-                profileFile += '.ply'
+                filename += '.ply'
             meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
         dlg.Destroy()
 
@@ -451,16 +451,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def updateCoreProfile(self, workbench):
         if workbench in ['scanning']:
             self.scanner.core.initialize(profile.getProfileSetting('img_type'),
-                                         profile.getProfileSettingBool('blur'),
-                                         profile.getProfileSettingInteger('blur_value'),
                                          profile.getProfileSettingBool('open'),
                                          profile.getProfileSettingInteger('open_value'),
-                                         np.array([profile.getProfileSettingNumpy('min_h'),
-                                                   profile.getProfileSettingNumpy('min_s'),
-                                                   profile.getProfileSettingNumpy('min_v')],np.uint8),
-                                         np.array([profile.getProfileSettingNumpy('max_h'),
-                                                   profile.getProfileSettingNumpy('max_s'),
-                                                   profile.getProfileSettingNumpy('max_v')],np.uint8),
+                                         profile.getProfileSettingBool('threshold'),
+                                         profile.getProfileSettingInteger('threshold_value'),
                                          profile.getProfileSettingBool('use_compact'),
                                          profile.getProfileSettingInteger('min_rho'),
                                          profile.getProfileSettingInteger('max_rho'),

@@ -297,6 +297,9 @@ class LaserTriangulationParameters(wx.Panel):
         else:
             self.depthText.SetValue("")
 
+        if hasattr(self, 'scanner'):
+            self.scanner.core.setLaserTriangulation(laserCoordinates, depthValue) ## TODO: implement
+
     def updateAllControlsToProfile(self, laserCoordinates, laserDepth):
         profile.putProfileSettingNumpy('laser_coordinates', laserCoordinates)
         profile.putProfileSetting('laser_depth', laserDepth)
@@ -407,6 +410,9 @@ class PlatformExtrinsicsParameters(wx.Panel):
                 self.translationTexts[i].SetValue(str(self.translationValues[i]))
             else:
                 self.translationTexts[i].SetValue("")
+
+        if hasattr(self, 'scanner'):
+            self.scanner.core.setPlatformExtrinsics(rotationMatrix, translationVector) ## TODO: implement
 
     def updateAllControlsToProfile(self, rotationMatrix, translationVector):
         profile.putProfileSettingNumpy('rotation_matrix', rotationMatrix)

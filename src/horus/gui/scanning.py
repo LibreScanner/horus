@@ -215,6 +215,7 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.buttonLas.Hide()
 			self.buttonDiff.Hide()
 			self.buttonBin.Hide()
+			self.buttonLine.Hide()
 
 	def updateProfileToAllControls(self):
 		self.videoPanel.updateProfileToAllControls()

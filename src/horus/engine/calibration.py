@@ -303,7 +303,7 @@ class Calibration:
 	def optimizeCircle(self, x2D, z2D):
 		self.x2D = x2D
 		self.z2D = z2D
-		centerEstimate = 0, 310
+		centerEstimate = 0, 315
  		center = optimize.leastsq(self.f, centerEstimate)[0]
 		Ri = self.calc_R(*center)
 		return Ri, center
