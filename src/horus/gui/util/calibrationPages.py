@@ -329,7 +329,7 @@ class LaserTriangulationMainPage(Page):
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
 		imageView = VideoView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("patternPosition.png")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
@@ -437,7 +437,7 @@ class PlatformExtrinsicsMainPage(Page):
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
 		imageView = VideoView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("patternPosition.png")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 

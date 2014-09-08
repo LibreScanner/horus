@@ -70,7 +70,7 @@ class Scanner:
 				self.camera.disconnect()
 				self.isConnected = False
 		else:
-			self.isConnected = Falses
+			self.isConnected = False
 		return self.isConnected
 		
 	def disconnect(self):
@@ -133,14 +133,16 @@ class Scanner:
 			imgLas = self.camera.captureImage(flush=True, flushValue=2)
 
 			#-- Move motor
-			self.device.setRelativePosition(degrees)
+			self.device.setRelativePosition(self.degrees)
 			self.device.setMoveMotor()
 
 			#-- Put images into the queue
 			self.imageQueue.put((imgRaw, imgLas))
 			
+			print self.degrees
+			
 			#-- Check stop condition
-			self.theta += degrees
+			self.theta += self.degrees
 			if abs(self.theta) >= 360:
 				self.stop()
 			

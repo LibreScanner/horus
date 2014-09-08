@@ -352,8 +352,8 @@ class CameraPanel(wx.Panel):
         value= int(self.frameRateCombo.GetValue())
         profile.putProfileSetting('framerate_'+self.currentWorkbench, value)
         if self.scanner.isConnected:
-            self.reloadVideo()
             self.scanner.camera.setFps(value)
+            self.reloadVideo()
         
     def OnSelectResolution(self,event):
         resolution = self.resolutionCombo.GetValue().replace('(', '').replace(')', '')
