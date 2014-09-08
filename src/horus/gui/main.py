@@ -65,6 +65,10 @@ class MainWindow(wx.Frame):
         if len(videoList) > 0:
             if currentVideoId not in videoList:
                 profile.putProfileSetting('camera_id', videoList[0])
+
+        self.workbenchList = {'control'     : _("Control workbench"),
+                              'calibration' : _("Calibration workbench"),
+                              'scanning'    : _("Scanning workbench")}
             
         self.scanner = Scanner.Instance()
         self.calibration = Calibration.Instance()
@@ -106,34 +110,24 @@ class MainWindow(wx.Frame):
 
         #-- Menu View
         menuView = wx.Menu()
-        self.menuWorkbenchSelector = menuView.AppendCheckItem(wx.NewId(), _("Workbench Selector"))
-        self.menuWorkbench = wx.Menu()
-        self.menuWorkbenchMain = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Main"))
-        self.menuWorkbenchControl = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Control"))
-        self.menuWorkbenchCalibration = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Calibration"))
-        self.menuWorkbenchScanning = self.menuWorkbench.AppendRadioItem(wx.NewId(), _("Scanning"))
-        menuView.AppendMenu(wx.NewId(), _("Workbench"), self.menuWorkbench)
+        self.menuControl = wx.Menu()
+        self.menuControlPanel = self.menuControl.AppendCheckItem(wx.NewId(), _("Panel"))
+        self.menuControlVideo = self.menuControl.AppendCheckItem(wx.NewId(), _("Video"))
+        menuView.AppendMenu(wx.NewId(), _("Control"), self.menuControl)
+        self.menuScanning = wx.Menu()
+        self.menuScanningPanel = self.menuScanning.AppendCheckItem(wx.NewId(), _("Panel"))
+        self.menuScanningVideo = self.menuScanning.AppendCheckItem(wx.NewId(), _("Video"))
+        self.menuScanningScene = self.menuScanning.AppendCheckItem(wx.NewId(), _("Scene"))
+        menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
         menuBar.Append(menuView, _("View"))
 
         #-- Menu Help
         menuHelp = wx.Menu()
         menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
+        menuWelcome = menuHelp.Append(wx.ID_ANY, _("Welcome"))
         menuBar.Append(menuHelp, _("Help"))
 
         self.SetMenuBar(menuBar)
-
-        #-- Create Combobox Workbench Selector
-
-        self.workbenchList = {}
-
-        self.workbenchList[_("Main")] = 'main'
-        self.workbenchList[_("Control")] = 'control'
-        self.workbenchList[_("Calibration")] = 'calibration'
-        self.workbenchList[_("Scanning")] = 'scanning'
-
-        keylist = [_("Main"), _("Control"), _("Calibration"), _("Scanning")]
-
-        self.comboBoxWorkbench = wx.ComboBox(self, -1, value=keylist[0], choices=keylist, style=wx.CB_READONLY)
 
         ##-- Create Workbenchs
 
@@ -142,8 +136,22 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench = ScanningWorkbench(self)
         self.calibrationWorkbench = CalibrationWorkbench(self)
 
+        self.controlWorkbench.combo.Clear()
+        self.controlWorkbench.combo.Append(self.workbenchList['control'])
+        self.controlWorkbench.combo.Append(self.workbenchList['calibration'])
+        self.controlWorkbench.combo.Append(self.workbenchList['scanning'])
+
+        self.calibrationWorkbench.combo.Clear()
+        self.calibrationWorkbench.combo.Append(self.workbenchList['control'])
+        self.calibrationWorkbench.combo.Append(self.workbenchList['calibration'])
+        self.calibrationWorkbench.combo.Append(self.workbenchList['scanning'])
+
+        self.scanningWorkbench.combo.Clear()
+        self.scanningWorkbench.combo.Append(self.workbenchList['control'])
+        self.scanningWorkbench.combo.Append(self.workbenchList['calibration'])
+        self.scanningWorkbench.combo.Append(self.workbenchList['scanning'])
+
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.comboBoxWorkbench, 0, wx.ALL|wx.EXPAND, 6)
         sizer.Add(self.mainWorkbench, 1, wx.EXPAND)
         sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
         sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
@@ -161,15 +169,18 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
 
-        self.Bind(wx.EVT_MENU, self.onWorkbenchSelectorClicked, self.menuWorkbenchSelector)
-        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchMain)
-        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchControl)
-        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchCalibration)
-        self.Bind(wx.EVT_MENU, self.onWorkbenchSelected, self.menuWorkbenchScanning)
+        self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
+        self.Bind(wx.EVT_MENU, self.onControlVideoClicked, self.menuControlVideo)
+        self.Bind(wx.EVT_MENU, self.onScanningPanelClicked, self.menuScanningPanel)
+        self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningVideo)
+        self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningScene)
 
         self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
+        self.Bind(wx.EVT_MENU, self.onWelcome, menuWelcome)
 
-        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.comboBoxWorkbench)
+        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.controlWorkbench.combo)
+        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.calibrationWorkbench.combo)
+        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.scanningWorkbench.combo)
 
         self.updateProfileToAllControls()
 
@@ -181,33 +192,29 @@ class MainWindow(wx.Frame):
         wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
         wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
         wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-
         dlg.SetWildcard(wildcardFilter)
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-        filename = dlg.GetPath()
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            if filename is not None:
+                profile.putPreference('lastFile', filename)
+                self.scanningWorkbench.sceneView.loadFile(filename)
         dlg.Destroy()
-        if filename is not None:
-            profile.putPreference('lastFile', filename)
-            self.scanningWorkbench.sceneView.loadFile(filename)
 
     def onSaveModel(self, event):
+        import platform
         if self.scanningWorkbench.sceneView._object is None:
             return
-
         dlg=wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
         fileExtensions = meshLoader.saveSupportedExtensions()
         wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
         wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
         dlg.SetWildcard(wildcardFilter)
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-        filename = dlg.GetPath()
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
+                filename += '.ply'
+            meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
         dlg.Destroy()
-
-        meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
 
     def onClearModel(self, event):
         self.scanningWorkbench.sceneView._clearScene()
@@ -253,40 +260,72 @@ class MainWindow(wx.Frame):
         wx.CallAfter(prefDialog.Show)
         self.updateScannerProfile()
 
-    def onWorkbenchSelectorClicked(self, event):
+    def onControlPanelClicked(self, event):
         """ """
-        if self.menuWorkbenchSelector.IsChecked():
-            self.comboBoxWorkbench.Show()
-            profile.putPreference('workbench_selector', True)
+        checked = self.menuControlPanel.IsChecked()
+        profile.putPreference('view_control_panel', checked)
+        if checked:
+            self.controlWorkbench.scrollPanel.Show()
         else:
-            self.comboBoxWorkbench.Hide()
-            profile.putPreference('workbench_selector', False)
+            self.controlWorkbench.scrollPanel.Hide()
         self.Layout()
 
-    def onWorkbenchSelected(self, event):
+    def onControlVideoClicked(self, event):
         """ """
-        currentWorkbench = {self.menuWorkbenchMain.GetId()        : 'main',
-                            self.menuWorkbenchControl.GetId()     : 'control',
-                            self.menuWorkbenchCalibration.GetId() : 'calibration',
-                            self.menuWorkbenchScanning.GetId()    : 'scanning'}.get(event.GetId())
-
-        if currentWorkbench is not None:
-            profile.putPreference('workbench', currentWorkbench)
+        checked = self.menuControlVideo.IsChecked()
+        profile.putPreference('view_control_video', checked)
+        if checked:
+            self.controlWorkbench.videoView.Show()
         else:
-            profile.putPreference('workbench', 'main')
+            self.controlWorkbench.videoView.Hide()
+        self.Layout()
 
-        self.workbenchUpdate()
+    def onScanningPanelClicked(self, event):
+        """ """
+        checked = self.menuScanningPanel.IsChecked()
+        profile.putPreference('view_scanning_panel', checked)
+        if checked:
+            self.scanningWorkbench.scrollPanel.Show()
+        else:
+            self.scanningWorkbench.scrollPanel.Hide()
+        self.Layout()
+
+    def onScanningVideoSceneClicked(self, event):
+        """ """
+        checkedVideo = self.menuScanningVideo.IsChecked()
+        checkedScene = self.menuScanningScene.IsChecked()
+        profile.putPreference('view_scanning_video', checkedVideo)
+        profile.putPreference('view_scanning_scene', checkedScene)
+        self.scanningWorkbench.splitterWindow.Unsplit()
+        if checkedVideo:
+            self.scanningWorkbench.videoView.Show()
+            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.sceneView)
+            if checkedScene:
+                self.scanningWorkbench.sceneView.Show()
+            else:
+                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.splitterWindow.Unsplit()
+        else:
+            self.scanningWorkbench.videoView.Hide()
+            if checkedScene:
+                self.scanningWorkbench.sceneView.Show()
+                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.sceneView, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.splitterWindow.Unsplit()
+            else:
+                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.splitterWindow.Unsplit()
+                
+        self.Layout()
 
     def onComboBoxWorkbenchSelected(self, event):
         """ """
-        currentWorkbench = self.workbenchList[self.comboBoxWorkbench.GetValue()]
-
-        if currentWorkbench is not None:
-            profile.putPreference('workbench', currentWorkbench)
-        else:
-            profile.putPreference('workbench', 'main')
-
-        self.workbenchUpdate()
+        for key in self.workbenchList:
+            if self.workbenchList[key] == str(event.GetEventObject().GetValue()):
+                if key is not None:
+                    profile.putPreference('workbench', key)
+                else:
+                    profile.putPreference('workbench', 'main')
+                self.workbenchUpdate()
 
     def onAbout(self, event):
         """ """
@@ -317,18 +356,62 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
         wx.AboutBox(info)
 
+    def onWelcome(self, event):
+        """ """
+        profile.putPreference('workbench', 'main')
+        self.workbenchUpdate()
+
     def updateProfileToAllControls(self):
         """ """
         self.controlWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
 
-        if profile.getPreferenceBool('workbench_selector'):
-            self.comboBoxWorkbench.Show()
-            self.menuWorkbenchSelector.Check(True)
+        if profile.getPreferenceBool('view_control_panel'):
+            self.controlWorkbench.scrollPanel.Show()
+            self.menuControlPanel.Check(True)
         else:
-            self.comboBoxWorkbench.Hide()
-            self.menuWorkbenchSelector.Check(False)
+            self.controlWorkbench.scrollPanel.Hide()
+            self.menuControlPanel.Check(False)
+
+        if profile.getPreferenceBool('view_control_video'):
+            self.controlWorkbench.videoView.Show()
+            self.menuControlVideo.Check(True)
+        else:
+            self.controlWorkbench.videoView.Hide()
+            self.menuControlVideo.Check(False)
+
+        if profile.getPreferenceBool('view_scanning_panel'):
+            self.scanningWorkbench.scrollPanel.Show()
+            self.menuScanningPanel.Check(True)
+        else:
+            self.scanningWorkbench.scrollPanel.Hide()
+            self.menuScanningPanel.Check(False)
+
+        checkedVideo = profile.getPreferenceBool('view_scanning_video')
+        checkedScene = profile.getPreferenceBool('view_scanning_scene')
+
+        self.menuScanningVideo.Check(checkedVideo)
+        self.menuScanningScene.Check(checkedScene)
+
+        self.scanningWorkbench.splitterWindow.Unsplit()
+        if checkedVideo:
+            self.scanningWorkbench.videoView.Show()
+            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.sceneView)
+            if checkedScene:
+                self.scanningWorkbench.sceneView.Show()
+            else:
+                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.splitterWindow.Unsplit()
+        else:
+            self.scanningWorkbench.videoView.Hide()
+            if checkedScene:
+                self.scanningWorkbench.sceneView.Show()
+                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.sceneView, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.splitterWindow.Unsplit()
+            else:
+                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.splitterWindow.Unsplit()
 
         self.workbenchUpdate()
         self.Layout()
@@ -368,16 +451,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def updateCoreProfile(self, workbench):
         if workbench in ['scanning']:
             self.scanner.core.initialize(profile.getProfileSetting('img_type'),
-                                         profile.getProfileSettingBool('blur'),
-                                         profile.getProfileSettingInteger('blur_value'),
                                          profile.getProfileSettingBool('open'),
                                          profile.getProfileSettingInteger('open_value'),
-                                         np.array([profile.getProfileSettingNumpy('min_h'),
-                                                   profile.getProfileSettingNumpy('min_s'),
-                                                   profile.getProfileSettingNumpy('min_v')],np.uint8),
-                                         np.array([profile.getProfileSettingNumpy('max_h'),
-                                                   profile.getProfileSettingNumpy('max_s'),
-                                                   profile.getProfileSettingNumpy('max_v')],np.uint8),
+                                         profile.getProfileSettingBool('threshold'),
+                                         profile.getProfileSettingInteger('threshold_value'),
                                          profile.getProfileSettingBool('use_compact'),
                                          profile.getProfileSettingInteger('min_rho'),
                                          profile.getProfileSettingInteger('max_rho'),
@@ -429,21 +506,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
             if wb[key] is not None:
                 if key == currentWorkbench:
                     wb[key].Show()
+                    if key is not 'main':
+                        wb[key].combo.SetValue(str(self.workbenchList[key]))
                 else:
                     wb[key].Hide()
-
-        menuWb = {'main'        : self.menuWorkbenchMain,
-                  'control'     : self.menuWorkbenchControl,
-                  'calibration' : self.menuWorkbenchCalibration,
-                  'scanning'    : self.menuWorkbenchScanning}.get(currentWorkbench)
-
-        if menuWb is not None:
-            self.menuWorkbench.Check(menuWb.GetId(), True)
-
-        for key in self.workbenchList:
-            if self.workbenchList[key] == currentWorkbench:
-                self.comboBoxWorkbench.SetValue(key)
-                break
 
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')

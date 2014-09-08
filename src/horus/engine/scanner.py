@@ -71,7 +71,6 @@ class Scanner:
 				self.isConnected = False
 		else:
 			self.isConnected = False
-		
 		return self.isConnected
 		
 	def disconnect(self):
@@ -80,18 +79,6 @@ class Scanner:
 		self.device.disconnect()
 		self.isConnected = False
 		return True # Fake
-		
-	def getCore(self):
-		""" """
-		return self.core
-
-	def getCamera(self):
-		""" """
-		return self.camera
-
-	def getDevice(self):
-		""" """
-		return self.device
 		
 	def start(self):
 		""" """
@@ -123,45 +110,47 @@ class Scanner:
 		#-- Initialize angle
 		self.theta = 0
 
-		degrees = -0.45
-
-		self.device.setSpeedMotor(10)
+		self.device.setSpeedMotor(1)
 		self.device.enable()
-
-		self.core.setDegrees(degrees)
 
 		while self.captureFlag:
 			begin = datetime.datetime.now()
 
 			#-- Get images
+
 			if self.useLeftLaser:
 				self.device.setLeftLaserOff()
 			else:
 				self.device.setRightLaserOff()
 
-			imgLas = self.camera.captureImage(flush=True)
-			imgRaw = self.camera.captureImage(flush=False)
+			imgRaw = self.camera.captureImage(flush=True, flushValue=2)
 
 			if self.useLeftLaser:
 				self.device.setLeftLaserOn()
 			else:
 				self.device.setRightLaserOn()
 
+			imgLas = self.camera.captureImage(flush=True, flushValue=2)
+
 			#-- Move motor
-			self.device.setRelativePosition(degrees)
+			self.device.setRelativePosition(self.degrees)
 			self.device.setMoveMotor()
 
 			#-- Put images into the queue
 			self.imageQueue.put((imgRaw, imgLas))
 			
+			print self.degrees
+			
 			#-- Check stop condition
-			self.theta += degrees
+			self.theta += self.degrees
 			if abs(self.theta) >= 360:
 				self.stop()
 			
 			end = datetime.datetime.now()
 			print "Capture: {0}. Theta: {1}".format(end - begin, self.theta)
 
+		self.device.setLeftLaserOff()
+		self.device.setRightLaserOff()
 		self.device.disable()
 
 	def processThread(self):

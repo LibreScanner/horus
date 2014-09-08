@@ -185,7 +185,7 @@ def _(n):
 
 setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
-setting('step_degrees', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
+setting('step_degrees', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
 setting('feed_rate', 200, int, 'basic', _('Feed Rate')).setRange(1, 100000)
 
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
@@ -215,19 +215,12 @@ setting('camera_width_scanning', 1280, int, 'advanced', _('Camera Width')).setRa
 setting('camera_height_scanning', 960, int, 'advanced', _('Camera Height')).setRange(1)
 setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
 
-setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Blur'))
+setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Image Type'))
 
-setting('blur', True, bool, 'advanced', _('Blur'))
-setting('blur_value', 4, int, 'advanced', _('Blur Value')).setRange(1, 10)
 setting('open', True, bool, 'advanced', _('Open'))
-setting('open_value', 4, int, 'advanced', _('Open Value')).setRange(1, 10)
-
-setting('min_h', 0, int, 'advanced', _('Minimum H')).setRange(0, 255)
-setting('min_s', 180, int, 'advanced', _('Minimum S')).setRange(0, 255)
-setting('min_v', 30, int, 'advanced', _('Minimum V')).setRange(0, 255)
-setting('max_h', 180, int, 'advanced', _('Maximum H')).setRange(0, 255)
-setting('max_s', 250, int, 'advanced', _('Maximum S')).setRange(0, 255)
-setting('max_v', 140, int, 'advanced', _('Maximum V')).setRange(0, 255)
+setting('open_value', 2, int, 'advanced', _('Open Value')).setRange(1, 10)
+setting('threshold', True, bool, 'advanced', _('Threshold'))
+setting('threshold_value', 30, int, 'advanced', _('Threshold Value')).setRange(0, 255)
 
 setting('use_compact', True, bool, 'advanced', _('Compact Algorithm'))
 setting('min_rho', -100, int, 'advanced', _('Minimum Rho'))
@@ -237,7 +230,7 @@ setting('max_h', 200, int, 'advanced', _('Maximum H'))
 
 setting('z_offset', 0, int, 'advanced', _('Z Offset')).setRange(-50, 50)
 
-setting('laser_angle', 60.0, float, 'basic', _('Laser Angle'))
+setting('laser_angle', 30.0, float, 'basic', _('Laser Angle'))
 
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'ciclop', str, 'machine', 'hidden')
@@ -247,14 +240,14 @@ setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum
 setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_("Machine center 0,0"), _("Machines firmware defines the center of the bed as 0,0 instead of the front left corner."))
 setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden').setLabel(_("Build area shape"), _("The shape of machine build area."))
 
-setting('camera_matrix', ([[1410,0,480],[0,1410,640],[0,0,1]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
+setting('camera_matrix', ([[1430,0,480],[0,1430,640],[0,0,1]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
 setting('distortion_vector',([0,0,0,0,0]),numpy.ndarray,'advanced',_('Distortion Vector'))
 
 setting('laser_coordinates', ([[480,480],[480,480]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
 setting('laser_depth', 315.0, float, 'advanced', _('Laser Depth'))
 
 setting('rotation_matrix', ([[0,-1,0],[0,0,-1],[-1,0,0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
-setting('translation_vector', ([0.0,90.0,315.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
+setting('translation_vector', ([0.0,85.0,315.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
 		
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
@@ -263,9 +256,13 @@ setting('square_width', 13, int, 'advanced', _('Square width'))
 ##-- Preferences
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
+setting('view_workbench_selector', False, bool, 'preference', 'hidden')
 setting('workbench', 'main', ['none', 'main', 'control', 'calibration', 'scanning'], 'preference', 'hidden')
-setting('workbench_selector', True, bool, 'preference', 'hidden')
-setting('view_3d', True, bool, 'preference', 'hidden')
+setting('view_control_panel', True, bool, 'preference', 'hidden')
+setting('view_control_video', True, bool, 'preference', 'hidden')
+setting('view_scanning_panel', False, bool, 'preference', 'hidden')
+setting('view_scanning_video', False, bool, 'preference', 'hidden')
+setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 
 # TODO: change default last file
 setting('lastFile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')

@@ -329,7 +329,7 @@ class LaserTriangulationMainPage(Page):
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
 		imageView = VideoView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("patternPosition.png")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
@@ -437,7 +437,7 @@ class PlatformExtrinsicsMainPage(Page):
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
 		imageView = VideoView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("patternPosition.png")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
@@ -483,7 +483,7 @@ class PlatformExtrinsicsResultPage(Page):
 		ret = Calibration.Instance().performPlatformExtrinsicsCalibration()
 		if ret is not None:
 			xc, zc = ret[2]
-			yc = np.mean(ret[0][1]) + 150 #offset
+			yc = np.mean(ret[0][1]) + 145 #offset
 			self.plotPanel.add(ret)
 			self.platformExtrinsicsParameters.updateAllControlsToProfile(np.array([[0,-1,0],[0,0,-1],[-1,0,0]]), np.array([xc, yc, zc]))
 		self.plotPanel.Show()

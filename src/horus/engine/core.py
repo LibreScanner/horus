@@ -48,12 +48,10 @@ class Core:
 		self.colors = None
 
 	def initialize(self, imgType='raw',
-						 blurEnable=True,
-						 blurValue=4,
 						 openEnable=True,
-						 openValue=4,
-						 colorMin=np.array([0, 180, 30],np.uint8),
-						 colorMax=np.array([180, 250, 140],np.uint8),
+						 openValue=2,
+						 threholdEnable=True,
+						 thresholdValue=30,
 						 useCompact=True,
 						 rhoMin=-100,
 						 rhoMax=100,
@@ -75,18 +73,14 @@ class Core:
 		self.imgType = imgType
 
 		#-- Image Processing Parameters
-		self.blurEnable = blurEnable
-		self.blurValue = blurValue
 
 		self.openEnable = openEnable
 		self.openValue = openValue
 
-		self.colorMin = colorMin
-		self.colorMax = colorMax
+		self.thresholdEnable = threholdEnable
+		self.thresholdValue = thresholdValue
 
 		#-- Point Cloud Parameters
-		self.modeCW = True
-
 		self.useCompact = useCompact
 
 		self.rhoMin = rhoMin
@@ -154,17 +148,13 @@ class Core:
 		self.width = width
 		self.height = height
 
-	def setBlur(self, enable, value):
-		self.blurEnable = enable
-		self.blurValue = value
-
 	def setOpen(self, enable, value):
 		self.openEnable = enable
 		self.openValue = value
 
-	def setHSVRange(self, minH, minS, minV, maxH, maxS, maxV):
-		self.colorMin = np.array([minH,minS,minV],np.uint8)
-		self.colorMax = np.array([maxH,maxS,maxV],np.uint8)
+	def setThreshold(self, enable, value):
+		self.thresholdEnable = enable
+		self.thresholdValue = value
 
 	def setUseCompactAlgorithm(self, useCompact):
 		self.useCompact = useCompact
@@ -196,34 +186,34 @@ class Core:
 
 	def getDiffImage(self, img1, img2):
 		""" """
-		return cv2.subtract(img1, img2)
+		r1 = cv2.split(img1)[0]
+		r2 = cv2.split(img2)[0]
+
+		return cv2.subtract(r1, r2)
 
 	def imageProcessing(self, image):
 		""" """
 		#-- Image Processing
-		if self.blurEnable:
-			image = cv2.blur(image,(self.blurValue,self.blurValue))
 
 		if self.openEnable:
 			kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(self.openValue,self.openValue))
 			image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
 
-		#image = cv2.bitwise_not(image) # TODO: remove
+		if self.thresholdEnable:
+			image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_BINARY)[1]
 
-		imageHSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+		return image
 
-		return cv2.inRange(imageHSV, self.colorMin, self.colorMax)
-
-	def pointCloudGeneration(self, imageRaw, src):
+	def pointCloudGeneration(self, imageRaw, imageBin):
 		""" """
 		#-- Line generation
-		s = src.sum(1)
+		s = imageBin.sum(1)
 		v = np.nonzero(s)[0]
 		if self.useCompact:
-			i = src.argmax(1)
-			l = ((i + (s/255-1) / 2)[v]).T.astype(int)
+			i = imageBin.argmax(1)
+			l = ((i + (s/255.-1) / 2.)[v]).T.astype(int)
 		else:
-			w = (self.W * src).sum(1)
+			w = (self.W * imageBin).sum(1)
 			l = (w[v] / s[v].T).astype(int)
 
 		self.imgLine = np.zeros_like(imageRaw)
@@ -251,7 +241,7 @@ class Core:
 		idx = np.where((z >= self.hMin) &
 					   (z <= self.hMax) &
 					   (rho >= self.rhoMin) &
-					   (rho <= self.rhoMax))[0]
+					   (rho <= self.rhoMax))[1]
 
 		return points[idx], colors[idx]
 
@@ -260,15 +250,14 @@ class Core:
  		#-- Update Raw, Laser and Diff images
 		self.imgRaw = imageRaw
 		self.imgLas = imageLas
-		self.imgDiff = self.getDiffImage(imageLas, imageRaw)
+		imgDiff = self.getDiffImage(imageLas, imageRaw)
+		self.imgDiff = cv2.merge((imgDiff,imgDiff,imgDiff))
 
-		src = self.imageProcessing(self.imgDiff)
+		imgBin = self.imageProcessing(imgDiff)
 
-		temp = np.zeros_like(self.imgDiff)
-		temp[:,:,0] = temp[:,:,1] = temp[:,:,2] = src
-		self.imgBin = temp
+		self.imgBin = cv2.merge((imgBin,imgBin,imgBin))
 
-		points, colors, rho, z = self.pointCloudGeneration(imageRaw, src)
+		points, colors, rho, z = self.pointCloudGeneration(imageRaw, imgBin)
 
 		if points != None and colors != None:
 			points, colors = self.pointCloudFilter(points, colors, rho, z)

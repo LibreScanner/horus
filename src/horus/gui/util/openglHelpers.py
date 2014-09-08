@@ -481,10 +481,11 @@ def unproject(winx, winy, winz, modelMatrix, projMatrix, viewport):
 	finalMatrix = numpy.linalg.inv(finalMatrix)
 
 	viewport = map(float, viewport)
-	vector = numpy.array([(winx - viewport[0]) / viewport[2] * 2.0 - 1.0, (winy - viewport[1]) / viewport[3] * 2.0 - 1.0, winz * 2.0 - 1.0, 1]).reshape((1,4))
-	vector = (numpy.matrix(vector) * finalMatrix).getA().flatten()
-	ret = list(vector)[0:3] / vector[3]
-	return ret
+	if viewport[2] > 0 and viewport[3] > 0:
+		vector = numpy.array([(winx - viewport[0]) / viewport[2] * 2.0 - 1.0, (winy - viewport[1]) / viewport[3] * 2.0 - 1.0, winz * 2.0 - 1.0, 1]).reshape((1,4))
+		vector = (numpy.matrix(vector) * finalMatrix).getA().flatten()
+		ret = list(vector)[0:3] / vector[3]
+		return ret
 
 def convert3x3MatrixTo4x4(matrix):
 	return list(matrix.getA()[0]) + [0] + list(matrix.getA()[1]) + [0] + list(matrix.getA()[2]) + [0, 0,0,0,1]

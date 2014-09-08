@@ -27,15 +27,14 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import wx.lib.scrolledpanel
 
 from horus.util.resources import *
 from horus.util import profile
 
-from horus.gui.util.cameraPanel import *
+from horus.gui.util.controlPanels import *
 from horus.gui.util.videoView import *
-from horus.gui.util.devicePanel import *
-from horus.gui.util.videoView import *
-from horus.gui.util.workbenchConnection import *
+from horus.gui.util.workbench import *
 
 from horus.engine.scanner import *
 
@@ -46,9 +45,9 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.playing = False
 
-		self.load()
-
 		self.scanner = Scanner.Instance()
+
+		self.load()
 
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
@@ -72,9 +71,11 @@ class ControlWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked     , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.snapshotTool)
 
-		self.cameraPanel = CameraPanel(self._panel)
-		self.devicePanel = DevicePanel(self._panel)
-
+		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
+		self.scrollPanel.SetAutoLayout(1)
+		self.scrollPanel.SetupScrolling(scroll_x=False)
+		self.cameraPanel = CameraPanel(self.scrollPanel)
+		self.devicePanel = DevicePanel(self.scrollPanel)
 		self.cameraPanel.Disable()
 		self.devicePanel.Disable()
 
@@ -82,9 +83,14 @@ class ControlWorkbench(WorkbenchConnection):
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
-		self.addToPanel(self.cameraPanel, 0)
+		vsbox = wx.BoxSizer(wx.VERTICAL)
+		vsbox.Add(self.cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
+		vsbox.Add(self.devicePanel, 0, wx.ALL|wx.EXPAND, 2)
+		self.scrollPanel.SetSizer(vsbox)
+		vsbox.Fit(self.scrollPanel)
+
+		self.addToPanel(self.scrollPanel, 0)
 		self.addToPanel(self.videoView, 1)
-		self.addToPanel(self.devicePanel, 0)
 
 	def onShow(self, event):
 		if event.GetShow():
