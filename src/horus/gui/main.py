@@ -48,8 +48,11 @@ from horus.util.avrHelpers import AvrDude
 class MainWindow(wx.Frame):
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus: 3d scanning for everyone"),
+        super(MainWindow, self).__init__(None, title=_("Horus 0.0.2"),
                                                 size=(640+300,480+130))
+
+        self.SetMinSize((600, 450))
+
         ###-- Initialize Engine
 
         #-- Serial Name initialization
@@ -152,7 +155,7 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench.combo.Append(self.workbenchList['scanning'])
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.mainWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.mainWorkbench, 1, wx.ALL|wx.EXPAND, 30)
         sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
         sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
         sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
@@ -333,7 +336,7 @@ class MainWindow(wx.Frame):
         icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
-        info.SetVersion(u'0.1')
+        info.SetVersion(u'0.0.2')
         info.SetDescription(_('Horus is an open source 3D Scanner manager...'))
         info.SetCopyright(u'(C) 2014 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
@@ -557,58 +560,59 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 baselist = baselist + glob.glob(device)
         return baselist
 
+
 class MainWorkbench(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
         titleBox = wx.BoxSizer(wx.VERTICAL)
+        panelBox = wx.BoxSizer(wx.HORIZONTAL)
 
         self._title = wx.Panel(self)
         self._panel = wx.Panel(self)
-        self._leftPanel = ItemWorkbench(self._panel, titleText=_("Control"), 
-                                                     description=_("In this workbench you can configure all the camera parameters, test the lasers and control the motor using gcodes."),
-                                                     image=wx.Image(resources.getPathForImage("control.png")))
-        self._middlePanel = ItemWorkbench(self._panel, titleText=_("Calibration"), 
-                                                       description=_("In this workbench you can perform intrinsic calibration of the camera, lasers triangulation and extrinsic calibration of the device."),
-                                                       image=wx.Image(resources.getPathForImage("calibration.png")))
-        self._rightPanel = ItemWorkbench(self._panel, titleText=_("Scanning"), 
-                                                      description=_("In this workbench you can start and stop the scanning process and also visualize in real time the 3D point cloud."),
-                                                      image=wx.Image(resources.getPathForImage("scanning.png")))
+        self._controlPanel = ItemWorkbench(self._panel, label=_("Control"), image=wx.Image(resources.getPathForImage("control.png")))
+        self._settingsPanel = ItemWorkbench(self._panel, label=_("Settings"), image=wx.Image(resources.getPathForImage("settings.png")))
+        self._calibrationPanel = ItemWorkbench(self._panel, label=_("Calibration"), image=wx.Image(resources.getPathForImage("calibration.png")))
+        self._scanningPanel = ItemWorkbench(self._panel, label=_("Scanning"), image=wx.Image(resources.getPathForImage("scanning.png")))
 
-        #self._title.SetBackgroundColour(wx.WHITE)
-        #self._panel.SetBackgroundColour(wx.BLACK)
+        logo = VideoView(self._title)
+        logo.setImage(wx.Image(resources.getPathForImage("logo.png")))
+        titleText = wx.StaticText(self._title, label=_("3D scanning for everyone"))
+        titleText.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_LIGHT)))
+        separator = wx.StaticLine(self._title, -1, style=wx.LI_HORIZONTAL)
 
-        self.titleText = wx.StaticText(self._title, label=_("Welcome to Horus"))
-        self.titleText.SetFont((wx.Font(18, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-
-        titleBox.Add(self.titleText, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 20)
+        titleBox.Add(logo, 3, wx.ALL^wx.BOTTOM|wx.EXPAND, 30)
+        titleBox.Add(titleText, 0, wx.ALL|wx.CENTER, 20)
+        titleBox.Add((0,0), 1, wx.ALL|wx.EXPAND, 2)
+        titleBox.Add(separator, 0, wx.ALL|wx.EXPAND, 10)
         self._title.SetSizer(titleBox)
 
-        vbox.Add(self._title, 0, wx.ALL|wx.EXPAND, 2)
-        vbox.Add(self._panel, 1, wx.ALL|wx.EXPAND, 2)
+        panelBox.Add(self._controlPanel, 1, wx.ALL|wx.EXPAND, 20)
+        panelBox.Add(self._settingsPanel, 1, wx.ALL|wx.EXPAND, 20)
+        panelBox.Add(self._calibrationPanel, 1, wx.ALL|wx.EXPAND, 20)
+        panelBox.Add(self._scanningPanel, 1, wx.ALL|wx.EXPAND, 20)
+        self._panel.SetSizer(panelBox)
 
-        hbox.Add(self._leftPanel, 1, wx.ALL|wx.EXPAND, 20)
-        hbox.Add(self._middlePanel, 1, wx.ALL|wx.EXPAND, 20)
-        hbox.Add(self._rightPanel, 1, wx.ALL|wx.EXPAND, 20)
+        vbox.Add(self._title, 7, wx.ALL|wx.EXPAND, 2)
+        vbox.Add((0,0), 1, wx.ALL|wx.EXPAND, 0)
+        vbox.Add(self._panel, 7, wx.ALL|wx.EXPAND, 2)
 
-        self._panel.SetSizer(hbox)
-        self._panel.Layout()
-
-        self.Bind(wx.EVT_BUTTON, self.onWorkbenchSelected, self._leftPanel.buttonGo)
-        self.Bind(wx.EVT_BUTTON, self.onWorkbenchSelected, self._middlePanel.buttonGo)
-        self.Bind(wx.EVT_BUTTON, self.onWorkbenchSelected, self._rightPanel.buttonGo)
+        self._controlPanel.imageView.Bind(wx.EVT_LEFT_UP, self.onWorkbenchSelected)
+        self._settingsPanel.imageView.Bind(wx.EVT_LEFT_UP, self.onWorkbenchSelected)
+        self._calibrationPanel.imageView.Bind(wx.EVT_LEFT_UP, self.onWorkbenchSelected)
+        self._scanningPanel.imageView.Bind(wx.EVT_LEFT_UP, self.onWorkbenchSelected)
 
         self.SetSizer(vbox)
         self.Layout()
 
     def onWorkbenchSelected(self, event):
         """ """
-        currentWorkbench = {self._leftPanel.buttonGo.GetId()   : 'control',
-                            self._middlePanel.buttonGo.GetId() : 'calibration',
-                            self._rightPanel.buttonGo.GetId()  : 'scanning'}.get(event.GetId())
+        currentWorkbench = {self._controlPanel.imageView.GetId()     : 'control',
+                            self._settingsPanel.imageView.GetId()    : 'settings',
+                            self._calibrationPanel.imageView.GetId() : 'calibration',
+                            self._scanningPanel.imageView.GetId()    : 'scanning'}.get(event.GetId())
 
         if currentWorkbench is not None:
             profile.putPreference('workbench', currentWorkbench)
@@ -622,37 +626,20 @@ from horus.gui.util.videoView import *
 
 class ItemWorkbench(wx.Panel):
 
-    def __init__(self, parent, titleText="Workbench", description="Workbench description", image=None, buttonText="Go"):
+    def __init__(self, parent, label="Workbench", image=None):
         wx.Panel.__init__(self, parent)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        titleBox = wx.BoxSizer(wx.VERTICAL)
-        contentBox = wx.BoxSizer(wx.VERTICAL)
 
-        title = wx.Panel(self)
-        content = wx.Panel(self) #, style=wx.SUNKEN_BORDER)
-
-        #title.SetBackgroundColour(wx.GREEN)
-        #content.SetBackgroundColour(wx.BLUE)
-
-        titleText = wx.StaticText(title, label=titleText)
-        titleText.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-        descText = wx.StaticText(content, label=description)
-        imageView = VideoView(self)
+        self.imageView = VideoView(self)
+        self.imageView.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
         if image is not None:
-            imageView.setImage(image)
-        self.buttonGo = wx.Button(content, wx.NewId(), label=buttonText)
+            self.imageView.setImage(image)
+        labelText = wx.StaticText(self, label=label)
+        labelText.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
-        titleBox.Add(titleText, 0, wx.ALL|wx.EXPAND, 10)
-        title.SetSizer(titleBox)
-        contentBox.Add(descText, 0, wx.ALL|wx.EXPAND, 10)
-        contentBox.Add((0, 0), 1, wx.EXPAND)
-        contentBox.Add(imageView, 1, wx.ALL|wx.EXPAND, 10)
-        contentBox.Add(self.buttonGo, 0, wx.ALL|wx.EXPAND, 10)
-        content.SetSizer(contentBox)
-
-        vbox.Add(title, 0, wx.ALL|wx.EXPAND, 2)
-        vbox.Add(content, 1, wx.ALL|wx.EXPAND, 2)
+        vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 10)
+        vbox.Add(labelText, 0, wx.CENTER, 20)
 
         self.SetSizer(vbox)
         self.Layout()
