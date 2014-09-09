@@ -256,10 +256,11 @@ setting('square_width', 13, int, 'advanced', _('Square width'))
 ##-- Preferences
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
-setting('view_workbench_selector', False, bool, 'preference', 'hidden')
-setting('workbench', 'main', ['none', 'main', 'control', 'calibration', 'scanning'], 'preference', 'hidden')
+setting('workbench', 'main', ['main', 'control', 'settings', 'calibration', 'scanning'], 'preference', 'hidden')
 setting('view_control_panel', True, bool, 'preference', 'hidden')
 setting('view_control_video', True, bool, 'preference', 'hidden')
+setting('view_settings_panel', True, bool, 'preference', 'hidden')
+setting('view_settings_video', True, bool, 'preference', 'hidden')
 setting('view_scanning_panel', False, bool, 'preference', 'hidden')
 setting('view_scanning_video', False, bool, 'preference', 'hidden')
 setting('view_scanning_scene', True, bool, 'preference', 'hidden')

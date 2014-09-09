@@ -29,7 +29,7 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx
 
-from horus.util import profile
+from horus.util.profile import *
 
 from horus.engine.scanner import *
 from horus.engine.calibration import *
@@ -168,8 +168,8 @@ class CameraIntrinsicsParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('camera_matrix')
-            profile.resetProfileSetting('distortion_vector')
+            resetProfileSetting('camera_matrix')
+            resetProfileSetting('distortion_vector')
             self.updateProfileToAllControls()
 
     def Info(parent, message, caption = 'Insert program title'):
@@ -192,13 +192,13 @@ class CameraIntrinsicsParameters(wx.Panel):
             self.scanner.camera.setIntrinsics(cameraMatrix, distortionVector)
 
     def updateAllControlsToProfile(self, cameraMatrix, distortionVector):
-        profile.putProfileSettingNumpy('camera_matrix', cameraMatrix)
-        profile.putProfileSettingNumpy('distortion_vector', distortionVector)
+        putProfileSettingNumpy('camera_matrix', cameraMatrix)
+        putProfileSettingNumpy('distortion_vector', distortionVector)
         self.updateAllControls(cameraMatrix, distortionVector)
 
     def updateProfileToAllControls(self):
-        cameraMatrix = profile.getProfileSettingNumpy('camera_matrix')
-        distortionVector = profile.getProfileSettingNumpy('distortion_vector')
+        cameraMatrix = getProfileSettingNumpy('camera_matrix')
+        distortionVector = getProfileSettingNumpy('distortion_vector')
         self.updateAllControls(cameraMatrix, distortionVector)
 
 class LaserTriangulationParameters(wx.Panel):
@@ -279,8 +279,8 @@ class LaserTriangulationParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('laser_coordinates')
-            profile.resetProfileSetting('laser_depth')
+            resetProfileSetting('laser_coordinates')
+            resetProfileSetting('laser_depth')
             self.updateProfileToAllControls()
 
     def updateAllControls(self, laserCoordinates, laserDepth):
@@ -301,13 +301,13 @@ class LaserTriangulationParameters(wx.Panel):
             self.scanner.core.setLaserTriangulation(laserCoordinates, depthValue) ## TODO: implement
 
     def updateAllControlsToProfile(self, laserCoordinates, laserDepth):
-        profile.putProfileSettingNumpy('laser_coordinates', laserCoordinates)
-        profile.putProfileSetting('laser_depth', laserDepth)
+        putProfileSettingNumpy('laser_coordinates', laserCoordinates)
+        putProfileSetting('laser_depth', laserDepth)
         self.updateAllControls(laserCoordinates, laserDepth)
 
     def updateProfileToAllControls(self):
-    	laserCoordinates = profile.getProfileSettingNumpy('laser_coordinates')
-    	laserDepth = profile.getProfileSettingNumpy('laser_depth')
+    	laserCoordinates = getProfileSettingNumpy('laser_coordinates')
+    	laserDepth = getProfileSettingNumpy('laser_depth')
         self.updateAllControls(laserCoordinates, laserDepth)
 
 
@@ -392,8 +392,8 @@ class PlatformExtrinsicsParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('rotation_matrix')
-            profile.resetProfileSetting('translation_vector')
+            resetProfileSetting('rotation_matrix')
+            resetProfileSetting('translation_vector')
             self.updateProfileToAllControls()
 
     def updateAllControls(self, rotationMatrix, translationVector):
@@ -415,11 +415,11 @@ class PlatformExtrinsicsParameters(wx.Panel):
             self.scanner.core.setPlatformExtrinsics(rotationMatrix, translationVector) ## TODO: implement
 
     def updateAllControlsToProfile(self, rotationMatrix, translationVector):
-        profile.putProfileSettingNumpy('rotation_matrix', rotationMatrix)
-        profile.putProfileSettingNumpy('translation_vector', translationVector)
+        putProfileSettingNumpy('rotation_matrix', rotationMatrix)
+        putProfileSettingNumpy('translation_vector', translationVector)
         self.updateAllControls(rotationMatrix, translationVector)
 
     def updateProfileToAllControls(self):
-        rotationMatrix = profile.getProfileSettingNumpy('rotation_matrix')
-        translationVector = profile.getProfileSettingNumpy('translation_vector')
+        rotationMatrix = getProfileSettingNumpy('rotation_matrix')
+        translationVector = getProfileSettingNumpy('translation_vector')
         self.updateAllControls(rotationMatrix, translationVector)

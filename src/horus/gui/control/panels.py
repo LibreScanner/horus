@@ -29,8 +29,8 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx
 
-from horus.util import profile
-from horus.util import resources
+from horus.util.profile import *
+from horus.util.resources import *
 
 from horus.engine.scanner import *
 
@@ -56,9 +56,9 @@ class DevicePanel(wx.Panel):
         motorControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         stepDegreesLabel = wx.StaticText(self, label=_("Step"))
-        self.stepDegreesText = wx.TextCtrl(self, value=profile.getProfileSetting('step_degrees'), size=(60,-1))
+        self.stepDegreesText = wx.TextCtrl(self, value=getProfileSetting('step_degrees'), size=(60,-1))
         feedRateLabel = wx.StaticText(self, label=_("Speed"))
-        self.feedRateText = wx.TextCtrl(self, value=profile.getProfileSetting('feed_rate'), size=(60,-1))
+        self.feedRateText = wx.TextCtrl(self, value=getProfileSetting('feed_rate'), size=(60,-1))
 
         self.motorEnableButton = wx.ToggleButton(self, -1, _("Enable"))
         self.motorMoveButton = wx.Button(self, -1, _("Move"))
@@ -149,11 +149,11 @@ class DevicePanel(wx.Panel):
 
     def onStepDegreesTextChanged(self, event):
         if self.stepDegreesText.GetValue() is not None and len(self.stepDegreesText.GetValue()) > 0:
-            profile.putProfileSetting('step_degrees', float((self.stepDegreesText.GetValue()).replace(',','.')))
+            putProfileSetting('step_degrees', float((self.stepDegreesText.GetValue()).replace(',','.')))
 
     def onFeedRateTextChanged(self, event):
         if self.feedRateText.GetValue() is not None and len(self.feedRateText.GetValue()) > 0:
-            profile.putProfileSetting('feed_rate', int(self.feedRateText.GetValue()))
+            putProfileSetting('feed_rate', int(self.feedRateText.GetValue()))
 
     def onGcodeSendButtonClicked(self, event):
         if self.scanner.isConnected:
@@ -161,9 +161,9 @@ class DevicePanel(wx.Panel):
             self.gcodeResponseText.SetValue(ret)
 
     def updateProfileToAllControls(self):
-        degrees = profile.getProfileSettingFloat('step_degrees')
+        degrees = getProfileSettingFloat('step_degrees')
         self.stepDegreesText.SetValue(str(degrees))
-        feedRate = profile.getProfileSettingInteger('feed_rate')
+        feedRate = getProfileSettingInteger('feed_rate')
         self.feedRateText.SetValue(str(feedRate))
 
 
@@ -229,7 +229,7 @@ class CameraPanel(wx.Panel):
         self.restoreButton = wx.Button(self,label=_("Restore Default"),size=(200,-1))
         self.restoreButton.Bind(wx.EVT_BUTTON,self.restoreDefault)
 
-        image1=wx.Bitmap(resources.getPathForImage("undo.png"))
+        image1=wx.Bitmap(getPathForImage("undo.png"))
 
         self.undoButton = wx.BitmapButton(self, id=-1, bitmap=image1, size = (image1.GetWidth()+5, image1.GetHeight()+5))
         self.undoButton.Bind(wx.EVT_BUTTON,self.undo)
@@ -320,37 +320,37 @@ class CameraPanel(wx.Panel):
     def onSelectWorkbenchesCombo(self,event):
         value = self.workbenchesList[int(event.GetSelection())]
         self.currentWorkbench = value
-        profile.putProfileSetting('workbench', value)
+        putProfileSetting('workbench', value)
         self.updateProfileToAllControls()
         self.reloadVideo()
 
     def onbrightnessChanged(self,event):
         self.firstMove(event,profile.getProfileSettingInteger('brightness_'+self.currentWorkbench))
         value=self.brightnessSlider.GetValue()  
-        profile.putProfileSetting('brightness_'+self.currentWorkbench, value)
+        putProfileSetting('brightness_'+self.currentWorkbench, value)
         self.scanner.camera.setBrightness(value)
 
     def oncontrastChanged(self,event):
         self.firstMove(event,profile.getProfileSettingInteger('contrast_'+self.currentWorkbench))
         value=self.contrastSlider.GetValue()    
-        profile.putProfileSetting('contrast_'+self.currentWorkbench, value)
+        putProfileSetting('contrast_'+self.currentWorkbench, value)
         self.scanner.camera.setContrast(value)
 
     def onsaturationChanged(self,event):
         self.firstMove(event,profile.getProfileSettingInteger('saturation_'+self.currentWorkbench))
         value=self.saturationSlider.GetValue()  
-        profile.putProfileSetting('saturation_'+self.currentWorkbench, value)
+        putProfileSetting('saturation_'+self.currentWorkbench, value)
         self.scanner.camera.setSaturation(value)
 
     def onexposureChanged(self,event):
         self.firstMove(event,profile.getProfileSettingInteger('exposure_'+self.currentWorkbench))
         value=self.exposureSlider.GetValue()    
-        profile.putProfileSetting('exposure_'+self.currentWorkbench, value)
+        putProfileSetting('exposure_'+self.currentWorkbench, value)
         self.scanner.camera.setExposure(value)
 
     def OnSelectFrame(self,event):
         value= int(self.frameRateCombo.GetValue())
-        profile.putProfileSetting('framerate_'+self.currentWorkbench, value)
+        putProfileSetting('framerate_'+self.currentWorkbench, value)
         if self.scanner.isConnected:
             self.scanner.camera.setFps(value)
             self.reloadVideo()
@@ -359,8 +359,8 @@ class CameraPanel(wx.Panel):
         resolution = self.resolutionCombo.GetValue().replace('(', '').replace(')', '')
         h = int(resolution.split(',')[1])
         w = int(resolution.split(',')[0])
-        profile.putProfileSetting('camera_width_' + self.currentWorkbench, w)
-        profile.putProfileSetting('camera_height_' + self.currentWorkbench, h)
+        putProfileSetting('camera_width_' + self.currentWorkbench, w)
+        putProfileSetting('camera_height_' + self.currentWorkbench, h)
         print "Select Resolution"
         self.scanner.camera.setWidth(w)
         self.scanner.camera.setHeight(h)
@@ -368,7 +368,7 @@ class CameraPanel(wx.Panel):
     def onUseDistortionChanged(self, event):
         self.firstMove(event,profile.getProfileSettingBool('use_distortion_' + self.currentWorkbench))
         self.useDistortion = self.useDistortionCheckBox.GetValue()
-        profile.putProfileSetting('use_distortion_' + self.currentWorkbench, self.useDistortion)
+        putProfileSetting('use_distortion_' + self.currentWorkbench, self.useDistortion)
         self.reloadVideo()
         self.scanner.camera.setUseDistortion(self.useDistortion)
 
@@ -406,17 +406,17 @@ class CameraPanel(wx.Panel):
 
     def restoreDefault(self, event):
         if self.scanner.isConnected:
-            profile.resetProfileSetting('brightness_'+self.currentWorkbench)
-            profile.resetProfileSetting('contrast_'+self.currentWorkbench)
-            profile.resetProfileSetting('saturation_'+self.currentWorkbench)
-            profile.resetProfileSetting('exposure_'+self.currentWorkbench)
-            profile.resetProfileSetting('framerate_'+self.currentWorkbench)
-            profile.resetProfileSetting('camera_width_'+self.currentWorkbench)
-            profile.resetProfileSetting('camera_height_'+self.currentWorkbench)
-            profile.resetProfileSetting('use_distortion_'+self.currentWorkbench)
+            resetProfileSetting('brightness_'+self.currentWorkbench)
+            resetProfileSetting('contrast_'+self.currentWorkbench)
+            resetProfileSetting('saturation_'+self.currentWorkbench)
+            resetProfileSetting('exposure_'+self.currentWorkbench)
+            resetProfileSetting('framerate_'+self.currentWorkbench)
+            resetProfileSetting('camera_width_'+self.currentWorkbench)
+            resetProfileSetting('camera_height_'+self.currentWorkbench)
+            resetProfileSetting('use_distortion_'+self.currentWorkbench)
             self.updateProfileToAllControls()
             self.reloadVideo()
-            exposure = profile.getProfileSettingInteger('exposure_'+self.currentWorkbench) ##?
+            exposure = getProfileSettingInteger('exposure_'+self.currentWorkbench) ##?
             self.scanner.camera.setExposure(exposure) ##?
 
     def reloadVideo(self):
@@ -428,33 +428,33 @@ class CameraPanel(wx.Panel):
             self.main.timer.Start(milliseconds=mseconds)
 
     def updateProfileToAllControls(self):
-        brightness=profile.getProfileSettingInteger('brightness_' + self.currentWorkbench)
+        brightness=getProfileSettingInteger('brightness_' + self.currentWorkbench)
         self.brightnessSlider.SetValue(brightness)
         self.scanner.camera.setBrightness(brightness)
 
-        contrast=profile.getProfileSettingInteger('contrast_' + self.currentWorkbench)
+        contrast=getProfileSettingInteger('contrast_' + self.currentWorkbench)
         self.contrastSlider.SetValue(contrast)
         self.scanner.camera.setContrast(contrast)
 
-        saturation=profile.getProfileSettingInteger('saturation_' + self.currentWorkbench)
+        saturation=getProfileSettingInteger('saturation_' + self.currentWorkbench)
         self.saturationSlider.SetValue(saturation)
         self.scanner.camera.setSaturation(saturation)
 
-        exposure=profile.getProfileSettingInteger('exposure_' + self.currentWorkbench)
+        exposure=getProfileSettingInteger('exposure_' + self.currentWorkbench)
         self.exposureSlider.SetValue(exposure)
         self.scanner.camera.setExposure(exposure)
 
-        framerate=profile.getProfileSettingInteger('framerate_' + self.currentWorkbench)
+        framerate=getProfileSettingInteger('framerate_' + self.currentWorkbench)
         self.frameRateCombo.SetValue(str(framerate))
         self.scanner.camera.setFps(framerate)
 
-        camera_width = profile.getProfileSettingInteger('camera_width_' + self.currentWorkbench)
-        camera_height = profile.getProfileSettingInteger('camera_height_' + self.currentWorkbench)
+        camera_width = getProfileSettingInteger('camera_width_' + self.currentWorkbench)
+        camera_height = getProfileSettingInteger('camera_height_' + self.currentWorkbench)
         resolution=(camera_width, camera_height)
         self.resolutionCombo.SetValue(str(resolution))
         self.scanner.camera.setWidth(camera_width)
         self.scanner.camera.setHeight(camera_height)
 
-        self.useDistortion = profile.getProfileSettingBool('use_distortion_'  + self.currentWorkbench)
+        self.useDistortion = getProfileSettingBool('use_distortion_'  + self.currentWorkbench)
         self.useDistortionCheckBox.SetValue(self.useDistortion)
         self.scanner.camera.setUseDistortion(self.useDistortion)

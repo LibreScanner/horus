@@ -27,13 +27,13 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+from horus.util.profile import *
 from horus.util.resources import *
-from horus.util import profile
 
-from horus.gui.util.scanningPanels import *
-from horus.gui.util.videoView import *
+from horus.gui.util.imageView import *
 from horus.gui.util.sceneView import *
 from horus.gui.util.workbench import *
+from horus.gui.scanning.panels import *
 
 class ScanningWorkbench(WorkbenchConnection):
 
@@ -74,7 +74,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 		self.splitterWindow.SetBackgroundColour(wx.GREEN)
 
-		self.videoView = VideoView(self.splitterWindow)
+		self.videoView = ImageView(self.splitterWindow)
 		self.sceneView = SceneView(self.splitterWindow)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
@@ -93,7 +93,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.addToPanel(self.splitterWindow, 1)
 
 		#-- Video View Selector
-		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
+		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
 		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(10,15+40))
 		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+80))
 		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(10,15+120))

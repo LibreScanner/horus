@@ -30,11 +30,10 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import wx.lib.scrolledpanel
 
 from horus.util.resources import *
-from horus.util import profile
 
-from horus.gui.util.controlPanels import *
-from horus.gui.util.videoView import *
+from horus.gui.util.imageView import *
 from horus.gui.util.workbench import *
+from horus.gui.control.panels import *
 
 from horus.engine.scanner import *
 
@@ -79,7 +78,7 @@ class ControlWorkbench(WorkbenchConnection):
 		self.cameraPanel.Disable()
 		self.devicePanel.Disable()
 
-		self.videoView = VideoView(self._panel)
+		self.videoView = ImageView(self._panel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout

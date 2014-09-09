@@ -32,8 +32,8 @@ import wx
 import os
 import glob
 
-from horus.util import profile
-from horus.util import resources
+from horus.util.profile import *
+from horus.util.resources import *
 
 class PreferencesDialog(wx.Dialog):
 	def __init__(self, parent):
@@ -53,8 +53,8 @@ class PreferencesDialog(wx.Dialog):
 		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(143,-1))
 
 		self.languageLabel = wx.StaticText(self, label=_("Language"))
-		self.languages = [row[1] for row in resources.getLanguageOptions()]
-		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(110,-1))
+		self.languages = [row[1] for row in getLanguageOptions()]
+		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=getPreference('language') , size=(110,-1))
 
 
 		self.updateFirmware = wx.Button(self, -1, _("Update Firmware"))
@@ -68,14 +68,14 @@ class PreferencesDialog(wx.Dialog):
 		self.updateFirmware.Bind(wx.EVT_BUTTON, self.onUpdateFirmware)
 
 		#-- Fill data
-		currentSerial = profile.getProfileSetting('serial_name')
+		currentSerial = getProfileSetting('serial_name')
 		if len(self.serialNames) > 0:
 			if currentSerial not in self.serialNames:
 				self.serialNameCombo.SetValue(self.serialNames[0])
 			else:
 				self.serialNameCombo.SetValue(currentSerial)
 
-		currentVideoId = profile.getProfileSetting('camera_id')
+		currentVideoId = getProfileSetting('camera_id')
 		if len(self.cameraIdNames) > 0:
 			if currentVideoId not in self.cameraIdNames:
 				self.cameraIdCombo.SetValue(self.cameraIdNames[0])
@@ -121,19 +121,19 @@ class PreferencesDialog(wx.Dialog):
 
 	def onSerialNameTextChanged(self, event):
 		if len(self.serialNameCombo.GetValue()):
-			profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
+			putProfileSetting('serial_name', self.serialNameCombo.GetValue())
 
 	def onCameraIdTextChanged(self, event):
 		if len(self.cameraIdCombo.GetValue()) > 0:
-			profile.putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
+			putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
 
 	def onUpdateFirmware(self, event):
 		self.main.updateFirmware()
 
 	def onLanguageComboChanged(self, event):
-		if profile.getPreference('language') is not self.languageCombo.GetValue():
-			profile.putPreference('language', self.languageCombo.GetValue())
-			resources.setupLocalization(profile.getPreference('language'))
+		if getPreference('language') is not self.languageCombo.GetValue():
+			putPreference('language', self.languageCombo.GetValue())
+			setupLocalization(getPreference('language'))
 			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
 
 	def onClose(self, e):

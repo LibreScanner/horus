@@ -61,7 +61,6 @@ class Workbench(wx.Panel):
 
 
 from horus.util.resources import *
-from horus.gui.util.workbench import *
 
 from horus.engine.scanner import *
 

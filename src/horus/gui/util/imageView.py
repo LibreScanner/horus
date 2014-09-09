@@ -31,9 +31,9 @@ import wx
 
 from horus.util.resources import *
 
-class VideoView(wx.Panel):
+class ImageView(wx.Panel):
 
-	def __init__(self, parent):
+	def __init__(self, parent, resize=True):
 		wx.Panel.__init__(self, parent) #, style=wx.SIMPLE_BORDER)
 
 		self.xOffset = 0
@@ -44,7 +44,8 @@ class VideoView(wx.Panel):
 		self.bitmap = wx.BitmapFromImage(self.defaultImage)
 
 		self.Bind(wx.EVT_PAINT, self.onPaint)
-		self.Bind(wx.EVT_SIZE, self.onResize)
+		if resize:
+			self.Bind(wx.EVT_SIZE, self.onResize)
 
 	def onPaint(self, event):
 		dc = wx.PaintDC(self)

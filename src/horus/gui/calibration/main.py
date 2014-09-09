@@ -27,11 +27,10 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from horus.util import profile
-
 from horus.gui.util.workbench import *
-from horus.gui.util.calibrationPanels import *
-from horus.gui.util.calibrationPages import *
+
+from horus.gui.calibration.pages import *
+from horus.gui.calibration.panels import *
 
 class CalibrationWorkbench(WorkbenchConnection):
 
