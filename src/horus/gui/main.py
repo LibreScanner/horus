@@ -32,18 +32,17 @@ import wx._core
 import os
 import time
 
-from horus.engine.scanner import *
-from horus.engine.calibration import *
-
 from horus.util import profile, resources, meshLoader
+from horus.util.avrHelpers import AvrDude
 
-from horus.gui.control import ControlWorkbench
-from horus.gui.scanning import ScanningWorkbench
-from horus.gui.calibration import CalibrationWorkbench
+from horus.gui.control.main import ControlWorkbench
+from horus.gui.settings.main import SettingsWorkbench
+from horus.gui.scanning.main import ScanningWorkbench
+from horus.gui.calibration.main import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
 
 from horus.engine.scanner import *
-from horus.util.avrHelpers import AvrDude
+from horus.engine.calibration import *
 
 class MainWindow(wx.Frame):
 
@@ -70,6 +69,7 @@ class MainWindow(wx.Frame):
                 profile.putProfileSetting('camera_id', videoList[0])
 
         self.workbenchList = {'control'     : _("Control workbench"),
+                              'settings'    : _("Settings workbench"),
                               'calibration' : _("Calibration workbench"),
                               'scanning'    : _("Scanning workbench")}
             
@@ -117,6 +117,10 @@ class MainWindow(wx.Frame):
         self.menuControlPanel = self.menuControl.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuControlVideo = self.menuControl.AppendCheckItem(wx.NewId(), _("Video"))
         menuView.AppendMenu(wx.NewId(), _("Control"), self.menuControl)
+        self.menuSettings = wx.Menu()
+        self.menuSettingsPanel = self.menuSettings.AppendCheckItem(wx.NewId(), _("Panel"))
+        self.menuSettingsVideo = self.menuSettings.AppendCheckItem(wx.NewId(), _("Video"))
+        menuView.AppendMenu(wx.NewId(), _("Settings"), self.menuSettings)
         self.menuScanning = wx.Menu()
         self.menuScanningPanel = self.menuScanning.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuScanningVideo = self.menuScanning.AppendCheckItem(wx.NewId(), _("Video"))
@@ -136,27 +140,21 @@ class MainWindow(wx.Frame):
 
         self.mainWorkbench = MainWorkbench(self)
         self.controlWorkbench = ControlWorkbench(self)
+        self.settingsWorkbench = SettingsWorkbench(self)
         self.scanningWorkbench = ScanningWorkbench(self)
         self.calibrationWorkbench = CalibrationWorkbench(self)
 
-        self.controlWorkbench.combo.Clear()
-        self.controlWorkbench.combo.Append(self.workbenchList['control'])
-        self.controlWorkbench.combo.Append(self.workbenchList['calibration'])
-        self.controlWorkbench.combo.Append(self.workbenchList['scanning'])
-
-        self.calibrationWorkbench.combo.Clear()
-        self.calibrationWorkbench.combo.Append(self.workbenchList['control'])
-        self.calibrationWorkbench.combo.Append(self.workbenchList['calibration'])
-        self.calibrationWorkbench.combo.Append(self.workbenchList['scanning'])
-
-        self.scanningWorkbench.combo.Clear()
-        self.scanningWorkbench.combo.Append(self.workbenchList['control'])
-        self.scanningWorkbench.combo.Append(self.workbenchList['calibration'])
-        self.scanningWorkbench.combo.Append(self.workbenchList['scanning'])
+        for workbench in [self.controlWorkbench, self.settingsWorkbench, self.calibrationWorkbench, self.scanningWorkbench]:
+            workbench.combo.Clear()
+            workbench.combo.Append(self.workbenchList['control'])
+            workbench.combo.Append(self.workbenchList['settings'])
+            workbench.combo.Append(self.workbenchList['calibration'])
+            workbench.combo.Append(self.workbenchList['scanning'])
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.mainWorkbench, 1, wx.ALL|wx.EXPAND, 30)
         sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.settingsWorkbench, 1, wx.EXPAND)
         sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
         sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
         self.SetSizer(sizer)
@@ -174,6 +172,8 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
         self.Bind(wx.EVT_MENU, self.onControlVideoClicked, self.menuControlVideo)
+        self.Bind(wx.EVT_MENU, self.onSettingsPanelClicked, self.menuSettingsPanel)
+        self.Bind(wx.EVT_MENU, self.onSettingsVideoClicked, self.menuSettingsVideo)
         self.Bind(wx.EVT_MENU, self.onScanningPanelClicked, self.menuScanningPanel)
         self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningVideo)
         self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningScene)
@@ -182,6 +182,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onWelcome, menuWelcome)
 
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.controlWorkbench.combo)
+        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.settingsWorkbench.combo)
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.calibrationWorkbench.combo)
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.scanningWorkbench.combo)
 
@@ -281,6 +282,26 @@ class MainWindow(wx.Frame):
             self.controlWorkbench.videoView.Show()
         else:
             self.controlWorkbench.videoView.Hide()
+        self.Layout()
+
+    def onSettingsPanelClicked(self, event):
+        """ """
+        checked = self.menuSettingsPanel.IsChecked()
+        profile.putPreference('view_settings_panel', checked)
+        if checked:
+            self.settingsWorkbench.scrollPanel.Show()
+        else:
+            self.settingsWorkbench.scrollPanel.Hide()
+        self.Layout()
+
+    def onSettingsVideoClicked(self, event):
+        """ """
+        checked = self.menuSettingsVideo.IsChecked()
+        profile.putPreference('view_settings_video', checked)
+        if checked:
+            self.settingsWorkbench.videoView.Show()
+        else:
+            self.settingsWorkbench.videoView.Hide()
         self.Layout()
 
     def onScanningPanelClicked(self, event):
@@ -383,6 +404,20 @@ Suite 330, Boston, MA  02111-1307  USA""")
         else:
             self.controlWorkbench.videoView.Hide()
             self.menuControlVideo.Check(False)
+
+        if profile.getPreferenceBool('view_settings_panel'):
+            self.settingsWorkbench.scrollPanel.Show()
+            self.menuSettingsPanel.Check(True)
+        else:
+            self.settingsWorkbench.scrollPanel.Hide()
+            self.menuSettingsPanel.Check(False)
+
+        if profile.getPreferenceBool('view_settings_video'):
+            self.settingsWorkbench.videoView.Show()
+            self.menuSettingsVideo.Check(True)
+        else:
+            self.settingsWorkbench.videoView.Hide()
+            self.menuSettingsVideo.Check(False)
 
         if profile.getPreferenceBool('view_scanning_panel'):
             self.scanningWorkbench.scrollPanel.Show()
@@ -500,8 +535,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         """ """
         currentWorkbench = profile.getPreference('workbench')
 
-        wb = {'main'        : self.mainWorkbench,
+        wb = {'main'        : self.mainWorkbench, 
               'control'     : self.controlWorkbench,
+              'settings'    : self.settingsWorkbench,
               'calibration' : self.calibrationWorkbench,
               'scanning'    : self.scanningWorkbench}
 
@@ -523,6 +559,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCalibrationProfile(currentWorkbench)
 
         self.Layout()
+
+
+    ##-- TODO: move to util
 
     def serialList(self):
         baselist=[]
@@ -560,6 +599,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 baselist = baselist + glob.glob(device)
         return baselist
 
+    ##-- END TODO
+
+from horus.gui.util.imageView import *
 
 class MainWorkbench(wx.Panel):
 
@@ -577,7 +619,7 @@ class MainWorkbench(wx.Panel):
         self._calibrationPanel = ItemWorkbench(self._panel, label=_("Calibration"), image=wx.Image(resources.getPathForImage("calibration.png")))
         self._scanningPanel = ItemWorkbench(self._panel, label=_("Scanning"), image=wx.Image(resources.getPathForImage("scanning.png")))
 
-        logo = VideoView(self._title)
+        logo = ImageView(self._title)
         logo.setImage(wx.Image(resources.getPathForImage("logo.png")))
         titleText = wx.StaticText(self._title, label=_("3D scanning for everyone"))
         titleText.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_LIGHT)))
@@ -622,8 +664,6 @@ class MainWorkbench(wx.Panel):
         self.GetParent().workbenchUpdate()
 
 
-from horus.gui.util.videoView import *
-
 class ItemWorkbench(wx.Panel):
 
     def __init__(self, parent, label="Workbench", image=None):
@@ -631,7 +671,7 @@ class ItemWorkbench(wx.Panel):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        self.imageView = VideoView(self)
+        self.imageView = ImageView(self)
         self.imageView.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
         if image is not None:
             self.imageView.setImage(image)

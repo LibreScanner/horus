@@ -31,7 +31,7 @@ import wx
 
 from horus.util.resources import *
 
-class VideoView(wx.Panel):
+class ImageView(wx.Panel):
 
 	def __init__(self, parent, resize=True):
 		wx.Panel.__init__(self, parent) #, style=wx.SIMPLE_BORDER)

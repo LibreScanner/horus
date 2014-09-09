@@ -18,6 +18,10 @@ You should have received a copy of the GNU General Public License
 along with serial_device.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+##                    ##
+##-- TODO: refactor --##
+##                    ##
+
 import os
 import itertools
 from time import sleep

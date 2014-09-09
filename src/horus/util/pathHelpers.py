@@ -20,6 +20,10 @@
 # SOFTWARE.
 #
 
+##                    ##
+##-- TODO: refactor --##
+##                    ##
+
 """ path.py - An object representing a path to a file or directory.
 
 Original author:

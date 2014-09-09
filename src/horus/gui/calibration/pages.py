@@ -27,11 +27,11 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from horus.gui.util.page import *
-from horus.gui.util.videoView import *
-from horus.gui.util.calibrationPanels import *
+from horus.util.resources import *
 
-from horus.util import resources
+from horus.gui.util.page import *
+from horus.gui.util.imageView import *
+from horus.gui.calibration.panels import *
 
 from horus.engine.scanner import *
 from horus.engine.calibration import *
@@ -51,9 +51,9 @@ class CameraIntrinsicsMainPage(Page):
 		self.calibration = Calibration.Instance()
 
 		#-- Video View
-		self.videoView = VideoView(self._panel)
+		self.videoView = ImageView(self._panel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
-		self.videoView.setImage(wx.Image(resources.getPathForImage("bq.png")))
+		self.videoView.setImage(wx.Image(getPathForImage("bq.png")))
 		
 		#--Guide Panel
 		self.guidePanel = wx.Panel(self._panel)
@@ -64,9 +64,9 @@ class CameraIntrinsicsMainPage(Page):
 		self.guideTitleText.SetFont( wx.Font(pointSize=16,family=wx.FONTFAMILY_DECORATIVE,style=wx.FONTSTYLE_ITALIC,weight=wx.FONTWEIGHT_NORMAL))
 		self.guideTitleText.SetForegroundColour((100,100,100))
 
-		self.guideImage = VideoView(self.guidePanel)
+		self.guideImage = ImageView(self.guidePanel)
 
-		self.guideProgress = VideoView(self.guidePanel)
+		self.guideProgress = ImageView(self.guidePanel)
 		self.guideProgress.size = (100,100)
 
 		guideSpacebarText = wx.StaticText(self.guidePanel, label=_("Press spacebar to continue"))
@@ -87,7 +87,7 @@ class CameraIntrinsicsMainPage(Page):
 		self.panelGrid = []
 		self.gridSizer = wx.GridSizer(self.rows, self.columns, 3, 3)
 		for panel in range(self.rows*self.columns):
-			self.panelGrid.append(VideoView(self.imageGridPanel))
+			self.panelGrid.append(ImageView(self.imageGridPanel))
 			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
 			self.panelGrid[panel].setImage(wx.Image(getPathForImage("void.png")))
 			self.gridSizer.Add(self.panelGrid[panel], 0, wx.ALL|wx.EXPAND)
@@ -115,8 +115,8 @@ class CameraIntrinsicsMainPage(Page):
 		self.guidePanel.Show()
 		self.imageGridPanel.Hide()
 		self.guideTitleText.SetLabel("1. Place the pattern in the plate")
-		self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-1.png")))
-		self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-1.png")))
+		self.guideImage.setImage(wx.Image(getPathForImage("instructions-1.png")))
+		self.guideProgress.setImage(wx.Image(getPathForImage("progress-1.png")))
 		self._rightButton.Disable()
 		self.currentGrid = 0
 		for panel in range(self.rows*self.columns):
@@ -149,13 +149,13 @@ class CameraIntrinsicsMainPage(Page):
 		if event.GetKeyCode() == 32: #-- spacebar
 			if self.guidePage == 0:
 				self.guideTitleText.SetLabel("2. Move it using the yellow lines as reference")
-				self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-2.png")))
-				self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-2.png")))
+				self.guideImage.setImage(wx.Image(getPathForImage("instructions-2.png")))
+				self.guideProgress.setImage(wx.Image(getPathForImage("progress-2.png")))
 				self.guidePage = 1
 			elif self.guidePage == 1:
 				self.guideTitleText.SetLabel("3. Press spacebar to perform captures")
-				self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-3.png")))
-				self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-3.png")))
+				self.guideImage.setImage(wx.Image(getPathForImage("instructions-3.png")))
+				self.guideProgress.setImage(wx.Image(getPathForImage("progress-3.png")))
 				self.guidePage = 2
 			elif self.guidePage == 2:
 				self.guidePanel.Hide()
@@ -328,8 +328,8 @@ class LaserTriangulationMainPage(Page):
 
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
-		imageView = VideoView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.jpg")))
+		imageView = ImageView(self._panel)
+		imageView.setImage(wx.Image(getPathForImage("pattern-position.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
@@ -400,10 +400,10 @@ class LaserTriangulationImageSequence(wx.Panel):
 		titleText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
 		panel = wx.Panel(self)
-		self.imageLas = VideoView(panel)
-		self.imageGray = VideoView(panel)
-		self.imageBin = VideoView(panel)
-		self.imageLine = VideoView(panel)
+		self.imageLas = ImageView(panel)
+		self.imageGray = ImageView(panel)
+		self.imageBin = ImageView(panel)
+		self.imageLine = ImageView(panel)
 
 		self.imageLas.SetBackgroundColour('#AAAAAA')
 		self.imageGray.SetBackgroundColour('#AAAAAA')
@@ -436,8 +436,8 @@ class PlatformExtrinsicsMainPage(Page):
 
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
-		imageView = VideoView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.jpg")))
+		imageView = ImageView(self._panel)
+		imageView.setImage(wx.Image(getPathForImage("pattern-position.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 

@@ -30,7 +30,7 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import wx
 import wx.lib.scrolledpanel
 
-from horus.util import profile
+from horus.util.profile import *
 
 from horus.engine.scanner import *
 
@@ -98,24 +98,24 @@ class VideoPanel(wx.Panel):
         enable = self.openCheckBox.IsChecked()
         value = self.openSlider.GetValue()
         self.scanner.core.setOpen(enable, value)
-        profile.putProfileSetting('open', enable)
-        profile.putProfileSetting('open_value', value)
+        putProfileSetting('open', enable)
+        putProfileSetting('open_value', value)
 
     def onThresholdChanged(self, event):
         enable = self.thresholdCheckBox.IsChecked()
         value = self.thresholdSlider.GetValue()
         self.scanner.core.setThreshold(enable, value)
-        profile.putProfileSetting('threshold', enable)
-        profile.putProfileSetting('threshold_value', value)
+        putProfileSetting('threshold', enable)
+        putProfileSetting('threshold_value', value)
 
     def onROIChanged(self, event):
         pass
 
     def updateProfileToAllControls(self):
-        self.openCheckBox.SetValue(profile.getProfileSettingBool('open'))
-        self.openSlider.SetValue(profile.getProfileSettingInteger('open_value'))
-        self.thresholdCheckBox.SetValue(profile.getProfileSettingBool('threshold'))
-        self.thresholdSlider.SetValue(profile.getProfileSettingInteger('threshold_value'))
+        self.openCheckBox.SetValue(getProfileSettingBool('open'))
+        self.openSlider.SetValue(getProfileSettingInteger('open_value'))
+        self.thresholdCheckBox.SetValue(getProfileSettingBool('threshold'))
+        self.thresholdSlider.SetValue(getProfileSettingInteger('threshold_value'))
 
 
 class ScenePanel(wx.Panel):
@@ -195,11 +195,11 @@ class ScenePanel(wx.Panel):
 
     def onAlgChanged(self, event):
         self.scanner.core.setUseCompactAlgorithm(self.compactAlgRadioButton.GetValue())
-        profile.putProfileSetting('use_compact', self.compactAlgRadioButton.GetValue())
+        putProfileSetting('use_compact', self.compactAlgRadioButton.GetValue())
 
     def onZChanged(self, event):
         self.scanner.core.setZOffset(self.zSlider.GetValue())
-        profile.putProfileSetting('z_offset', self.zSlider.GetValue())
+        putProfileSetting('z_offset', self.zSlider.GetValue())
         
     def onRadiousChanged(self, event):
         minR = int(self.minRadiousSlider.GetValue())
@@ -216,8 +216,8 @@ class ScenePanel(wx.Panel):
                                               int(self.minHeightSlider.GetValue()),
                                               int(self.maxHeightSlider.GetValue()))
 
-        profile.putProfileSetting('min_rho', minR)
-        profile.putProfileSetting('max_rho', maxR)
+        putProfileSetting('min_rho', minR)
+        putProfileSetting('max_rho', maxR)
 
     def onHeightChanged(self, event):
         minH = int(self.minHeightSlider.GetValue())
@@ -234,14 +234,14 @@ class ScenePanel(wx.Panel):
                                               int(self.minHeightSlider.GetValue()),
                                               int(self.maxHeightSlider.GetValue()))
 
-        profile.putProfileSetting('min_h', minH)
-        profile.putProfileSetting('max_h', maxH)
+        putProfileSetting('min_h', minH)
+        putProfileSetting('max_h', maxH)
 
     def updateProfileToAllControls(self):
-        self.compactAlgRadioButton.SetValue(profile.getProfileSettingBool('use_compact'))
-        self.completeAlgRadioButton.SetValue(not profile.getProfileSettingBool('use_compact'))
-        self.minRadiousSlider.SetValue(profile.getProfileSettingInteger('min_rho'))
-        self.maxRadiousSlider.SetValue(profile.getProfileSettingInteger('max_rho'))
-        self.minHeightSlider.SetValue(profile.getProfileSettingInteger('min_h'))
-        self.maxHeightSlider.SetValue(profile.getProfileSettingInteger('max_h'))
-        self.zSlider.SetValue(profile.getProfileSettingInteger('z_offset'))
+        self.compactAlgRadioButton.SetValue(getProfileSettingBool('use_compact'))
+        self.completeAlgRadioButton.SetValue(not getProfileSettingBool('use_compact'))
+        self.minRadiousSlider.SetValue(getProfileSettingInteger('min_rho'))
+        self.maxRadiousSlider.SetValue(getProfileSettingInteger('max_rho'))
+        self.minHeightSlider.SetValue(getProfileSettingInteger('min_h'))
+        self.maxHeightSlider.SetValue(getProfileSettingInteger('max_h'))
+        self.zSlider.SetValue(getProfileSettingInteger('z_offset'))

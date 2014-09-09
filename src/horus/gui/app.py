@@ -30,34 +30,34 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import os
 import wx._core
 
-from horus.util import profile
-from horus.util import resources
+from horus.util.profile import *
+from horus.util.resources import *
 
-from horus.gui import main
-from horus.gui.util import splash
+from horus.gui.main import *
+from horus.gui.splash import *
 
 class HorusApp(wx.App):
 	def __init__(self):
 		super(HorusApp, self).__init__(redirect=False)
 
-		splash.SplashScreen(self.afterSplashCallback)
+		SplashScreen(self.afterSplashCallback)
 
 	def afterSplashCallback(self):
 		#-- Load Profile and Preferences
-		basePath = profile.getBasePath()
-		profile.loadPreferences(os.path.join(basePath, 'preferences.ini'))
-		profile.loadProfile(os.path.join(basePath, 'current-profile.ini'))
+		basePath = getBasePath()
+		loadPreferences(os.path.join(basePath, 'preferences.ini'))
+		loadProfile(os.path.join(basePath, 'current-profile.ini'))
 
 		#-- Load Language
-		resources.setupLocalization(profile.getPreference('language'))
+		setupLocalization(profile.getPreference('language'))
 
 		#-- Create Main Window
-		self.mainWindow = main.MainWindow()
+		self.mainWindow = MainWindow()
 		#self.mainWindow.Center()
 		self.mainWindow.Show()
 
 	def __del__(self):
 		#-- Save Profile and Preferences
-		basePath = profile.getBasePath()
-		profile.savePreferences(os.path.join(basePath, 'preferences.ini'))
-		profile.saveProfile(os.path.join(basePath, 'current-profile.ini'))
+		basePath = getBasePath()
+		savePreferences(os.path.join(basePath, 'preferences.ini'))
+		saveProfile(os.path.join(basePath, 'current-profile.ini'))
