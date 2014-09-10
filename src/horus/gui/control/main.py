@@ -55,20 +55,23 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def load(self):
 		#-- Toolbar Configuration
-		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.snapshotTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
+		self.playTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
+		self.stopTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
+		#self.snapshotTool = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
+		self.undoTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
 		self.enableLabelTool(self.playTool     , False)
 		self.enableLabelTool(self.stopTool     , False)
-		self.enableLabelTool(self.snapshotTool , False)
+		#self.enableLabelTool(self.snapshotTool , False)
+		self.enableLabelTool(self.undoTool     , False)
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked     , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked     , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.snapshotTool)
+		#self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.snapshotTool)
+		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked     , self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetAutoLayout(1)
@@ -128,17 +131,20 @@ class ControlWorkbench(WorkbenchConnection):
 		if frame is not None:
 			self.videoView.setFrame(frame)
 
+	def onUndoToolClicked(self, event):
+		self.enableLabelTool(self.undoTool, self.cameraPanel.Undo())
+
 	def updateToolbarStatus(self, status):
 		if status:
 			self.enableLabelTool(self.playTool     , True)
 			self.enableLabelTool(self.stopTool     , False)
-			self.enableLabelTool(self.snapshotTool , True)
+			#self.enableLabelTool(self.snapshotTool , True)
 			self.cameraPanel.Enable()
 			self.devicePanel.Enable()
 		else:
 			self.enableLabelTool(self.playTool     , False)
 			self.enableLabelTool(self.stopTool     , False)
-			self.enableLabelTool(self.snapshotTool , False)
+			#self.enableLabelTool(self.snapshotTool , False)
 			self.cameraPanel.Disable()
 			self.devicePanel.Disable()
 

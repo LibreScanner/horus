@@ -73,20 +73,22 @@ class SettingsWorkbench(WorkbenchConnection):
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetAutoLayout(1)
 		self.scrollPanel.SetupScrolling(scroll_x=False)
-		self.cameraPanel = CameraPanel(self.scrollPanel)
+		self.cameraPanel = wx.Panel(self)
+		self.devicePanel = wx.Panel(self)
+		"""self.cameraPanel = CameraPanel(self.scrollPanel)
 		self.devicePanel = DevicePanel(self.scrollPanel)
 		self.cameraPanel.Disable()
-		self.devicePanel.Disable()
+		self.devicePanel.Disable()"""
 
 		self.videoView = ImageView(self._panel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
-		vsbox = wx.BoxSizer(wx.VERTICAL)
+		"""vsbox = wx.BoxSizer(wx.VERTICAL)
 		vsbox.Add(self.cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
 		vsbox.Add(self.devicePanel, 0, wx.ALL|wx.EXPAND, 2)
 		self.scrollPanel.SetSizer(vsbox)
-		vsbox.Fit(self.scrollPanel)
+		vsbox.Fit(self.scrollPanel)"""
 
 		self.addToPanel(self.scrollPanel, 0)
 		self.addToPanel(self.videoView, 1)

@@ -123,6 +123,11 @@ class Device:
 		self.feedRate = feedRate
 		return self.sendCommand("G1F{0}".format(self.feedRate))
 
+	def setAccelerationMotor(self, acceleration):
+		"""Sets motor acceleration"""
+		self.acceleration = acceleration
+		return self.sendCommand("$120={0}".format(self.acceleration))
+
 	def setRelativePosition(self, pos):
 		self._position += pos * 0.03555555
 
