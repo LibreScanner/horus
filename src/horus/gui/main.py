@@ -122,7 +122,6 @@ class MainWindow(wx.Frame):
         self.menuSettingsVideo = self.menuSettings.AppendCheckItem(wx.NewId(), _("Video"))
         menuView.AppendMenu(wx.NewId(), _("Settings"), self.menuSettings)
         self.menuScanning = wx.Menu()
-        self.menuScanningPanel = self.menuScanning.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuScanningVideo = self.menuScanning.AppendCheckItem(wx.NewId(), _("Video"))
         self.menuScanningScene = self.menuScanning.AppendCheckItem(wx.NewId(), _("Scene"))
         menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
@@ -174,7 +173,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onControlVideoClicked, self.menuControlVideo)
         self.Bind(wx.EVT_MENU, self.onSettingsPanelClicked, self.menuSettingsPanel)
         self.Bind(wx.EVT_MENU, self.onSettingsVideoClicked, self.menuSettingsVideo)
-        self.Bind(wx.EVT_MENU, self.onScanningPanelClicked, self.menuScanningPanel)
         self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningVideo)
         self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningScene)
 
@@ -304,16 +302,6 @@ class MainWindow(wx.Frame):
             self.settingsWorkbench.videoView.Hide()
         self.Layout()
 
-    def onScanningPanelClicked(self, event):
-        """ """
-        checked = self.menuScanningPanel.IsChecked()
-        profile.putPreference('view_scanning_panel', checked)
-        if checked:
-            self.scanningWorkbench.scrollPanel.Show()
-        else:
-            self.scanningWorkbench.scrollPanel.Hide()
-        self.Layout()
-
     def onScanningVideoSceneClicked(self, event):
         """ """
         checkedVideo = self.menuScanningVideo.IsChecked()
@@ -419,13 +407,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.settingsWorkbench.videoView.Hide()
             self.menuSettingsVideo.Check(False)
 
-        if profile.getPreferenceBool('view_scanning_panel'):
-            self.scanningWorkbench.scrollPanel.Show()
-            self.menuScanningPanel.Check(True)
-        else:
-            self.scanningWorkbench.scrollPanel.Hide()
-            self.menuScanningPanel.Check(False)
-
         checkedVideo = profile.getPreferenceBool('view_scanning_video')
         checkedScene = profile.getPreferenceBool('view_scanning_scene')
 
@@ -499,7 +480,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                          profile.getProfileSettingInteger('min_h'),
                                          profile.getProfileSettingInteger('max_h'),
                                          profile.getProfileSettingInteger('z_offset'),
-                                         profile.getProfileSettingFloat('step_degrees'),
+                                         profile.getProfileSettingFloat('step_degrees_scanning'),
                                          profile.getProfileSettingInteger('camera_height_scanning'),
                                          profile.getProfileSettingInteger('camera_width_scanning'),
                                          profile.getProfileSettingFloat('laser_angle'),

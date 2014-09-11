@@ -185,8 +185,14 @@ def _(n):
 
 setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
-setting('step_degrees', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate', 200, int, 'basic', _('Feed Rate')).setRange(1, 100000)
+
+setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
+setting('feed_rate_control', 200, int, 'basic', _('Feed Rate')).setRange(1, 10000)
+setting('acceleration_control', 200, int, 'basic', _('Acceleration')).setRange(1, 100)
+
+setting('step_degrees_scanning', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
+setting('feed_rate_scanning', 200, int, 'basic', _('Feed Rate')).setRange(1, 10000)
+setting('acceleration_scanning', 200, int, 'basic', _('Acceleration')).setRange(1, 100)
 
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
@@ -261,7 +267,6 @@ setting('view_control_panel', True, bool, 'preference', 'hidden')
 setting('view_control_video', True, bool, 'preference', 'hidden')
 setting('view_settings_panel', True, bool, 'preference', 'hidden')
 setting('view_settings_video', True, bool, 'preference', 'hidden')
-setting('view_scanning_panel', False, bool, 'preference', 'hidden')
 setting('view_scanning_video', False, bool, 'preference', 'hidden')
 setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 

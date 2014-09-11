@@ -89,7 +89,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.scrollPanel.SetSizer(vsbox)
 		vsbox.Fit(self.scrollPanel)
 
-		self.addToPanel(self.scrollPanel, 0)
+		#self.addToPanel(self.scrollPanel, 0)
 		self.addToPanel(self.splitterWindow, 1)
 
 		#-- Video View Selector
