@@ -129,10 +129,10 @@ class Device:
 		return self.sendCommand("$120={0}".format(self.acceleration))
 
 	def setRelativePosition(self, pos):
-		self._position += pos * 0.03555555
+		self._position += pos
 
 	def setAbsolutePosition(self, pos):
-		self._position = pos * 0.03555555
+		self._position = pos
 
 	def setMoveMotor(self):
 		"""Moves the motor"""

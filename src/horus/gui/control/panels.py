@@ -298,11 +298,11 @@ class DevicePanel(wx.Panel):
         motorControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Motor Control"), style=wx.ALIGN_CENTRE)
         motorControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        stepDegreesLabel = wx.StaticText(self, label=_("Step"))
+        stepDegreesLabel = wx.StaticText(self, label=_(u"Slice Step (º)"))
         self.stepDegreesText = wx.TextCtrl(self, value=getProfileSetting('step_degrees_control'))
-        feedRateLabel = wx.StaticText(self, label=_("Feed Rate"))
+        feedRateLabel = wx.StaticText(self, label=_(u"Feed Rate (º/s)"))
         self.feedRateText = wx.TextCtrl(self, value=getProfileSetting('feed_rate_control'))
-        accelerationLabel = wx.StaticText(self, label=_("Acceleration"))
+        accelerationLabel = wx.StaticText(self, label=_(u"Acceleration (º/s^2)"))
         self.accelerationText = wx.TextCtrl(self, value=getProfileSetting('acceleration_control'))
 
         self.motorEnableButton = wx.ToggleButton(self, -1, _("Enable"))
@@ -343,17 +343,17 @@ class DevicePanel(wx.Panel):
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(stepDegreesLabel, 0, wx.ALL|wx.EXPAND, 18)
-        hbox.Add(self.stepDegreesText, 1, wx.ALL|wx.EXPAND, 12)
+        hbox.Add(self.stepDegreesText, 1, wx.EXPAND|wx.ALL^wx.LEFT, 12)
         vbox.Add(hbox)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(feedRateLabel, 0, wx.ALL|wx.EXPAND, 18)
-        hbox.Add(self.feedRateText, 1, wx.ALL|wx.EXPAND, 12)
+        hbox.Add(self.feedRateText, 1, wx.EXPAND|wx.ALL^wx.LEFT, 12)
         vbox.Add(hbox)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(accelerationLabel, 0, wx.ALL|wx.EXPAND, 18)
-        hbox.Add(self.accelerationText, 1, wx.ALL|wx.EXPAND, 12)
+        hbox.Add(self.accelerationText, 1, wx.EXPAND|wx.ALL^wx.LEFT, 12)
         vbox.Add(hbox)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -396,6 +396,8 @@ class DevicePanel(wx.Panel):
     def onMotorMoveButtonClicked(self, event):
         if self.feedRateText.GetValue() is not None:
             self.scanner.device.setSpeedMotor(int(self.feedRateText.GetValue()))
+        if self.accelerationText.GetValue() is not None:
+            self.scanner.device.setAccelerationMotor(int(self.accelerationText.GetValue()))
         if self.stepDegreesText.GetValue() is not None:
             self.scanner.device.setRelativePosition(float((self.stepDegreesText.GetValue()).replace(',','.')))
             self.scanner.device.setMoveMotor()
