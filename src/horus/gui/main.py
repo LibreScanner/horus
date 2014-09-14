@@ -479,7 +479,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                          profile.getProfileSettingInteger('max_rho'),
                                          profile.getProfileSettingInteger('min_h'),
                                          profile.getProfileSettingInteger('max_h'),
-                                         profile.getProfileSettingInteger('z_offset'),
                                          profile.getProfileSettingFloat('step_degrees_scanning'),
                                          profile.getProfileSettingInteger('camera_height_scanning'),
                                          profile.getProfileSettingInteger('camera_width_scanning'),

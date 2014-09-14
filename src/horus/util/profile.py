@@ -186,14 +186,6 @@ def _(n):
 setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 
-setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_control', 200, int, 'basic', _('Feed Rate')).setRange(1, 10000)
-setting('acceleration_control', 200, int, 'basic', _('Acceleration')).setRange(1, 100)
-
-setting('step_degrees_scanning', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_scanning', 200, int, 'basic', _('Feed Rate')).setRange(1, 10000)
-setting('acceleration_scanning', 200, int, 'basic', _('Acceleration')).setRange(1, 100)
-
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_control', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
@@ -202,6 +194,10 @@ setting('framerate_control', 30, int, 'advanced', _('Framerate')).setRange(1, 30
 setting('camera_width_control', 1280, int, 'advanced', _('Camera Width')).setRange(1)
 setting('camera_height_control', 960, int, 'advanced', _('Camera Height')).setRange(1)
 setting('use_distortion_control', False, bool, 'advanced', _('Use Distortion'))
+
+setting('step_degrees_control', -0.45, float, 'advanced', _('Step Degrees')).setRange(0.01)
+setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 10000)
+setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
 setting('brightness_calibration', 156, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_calibration', 56, int, 'advanced', _('Contrast')).setRange(0, 255)
@@ -234,9 +230,12 @@ setting('max_rho', 100, int, 'advanced', _('Maximum Rho'))
 setting('min_h', 0, int, 'advanced', _('Minimum H'))
 setting('max_h', 200, int, 'advanced', _('Maximum H'))
 
-setting('z_offset', 0, int, 'advanced', _('Z Offset')).setRange(-50, 50)
+setting('use_left_laser', True, bool, 'advanced', _('Use Left Laser'))
+setting('use_right_laser', False, bool, 'advanced', _('Use Right Laser'))
 
-setting('laser_angle', 30.0, float, 'basic', _('Laser Angle'))
+setting('step_degrees_scanning', 0.45, float, 'advanced', _('Step Degrees')).setRange(0.01)
+setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 10000)
+setting('acceleration_scanning', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'ciclop', str, 'machine', 'hidden')
@@ -246,6 +245,8 @@ setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum
 setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_("Machine center 0,0"), _("Machines firmware defines the center of the bed as 0,0 instead of the front left corner."))
 setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden').setLabel(_("Build area shape"), _("The shape of machine build area."))
 
+setting('laser_angle', 30.0, float, 'advanced', _('Laser Angle'))
+
 setting('camera_matrix', ([[1430,0,480],[0,1430,640],[0,0,1]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
 setting('distortion_vector',([0,0,0,0,0]),numpy.ndarray,'advanced',_('Distortion Vector'))
 
@@ -254,7 +255,9 @@ setting('laser_depth', 315.0, float, 'advanced', _('Laser Depth'))
 
 setting('rotation_matrix', ([[0,-1,0],[0,0,-1],[-1,0,0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
 setting('translation_vector', ([0.0,85.0,315.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
-		
+
+setting('uv_left_pointcloud', '', str, 'advanced', _('UV Left Pointcloud'))
+
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))

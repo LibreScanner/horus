@@ -57,7 +57,6 @@ class Core:
 						 rhoMax=100,
 						 hMin=0,
 						 hMax=200,
-						 zOffset=0,
 						 degrees=0.45,
 						 width=600,
 						 height=800,
@@ -87,8 +86,6 @@ class Core:
 		self.rhoMax = rhoMax
 		self.hMin = hMin
 		self.hMax = hMax
-
-		self.zOffset = zOffset
 
 		self.theta = 0
 
@@ -144,6 +141,10 @@ class Core:
 		self.Yw = (Rt[1,0] * Xc + Rt[1,1] * Yc + Rt[1,2] * Zc - RT[1]).T
 		self.Zw = (Rt[2,0] * Xc + Rt[2,1] * Yc + Rt[2,2] * Zc - RT[2]).T
 
+		self.uCoordinates = []
+		self.vCoordinates = []
+
+
 	def setResolution(self, width, height):
 		self.width = width
 		self.height = height
@@ -164,9 +165,6 @@ class Core:
 		self.rhoMax = rhoMax
 		self.hMin = hMin
 		self.hMax = hMax
-
-	def setZOffset(self, zOffset):
-		self.zOffset = zOffset
 
 	def setDegrees(self, degrees):
 		self.degrees = degrees
@@ -219,6 +217,9 @@ class Core:
 		self.imgLine = np.zeros_like(imageRaw)
 		self.imgLine[v,l] = 255.0
 
+		self.uCoordinates += [v]
+		self.vCoordinates += [l]
+
 		#-- Obtaining point cloud
 		xw = self.Xw[v,l]
 		yw = self.Yw[v,l]
@@ -226,7 +227,7 @@ class Core:
 		thetaR = self.theta * self.rad
 		x = np.array(xw * math.cos(thetaR) - yw * math.sin(thetaR))
 		y = np.array(xw * math.sin(thetaR) + yw * math.cos(thetaR))
-		z = np.array(zw + self.zOffset)
+		z = np.array(zw)
 		if z.size > 0:
 			points = np.concatenate((x,y,z)).reshape(3,z.size).T
 			colors = np.copy(imageRaw[v,l])

@@ -36,6 +36,7 @@ from horus.gui.util.workbench import *
 from horus.gui.settings.panels import *
 
 from horus.engine.scanner import *
+from horus.engine.calibration import *
 
 class SettingsWorkbench(WorkbenchConnection):
 
@@ -45,6 +46,7 @@ class SettingsWorkbench(WorkbenchConnection):
 		self.playing = False
 
 		self.scanner = Scanner.Instance()
+		self.calibration = Calibration.Instance()
 
 		self.load()
 
@@ -55,43 +57,64 @@ class SettingsWorkbench(WorkbenchConnection):
 
 	def load(self):
 		#-- Toolbar Configuration
-		self.playTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-		self.stopTool          = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.snapshotTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
+		self.playCalibrationTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play Calibration"), wx.Bitmap(getPathForImage("play_calibration.png")), shortHelp=_("Play Calibration"))
+		self.playScanningTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Play Scanning"), wx.Bitmap(getPathForImage("play_scanning.png")), shortHelp=_("Play Scanning"))
+		self.stopTool            = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
+		self.undoTool            = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
-		self.enableLabelTool(self.playTool     , False)
-		self.enableLabelTool(self.stopTool     , False)
-		self.enableLabelTool(self.snapshotTool , False)
+		self.enableLabelTool(self.playCalibrationTool , False)
+		self.enableLabelTool(self.playScanningTool    , False)
+		self.enableLabelTool(self.stopTool            , False)
+		self.enableLabelTool(self.undoTool            , False)
 
 		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked     , self.playTool)
-		self.Bind(wx.EVT_TOOL, self.onStopToolClicked     , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.snapshotTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayCalibrationToolClicked , self.playCalibrationTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayScanningToolClicked    , self.playScanningTool)
+		self.Bind(wx.EVT_TOOL, self.onStopToolClicked            , self.stopTool)
+		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked            , self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetAutoLayout(1)
 		self.scrollPanel.SetupScrolling(scroll_x=False)
-		self.cameraPanel = wx.Panel(self)
-		self.devicePanel = wx.Panel(self)
-		"""self.cameraPanel = CameraPanel(self.scrollPanel)
-		self.devicePanel = DevicePanel(self.scrollPanel)
-		self.cameraPanel.Disable()
-		self.devicePanel.Disable()"""
+		self.calibrationPanel = CalibrationPanel(self.scrollPanel)
+		self.scanningPanel = ScanningPanel(self.scrollPanel)
+		self.calibrationPanel.Disable()
+		self.scanningPanel.Disable()
 
 		self.videoView = ImageView(self._panel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
-		"""vsbox = wx.BoxSizer(wx.VERTICAL)
-		vsbox.Add(self.cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
-		vsbox.Add(self.devicePanel, 0, wx.ALL|wx.EXPAND, 2)
+		vsbox = wx.BoxSizer(wx.VERTICAL)
+		vsbox.Add(self.calibrationPanel, 0, wx.ALL|wx.EXPAND, 2)
+		vsbox.Add(self.scanningPanel, 0, wx.ALL|wx.EXPAND, 2)
 		self.scrollPanel.SetSizer(vsbox)
-		vsbox.Fit(self.scrollPanel)"""
+		vsbox.Fit(self.scrollPanel)
 
 		self.addToPanel(self.scrollPanel, 0)
 		self.addToPanel(self.videoView, 1)
+
+		#-- Undo
+		self.undoEvents = {self.calibrationPanel.brightnessSlider.GetId() : self.calibrationPanel.onBrightnessChanged,
+						   self.calibrationPanel.contrastSlider.GetId()   : self.calibrationPanel.onContrastChanged,
+						   self.calibrationPanel.saturationSlider.GetId() : self.calibrationPanel.onSaturationChanged,
+						   self.calibrationPanel.exposureSlider.GetId()   : self.calibrationPanel.onExposureChanged,
+						   self.scanningPanel.brightnessSlider.GetId() : self.scanningPanel.onBrightnessChanged,
+						   self.scanningPanel.contrastSlider.GetId()   : self.scanningPanel.onContrastChanged,
+						   self.scanningPanel.saturationSlider.GetId() : self.scanningPanel.onSaturationChanged,
+						   self.scanningPanel.exposureSlider.GetId()   : self.scanningPanel.onExposureChanged,
+						   self.scanningPanel.openSlider.GetId()       : self.scanningPanel.onOpenChanged,
+						   self.scanningPanel.thresholdSlider.GetId()  : self.scanningPanel.onThresholdChanged,
+						   self.scanningPanel.minRadiousSlider.GetId() : self.scanningPanel.onRadiousChanged,
+						   self.scanningPanel.maxRadiousSlider.GetId() : self.scanningPanel.onRadiousChanged,
+						   self.scanningPanel.minHeightSlider.GetId()  : self.scanningPanel.onHeightChanged,
+						   self.scanningPanel.maxHeightSlider.GetId()  : self.scanningPanel.onHeightChanged}
+
+		self.storyObjects = []
+		self.storyValues = []
+		self.flagFirstMove = True # When you drag the slider, the only undoable is the first position not the ones in between
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -103,47 +126,84 @@ class SettingsWorkbench(WorkbenchConnection):
 				pass
 
 	def onTimer(self, event):
-		frame = self.scanner.camera.captureImage()
+		frame = self.scanner.camera.captureImage(flush=False)
 		if frame is not None:
 			self.videoView.setFrame(frame)
 
-	def onPlayToolClicked(self, event):
+	def onPlayCalibrationToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
 			self.playing = True
-			self.enableLabelTool(self.playTool, False)
+			self.enableLabelTool(self.playCalibrationTool, False)
+			self.enableLabelTool(self.playScanningTool, True)
 			self.enableLabelTool(self.stopTool, True)
 			mseconds = 1000 / (self.scanner.camera.fps)
-			if self.cameraPanel.useDistortion:
+			if self.calibrationPanel.useDistortion:
 				mseconds *= 2.0
+			self.timer.Stop()
 			self.timer.Start(milliseconds=mseconds)
-			self.scanner.camera.setUseDistortion(self.cameraPanel.useDistortion)
+			self.scanner.camera.setUseDistortion(self.calibrationPanel.useDistortion)
+
+	def onPlayScanningToolClicked(self, event):
+		if self.scanner.camera.fps > 0:
+			self.playing = True
+			self.enableLabelTool(self.playCalibrationTool, True)
+			self.enableLabelTool(self.playScanningTool, False)
+			self.enableLabelTool(self.stopTool, True)
+			mseconds = 1000 / (self.scanner.camera.fps)
+			#if self.calibrationPanel.useDistortion:
+			mseconds *= 2.0
+			self.timer.Stop()
+			self.timer.Start(milliseconds=mseconds)
+			self.scanner.camera.setUseDistortion(True) #self.calibrationPanel.useDistortion)
 
 	def onStopToolClicked(self, event):
 		self.playing = False
-		self.enableLabelTool(self.playTool, True)
+		self.enableLabelTool(self.playCalibrationTool, True)
+		self.enableLabelTool(self.playScanningTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.timer.Stop()
 		self.videoView.setDefaultImage()
 
-	def onSnapshotToolClicked(self, event):
-		frame = self.scanner.camera.captureImage()
-		if frame is not None:
-			self.videoView.setFrame(frame)
+	def onUndoToolClicked(self, event):
+		self.enableLabelTool(self.undoTool, self.undo())
+
+	def appendToUndo(self, _object, _value):
+		if self.flagFirstMove:
+			self.storyObjects.append(_object)
+			self.storyValues.append(_value)
+			self.flagFirstMove = False
+
+	def releaseUndo(self, event):
+		self.flagFirstMove = True
+		self.enableLabelTool(self.undoTool, True)
+
+	def undo(self):
+		if len(self.storyObjects) > 0:
+			objectToUndo = self.storyObjects.pop()
+			valueToUndo = self.storyValues.pop()
+			objectToUndo.SetValue(valueToUndo)
+			self.updateValue(objectToUndo)
+		return len(self.storyObjects) > 0
+
+	def updateValue(self, objectToUndo):
+		self.flagFirstMove = False
+		self.undoEvents[objectToUndo.GetId()](None)
+		self.flagFirstMove = True
 
 	def updateToolbarStatus(self, status):
 		if status:
-			self.enableLabelTool(self.playTool     , True)
-			self.enableLabelTool(self.stopTool     , False)
-			self.enableLabelTool(self.snapshotTool , True)
-			self.cameraPanel.Enable()
-			self.devicePanel.Enable()
+			self.enableLabelTool(self.playCalibrationTool , True)
+			self.enableLabelTool(self.playScanningTool    , True)
+			self.enableLabelTool(self.stopTool            , False)
+			self.calibrationPanel.Enable()
+			self.scanningPanel.Enable()
 		else:
-			self.enableLabelTool(self.playTool     , False)
-			self.enableLabelTool(self.stopTool     , False)
-			self.enableLabelTool(self.snapshotTool , False)
-			self.cameraPanel.Disable()
-			self.devicePanel.Disable()
+			self.enableLabelTool(self.playCalibrationTool , False)
+			self.enableLabelTool(self.playScanningTool    , False)
+			self.enableLabelTool(self.stopTool            , False)
+			self.calibrationPanel.Disable()
+			self.scanningPanel.Disable()
 
 	def updateProfileToAllControls(self):
-		self.cameraPanel.updateProfileToAllControls()
-		self.devicePanel.updateProfileToAllControls()
+		self.calibrationPanel.updateProfileToAllControls()
+		self.scanningPanel.updateProfileToAllControls()

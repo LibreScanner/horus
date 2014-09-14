@@ -30,7 +30,6 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import wx
 
 from horus.util.profile import *
-from horus.util.resources import *
 
 from horus.engine.scanner import *
 
@@ -124,52 +123,43 @@ class CameraPanel(wx.Panel):
         self.Centre()
 
         #-- Events
-        self.brightnessSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.release)
+        self.brightnessSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.main.releaseUndo)
         self.brightnessSlider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onBrightnessChanged)
-        self.contrastSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE,self.release)
+        self.contrastSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE,self.main.releaseUndo)
         self.contrastSlider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onContrastChanged)
-        self.saturationSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.release)
+        self.saturationSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.main.releaseUndo)
         self.saturationSlider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onSaturationChanged)
-        self.exposureSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.release)
+        self.exposureSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.main.releaseUndo)
         self.exposureSlider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onExposureChanged)
         self.frameRateCombo.Bind(wx.EVT_COMBOBOX, self.OnSelectFrame)
         self.resolutionCombo.Bind(wx.EVT_COMBOBOX, self.OnSelectResolution)
         self.useDistortionCheckBox.Bind(wx.EVT_CHECKBOX, self.onUseDistortionChanged)
         self.restoreButton.Bind(wx.EVT_BUTTON, self.restoreDefault)
 
-        self.undoEvents = {self.brightnessSlider.GetId() : self.onBrightnessChanged,
-                           self.contrastSlider.GetId()   : self.onContrastChanged,
-                           self.saturationSlider.GetId() : self.onSaturationChanged,
-                           self.exposureSlider.GetId()   : self.onExposureChanged}
-
-        self.storyObjects=[]
-        self.storyValues=[]
-        self.flagFirstMove=True # When you drag the slider, the only undoable is the first position not the ones in between
-
     def onBrightnessChanged(self, event):
         if event is not None:
-            self.firstMove(event.GetEventObject(), getProfileSettingInteger('brightness_control'))
+            self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('brightness_control'))
         value = self.brightnessSlider.GetValue()
         putProfileSetting('brightness_control', value)
         self.scanner.camera.setBrightness(value)
 
     def onContrastChanged(self, event):
         if event is not None:
-            self.firstMove(event.GetEventObject(), getProfileSettingInteger('contrast_control'))
+            self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('contrast_control'))
         value = self.contrastSlider.GetValue()
         putProfileSetting('contrast_control', value)
         self.scanner.camera.setContrast(value)
 
     def onSaturationChanged(self, event):
         if event is not None:
-            self.firstMove(event.GetEventObject(), getProfileSettingInteger('saturation_control'))
+            self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('saturation_control'))
         value = self.saturationSlider.GetValue()
         putProfileSetting('saturation_control', value)
         self.scanner.camera.setSaturation(value)
 
     def onExposureChanged(self, event):
         if event is not None:
-            self.firstMove(event.GetEventObject(), getProfileSettingInteger('exposure_control'))
+            self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('exposure_control'))
         value = self.exposureSlider.GetValue() 
         putProfileSetting('exposure_control', value)
         self.scanner.camera.setExposure(value)
@@ -195,30 +185,6 @@ class CameraPanel(wx.Panel):
         self.reloadVideo()
         self.scanner.camera.setUseDistortion(self.useDistortion)
 
-    #-- Undo/Redo logic
-    def release(self, event):
-        self.flagFirstMove = True
-        self.main.enableLabelTool(self.main.undoTool, True)
-
-    def firstMove(self, _object, _value):
-        if self.flagFirstMove:
-            self.storyObjects.append(_object)
-            self.storyValues.append(_value)
-            self.flagFirstMove = False
-
-    def Undo(self):
-        if len(self.storyObjects) > 0:
-            objectToUndo = self.storyObjects.pop()
-            valueToUndo = self.storyValues.pop()
-            objectToUndo.SetValue(valueToUndo)
-            self.updateValue(objectToUndo)
-        return len(self.storyObjects) > 0
-
-    def updateValue(self, objectToUndo):
-        self.flagFirstMove = False
-        self.undoEvents[objectToUndo.GetId()](None)
-        self.flagFirstMove = True
-
     def restoreDefault(self, event):
         dlg = wx.MessageDialog(self, _("This will reset control camera settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Control reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
@@ -242,6 +208,7 @@ class CameraPanel(wx.Panel):
             mseconds = 1000 / self.scanner.camera.fps
             if self.useDistortion:
                 mseconds *= 2.0
+            self.main.timer.Stop()
             self.main.timer.Start(milliseconds=mseconds)
 
     def updateProfileToAllControls(self):
@@ -299,11 +266,11 @@ class DevicePanel(wx.Panel):
         motorControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         stepDegreesLabel = wx.StaticText(self, label=_(u"Slice Step (º)"))
-        self.stepDegreesText = wx.TextCtrl(self, value=getProfileSetting('step_degrees_control'))
+        self.stepDegreesText = wx.TextCtrl(self)
         feedRateLabel = wx.StaticText(self, label=_(u"Feed Rate (º/s)"))
-        self.feedRateText = wx.TextCtrl(self, value=getProfileSetting('feed_rate_control'))
+        self.feedRateText = wx.TextCtrl(self)
         accelerationLabel = wx.StaticText(self, label=_(u"Acceleration (º/s^2)"))
-        self.accelerationText = wx.TextCtrl(self, value=getProfileSetting('acceleration_control'))
+        self.accelerationText = wx.TextCtrl(self)
 
         self.motorEnableButton = wx.ToggleButton(self, -1, _("Enable"))
         self.motorMoveButton = wx.Button(self, -1, _("Move"))

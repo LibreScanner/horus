@@ -38,6 +38,8 @@ from horus.engine.device import *
 
 from horus.util.singleton import *
 
+from horus.util.profile import *
+
 @Singleton
 class Scanner:
 	"""Scanner class. For managing scanner"""
@@ -63,14 +65,15 @@ class Scanner:
 
 	def connect(self):
 		""" """
-		if self.camera.connect():
+		self.isConnected = self.camera.connect()
+		"""if self.camera.connect():
 			if self.device.connect():
 				self.isConnected = True
 			else:
 				self.camera.disconnect()
 				self.isConnected = False
 		else:
-			self.isConnected = False
+			self.isConnected = False"""
 		return self.isConnected
 		
 	def disconnect(self):
@@ -172,6 +175,11 @@ class Scanner:
 			end = datetime.datetime.now()
 			
 			print "Process: {0}. Theta = {1}".format(end - begin, self.theta)
+
+		import numpy as np
+		np.set_printoptions(threshold=np.nan)
+		uvPointCloud = str((self.core.uCoordinates, self.core.vCoordinates))
+		putProfileSetting('uv_left_pointcloud', uvPointCloud)
 
 	def isPointCloudQueueEmpty(self):
 		return self.pointCloudQueue.empty()
