@@ -141,8 +141,8 @@ class Core:
 		self.Yw = (Rt[1,0] * Xc + Rt[1,1] * Yc + Rt[1,2] * Zc - RT[1]).T
 		self.Zw = (Rt[2,0] * Xc + Rt[2,1] * Yc + Rt[2,2] * Zc - RT[2]).T
 
-		self.uCoordinates = []
-		self.vCoordinates = []
+		"""self.uCoordinates = []
+		self.vCoordinates = []"""
 
 
 	def setResolution(self, width, height):
@@ -217,8 +217,8 @@ class Core:
 		self.imgLine = np.zeros_like(imageRaw)
 		self.imgLine[v,l] = 255.0
 
-		self.uCoordinates += [v]
-		self.vCoordinates += [l]
+		"""self.uCoordinates += [v]
+		self.vCoordinates += [l]"""
 
 		#-- Obtaining point cloud
 		xw = self.Xw[v,l]

@@ -256,7 +256,7 @@ setting('laser_depth', 315.0, float, 'advanced', _('Laser Depth'))
 setting('rotation_matrix', ([[0,-1,0],[0,0,-1],[-1,0,0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
 setting('translation_vector', ([0.0,85.0,315.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
 
-setting('uv_left_pointcloud', '', str, 'advanced', _('UV Left Pointcloud'))
+"""setting('uv_left_pointcloud', '', str, 'advanced', _('UV Left Pointcloud'))"""
 
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))

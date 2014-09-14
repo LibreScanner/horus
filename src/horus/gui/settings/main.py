@@ -46,6 +46,8 @@ class SettingsWorkbench(WorkbenchConnection):
 		self.playingCalibration = False
 		self.playingScanning = False
 
+		self.showVideoViews = False
+
 		self.scanner = Scanner.Instance()
 		self.calibration = Calibration.Instance()
 
@@ -117,6 +119,40 @@ class SettingsWorkbench(WorkbenchConnection):
 		self.storyValues = []
 		self.flagFirstMove = True # When you drag the slider, the only undoable is the first position not the ones in between
 
+		#-- Video View Selector
+		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
+		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(10,15+40))
+		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+80))
+		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(10,15+120))
+		self.buttonBin  = wx.RadioButton(self.videoView, wx.NewId(), _("Binary"), pos=(10,15+160))
+		self.buttonLine = wx.RadioButton(self.videoView, wx.NewId(), _("Line"), pos=(10,15+200))
+
+		self.buttonShowVideoViews.Hide()
+		self.buttonRaw.Hide()
+		self.buttonLas.Hide()
+		self.buttonDiff.Hide()
+		self.buttonBin.Hide()
+		self.buttonLine.Hide()
+
+		self.buttonRaw.SetForegroundColour(wx.WHITE)
+		self.buttonLas.SetForegroundColour(wx.WHITE)
+		self.buttonDiff.SetForegroundColour(wx.WHITE)
+		self.buttonBin.SetForegroundColour(wx.WHITE)
+		self.buttonLine.SetForegroundColour(wx.WHITE)
+
+		self.buttonRaw.SetBackgroundColour(wx.BLACK)
+		self.buttonLas.SetBackgroundColour(wx.BLACK)
+		self.buttonDiff.SetBackgroundColour(wx.BLACK)
+		self.buttonBin.SetBackgroundColour(wx.BLACK)
+		self.buttonLine.SetBackgroundColour(wx.BLACK)
+
+		self.Bind(wx.EVT_BUTTON, self.onShowVideoViews, self.buttonShowVideoViews)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonRaw)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLas)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonDiff)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateStatus(self.scanner.isConnected)
@@ -126,19 +162,44 @@ class SettingsWorkbench(WorkbenchConnection):
 			except:
 				pass
 
+	def onShowVideoViews(self, event):
+		self.showVideoViews = not self.showVideoViews
+		if self.showVideoViews:
+			self.buttonRaw.Show()
+			self.buttonLas.Show()
+			self.buttonDiff.Show()
+			self.buttonBin.Show()
+			self.buttonLine.Show()
+		else:
+			self.buttonRaw.Hide()
+			self.buttonLas.Hide()
+			self.buttonDiff.Hide()
+			self.buttonBin.Hide()
+			self.buttonLine.Hide()
+
 	def onTimer(self, event):
 		self.timer.Stop()
-		frame = self.scanner.camera.captureImage(flush=False)
-		if frame is not None:
-			if self.playingCalibration:
+		if self.playingCalibration:
+			frame = self.scanner.camera.captureImage(flush=False)
+			if frame is not None:
 				retval, frame = self.calibration.detectChessboard(frame)
-			self.videoView.setFrame(frame)
+				self.videoView.setFrame(frame)
+		elif self.playingScanning:
+			frame = self.scanner.core.getImage()
+			if frame is not None:
+				self.videoView.setFrame(frame)
 		self.timer.Start(milliseconds=1)
 
 	def onPlayCalibrationToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
 			self.calibrationPanel.Enable()
 			self.scanningPanel.Disable()
+			self.buttonShowVideoViews.Hide()
+			self.buttonRaw.Hide()
+			self.buttonLas.Hide()
+			self.buttonDiff.Hide()
+			self.buttonBin.Hide()
+			self.buttonLine.Hide()
 			self.playingCalibration = True
 			self.playingScanning = False
 			self.enableLabelTool(self.playCalibrationTool, False)
@@ -146,12 +207,14 @@ class SettingsWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.stopTool, True)
 			self.timer.Stop()
 			self.calibrationPanel.updateProfileToAllControls()
+			self.scanner.stop()
 			self.timer.Start(milliseconds=1)
 
 	def onPlayScanningToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
 			self.calibrationPanel.Disable()
 			self.scanningPanel.Enable()
+			self.buttonShowVideoViews.Show()
 			self.playingCalibration = False
 			self.playingScanning = True
 			self.enableLabelTool(self.playCalibrationTool, True)
@@ -159,17 +222,25 @@ class SettingsWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.stopTool, True)
 			self.timer.Stop()
 			self.scanningPanel.updateProfileToAllControls()
+			self.scanner.start()
 			self.timer.Start(milliseconds=1)
 
 	def onStopToolClicked(self, event):
 		self.calibrationPanel.Disable()
 		self.scanningPanel.Disable()
+		self.buttonShowVideoViews.Hide()
+		self.buttonRaw.Hide()
+		self.buttonLas.Hide()
+		self.buttonDiff.Hide()
+		self.buttonBin.Hide()
+		self.buttonLine.Hide()
 		self.playingCalibration = False
 		self.playingScanning = False
 		self.enableLabelTool(self.playCalibrationTool, True)
 		self.enableLabelTool(self.playScanningTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.timer.Stop()
+		self.scanner.stop()
 		self.videoView.setDefaultImage()
 
 	def onUndoToolClicked(self, event):
@@ -197,6 +268,15 @@ class SettingsWorkbench(WorkbenchConnection):
 		self.flagFirstMove = False
 		self.undoEvents[objectToUndo.GetId()](None)
 		self.flagFirstMove = True
+
+	def onSelectVideoView(self, event):
+		selectedView = {self.buttonRaw.GetId()  : 'raw',
+						self.buttonLas.GetId()  : 'las',
+						self.buttonDiff.GetId() : 'diff',
+						self.buttonBin.GetId()  : 'bin',
+						self.buttonLine.GetId() : 'line'}.get(event.GetId())
+		profile.putProfileSetting('img_type', selectedView)
+		self.scanner.core.setImageType(selectedView)
 
 	def updateToolbarStatus(self, status):
 		if status:

@@ -521,6 +521,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
               'calibration' : self.calibrationWorkbench,
               'scanning'    : self.scanningWorkbench}
 
+        if currentWorkbench == 'settings':
+            self.scanner.moveMotor = False
+            self.scanner.generatePointCloud = False
+        else:
+            self.scanner.moveMotor = True
+            self.scanner.generatePointCloud = True
+
         for key in wb:
             if wb[key] is not None:
                 if key == currentWorkbench:

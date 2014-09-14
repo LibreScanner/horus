@@ -565,7 +565,12 @@ class ScanningPanel(wx.Panel):
     	pass
 
     def onMotorApplyClicked(self, event):
-    	pass
+        if self.stepDegreesText.GetValue() is not None and len(self.stepDegreesText.GetValue()) > 0:
+            putProfileSetting('step_degrees_control', float((self.stepDegreesText.GetValue()).replace(',','.')))
+        if self.feedRateText.GetValue() is not None and len(self.feedRateText.GetValue()) > 0:
+            putProfileSetting('feed_rate_control', int(self.feedRateText.GetValue()))
+        if self.accelerationText.GetValue() is not None and len(self.accelerationText.GetValue()) > 0:
+            putProfileSetting('acceleration_control', int(self.accelerationText.GetValue()))
 
     def restoreDefault(self, event):
         dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
