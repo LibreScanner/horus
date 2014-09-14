@@ -44,7 +44,7 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import sys
 import os
 import struct
-import time
+import numpy as np
 
 from horus.util import model
 
@@ -72,22 +72,24 @@ def _loadAscii(m, f):
 def _loadBinary(m, f):
 	#Skip the header
 	f.read(80-5)
-	faceCount = struct.unpack('<I', f.read(4))[0]
-	m._prepareFaceCount(faceCount)
-	for idx in xrange(0, faceCount):
-		data = struct.unpack("<ffffffffffffH", f.read(50))
-		m._addFace(data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11])
+	count = struct.unpack('<I', f.read(4))[0]
+
+	dtype = np.dtype([
+			('n', np.float32,(3,)),
+			('v', np.float32,(9,)),
+			('atttr', '<i2',(1,))])
+
+	data = np.fromfile(f, dtype=dtype , count=count)
+	
+	m.vertexCount = 3 * count
+	m.vertexes = np.reshape(data['v'], (m.vertexCount, 3))
 
 def loadScene(filename):
 	obj = model.Model(filename)
 	m = obj._addMesh()
-
 	f = open(filename, "rb")
 	if f.read(5).lower() == "solid":
 		_loadAscii(m, f)
-		if m.vertexCount < 3:
-			f.seek(5, os.SEEK_SET)
-			_loadBinary(m, f)
 	else:
 		_loadBinary(m, f)
 	f.close()
