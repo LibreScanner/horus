@@ -43,7 +43,8 @@ class SettingsWorkbench(WorkbenchConnection):
 	def __init__(self, parent):
 		WorkbenchConnection.__init__(self, parent)
 
-		self.playing = False
+		self.playingCalibration = False
+		self.playingScanning = False
 
 		self.scanner = Scanner.Instance()
 		self.calibration = Calibration.Instance()
@@ -126,38 +127,45 @@ class SettingsWorkbench(WorkbenchConnection):
 				pass
 
 	def onTimer(self, event):
+		self.timer.Stop()
 		frame = self.scanner.camera.captureImage(flush=False)
 		if frame is not None:
+			if self.playingCalibration:
+				retval, frame = self.calibration.detectChessboard(frame)
 			self.videoView.setFrame(frame)
+		self.timer.Start(milliseconds=1)
 
 	def onPlayCalibrationToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
-			self.playing = True
+			self.calibrationPanel.Enable()
+			self.scanningPanel.Disable()
+			self.playingCalibration = True
+			self.playingScanning = False
 			self.enableLabelTool(self.playCalibrationTool, False)
 			self.enableLabelTool(self.playScanningTool, True)
 			self.enableLabelTool(self.stopTool, True)
-			mseconds = 1000 / (self.scanner.camera.fps)
-			if self.calibrationPanel.useDistortion:
-				mseconds *= 2.0
 			self.timer.Stop()
-			self.timer.Start(milliseconds=mseconds)
-			self.scanner.camera.setUseDistortion(self.calibrationPanel.useDistortion)
+			self.calibrationPanel.updateProfileToAllControls()
+			self.timer.Start(milliseconds=1)
 
 	def onPlayScanningToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
-			self.playing = True
+			self.calibrationPanel.Disable()
+			self.scanningPanel.Enable()
+			self.playingCalibration = False
+			self.playingScanning = True
 			self.enableLabelTool(self.playCalibrationTool, True)
 			self.enableLabelTool(self.playScanningTool, False)
 			self.enableLabelTool(self.stopTool, True)
-			mseconds = 1000 / (self.scanner.camera.fps)
-			#if self.calibrationPanel.useDistortion:
-			mseconds *= 2.0
 			self.timer.Stop()
-			self.timer.Start(milliseconds=mseconds)
-			self.scanner.camera.setUseDistortion(True) #self.calibrationPanel.useDistortion)
+			self.scanningPanel.updateProfileToAllControls()
+			self.timer.Start(milliseconds=1)
 
 	def onStopToolClicked(self, event):
-		self.playing = False
+		self.calibrationPanel.Disable()
+		self.scanningPanel.Disable()
+		self.playingCalibration = False
+		self.playingScanning = False
 		self.enableLabelTool(self.playCalibrationTool, True)
 		self.enableLabelTool(self.playScanningTool, True)
 		self.enableLabelTool(self.stopTool, False)
@@ -195,14 +203,10 @@ class SettingsWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.playCalibrationTool , True)
 			self.enableLabelTool(self.playScanningTool    , True)
 			self.enableLabelTool(self.stopTool            , False)
-			self.calibrationPanel.Enable()
-			self.scanningPanel.Enable()
 		else:
 			self.enableLabelTool(self.playCalibrationTool , False)
 			self.enableLabelTool(self.playScanningTool    , False)
 			self.enableLabelTool(self.stopTool            , False)
-			self.calibrationPanel.Disable()
-			self.scanningPanel.Disable()
 
 	def updateProfileToAllControls(self):
 		self.calibrationPanel.updateProfileToAllControls()

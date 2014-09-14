@@ -160,7 +160,7 @@ class CalibrationPanel(wx.Panel):
         if event is not None:
             self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('exposure_calibration'))
         value = self.exposureSlider.GetValue() 
-        putProfileSetting('exposure_control', value)
+        putProfileSetting('exposure_calibration', value)
         self.scanner.camera.setExposure(value)
 
     def onSelectFrame(self, event):
@@ -181,11 +181,12 @@ class CalibrationPanel(wx.Panel):
     def onUseDistortionChanged(self, event):
         self.useDistortion = self.useDistortionCheckBox.GetValue()
         putProfileSetting('use_distortion_calibration', self.useDistortion)
-        self.reloadVideo()
+        self.main.timer.Stop()
         self.scanner.camera.setUseDistortion(self.useDistortion)
+        self.reloadVideo()
 
     def restoreDefault(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset control calibration settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Control reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset calibration settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Calibration Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -202,12 +203,8 @@ class CalibrationPanel(wx.Panel):
 
     def reloadVideo(self):
         self.main.timer.Stop()
-        if self.main.playing and self.scanner.camera.fps > 0:
-            mseconds = 1000 / self.scanner.camera.fps
-            if self.useDistortion:
-                mseconds *= 2.0
-            self.main.timer.Stop()
-            self.main.timer.Start(milliseconds=mseconds)
+        if self.main.playingCalibration or self.main.playingScanning:
+            self.main.timer.Start(milliseconds=1)
 
     def updateProfileToAllControls(self):
         brightness = getProfileSettingInteger('brightness_calibration')
@@ -571,7 +568,7 @@ class ScanningPanel(wx.Panel):
     	pass
 
     def restoreDefault(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset control calibration settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Control reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -602,12 +599,8 @@ class ScanningPanel(wx.Panel):
 
     def reloadVideo(self):
         self.main.timer.Stop()
-        if self.main.playing and self.scanner.camera.fps > 0:
-            mseconds = 1000 / self.scanner.camera.fps
-            if self.useDistortion:
-                mseconds *= 2.0
-            self.main.timer.Stop()
-            self.main.timer.Start(milliseconds=mseconds)
+        if self.main.playingScanning or self.main.playingScanning:
+            self.main.timer.Start(milliseconds=1)
 
     def updateProfileToAllControls(self):
         brightness = getProfileSettingInteger('brightness_scanning')

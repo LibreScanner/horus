@@ -114,21 +114,20 @@ class ControlWorkbench(WorkbenchConnection):
 				pass
 
 	def onTimer(self, event):
+		self.timer.Stop()
 		frame = self.scanner.camera.captureImage()
 		if frame is not None:
 			self.videoView.setFrame(frame)
+		self.timer.Start(milliseconds=1)
 
 	def onPlayToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
 			self.playing = True
 			self.enableLabelTool(self.playTool, False)
 			self.enableLabelTool(self.stopTool, True)
-			mseconds = 1000 / (self.scanner.camera.fps)
-			if self.cameraPanel.useDistortion:
-				mseconds *= 2.0
 			self.timer.Stop()
-			self.timer.Start(milliseconds=mseconds)
 			self.scanner.camera.setUseDistortion(self.cameraPanel.useDistortion)
+			self.timer.Start(milliseconds=1)
 
 	def onStopToolClicked(self, event):
 		self.playing = False

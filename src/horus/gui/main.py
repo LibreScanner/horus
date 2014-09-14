@@ -468,7 +468,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCoreProfile(profile.getPreference('workbench'))
 
     def updateCoreProfile(self, workbench):
-        if workbench in ['scanning']:
+        if workbench in ['settings', 'scanning']:
             self.scanner.core.initialize(profile.getProfileSetting('img_type'),
                                          profile.getProfileSettingBool('open'),
                                          profile.getProfileSettingInteger('open_value'),
@@ -493,7 +493,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCalibrationProfile(profile.getPreference('workbench'))
 
     def updateCalibrationProfile(self, workbench):
-        if workbench in ['calibration']:
+        if workbench in ['settings', 'calibration']:
             self.calibration.initialize(profile.getProfileSettingNumpy('camera_matrix'),
                                         profile.getProfileSettingNumpy('distortion_vector'),
                                         profile.getProfileSettingInteger('pattern_rows'),

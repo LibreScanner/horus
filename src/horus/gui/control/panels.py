@@ -205,11 +205,7 @@ class CameraPanel(wx.Panel):
     def reloadVideo(self):
         self.main.timer.Stop()
         if self.main.playing and self.scanner.camera.fps > 0:
-            mseconds = 1000 / self.scanner.camera.fps
-            if self.useDistortion:
-                mseconds *= 2.0
-            self.main.timer.Stop()
-            self.main.timer.Start(milliseconds=mseconds)
+            self.main.timer.Start(milliseconds=1)
 
     def updateProfileToAllControls(self):
         brightness = getProfileSettingInteger('brightness_control')
