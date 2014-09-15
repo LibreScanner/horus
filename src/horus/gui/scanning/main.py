@@ -33,7 +33,6 @@ from horus.util.resources import *
 from horus.gui.util.imageView import *
 from horus.gui.util.sceneView import *
 from horus.gui.util.workbench import *
-from horus.gui.scanning.panels import *
 
 class ScanningWorkbench(WorkbenchConnection):
 
@@ -63,14 +62,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , self.pauseTool)
 		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
 
-		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(270,-1))
-		self.scrollPanel.SetAutoLayout(1)
-		self.scrollPanel.SetupScrolling(scroll_x=False)
-		self.videoPanel = VideoPanel(self.scrollPanel)
-		self.scenePanel = ScenePanel(self.scrollPanel)
-		self.videoPanel.Disable()
-		self.scenePanel.Disable()
-
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 		self.splitterWindow.SetBackgroundColour(wx.GREEN)
 
@@ -83,13 +74,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.splitterWindow.SetMinimumPaneSize(200)
 
 		#-- Layout
-		vsbox = wx.BoxSizer(wx.VERTICAL)
-		vsbox.Add(self.videoPanel, 0, wx.ALL|wx.EXPAND, 2)
-		vsbox.Add(self.scenePanel, 0, wx.ALL|wx.EXPAND, 2)
-		self.scrollPanel.SetSizer(vsbox)
-		vsbox.Fit(self.scrollPanel)
-
-		#self.addToPanel(self.scrollPanel, 0)
 		self.addToPanel(self.splitterWindow, 1)
 
 		#-- Video View Selector
@@ -200,16 +184,12 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.resumeTool, True)
 			self.enableLabelTool(self.pauseTool , False)
-			self.videoPanel.Enable()
-			self.scenePanel.Enable()
 			self.buttonShowVideoViews.Show()
 		else:
 			self.enableLabelTool(self.playTool  , False)
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.resumeTool, False)
 			self.enableLabelTool(self.pauseTool , False)
-			self.videoPanel.Disable()
-			self.scenePanel.Disable()
 			self.buttonShowVideoViews.Hide()
 			self.buttonRaw.Hide()
 			self.buttonLas.Hide()
@@ -218,5 +198,4 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.buttonLine.Hide()
 
 	def updateProfileToAllControls(self):
-		self.videoPanel.updateProfileToAllControls()
-		self.scenePanel.updateProfileToAllControls()
+		pass

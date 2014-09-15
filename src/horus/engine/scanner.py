@@ -38,6 +38,8 @@ from horus.engine.device import *
 
 from horus.util.singleton import *
 
+from horus.util.profile import *
+
 @Singleton
 class Scanner:
 	"""Scanner class. For managing scanner"""
@@ -45,8 +47,13 @@ class Scanner:
 	def __init__(self):
 		""" """
 		self.isConnected = False
+		self.isRunning = False
 
 		self.useLeftLaser = True
+		self.useRightLaser = False
+
+		self.moveMotor = True
+		self.generatePointCloud = True
 
 		self.core = Core()
 
@@ -93,25 +100,33 @@ class Scanner:
 		
 		self.t1.start()
 		self.t2.start()
+
+		self.isRunning = True
 		
 	def stop(self):
 		""" """
-		self.captureFlag = False
-		self.processFlag = False
-		
-		self.t1.shutdown = True
-		self.t2.shutdown = True
-		
-		#self.t1.join()
-		self.t2.join()
+		if self.isRunning:
+			self.captureFlag = False
+			self.processFlag = False
+			
+			self.t1.shutdown = True
+			self.t2.shutdown = True
+			
+			#self.t1.join()
+			self.t2.join()
+
+			self.isRunning = False
 
 	def captureThread(self):
 		""" """
 		#-- Initialize angle
 		self.theta = 0
 
-		self.device.setSpeedMotor(1)
-		self.device.enable()
+		if self.moveMotor:
+			self.device.setSpeedMotor(1)
+			self.device.enable()
+		else:
+			self.device.disable()
 
 		while self.captureFlag:
 			begin = datetime.datetime.now()
@@ -120,31 +135,34 @@ class Scanner:
 
 			if self.useLeftLaser:
 				self.device.setLeftLaserOff()
-			else:
+			if self.useRightLaser:
 				self.device.setRightLaserOff()
-
 			imgRaw = self.camera.captureImage(flush=True, flushValue=2)
 
 			if self.useLeftLaser:
 				self.device.setLeftLaserOn()
-			else:
-				self.device.setRightLaserOn()
+				imgLas = self.camera.captureImage(flush=True, flushValue=2)
 
-			imgLas = self.camera.captureImage(flush=True, flushValue=2)
+			if self.useRightLaser:
+				self.device.setRightLaserOn()
+				imgLas = self.camera.captureImage(flush=True, flushValue=2)
 
 			#-- Move motor
-			self.device.setRelativePosition(self.degrees)
-			self.device.setMoveMotor()
-
+			if self.moveMotor:
+				self.device.setRelativePosition(self.degrees)
+				self.device.setMoveMotor()
+				time.sleep(0.1)
+			else:
+				time.sleep(0.2)
+			
 			#-- Put images into the queue
 			self.imageQueue.put((imgRaw, imgLas))
 			
-			print self.degrees
-			
-			#-- Check stop condition
-			self.theta += self.degrees
-			if abs(self.theta) >= 360:
-				self.stop()
+			if self.generatePointCloud:
+				#-- Check stop condition
+				self.theta += self.degrees
+				if abs(self.theta) >= 360:
+					self.stop()
 			
 			end = datetime.datetime.now()
 			print "Capture: {0}. Theta: {1}".format(end - begin, self.theta)
@@ -162,16 +180,22 @@ class Scanner:
 			self.imageQueue.task_done()
 
 			begin = datetime.datetime.now()
-			
+
 			#-- Generate Point Cloud
 			points, colors = self.core.getPointCloud(images[0], images[1])
 
-			#-- Put point cloud into the queue
-			self.pointCloudQueue.put((points, colors))
+			if self.generatePointCloud:
+				#-- Put point cloud into the queue
+				self.pointCloudQueue.put((points, colors))
 
 			end = datetime.datetime.now()
 			
 			print "Process: {0}. Theta = {1}".format(end - begin, self.theta)
+
+		"""import numpy as np
+		np.set_printoptions(threshold=np.nan)
+		uvPointCloud = str((self.core.uCoordinates, self.core.vCoordinates))
+		putProfileSetting('uv_left_pointcloud', uvPointCloud)"""
 
 	def isPointCloudQueueEmpty(self):
 		return self.pointCloudQueue.empty()

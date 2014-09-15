@@ -468,7 +468,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCoreProfile(profile.getPreference('workbench'))
 
     def updateCoreProfile(self, workbench):
-        if workbench in ['scanning']:
+        if workbench in ['settings', 'scanning']:
             self.scanner.core.initialize(profile.getProfileSetting('img_type'),
                                          profile.getProfileSettingBool('open'),
                                          profile.getProfileSettingInteger('open_value'),
@@ -479,7 +479,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                          profile.getProfileSettingInteger('max_rho'),
                                          profile.getProfileSettingInteger('min_h'),
                                          profile.getProfileSettingInteger('max_h'),
-                                         profile.getProfileSettingInteger('z_offset'),
                                          profile.getProfileSettingFloat('step_degrees_scanning'),
                                          profile.getProfileSettingInteger('camera_height_scanning'),
                                          profile.getProfileSettingInteger('camera_width_scanning'),
@@ -494,7 +493,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCalibrationProfile(profile.getPreference('workbench'))
 
     def updateCalibrationProfile(self, workbench):
-        if workbench in ['calibration']:
+        if workbench in ['settings', 'calibration']:
             self.calibration.initialize(profile.getProfileSettingNumpy('camera_matrix'),
                                         profile.getProfileSettingNumpy('distortion_vector'),
                                         profile.getProfileSettingInteger('pattern_rows'),
@@ -521,6 +520,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
               'settings'    : self.settingsWorkbench,
               'calibration' : self.calibrationWorkbench,
               'scanning'    : self.scanningWorkbench}
+
+        if currentWorkbench == 'settings':
+            self.scanner.moveMotor = False
+            self.scanner.generatePointCloud = False
+        else:
+            self.scanner.moveMotor = True
+            self.scanner.generatePointCloud = True
 
         for key in wb:
             if wb[key] is not None:

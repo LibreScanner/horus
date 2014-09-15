@@ -94,6 +94,16 @@ class ControlWorkbench(WorkbenchConnection):
 		self.addToPanel(self.scrollPanel, 0)
 		self.addToPanel(self.videoView, 1)
 
+		#-- Undo
+		self.undoEvents = {self.cameraPanel.brightnessSlider.GetId() : self.cameraPanel.onBrightnessChanged,
+						   self.cameraPanel.contrastSlider.GetId()   : self.cameraPanel.onContrastChanged,
+						   self.cameraPanel.saturationSlider.GetId() : self.cameraPanel.onSaturationChanged,
+						   self.cameraPanel.exposureSlider.GetId()   : self.cameraPanel.onExposureChanged}
+
+		self.storyObjects = []
+		self.storyValues = []
+		self.flagFirstMove = True # When you drag the slider, the only undoable is the first position not the ones in between
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateStatus(self.scanner.isConnected)
@@ -104,20 +114,20 @@ class ControlWorkbench(WorkbenchConnection):
 				pass
 
 	def onTimer(self, event):
+		self.timer.Stop()
 		frame = self.scanner.camera.captureImage()
 		if frame is not None:
 			self.videoView.setFrame(frame)
+		self.timer.Start(milliseconds=1)
 
 	def onPlayToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
 			self.playing = True
 			self.enableLabelTool(self.playTool, False)
 			self.enableLabelTool(self.stopTool, True)
-			mseconds = 1000 / (self.scanner.camera.fps)
-			if self.cameraPanel.useDistortion:
-				mseconds *= 2.0
-			self.timer.Start(milliseconds=mseconds)
+			self.timer.Stop()
 			self.scanner.camera.setUseDistortion(self.cameraPanel.useDistortion)
+			self.timer.Start(milliseconds=1)
 
 	def onStopToolClicked(self, event):
 		self.playing = False
@@ -132,7 +142,30 @@ class ControlWorkbench(WorkbenchConnection):
 			self.videoView.setFrame(frame)
 
 	def onUndoToolClicked(self, event):
-		self.enableLabelTool(self.undoTool, self.cameraPanel.Undo())
+		self.enableLabelTool(self.undoTool, self.undo())
+
+	def appendToUndo(self, _object, _value):
+		if self.flagFirstMove:
+			self.storyObjects.append(_object)
+			self.storyValues.append(_value)
+			self.flagFirstMove = False
+
+	def releaseUndo(self, event):
+		self.flagFirstMove = True
+		self.enableLabelTool(self.undoTool, True)
+
+	def undo(self):
+		if len(self.storyObjects) > 0:
+			objectToUndo = self.storyObjects.pop()
+			valueToUndo = self.storyValues.pop()
+			objectToUndo.SetValue(valueToUndo)
+			self.updateValue(objectToUndo)
+		return len(self.storyObjects) > 0
+
+	def updateValue(self, objectToUndo):
+		self.flagFirstMove = False
+		self.undoEvents[objectToUndo.GetId()](None)
+		self.flagFirstMove = True
 
 	def updateToolbarStatus(self, status):
 		if status:
