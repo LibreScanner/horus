@@ -54,12 +54,12 @@ class Scanner:
 		self.imageQueue = Queue.Queue(1000)
 		self.pointCloudQueue = Queue.Queue(10000)
 
-	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", degrees=0.45, delay=800):
+	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", baudRate=9600, degrees=0.45):
 		""" """
 		self.degrees = degrees
 		self.core.setDegrees(degrees)
 		self.camera = Camera(cameraId)
-		self.device = Device(serialName)
+		self.device = Device(serialName, baudRate)
 
 	def connect(self):
 		""" """

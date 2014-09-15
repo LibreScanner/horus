@@ -30,10 +30,8 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import wx._core
 
 import os
-import time
 
 from horus.util import profile, resources, meshLoader
-from horus.util.avrHelpers import AvrDude
 
 from horus.gui.control.main import ControlWorkbench
 from horus.gui.settings.main import SettingsWorkbench
@@ -462,7 +460,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateScannerProfile(self):
         self.scanner.initialize(int(profile.getProfileSetting('camera_id')[-1:]),
-                                profile.getProfileSetting('serial_name'))
+                                profile.getProfileSetting('serial_name'),
+                                profile.getProfileSettingInteger('baud_rate'))
 
     def updateCameraCurrentProfile(self):
         self.updateCameraProfile(profile.getPreference('workbench'))
@@ -520,16 +519,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                         profile.getProfileSettingInteger('pattern_columns'),
                                         profile.getProfileSettingInteger('square_width'),
                                         profile.getProfileSettingInteger('use_distortion_calibration'))
-
-    def updateFirmware(self):
-        avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'))
-        stdout, stderr = avr_dude.flash(hex_path=resources.getPathForFirmware("eeprom_clear.hex"), extra_flags=["-D"])
-        print stdout
-        print stderr
-        time.sleep(4) #-- time to clear eeprom
-        stdout, stderr = avr_dude.flash(hex_path=resources.getPathForFirmware("horus.hex"), extra_flags=["-D"])
-        print stdout
-        print stderr
 
     def workbenchUpdate(self):
         """ """
