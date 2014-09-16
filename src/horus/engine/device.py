@@ -46,12 +46,13 @@ class Device:
 
 	"""
   
-	def __init__(self, serialName='/dev/ttyACM0'):
+	def __init__(self, serialName='/dev/ttyACM0', baudRate=9600):
 		""" """
 		print ">>> Initializing device ..."
 		print " - Serial Name: {0}".format(serialName)
 		self.serialName = serialName
 		self.serialPort = None
+		self.baudRate = baudRate
 		self._position = 0
    		print ">>> Done"
 
@@ -59,7 +60,7 @@ class Device:
 		""" Opens serial port and performs handshake"""
 		print ">>> Connecting device ..."
 		try:
-			self.serialPort = serial.Serial(self.serialName, 9600, timeout=2)
+			self.serialPort = serial.Serial(self.serialName, self.baudRate, timeout=2)
 			if self.serialPort.isOpen():
 
 				#-- Force Reset and flush

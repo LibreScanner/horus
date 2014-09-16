@@ -31,6 +31,9 @@ import wx
 
 import os
 import glob
+import time
+
+from horus.util.avrHelpers import AvrDude
 
 from horus.util.profile import *
 from horus.util.resources import *
@@ -56,16 +59,27 @@ class PreferencesDialog(wx.Dialog):
 		self.languages = [row[1] for row in getLanguageOptions()]
 		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=getPreference('language') , size=(110,-1))
 
+		self.boardLabel = wx.StaticText(self, label=_("Board"))
+		self.boards = ['UNO', 'BT-328']
+		baudRate = getProfileSettingInteger('baud_rate')
+		if baudRate == 9600:
+			value = 'UNO'
+		elif baudRate == 115200:
+			value = 'BT-328'
+		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=value , size=(110,-1))
+		self.uploadFirmwareButton = wx.Button(self, -1, _("Upload Firmware"))
+		self.clearEEPROMButton = wx.Button(self, -1, _("Clear EEPROM"))
 
-		self.updateFirmware = wx.Button(self, -1, _("Update Firmware"))
 		self.okButton = wx.Button(self, -1, _("Ok"))
 
 		#-- Events
 		self.serialNameCombo.Bind(wx.EVT_TEXT, self.onSerialNameTextChanged)
 		self.cameraIdCombo.Bind(wx.EVT_TEXT, self.onCameraIdTextChanged)
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
+		self.boardsCombo.Bind(wx.EVT_COMBOBOX, self.onBoardsComboChanged)
+		self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
+		self.clearEEPROMButton.Bind(wx.EVT_BUTTON, self.onClearEEPROM)
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Close())
-		self.updateFirmware.Bind(wx.EVT_BUTTON, self.onUpdateFirmware)
 
 		#-- Fill data
 		currentSerial = getProfileSetting('serial_name')
@@ -108,7 +122,15 @@ class PreferencesDialog(wx.Dialog):
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
 
-		vbox.Add(self.updateFirmware, 0, wx.ALL, 10) 
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.boardLabel, 0, wx.ALL, 10)
+		hbox.Add(self.boardsCombo, 0, wx.ALL, 5)
+		vbox.Add(hbox)
+
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.uploadFirmwareButton, 0, wx.ALL, 10)
+		hbox.Add(self.clearEEPROMButton, 0, wx.ALL, 10)
+		vbox.Add(hbox)
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
 
@@ -127,8 +149,35 @@ class PreferencesDialog(wx.Dialog):
 		if len(self.cameraIdCombo.GetValue()) > 0:
 			putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
 
-	def onUpdateFirmware(self, event):
-		self.main.updateFirmware()
+	def onBoardsComboChanged(self, event):
+		if self.boardsCombo.GetValue() == 'UNO':
+			baudRate = 9600
+		elif self.boardsCombo.GetValue() == 'BT-328':
+			baudRate = 115200
+		putProfileSetting('baud_rate', baudRate)
+		self.main.updateScannerProfile()
+
+	def onUploadFirmware(self, event):
+		if self.boardsCombo.GetValue() == 'UNO':
+			baudRate = 115200
+			hexPath = getPathForFirmware("horus-fw-uno.hex")
+		elif self.boardsCombo.GetValue() == 'BT-328':
+			baudRate = 19200
+			hexPath = getPathForFirmware("horus-fw-bt328.hex")
+		self.loadFirmware(hexPath, baudRate)
+
+	def onClearEEPROM(self, event):
+		if self.boardsCombo.GetValue() == 'UNO':
+			baudRate = 115200
+		elif self.boardsCombo.GetValue() == 'BT-328':
+			baudRate = 19200
+		self.loadFirmware(getPathForFirmware("eeprom_clear.hex"), baudRate)
+
+	def loadFirmware(self, hexPath, hexBaudRate):
+		avr_dude = AvrDude(port=getProfileSetting('serial_name'), baud_rate=hexBaudRate)
+		stdout, stderr = avr_dude.flash(hex_path=hexPath, extra_flags=["-D"])
+		print stdout
+		print stderr
 
 	def onLanguageComboChanged(self, event):
 		if getPreference('language') is not self.languageCombo.GetValue():
