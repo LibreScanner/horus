@@ -194,7 +194,7 @@ class Calibration:
 					R = ret[1]
 					z = ret[2][2]
 					corners = ret[3]
-					distance = linalg.norm(R-I)
+					distance = linalg.norm(R-I) ## TODO: z[2] - |z|
 					if distance < epsilon or distanceAnt < distance:
 						break
 					distanceAnt = distance

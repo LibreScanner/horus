@@ -167,7 +167,7 @@ class CameraPanel(wx.Panel):
     def OnSelectFrame(self, event):
         value = int(self.frameRateCombo.GetValue())
         putProfileSetting('framerate_control', value)
-        self.scanner.camera.setFps(value)
+        self.scanner.camera.setFrameRate(value)
         self.reloadVideo()
         
     def OnSelectResolution(self, event):
@@ -176,8 +176,7 @@ class CameraPanel(wx.Panel):
         w = int(resolution.split(',')[0])
         putProfileSetting('camera_width_control', w)
         putProfileSetting('camera_height_control', h)
-        self.scanner.camera.setWidth(w)
-        self.scanner.camera.setHeight(h)
+        self.scanner.camera.setResolution(w, h)
 
     def onUseDistortionChanged(self, event):
         self.useDistortion = self.useDistortionCheckBox.GetValue()
@@ -226,14 +225,13 @@ class CameraPanel(wx.Panel):
 
         framerate = getProfileSettingInteger('framerate_control')
         self.frameRateCombo.SetValue(str(framerate))
-        self.scanner.camera.setFps(framerate)
+        self.scanner.camera.setFrameRate(framerate)
 
         camera_width = getProfileSettingInteger('camera_width_control')
         camera_height = getProfileSettingInteger('camera_height_control')
         resolution=(camera_width, camera_height)
         self.resolutionCombo.SetValue(str(resolution))
-        self.scanner.camera.setWidth(camera_width)
-        self.scanner.camera.setHeight(camera_height)
+        self.scanner.camera.setResolution(camera_width, camera_height)
 
         self.useDistortion = getProfileSettingBool('use_distortion_control')
         self.useDistortionCheckBox.SetValue(self.useDistortion)

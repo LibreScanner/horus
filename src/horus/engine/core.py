@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March & August 2014                                             #
+# Date: March & September 2014                                          #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -35,6 +35,9 @@ class Core:
 	""" """
 	def __init__(self):
 		""" """
+		self._initialize()
+
+	def _initialize(self):
 		self.points = None
 		self.colors = None
 		
@@ -47,107 +50,14 @@ class Core:
 		self.points = None
 		self.colors = None
 
-	def initialize(self, imgType='raw',
-						 openEnable=True,
-						 openValue=2,
-						 threholdEnable=True,
-						 thresholdValue=30,
-						 useCompact=True,
-						 rhoMin=-100,
-						 rhoMax=100,
-						 hMin=0,
-						 hMax=200,
-						 degrees=0.45,
-						 width=600,
-						 height=800,
-						 alpha=30.0,
-						 calibrationMatrix=None,
-						 laserCoordinates=None,
-						 laserDepth=None,
-						 rotationMatrix=None,
-						 translationVector=None,
-						 useLeftLaser=True):
-
-		#-- Image type parameters
-		self.imgType = imgType
-
-		#-- Image Processing Parameters
-
-		self.openEnable = openEnable
-		self.openValue = openValue
-
-		self.thresholdEnable = threholdEnable
-		self.thresholdValue = thresholdValue
-
-		#-- Point Cloud Parameters
-		self.useCompact = useCompact
-
-		self.rhoMin = rhoMin
-		self.rhoMax = rhoMax
-		self.hMin = hMin
-		self.hMax = hMax
-
-		self.theta = 0
-
-		self.degrees = degrees
-
-		self.setResolution(width, height)
-
-		self.W = np.ones((height,width))*np.linspace(0,width-1,width)
-
-		#-- Constant Parameters initialization
 		self.rad = math.pi / 180.0
 
-		self.alpha = alpha
-		
-		alpha = self.alpha * self.rad
+	def resetTheta(self):
+		self.theta = 0
 
-		#-- Calibration parameters
-		if calibrationMatrix is not None:
-			fx = calibrationMatrix[0][0]
-			fy = calibrationMatrix[1][1]
-			cx = calibrationMatrix[0][2]
-			cy = calibrationMatrix[1][2]
-
-		if laserCoordinates is not None:
-			u11 = laserCoordinates[0][0]
-			u12 = laserCoordinates[0][1]
-			u21 = laserCoordinates[1][0]
-			u22 = laserCoordinates[1][1]
-
-		if laserDepth is not None:
-			z = laserDepth
-
-		#-- Determine point cloud X, Y, Z matrices in camera coordinates
-
-		zl = z * (1 + (u11 - cx + ((u12-u11)/height) * np.linspace(0,height-1,height)) / (fx * math.tan(alpha)))
-
-		a = (np.linspace(0,width-1,width) - cx) / fx
-		b = (np.linspace(0,height-1,height) - cy) / fy
-
-		Zc = ((np.ones((width,height)) * zl).T * (1. / (1 + a / math.tan(alpha)))).T
-		Xc = (a * Zc.T).T
-		Yc = b * Zc
-
-		#-- Move point cloud matrices to world coordinates
-
-		R = np.matrix(rotationMatrix)
-		T = np.matrix(translationVector)
-
-		Rt = R.T
-		RT = R.T*T.T
-
-		self.Xw = (Rt[0,0] * Xc + Rt[0,1] * Yc + Rt[0,2] * Zc - RT[0]).T
-		self.Yw = (Rt[1,0] * Xc + Rt[1,1] * Yc + Rt[1,2] * Zc - RT[1]).T
-		self.Zw = (Rt[2,0] * Xc + Rt[2,1] * Yc + Rt[2,2] * Zc - RT[2]).T
-
-		"""self.uCoordinates = []
-		self.vCoordinates = []"""
-
-
-	def setResolution(self, width, height):
-		self.width = width
-		self.height = height
+	def setImageType(self, imgType):
+		""" """
+		self.imgType = imgType
 
 	def setOpen(self, enable, value):
 		self.openEnable = enable
@@ -167,7 +77,43 @@ class Core:
 		self.hMax = hMax
 
 	def setDegrees(self, degrees):
-		self.degrees = degrees
+		self.degrees = degrees * self.rad
+
+	def setResolution(self, width, height):
+		self.width = width
+		self.height = height
+		self.W = np.ones((height,width))*np.linspace(0,width-1,width)
+
+	def setUseLaser(self, useLeft, useRight):
+		self.useLeftLaser = useLeft
+		self.useRightLaser = useRight
+
+	def setLaserAngles(self, angleLeft, angleRight):
+		self.alphaLeft = angleLeft * self.rad
+		self.alphaRight = angleRight * self.rad
+
+	def setIntrinsics(self, cameraMatrix, distortionVector):
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
+		if cameraMatrix is not None:
+			self.fx = cameraMatrix[0][0]
+			self.fy = cameraMatrix[1][1]
+			self.cx = cameraMatrix[0][2]
+			self.cy = cameraMatrix[1][2]
+
+	def setLaserTriangulation(self, laserCoordinates, laserDepth):
+		self.laserCoordinates = laserCoordinates
+		self.laserDepth = laserDepth
+		if laserCoordinates is not None:
+			self.u1L = laserCoordinates[0][0]
+			self.u2L = laserCoordinates[0][1]
+			self.u1R = laserCoordinates[1][0]
+			self.u2R = laserCoordinates[1][1]
+		self.z = laserDepth
+
+	def setExtrinsics(self, rotationMatrix, translationVector):
+		self.rotationMatrix = rotationMatrix
+		self.translationVector = translationVector
 
 	def getImage(self):
 		""" """
@@ -177,10 +123,6 @@ class Core:
 				 'bin' : self.imgBin,
 				 'line' : self.imgLine
 				}[self.imgType]
-
-	def setImageType(self, imgType):
-		""" """
-		self.imgType = imgType
 
 	def getDiffImage(self, img1, img2):
 		""" """
@@ -202,35 +144,61 @@ class Core:
 
 		return image
 
-	def pointCloudGeneration(self, imageRaw, imageBin):
+	def pointCloudGeneration(self, imageRaw, imageBin, leftLaser=True):
 		""" """
 		#-- Line generation
 		s = imageBin.sum(1)
-		v = np.nonzero(s)[0]
+		v = np.where((s > 1))[0]
 		if self.useCompact:
 			i = imageBin.argmax(1)
-			l = ((i + (s/255.-1) / 2.)[v]).T.astype(int)
+			u = ((i + (s/255.-1) / 2.)[v]).T.astype(int)
 		else:
 			w = (self.W * imageBin).sum(1)
-			l = (w[v] / s[v].T).astype(int)
+			u = (w[v] / s[v].T).astype(int)
 
 		self.imgLine = np.zeros_like(imageRaw)
-		self.imgLine[v,l] = 255.0
+		self.imgLine[v,u] = 255.0
 
-		"""self.uCoordinates += [v]
-		self.vCoordinates += [l]"""
+		#-- Obtaining point cloud in camera coordinates
+		if leftLaser:
+			zl = self.z * (1 + (self.u1L - self.cx + ((self.u2L-self.u1L)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * math.tan(self.alphaLeft)))
+		else:
+			zl = self.z * (1 + (self.u1R - self.cx + ((self.u2R-self.u1R)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * math.tan(self.alphaRight)))
 
-		#-- Obtaining point cloud
-		xw = self.Xw[v,l]
-		yw = self.Yw[v,l]
-		zw = self.Zw[v,l]
-		thetaR = self.theta * self.rad
-		x = np.array(xw * math.cos(thetaR) - yw * math.sin(thetaR))
-		y = np.array(xw * math.sin(thetaR) + yw * math.cos(thetaR))
+		##TODO: Optimize
+
+		a = (np.linspace(0,self.width-1,self.width) - self.cx) / self.fx
+		b = (np.linspace(0,self.height-1,self.height) - self.cy) / self.fy
+
+		if leftLaser:
+			Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / math.tan(self.alphaLeft)))).T
+		else:
+			Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / math.tan(self.alphaRight)))).T
+		Xc = (a * Zc.T).T
+		Yc = b * Zc
+
+		#-- Move point cloud to world coordinates
+		R = np.matrix(self.rotationMatrix)
+		Rt = R.T
+		RT = R.T*np.matrix(self.translationVector).T
+
+		self.Xw = (Rt[0,0] * Xc + Rt[0,1] * Yc + Rt[0,2] * Zc - RT[0]).T
+		self.Yw = (Rt[1,0] * Xc + Rt[1,1] * Yc + Rt[1,2] * Zc - RT[1]).T
+		self.Zw = (Rt[2,0] * Xc + Rt[2,1] * Yc + Rt[2,2] * Zc - RT[2]).T
+
+		xw = self.Xw[v,u]
+		yw = self.Yw[v,u]
+		zw = self.Zw[v,u]
+
+		#-- Rotating point cloud
+		x = np.array(xw * math.cos(self.theta) - yw * math.sin(self.theta))
+		y = np.array(xw * math.sin(self.theta) + yw * math.cos(self.theta))
 		z = np.array(zw)
+
+		#-- Return result
 		if z.size > 0:
 			points = np.concatenate((x,y,z)).reshape(3,z.size).T
-			colors = np.copy(imageRaw[v,l])
+			colors = np.copy(imageRaw[v,u])
 			rho = np.sqrt(x*x + y*y)
 			return points, colors, rho, z
 		else:
@@ -246,31 +214,61 @@ class Core:
 
 		return points[idx], colors[idx]
 
-	def getPointCloud(self, imageRaw, imageLas):
+	def getPointCloud(self, imageRaw=None, imageLaserLeft=None, imageLaserRight=None):
 		""" """
- 		#-- Update Raw, Laser and Diff images
-		self.imgRaw = imageRaw
-		self.imgLas = imageLas
-		imgDiff = self.getDiffImage(imageLas, imageRaw)
-		self.imgDiff = cv2.merge((imgDiff,imgDiff,imgDiff))
+		#-- Check images
+		if (imageRaw is not None) and not (self.useLeftLaser^(imageLaserLeft is not None)) and not (self.useRightLaser^(imageLaserRight is not None)):
 
-		imgBin = self.imageProcessing(imgDiff)
+			self.imgRaw = imageRaw
 
-		self.imgBin = cv2.merge((imgBin,imgBin,imgBin))
+			if self.useLeftLaser:
+				self.imgLas = imageLaserLeft
+				imgDiff = self.getDiffImage(imageLaserLeft, imageRaw)
+				self.imgDiff = cv2.merge((imgDiff,imgDiff,imgDiff))
 
-		points, colors, rho, z = self.pointCloudGeneration(imageRaw, imgBin)
+				imgBin = self.imageProcessing(imgDiff)
+				self.imgBin = cv2.merge((imgBin,imgBin,imgBin))
 
-		if points != None and colors != None:
-			points, colors = self.pointCloudFilter(points, colors, rho, z)
+				points, colors, rho, z = self.pointCloudGeneration(imageRaw, imgBin, True)
 
-		if points != None and colors != None:
-			if self.points == None and self.colors == None:
-				self.points = points
-				self.colors = colors
-			else:
-				self.points = np.concatenate((self.points, points))
-				self.colors = np.concatenate((self.colors, colors))
+				if points != None and colors != None:
+					points, colors = self.pointCloudFilter(points, colors, rho, z)
 
- 		self.theta += self.degrees
+				if points != None and colors != None:
+					if self.points == None and self.colors == None:
+						self.points = points
+						self.colors = colors
+					else:
+						self.points = np.concatenate((self.points, points))
+						self.colors = np.concatenate((self.colors, colors))
 
-		return points, colors
+			if self.useRightLaser:
+				self.imgLas = imageLaserRight
+				imgDiff = self.getDiffImage(imageLaserRight, imageRaw)
+				self.imgDiff = cv2.merge((imgDiff,imgDiff,imgDiff))
+
+				imgBin = self.imageProcessing(imgDiff)
+				self.imgBin = cv2.merge((imgBin,imgBin,imgBin))
+
+				points, colors, rho, z = self.pointCloudGeneration(imageRaw, imgBin, False)
+
+				if points != None and colors != None:
+					points, colors = self.pointCloudFilter(points, colors, rho, z)
+
+				if points != None and colors != None:
+					if self.points == None and self.colors == None:
+						self.points = points
+						self.colors = colors
+					else:
+						self.points = np.concatenate((self.points, points))
+						self.colors = np.concatenate((self.colors, colors))
+
+			#-- Update images
+
+			#-- Update Theta
+	 		self.theta += self.degrees
+
+			return points, colors
+
+		else:
+			return None, None
