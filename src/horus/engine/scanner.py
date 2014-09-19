@@ -58,10 +58,8 @@ class Scanner:
 		self.imageQueue = Queue.Queue(1000)
 		self.pointCloudQueue = Queue.Queue(10000)
 
-	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", baudRate=9600, degrees=0.45):
+	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", baudRate=9600):
 		""" """
-		self.degrees = degrees
-		self.core.setDegrees(degrees)
 		self.camera = Camera(cameraId)
 		self.device = Device(serialName, baudRate)
 
@@ -152,9 +150,9 @@ class Scanner:
 
 			#-- Move motor
 			if self.moveMotor:
-				self.device.setRelativePosition(self.degrees)
+				self.device.setRelativePosition(self.core.degrees)
 				self.device.setMoveMotor()
-				time.sleep(0.05)
+				time.sleep(0.1)
 			else:
 				time.sleep(0.2)
 			
@@ -163,7 +161,7 @@ class Scanner:
 			
 			if self.generatePointCloud:
 				#-- Check stop condition
-				self.theta += self.degrees
+				self.theta += self.core.degrees
 				if abs(self.theta) >= 360:
 					self.stop()
 			

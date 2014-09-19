@@ -77,7 +77,7 @@ class Core:
 		self.hMax = hMax
 
 	def setDegrees(self, degrees):
-		self.degrees = degrees * self.rad
+		self.degrees = degrees
 
 	def setResolution(self, width, height):
 		self.width = width
@@ -266,7 +266,7 @@ class Core:
 			#-- Update images
 
 			#-- Update Theta
-	 		self.theta += self.degrees
+	 		self.theta -= self.degrees * self.rad
 
 			return points, colors
 
