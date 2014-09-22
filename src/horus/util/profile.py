@@ -269,6 +269,7 @@ setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden')
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
 setting('workbench', 'main', ['main', 'control', 'settings', 'calibration', 'scanning'], 'preference', 'hidden')
+setting('basic_mode', True, bool, 'preference', 'hidden')
 setting('view_control_panel', True, bool, 'preference', 'hidden')
 setting('view_control_video', True, bool, 'preference', 'hidden')
 setting('view_settings_panel', True, bool, 'preference', 'hidden')

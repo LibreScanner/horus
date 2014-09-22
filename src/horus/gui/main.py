@@ -105,9 +105,9 @@ class MainWindow(wx.Frame):
 
         #-- Menu Edit
         self.menuEdit = wx.Menu()
-        #self.menuBasicMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Basic Mode"))
-        #self.menuExpertMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Expert Mode"))
-        #self.menuEdit.AppendSeparator()
+        self.menuBasicMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Basic Mode"))
+        self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
+        self.menuEdit.AppendSeparator()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
         menuBar.Append(self.menuEdit, _("Edit"))
 
@@ -167,6 +167,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onResetProfile, menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
 
+        self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
+        self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
 
         self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
@@ -255,6 +257,9 @@ class MainWindow(wx.Frame):
 
     def onExit(self, event):
         self.Close(True)
+
+    def onModeChanged(self, event):
+        putPreference('basic_mode', self.menuBasicMode.IsChecked())
 
     def onPreferences(self, event):
         prefDialog = PreferencesDialog(self)
@@ -378,6 +383,11 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.controlWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
+
+        if getPreferenceBool('basic_mode'):
+            self.menuBasicMode.Check(True)
+        else:
+            self.menuAdvancedMode.Check(True)
 
         if getPreferenceBool('view_control_panel'):
             self.controlWorkbench.scrollPanel.Show()
