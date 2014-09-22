@@ -50,16 +50,16 @@ class ScanningWorkbench(WorkbenchConnection):
 		#-- Toolbar Configuration
 		self.playTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool       = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
 		self.pauseTool      = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("pause.png")), shortHelp=_("Pause"))
+		self.resumeTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
 		self.deleteTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked      , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked      , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , self.resumeTool)
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , self.pauseTool)
+		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , self.resumeTool)
 		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
 
 		self.splitterWindow = wx.SplitterWindow(self._panel)
@@ -112,6 +112,14 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		self.Layout()
 
+	def onShow(self, event):
+		if event.GetShow():
+			self.updateStatus(self.scanner.isConnected)
+			self.timer.Stop()
+			self.timer.Start(milliseconds=100)
+		else:
+			self.timer.Stop()
+
 	def onShowVideoViews(self, event):
 		self.showVideoViews = not self.showVideoViews
 		if self.showVideoViews:
@@ -152,6 +160,8 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onPlayToolClicked(self, event):
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
+		self.enableLabelTool(self.pauseTool , True)
+		self.enableLabelTool(self.resumeTool, False)
 		
 		self.sceneView.createDefaultObject()
 
@@ -160,20 +170,24 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onStopToolClicked(self, event):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
-		
-		self.scanner.stop()
-
-	def onResumeToolClicked(self, event):
-		self.enableLabelTool(self.pauseTool , True)
+		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, False)
 		
-		self.timer.Start(milliseconds=100)
+		self.scanner.stop()
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, True)
 		
+		self.scanner.pause()
 		self.timer.Stop()
+
+	def onResumeToolClicked(self, event):
+		self.enableLabelTool(self.pauseTool , True)
+		self.enableLabelTool(self.resumeTool, False)
+		
+		self.scanner.resume()
+		self.timer.Start(milliseconds=100)
 
 	def onDeleteToolClicked(self, event):
 		self.sceneView._clearScene()
@@ -182,14 +196,14 @@ class ScanningWorkbench(WorkbenchConnection):
 		if status:
 			self.enableLabelTool(self.playTool  , True)
 			self.enableLabelTool(self.stopTool  , False)
-			self.enableLabelTool(self.resumeTool, True)
 			self.enableLabelTool(self.pauseTool , False)
+			self.enableLabelTool(self.resumeTool, False)
 			self.buttonShowVideoViews.Show()
 		else:
 			self.enableLabelTool(self.playTool  , False)
 			self.enableLabelTool(self.stopTool  , False)
-			self.enableLabelTool(self.resumeTool, False)
 			self.enableLabelTool(self.pauseTool , False)
+			self.enableLabelTool(self.resumeTool, False)
 			self.buttonShowVideoViews.Hide()
 			self.buttonRaw.Hide()
 			self.buttonLas.Hide()

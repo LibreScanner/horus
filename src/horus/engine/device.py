@@ -170,4 +170,4 @@ class Device:
 			print "Serial port is not connected."
 
 	def _checkAcknowledge(self, ack):
-		return ack.endswith("\r\n") #ok
+		return ack.endswith("ok\r\n") #ok

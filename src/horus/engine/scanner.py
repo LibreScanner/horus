@@ -84,6 +84,8 @@ class Scanner:
 		
 	def start(self):
 		""" """
+		self.inactive = False
+
 		self.captureFlag = True
 		self.processFlag = True
 		
@@ -112,13 +114,20 @@ class Scanner:
 
 			self.isRunning = False
 
+	def pause(self):
+		self.inactive = True
+
+	def resume(self):
+		self.inactive = False
+
+
 	def captureThread(self):
 		""" """
 		#-- Initialize angle
 		self.theta = 0
 
 		if self.moveMotor:
-			self.device.setSpeedMotor(1)
+			self.device.setSpeedMotor(50)
 			self.device.enable()
 		else:
 			self.device.disable()
@@ -127,47 +136,55 @@ class Scanner:
 		self.device.setRightLaserOff()
 
 		while self.captureFlag:
-			begin = datetime.datetime.now()
+			if not self.inactive:
+				begin = datetime.datetime.now()
 
-			imgRaw = None
-			imgLaserLeft = None
-			imgLaserRight = None
+				imgRaw = None
+				imgLaserLeft = None
+				imgLaserRight = None
 
-			#-- Get images
-			if self.core.useLeftLaser:
-				self.device.setLeftLaserOff()
-			if self.core.useRightLaser:
-				self.device.setRightLaserOff()
-			imgRaw = self.camera.captureImage(flush=True, flushValue=2)
+				print "Capture begin"
 
-			if self.core.useLeftLaser:
-				self.device.setLeftLaserOn()
-				imgLaserLeft = self.camera.captureImage(flush=True, flushValue=2)
+				#-- Get images
+				if self.core.useLeftLaser:
+					self.device.setLeftLaserOff()
+				if self.core.useRightLaser:
+					self.device.setRightLaserOff()
+				imgRaw = self.camera.captureImage(flush=True, flushValue=2)
 
-			if self.core.useRightLaser:
-				self.device.setRightLaserOn()
-				imgLaserRight = self.camera.captureImage(flush=True, flushValue=2)
+				if self.core.useLeftLaser:
+					self.device.setLeftLaserOn()
+					imgLaserLeft = self.camera.captureImage(flush=True, flushValue=1)
 
-			#-- Move motor
-			if self.moveMotor:
-				self.device.setRelativePosition(self.core.degrees)
-				self.device.setMoveMotor()
-				time.sleep(0.1)
+				if self.core.useRightLaser:
+					self.device.setRightLaserOn()
+					imgLaserRight = self.camera.captureImage(flush=True, flushValue=1)
+
+				#-- Move motor
+				if self.moveMotor:
+					if self.core.useLeftLaser:
+						self.device.setRelativePosition(-self.core.degrees)
+					else:
+						self.device.setRelativePosition(+self.core.degrees)
+					self.device.setMoveMotor()
+					#time.sleep(0.1)
+				else:
+					time.sleep(0.2)
+				
+				#-- Put images into the queue
+				self.imageQueue.put((imgRaw, imgLaserLeft, imgLaserRight))
+				
+				if self.generatePointCloud:
+					#-- Check stop condition
+					self.theta += self.core.degrees
+					if abs(self.theta) >= 360:
+						self.stop()
+				
+				end = datetime.datetime.now()
+				
+				print "Capture end: {0}. Theta: {1}".format(end - begin, self.theta)
 			else:
-				time.sleep(0.2)
-			
-			#-- Put images into the queue
-			self.imageQueue.put((imgRaw, imgLaserLeft, imgLaserRight))
-			
-			if self.generatePointCloud:
-				#-- Check stop condition
-				self.theta += self.core.degrees
-				if abs(self.theta) >= 360:
-					self.stop()
-			
-			end = datetime.datetime.now()
-			
-			print "Capture: {0}. Theta: {1}".format(end - begin, self.theta)
+				time.sleep(0.1)
 
 		self.device.setLeftLaserOff()
 		self.device.setRightLaserOff()
@@ -176,23 +193,28 @@ class Scanner:
 	def processThread(self):
 		""" """
 		while self.processFlag:
+			if not self.inactive:
 
-			#-- Get images
-			images = self.imageQueue.get()
-			self.imageQueue.task_done()
+				#print "Process begin"
 
-			begin = datetime.datetime.now()
+				#-- Get images
+				images = self.imageQueue.get()
+				self.imageQueue.task_done()
 
-			#-- Generate Point Cloud
-			points, colors = self.core.getPointCloud(images[0], images[1], images[2])
+				begin = datetime.datetime.now()
 
-			if self.generatePointCloud:
-				#-- Put point cloud into the queue
-				self.pointCloudQueue.put((points, colors))
+				#-- Generate Point Cloud
+				points, colors = self.core.getPointCloud(images[0], images[1], images[2])
 
-			end = datetime.datetime.now()
-			
-			print "Process: {0}. Theta = {1}".format(end - begin, self.theta)
+				if self.generatePointCloud:
+					#-- Put point cloud into the queue
+					self.pointCloudQueue.put((points, colors))
+
+				end = datetime.datetime.now()
+				
+				#print "Process end: {0}. Theta = {1}".format(end - begin, self.theta)
+			else:
+				time.sleep(0.1)
 
 	def isPointCloudQueueEmpty(self):
 		return self.pointCloudQueue.empty()

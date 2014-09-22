@@ -161,19 +161,22 @@ class Core:
 
 		#-- Obtaining point cloud in camera coordinates
 		if leftLaser:
-			zl = self.z * (1 + (self.u1L - self.cx + ((self.u2L-self.u1L)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * math.tan(self.alphaLeft)))
+			self.u1 = self.u1L
+			self.u2 = self.u2L
+			self.alpha = self.alphaLeft
 		else:
-			zl = self.z * (1 + (self.u1R - self.cx + ((self.u2R-self.u1R)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * math.tan(self.alphaRight)))
+			self.u1 = self.u1R
+			self.u2 = self.u2R
+			self.alpha = self.alphaRight
+
+		zl = self.z * (1 + (self.u1 - self.cx + ((self.u2-self.u1)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * math.tan(self.alpha)))
 
 		##TODO: Optimize
 
 		a = (np.linspace(0,self.width-1,self.width) - self.cx) / self.fx
 		b = (np.linspace(0,self.height-1,self.height) - self.cy) / self.fy
 
-		if leftLaser:
-			Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / math.tan(self.alphaLeft)))).T
-		else:
-			Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / math.tan(self.alphaRight)))).T
+		Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / math.tan(self.alpha)))).T
 		Xc = (a * Zc.T).T
 		Yc = b * Zc
 
@@ -266,7 +269,7 @@ class Core:
 			#-- Update images
 
 			#-- Update Theta
-	 		self.theta -= self.degrees * self.rad
+			self.theta -= self.degrees * self.rad
 
 			return points, colors
 
