@@ -218,11 +218,18 @@ setting('camera_width_scanning', 1280, int, 'advanced', _('Camera Width')).setRa
 setting('camera_height_scanning', 960, int, 'advanced', _('Camera Height')).setRange(1)
 setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
 
+setting('step_degrees_scanning', 0.45, float, 'advanced', _('Step Degrees')).setRange(0.01)
+setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 10000)
+setting('acceleration_scanning', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
+
+setting('use_left_laser', True, bool, 'advanced', _('Use Left Laser'))
+setting('use_right_laser', False, bool, 'advanced', _('Use Right Laser'))
+
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Image Type'))
 
-setting('open', True, bool, 'advanced', _('Open'))
+setting('use_open', True, bool, 'advanced', _('Open'))
 setting('open_value', 2, int, 'advanced', _('Open Value')).setRange(1, 10)
-setting('threshold', True, bool, 'advanced', _('Threshold'))
+setting('use_threshold', True, bool, 'advanced', _('Threshold'))
 setting('threshold_value', 30, int, 'advanced', _('Threshold Value')).setRange(0, 255)
 
 setting('use_compact', True, bool, 'advanced', _('Compact Algorithm'))
@@ -231,12 +238,23 @@ setting('max_rho', 100, int, 'advanced', _('Maximum Rho'))
 setting('min_h', 0, int, 'advanced', _('Minimum H'))
 setting('max_h', 200, int, 'advanced', _('Maximum H'))
 
-setting('use_left_laser', True, bool, 'advanced', _('Use Left Laser'))
-setting('use_right_laser', False, bool, 'advanced', _('Use Right Laser'))
+setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
+setting('laser_angle_right', 30.0, float, 'advanced', _('Laser Angle Right'))
 
-setting('step_degrees_scanning', 0.45, float, 'advanced', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 10000)
-setting('acceleration_scanning', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
+setting('camera_matrix', ([[1420,0,480],[0,1420,640],[0,0,1]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
+setting('distortion_vector',([0,0,0,0,0]),numpy.ndarray,'advanced',_('Distortion Vector'))
+
+setting('laser_coordinates', ([[480,480],[480,480]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
+setting('laser_depth', 315.0, float, 'advanced', _('Laser Depth'))
+
+setting('rotation_matrix', ([[0,-1,0],[0,0,-1],[-1,0,0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
+setting('translation_vector', ([0.0,85.0,315.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
+
+setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
+setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
+setting('square_width', 13, int, 'advanced', _('Square width'))
+
+"""setting('uv_left_pointcloud', '', str, 'advanced', _('UV Left Pointcloud'))"""
 
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'ciclop', str, 'machine', 'hidden')
@@ -246,22 +264,6 @@ setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum
 setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_("Machine center 0,0"), _("Machines firmware defines the center of the bed as 0,0 instead of the front left corner."))
 setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden').setLabel(_("Build area shape"), _("The shape of machine build area."))
 
-setting('laser_angle', 30.0, float, 'advanced', _('Laser Angle'))
-
-setting('camera_matrix', ([[1430,0,480],[0,1430,640],[0,0,1]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
-setting('distortion_vector',([0,0,0,0,0]),numpy.ndarray,'advanced',_('Distortion Vector'))
-
-setting('laser_coordinates', ([[480,480],[480,480]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
-setting('laser_depth', 315.0, float, 'advanced', _('Laser Depth'))
-
-setting('rotation_matrix', ([[0,-1,0],[0,0,-1],[-1,0,0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
-setting('translation_vector', ([0.0,85.0,315.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
-
-"""setting('uv_left_pointcloud', '', str, 'advanced', _('UV Left Pointcloud'))"""
-
-setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
-setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
-setting('square_width', 13, int, 'advanced', _('Square width'))
 
 ##-- Preferences
 

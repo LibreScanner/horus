@@ -141,24 +141,25 @@ class Device:
    
 	def setRightLaserOn(self):
 		"""Turns right laser on"""
-		self.sendCommand("M71T1", ret=False)
+		self.sendCommand("M71T2", ret=False)
 	 
 	def setLeftLaserOn(self):
 		"""Turns left laser on"""
-		self.sendCommand("M71T2", ret=False)
+		self.sendCommand("M71T1", ret=False)
 	
 	def setRightLaserOff(self):
 		"""Turns right laser off"""
-		self.sendCommand("M70T1", ret=False)
+		self.sendCommand("M70T2", ret=False)
 	 
 	def setLeftLaserOff(self):
 		"""Turns left laser off"""
-		self.sendCommand("M70T2", ret=False)
+		self.sendCommand("M70T1", ret=False)
 
 	def sendCommand(self, cmd, ret=True, readLines=False):
 		"""Sends the command"""
 		if self.serialPort is not None and self.serialPort.isOpen():
 			self.serialPort.flushInput()
+			self.serialPort.flushOutput()
 			self.serialPort.write(cmd+"\r\n")
 			if ret:
 				if readLines:
@@ -169,4 +170,4 @@ class Device:
 			print "Serial port is not connected."
 
 	def _checkAcknowledge(self, ack):
-		return ack.endswith("\r\n") #ok
+		return ack.endswith("ok\r\n") #ok

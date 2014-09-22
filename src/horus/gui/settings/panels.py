@@ -166,7 +166,7 @@ class CalibrationPanel(wx.Panel):
     def onSelectFrame(self, event):
         value = int(self.frameRateCombo.GetValue())
         putProfileSetting('framerate_calibration', value)
-        self.scanner.camera.setFps(value)
+        self.scanner.camera.setFrameRate(value)
         self.reloadVideo()
         
     def onSelectResolution(self, event):
@@ -175,8 +175,7 @@ class CalibrationPanel(wx.Panel):
         w = int(resolution.split(',')[0])
         putProfileSetting('camera_width_calibration', w)
         putProfileSetting('camera_height_calibration', h)
-        self.scanner.camera.setWidth(w)
-        self.scanner.camera.setHeight(h)
+        self.scanner.camera.setResolution(w, h)
 
     def onUseDistortionChanged(self, event):
         self.useDistortion = self.useDistortionCheckBox.GetValue()
@@ -225,14 +224,13 @@ class CalibrationPanel(wx.Panel):
 
         framerate = getProfileSettingInteger('framerate_calibration')
         self.frameRateCombo.SetValue(str(framerate))
-        self.scanner.camera.setFps(framerate)
+        self.scanner.camera.setFrameRate(framerate)
 
         camera_width = getProfileSettingInteger('camera_width_calibration')
         camera_height = getProfileSettingInteger('camera_height_calibration')
         resolution=(camera_width, camera_height)
         self.resolutionCombo.SetValue(str(resolution))
-        self.scanner.camera.setWidth(camera_width)
-        self.scanner.camera.setHeight(camera_height)
+        self.scanner.camera.setResolution(camera_width, camera_height)
 
         self.useDistortion = getProfileSettingBool('use_distortion_calibration')
         self.useDistortionCheckBox.SetValue(self.useDistortion)
@@ -295,8 +293,8 @@ class ScanningPanel(wx.Panel):
 
         laserStaticText = wx.StaticText(self, wx.ID_ANY, _("Laser"), style=wx.ALIGN_CENTRE)
         laserStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-        self.laserList = [_("Use Left Laser"), _("Use Right Laser"), _("Use Both Lasers")]
-        self.laserCombo = wx.ComboBox(self, -1, size=(200, -1), choices=self.laserList, style=wx.CB_READONLY)
+        self.laserOptions = [_("Use Left Laser"), _("Use Right Laser")] #, _("Use Both Lasers")]
+        self.laserCombo = wx.ComboBox(self, -1, size=(200, -1), choices=self.laserOptions, style=wx.CB_READONLY)
 
         motorStaticText = wx.StaticText(self, wx.ID_ANY, _("Motor"), style=wx.ALIGN_CENTRE)
         motorStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
@@ -487,7 +485,7 @@ class ScanningPanel(wx.Panel):
     def onSelectFrame(self, event):
         value = int(self.frameRateCombo.GetValue())
         putProfileSetting('framerate_scanning', value)
-        self.scanner.camera.setFps(value)
+        self.scanner.camera.setFrameRate(value)
         self.reloadVideo()
         
     def onSelectResolution(self, event):
@@ -496,8 +494,7 @@ class ScanningPanel(wx.Panel):
         w = int(resolution.split(',')[0])
         putProfileSetting('camera_width_scanning', w)
         putProfileSetting('camera_height_scanning', h)
-        self.scanner.camera.setWidth(w)
-        self.scanner.camera.setHeight(h)
+        self.scanner.camera.setResolution(w, h)
 
     def onUseDistortionChanged(self, event):
         self.useDistortion = self.useDistortionCheckBox.GetValue()
@@ -510,7 +507,7 @@ class ScanningPanel(wx.Panel):
             self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('open_value'))
         enable = self.openCheckBox.IsChecked()
         value = self.openSlider.GetValue()
-        putProfileSetting('open', enable)
+        putProfileSetting('use_open', enable)
         putProfileSetting('open_value', value)
         self.scanner.core.setOpen(enable, value)
 
@@ -519,7 +516,7 @@ class ScanningPanel(wx.Panel):
             self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('threshold_value'))
         enable = self.thresholdCheckBox.IsChecked()
         value = self.thresholdSlider.GetValue()
-        putProfileSetting('threshold', enable)
+        putProfileSetting('use_threshold', enable)
         putProfileSetting('threshold_value', value)
         self.scanner.core.setThreshold(enable, value)
 
@@ -562,15 +559,31 @@ class ScanningPanel(wx.Panel):
                                          int(self.maxHeightSlider.GetValue()))
 
     def onSelectLaser(self, event):
-    	pass
+    	value = self.laserCombo.GetValue()
+
+        if value == self.laserOptions[0]:
+            putProfileSetting('use_left_laser', True)
+            putProfileSetting('use_right_laser', False)
+            self.scanner.core.setUseLaser(True, False)
+
+        elif value == self.laserOptions[1]:
+            putProfileSetting('use_left_laser', False)
+            putProfileSetting('use_right_laser', True)
+            self.scanner.core.setUseLaser(False, True)
+
+        elif value == self.laserOptions[2]:
+            putProfileSetting('use_left_laser', True)
+            putProfileSetting('use_right_laser', True)
+            self.scanner.core.setUseLaser(True, True)
 
     def onMotorApplyClicked(self, event):
         if self.stepDegreesText.GetValue() is not None and len(self.stepDegreesText.GetValue()) > 0:
-            putProfileSetting('step_degrees_control', float((self.stepDegreesText.GetValue()).replace(',','.')))
+            putProfileSetting('step_degrees_scanning', float((self.stepDegreesText.GetValue()).replace(',','.')))
         if self.feedRateText.GetValue() is not None and len(self.feedRateText.GetValue()) > 0:
-            putProfileSetting('feed_rate_control', int(self.feedRateText.GetValue()))
+            putProfileSetting('feed_rate_scanning', int(self.feedRateText.GetValue()))
         if self.accelerationText.GetValue() is not None and len(self.accelerationText.GetValue()) > 0:
-            putProfileSetting('acceleration_control', int(self.accelerationText.GetValue()))
+            putProfileSetting('acceleration_scanning', int(self.accelerationText.GetValue()))
+        #self.scanner.core.setDegrees(getProfileSettingFloat('step_degrees_scanning'))
 
     def restoreDefault(self, event):
         dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -585,20 +598,20 @@ class ScanningPanel(wx.Panel):
             resetProfileSetting('camera_width_scanning')
             resetProfileSetting('camera_height_scanning')
             resetProfileSetting('use_distortion_scanning')
-            resetProfileSetting('open')
+            resetProfileSetting('step_degrees_scanning')
+            resetProfileSetting('feed_rate_scanning')
+            resetProfileSetting('acceleratin_scanning')
+            resetProfileSetting('use_left_laser')
+            resetProfileSetting('use_right_laser')
+            resetProfileSetting('use_open')
             resetProfileSetting('open_value')
-            resetProfileSetting('threshold')
+            resetProfileSetting('use_threshold')
             resetProfileSetting('threshold_value')
             resetProfileSetting('use_compact')
             resetProfileSetting('min_rho')
             resetProfileSetting('max_rho')
             resetProfileSetting('min_h')
             resetProfileSetting('max_h')
-            resetProfileSetting('use_left_laser')
-            resetProfileSetting('use_right_laser')
-            resetProfileSetting('step_degrees_scanning')
-            resetProfileSetting('feed_rate_scanning')
-            resetProfileSetting('acceleratin_scanning')
             self.updateProfileToAllControls()
             self.reloadVideo()
 
@@ -626,41 +639,47 @@ class ScanningPanel(wx.Panel):
 
         framerate = getProfileSettingInteger('framerate_scanning')
         self.frameRateCombo.SetValue(str(framerate))
-        self.scanner.camera.setFps(framerate)
+        self.scanner.camera.setFrameRate(framerate)
 
         camera_width = getProfileSettingInteger('camera_width_scanning')
         camera_height = getProfileSettingInteger('camera_height_scanning')
         resolution=(camera_width, camera_height)
         self.resolutionCombo.SetValue(str(resolution))
-        self.scanner.camera.setWidth(camera_width)
-        self.scanner.camera.setHeight(camera_height)
+        self.scanner.camera.setResolution(camera_width, camera_height)
 
         self.useDistortion = getProfileSettingBool('use_distortion_scanning')
         self.useDistortionCheckBox.SetValue(self.useDistortion)
         self.scanner.camera.setUseDistortion(self.useDistortion)
 
-        self.openCheckBox.SetValue(getProfileSettingBool('open'))
-        self.openSlider.SetValue(getProfileSettingInteger('open_value'))
-        ## set to core
+        useOpen = getProfileSettingBool('use_open')
+        openValue = getProfileSettingInteger('open_value')
+        self.openCheckBox.SetValue(useOpen)
+        self.openSlider.SetValue(openValue)
+        self.scanner.core.setOpen(useOpen, openValue)
 
-        self.thresholdCheckBox.SetValue(getProfileSettingBool('threshold'))
-        self.thresholdSlider.SetValue(getProfileSettingInteger('threshold_value'))
-        ## set to core
+        useThreshold = getProfileSettingBool('use_threshold')
+        thresholdValue = getProfileSettingInteger('threshold_value')
+        self.thresholdCheckBox.SetValue(useThreshold)
+        self.thresholdSlider.SetValue(thresholdValue)
+        self.scanner.core.setThreshold(useThreshold, thresholdValue)
 
-        self.compactAlgRadioButton.SetValue(getProfileSettingBool('use_compact'))
-        self.completeAlgRadioButton.SetValue(not getProfileSettingBool('use_compact'))
-        ## set to core
+        useCompact = getProfileSettingBool('use_compact')
+        self.compactAlgRadioButton.SetValue(useCompact)
+        self.completeAlgRadioButton.SetValue(not useCompact)
+        self.scanner.core.setUseCompactAlgorithm(useCompact)
 
-        self.minRadiousSlider.SetValue(getProfileSettingInteger('min_rho'))
-        self.maxRadiousSlider.SetValue(getProfileSettingInteger('max_rho'))
-        ## set to core
+        minRho = getProfileSettingInteger('min_rho')
+        maxRho = getProfileSettingInteger('max_rho')
+        minH = getProfileSettingInteger('min_h')
+        maxH = getProfileSettingInteger('max_h')
+        self.minRadiousSlider.SetValue(minRho)
+        self.maxRadiousSlider.SetValue(maxRho)
+        self.minHeightSlider.SetValue(minH)
+        self.maxHeightSlider.SetValue(maxH)
+        self.scanner.core.setRangeFilter(minRho, maxRho, minH, maxH)
 
-        self.minHeightSlider.SetValue(getProfileSettingInteger('min_h'))
-        self.maxHeightSlider.SetValue(getProfileSettingInteger('max_h'))
-        ## set to core
-
-        useLeftLaser = getProfileSettingInteger('use_left_laser')
-        useRightLaser = getProfileSettingInteger('use_right_laser')
+        useLeftLaser = getProfileSettingBool('use_left_laser')
+        useRightLaser = getProfileSettingBool('use_right_laser')
         if useLeftLaser:
             if useRightLaser:
                 self.laserCombo.SetValue(_("Use Both Lasers"))
@@ -671,16 +690,14 @@ class ScanningPanel(wx.Panel):
                 self.laserCombo.SetValue(_("Use Right Laser"))
             else:
                 self.laserCombo.SetValue("")
-        ## set to core
+        self.scanner.core.setUseLaser(useLeftLaser, useRightLaser)
 
         degrees = getProfileSettingFloat('step_degrees_scanning')
         self.stepDegreesText.SetValue(str(degrees))
-        ## set to core
+        #self.scanner.core.setDegrees(degrees)
 
         feedRate = getProfileSettingInteger('feed_rate_scanning')
         self.feedRateText.SetValue(str(feedRate))
-        ## set to core
 
         acceleration = getProfileSettingInteger('acceleration_scanning')
         self.accelerationText.SetValue(str(acceleration))
-        ## set to core

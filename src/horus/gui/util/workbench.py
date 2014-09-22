@@ -101,6 +101,7 @@ class WorkbenchConnection(Workbench):
 			self.GetParent().updateCameraCurrentProfile()
 
 	def onDisconnectToolClicked(self, event):
+		self.scanner.stop()
 		if self.scanner.disconnect():
 			self.updateStatus(False)
 

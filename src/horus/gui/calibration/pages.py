@@ -483,7 +483,7 @@ class PlatformExtrinsicsResultPage(Page):
 		ret = Calibration.Instance().performPlatformExtrinsicsCalibration()
 		if ret is not None:
 			xc, zc = ret[2]
-			yc = np.mean(ret[0][1]) + 145 #offset
+			yc = np.mean(ret[0][1]) + 160 #offset
 			self.plotPanel.add(ret)
 			self.platformExtrinsicsParameters.updateAllControlsToProfile(np.array([[0,-1,0],[0,0,-1],[-1,0,0]]), np.array([xc, yc, zc]))
 		self.plotPanel.Show()

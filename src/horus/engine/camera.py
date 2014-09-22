@@ -38,47 +38,30 @@ class Camera:
 		print " - Camera ID: {0}".format(cameraId)
 		self.cameraId = cameraId
 
+		self._initialize()
+
+	def _initialize(self):
 		self.isConnected = False
 
 		self.fps = 30
-
 		self.width = 800
 		self.height = 600
-
 		self.useDistortion = False
 
 		self.cameraMatrix = None
 		self.distortionVector = None
 		self.distCameraMatrix = None
-		
-		if platform.system()=='Linux':
+
+		if platform.system() == 'nt':
+			self.maxBrightness = 1.
+			self.maxContrast = 1.
+			self.maxSaturation = 1.
+			self.maxExposure = -9/300.
+		else:
 			self.maxBrightness = 255.
 			self.maxContrast = 255.
 			self.maxSaturation = 255.
 			self.maxExposure = 10000.
-		else:
-			self.maxBrightness = 1.
-			self.maxContrast = 1.
-			self.maxSaturation = 1.
-			self.maxExposure = -9/200.
-
-	def initialize(self, brightness, contrast, saturation, exposure, fps, width, height, cameraMatrix, distortionVector, useDistortion):
-		self.setBrightness(brightness)
-		self.setContrast(contrast)
-		self.setSaturation(saturation)
-		self.setExposure(exposure)
-		self.setFps(fps)
-		self.setWidth(width)
-		self.setHeight(height)
-		self._updateResolution()
-		self.cameraMatrix = cameraMatrix
-		self.distortionVector = distortionVector
-		self.distCameraMatrix = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distortionVector, (self.width,self.height), alpha=1)[0]
-		self.setUseDistortion(useDistortion)
-
-	def setIntrinsics(self, cameraMatrix, distortionVector):
-		self.cameraMatrix = cameraMatrix
-		self.distortionVector = distortionVector
 
 	def connect(self):
 		""" """
@@ -149,16 +132,16 @@ class Camera:
 			value = int(value)/self.maxExposure
 			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 
-	def setFps(self, value):
+	def setFrameRate(self, value):
 		if self.isConnected:
 			self.fps = value
 			self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
 
-	def setWidth(self, value):
+	def _setWidth(self, value):
 		if self.isConnected:
 			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
 
-	def setHeight(self, value):
+	def _setHeight(self, value):
 		if self.isConnected:
 			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)	
 
@@ -167,5 +150,15 @@ class Camera:
 			self.width = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
 			self.height = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
+	def setResolution(self, width, height):
+		self._setWidth(width)
+		self._setHeight(height)
+		self._updateResolution()
+
 	def setUseDistortion(self, value):
 		self.useDistortion = value
+
+	def setIntrinsics(self, cameraMatrix, distortionVector):
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
+		self.distCameraMatrix = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distortionVector, (self.width,self.height), alpha=1)[0]

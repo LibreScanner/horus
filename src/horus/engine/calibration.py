@@ -61,7 +61,7 @@ class Calibration:
 
 		self.thickness = 20
 
-		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
 
 		#-- Camera Intrinsics Guide Lines
 		self.firstPointData  = [(270,250),(4,48),(20,20),(412,198),(550,148),(20,20),(20,20),(210,350),(260,680),(140,20),(20,20),(20,340)]
@@ -97,7 +97,7 @@ class Calibration:
 		if retval:
 			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=self.criteria)
 			self.imagePointsStack.append(corners)
-			self.objPointsStack.append(self.objpoints)
+			self.objPointsStack.append(self.objpoints) 
 			cv2.drawChessboardCorners(frame, (self.patternColumns,self.patternRows), corners, retval)
 		return retval, frame
 
@@ -142,24 +142,30 @@ class Calibration:
 			device.setSpeedMotor(1)
 			device.enable()
 
-			z = self.getPatternDepth(device, camera)
+			z, corners = self.getPatternDepth(device, camera)
 
-			time.sleep(0.5)
+			if z is not None and corners is not None:
 
-			#-- Get images
-			imgRaw = camera.captureImage(flush=True, flushValue=2)
-			device.setLeftLaserOn()
-			imgLasL = camera.captureImage(flush=True, flushValue=2)
-			device.setLeftLaserOff()
-			device.setRightLaserOn()
-			imgLasR = camera.captureImage(flush=True, flushValue=2)
-			device.setRightLaserOff()
+				time.sleep(0.5)
 
-			##-- Obtain Left Laser Line
-			retL = self.obtainLine(imgRaw, imgLasL)
+				#-- Get images
+				imgRaw = camera.captureImage(flush=True, flushValue=2)
+				device.setLeftLaserOn()
+				imgLasL = camera.captureImage(flush=True, flushValue=2)
+				device.setLeftLaserOff()
+				device.setRightLaserOn()
+				imgLasR = camera.captureImage(flush=True, flushValue=2)
+				device.setRightLaserOff()
 
-			##-- Obtain Right Laser Line
-			retR = self.obtainLine(imgRaw, imgLasR)
+				##-- Corners ROI mask
+				imgLasL = self.cornersMask(imgLasL, corners)
+				imgLasR = self.cornersMask(imgLasR, corners)
+
+				##-- Obtain Left Laser Line
+				retL = self.obtainLine(imgRaw, imgLasL)
+
+				##-- Obtain Right Laser Line
+				retR = self.obtainLine(imgRaw, imgLasR)
 
 			#-- Disable motor
 			device.disable()
@@ -176,6 +182,7 @@ class Calibration:
 		I = np.identity(3)
 		angle = 20
 		z = None
+		corners = None
 		tries = 5
 		device.setRelativePosition(angle)
 		device.setSpeedMotor(50)
@@ -186,7 +193,8 @@ class Calibration:
 				if ret[0]:
 					R = ret[1]
 					z = ret[2][2]
-					distance = linalg.norm(R-I)
+					corners = ret[3]
+					distance = linalg.norm(R-I) ## TODO: z[2] - |z|
 					if distance < epsilon or distanceAnt < distance:
 						break
 					distanceAnt = distance
@@ -198,7 +206,25 @@ class Calibration:
 
 		print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
-		return z
+		return z, corners
+
+	def cornersMask(self, frame, corners):
+		p1 = corners[0][0]
+		p2 = corners[self.patternColumns-1][0]
+		p3 = corners[self.patternColumns*(self.patternRows-1)-1][0]
+		p4 = corners[self.patternColumns*self.patternRows-1][0]
+		p11 = min(p1[1], p2[1], p3[1], p4[1])
+		p12 = max(p1[1], p2[1], p3[1], p4[1])
+		p21 = min(p1[0], p2[0], p3[0], p4[0])
+		p22 = max(p1[0], p2[0], p3[0], p4[0])
+		d = max(corners[1][0][0]-corners[0][0][0],
+				corners[1][0][1]-corners[0][0][1],
+				corners[self.patternColumns][0][1]-corners[0][0][1],
+				corners[self.patternColumns][0][0]-corners[0][0][0])
+		mask = np.zeros(frame.shape[:2], np.uint8)
+		mask[p11-d:p12+d,p21-d:p22+d] = 255
+		frame = cv2.bitwise_and(frame, frame, mask=mask)
+		return frame
 
 	def obtainLine(self, imgRaw, imgLas):
 		u1 = u2 = None
@@ -229,15 +255,14 @@ class Calibration:
 		gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 		# the fast check flag reduces significantly the computation time if the pattern is out of sight 
 		retval, corners = cv2.findChessboardCorners(gray, (patternColumns,patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
-		
+
 		if retval:
-			criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.001)
-			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=criteria)
+			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=self.criteria)
 			if self.useDistortion:
 				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, distortionVector)
 			else:
 				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, None)
-			return (ret, cv2.Rodrigues(rvecs)[0], tvecs)
+			return (ret, cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
 	def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
 		objp = np.zeros((patternRows*patternColumns,3), np.float32)

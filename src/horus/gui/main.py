@@ -31,7 +31,9 @@ import wx._core
 
 import os
 
-from horus.util import profile, resources, meshLoader
+from horus.util.profile import *
+from horus.util.resources import *
+from horus.util.meshLoader import *
 
 from horus.gui.control.main import ControlWorkbench
 from horus.gui.settings.main import SettingsWorkbench
@@ -54,17 +56,17 @@ class MainWindow(wx.Frame):
 
         #-- Serial Name initialization
         serialList = self.serialList()
-        currentSerial = profile.getProfileSetting('serial_name')
+        currentSerial = getProfileSetting('serial_name')
         if len(serialList) > 0:
             if currentSerial not in serialList:
-                profile.putProfileSetting('serial_name', serialList[0])
+                putProfileSetting('serial_name', serialList[0])
 
         #-- Video Id initialization
         videoList = self.videoList()
-        currentVideoId = profile.getProfileSetting('camera_id')
+        currentVideoId = getProfileSetting('camera_id')
         if len(videoList) > 0:
             if currentVideoId not in videoList:
-                profile.putProfileSetting('camera_id', videoList[0])
+                putProfileSetting('camera_id', videoList[0])
 
         self.workbenchList = {'control'     : _("Control workbench"),
                               'settings'    : _("Settings workbench"),
@@ -79,7 +81,7 @@ class MainWindow(wx.Frame):
         ###-- Initialize GUI
 
         ##-- Set Icon
-        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
         ##-- Status Bar
@@ -187,16 +189,16 @@ class MainWindow(wx.Frame):
         self.Show()
 
     def onLoadModel(self, event):
-        dlg=wx.FileDialog(self, _("Open 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        dlg=wx.FileDialog(self, _("Open 3D model"), os.path.split(getPreference('lastFile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        wildcardList = ';'.join(map(lambda s: '*' + s, loadSupportedExtensions()))
         wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardList = ';'.join(map(lambda s: '*' + s, loadSupportedExtensions()))
         wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
         dlg.SetWildcard(wildcardFilter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if filename is not None:
-                profile.putPreference('lastFile', filename)
+                putPreference('lastFile', filename)
                 self.scanningWorkbench.sceneView.loadFile(filename)
         dlg.Destroy()
 
@@ -204,8 +206,8 @@ class MainWindow(wx.Frame):
         import platform
         if self.scanningWorkbench.sceneView._object is None:
             return
-        dlg=wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.getPreference('lastFile'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
-        fileExtensions = meshLoader.saveSupportedExtensions()
+        dlg=wx.FileDialog(self, _("Save 3D model"), os.path.split(getPreference('lastFile'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        fileExtensions = saveSupportedExtensions()
         wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
         wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
         dlg.SetWildcard(wildcardFilter)
@@ -213,7 +215,7 @@ class MainWindow(wx.Frame):
             filename = dlg.GetPath()
             if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
                 filename += '.ply'
-            meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
+            saveMesh(filename, self.scanningWorkbench.sceneView._object)
         dlg.Destroy()
 
     def onClearModel(self, event):
@@ -225,7 +227,7 @@ class MainWindow(wx.Frame):
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            profile.loadProfile(profileFile)
+            loadProfile(profileFile)
             self.updateProfileToAllControls()
         dlg.Destroy()
 
@@ -239,7 +241,7 @@ class MainWindow(wx.Frame):
             profileFile = dlg.GetPath()
             if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
                 profileFile += '.ini'
-            profile.saveProfile(profileFile)
+            saveProfile(profileFile)
         dlg.Destroy()
 
     def onResetProfile(self, event):
@@ -248,7 +250,7 @@ class MainWindow(wx.Frame):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfile()
+            resetProfile()
             self.updateProfileToAllControls()
 
     def onExit(self, event):
@@ -263,7 +265,7 @@ class MainWindow(wx.Frame):
     def onControlPanelClicked(self, event):
         """ """
         checked = self.menuControlPanel.IsChecked()
-        profile.putPreference('view_control_panel', checked)
+        putPreference('view_control_panel', checked)
         if checked:
             self.controlWorkbench.scrollPanel.Show()
         else:
@@ -273,7 +275,7 @@ class MainWindow(wx.Frame):
     def onControlVideoClicked(self, event):
         """ """
         checked = self.menuControlVideo.IsChecked()
-        profile.putPreference('view_control_video', checked)
+        putPreference('view_control_video', checked)
         if checked:
             self.controlWorkbench.videoView.Show()
         else:
@@ -283,7 +285,7 @@ class MainWindow(wx.Frame):
     def onSettingsPanelClicked(self, event):
         """ """
         checked = self.menuSettingsPanel.IsChecked()
-        profile.putPreference('view_settings_panel', checked)
+        putPreference('view_settings_panel', checked)
         if checked:
             self.settingsWorkbench.scrollPanel.Show()
         else:
@@ -293,7 +295,7 @@ class MainWindow(wx.Frame):
     def onSettingsVideoClicked(self, event):
         """ """
         checked = self.menuSettingsVideo.IsChecked()
-        profile.putPreference('view_settings_video', checked)
+        putPreference('view_settings_video', checked)
         if checked:
             self.settingsWorkbench.videoView.Show()
         else:
@@ -304,8 +306,8 @@ class MainWindow(wx.Frame):
         """ """
         checkedVideo = self.menuScanningVideo.IsChecked()
         checkedScene = self.menuScanningScene.IsChecked()
-        profile.putPreference('view_scanning_video', checkedVideo)
-        profile.putPreference('view_scanning_scene', checkedScene)
+        putPreference('view_scanning_video', checkedVideo)
+        putPreference('view_scanning_scene', checkedScene)
         self.scanningWorkbench.splitterWindow.Unsplit()
         if checkedVideo:
             self.scanningWorkbench.videoView.Show()
@@ -332,15 +334,15 @@ class MainWindow(wx.Frame):
         for key in self.workbenchList:
             if self.workbenchList[key] == str(event.GetEventObject().GetValue()):
                 if key is not None:
-                    profile.putPreference('workbench', key)
+                    putPreference('workbench', key)
                 else:
-                    profile.putPreference('workbench', 'main')
+                    putPreference('workbench', 'main')
                 self.workbenchUpdate()
 
     def onAbout(self, event):
         """ """
         info = wx.AboutDialogInfo()
-        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(u'0.0.2')
@@ -368,7 +370,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def onWelcome(self, event):
         """ """
-        profile.putPreference('workbench', 'main')
+        putPreference('workbench', 'main')
         self.workbenchUpdate()
 
     def updateProfileToAllControls(self):
@@ -377,36 +379,36 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
 
-        if profile.getPreferenceBool('view_control_panel'):
+        if getPreferenceBool('view_control_panel'):
             self.controlWorkbench.scrollPanel.Show()
             self.menuControlPanel.Check(True)
         else:
             self.controlWorkbench.scrollPanel.Hide()
             self.menuControlPanel.Check(False)
 
-        if profile.getPreferenceBool('view_control_video'):
+        if getPreferenceBool('view_control_video'):
             self.controlWorkbench.videoView.Show()
             self.menuControlVideo.Check(True)
         else:
             self.controlWorkbench.videoView.Hide()
             self.menuControlVideo.Check(False)
 
-        if profile.getPreferenceBool('view_settings_panel'):
+        if getPreferenceBool('view_settings_panel'):
             self.settingsWorkbench.scrollPanel.Show()
             self.menuSettingsPanel.Check(True)
         else:
             self.settingsWorkbench.scrollPanel.Hide()
             self.menuSettingsPanel.Check(False)
 
-        if profile.getPreferenceBool('view_settings_video'):
+        if getPreferenceBool('view_settings_video'):
             self.settingsWorkbench.videoView.Show()
             self.menuSettingsVideo.Check(True)
         else:
             self.settingsWorkbench.videoView.Hide()
             self.menuSettingsVideo.Check(False)
 
-        checkedVideo = profile.getPreferenceBool('view_scanning_video')
-        checkedScene = profile.getPreferenceBool('view_scanning_scene')
+        checkedVideo = getPreferenceBool('view_scanning_video')
+        checkedScene = getPreferenceBool('view_scanning_scene')
 
         self.menuScanningVideo.Check(checkedVideo)
         self.menuScanningScene.Check(checkedScene)
@@ -440,69 +442,79 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCalibrationCurrentProfile()
 
     def updateScannerProfile(self):
-        self.scanner.initialize(int(profile.getProfileSetting('camera_id')[-1:]),
-                                profile.getProfileSetting('serial_name'),
-                                profile.getProfileSettingInteger('baud_rate'))
+        self.scanner.initialize(int(getProfileSetting('camera_id')[-1:]),
+                                getProfileSetting('serial_name'),
+                                getProfileSettingInteger('baud_rate'))
+
+    def updateDeviceCurrentProfile(self):
+        self.updateDeviceProfile(getPreference('workbench'))
+
+    def updateDeviceProfile(self, workbench):
+        if workbench in ['control', 'scanning']:
+            self.scanner.device.setSpeedMotor(getProfileSettingInteger('feed_rate_' + workbench))
+            self.scanner.device.setAccelerationMotor(getProfileSettingInteger('acceleration_' + workbench))
 
     def updateCameraCurrentProfile(self):
-        self.updateCameraProfile(profile.getPreference('workbench'))
+        self.updateCameraProfile(getPreference('workbench'))
 
     def updateCameraProfile(self, workbench):
         if workbench in ['control', 'calibration', 'scanning']:
-            self.scanner.camera.initialize(profile.getProfileSettingInteger('brightness_' + workbench),
-                                           profile.getProfileSettingInteger('contrast_' + workbench),
-                                           profile.getProfileSettingInteger('saturation_' + workbench),
-                                           profile.getProfileSettingInteger('exposure_' + workbench),
-                                           profile.getProfileSettingInteger('framerate_' + workbench),
-                                           profile.getProfileSettingInteger('camera_width_' + workbench),
-                                           profile.getProfileSettingInteger('camera_height_' + workbench),
-                                           profile.getProfileSettingNumpy('camera_matrix'),
-                                           profile.getProfileSettingNumpy('distortion_vector'),
-                                           profile.getProfileSettingInteger('use_distortion_' + workbench))
-
-            self.scanner.core.setResolution(profile.getProfileSettingInteger('camera_height_scanning'),
-                                            profile.getProfileSettingInteger('camera_width_scanning'))
+            self.scanner.camera.setBrightness(getProfileSettingInteger('brightness_' + workbench))
+            self.scanner.camera.setContrast(getProfileSettingInteger('contrast_' + workbench))
+            self.scanner.camera.setSaturation(getProfileSettingInteger('saturation_' + workbench))
+            self.scanner.camera.setExposure(getProfileSettingInteger('exposure_' + workbench))
+            self.scanner.camera.setFrameRate(getProfileSettingInteger('framerate_' + workbench))
+            self.scanner.camera.setResolution(getProfileSettingInteger('camera_width_' + workbench),
+                                              getProfileSettingInteger('camera_height_' + workbench))
+            self.scanner.camera.setUseDistortion(getProfileSettingBool('use_distortion_' + workbench))
+            self.scanner.camera.setIntrinsics(getProfileSettingNumpy('camera_matrix'),
+                                              getProfileSettingNumpy('distortion_vector'))
 
     def updateCoreCurrentProfile(self):
-        self.updateCoreProfile(profile.getPreference('workbench'))
+        self.updateCoreProfile(getPreference('workbench'))
 
     def updateCoreProfile(self, workbench):
         if workbench in ['settings', 'scanning']:
-            self.scanner.core.initialize(profile.getProfileSetting('img_type'),
-                                         profile.getProfileSettingBool('open'),
-                                         profile.getProfileSettingInteger('open_value'),
-                                         profile.getProfileSettingBool('threshold'),
-                                         profile.getProfileSettingInteger('threshold_value'),
-                                         profile.getProfileSettingBool('use_compact'),
-                                         profile.getProfileSettingInteger('min_rho'),
-                                         profile.getProfileSettingInteger('max_rho'),
-                                         profile.getProfileSettingInteger('min_h'),
-                                         profile.getProfileSettingInteger('max_h'),
-                                         profile.getProfileSettingFloat('step_degrees_scanning'),
-                                         profile.getProfileSettingInteger('camera_height_scanning'),
-                                         profile.getProfileSettingInteger('camera_width_scanning'),
-                                         profile.getProfileSettingFloat('laser_angle'),
-                                         profile.getProfileSettingNumpy('camera_matrix'),
-                                         profile.getProfileSettingNumpy('laser_coordinates'),
-                                         profile.getProfileSettingNumpy('laser_depth'),
-                                         profile.getProfileSettingNumpy('rotation_matrix'),
-                                         profile.getProfileSettingNumpy('translation_vector'))
+            self.scanner.core.resetTheta()
+            self.scanner.core.setImageType(getProfileSetting('img_type'))
+            self.scanner.core.setOpen(getProfileSettingBool('use_open'),
+                                      getProfileSettingInteger('open_value'))
+            self.scanner.core.setThreshold(getProfileSettingBool('use_threshold'),
+                                           getProfileSettingInteger('threshold_value'))
+            self.scanner.core.setUseCompactAlgorithm(getProfileSettingBool('use_compact'))
+            self.scanner.core.setRangeFilter(getProfileSettingInteger('min_rho'),
+                                             getProfileSettingInteger('max_rho'),
+                                             getProfileSettingInteger('min_h'),
+                                             getProfileSettingInteger('max_h'))
+            self.scanner.core.setDegrees(getProfileSettingFloat('step_degrees_scanning'))
+            self.scanner.core.setResolution(getProfileSettingInteger('camera_height_scanning'),
+                                            getProfileSettingInteger('camera_width_scanning'))
+            self.scanner.core.setUseLaser(getProfileSettingBool('use_left_laser'),
+                                          getProfileSettingBool('use_right_laser'))
+            self.scanner.core.setLaserAngles(getProfileSettingFloat('laser_angle_left'),
+                                             getProfileSettingFloat('laser_angle_right'))
+            self.scanner.core.setIntrinsics(getProfileSettingNumpy('camera_matrix'),
+                                            getProfileSettingNumpy('distortion_vector'))
+            self.scanner.core.setLaserTriangulation(getProfileSettingNumpy('laser_coordinates'),
+                                                    getProfileSettingNumpy('laser_depth'))
+            self.scanner.core.setExtrinsics(getProfileSettingNumpy('rotation_matrix'),
+                                            getProfileSettingNumpy('translation_vector'))
     
     def updateCalibrationCurrentProfile(self):
-        self.updateCalibrationProfile(profile.getPreference('workbench'))
+        self.updateCalibrationProfile(getPreference('workbench'))
 
     def updateCalibrationProfile(self, workbench):
         if workbench in ['settings', 'calibration']:
-            self.calibration.initialize(profile.getProfileSettingNumpy('camera_matrix'),
-                                        profile.getProfileSettingNumpy('distortion_vector'),
-                                        profile.getProfileSettingInteger('pattern_rows'),
-                                        profile.getProfileSettingInteger('pattern_columns'),
-                                        profile.getProfileSettingInteger('square_width'),
-                                        profile.getProfileSettingInteger('use_distortion_calibration'))
+            self.calibration.initialize(getProfileSettingNumpy('camera_matrix'),
+                                        getProfileSettingNumpy('distortion_vector'),
+                                        getProfileSettingInteger('pattern_rows'),
+                                        getProfileSettingInteger('pattern_columns'),
+                                        getProfileSettingInteger('square_width'),
+                                        getProfileSettingInteger('use_distortion_calibration'))
 
     def workbenchUpdate(self):
         """ """
-        currentWorkbench = profile.getPreference('workbench')
+        currentWorkbench = getPreference('workbench')
 
         wb = {'main'        : self.mainWorkbench, 
               'control'     : self.controlWorkbench,
@@ -530,6 +542,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
 
+        self.updateDeviceProfile(currentWorkbench)
         self.updateCameraProfile(currentWorkbench)
         self.updateCoreProfile(currentWorkbench)
         self.updateCalibrationProfile(currentWorkbench)
@@ -590,13 +603,13 @@ class MainWorkbench(wx.Panel):
 
         self._title = wx.Panel(self)
         self._panel = wx.Panel(self)
-        self._controlPanel = ItemWorkbench(self._panel, label=_("Control"), image=wx.Image(resources.getPathForImage("control.png")))
-        self._settingsPanel = ItemWorkbench(self._panel, label=_("Settings"), image=wx.Image(resources.getPathForImage("settings.png")))
-        self._calibrationPanel = ItemWorkbench(self._panel, label=_("Calibration"), image=wx.Image(resources.getPathForImage("calibration.png")))
-        self._scanningPanel = ItemWorkbench(self._panel, label=_("Scanning"), image=wx.Image(resources.getPathForImage("scanning.png")))
+        self._controlPanel = ItemWorkbench(self._panel, label=_("Control"), image=wx.Image(getPathForImage("control.png")))
+        self._settingsPanel = ItemWorkbench(self._panel, label=_("Settings"), image=wx.Image(getPathForImage("settings.png")))
+        self._calibrationPanel = ItemWorkbench(self._panel, label=_("Calibration"), image=wx.Image(getPathForImage("calibration.png")))
+        self._scanningPanel = ItemWorkbench(self._panel, label=_("Scanning"), image=wx.Image(getPathForImage("scanning.png")))
 
         logo = ImageView(self._title)
-        logo.setImage(wx.Image(resources.getPathForImage("logo.png")))
+        logo.setImage(wx.Image(getPathForImage("logo.png")))
         titleText = wx.StaticText(self._title, label=_("3D scanning for everyone"))
         titleText.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_LIGHT)))
         separator = wx.StaticLine(self._title, -1, style=wx.LI_HORIZONTAL)
@@ -633,9 +646,9 @@ class MainWorkbench(wx.Panel):
                             self._scanningPanel.imageView.GetId()    : 'scanning'}.get(event.GetId())
 
         if currentWorkbench is not None:
-            profile.putPreference('workbench', currentWorkbench)
+            putPreference('workbench', currentWorkbench)
         else:
-            profile.putPreference('workbench', 'main')
+            putPreference('workbench', 'main')
 
         self.GetParent().workbenchUpdate()
 
