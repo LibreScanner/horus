@@ -40,14 +40,47 @@ class ControlItem(wx.Control):
 
 		self.undoValues = []
 
+		self.control = None
+
 		self.name = name
 		self.setting = getProfileSettingObject(self.name)
+
+	def setEngineCallback(self, engineCallback=None):
+		self.engineCallback = engineCallback
+
+	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
+		self.appendUndoCallback = appendUndoCallback
+		self.releaseUndoCallback = releaseUndoCallback
 
 	def isVisible(self):
 		if getPreferenceBool('basic_mode'):
 			return self.setting.getCategory() is 'basic'
 		else:
 			return self.setting.getCategory() is 'basic' or self.setting.getCategory() is 'advanced'
+
+	def update(self, value):
+		if self.isVisible():
+			self.Show()
+			self.control.SetValue(value)
+			self._updateEngine(value)
+		else:
+			self.Hide()
+
+	def _updateEngine(self, value):
+		if self.engineCallback is not None:
+			self.engineCallback(value)
+
+	def undo(self):
+		if len(self.undoValues) > 0:
+			value = self.undoValues.pop()
+			putProfileSetting(self.name, value)
+			self.update(value)
+
+	def resetProfile(self):
+		resetProfileSetting(self.name)
+		del self.undoValues[:]
+		self.updateProfile()
+
 
 class Slider(ControlItem):
 	def __init__(self, parent, name):
@@ -58,30 +91,23 @@ class Slider(ControlItem):
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
-		self.slider = wx.Slider(self, wx.ID_ANY,
-								getProfileSettingInteger(self.name),
-								int(eval(self.setting.getMinValue(), {}, {})),
-								int(eval(self.setting.getMaxValue(), {}, {})),
-								size=(150,-1),
-								style=wx.SL_LABELS)
+		self.control = wx.Slider(self, wx.ID_ANY,
+								 getProfileSettingInteger(self.name),
+								 int(eval(self.setting.getMinValue(), {}, {})),
+								 int(eval(self.setting.getMaxValue(), {}, {})),
+								 size=(150,-1),
+								 style=wx.SL_LABELS)
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.label, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add(self.slider, 0, wx.ALL, 0)
+		hbox.Add(self.control, 0, wx.ALL, 0)
 		self.SetSizer(hbox)
 		self.Layout()
 
 		#-- Events
-		self.slider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.onSliderReleased)
-		self.slider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onSliderTracked)
-
-	def setEngineCallback(self, engineCallback=None):
-		self.engineCallback = engineCallback
-
-	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
-		self.appendUndoCallback = appendUndoCallback
-		self.releaseUndoCallback = releaseUndoCallback
+		self.control.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.onSliderReleased)
+		self.control.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onSliderTracked)
 
 	def onSliderReleased(self, event):
 		self.flagFirstMove = True
@@ -95,37 +121,14 @@ class Slider(ControlItem):
 			if self.appendUndoCallback is not None:
 				self.appendUndoCallback(self)
 			self.flagFirstMove = False
-		value = self.slider.GetValue()
+		value = self.control.GetValue()
 		putProfileSetting(self.name, value)
 		self._updateEngine(value)
 
 	def updateProfile(self):
-		if hasattr(self,'slider'):
+		if hasattr(self,'control'):
 			value = getProfileSettingInteger(self.name)
 			self.update(value)
-
-	def update(self, value):
-		if self.isVisible():
-			self.Show()
-			self.slider.SetValue(value)
-			self._updateEngine(value)
-		else:
-			self.Hide()
-
-	def _updateEngine(self, value):
-		if self.engineCallback is not None:
-			self.engineCallback(value)
-
-	def undo(self):
-		if len(self.undoValues) > 0:
-			value = self.undoValues.pop()
-			putProfileSetting(self.name, value)
-			self.update(value)
-
-	def resetProfile(self):
-		resetProfileSetting(self.name)
-		del self.undoValues[:]
-		self.updateProfile()
 
 
 class ComboBox(ControlItem):
@@ -135,32 +138,25 @@ class ComboBox(ControlItem):
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
-		self.combo = wx.ComboBox(self, wx.ID_ANY,
-								 value=getProfileSetting(self.name),
-								 choices=self.setting.getType(),
-								 size=(150, -1),
-								 style=wx.CB_READONLY)
+		self.control = wx.ComboBox(self, wx.ID_ANY,
+								   value=getProfileSetting(self.name),
+								   choices=self.setting.getType(),
+								   size=(150, -1),
+								   style=wx.CB_READONLY)
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.label, 0, wx.ALL, 18)
-		hbox.Add(self.combo, 0, wx.TOP, 12)
+		hbox.Add(self.control, 0, wx.TOP, 12)
 		self.SetSizer(hbox)
 		self.Layout()
 
 		#-- Events
-		self.combo.Bind(wx.EVT_COMBOBOX, self.onComboBoxChanged)
-
-	def setEngineCallback(self, engineCallback=None):
-		self.engineCallback = engineCallback
-
-	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
-		self.appendUndoCallback = appendUndoCallback
-		self.releaseUndoCallback = releaseUndoCallback
+		self.control.Bind(wx.EVT_COMBOBOX, self.onComboBoxChanged)
 
 	def onComboBoxChanged(self, event):
 		self.undoValues.append(getProfileSetting(self.name))
-		value = self.combo.GetValue()
+		value = self.control.GetValue()
 		putProfileSetting(self.name, value)
 		self._updateEngine(value)
 		if self.appendUndoCallback is not None:
@@ -169,32 +165,9 @@ class ComboBox(ControlItem):
 			self.releaseUndoCallback()
 
 	def updateProfile(self):
-		if hasattr(self,'combo'):
+		if hasattr(self,'control'):
 			value = getProfileSetting(self.name)
 			self.update(value)
-
-	def update(self, value):
-		if self.isVisible():
-			self.Show()
-			self.combo.SetValue(value)
-			self._updateEngine(value)
-		else:
-			self.Hide()
-
-	def _updateEngine(self, value):
-		if self.engineCallback is not None:
-			self.engineCallback(value)
-
-	def undo(self):
-		if len(self.undoValues) > 0:
-			value = self.undoValues.pop()
-			putProfileSetting(self.name, value)
-			self.update(value)
-
-	def resetProfile(self):
-		resetProfileSetting(self.name)
-		del self.undoValues[:]
-		self.updateProfile()
 
 
 class CheckBox(ControlItem):
@@ -203,27 +176,20 @@ class CheckBox(ControlItem):
 		ControlItem.__init__(self, parent, name)
 
 		#-- Elements
-		self.checkbox = wx.CheckBox(self, label=self.setting.getLabel())
+		self.control = wx.CheckBox(self, label=self.setting.getLabel())
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.checkbox, 0, wx.ALL^wx.BOTTOM, 18)
+		hbox.Add(self.control, 0, wx.ALL^wx.BOTTOM, 18)
 		self.SetSizer(hbox)
 		self.Layout()
 
 		#-- Events
-		self.checkbox.Bind(wx.EVT_CHECKBOX, self.onCheckBoxChanged)
-
-	def setEngineCallback(self, engineCallback=None):
-		self.engineCallback = engineCallback
-
-	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
-		self.appendUndoCallback = appendUndoCallback
-		self.releaseUndoCallback = releaseUndoCallback
+		self.control.Bind(wx.EVT_CHECKBOX, self.onCheckBoxChanged)
 
 	def onCheckBoxChanged(self, event):
 		self.undoValues.append(getProfileSettingBool(self.name))
-		value = self.checkbox.GetValue()
+		value = self.control.GetValue()
 		putProfileSetting(self.name, value)
 		self._updateEngine(value)
 		if self.appendUndoCallback is not None:
@@ -232,29 +198,123 @@ class CheckBox(ControlItem):
 			self.releaseUndoCallback()
 
 	def updateProfile(self):
-		if hasattr(self,'checkbox'):
+		if hasattr(self,'control'):
 			value = getProfileSettingBool(self.name)
 			self.update(value)
+
+class RadioButton(ControlItem):
+	def __init__(self, parent, name):
+		""" """
+		ControlItem.__init__(self, parent, name)
+
+		#-- Elements
+		self.control = wx.RadioButton(self, label=self.setting.getLabel())
+
+		#-- Layout
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.control, 0, wx.ALL^wx.BOTTOM, 18)
+		self.SetSizer(hbox)
+		self.Layout()
+
+		#-- Events
+		self.control.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonChanged)
+
+	def onCheckBoxChanged(self, event):
+		self.undoValues.append(getProfileSettingBool(self.name))
+		value = self.control.GetValue()
+		putProfileSetting(self.name, value)
+		self._updateEngine(value)
+		if self.appendUndoCallback is not None:
+			self.appendUndoCallback(self)
+		if self.releaseUndoCallback is not None:
+			self.releaseUndoCallback()
+
+	def updateProfile(self):
+		if hasattr(self,'control'):
+			value = getProfileSettingBool(self.name)
+			self.update(value)
+
+class TextBox(ControlItem):
+	def __init__(self, parent, name):
+		""" """
+		ControlItem.__init__(self, parent, name)
+
+		#-- Elements
+		self.label = wx.StaticText(self, label=self.setting.getLabel())
+		self.control = wx.TextCtrl(self)
+
+		#-- Layout
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.label, 0, wx.ALL|wx.EXPAND, 18)
+		hbox.Add(self.control, 1, wx.EXPAND|wx.ALL^wx.LEFT, 12)
+		self.SetSizer(hbox)
+		self.Layout()
+
+		#-- Events
+		self.control.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
+
+	def onTextBoxChanged(self, event):
+		self.undoValues.append(getProfileSetting(self.name))
+		value = self.control.GetValue()
+		putProfileSetting(self.name, value)
+		self._updateEngine(value)
+		if self.appendUndoCallback is not None:
+			self.appendUndoCallback(self)
+		if self.releaseUndoCallback is not None:
+			self.releaseUndoCallback()
+
+	def updateProfile(self):
+		if hasattr(self,'control'):
+			value = getProfileSetting(self.name)
+			self.update(value)
+
+class TitleText(ControlItem):
+	def __init__(self, parent, name):
+		""" """
+		ControlItem.__init__(self, parent, name)
+
+		#-- Elements
+		self.control = wx.StaticText(self, wx.ID_ANY, self.setting.getLabel(), style=wx.ALIGN_CENTRE)
+		self.control.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+
+		#-- Layout
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self.control, 0, wx.ALL, 10)
+		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND, 0)
+		self.SetSizer(vbox)
+		self.Layout()
+		self.Fit()
+
+	def updateProfile(self):
+		if hasattr(self,'control'):
+			self.update(None)
 
 	def update(self, value):
 		if self.isVisible():
 			self.Show()
-			self.checkbox.SetValue(value)
-			self._updateEngine(value)
 		else:
 			self.Hide()
 
-	def _updateEngine(self, value):
-		if self.engineCallback is not None:
-			self.engineCallback(value)
+class Button(ControlItem):
+	def __init__(self, parent, name):
+		""" """
+		ControlItem.__init__(self, parent, name)
 
-	def undo(self):
-		if len(self.undoValues) > 0:
-			value = self.undoValues.pop()
-			putProfileSetting(self.name, value)
-			self.update(value)
+		#-- Elements
+		self.control = wx.Button(self,label=self.setting.getLabel())
 
-	def resetProfile(self):
-		resetProfileSetting(self.name)
-		del self.undoValues[:]
-		self.updateProfile()
+		#-- Layout
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.control, 0, wx.ALL, 18)
+		self.SetSizer(hbox)
+		self.Layout()
+
+	def updateProfile(self):
+		if hasattr(self,'control'):
+			self.update(None)
+
+	def update(self, value):
+		if self.isVisible():
+			self.Show()
+		else:
+			self.Hide()

@@ -195,6 +195,9 @@ setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('baud_rate', '9600', int, 'basic', _('Baud Rate'))
 
+setting('restore_default', '', str, 'advanced', _('Restore Default'))
+
+setting('camera_control', '', str, 'advanced', _('Camera Control'))
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_control', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
@@ -484,6 +487,8 @@ def getProfileSettingObject(name):
 	for set in settingsList:
 		if set.getName() is name:
 			return set
+
+#TODO: get profile setting using getType
 
 def getProfileSetting(name):
 	"""

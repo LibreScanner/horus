@@ -29,6 +29,8 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx
 
+from collections import OrderedDict
+
 from horus.gui.util.itemControls import *
 
 from horus.util.profile import *
@@ -46,56 +48,40 @@ class CameraPanel(wx.Panel):
 
         self.scanner = Scanner.Instance()
 
-        self.useDistortion = False
-
-        self.controls = []
+        self.controls = OrderedDict()
 
         #-- Graphic elements
-        cameraControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Camera Control"), style=wx.ALIGN_CENTRE)
-        cameraControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-
-        self.controls.append(Slider(self,'brightness_control'))
-        self.controls.append(Slider(self,'contrast_control'))
-        self.controls.append(Slider(self,'saturation_control'))
-        self.controls.append(Slider(self,'exposure_control'))
-        self.controls.append(ComboBox(self,'framerate_control'))
-        self.controls.append(ComboBox(self,'resolution_control'))
-        self.controls.append(CheckBox(self,'use_distortion_control'))
-
-        self.restoreButton = wx.Button(self,label=_("Restore Default"),size=(200,-1))
+        self.controls.update({'camera_control' : TitleText(self,'camera_control')})
+        self.controls.update({'brightness_control' : Slider(self,'brightness_control')})
+        self.controls.update({'contrast_control' : Slider(self,'contrast_control')})
+        self.controls.update({'saturation_control' : Slider(self,'saturation_control')})
+        self.controls.update({'exposure_control' : Slider(self,'exposure_control')})
+        self.controls.update({'framerate_control' : ComboBox(self,'framerate_control')})
+        self.controls.update({'resolution_control' : ComboBox(self,'resolution_control')})
+        self.controls.update({'use_distortion_control' : CheckBox(self,'use_distortion_control')})
+        self.controls.update({'restore_default' : Button(self,'restore_default')})
 
         # - Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-
-        hbox=wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(cameraControlStaticText, 0, wx.ALL, 10)
-        vbox.Add(hbox,0,wx.EXPAND|wx.LEFT|wx.RIGHT,0)
-
-        vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
-
-        for control in self.controls:
+        for control in self.controls.values():
             vbox.Add(control, 0, wx.ALL|wx.EXPAND, 0)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.restoreButton, 0, wx.ALL, 18)
-        vbox.Add(hbox,0,wx.ALIGN_CENTRE,5)
-        
         self.SetSizer(vbox)
         self.Centre()
 
         #-- Callbacks
-        for control in self.controls:
+        for control in self.controls.values():
             control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
 
-        self.controls[0].setEngineCallback(self.scanner.camera.setBrightness)
-        self.controls[1].setEngineCallback(self.scanner.camera.setContrast)
-        self.controls[2].setEngineCallback(self.scanner.camera.setSaturation)
-        self.controls[3].setEngineCallback(self.scanner.camera.setExposure)
-        self.controls[4].setEngineCallback(lambda v: (self.scanner.camera.setFrameRate(int(v)), self.reloadVideo()))
-        self.controls[5].setEngineCallback(lambda v: self.scanner.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        self.controls[6].setEngineCallback(lambda v: (self.scanner.camera.setUseDistortion(v), self.reloadVideo()))
+        self.controls['brightness_control'].setEngineCallback(self.scanner.camera.setBrightness)
+        self.controls['contrast_control'].setEngineCallback(self.scanner.camera.setContrast)
+        self.controls['saturation_control'].setEngineCallback(self.scanner.camera.setSaturation)
+        self.controls['exposure_control'].setEngineCallback(self.scanner.camera.setExposure)
+        self.controls['framerate_control'].setEngineCallback(lambda v: (self.scanner.camera.setFrameRate(int(v)), self.reloadVideo()))
+        self.controls['resolution_control'].setEngineCallback(lambda v: self.scanner.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        self.controls['use_distortion_control'].setEngineCallback(lambda v: (self.scanner.camera.setUseDistortion(v), self.reloadVideo()))
 
-        self.restoreButton.Bind(wx.EVT_BUTTON, self.restoreDefault)
+        #-- Events
+        self.controls['restore_default'].Bind(wx.EVT_BUTTON, self.restoreDefault)
 
     def restoreDefault(self, event):
         dlg = wx.MessageDialog(self, _("This will reset control camera settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Control reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -113,16 +99,10 @@ class CameraPanel(wx.Panel):
             self.main.timer.Start(milliseconds=1)
 
     def updateProfileToAllControls(self):
-        for control in self.controls:
+        for control in self.controls.values():
             control.updateProfile()
 
         ## TODO: Force repaint!
-        self.Layout()
-        self.GetParent().Refresh()
-        self.Update()
-        self.Hide()
-        self.Show()
-        wx.Yield()
 
 
 class DevicePanel(wx.Panel):
