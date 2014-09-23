@@ -29,6 +29,8 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx
 
+from horus.gui.util.itemControls import *
+
 from horus.util.profile import *
 
 from horus.engine.scanner import *
@@ -46,25 +48,20 @@ class CameraPanel(wx.Panel):
 
         self.useDistortion = False
 
+        self.controls = []
+
         #-- Graphic elements
         cameraControlStaticText = wx.StaticText(self, wx.ID_ANY, _("Camera Control"), style=wx.ALIGN_CENTRE)
         cameraControlStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        self.brightnessText = wx.StaticText(self,label=_("Brightness"))
-        self.brightnessSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
-        self.contrastText = wx.StaticText(self,label=_("Contrast"))
-        self.contrastSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
-        self.saturationText = wx.StaticText(self,label=_("Saturation"))
-        self.saturationSlider = wx.Slider(self,wx.ID_ANY,1,0,255,size=(150,-1), style=wx.SL_LABELS)
-        self.exposureText = wx.StaticText(self,label=_("Exposure"))
-        self.exposureSlider = wx.Slider(self,wx.ID_ANY,60,0,300,size=(150,-1), style=wx.SL_LABELS)
-        self.framerates = [str(30),str(25),str(20),str(15),str(10),str(5)]
-        self.frameRateText = wx.StaticText(self,label=_("Frame rate"), size=(70, -1), style=wx.ALIGN_CENTRE)
-        self.frameRateCombo = wx.ComboBox(self, -1, size=(150, -1), choices=self.framerates, style=wx.CB_READONLY)
-        self.resolutions = [str((1280,960)),str((960,720)),str((800,600)),str((320,240)),str((160,120))]
-        self.resolutionText = wx.StaticText(self,label=_("Resolution"), size=(70, -1), style=wx.ALIGN_CENTRE)
-        self.resolutionCombo = wx.ComboBox(self, -1,str((1280,960)), size=(150, -1), choices=self.resolutions, style=wx.CB_READONLY)
-        self.useDistortionCheckBox = wx.CheckBox(self, label=_("Use distortion"))
+        self.controls.append(Slider(self,'brightness_control'))
+        self.controls.append(Slider(self,'contrast_control'))
+        self.controls.append(Slider(self,'saturation_control'))
+        self.controls.append(Slider(self,'exposure_control'))
+        self.controls.append(ComboBox(self,'framerate_control'))
+        self.controls.append(ComboBox(self,'resolution_control'))
+        self.controls.append(CheckBox(self,'use_distortion_control'))
+
         self.restoreButton = wx.Button(self,label=_("Restore Default"),size=(200,-1))
 
         # - Layout
@@ -72,133 +69,42 @@ class CameraPanel(wx.Panel):
 
         hbox=wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(cameraControlStaticText, 0, wx.ALL, 10)
-        hbox.Add((-1,-1),1,wx.EXPAND|wx.ALL,1)
         vbox.Add(hbox,0,wx.EXPAND|wx.LEFT|wx.RIGHT,0)
 
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.brightnessText, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.brightnessSlider, 0, wx.ALL, 0)
-        vbox.Add(hbox,0,wx.EXPAND,0)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.contrastText, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.contrastSlider, 0, wx.ALL, 0)
-        vbox.Add(hbox,0,wx.EXPAND,0)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.saturationText, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.saturationSlider, 0, wx.ALL, 0)
-        vbox.Add(hbox,0,wx.EXPAND,0)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-
-        hbox.Add(self.exposureText, 0, wx.ALL^wx.BOTTOM, 18)
-        hbox.Add(self.exposureSlider, 0, wx.ALL, 0)
-        vbox.Add(hbox,0,wx.EXPAND,0)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-
-        hbox.Add(self.frameRateText, 0, wx.ALL, 18)
-        hbox.Add(self.frameRateCombo, 0, wx.TOP, 12)
-        vbox.Add(hbox,0,wx.EXPAND,0)
-        
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.resolutionText, 0, wx.ALL, 18)
-        hbox.Add(self.resolutionCombo, 0, wx.TOP, 12)
-        vbox.Add(hbox,0,wx.EXPAND,0)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.useDistortionCheckBox, 0, wx.ALL^wx.BOTTOM^wx.TOP, 18)
-        vbox.Add(hbox,0,wx.EXPAND,0)
+        for control in self.controls:
+            vbox.Add(control, 0, wx.ALL|wx.EXPAND, 0)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.restoreButton, 0, wx.ALL, 18)
-        
         vbox.Add(hbox,0,wx.ALIGN_CENTRE,5)
-        self.updateProfileToAllControls()
         
         self.SetSizer(vbox)
         self.Centre()
 
-        #-- Events
-        self.brightnessSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.main.releaseUndo)
-        self.brightnessSlider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onBrightnessChanged)
-        self.contrastSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE,self.main.releaseUndo)
-        self.contrastSlider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onContrastChanged)
-        self.saturationSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.main.releaseUndo)
-        self.saturationSlider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onSaturationChanged)
-        self.exposureSlider.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.main.releaseUndo)
-        self.exposureSlider.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onExposureChanged)
-        self.frameRateCombo.Bind(wx.EVT_COMBOBOX, self.OnSelectFrame)
-        self.resolutionCombo.Bind(wx.EVT_COMBOBOX, self.OnSelectResolution)
-        self.useDistortionCheckBox.Bind(wx.EVT_CHECKBOX, self.onUseDistortionChanged)
+        #-- Callbacks
+        for control in self.controls:
+            control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
+
+        self.controls[0].setEngineCallback(self.scanner.camera.setBrightness)
+        self.controls[1].setEngineCallback(self.scanner.camera.setContrast)
+        self.controls[2].setEngineCallback(self.scanner.camera.setSaturation)
+        self.controls[3].setEngineCallback(self.scanner.camera.setExposure)
+        self.controls[4].setEngineCallback(lambda v: (self.scanner.camera.setFrameRate(int(v)), self.reloadVideo()))
+        self.controls[5].setEngineCallback(lambda v: self.scanner.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        self.controls[6].setEngineCallback(lambda v: (self.scanner.camera.setUseDistortion(v), self.reloadVideo()))
+
         self.restoreButton.Bind(wx.EVT_BUTTON, self.restoreDefault)
-
-    def onBrightnessChanged(self, event):
-        if event is not None:
-            self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('brightness_control'))
-        value = self.brightnessSlider.GetValue()
-        putProfileSetting('brightness_control', value)
-        self.scanner.camera.setBrightness(value)
-
-    def onContrastChanged(self, event):
-        if event is not None:
-            self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('contrast_control'))
-        value = self.contrastSlider.GetValue()
-        putProfileSetting('contrast_control', value)
-        self.scanner.camera.setContrast(value)
-
-    def onSaturationChanged(self, event):
-        if event is not None:
-            self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('saturation_control'))
-        value = self.saturationSlider.GetValue()
-        putProfileSetting('saturation_control', value)
-        self.scanner.camera.setSaturation(value)
-
-    def onExposureChanged(self, event):
-        if event is not None:
-            self.main.appendToUndo(event.GetEventObject(), getProfileSettingInteger('exposure_control'))
-        value = self.exposureSlider.GetValue() 
-        putProfileSetting('exposure_control', value)
-        self.scanner.camera.setExposure(value)
-
-    def OnSelectFrame(self, event):
-        value = int(self.frameRateCombo.GetValue())
-        putProfileSetting('framerate_control', value)
-        self.scanner.camera.setFrameRate(value)
-        self.reloadVideo()
-        
-    def OnSelectResolution(self, event):
-        resolution = self.resolutionCombo.GetValue().replace('(', '').replace(')', '')
-        h = int(resolution.split(',')[1])
-        w = int(resolution.split(',')[0])
-        putProfileSetting('camera_width_control', w)
-        putProfileSetting('camera_height_control', h)
-        self.scanner.camera.setResolution(w, h)
-
-    def onUseDistortionChanged(self, event):
-        self.useDistortion = self.useDistortionCheckBox.GetValue()
-        putProfileSetting('use_distortion_control', self.useDistortion)
-        self.reloadVideo()
-        self.scanner.camera.setUseDistortion(self.useDistortion)
 
     def restoreDefault(self, event):
         dlg = wx.MessageDialog(self, _("This will reset control camera settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Control reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            resetProfileSetting('brightness_control')
-            resetProfileSetting('contrast_control')
-            resetProfileSetting('saturation_control')
-            resetProfileSetting('exposure_control')
-            resetProfileSetting('framerate_control')
-            resetProfileSetting('camera_width_control')
-            resetProfileSetting('camera_height_control')
-            resetProfileSetting('use_distortion_control')
+            for control in self.controls:
+                control.resetProfile()
             self.main.enableLabelTool(self.main.undoTool, False)
-            self.updateProfileToAllControls()
             self.reloadVideo()
 
     def reloadVideo(self):
@@ -207,35 +113,16 @@ class CameraPanel(wx.Panel):
             self.main.timer.Start(milliseconds=1)
 
     def updateProfileToAllControls(self):
-        brightness = getProfileSettingInteger('brightness_control')
-        self.brightnessSlider.SetValue(brightness)
-        self.scanner.camera.setBrightness(brightness)
+        for control in self.controls:
+            control.updateProfile()
 
-        contrast = getProfileSettingInteger('contrast_control')
-        self.contrastSlider.SetValue(contrast)
-        self.scanner.camera.setContrast(contrast)
-
-        saturation = getProfileSettingInteger('saturation_control')
-        self.saturationSlider.SetValue(saturation)
-        self.scanner.camera.setSaturation(saturation)
-
-        exposure = getProfileSettingInteger('exposure_control')
-        self.exposureSlider.SetValue(exposure)
-        self.scanner.camera.setExposure(exposure)
-
-        framerate = getProfileSettingInteger('framerate_control')
-        self.frameRateCombo.SetValue(str(framerate))
-        self.scanner.camera.setFrameRate(framerate)
-
-        camera_width = getProfileSettingInteger('camera_width_control')
-        camera_height = getProfileSettingInteger('camera_height_control')
-        resolution=(camera_width, camera_height)
-        self.resolutionCombo.SetValue(str(resolution))
-        self.scanner.camera.setResolution(camera_width, camera_height)
-
-        self.useDistortion = getProfileSettingBool('use_distortion_control')
-        self.useDistortionCheckBox.SetValue(self.useDistortion)
-        self.scanner.camera.setUseDistortion(self.useDistortion)
+        ## TODO: Force repaint!
+        self.Layout()
+        self.GetParent().Refresh()
+        self.Update()
+        self.Hide()
+        self.Show()
+        wx.Yield()
 
 
 class DevicePanel(wx.Panel):

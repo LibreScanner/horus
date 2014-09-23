@@ -260,6 +260,9 @@ class MainWindow(wx.Frame):
 
     def onModeChanged(self, event):
         putPreference('basic_mode', self.menuBasicMode.IsChecked())
+        self.controlWorkbench.updateProfileToAllControls()
+        self.calibrationWorkbench.updateProfileToAllControls()
+        self.scanningWorkbench.updateProfileToAllControls()
 
     def onPreferences(self, event):
         prefDialog = PreferencesDialog(self)
@@ -474,8 +477,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.scanner.camera.setSaturation(getProfileSettingInteger('saturation_' + workbench))
             self.scanner.camera.setExposure(getProfileSettingInteger('exposure_' + workbench))
             self.scanner.camera.setFrameRate(getProfileSettingInteger('framerate_' + workbench))
-            self.scanner.camera.setResolution(getProfileSettingInteger('camera_width_' + workbench),
-                                              getProfileSettingInteger('camera_height_' + workbench))
+            #self.scanner.camera.setResolution(getProfileSettingInteger('camera_width_' + workbench),
+            #                                  getProfileSettingInteger('camera_height_' + workbench))
             self.scanner.camera.setUseDistortion(getProfileSettingBool('use_distortion_' + workbench))
             self.scanner.camera.setIntrinsics(getProfileSettingNumpy('camera_matrix'),
                                               getProfileSettingNumpy('distortion_vector'))

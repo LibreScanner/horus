@@ -69,7 +69,7 @@ class setting(object):
 	"""
 	def __init__(self, name, default, type, category, subcategory):
 		self._name = name
-		self._label = name
+		self._label = subcategory
 		self._tooltip = ''
 		self._default = unicode(default)
 		self._values = []
@@ -100,6 +100,14 @@ class setting(object):
 		self._validators[0].minValue = minValue
 		self._validators[0].maxValue = maxValue
 		return self
+
+	def getMinValue(self):
+		if len(self._validators) > 0:
+			return _(self._validators[0].minValue)
+
+	def getMaxValue(self):
+		if len(self._validators) > 0:
+			return _(self._validators[0].maxValue)
 
 	def getLabel(self):
 		return _(self._label)
@@ -190,10 +198,9 @@ setting('baud_rate', '9600', int, 'basic', _('Baud Rate'))
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_control', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_control', 166, int, 'advanced', _('Exposure')).setRange(0, 10000)
-setting('framerate_control', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
-setting('camera_width_control', 1280, int, 'advanced', _('Camera Width')).setRange(1)
-setting('camera_height_control', 960, int, 'advanced', _('Camera Height')).setRange(1)
+setting('exposure_control', 166, int, 'basic', _('Exposure')).setRange(0, 300)
+setting('framerate_control', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
+setting('resolution_control', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_control', False, bool, 'advanced', _('Use Distortion'))
 
 setting('step_degrees_control', -0.45, float, 'advanced', _('Step Degrees')).setRange(0.01)
@@ -269,6 +276,7 @@ setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden')
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
 setting('workbench', 'main', ['main', 'control', 'settings', 'calibration', 'scanning'], 'preference', 'hidden')
+# TODO: ['basic', 'advanced']
 setting('basic_mode', True, bool, 'preference', 'hidden')
 setting('view_control_panel', True, bool, 'preference', 'hidden')
 setting('view_control_video', True, bool, 'preference', 'hidden')
@@ -470,6 +478,12 @@ def getPreferencesString():
 	ret = base64.b64encode(zlib.compress(ret, 9))
 	return ret
 
+def getProfileSettingObject(name):
+	""" """
+	global settingsList
+	for set in settingsList:
+		if set.getName() is name:
+			return set
 
 def getProfileSetting(name):
 	"""
