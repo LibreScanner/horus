@@ -116,7 +116,6 @@ class ControlWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.playTool, False)
 			self.enableLabelTool(self.stopTool, True)
 			self.timer.Stop()
-			self.scanner.camera.setUseDistortion(self.cameraPanel.useDistortion)
 			self.timer.Start(milliseconds=1)
 
 	def onStopToolClicked(self, event):

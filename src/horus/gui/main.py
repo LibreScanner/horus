@@ -261,8 +261,10 @@ class MainWindow(wx.Frame):
     def onModeChanged(self, event):
         putPreference('basic_mode', self.menuBasicMode.IsChecked())
         self.controlWorkbench.updateProfileToAllControls()
+        self.settingsWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
+        self.Layout()
 
     def onPreferences(self, event):
         prefDialog = PreferencesDialog(self)
@@ -384,6 +386,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def updateProfileToAllControls(self):
         """ """
         self.controlWorkbench.updateProfileToAllControls()
+        self.settingsWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
 
@@ -477,8 +480,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.scanner.camera.setSaturation(getProfileSettingInteger('saturation_' + workbench))
             self.scanner.camera.setExposure(getProfileSettingInteger('exposure_' + workbench))
             self.scanner.camera.setFrameRate(getProfileSettingInteger('framerate_' + workbench))
-            #self.scanner.camera.setResolution(getProfileSettingInteger('camera_width_' + workbench),
-            #                                  getProfileSettingInteger('camera_height_' + workbench))
+            resolution = getProfileSetting('resolution_' + workbench)
+            self.scanner.camera.setResolution(int(resolution.split('x')[0]), int(resolution.split('x')[1]))
             self.scanner.camera.setUseDistortion(getProfileSettingBool('use_distortion_' + workbench))
             self.scanner.camera.setIntrinsics(getProfileSettingNumpy('camera_matrix'),
                                               getProfileSettingNumpy('distortion_vector'))
@@ -490,18 +493,19 @@ Suite 330, Boston, MA  02111-1307  USA""")
         if workbench in ['settings', 'scanning']:
             self.scanner.core.resetTheta()
             self.scanner.core.setImageType(getProfileSetting('img_type'))
-            self.scanner.core.setOpen(getProfileSettingBool('use_open'),
-                                      getProfileSettingInteger('open_value'))
-            self.scanner.core.setThreshold(getProfileSettingBool('use_threshold'),
-                                           getProfileSettingInteger('threshold_value'))
-            self.scanner.core.setUseCompactAlgorithm(getProfileSettingBool('use_compact'))
-            self.scanner.core.setRangeFilter(getProfileSettingInteger('min_rho'),
-                                             getProfileSettingInteger('max_rho'),
-                                             getProfileSettingInteger('min_h'),
-                                             getProfileSettingInteger('max_h'))
+            self.scanner.core.setUseOpen(getProfileSettingBool('use_open'))
+            self.scanner.core.setOpenValue(getProfileSettingInteger('open_value'))
+            self.scanner.core.setUseThreshold(getProfileSettingBool('use_threshold'))
+            self.scanner.core.setThresholdValue(getProfileSettingInteger('threshold_value'))
+            self.scanner.core.setUseCompact(getProfileSettingBool('use_compact'))
+            self.scanner.core.setUseComplete(getProfileSettingBool('use_complete'))
+            self.scanner.core.setMinR(getProfileSettingInteger('min_r'))
+            self.scanner.core.setMaxR(getProfileSettingInteger('max_r'))
+            self.scanner.core.setMinH(getProfileSettingInteger('min_h'))
+            self.scanner.core.setMaxH(getProfileSettingInteger('max_h'))
             self.scanner.core.setDegrees(getProfileSettingFloat('step_degrees_scanning'))
-            self.scanner.core.setResolution(getProfileSettingInteger('camera_height_scanning'),
-                                            getProfileSettingInteger('camera_width_scanning'))
+            resolution = getProfileSetting('resolution_scanning')
+            self.scanner.camera.setResolution(int(resolution.split('x')[0]), int(resolution.split('x')[1]))
             self.scanner.core.setUseLaser(getProfileSettingBool('use_left_laser'),
                                           getProfileSettingBool('use_right_laser'))
             self.scanner.core.setLaserAngles(getProfileSettingFloat('laser_angle_left'),

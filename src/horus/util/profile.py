@@ -67,7 +67,7 @@ class setting(object):
 		Settings have validators that check if the value is valid, but do not prevent invalid values!
 		Settings have conditions that enable/disable this setting depending on other settings.
 	"""
-	def __init__(self, name, default, type, category, subcategory):
+	def __init__(self, name, default, type, category, subcategory, store=True):
 		self._name = name
 		self._label = subcategory
 		self._tooltip = ''
@@ -78,6 +78,7 @@ class setting(object):
 		self._subcategory = subcategory
 		self._validators = []
 		self._conditions = []
+		self._store = store
 
 		if type is types.FloatType:
 			validators.validFloat(self)
@@ -129,6 +130,9 @@ class setting(object):
 
 	def isProfile(self):
 		return not self.isPreference() and not self.isMachineSetting()
+
+	def isStorable(self):
+		return self._store
 
 	def getName(self):
 		return self._name
@@ -195,9 +199,6 @@ setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('baud_rate', '9600', int, 'basic', _('Baud Rate'))
 
-setting('restore_default', '', str, 'advanced', _('Restore Default'))
-
-setting('camera_control', '', str, 'advanced', _('Camera Control'))
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_control', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
@@ -206,34 +207,32 @@ setting('framerate_control', str('30'), [str('30'), str('25'), str('20'), str('1
 setting('resolution_control', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_control', False, bool, 'advanced', _('Use Distortion'))
 
-setting('step_degrees_control', -0.45, float, 'advanced', _('Step Degrees')).setRange(0.01)
+setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
 setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 10000)
 setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
 setting('brightness_calibration', 156, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_calibration', 56, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_calibration', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_calibration', 166, int, 'advanced', _('Exposure')).setRange(0, 10000)
-setting('framerate_calibration', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
-setting('camera_width_calibration', 1280, int, 'advanced', _('Camera Width')).setRange(1)
-setting('camera_height_calibration', 960, int, 'advanced', _('Camera Height')).setRange(1)
+setting('exposure_calibration', 166, int, 'basic', _('Exposure')).setRange(0, 10000)
+setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
+setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
 
 setting('brightness_scanning', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_scanning', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_scanning', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_scanning', 166, int, 'advanced', _('Exposure')).setRange(0, 10000)
-setting('framerate_scanning', 30, int, 'advanced', _('Framerate')).setRange(1, 30)
-setting('camera_width_scanning', 1280, int, 'advanced', _('Camera Width')).setRange(1)
-setting('camera_height_scanning', 960, int, 'advanced', _('Camera Height')).setRange(1)
+setting('exposure_scanning', 166, int, 'basic', _('Exposure')).setRange(0, 10000)
+setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
+setting('resolution_scanning', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
 
-setting('step_degrees_scanning', 0.45, float, 'advanced', _('Step Degrees')).setRange(0.01)
+setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
 setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 10000)
 setting('acceleration_scanning', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
-setting('use_left_laser', True, bool, 'advanced', _('Use Left Laser'))
-setting('use_right_laser', False, bool, 'advanced', _('Use Right Laser'))
+setting('use_left_laser', True, bool, 'basic', _('Use Left Laser'))
+setting('use_right_laser', False, bool, 'basic', _('Use Right Laser'))
 
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Image Type'))
 
@@ -242,11 +241,13 @@ setting('open_value', 2, int, 'advanced', _('Open Value')).setRange(1, 10)
 setting('use_threshold', True, bool, 'advanced', _('Threshold'))
 setting('threshold_value', 30, int, 'advanced', _('Threshold Value')).setRange(0, 255)
 
-setting('use_compact', True, bool, 'advanced', _('Compact Algorithm'))
-setting('min_rho', -100, int, 'advanced', _('Minimum Rho'))
-setting('max_rho', 100, int, 'advanced', _('Maximum Rho'))
-setting('min_h', 0, int, 'advanced', _('Minimum H'))
-setting('max_h', 200, int, 'advanced', _('Maximum H'))
+setting('use_compact', False, bool, 'advanced', _('Compact'))
+setting('use_complete', True, bool, 'advanced', _('Complete'))
+
+setting('min_r', -100, int, 'advanced', _('Minimum Rho')).setRange(-100, 100)
+setting('max_r', 100, int, 'advanced', _('Maximum Rho')).setRange(-100, 100)
+setting('min_h', 0, int, 'advanced', _('Minimum H')).setRange(-100, 200)
+setting('max_h', 200, int, 'advanced', _('Maximum H')).setRange(-100, 200)
 
 setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
 setting('laser_angle_right', 30.0, float, 'advanced', _('Laser Angle Right'))
@@ -263,6 +264,15 @@ setting('translation_vector', ([0.0,85.0,315.0]), numpy.ndarray, 'advanced', _('
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))
+
+setting('left_button', '', str, 'basic', _('Left'), False)
+setting('right_button', '', str, 'basic', _('Right'), False)
+setting('motor_control', '', str, 'basic', _('Motor Control'), False)
+setting('move_button', '', str, 'basic', _('Move'), False)
+setting('enable_button', '', str, 'basic', _('Enable'), False)
+setting('gcode_gui', '', str, 'advanced', _('Send'), False)
+setting('restore_default', '', str, 'basic', _('Restore Default'), False)
+
 
 """setting('uv_left_pointcloud', '', str, 'advanced', _('UV Left Pointcloud'))"""
 
@@ -408,7 +418,8 @@ def saveProfile(filename, allMachines = False):
 		for set in settingsList:
 			if set.isPreference() or set.isMachineSetting():
 				continue
-			profileParser.set('profile', set.getName(), set.getValue().encode('utf-8'))
+			if set.isStorable():
+				profileParser.set('profile', set.getName(), set.getValue().encode('utf-8'))
 
 	profileParser.write(open(filename, 'w'))
 

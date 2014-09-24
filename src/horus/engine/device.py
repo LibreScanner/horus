@@ -167,7 +167,8 @@ class Device:
 				else:
 					return ''.join(self.serialPort.readline())
 		else:
-			print "Serial port is not connected."
+			pass
+			#print "Serial port is not connected."
 
 	def _checkAcknowledge(self, ack):
 		return ack.endswith("ok\r\n") #ok

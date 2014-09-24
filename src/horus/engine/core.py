@@ -59,22 +59,35 @@ class Core:
 		""" """
 		self.imgType = imgType
 
-	def setOpen(self, enable, value):
+	def setUseOpen(self, enable):
 		self.openEnable = enable
+
+	def setOpenValue(self, value):
 		self.openValue = value
 
-	def setThreshold(self, enable, value):
+	def setUseThreshold(self, enable):
 		self.thresholdEnable = enable
+
+	def setThresholdValue(self, value):
 		self.thresholdValue = value
 
-	def setUseCompactAlgorithm(self, useCompact):
-		self.useCompact = useCompact
+	def setUseCompact(self, enable):
+		self.useCompact = enable
 
-	def setRangeFilter(self, rhoMin, rhoMax, hMin, hMax):
-		self.rhoMin = rhoMin
-		self.rhoMax = rhoMax
-		self.hMin = hMin
-		self.hMax = hMax
+	def setUseComplete(self, enable):
+		self.useComplete = enable
+
+	def setMinR(self, value):
+		self.rhoMin = value
+
+	def setMaxR(self, value):
+		self.rhoMax = value
+
+	def setMinH(self, value):
+		self.hMin = value
+
+	def setMaxH(self, value):
+		self.hMax = value
 
 	def setDegrees(self, degrees):
 		self.degrees = degrees

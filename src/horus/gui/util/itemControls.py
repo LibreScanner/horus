@@ -29,12 +29,70 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx
 
+from collections import OrderedDict
+
 from horus.util.profile import *
 
-class ControlItem(wx.Control):
-	def __init__(self, parent, name):
-		wx.Control.__init__(self, parent)
-		self.engineCallback = None
+class Control(wx.Panel):
+	def __init__(self, parent, title):
+		wx.Panel.__init__(self, parent)
+
+		self.sizer = wx.BoxSizer(wx.VERTICAL)
+		self.SetSizer(self.sizer)
+
+		self.title = TitleText(self, title)
+		self.sizer.Add(self.title, 0, flag=wx.BOTTOM|wx.EXPAND, border=4)
+
+		self.items = OrderedDict()
+
+		self.Layout()
+
+	def append(self, _type, _name, _callback):
+		item = _type(self, _name, _callback)
+		self.items.update({_name : item})
+		self.sizer.Add(item, 0, flag=wx.LEFT|wx.EXPAND, border=10)
+		self.Layout()
+
+	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
+		for item in self.items.values():
+			item.setUndoCallbacks(appendUndoCallback, releaseUndoCallback)
+
+	def resetProfile(self):
+		for item in self.items.values():
+			item.resetProfile()
+
+	def updateProfile(self):
+		v = 0
+		for item in self.items.values():
+			item.updateProfile()
+			if item.isVisible():
+				v += 1
+		if v > 0:
+			self.Show()
+		else:
+			self.Hide()
+
+
+class TitleText(wx.Panel):
+	def __init__(self, parent, title):
+		wx.Panel.__init__(self, parent)
+
+		#-- Elements
+		self.title = wx.StaticText(self, wx.ID_ANY, title)
+		self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+
+		#-- Layout
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self.title, 0, flag=wx.ALL|wx.EXPAND, border=5)
+		vbox.Add(wx.StaticLine(self), 1, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=5)
+		self.SetSizer(vbox)
+		self.Layout()
+
+
+class ControlItem(wx.Panel):
+	def __init__(self, parent, name, engineCallback=None):
+		wx.Panel.__init__(self, parent)
+		self.engineCallback = engineCallback
 		self.appendUndoCallback = None
 		self.releaseUndoCallback = None
 
@@ -83,9 +141,9 @@ class ControlItem(wx.Control):
 
 
 class Slider(ControlItem):
-	def __init__(self, parent, name):
+	def __init__(self, parent, name, engineCallback=None):
 		""" """
-		ControlItem.__init__(self, parent, name)
+		ControlItem.__init__(self, parent, name, engineCallback)
 
 		self.flagFirstMove = True
 
@@ -100,8 +158,8 @@ class Slider(ControlItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.ALL^wx.BOTTOM, 18)
-		hbox.Add(self.control, 0, wx.ALL, 0)
+		hbox.Add(self.label, 0, wx.TOP^wx.RIGHT|wx.EXPAND, 20)
+		hbox.Add(self.control, 0, wx.BOTTOM|wx.EXPAND, 2)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -132,9 +190,9 @@ class Slider(ControlItem):
 
 
 class ComboBox(ControlItem):
-	def __init__(self, parent, name):
+	def __init__(self, parent, name, engineCallback=None):
 		""" """
-		ControlItem.__init__(self, parent, name)
+		ControlItem.__init__(self, parent, name, engineCallback)
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
@@ -146,8 +204,8 @@ class ComboBox(ControlItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.ALL, 18)
-		hbox.Add(self.control, 0, wx.TOP, 12)
+		hbox.Add(self.label, 0, wx.TOP^wx.RIGHT|wx.EXPAND, 18)
+		hbox.Add(self.control, 0, wx.TOP, 11)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -171,16 +229,18 @@ class ComboBox(ControlItem):
 
 
 class CheckBox(ControlItem):
-	def __init__(self, parent, name):
+	def __init__(self, parent, name, engineCallback=None):
 		""" """
-		ControlItem.__init__(self, parent, name)
+		ControlItem.__init__(self, parent, name, engineCallback)
 
 		#-- Elements
-		self.control = wx.CheckBox(self, label=self.setting.getLabel())
+		self.label = wx.StaticText(self, label=self.setting.getLabel())
+		self.control = wx.CheckBox(self)
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.control, 0, wx.ALL^wx.BOTTOM, 18)
+		hbox.Add(self.label, 0, wx.TOP^wx.RIGHT|wx.EXPAND, 15)
+		hbox.Add(self.control, 0, wx.TOP, 16)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -203,23 +263,25 @@ class CheckBox(ControlItem):
 			self.update(value)
 
 class RadioButton(ControlItem):
-	def __init__(self, parent, name):
+	def __init__(self, parent, name, engineCallback=None):
 		""" """
-		ControlItem.__init__(self, parent, name)
+		ControlItem.__init__(self, parent, name, engineCallback)
 
 		#-- Elements
-		self.control = wx.RadioButton(self, label=self.setting.getLabel())
+		self.label = wx.StaticText(self, label=self.setting.getLabel())
+		self.control = wx.RadioButton(self)
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.control, 0, wx.ALL^wx.BOTTOM, 18)
+		hbox.Add(self.label, 0, wx.TOP|wx.EXPAND, 15)
+		hbox.Add(self.control, 0, wx.TOP, 16)
 		self.SetSizer(hbox)
 		self.Layout()
 
 		#-- Events
 		self.control.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonChanged)
 
-	def onCheckBoxChanged(self, event):
+	def onRadioButtonChanged(self, event):
 		self.undoValues.append(getProfileSettingBool(self.name))
 		value = self.control.GetValue()
 		putProfileSetting(self.name, value)
@@ -235,9 +297,9 @@ class RadioButton(ControlItem):
 			self.update(value)
 
 class TextBox(ControlItem):
-	def __init__(self, parent, name):
+	def __init__(self, parent, name, engineCallback=None):
 		""" """
-		ControlItem.__init__(self, parent, name)
+		ControlItem.__init__(self, parent, name, engineCallback)
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
@@ -254,36 +316,40 @@ class TextBox(ControlItem):
 		self.control.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
 
 	def onTextBoxChanged(self, event):
-		self.undoValues.append(getProfileSetting(self.name))
+		#self.undoValues.append(getProfileSetting(self.name))
 		value = self.control.GetValue()
 		putProfileSetting(self.name, value)
 		self._updateEngine(value)
-		if self.appendUndoCallback is not None:
-			self.appendUndoCallback(self)
-		if self.releaseUndoCallback is not None:
-			self.releaseUndoCallback()
+		#if self.appendUndoCallback is not None:
+		#	self.appendUndoCallback(self)
+		#if self.releaseUndoCallback is not None:
+		#	self.releaseUndoCallback()
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
 			value = getProfileSetting(self.name)
 			self.update(value)
 
-class TitleText(ControlItem):
-	def __init__(self, parent, name):
+class Button(ControlItem):
+	def __init__(self, parent, name, engineCallback=None):
 		""" """
-		ControlItem.__init__(self, parent, name)
+		ControlItem.__init__(self, parent, name, engineCallback)
 
 		#-- Elements
-		self.control = wx.StaticText(self, wx.ID_ANY, self.setting.getLabel(), style=wx.ALIGN_CENTRE)
-		self.control.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+		self.control = wx.Button(self, label=self.setting.getLabel())
 
 		#-- Layout
-		vbox = wx.BoxSizer(wx.VERTICAL)
-		vbox.Add(self.control, 0, wx.ALL, 10)
-		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND, 0)
-		self.SetSizer(vbox)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.control, 1, wx.ALL^wx.LEFT|wx.EXPAND, 10)
+		self.SetSizer(hbox)
 		self.Layout()
-		self.Fit()
+
+		#-- Events
+		self.control.Bind(wx.EVT_BUTTON, self.onButtonClicked)
+
+	def onButtonClicked(self, event):
+		if self.engineCallback is not None:
+			self.engineCallback()
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
@@ -295,19 +361,32 @@ class TitleText(ControlItem):
 		else:
 			self.Hide()
 
-class Button(ControlItem):
-	def __init__(self, parent, name):
+class ToggleButton(ControlItem):
+	def __init__(self, parent, name, engineCallback=None):
 		""" """
-		ControlItem.__init__(self, parent, name)
+		ControlItem.__init__(self, parent, name, engineCallback)
 
 		#-- Elements
-		self.control = wx.Button(self,label=self.setting.getLabel())
+		self.control = wx.ToggleButton(self, label=self.setting.getLabel())
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.control, 0, wx.ALL, 18)
+		hbox.Add(self.control, 1, wx.ALL^wx.LEFT|wx.EXPAND, 10)
 		self.SetSizer(hbox)
 		self.Layout()
+
+		#-- Events
+		self.control.Bind(wx.EVT_TOGGLEBUTTON, self.onButtonToggle)
+
+	def onButtonToggle(self, event):
+		if self.engineCallback is not None:
+			if event.IsChecked():
+				function = 0
+			else:
+				function = 1
+
+			if self.engineCallback[function] is not None:
+				self.engineCallback[function]()
 
 	def updateProfile(self):
 		if hasattr(self,'control'):

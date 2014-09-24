@@ -100,24 +100,7 @@ class SettingsWorkbench(WorkbenchConnection):
 		self.addToPanel(self.videoView, 1)
 
 		#-- Undo
-		self.undoEvents = {self.calibrationPanel.brightnessSlider.GetId() : self.calibrationPanel.onBrightnessChanged,
-						   self.calibrationPanel.contrastSlider.GetId()   : self.calibrationPanel.onContrastChanged,
-						   self.calibrationPanel.saturationSlider.GetId() : self.calibrationPanel.onSaturationChanged,
-						   self.calibrationPanel.exposureSlider.GetId()   : self.calibrationPanel.onExposureChanged,
-						   self.scanningPanel.brightnessSlider.GetId() : self.scanningPanel.onBrightnessChanged,
-						   self.scanningPanel.contrastSlider.GetId()   : self.scanningPanel.onContrastChanged,
-						   self.scanningPanel.saturationSlider.GetId() : self.scanningPanel.onSaturationChanged,
-						   self.scanningPanel.exposureSlider.GetId()   : self.scanningPanel.onExposureChanged,
-						   self.scanningPanel.openSlider.GetId()       : self.scanningPanel.onOpenChanged,
-						   self.scanningPanel.thresholdSlider.GetId()  : self.scanningPanel.onThresholdChanged,
-						   self.scanningPanel.minRadiousSlider.GetId() : self.scanningPanel.onRadiousChanged,
-						   self.scanningPanel.maxRadiousSlider.GetId() : self.scanningPanel.onRadiousChanged,
-						   self.scanningPanel.minHeightSlider.GetId()  : self.scanningPanel.onHeightChanged,
-						   self.scanningPanel.maxHeightSlider.GetId()  : self.scanningPanel.onHeightChanged}
-
-		self.storyObjects = []
-		self.storyValues = []
-		self.flagFirstMove = True # When you drag the slider, the only undoable is the first position not the ones in between
+		self.undoObjects = []
 
 		#-- Video View Selector
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
@@ -246,28 +229,17 @@ class SettingsWorkbench(WorkbenchConnection):
 	def onUndoToolClicked(self, event):
 		self.enableLabelTool(self.undoTool, self.undo())
 
-	def appendToUndo(self, _object, _value):
-		if self.flagFirstMove:
-			self.storyObjects.append(_object)
-			self.storyValues.append(_value)
-			self.flagFirstMove = False
+	def appendToUndo(self, _object):
+		self.undoObjects.append(_object)
 
-	def releaseUndo(self, event):
-		self.flagFirstMove = True
+	def releaseUndo(self):
 		self.enableLabelTool(self.undoTool, True)
 
 	def undo(self):
-		if len(self.storyObjects) > 0:
-			objectToUndo = self.storyObjects.pop()
-			valueToUndo = self.storyValues.pop()
-			objectToUndo.SetValue(valueToUndo)
-			self.updateValue(objectToUndo)
-		return len(self.storyObjects) > 0
-
-	def updateValue(self, objectToUndo):
-		self.flagFirstMove = False
-		self.undoEvents[objectToUndo.GetId()](None)
-		self.flagFirstMove = True
+		if len(self.undoObjects) > 0:
+			objectToUndo = self.undoObjects.pop()
+			objectToUndo.undo()
+		return len(self.undoObjects) > 0
 
 	def onSelectVideoView(self, event):
 		selectedView = {self.buttonRaw.GetId()  : 'raw',
