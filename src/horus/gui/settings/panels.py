@@ -69,13 +69,14 @@ class CalibrationPanel(wx.Panel):
         for control in self.controls:
             control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
 
-    def restoreDefault(self, event):
+    def restoreDefault(self):
         dlg = wx.MessageDialog(self, _("This will reset calibration settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Calibration Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
             for control in self.controls:
                 control.resetProfile()
+            self.main.enableLabelTool(self.main.undoTool, False)
             self.reloadVideo()
 
     def reloadVideo(self):
@@ -110,33 +111,29 @@ class ScanningPanel(wx.Panel):
         control.append(Button, 'restore_default', self.restoreDefault)
         self.controls.append(control)
         
-        control = Control(self, _('Image Processing'))
+        control = Control(self, _('Image Processing'), bold=False)
         control.append(CheckBox, 'use_open', lambda v: self.scanner.core.setUseOpen(bool(v)))
         control.append(Slider, 'open_value', lambda v: self.scanner.core.setOpenValue(int(v)))
         control.append(CheckBox, 'use_threshold', lambda v: self.scanner.core.setUseThreshold(bool(v)))
         control.append(Slider, 'threshold_value', lambda v: self.scanner.core.setThresholdValue(int(v)))
         self.controls.append(control)
 
-        control = Control(self, _('Algorithm'))
-        control.append(RadioButton, 'use_compact', lambda v: self.scanner.core.setUseCompact(bool(v)))
-        control.append(RadioButton, 'use_complete', lambda v: self.scanner.core.setUseComplete(bool(v)))
+        control = Control(self, _('Algorithm'), bold=False)
+        control.append(CheckBox, 'use_compact', lambda v: self.scanner.core.setUseCompact(bool(v)))
         self.controls.append(control)
 
-        control = Control(self, _('Filter'))
+        control = Control(self, _('3D ROI'), bold=False)
         control.append(Slider, 'min_r', lambda v: self.scanner.core.setMinR(int(v)))
         control.append(Slider, 'max_r', lambda v: self.scanner.core.setMaxR(int(v)))
         control.append(Slider, 'min_h', lambda v: self.scanner.core.setMinH(int(v)))
         control.append(Slider, 'max_h', lambda v: self.scanner.core.setMaxH(int(v)))
         self.controls.append(control)
 
-        control = Control(self, _('Laser'))
+        control = Control(self, _('Laser'), bold=False)
+        control.append(ComboBox, 'use_laser', lambda v: self.scanner.core.setUseLaser(v==_("Use Left Laser"), v==_("Use Right Laser"))) #TODO: use combo choices
         self.controls.append(control)
-        laserStaticText = wx.StaticText(self, wx.ID_ANY, _("Laser"), style=wx.ALIGN_CENTRE)
-        laserStaticText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-        self.laserOptions = [_("Use Left Laser"), _("Use Right Laser")] #, _("Use Both Lasers")]
-        self.laserCombo = wx.ComboBox(self, -1, size=(200, -1), choices=self.laserOptions, style=wx.CB_READONLY)
 
-        control = Control(self, _('Motor'))
+        control = Control(self, _('Motor'), bold=False)
         control.append(TextBox, 'step_degrees_scanning', lambda v: self.scanner.device.setRelativePosition(float(v)))
         control.append(TextBox, 'feed_rate_scanning', lambda v: self.scanner.device.setSpeedMotor(int(v)))
         control.append(TextBox, 'acceleration_scanning', lambda v: self.scanner.device.setAccelerationMotor(int(v)))
@@ -149,40 +146,19 @@ class ScanningPanel(wx.Panel):
             vbox.Add(control, 0, wx.ALL|wx.EXPAND, 0)
         self.SetSizer(vbox)
         self.Layout()
-    
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.laserCombo, 0, wx.ALL, 12)
-        vbox.Add(hbox,0,wx.EXPAND,0)
 
         #-- Callbacks
         for control in self.controls:
             control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
 
-    def onSelectLaser(self, event):
-    	value = self.laserCombo.GetValue()
-
-        if value == self.laserOptions[0]:
-            putProfileSetting('use_left_laser', True)
-            putProfileSetting('use_right_laser', False)
-            self.scanner.core.setUseLaser(True, False)
-
-        elif value == self.laserOptions[1]:
-            putProfileSetting('use_left_laser', False)
-            putProfileSetting('use_right_laser', True)
-            self.scanner.core.setUseLaser(False, True)
-
-        elif value == self.laserOptions[2]:
-            putProfileSetting('use_left_laser', True)
-            putProfileSetting('use_right_laser', True)
-            self.scanner.core.setUseLaser(True, True)
-
-    def restoreDefault(self, event):
+    def restoreDefault(self):
         dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
             for control in self.controls:
                 control.resetProfile()
+            self.main.enableLabelTool(self.main.undoTool, False)
             self.reloadVideo()
 
     def reloadVideo(self):
@@ -193,17 +169,3 @@ class ScanningPanel(wx.Panel):
     def updateProfileToAllControls(self):
         for control in self.controls:
             control.updateProfile()
-
-        useLeftLaser = getProfileSettingBool('use_left_laser')
-        useRightLaser = getProfileSettingBool('use_right_laser')
-        if useLeftLaser:
-            if useRightLaser:
-                self.laserCombo.SetValue(_("Use Both Lasers"))
-            else:
-                self.laserCombo.SetValue(_("Use Left Laser"))
-        else:
-            if useRightLaser:
-                self.laserCombo.SetValue(_("Use Right Laser"))
-            else:
-                self.laserCombo.SetValue("")
-        self.scanner.core.setUseLaser(useLeftLaser, useRightLaser)

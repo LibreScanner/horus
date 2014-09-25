@@ -61,9 +61,9 @@ class ControlWorkbench(WorkbenchConnection):
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
-		self.enableLabelTool(self.playTool     , False)
-		self.enableLabelTool(self.stopTool     , False)
-		self.enableLabelTool(self.undoTool     , False)
+		self.enableLabelTool(self.playTool, False)
+		self.enableLabelTool(self.stopTool, False)
+		self.enableLabelTool(self.undoTool, False)
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked     , self.playTool)
@@ -72,7 +72,7 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetAutoLayout(1)
-		self.scrollPanel.SetupScrolling(scroll_x=False)
+		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
 		self.cameraPanel = CameraPanel(self.scrollPanel)
 		self.devicePanel = DevicePanel(self.scrollPanel)
 		self.cameraPanel.Disable()
@@ -147,13 +147,13 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def updateToolbarStatus(self, status):
 		if status:
-			self.enableLabelTool(self.playTool     , True)
-			self.enableLabelTool(self.stopTool     , False)
+			self.enableLabelTool(self.playTool, True)
+			self.enableLabelTool(self.stopTool, False)
 			self.cameraPanel.Enable()
 			self.devicePanel.Enable()
 		else:
-			self.enableLabelTool(self.playTool     , False)
-			self.enableLabelTool(self.stopTool     , False)
+			self.enableLabelTool(self.playTool, False)
+			self.enableLabelTool(self.stopTool, False)
 			self.cameraPanel.Disable()
 			self.devicePanel.Disable()
 

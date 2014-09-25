@@ -133,7 +133,7 @@ class DevicePanel(wx.Panel):
     """
     def __init__(self, parent):
         """"""
-        wx.Panel.__init__(self, parent=parent, size=(270, 0))
+        wx.Panel.__init__(self, parent=parent, size=(275, 0))
 
         self.scanner = Scanner.Instance()
         self.main = self.GetParent().GetParent().GetParent()

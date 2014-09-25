@@ -34,14 +34,14 @@ from collections import OrderedDict
 from horus.util.profile import *
 
 class Control(wx.Panel):
-	def __init__(self, parent, title):
+	def __init__(self, parent, title, bold=True):
 		wx.Panel.__init__(self, parent)
 
 		self.sizer = wx.BoxSizer(wx.VERTICAL)
 		self.SetSizer(self.sizer)
 
-		self.title = TitleText(self, title)
-		self.sizer.Add(self.title, 0, flag=wx.BOTTOM|wx.EXPAND, border=4)
+		self.title = TitleText(self, title, bold)
+		self.sizer.Add(self.title, 0, flag=wx.TOP|wx.BOTTOM|wx.EXPAND, border=5)
 
 		self.items = OrderedDict()
 
@@ -50,7 +50,7 @@ class Control(wx.Panel):
 	def append(self, _type, _name, _callback):
 		item = _type(self, _name, _callback)
 		self.items.update({_name : item})
-		self.sizer.Add(item, 0, flag=wx.LEFT|wx.EXPAND, border=10)
+		self.sizer.Add(item, 0, flag=wx.LEFT|wx.RIGHT|wx.EXPAND, border=10)
 		self.Layout()
 
 	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
@@ -74,12 +74,16 @@ class Control(wx.Panel):
 
 
 class TitleText(wx.Panel):
-	def __init__(self, parent, title):
+	def __init__(self, parent, title, bold=True):
 		wx.Panel.__init__(self, parent)
 
 		#-- Elements
 		self.title = wx.StaticText(self, wx.ID_ANY, title)
-		self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+		if bold:
+			fontWeight = wx.FONTWEIGHT_BOLD
+		else:
+			fontWeight = wx.FONTWEIGHT_NORMAL
+		self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, fontWeight)))
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -158,8 +162,8 @@ class Slider(ControlItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.TOP^wx.RIGHT|wx.EXPAND, 20)
-		hbox.Add(self.control, 0, wx.BOTTOM|wx.EXPAND, 2)
+		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 20)
+		hbox.Add(self.control, 1, wx.RIGHT|wx.EXPAND, 12)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -204,8 +208,8 @@ class ComboBox(ControlItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.TOP^wx.RIGHT|wx.EXPAND, 18)
-		hbox.Add(self.control, 0, wx.TOP, 11)
+		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 18)
+		hbox.Add(self.control, 1, wx.TOP|wx.RIGHT|wx.EXPAND, 12)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -235,12 +239,12 @@ class CheckBox(ControlItem):
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
-		self.control = wx.CheckBox(self)
+		self.control = wx.CheckBox(self, style=wx.ALIGN_RIGHT)
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.TOP^wx.RIGHT|wx.EXPAND, 15)
-		hbox.Add(self.control, 0, wx.TOP, 16)
+		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 15)
+		hbox.Add(self.control, 1, wx.TOP|wx.BOTTOM|wx.EXPAND, 15)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -269,12 +273,12 @@ class RadioButton(ControlItem):
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
-		self.control = wx.RadioButton(self)
+		self.control = wx.RadioButton(self, style=wx.ALIGN_RIGHT)
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.TOP|wx.EXPAND, 15)
-		hbox.Add(self.control, 0, wx.TOP, 16)
+		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 15)
+		hbox.Add(self.control, 1, wx.TOP|wx.EXPAND, 16)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -307,8 +311,8 @@ class TextBox(ControlItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.ALL|wx.EXPAND, 18)
-		hbox.Add(self.control, 1, wx.EXPAND|wx.ALL^wx.LEFT, 12)
+		hbox.Add(self.label, 0, wx.ALL^wx.LEFT|wx.EXPAND, 18)
+		hbox.Add(self.control, 1, wx.ALL^wx.LEFT|wx.EXPAND, 12)
 		self.SetSizer(hbox)
 		self.Layout()
 

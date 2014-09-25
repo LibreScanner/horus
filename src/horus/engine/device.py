@@ -130,13 +130,15 @@ class Device:
 		return self.sendCommand("$120={0}".format(self.acceleration))
 
 	def setRelativePosition(self, pos):
-		self._position += pos
+		self._posIncrement = pos
 
 	def setAbsolutePosition(self, pos):
+		self._posIncrement = 0
 		self._position = pos
 
 	def setMoveMotor(self):
 		"""Moves the motor"""
+		self._position += self._posIncrement
 		self.sendCommand("G1X{0}".format(self._position))
    
 	def setRightLaserOn(self):

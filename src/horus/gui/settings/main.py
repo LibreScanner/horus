@@ -80,7 +80,7 @@ class SettingsWorkbench(WorkbenchConnection):
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetAutoLayout(1)
-		self.scrollPanel.SetupScrolling(scroll_x=False)
+		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
 		self.calibrationPanel = CalibrationPanel(self.scrollPanel)
 		self.scanningPanel = ScanningPanel(self.scrollPanel)
 		self.calibrationPanel.Disable()
@@ -175,8 +175,8 @@ class SettingsWorkbench(WorkbenchConnection):
 
 	def onPlayCalibrationToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
-			self.calibrationPanel.Enable()
-			self.scanningPanel.Disable()
+			#self.calibrationPanel.Enable()
+			#self.scanningPanel.Disable()
 			self.buttonShowVideoViews.Hide()
 			self.buttonRaw.Hide()
 			self.buttonLas.Hide()
@@ -189,14 +189,15 @@ class SettingsWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.playScanningTool, True)
 			self.enableLabelTool(self.stopTool, True)
 			self.timer.Stop()
-			self.calibrationPanel.updateProfileToAllControls()
 			self.scanner.stop()
+			self.GetParent().updateCameraProfile('calibration')
+			self.calibrationPanel.updateProfileToAllControls()
 			self.timer.Start(milliseconds=1)
 
 	def onPlayScanningToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
-			self.calibrationPanel.Disable()
-			self.scanningPanel.Enable()
+			#self.calibrationPanel.Disable()
+			#self.scanningPanel.Enable()
 			self.buttonShowVideoViews.Show()
 			self.playingCalibration = False
 			self.playingScanning = True
@@ -204,13 +205,14 @@ class SettingsWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.playScanningTool, False)
 			self.enableLabelTool(self.stopTool, True)
 			self.timer.Stop()
+			self.GetParent().updateCameraProfile('scanning')
 			self.scanningPanel.updateProfileToAllControls()
 			self.scanner.start()
 			self.timer.Start(milliseconds=1)
 
 	def onStopToolClicked(self, event):
-		self.calibrationPanel.Disable()
-		self.scanningPanel.Disable()
+		#self.calibrationPanel.Disable()
+		#self.scanningPanel.Disable()
 		self.buttonShowVideoViews.Hide()
 		self.buttonRaw.Hide()
 		self.buttonLas.Hide()
@@ -252,10 +254,14 @@ class SettingsWorkbench(WorkbenchConnection):
 
 	def updateToolbarStatus(self, status):
 		if status:
+			self.calibrationPanel.Enable()
+			self.scanningPanel.Enable()
 			self.enableLabelTool(self.playCalibrationTool , True)
 			self.enableLabelTool(self.playScanningTool    , True)
 			self.enableLabelTool(self.stopTool            , False)
 		else:
+			self.calibrationPanel.Disable()
+			self.scanningPanel.Disable()
 			self.enableLabelTool(self.playCalibrationTool , False)
 			self.enableLabelTool(self.playScanningTool    , False)
 			self.enableLabelTool(self.stopTool            , False)

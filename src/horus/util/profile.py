@@ -208,13 +208,13 @@ setting('resolution_control', str('1280x960'), [str('1280x960'), str('960x720'),
 setting('use_distortion_control', False, bool, 'advanced', _('Use Distortion'))
 
 setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 10000)
+setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 300)
 setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
-setting('brightness_calibration', 156, int, 'advanced', _('Brightness')).setRange(0, 255)
-setting('contrast_calibration', 56, int, 'advanced', _('Contrast')).setRange(0, 255)
-setting('saturation_calibration', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_calibration', 166, int, 'basic', _('Exposure')).setRange(0, 10000)
+setting('brightness_calibration', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
+setting('contrast_calibration', 128, int, 'advanced', _('Contrast')).setRange(0, 255)
+setting('saturation_calibration', 0, int, 'advanced', _('Saturation')).setRange(0, 255)
+setting('exposure_calibration', 166, int, 'basic', _('Exposure')).setRange(0, 300)
 setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
@@ -222,32 +222,31 @@ setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion
 setting('brightness_scanning', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_scanning', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_scanning', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_scanning', 166, int, 'basic', _('Exposure')).setRange(0, 10000)
+setting('exposure_scanning', 166, int, 'basic', _('Exposure')).setRange(0, 300)
 setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
 setting('resolution_scanning', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
 
 setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 10000)
+setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
 setting('acceleration_scanning', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
-setting('use_left_laser', True, bool, 'basic', _('Use Left Laser'))
-setting('use_right_laser', False, bool, 'basic', _('Use Right Laser'))
+setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right Laser")], 'basic', _('Use Laser')) #, _("Use Both Lasers")]
 
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Image Type'))
 
-setting('use_open', True, bool, 'advanced', _('Open'))
-setting('open_value', 2, int, 'advanced', _('Open Value')).setRange(1, 10)
-setting('use_threshold', True, bool, 'advanced', _('Threshold'))
-setting('threshold_value', 30, int, 'advanced', _('Threshold Value')).setRange(0, 255)
+setting('use_open', True, bool, 'advanced', _('Use Open'))
+setting('open_value', 2, int, 'advanced', _('Open')).setRange(1, 10)
+setting('use_threshold', True, bool, 'advanced', _('Use Threshold'))
+setting('threshold_value', 30, int, 'advanced', _('Threshold')).setRange(0, 255)
 
 setting('use_compact', False, bool, 'advanced', _('Compact'))
 setting('use_complete', True, bool, 'advanced', _('Complete'))
 
-setting('min_r', -100, int, 'advanced', _('Minimum Rho')).setRange(-100, 100)
-setting('max_r', 100, int, 'advanced', _('Maximum Rho')).setRange(-100, 100)
-setting('min_h', 0, int, 'advanced', _('Minimum H')).setRange(-100, 200)
-setting('max_h', 200, int, 'advanced', _('Maximum H')).setRange(-100, 200)
+setting('min_r', -100, int, 'advanced', _('Min R')).setRange(-100, 100)
+setting('max_r', 100, int, 'advanced', _('Max R')).setRange(-100, 100)
+setting('min_h', 0, int, 'advanced', _('Min H')).setRange(-100, 200)
+setting('max_h', 200, int, 'advanced', _('Max H')).setRange(-100, 200)
 
 setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
 setting('laser_angle_right', 30.0, float, 'advanced', _('Laser Angle Right'))
@@ -267,14 +266,10 @@ setting('square_width', 13, int, 'advanced', _('Square width'))
 
 setting('left_button', '', str, 'basic', _('Left'), False)
 setting('right_button', '', str, 'basic', _('Right'), False)
-setting('motor_control', '', str, 'basic', _('Motor Control'), False)
 setting('move_button', '', str, 'basic', _('Move'), False)
 setting('enable_button', '', str, 'basic', _('Enable'), False)
 setting('gcode_gui', '', str, 'advanced', _('Send'), False)
 setting('restore_default', '', str, 'basic', _('Restore Default'), False)
-
-
-"""setting('uv_left_pointcloud', '', str, 'advanced', _('UV Left Pointcloud'))"""
 
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'ciclop', str, 'machine', 'hidden')

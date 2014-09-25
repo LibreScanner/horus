@@ -167,7 +167,6 @@ class Scanner:
 					else:
 						self.device.setRelativePosition(+self.core.degrees)
 					self.device.setMoveMotor()
-					#time.sleep(0.1)
 				else:
 					time.sleep(0.2)
 				

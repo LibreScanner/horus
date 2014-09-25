@@ -453,8 +453,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateEngineProfile(self):
         self.updateScannerProfile()
-        #self.updateCoreCurrentProfile()
-        #self.updateCameraCurrentProfile()
+        self.updateCoreCurrentProfile()
+        self.updateCameraCurrentProfile()
         self.updateCalibrationCurrentProfile()
 
     def updateScannerProfile(self):
@@ -467,6 +467,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateDeviceProfile(self, workbench):
         if workbench in ['control', 'scanning']:
+            self.scanner.device.setRelativePosition(getProfileSettingInteger('step_degrees_' + workbench))
             self.scanner.device.setSpeedMotor(getProfileSettingInteger('feed_rate_' + workbench))
             self.scanner.device.setAccelerationMotor(getProfileSettingInteger('acceleration_' + workbench))
 
@@ -498,16 +499,15 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.scanner.core.setUseThreshold(getProfileSettingBool('use_threshold'))
             self.scanner.core.setThresholdValue(getProfileSettingInteger('threshold_value'))
             self.scanner.core.setUseCompact(getProfileSettingBool('use_compact'))
-            self.scanner.core.setUseComplete(getProfileSettingBool('use_complete'))
             self.scanner.core.setMinR(getProfileSettingInteger('min_r'))
             self.scanner.core.setMaxR(getProfileSettingInteger('max_r'))
             self.scanner.core.setMinH(getProfileSettingInteger('min_h'))
             self.scanner.core.setMaxH(getProfileSettingInteger('max_h'))
             self.scanner.core.setDegrees(getProfileSettingFloat('step_degrees_scanning'))
             resolution = getProfileSetting('resolution_scanning')
-            self.scanner.camera.setResolution(int(resolution.split('x')[0]), int(resolution.split('x')[1]))
-            self.scanner.core.setUseLaser(getProfileSettingBool('use_left_laser'),
-                                          getProfileSettingBool('use_right_laser'))
+            self.scanner.core.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
+            self.scanner.core.setUseLaser(getProfileSetting('use_laser')==_("Use Left Laser"),
+                                          getProfileSettingBool('use_laser')==_("Use Right Laser"))
             self.scanner.core.setLaserAngles(getProfileSettingFloat('laser_angle_left'),
                                              getProfileSettingFloat('laser_angle_right'))
             self.scanner.core.setIntrinsics(getProfileSettingNumpy('camera_matrix'),

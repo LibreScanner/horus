@@ -74,9 +74,6 @@ class Core:
 	def setUseCompact(self, enable):
 		self.useCompact = enable
 
-	def setUseComplete(self, enable):
-		self.useComplete = enable
-
 	def setMinR(self, value):
 		self.rhoMin = value
 
