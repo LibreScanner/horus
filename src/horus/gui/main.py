@@ -105,9 +105,9 @@ class MainWindow(wx.Frame):
 
         #-- Menu Edit
         self.menuEdit = wx.Menu()
-        #self.menuBasicMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Basic Mode"))
-        #self.menuExpertMode = self.menuEdit.AppendCheckItem(wx.NewId(), _("Expert Mode"))
-        #self.menuEdit.AppendSeparator()
+        self.menuBasicMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Basic Mode"))
+        self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
+        self.menuEdit.AppendSeparator()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
         menuBar.Append(self.menuEdit, _("Edit"))
 
@@ -167,6 +167,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onResetProfile, menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
 
+        self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
+        self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
 
         self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
@@ -255,6 +257,14 @@ class MainWindow(wx.Frame):
 
     def onExit(self, event):
         self.Close(True)
+
+    def onModeChanged(self, event):
+        putPreference('basic_mode', self.menuBasicMode.IsChecked())
+        self.controlWorkbench.updateProfileToAllControls()
+        self.settingsWorkbench.updateProfileToAllControls()
+        self.calibrationWorkbench.updateProfileToAllControls()
+        self.scanningWorkbench.updateProfileToAllControls()
+        self.Layout()
 
     def onPreferences(self, event):
         prefDialog = PreferencesDialog(self)
@@ -376,8 +386,14 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def updateProfileToAllControls(self):
         """ """
         self.controlWorkbench.updateProfileToAllControls()
+        self.settingsWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
+
+        if getPreferenceBool('basic_mode'):
+            self.menuBasicMode.Check(True)
+        else:
+            self.menuAdvancedMode.Check(True)
 
         if getPreferenceBool('view_control_panel'):
             self.controlWorkbench.scrollPanel.Show()
@@ -437,8 +453,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateEngineProfile(self):
         self.updateScannerProfile()
-        #self.updateCoreCurrentProfile()
-        #self.updateCameraCurrentProfile()
+        self.updateCoreCurrentProfile()
+        self.updateCameraCurrentProfile()
         self.updateCalibrationCurrentProfile()
 
     def updateScannerProfile(self):
@@ -451,6 +467,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateDeviceProfile(self, workbench):
         if workbench in ['control', 'scanning']:
+            self.scanner.device.setRelativePosition(getProfileSettingInteger('step_degrees_' + workbench))
             self.scanner.device.setSpeedMotor(getProfileSettingInteger('feed_rate_' + workbench))
             self.scanner.device.setAccelerationMotor(getProfileSettingInteger('acceleration_' + workbench))
 
@@ -464,8 +481,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.scanner.camera.setSaturation(getProfileSettingInteger('saturation_' + workbench))
             self.scanner.camera.setExposure(getProfileSettingInteger('exposure_' + workbench))
             self.scanner.camera.setFrameRate(getProfileSettingInteger('framerate_' + workbench))
-            self.scanner.camera.setResolution(getProfileSettingInteger('camera_width_' + workbench),
-                                              getProfileSettingInteger('camera_height_' + workbench))
+            resolution = getProfileSetting('resolution_' + workbench)
+            self.scanner.camera.setResolution(int(resolution.split('x')[0]), int(resolution.split('x')[1]))
             self.scanner.camera.setUseDistortion(getProfileSettingBool('use_distortion_' + workbench))
             self.scanner.camera.setIntrinsics(getProfileSettingNumpy('camera_matrix'),
                                               getProfileSettingNumpy('distortion_vector'))
@@ -477,20 +494,20 @@ Suite 330, Boston, MA  02111-1307  USA""")
         if workbench in ['settings', 'scanning']:
             self.scanner.core.resetTheta()
             self.scanner.core.setImageType(getProfileSetting('img_type'))
-            self.scanner.core.setOpen(getProfileSettingBool('use_open'),
-                                      getProfileSettingInteger('open_value'))
-            self.scanner.core.setThreshold(getProfileSettingBool('use_threshold'),
-                                           getProfileSettingInteger('threshold_value'))
-            self.scanner.core.setUseCompactAlgorithm(getProfileSettingBool('use_compact'))
-            self.scanner.core.setRangeFilter(getProfileSettingInteger('min_rho'),
-                                             getProfileSettingInteger('max_rho'),
-                                             getProfileSettingInteger('min_h'),
-                                             getProfileSettingInteger('max_h'))
+            self.scanner.core.setUseOpen(getProfileSettingBool('use_open'))
+            self.scanner.core.setOpenValue(getProfileSettingInteger('open_value'))
+            self.scanner.core.setUseThreshold(getProfileSettingBool('use_threshold'))
+            self.scanner.core.setThresholdValue(getProfileSettingInteger('threshold_value'))
+            self.scanner.core.setUseCompact(getProfileSettingBool('use_compact'))
+            self.scanner.core.setMinR(getProfileSettingInteger('min_r'))
+            self.scanner.core.setMaxR(getProfileSettingInteger('max_r'))
+            self.scanner.core.setMinH(getProfileSettingInteger('min_h'))
+            self.scanner.core.setMaxH(getProfileSettingInteger('max_h'))
             self.scanner.core.setDegrees(getProfileSettingFloat('step_degrees_scanning'))
-            self.scanner.core.setResolution(getProfileSettingInteger('camera_height_scanning'),
-                                            getProfileSettingInteger('camera_width_scanning'))
-            self.scanner.core.setUseLaser(getProfileSettingBool('use_left_laser'),
-                                          getProfileSettingBool('use_right_laser'))
+            resolution = getProfileSetting('resolution_scanning')
+            self.scanner.core.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
+            self.scanner.core.setUseLaser(getProfileSetting('use_laser')==_("Use Left Laser"),
+                                          getProfileSettingBool('use_laser')==_("Use Right Laser"))
             self.scanner.core.setLaserAngles(getProfileSettingFloat('laser_angle_left'),
                                              getProfileSettingFloat('laser_angle_right'))
             self.scanner.core.setIntrinsics(getProfileSettingNumpy('camera_matrix'),

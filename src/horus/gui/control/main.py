@@ -57,25 +57,22 @@ class ControlWorkbench(WorkbenchConnection):
 		#-- Toolbar Configuration
 		self.playTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		#self.snapshotTool = self.toolbar.AddLabelTool(wx.NewId(), _("Snapshot"), wx.Bitmap(getPathForImage("snapshot.png")), shortHelp=_("Snapshot"))
 		self.undoTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
-		self.enableLabelTool(self.playTool     , False)
-		self.enableLabelTool(self.stopTool     , False)
-		#self.enableLabelTool(self.snapshotTool , False)
-		self.enableLabelTool(self.undoTool     , False)
+		self.enableLabelTool(self.playTool, False)
+		self.enableLabelTool(self.stopTool, False)
+		self.enableLabelTool(self.undoTool, False)
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked     , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked     , self.stopTool)
-		#self.Bind(wx.EVT_TOOL, self.onSnapshotToolClicked , self.snapshotTool)
 		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked     , self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetAutoLayout(1)
-		self.scrollPanel.SetupScrolling(scroll_x=False)
+		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
 		self.cameraPanel = CameraPanel(self.scrollPanel)
 		self.devicePanel = DevicePanel(self.scrollPanel)
 		self.cameraPanel.Disable()
@@ -95,14 +92,7 @@ class ControlWorkbench(WorkbenchConnection):
 		self.addToPanel(self.videoView, 1)
 
 		#-- Undo
-		self.undoEvents = {self.cameraPanel.brightnessSlider.GetId() : self.cameraPanel.onBrightnessChanged,
-						   self.cameraPanel.contrastSlider.GetId()   : self.cameraPanel.onContrastChanged,
-						   self.cameraPanel.saturationSlider.GetId() : self.cameraPanel.onSaturationChanged,
-						   self.cameraPanel.exposureSlider.GetId()   : self.cameraPanel.onExposureChanged}
-
-		self.storyObjects = []
-		self.storyValues = []
-		self.flagFirstMove = True # When you drag the slider, the only undoable is the first position not the ones in between
+		self.undoObjects = []
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -126,7 +116,6 @@ class ControlWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.playTool, False)
 			self.enableLabelTool(self.stopTool, True)
 			self.timer.Stop()
-			self.scanner.camera.setUseDistortion(self.cameraPanel.useDistortion)
 			self.timer.Start(milliseconds=1)
 
 	def onStopToolClicked(self, event):
@@ -144,40 +133,27 @@ class ControlWorkbench(WorkbenchConnection):
 	def onUndoToolClicked(self, event):
 		self.enableLabelTool(self.undoTool, self.undo())
 
-	def appendToUndo(self, _object, _value):
-		if self.flagFirstMove:
-			self.storyObjects.append(_object)
-			self.storyValues.append(_value)
-			self.flagFirstMove = False
+	def appendToUndo(self, _object):
+		self.undoObjects.append(_object)
 
-	def releaseUndo(self, event):
-		self.flagFirstMove = True
+	def releaseUndo(self):
 		self.enableLabelTool(self.undoTool, True)
 
 	def undo(self):
-		if len(self.storyObjects) > 0:
-			objectToUndo = self.storyObjects.pop()
-			valueToUndo = self.storyValues.pop()
-			objectToUndo.SetValue(valueToUndo)
-			self.updateValue(objectToUndo)
-		return len(self.storyObjects) > 0
-
-	def updateValue(self, objectToUndo):
-		self.flagFirstMove = False
-		self.undoEvents[objectToUndo.GetId()](None)
-		self.flagFirstMove = True
+		if len(self.undoObjects) > 0:
+			objectToUndo = self.undoObjects.pop()
+			objectToUndo.undo()
+		return len(self.undoObjects) > 0
 
 	def updateToolbarStatus(self, status):
 		if status:
-			self.enableLabelTool(self.playTool     , True)
-			self.enableLabelTool(self.stopTool     , False)
-			#self.enableLabelTool(self.snapshotTool , True)
+			self.enableLabelTool(self.playTool, True)
+			self.enableLabelTool(self.stopTool, False)
 			self.cameraPanel.Enable()
 			self.devicePanel.Enable()
 		else:
-			self.enableLabelTool(self.playTool     , False)
-			self.enableLabelTool(self.stopTool     , False)
-			#self.enableLabelTool(self.snapshotTool , False)
+			self.enableLabelTool(self.playTool, False)
+			self.enableLabelTool(self.stopTool, False)
 			self.cameraPanel.Disable()
 			self.devicePanel.Disable()
 
