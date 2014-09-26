@@ -43,6 +43,8 @@ class Camera:
 	def _initialize(self):
 		self.isConnected = False
 
+		self.capture = None
+		
 		self.fps = 30
 		self.width = 800
 		self.height = 600
@@ -68,7 +70,6 @@ class Camera:
 		print ">>> Connecting camera ..."
 		self.capture = cv2.VideoCapture(self.cameraId)
 		if self.capture.isOpened():
-			self.captureImage(flush=True)
 			print ">>> Done"
 			self.isConnected = True
 		else:
@@ -89,23 +90,26 @@ class Camera:
 	def captureImage(self, mirror=False, flush=False, flushValue=1):
 		""" If mirror is set to True, the image will be displayed as a mirror,
 		otherwise it will be displayed as the camera sees it"""
-		if flush:
-			for i in range(0, flushValue):
-				self.capture.grab()
-		ret, image = self.capture.read()
-		if ret:
-			if self.useDistortion and \
-			   self.cameraMatrix is not None and \
-			   self.distortionVector is not None and \
-			   self.distCameraMatrix is not None:
-				mapx, mapy = cv2.initUndistortRectifyMap(self.cameraMatrix, self.distortionVector,
-														 R=None, newCameraMatrix=self.distCameraMatrix,
-														 size=(self.width, self.height), m1type=5)
-				image = cv2.remap(image, mapx, mapy, cv2.INTER_LINEAR)
-			image = cv2.transpose(image)
-			if not mirror:
-				image = cv2.flip(image, 1)
-			return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+		if self.isConnected:
+			if flush:
+				for i in range(0, flushValue):
+					self.capture.grab()
+			ret, image = self.capture.read()
+			if ret:
+				if self.useDistortion and \
+				   self.cameraMatrix is not None and \
+				   self.distortionVector is not None and \
+				   self.distCameraMatrix is not None:
+					mapx, mapy = cv2.initUndistortRectifyMap(self.cameraMatrix, self.distortionVector,
+															 R=None, newCameraMatrix=self.distCameraMatrix,
+															 size=(self.width, self.height), m1type=5)
+					image = cv2.remap(image, mapx, mapy, cv2.INTER_LINEAR)
+				image = cv2.transpose(image)
+				if not mirror:
+					image = cv2.flip(image, 1)
+				return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+			else:
+				return None
 		else:
 			return None
 
@@ -162,3 +166,8 @@ class Camera:
 		self.cameraMatrix = cameraMatrix
 		self.distortionVector = distortionVector
 		self.distCameraMatrix = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distortionVector, (self.width,self.height), alpha=1)[0]
+
+	def getExposure(self):
+		if self.isConnected:
+			value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE) * self.maxExposure
+			return value

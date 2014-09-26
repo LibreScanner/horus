@@ -98,6 +98,28 @@ class WorkbenchConnection(Workbench):
 			self.updateStatus(False)
 			self.GetParent().onPreferences(None)
 		else:
+			#-- Check correct camera
+			exposure = self.scanner.camera.getExposure()
+			if exposure is not None:
+				if abs(exposure) > 300:
+					dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera. Please select other Camera Id"), _("Incorrect camera"), wx.OK|wx.ICON_INFORMATION)
+					result = dlg.ShowModal() == wx.ID_OK
+					dlg.Destroy()
+					self.scanner.disconnect()
+					self.updateStatus(False)
+					self.GetParent().onPreferences(None)
+					self.onConnectToolClicked(event)
+					return
+
+			#-- Check correct video
+			if self.scanner.camera.captureImage() is None:
+				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective."), _("Camera Error"), wx.OK|wx.ICON_ERROR)
+				result = dlg.ShowModal() == wx.ID_OK
+				dlg.Destroy()
+				self.scanner.disconnect()
+				self.GetParent().Close(True)
+
+		if self.scanner.isConnected:
 			self.GetParent().updateDeviceCurrentProfile()
 			self.GetParent().updateCameraCurrentProfile()
 			#self.GetParent().updateCoreCurrentProfile()

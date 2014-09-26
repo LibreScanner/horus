@@ -70,6 +70,7 @@ class Scanner:
 				self.isConnected = True
 			else:
 				self.camera.disconnect()
+				self.device.disconnect()
 				self.isConnected = False
 		else:
 			self.isConnected = False
@@ -84,6 +85,9 @@ class Scanner:
 		
 	def start(self):
 		""" """
+		self.imageQueue.queue.clear()
+		self.pointCloudQueue.queue.clear()
+
 		self.inactive = False
 
 		self.captureFlag = True
@@ -120,7 +124,6 @@ class Scanner:
 	def resume(self):
 		self.inactive = False
 
-
 	def captureThread(self):
 		""" """
 		#-- Initialize angle
@@ -131,6 +134,8 @@ class Scanner:
 			self.device.enable()
 		else:
 			self.device.disable()
+
+		time.sleep(0.5)
 
 		self.device.setLeftLaserOff()
 		self.device.setRightLaserOff()
