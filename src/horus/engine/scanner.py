@@ -148,8 +148,6 @@ class Scanner:
 				imgLaserLeft = None
 				imgLaserRight = None
 
-				print "Capture begin"
-
 				#-- Get images
 				if self.core.useLeftLaser:
 					self.device.setLeftLaserOff()
@@ -159,11 +157,11 @@ class Scanner:
 
 				if self.core.useLeftLaser:
 					self.device.setLeftLaserOn()
-					imgLaserLeft = self.camera.captureImage(flush=True, flushValue=1)
+					imgLaserLeft = self.camera.captureImage(flush=True, flushValue=2)
 
 				if self.core.useRightLaser:
 					self.device.setRightLaserOn()
-					imgLaserRight = self.camera.captureImage(flush=True, flushValue=1)
+					imgLaserRight = self.camera.captureImage(flush=True, flushValue=2)
 
 				#-- Move motor
 				if self.moveMotor:
@@ -216,7 +214,7 @@ class Scanner:
 
 				end = datetime.datetime.now()
 				
-				#print "Process end: {0}. Theta = {1}".format(end - begin, self.theta)
+				print "Process end: {0}. Theta = {1}".format(end - begin, self.theta)
 			else:
 				time.sleep(0.1)
 

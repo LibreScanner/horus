@@ -221,7 +221,12 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def onClearModel(self, event):
-        self.scanningWorkbench.sceneView._clearScene()
+        if self.scanningWorkbench.sceneView._object is not None:
+            dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+            result = dlg.ShowModal() == wx.ID_YES
+            dlg.Destroy()
+            if result:
+                self.scanningWorkbench.sceneView._clearScene()
 
     def onOpenProfile(self, event):
         """ """

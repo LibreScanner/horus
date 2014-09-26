@@ -243,8 +243,8 @@ setting('threshold_value', 30, int, 'advanced', _('Threshold')).setRange(0, 255)
 setting('use_compact', False, bool, 'advanced', _('Compact'))
 setting('use_complete', True, bool, 'advanced', _('Complete'))
 
-setting('min_r', -100, int, 'advanced', _('Min R')).setRange(-100, 100)
-setting('max_r', 100, int, 'advanced', _('Max R')).setRange(-100, 100)
+setting('min_r', -100, int, 'advanced', _('Min R')).setRange(-150, 150)
+setting('max_r', 100, int, 'advanced', _('Max R')).setRange(-150, 150)
 setting('min_h', 0, int, 'advanced', _('Min H')).setRange(-100, 200)
 setting('max_h', 200, int, 'advanced', _('Max H')).setRange(-100, 200)
 

@@ -238,7 +238,7 @@ class Mesh(object):
 		vHash = self._vertexHash(idx)
 		for i in map[vHash]:
 			if numpy.linalg.norm(self.vertexes[i] - self.vertexes[idx]) < 0.001:
-				return i
+				return iz
 
 	def getTransformedVertexes(self, applyOffsets = False):
 		if applyOffsets:
