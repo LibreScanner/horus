@@ -232,6 +232,8 @@ class Core:
 		#-- Check images
 		if (imageRaw is not None) and not (self.useLeftLaser^(imageLaserLeft is not None)) and not (self.useRightLaser^(imageLaserRight is not None)):
 
+			points = None
+			colors = None
 			self.imgRaw = imageRaw
 
 			if self.useLeftLaser:

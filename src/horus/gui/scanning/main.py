@@ -56,11 +56,11 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.toolbar.Realize()
 
 		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked      , self.playTool)
-		self.Bind(wx.EVT_TOOL, self.onStopToolClicked      , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked     , self.pauseTool)
-		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked    , self.resumeTool)
-		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked    , self.deleteTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked  , self.playTool)
+		self.Bind(wx.EVT_TOOL, self.onStopToolClicked  , self.stopTool)
+		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked , self.pauseTool)
+		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked, self.resumeTool)
+		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked, self.deleteTool)
 
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 		self.splitterWindow.SetBackgroundColour(wx.GREEN)
@@ -158,26 +158,37 @@ class ScanningWorkbench(WorkbenchConnection):
 					self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
 	def onPlayToolClicked(self, event):
-		self.enableLabelTool(self.playTool, False)
-		self.enableLabelTool(self.stopTool, True)
-		self.enableLabelTool(self.pauseTool , True)
-		self.enableLabelTool(self.resumeTool, False)
-		
-		self.sceneView.createDefaultObject()
+		result = True
 
-		self.scanner.start()
+		if self.sceneView._object is not None:
+			dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+			result = dlg.ShowModal() == wx.ID_YES
+			dlg.Destroy()
+
+		if result:
+			self.enableLabelTool(self.playTool, False)
+			self.enableLabelTool(self.stopTool, True)
+			self.enableLabelTool(self.pauseTool , True)
+			self.enableLabelTool(self.resumeTool, False)
+			self.enableLabelTool(self.deleteTool, False)
+			self.sceneView.createDefaultObject()
+			self.scanner.start()
+			self.timer.Start(milliseconds=100)
 
 	def onStopToolClicked(self, event):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, False)
+		self.enableLabelTool(self.deleteTool, True)
 		
 		self.scanner.stop()
+		self.timer.Stop()
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, True)
+		self.enableLabelTool(self.deleteTool, False)
 		
 		self.scanner.pause()
 		self.timer.Stop()
@@ -185,12 +196,18 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onResumeToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , True)
 		self.enableLabelTool(self.resumeTool, False)
+		self.enableLabelTool(self.deleteTool, False)
 		
 		self.scanner.resume()
 		self.timer.Start(milliseconds=100)
 
 	def onDeleteToolClicked(self, event):
-		self.sceneView._clearScene()
+		if self.sceneView._object is not None:
+			dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+			result = dlg.ShowModal() == wx.ID_YES
+			dlg.Destroy()
+			if result:
+				self.sceneView._clearScene()
 
 	def updateToolbarStatus(self, status):
 		if status:
@@ -198,12 +215,14 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.pauseTool , False)
 			self.enableLabelTool(self.resumeTool, False)
+			self.enableLabelTool(self.deleteTool, True)
 			self.buttonShowVideoViews.Show()
 		else:
 			self.enableLabelTool(self.playTool  , False)
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.pauseTool , False)
 			self.enableLabelTool(self.resumeTool, False)
+			self.enableLabelTool(self.deleteTool, True)
 			self.buttonShowVideoViews.Hide()
 			self.buttonRaw.Hide()
 			self.buttonLas.Hide()

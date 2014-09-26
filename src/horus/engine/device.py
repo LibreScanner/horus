@@ -70,14 +70,14 @@ class Device:
 				self.serialPort.flushOutput()
 				self.serialPort.setDTR(True)
 
-				tries = 20
+				tries = 3
 				#-- Check Handshake
 				while tries:
 					version = self.serialPort.readline()
 					if len(version) > 20:
 						break
 					tries -= 1
-					time.sleep(0.1)
+					time.sleep(0.2)
 				if version == "Grbl 0.9g ['$' for help]\r\n":
 					self.setSpeedMotor(1)
 					self.setAbsolutePosition(0)
@@ -102,8 +102,7 @@ class Device:
 		print ">>> Disconnecting device ..."
 		try:
 			if self.serialPort is not None:
-				if self.serialPort.isOpen():
-					self.serialPort.close()
+				self.serialPort.close()
 		except serial.SerialException:
 			sys.stderr.write("Error closing the port {0}\n".format(self.serialName))
 			print ">>> Error"

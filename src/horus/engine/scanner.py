@@ -70,6 +70,7 @@ class Scanner:
 				self.isConnected = True
 			else:
 				self.camera.disconnect()
+				self.device.disconnect()
 				self.isConnected = False
 		else:
 			self.isConnected = False
@@ -84,6 +85,9 @@ class Scanner:
 		
 	def start(self):
 		""" """
+		self.imageQueue.queue.clear()
+		self.pointCloudQueue.queue.clear()
+
 		self.inactive = False
 
 		self.captureFlag = True
@@ -120,7 +124,6 @@ class Scanner:
 	def resume(self):
 		self.inactive = False
 
-
 	def captureThread(self):
 		""" """
 		#-- Initialize angle
@@ -131,6 +134,8 @@ class Scanner:
 			self.device.enable()
 		else:
 			self.device.disable()
+
+		time.sleep(0.5)
 
 		self.device.setLeftLaserOff()
 		self.device.setRightLaserOff()
@@ -143,8 +148,6 @@ class Scanner:
 				imgLaserLeft = None
 				imgLaserRight = None
 
-				print "Capture begin"
-
 				#-- Get images
 				if self.core.useLeftLaser:
 					self.device.setLeftLaserOff()
@@ -154,11 +157,11 @@ class Scanner:
 
 				if self.core.useLeftLaser:
 					self.device.setLeftLaserOn()
-					imgLaserLeft = self.camera.captureImage(flush=True, flushValue=1)
+					imgLaserLeft = self.camera.captureImage(flush=True, flushValue=2)
 
 				if self.core.useRightLaser:
 					self.device.setRightLaserOn()
-					imgLaserRight = self.camera.captureImage(flush=True, flushValue=1)
+					imgLaserRight = self.camera.captureImage(flush=True, flushValue=2)
 
 				#-- Move motor
 				if self.moveMotor:
@@ -211,7 +214,7 @@ class Scanner:
 
 				end = datetime.datetime.now()
 				
-				#print "Process end: {0}. Theta = {1}".format(end - begin, self.theta)
+				print "Process end: {0}. Theta = {1}".format(end - begin, self.theta)
 			else:
 				time.sleep(0.1)
 

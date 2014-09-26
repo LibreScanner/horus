@@ -197,7 +197,7 @@ def _(n):
 
 setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
-setting('baud_rate', '9600', int, 'basic', _('Baud Rate'))
+setting('baud_rate', '115200', int, 'basic', _('Baud Rate'))
 
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
@@ -211,9 +211,9 @@ setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRan
 setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 300)
 setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
-setting('brightness_calibration', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
-setting('contrast_calibration', 128, int, 'advanced', _('Contrast')).setRange(0, 255)
-setting('saturation_calibration', 0, int, 'advanced', _('Saturation')).setRange(0, 255)
+setting('brightness_calibration', 156, int, 'advanced', _('Brightness')).setRange(0, 255)
+setting('contrast_calibration', 56, int, 'advanced', _('Contrast')).setRange(0, 255)
+setting('saturation_calibration', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_calibration', 166, int, 'basic', _('Exposure')).setRange(0, 300)
 setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
@@ -243,8 +243,8 @@ setting('threshold_value', 30, int, 'advanced', _('Threshold')).setRange(0, 255)
 setting('use_compact', False, bool, 'advanced', _('Compact'))
 setting('use_complete', True, bool, 'advanced', _('Complete'))
 
-setting('min_r', -100, int, 'advanced', _('Min R')).setRange(-100, 100)
-setting('max_r', 100, int, 'advanced', _('Max R')).setRange(-100, 100)
+setting('min_r', -100, int, 'advanced', _('Min R')).setRange(-150, 150)
+setting('max_r', 100, int, 'advanced', _('Max R')).setRange(-150, 150)
 setting('min_h', 0, int, 'advanced', _('Min H')).setRange(-100, 200)
 setting('max_h', 200, int, 'advanced', _('Max H')).setRange(-100, 200)
 
