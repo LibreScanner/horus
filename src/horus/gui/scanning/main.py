@@ -166,6 +166,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.sceneView.createDefaultObject()
 
 		self.scanner.start()
+		self.timer.Start(milliseconds=100)
 
 	def onStopToolClicked(self, event):
 		self.enableLabelTool(self.playTool, True)
@@ -174,6 +175,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.resumeTool, False)
 		
 		self.scanner.stop()
+		self.timer.Stop()
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
