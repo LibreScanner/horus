@@ -63,12 +63,6 @@ class Calibration:
 
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
 
-		#-- Camera Intrinsics Guide Lines
-		self.firstPointData  = [(270,250),(4,48),(20,20),(412,198),(550,148),(20,20),(20,20),(210,350),(260,680),(140,20),(20,20),(20,340)]
-		self.secondPointData = [(725,250),(596,168),(460,180),(940,46),(940,20),(940,20),(940,20),(750,350),(700,680),(940,20),(740,20),(500,500)]
-		self.thirdPointData  = [(725,1024),(596,1140),(460,1000),(940,1254),(940,1260),(730,870),(720,550),(940,1260),(940,1260),(940,880),(450,600),(780,1260)]
-		self.forthPointData  = [(270,1024),(4,1268),(20,1260),(412,1140),(550,1076),(192,870),(240,550),(20,1260),(20,1260),(480,740),(20,720),(20,1260)]
-
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
 		self.distortionVector = distortionVector
@@ -77,18 +71,6 @@ class Calibration:
 		xfactor = width / 960.
 		yfactor = height / 1280.
 		self.thickness = int(round(20*xfactor))
-		self.firstPoint=[(int(a*xfactor),int(b*yfactor)) for (a,b) in self.firstPointData]
-		self.secondPoint=[(int(a*xfactor),int(b*yfactor)) for (a,b) in self.secondPointData]
-		self.thirdPoint=[(int(a*xfactor),int(b*yfactor)) for (a,b) in self.thirdPointData]
-		self.forthPoint=[(int(a*xfactor),int(b*yfactor)) for (a,b) in self.forthPointData]
-
-	def setGuides(self, frame, currentGrid):
-		if currentGrid < len(self.firstPoint):
-			cv2.line(frame, self.firstPoint[currentGrid], self.secondPoint[currentGrid], (240,240,140), self.thickness)
-			cv2.line(frame, self.secondPoint[currentGrid], self.thirdPoint[currentGrid], (240,240,140), self.thickness)
-			cv2.line(frame, self.thirdPoint[currentGrid], self.forthPoint[currentGrid], (240,240,140), self.thickness)
-			cv2.line(frame, self.forthPoint[currentGrid], self.firstPoint[currentGrid], (240,240,140), self.thickness)
-		return frame
 
 	def detectChessboard(self, frame):
 		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)

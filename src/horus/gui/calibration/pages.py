@@ -141,8 +141,6 @@ class CameraIntrinsicsMainPage(Page):
 		if self.scanner.isConnected:
 			frame = self.scanner.camera.captureImage(mirror=True)
 			if frame is not None:
-				if self.guidePage == 3:
-					self.calibration.setGuides(frame, self.currentGrid)
 				self.videoView.setFrame(frame)
 
 	def onKeyPress(self, event):
