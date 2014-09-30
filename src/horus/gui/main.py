@@ -47,7 +47,7 @@ from horus.engine.calibration import *
 class MainWindow(wx.Frame):
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus 0.0.3.1"),
+        super(MainWindow, self).__init__(None, title=_("Horus 0.0.3.2"),
                                                 size=(640+300,480+130))
 
         self.SetMinSize((600, 450))
@@ -276,6 +276,8 @@ class MainWindow(wx.Frame):
         prefDialog.ShowModal()
         wx.CallAfter(prefDialog.Show)
         self.updateScannerProfile()
+        self.controlWorkbench.initialize()
+        self.settingsWorkbench.initialize()
 
     def onControlPanelClicked(self, event):
         """ """
@@ -360,7 +362,7 @@ class MainWindow(wx.Frame):
         icon = wx.Icon(getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
-        info.SetVersion(u'0.0.3')
+        info.SetVersion(u'0.0.3.2')
         info.SetDescription(_('Horus is an open source 3D Scanner manager...'))
         info.SetCopyright(u'(C) 2014 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')

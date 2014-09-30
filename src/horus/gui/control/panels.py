@@ -41,10 +41,14 @@ class CameraPanel(wx.Panel):
     def __init__(self, parent):
         """"""
         wx.Panel.__init__(self, parent=parent, size=(275, 0))
-
+        self.initialize()
+        
+    def initialize(self):
         self.scanner = Scanner.Instance()
         self.main = self.GetParent().GetParent().GetParent()
-        
+
+        if hasattr(self, 'controls'):
+            del self.controls[:]
         self.controls = []
 
         #-- Graphic elements
@@ -134,10 +138,14 @@ class DevicePanel(wx.Panel):
     def __init__(self, parent):
         """"""
         wx.Panel.__init__(self, parent=parent, size=(275, 0))
+        self.initialize()
 
+    def initialize(self):
         self.scanner = Scanner.Instance()
         self.main = self.GetParent().GetParent().GetParent()
 
+        if hasattr(self, 'controls'):
+            del self.controls[:]
         self.controls = []
 
         #-- Graphic elements

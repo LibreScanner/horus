@@ -136,6 +136,10 @@ class SettingsWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
 
+	def initialize(self):
+		self.calibrationPanel.initialize()
+		self.scanningPanel.initialize()
+		
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateStatus(self.scanner.isConnected)
@@ -267,5 +271,16 @@ class SettingsWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.stopTool            , False)
 
 	def updateProfileToAllControls(self):
+		self.timer.Stop()
+		self.scanner.stop()
 		self.calibrationPanel.updateProfileToAllControls()
 		self.scanningPanel.updateProfileToAllControls()
+		if self.playingCalibration:
+			self.GetParent().updateCameraProfile('calibration')
+			self.calibrationPanel.updateProfileToAllControls()
+			self.timer.Start(milliseconds=1)
+		elif self.playingScanning:
+			self.GetParent().updateCameraProfile('scanning')
+			self.scanningPanel.updateProfileToAllControls()
+			self.scanner.start()
+			self.timer.Start(milliseconds=1)

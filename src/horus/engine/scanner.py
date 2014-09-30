@@ -60,6 +60,10 @@ class Scanner:
 
 	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", baudRate=9600):
 		""" """
+		if hasattr(self, 'camera'):
+			self.camera.disconnect()
+		if hasattr(self, 'device'):
+			self.device.disconnect()
 		self.camera = Camera(cameraId)
 		self.device = Device(serialName, baudRate)
 
