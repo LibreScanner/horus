@@ -518,7 +518,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.scanner.core.setIntrinsics(getProfileSettingNumpy('camera_matrix'),
                                             getProfileSettingNumpy('distortion_vector'))
             self.scanner.core.setLaserTriangulation(getProfileSettingNumpy('laser_coordinates'),
-                                                    getProfileSettingNumpy('laser_depth'))
+                                                    getProfileSettingNumpy('laser_origin'),
+                                                    getProfileSettingNumpy('laser_normal'))
             self.scanner.core.setExtrinsics(getProfileSettingNumpy('rotation_matrix'),
                                             getProfileSettingNumpy('translation_vector'))
     

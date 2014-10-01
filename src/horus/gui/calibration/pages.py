@@ -375,7 +375,7 @@ class LaserTriangulationResultPage(Page):
 		ret = Calibration.Instance().performLaserTriangulationCalibration()
 
 		if ret is not None:
-			self.laserTriangulationParameters.updateAllControlsToProfile(ret[1], ret[0])
+			self.laserTriangulationParameters.updateAllControlsToProfile(ret[1], ret[0][0], ret[0][1])
 
 			self.leftLaserImageSequence.imageLas.setFrame(ret[2][0][0])
 			self.leftLaserImageSequence.imageGray.setFrame(ret[2][0][1])
@@ -385,6 +385,7 @@ class LaserTriangulationResultPage(Page):
 			self.rightLaserImageSequence.imageGray.setFrame(ret[2][1][1])
 			self.rightLaserImageSequence.imageBin.setFrame(ret[2][1][2])
 			self.rightLaserImageSequence.imageLine.setFrame(ret[2][1][3])
+
 
 class LaserTriangulationImageSequence(wx.Panel):
 

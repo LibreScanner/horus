@@ -255,7 +255,8 @@ setting('camera_matrix', ([[1420,0,480],[0,1420,640],[0,0,1]]), numpy.ndarray, '
 setting('distortion_vector',([0,0,0,0,0]),numpy.ndarray,'advanced',_('Distortion Vector'))
 
 setting('laser_coordinates', ([[480,480],[480,480]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
-setting('laser_depth', 315.0, float, 'advanced', _('Laser Depth'))
+setting('laser_origin', ([0,0,0]), numpy.ndarray, 'advanced', _('Laser Origin'))
+setting('laser_normal', ([0,0,0]), numpy.ndarray, 'advanced', _('Laser Normal'))
 
 setting('rotation_matrix', ([[0,-1,0],[0,0,-1],[-1,0,0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
 setting('translation_vector', ([0.0,85.0,315.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))

@@ -111,15 +111,18 @@ class Core:
 			self.cx = cameraMatrix[0][2]
 			self.cy = cameraMatrix[1][2]
 
-	def setLaserTriangulation(self, laserCoordinates, laserDepth):
-		self.laserCoordinates = laserCoordinates
-		self.laserDepth = laserDepth
+	def setLaserTriangulation(self, laserCoordinates, laserOrigin, laserNormal):
 		if laserCoordinates is not None:
 			self.u1L = laserCoordinates[0][0]
 			self.u2L = laserCoordinates[0][1]
 			self.u1R = laserCoordinates[1][0]
 			self.u2R = laserCoordinates[1][1]
-		self.z = laserDepth
+
+		if laserOrigin is not None:
+			self.origin = laserOrigin
+
+		if laserNormal is not None:
+			self.normal = laserNormal
 
 	def setExtrinsics(self, rotationMatrix, translationVector):
 		self.rotationMatrix = rotationMatrix
@@ -179,12 +182,20 @@ class Core:
 			self.u2 = self.u2R
 			self.alpha = self.alphaRight
 
-		zl = self.z * (1 + (self.u1 - self.cx + ((self.u2-self.u1)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * math.tan(self.alpha)))
-
-		##TODO: Optimize
-
 		a = (np.linspace(0,self.width-1,self.width) - self.cx) / self.fx
 		b = (np.linspace(0,self.height-1,self.height) - self.cy) / self.fy
+
+		y0 = self.origin[1]
+		z0 = self.origin[2]
+
+		ny0 = self.normal[1]
+		nz0 = self.normal[2]
+
+		z = (ny0*y0 + nz0*z0) / (ny0*b + nz0)
+
+		zl = z * (1 + (self.u1 - self.cx + ((self.u2-self.u1)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * math.tan(self.alpha)))
+
+		##TODO: Optimize
 
 		Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / math.tan(self.alpha)))).T
 		Xc = (a * Zc.T).T

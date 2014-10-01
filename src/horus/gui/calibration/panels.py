@@ -209,7 +209,8 @@ class LaserTriangulationParameters(wx.Panel):
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         coordinatesPanel = wx.Panel(self)
-        depthPanel = wx.Panel(self)
+        originPanel = wx.Panel(self)
+        normalPanel = wx.Panel(self)
 
         coordinatesText = wx.StaticText(self, label=_("Coordinates"))
         coordinatesText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
@@ -230,25 +231,44 @@ class LaserTriangulationParameters(wx.Panel):
                 ibox.Add(jbox, 1, wx.ALL|wx.EXPAND, 2)
             coordinatesBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
-        depthText = wx.StaticText(self, label=_("Depth"))
-        depthText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        originText = wx.StaticText(self, label=_("Origin"))
+        originText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        self.depthText = 0
-        self.depthValue = 0
+        self.originTexts = [0]*3
+        self.originValues = [0]*3
 
-        depthBox = wx.BoxSizer(wx.VERTICAL)
-        depthPanel.SetSizer(depthBox)
-        ibox = wx.BoxSizer(wx.HORIZONTAL)
-        self.depthText = wx.TextCtrl(depthPanel, wx.ID_ANY, "")
-        self.depthText.SetEditable(False)
-        self.depthText.Disable()
-        ibox.Add(self.depthText, 1, wx.ALL|wx.EXPAND, 2)
-        depthBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+        originBox = wx.BoxSizer(wx.HORIZONTAL)
+        originPanel.SetSizer(originBox)
+        for i in range(3):
+            ibox = wx.BoxSizer(wx.HORIZONTAL)
+            self.originTexts[i] = wx.TextCtrl(originPanel, wx.ID_ANY, "")
+            self.originTexts[i].SetEditable(False)
+            self.originTexts[i].Disable()
+            ibox.Add(self.originTexts[i], 1, wx.ALL|wx.EXPAND, 2)
+            originBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+
+        normalText = wx.StaticText(self, label=_("Normal"))
+        normalText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+
+        self.normalTexts = [0]*3
+        self.normalValues = [0]*3
+
+        normalBox = wx.BoxSizer(wx.HORIZONTAL)
+        normalPanel.SetSizer(normalBox)
+        for i in range(3):
+            ibox = wx.BoxSizer(wx.HORIZONTAL)
+            self.normalTexts[i] = wx.TextCtrl(normalPanel, wx.ID_ANY, "")
+            self.normalTexts[i].SetEditable(False)
+            self.normalTexts[i].Disable()
+            ibox.Add(self.normalTexts[i], 1, wx.ALL|wx.EXPAND, 2)
+            normalBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
         vbox.Add(coordinatesText, 0, wx.ALL|wx.EXPAND, 5)
        	vbox.Add(coordinatesPanel, 0, wx.ALL|wx.EXPAND, 2)
-        vbox.Add(depthText, 0, wx.ALL|wx.EXPAND, 5)
-       	vbox.Add(depthPanel, 0, wx.ALL|wx.EXPAND, 2)
+        vbox.Add(originText, 0, wx.ALL|wx.EXPAND, 5)
+       	vbox.Add(originPanel, 0, wx.ALL|wx.EXPAND, 2)
+        vbox.Add(normalText, 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(normalPanel, 0, wx.ALL|wx.EXPAND, 2)
 
         self.SetSizer(vbox)
         self.Layout()
@@ -266,13 +286,25 @@ class LaserTriangulationParameters(wx.Panel):
                     buttonEdit.SetLabel(_("Edit"))
                     self.coordinatesTexts[i][j].Disable()
                     self.coordinatesValues[i][j] = round(float(self.coordinatesTexts[i][j].GetValue()), 3)
-        self.depthText.SetEditable(enable)
-        if enable:
-            self.depthText.Enable()
-        else:
-            self.depthText.Disable()
-            self.depthValue = round(float(self.depthText.GetValue()), 3)
-            self.updateAllControlsToProfile(self.coordinatesValues, self.depthValue)
+
+        for i in range(3):
+            self.originTexts[i].SetEditable(enable)
+            if enable:
+                self.originTexts[i].Enable()
+            else:
+                self.originTexts[i].Disable()
+                self.originValues[i] = round(float(self.coordinatesTexts[i][j].GetValue()), 5)
+
+        for i in range(3):
+            self.normalTexts[i].SetEditable(enable)
+            if enable:
+                self.normalTexts[i].Enable()
+            else:
+                self.normalTexts[i].Disable()
+                self.normalValues[i] = round(float(self.coordinatesTexts[i][j].GetValue()), 5)
+
+        if not enable:
+            self.updateAllControlsToProfile(self.coordinatesValues, self.originValue, self.normalValues)
 
     def onButtonDefaultPressed(self, event):
         dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -280,35 +312,47 @@ class LaserTriangulationParameters(wx.Panel):
         dlg.Destroy()
         if result:
             resetProfileSetting('laser_coordinates')
-            resetProfileSetting('laser_depth')
+            resetProfileSetting('laser_origin')
+            resetProfileSetting('laser_normal')
             self.updateProfileToAllControls()
 
-    def updateAllControls(self, laserCoordinates, laserDepth):
+    def updateAllControls(self, laserCoordinates, laserOrigin, laserNormal):
         for i in range(2):
             for j in range(2):
                 if laserCoordinates[i][j] is not None:
                     self.coordinatesValues[i][j] = round(laserCoordinates[i][j], 3)
                     self.coordinatesTexts[i][j].SetValue(str(self.coordinatesValues[i][j]))
                 else:
-                    self.coordinatesTexts[i][j].SetValue("")
-        if laserDepth is not None:
-            self.depthValue = round(laserDepth, 3)
-            self.depthText.SetValue(str(self.depthValue))
-        else:
-            self.depthText.SetValue("")
+                    self.coordinatesTexts[i][j].SetValue("0")
+
+        for i in range(3):
+            if laserOrigin[i] is not None:
+                self.originValues[i] = round(laserOrigin[i], 5)
+                self.originTexts[i].SetValue(str(self.originValues[i]))
+            else:
+                self.originTexts[i].SetValue("0")
+
+        for i in range(3):
+            if laserNormal[i] is not None:
+                self.normalValues[i] = round(laserNormal[i], 5)
+                self.normalTexts[i].SetValue(str(self.normalValues[i]))
+            else:
+                self.normalTexts[i].SetValue("0")
 
         if hasattr(self, 'scanner'):
-            self.scanner.core.setLaserTriangulation(laserCoordinates, depthValue) ## TODO: implement
+            self.scanner.core.setLaserTriangulation(laserCoordinates, laserOrigin, laserNormal)
 
-    def updateAllControlsToProfile(self, laserCoordinates, laserDepth):
+    def updateAllControlsToProfile(self, laserCoordinates, laserOrigin, laserNormal):
         putProfileSettingNumpy('laser_coordinates', laserCoordinates)
-        putProfileSetting('laser_depth', laserDepth)
-        self.updateAllControls(laserCoordinates, laserDepth)
+        putProfileSettingNumpy('laser_origin', laserOrigin)
+        putProfileSettingNumpy('laser_normal', laserNormal)
+        self.updateAllControls(laserCoordinates, laserOrigin, laserNormal)
 
     def updateProfileToAllControls(self):
-    	laserCoordinates = getProfileSettingNumpy('laser_coordinates')
-    	laserDepth = getProfileSettingNumpy('laser_depth')
-        self.updateAllControls(laserCoordinates, laserDepth)
+        laserCoordinates = getProfileSettingNumpy('laser_coordinates')
+        laserOrigin = getProfileSettingNumpy('laser_origin')
+        laserNormal = getProfileSettingNumpy('laser_normal')
+        self.updateAllControls(laserCoordinates, laserOrigin, laserNormal)
 
 
 class PlatformExtrinsicsParameters(wx.Panel):
@@ -412,7 +456,7 @@ class PlatformExtrinsicsParameters(wx.Panel):
                 self.translationTexts[i].SetValue("")
 
         if hasattr(self, 'scanner'):
-            self.scanner.core.setPlatformExtrinsics(rotationMatrix, translationVector) ## TODO: implement
+            self.scanner.core.setPlatformExtrinsics(rotationMatrix, translationVector)
 
     def updateAllControlsToProfile(self, rotationMatrix, translationVector):
         putProfileSettingNumpy('rotation_matrix', rotationMatrix)

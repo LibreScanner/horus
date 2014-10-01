@@ -109,7 +109,6 @@ class Calibration:
 		if hasattr(self, 'objPointsStack'):
 			del self.objPointsStack[:]
 
-
 	def performLaserTriangulationCalibration(self):
 		if self.scanner.isConnected:
 
@@ -124,9 +123,9 @@ class Calibration:
 			device.setSpeedMotor(1)
 			device.enable()
 
-			z, corners = self.getPatternDepth(device, camera)
+			t, n, corners = self.getPatternDepth(device, camera)
 
-			if z is not None and corners is not None:
+			if t is not None and corners is not None:
 
 				time.sleep(0.5)
 
@@ -152,43 +151,56 @@ class Calibration:
 			#-- Disable motor
 			device.disable()
 
-			if z is not None:
-				return [z, [retL[0], retR[0]], [retL[1], retR[1]]]
+			if t is not None:
+				return [[t, n], [retL[0], retR[0]], [retL[1], retR[1]]]
 			else:
 				return None
 
 	def getPatternDepth(self, device, camera):
-		epsilon = 0.05
+		epsilon = 0.0002
 		distance = np.inf
 		distanceAnt = np.inf
-		I = np.identity(3)
 		angle = 20
-		z = None
+		p = None
+		n = None
 		corners = None
 		tries = 5
 		device.setRelativePosition(angle)
-		device.setSpeedMotor(50)
+		device.setSpeedMotor(40)
 		while distance > epsilon and tries > 0:
 			image = camera.captureImage(flush=True, flushValue=2)
 			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 			if ret is not None:
 				if ret[0]:
 					R = ret[1]
-					z = ret[2][2]
+					t = ret[2].T[0]
+					n = R.T[2]
 					corners = ret[3]
-					distance = linalg.norm(R-I) ## TODO: z[2] - |z|
+					distance = numpy.linalg.norm((0,0,1)-n)
 					if distance < epsilon or distanceAnt < distance:
+						device.setRelativePosition(-angle)
+						device.setMoveMotor()
 						break
 					distanceAnt = distance
-					angle = np.max(((distance-epsilon) * 20, 0.3))
+					angle = np.max(((distance-epsilon) * 15, 0.1))
 			else:
 				tries -= 1
 			device.setRelativePosition(angle)
 			device.setMoveMotor()
 
+		image = camera.captureImage(flush=True, flushValue=2)
+		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+		if ret is not None:
+			R = ret[1]
+			t = ret[2].T[0]
+			n = R.T[2]
+			corners = ret[3]
+			distance = numpy.linalg.norm((0,0,1)-n)
+			angle = np.max(((distance-epsilon) * 15, 0.1))
+
 		print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
-		return z, corners
+		return t, -n, corners
 
 	def cornersMask(self, frame, corners):
 		p1 = corners[0][0]
