@@ -518,7 +518,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.scanner.core.setIntrinsics(getProfileSettingNumpy('camera_matrix'),
                                             getProfileSettingNumpy('distortion_vector'))
             self.scanner.core.setLaserTriangulation(getProfileSettingNumpy('laser_coordinates'),
-                                                    getProfileSettingNumpy('laser_depth'))
+                                                    getProfileSettingNumpy('laser_origin'),
+                                                    getProfileSettingNumpy('laser_normal'))
             self.scanner.core.setExtrinsics(getProfileSettingNumpy('rotation_matrix'),
                                             getProfileSettingNumpy('translation_vector'))
     
@@ -532,6 +533,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                         getProfileSettingInteger('pattern_rows'),
                                         getProfileSettingInteger('pattern_columns'),
                                         getProfileSettingInteger('square_width'),
+                                        getProfileSettingFloat('pattern_distance'),
+                                        getProfileSettingFloat('extrinsics_step'),
                                         getProfileSettingInteger('use_distortion_calibration'))
 
     def workbenchUpdate(self):

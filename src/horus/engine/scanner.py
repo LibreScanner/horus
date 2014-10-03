@@ -165,10 +165,7 @@ class Scanner:
 
 				#-- Move motor
 				if self.moveMotor:
-					if self.core.useLeftLaser:
-						self.device.setRelativePosition(-self.core.degrees)
-					else:
-						self.device.setRelativePosition(+self.core.degrees)
+					self.device.setRelativePosition(self.core.degrees)
 					self.device.setMoveMotor()
 				else:
 					time.sleep(0.2)
