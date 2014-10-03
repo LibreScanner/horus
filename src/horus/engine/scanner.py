@@ -52,6 +52,8 @@ class Scanner:
 		self.moveMotor = True
 		self.generatePointCloud = True
 
+		self.finishCallback = None
+
 		self.core = Core()
 
 		self.theta = 0
@@ -122,11 +124,17 @@ class Scanner:
 
 			self.isRunning = False
 
+			if self.finishCallback is not None:
+				self.finishCallback()
+
 	def pause(self):
 		self.inactive = True
 
 	def resume(self):
 		self.inactive = False
+
+	def setFinishCallback(self, finishCallback):
+		self.finishCallback = finishCallback
 
 	def captureThread(self):
 		""" """
