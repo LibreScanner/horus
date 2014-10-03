@@ -124,7 +124,9 @@ class Scanner:
 
 			self.isRunning = False
 
-			if self.finishCallback is not None:
+			time.sleep(0.1)
+
+			if self.finishCallback is not None and self.generatePointCloud:
 				self.finishCallback()
 
 	def pause(self):
