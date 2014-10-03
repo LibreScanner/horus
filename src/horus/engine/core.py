@@ -161,7 +161,7 @@ class Core:
 		""" """
 		#-- Line generation
 		s = imageBin.sum(1)
-		v = np.where((s > 1))[0]
+		v = np.where((s > 2))[0]
 		if self.useCompact:
 			i = imageBin.argmax(1)
 			u = ((i + (s/255.-1) / 2.)[v]).T.astype(int)
