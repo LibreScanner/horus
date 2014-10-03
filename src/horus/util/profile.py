@@ -245,25 +245,27 @@ setting('use_complete', True, bool, 'advanced', _('Complete'))
 
 setting('min_r', -100, int, 'advanced', _('Min R')).setRange(-150, 150)
 setting('max_r', 100, int, 'advanced', _('Max R')).setRange(-150, 150)
-setting('min_h', 0, int, 'advanced', _('Min H')).setRange(-100, 200)
-setting('max_h', 200, int, 'advanced', _('Max H')).setRange(-100, 200)
+setting('min_h', 0, int, 'advanced', _('Min H')).setRange(-100, 300)
+setting('max_h', 200, int, 'advanced', _('Max H')).setRange(-100, 300)
 
 setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
 setting('laser_angle_right', 30.0, float, 'advanced', _('Laser Angle Right'))
 
-setting('camera_matrix', ([[1420,0,480],[0,1420,640],[0,0,1]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
-setting('distortion_vector',([0,0,0,0,0]),numpy.ndarray,'advanced',_('Distortion Vector'))
+setting('camera_matrix', ([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
+setting('distortion_vector',([0.0,0.0,0.0,0.0,0.0]),numpy.ndarray,'advanced',_('Distortion Vector'))
 
-setting('laser_coordinates', ([[480,480],[480,480]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
-setting('laser_origin', ([0,0,0]), numpy.ndarray, 'advanced', _('Laser Origin'))
-setting('laser_normal', ([0,0,0]), numpy.ndarray, 'advanced', _('Laser Normal'))
+setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
+setting('laser_origin', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Origin'))
+setting('laser_normal', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Normal'))
 
-setting('rotation_matrix', ([[0,-1,0],[0,0,-1],[-1,0,0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
-setting('translation_vector', ([0.0,85.0,315.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
+setting('rotation_matrix', ([[0.0,1.0,0.0],[0.0,0.0,-1.0],[-1.0,0.0,0.0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
+setting('translation_vector', ([5.0,80.0,320.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
 
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))
+setting('pattern_distance', 169.0, float, 'advanced', _('Pattern Distance'))
+setting('extrinsics_step', 5.0, float, 'advanced', _('Extrinsics Step'))
 
 setting('left_button', '', str, 'basic', _('Left'), False)
 setting('right_button', '', str, 'basic', _('Right'), False)

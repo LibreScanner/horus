@@ -533,6 +533,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                         getProfileSettingInteger('pattern_rows'),
                                         getProfileSettingInteger('pattern_columns'),
                                         getProfileSettingInteger('square_width'),
+                                        getProfileSettingFloat('pattern_distance'),
+                                        getProfileSettingFloat('extrinsics_step'),
                                         getProfileSettingInteger('use_distortion_calibration'))
 
     def workbenchUpdate(self):

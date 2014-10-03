@@ -92,6 +92,9 @@ class CameraIntrinsicsParameters(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
+        self.scanner = Scanner.Instance()
+        self.calibration = Calibration.Instance()
+
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         cameraPanel = wx.Panel(self)
@@ -100,8 +103,8 @@ class CameraIntrinsicsParameters(wx.Panel):
         cameraText = wx.StaticText(self, label=_("Camera matrix"))
         cameraText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-        self.cameraTexts = [[0 for j in range(3)] for i in range(3)]
-        self.cameraValues = [[0 for j in range(3)] for i in range(3)]
+        self.cameraTexts = [[0.0 for j in range(3)] for i in range(3)]
+        self.cameraValues = np.zeros((3,3))
 
         cameraBox = wx.BoxSizer(wx.VERTICAL)
         cameraPanel.SetSizer(cameraBox)
@@ -120,7 +123,7 @@ class CameraIntrinsicsParameters(wx.Panel):
         distortionText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         self.distortionTexts = [0]*5
-        self.distortionValues = [0]*5
+        self.distortionValues = np.zeros(5)
 
         distortionBox = wx.BoxSizer(wx.HORIZONTAL)
         distortionPanel.SetSizer(distortionBox)
@@ -143,16 +146,16 @@ class CameraIntrinsicsParameters(wx.Panel):
     def onButtonEditPressed(self, event):
         buttonEdit = self.GetParent().GetParent().buttonEdit
         enable = buttonEdit.GetValue()
+
         for i in range(3):
             for j in range(3):
                 self.cameraTexts[i][j].SetEditable(enable)
                 if enable:
-                    buttonEdit.SetLabel(_("OK"))
                     self.cameraTexts[i][j].Enable()
                 else:
-                    buttonEdit.SetLabel(_("Edit"))
                     self.cameraTexts[i][j].Disable()
                     self.cameraValues[i][j] = float(self.cameraTexts[i][j].GetValue())
+
         for i in range(5):
             self.distortionTexts[i].SetEditable(enable)
             if enable:
@@ -160,8 +163,12 @@ class CameraIntrinsicsParameters(wx.Panel):
             else:
                 self.distortionTexts[i].Disable()
                 self.distortionValues[i] = float(self.distortionTexts[i].GetValue())
-        if not enable:
-            self.updateAllControlsToProfile(self.cameraValues, self.distortionValues)
+
+        if enable:
+            buttonEdit.SetLabel(_("OK"))
+        else:
+            buttonEdit.SetLabel(_("Edit"))
+            self.updateAllControlsToProfile((self.cameraValues, self.distortionValues))
 
     def onButtonDefaultPressed(self, event):
         dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -172,34 +179,47 @@ class CameraIntrinsicsParameters(wx.Panel):
             resetProfileSetting('distortion_vector')
             self.updateProfileToAllControls()
 
-    def Info(parent, message, caption = 'Insert program title'):
-        dlg = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_INFORMATION)
-        dlg.ShowModal()
-        dlg.Destroy()
+    def getParameters(self):
+        return self.cameraValues, self.distortionValues
 
-    def updateAllControls(self, cameraMatrix, distortionVector):
+    def setParameters(self, params):
+        self.cameraValues = params[0]
+        self.distortionValues = params[1]
+        self.updateAllControls()
+
+    def getProfileSettings(self):
+        self.cameraValues = getProfileSettingNumpy('camera_matrix')
+        self.distortionValues = getProfileSettingNumpy('distortion_vector')
+
+    def putProfileSettings(self):
+        putProfileSettingNumpy('camera_matrix', self.cameraValues)
+        putProfileSettingNumpy('distortion_vector', self.distortionValues)
+
+    def updateAllControls(self):
         for i in range(3):
             for j in range(3):
-                self.cameraValues[i][j] = round(cameraMatrix[i][j], 3)
+                self.cameraValues[i][j] = round(self.cameraValues[i][j], 3)
                 self.cameraTexts[i][j].SetValue(str(self.cameraValues[i][j]))
         for i in range(5):
-            self.distortionValues[i] = round(distortionVector[i], 4)
+            self.distortionValues[i] = round(self.distortionValues[i], 4)
             self.distortionTexts[i].SetValue(str(self.distortionValues[i]))
 
+    def updateEngine(self):
         if hasattr(self, 'calibration'):
-            self.calibration.setIntrinsics(cameraMatrix, distortionVector) ## TODO: remove setIntrinsics on calibration
+            self.calibration.setIntrinsics(self.cameraValues, self.distortionValues) ## TODO: remove setIntrinsics on calibration
         if hasattr(self, 'scanner'):
-            self.scanner.camera.setIntrinsics(cameraMatrix, distortionVector)
-
-    def updateAllControlsToProfile(self, cameraMatrix, distortionVector):
-        putProfileSettingNumpy('camera_matrix', cameraMatrix)
-        putProfileSettingNumpy('distortion_vector', distortionVector)
-        self.updateAllControls(cameraMatrix, distortionVector)
+            self.scanner.camera.setIntrinsics(self.cameraValues, self.distortionValues)
 
     def updateProfileToAllControls(self):
-        cameraMatrix = getProfileSettingNumpy('camera_matrix')
-        distortionVector = getProfileSettingNumpy('distortion_vector')
-        self.updateAllControls(cameraMatrix, distortionVector)
+        self.getProfileSettings()
+        self.updateAllControls()
+        self.updateEngine()
+
+    def updateAllControlsToProfile(self, params):
+        self.setParameters(params)
+        self.putProfileSettings()
+        self.updateEngine()
+
 
 class LaserTriangulationParameters(wx.Panel):
 
@@ -216,7 +236,7 @@ class LaserTriangulationParameters(wx.Panel):
         coordinatesText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         self.coordinatesTexts = [[0 for j in range(2)] for i in range(2)]
-        self.coordinatesValues = [[0 for j in range(2)] for i in range(2)]
+        self.coordinatesValues = np.zeros((2,2))
 
         coordinatesBox = wx.BoxSizer(wx.VERTICAL)
         coordinatesPanel.SetSizer(coordinatesBox)
@@ -235,7 +255,7 @@ class LaserTriangulationParameters(wx.Panel):
         originText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         self.originTexts = [0]*3
-        self.originValues = [0]*3
+        self.originValues = np.zeros(3)
 
         originBox = wx.BoxSizer(wx.HORIZONTAL)
         originPanel.SetSizer(originBox)
@@ -251,7 +271,7 @@ class LaserTriangulationParameters(wx.Panel):
         normalText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         self.normalTexts = [0]*3
-        self.normalValues = [0]*3
+        self.normalValues = np.zeros(3)
 
         normalBox = wx.BoxSizer(wx.HORIZONTAL)
         normalPanel.SetSizer(normalBox)
@@ -280,12 +300,10 @@ class LaserTriangulationParameters(wx.Panel):
             for j in range(2):
                 self.coordinatesTexts[i][j].SetEditable(enable)
                 if enable:
-                    buttonEdit.SetLabel(_("OK"))
                     self.coordinatesTexts[i][j].Enable()
                 else:
-                    buttonEdit.SetLabel(_("Edit"))
                     self.coordinatesTexts[i][j].Disable()
-                    self.coordinatesValues[i][j] = round(float(self.coordinatesTexts[i][j].GetValue()), 3)
+                    self.coordinatesValues[i][j] = float(self.coordinatesTexts[i][j].GetValue())
 
         for i in range(3):
             self.originTexts[i].SetEditable(enable)
@@ -293,7 +311,7 @@ class LaserTriangulationParameters(wx.Panel):
                 self.originTexts[i].Enable()
             else:
                 self.originTexts[i].Disable()
-                self.originValues[i] = round(float(self.coordinatesTexts[i][j].GetValue()), 5)
+                self.originValues[i] = float(self.originTexts[i].GetValue())
 
         for i in range(3):
             self.normalTexts[i].SetEditable(enable)
@@ -301,10 +319,13 @@ class LaserTriangulationParameters(wx.Panel):
                 self.normalTexts[i].Enable()
             else:
                 self.normalTexts[i].Disable()
-                self.normalValues[i] = round(float(self.coordinatesTexts[i][j].GetValue()), 5)
+                self.normalValues[i] = float(self.normalTexts[i].GetValue())
 
-        if not enable:
-            self.updateAllControlsToProfile(self.coordinatesValues, self.originValue, self.normalValues)
+        if enable:
+            buttonEdit.SetLabel(_("OK"))
+        else:
+            buttonEdit.SetLabel(_("Edit"))
+            self.updateAllControlsToProfile((self.coordinatesValues, self.originValues, self.normalValues))
 
     def onButtonDefaultPressed(self, event):
         dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -316,43 +337,51 @@ class LaserTriangulationParameters(wx.Panel):
             resetProfileSetting('laser_normal')
             self.updateProfileToAllControls()
 
-    def updateAllControls(self, laserCoordinates, laserOrigin, laserNormal):
+    def getParameters(self):
+        return self.coordinatesValues, self.originValues, self.normalValues
+
+    def setParameters(self, params):
+        self.coordinatesValues = params[0]
+        self.originValues = params[1]
+        self.normalValues = params[2]
+        self.updateAllControls()
+
+    def getProfileSettings(self):
+        self.coordinatesValues = getProfileSettingNumpy('laser_coordinates')
+        self.originValues = getProfileSettingNumpy('laser_origin')
+        self.normalValues = getProfileSettingNumpy('laser_normal')
+
+    def putProfileSettings(self):
+        putProfileSettingNumpy('laser_coordinates', self.coordinatesValues)
+        putProfileSettingNumpy('laser_origin', self.originValues)
+        putProfileSettingNumpy('laser_normal', self.normalValues)
+
+    def updateAllControls(self):
         for i in range(2):
             for j in range(2):
-                if laserCoordinates[i][j] is not None:
-                    self.coordinatesValues[i][j] = round(laserCoordinates[i][j], 3)
-                    self.coordinatesTexts[i][j].SetValue(str(self.coordinatesValues[i][j]))
-                else:
-                    self.coordinatesTexts[i][j].SetValue("0")
+                self.coordinatesValues[i][j] = round(self.coordinatesValues[i][j], 3)
+                self.coordinatesTexts[i][j].SetValue(str(self.coordinatesValues[i][j]))
 
         for i in range(3):
-            if laserOrigin[i] is not None:
-                self.originValues[i] = round(laserOrigin[i], 5)
-                self.originTexts[i].SetValue(str(self.originValues[i]))
-            else:
-                self.originTexts[i].SetValue("0")
+            self.originValues[i] = round(self.originValues[i], 4)
+            self.originTexts[i].SetValue(str(self.originValues[i]))
 
         for i in range(3):
-            if laserNormal[i] is not None:
-                self.normalValues[i] = round(laserNormal[i], 5)
-                self.normalTexts[i].SetValue(str(self.normalValues[i]))
-            else:
-                self.normalTexts[i].SetValue("0")
+            self.normalValues[i] = round(self.normalValues[i], 6)
+            self.normalTexts[i].SetValue(str(self.normalValues[i]))
 
-        if hasattr(self, 'scanner'):
-            self.scanner.core.setLaserTriangulation(laserCoordinates, laserOrigin, laserNormal)
-
-    def updateAllControlsToProfile(self, laserCoordinates, laserOrigin, laserNormal):
-        putProfileSettingNumpy('laser_coordinates', laserCoordinates)
-        putProfileSettingNumpy('laser_origin', laserOrigin)
-        putProfileSettingNumpy('laser_normal', laserNormal)
-        self.updateAllControls(laserCoordinates, laserOrigin, laserNormal)
+    def updateEngine(self):
+        pass
 
     def updateProfileToAllControls(self):
-        laserCoordinates = getProfileSettingNumpy('laser_coordinates')
-        laserOrigin = getProfileSettingNumpy('laser_origin')
-        laserNormal = getProfileSettingNumpy('laser_normal')
-        self.updateAllControls(laserCoordinates, laserOrigin, laserNormal)
+        self.getProfileSettings()
+        self.updateAllControls()
+        self.updateEngine()
+
+    def updateAllControlsToProfile(self, params):
+        self.setParameters(params)
+        self.putProfileSettings()
+        self.updateEngine()
 
 
 class PlatformExtrinsicsParameters(wx.Panel):
@@ -369,7 +398,7 @@ class PlatformExtrinsicsParameters(wx.Panel):
         rotationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         self.rotationTexts = [[0 for j in range(3)] for i in range(3)]
-        self.rotationValues = [[0 for j in range(3)] for i in range(3)]
+        self.rotationValues = np.zeros((3,3))
 
         rotationBox = wx.BoxSizer(wx.VERTICAL)
         rotationPanel.SetSizer(rotationBox)
@@ -388,7 +417,7 @@ class PlatformExtrinsicsParameters(wx.Panel):
         translationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
         self.translationTexts = [0]*3
-        self.translationValues = [0]*3
+        self.translationValues = np.zeros(3)
 
         translationBox = wx.BoxSizer(wx.HORIZONTAL)
         translationPanel.SetSizer(translationBox)
@@ -415,10 +444,8 @@ class PlatformExtrinsicsParameters(wx.Panel):
             for j in range(3):
                 self.rotationTexts[i][j].SetEditable(enable)
                 if enable:
-                    buttonEdit.SetLabel(_("OK"))
                     self.rotationTexts[i][j].Enable()
                 else:
-                    buttonEdit.SetLabel(_("Edit"))
                     self.rotationTexts[i][j].Disable()
                     self.rotationValues[i][j] = float(self.rotationTexts[i][j].GetValue())
         for i in range(3):
@@ -428,8 +455,12 @@ class PlatformExtrinsicsParameters(wx.Panel):
             else:
                 self.translationTexts[i].Disable()
                 self.translationValues[i] = float(self.translationTexts[i].GetValue())
-        if not enable:
-            self.updateAllControlsToProfile(self.rotationValues, self.translationValues)
+
+        if enable:
+            buttonEdit.SetLabel(_("OK"))
+        else:
+            buttonEdit.SetLabel(_("Edit"))
+            self.updateAllControlsToProfile((self.rotationValues, self.translationValues))
 
     def onButtonDefaultPressed(self, event):
         dlg = wx.MessageDialog(self, _("This will reset platform extrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -440,30 +471,41 @@ class PlatformExtrinsicsParameters(wx.Panel):
             resetProfileSetting('translation_vector')
             self.updateProfileToAllControls()
 
-    def updateAllControls(self, rotationMatrix, translationVector):
+    def getParameters(self):
+        return self.rotationValues, self.translationValues
+
+    def setParameters(self, params):
+        self.rotationValues = params[0]
+        self.translationValues = params[1]
+        self.updateAllControls()
+
+    def getProfileSettings(self):
+        self.rotationValues = getProfileSettingNumpy('rotation_matrix')
+        self.translationValues = getProfileSettingNumpy('translation_vector')
+
+    def putProfileSettings(self):
+        putProfileSettingNumpy('rotation_matrix', self.rotationValues)
+        putProfileSettingNumpy('translation_vector', self.translationValues)
+
+    def updateAllControls(self):
         for i in range(3):
             for j in range(3):
-                if rotationMatrix[i][j] is not None:
-                    self.rotationValues[i][j] = round(rotationMatrix[i][j], 3)
-                    self.rotationTexts[i][j].SetValue(str(self.rotationValues[i][j]))
-                else:
-                    self.rotationTexts[i][j].SetValue("")
+                self.rotationValues[i][j] = round(self.rotationValues[i][j], 6)
+                self.rotationTexts[i][j].SetValue(str(self.rotationValues[i][j]))
+
         for i in range(3):
-            if translationVector[i] is not None:
-                self.translationValues[i] = round(translationVector[i], 3)
-                self.translationTexts[i].SetValue(str(self.translationValues[i]))
-            else:
-                self.translationTexts[i].SetValue("")
+            self.translationValues[i] = round(self.translationValues[i], 5)
+            self.translationTexts[i].SetValue(str(self.translationValues[i]))
 
-        if hasattr(self, 'scanner'):
-            self.scanner.core.setPlatformExtrinsics(rotationMatrix, translationVector)
-
-    def updateAllControlsToProfile(self, rotationMatrix, translationVector):
-        putProfileSettingNumpy('rotation_matrix', rotationMatrix)
-        putProfileSettingNumpy('translation_vector', translationVector)
-        self.updateAllControls(rotationMatrix, translationVector)
+    def updateEngine(self):
+        pass
 
     def updateProfileToAllControls(self):
-        rotationMatrix = getProfileSettingNumpy('rotation_matrix')
-        translationVector = getProfileSettingNumpy('translation_vector')
-        self.updateAllControls(rotationMatrix, translationVector)
+        self.getProfileSettings()
+        self.updateAllControls()
+        self.updateEngine()
+
+    def updateAllControlsToProfile(self, params):
+        self.setParameters(params)
+        self.putProfileSettings()
+        self.updateEngine()

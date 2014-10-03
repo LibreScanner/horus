@@ -29,9 +29,11 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import cv2
+import math
 import numpy as np
 from numpy import linalg
-from scipy import optimize  
+from scipy import optimize
+import functools
 
 import time
 
@@ -46,12 +48,14 @@ class Calibration:
 	def __init__(self):
 		self.scanner = Scanner.Instance()
 
-	def initialize(self, cameraMatrix, distortionVector, patternRows, patternColumns, squareWidth, useDistortion):
+	def initialize(self, cameraMatrix, distortionVector, patternRows, patternColumns, squareWidth, patternDistance, extrinsicsStep, useDistortion):
 		self.cameraMatrix = cameraMatrix
 		self.distortionVector = distortionVector
 		self.patternRows = patternRows # points_per_column
 		self.patternColumns = patternColumns # points_per_row
 		self.squareWidth = squareWidth # milimeters of each square's side
+		self.patternDistance = patternDistance
+		self.extrinsicsStep = extrinsicsStep
 		self.useDistortion = useDistortion
 
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
@@ -66,6 +70,9 @@ class Calibration:
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
 		self.distortionVector = distortionVector
+
+	def setPatternDistance(self, patternDistance):
+		self.patternDistance = patternDistance
 
 	def generateGuides(self, width, height):
 		xfactor = width / 960.
@@ -122,12 +129,12 @@ class Calibration:
 			##-- Move pattern until ||(R-I)|| < e
 			device.setSpeedMotor(1)
 			device.enable()
+			time.sleep(0.5)
 
 			t, n, corners = self.getPatternDepth(device, camera)
 
 			if t is not None and corners is not None:
-
-				time.sleep(0.5)
+				time.sleep(0.2)
 
 				#-- Get images
 				imgRaw = camera.captureImage(flush=True, flushValue=2)
@@ -161,7 +168,7 @@ class Calibration:
 		distance = np.inf
 		distanceAnt = np.inf
 		angle = 20
-		p = None
+		t = None
 		n = None
 		corners = None
 		tries = 5
@@ -200,7 +207,7 @@ class Calibration:
 
 		print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
-		return t, -n, corners
+		return t, n, corners
 
 	def cornersMask(self, frame, corners):
 		p1 = corners[0][0]
@@ -221,7 +228,7 @@ class Calibration:
 		return frame
 
 	def obtainLine(self, imgRaw, imgLas):
-		u1 = u2 = None
+		u1 = u2 = 0
 
 		height, width, depth = imgRaw.shape
 		imgLine = np.zeros((height,width,depth), np.uint8)
@@ -240,6 +247,7 @@ class Calibration:
 			#-- Calculate coordinates
 			u1 = rho / np.cos(theta)
 			u2 = u1 - height * np.tan(theta)
+
 			#-- Draw line
 			cv2.line(imgLine,(int(round(u1)),0),(int(round(u2)),height-1),(255,0,0),5)
 
@@ -264,7 +272,6 @@ class Calibration:
 		objp = np.multiply(objp, squareWidth)
 		return objp
 
-
 	def performPlatformExtrinsicsCalibration(self):
 		if self.scanner.isConnected:
 
@@ -275,38 +282,49 @@ class Calibration:
 			y = []
 			z = []
 
-			ret = False
-
 			##-- Switch off lasers
 			device.setLeftLaserOff()
 			device.setRightLaserOff()
 
 			##-- Move pattern 180 degrees
-			step = 5 # degrees
+			step = self.extrinsicsStep # degrees
 			angle = 0
 			device.setSpeedMotor(1)
 			device.enable()
-			device.setSpeedMotor(200)
+			device.setSpeedMotor(100)
+			time.sleep(0.5)
+
 			while angle <= 180:
 				angle += step
 				t = self.getPatternPosition(step, device, camera)
+				time.sleep(0.1)
 				if t is not None:
 					x += [t[0][0]]
 					y += [t[1][0]]
 					z += [t[2][0]]
 
-			#-- Obtain Circle
-			if len(x) > 0: # len(z) > 0 too
-				ret = True
-				Ri, center = self.optimizeCircle(x, z)
+			x = np.array(x)
+			y = np.array(y)
+			z = np.array(z)
+
+			points = zip(x,y,z)
+
+			if len(points) <= 0:
+				return None
+
+			#-- Fitting a plane
+			point, normal = self.fitPlane(points)
+
+			#-- Fitting a circle inside the plane
+			center, R, circle = self.fitCircle(point, normal, points)
+
+			# Get real origin
+			t = center - self.patternDistance * np.array(normal)
 
 			#-- Disable motor
 			device.disable()
 
-			if ret:
-				return [[x,y,z], Ri, center]
-			else:
-				return None
+			return [R, t, center, point, normal, [x,y,z], circle]	
 
 	def getPatternPosition(self, step, device, camera):
 		t = None
@@ -319,17 +337,54 @@ class Calibration:
 		device.setMoveMotor()
 		return t
 
-	def optimizeCircle(self, x2D, z2D):
-		self.x2D = x2D
-		self.z2D = z2D
-		centerEstimate = 0, 315
- 		center = optimize.leastsq(self.f, centerEstimate)[0]
-		Ri = self.calc_R(*center)
-		return Ri, center
+	#-- Fitting a plane
+	def distanceToPlane(self, p0,n0,p):
+		return np.dot(np.array(n0),np.array(p)-np.array(p0))    
 
-	def calc_R(self, xc, zc):
-		return np.sqrt((self.x2D-xc)**2 + (self.z2D-zc)**2)
+	def residualsPlane(self, parameters,dataPoint):
+		px,py,pz,theta,phi = parameters
+		nx,ny,nz = math.sin(theta)*math.cos(phi),math.sin(theta)*math.sin(phi),math.cos(theta)
+		distances = [self.distanceToPlane([px,py,pz],[nx,ny,nz],[x,y,z]) for x,y,z in dataPoint]
+		return distances
 
-	def f(self, c):
-		Ri = self.calc_R(*c)
-		return Ri - Ri.mean()
+	def fitPlane(self, data):
+		estimate = [0, 0, 0, 0, 0] # px,py,pz and zeta, phi
+		#you may automize this by using the center of mass data
+		# note that the normal vector is given in polar coordinates
+		bestFitValues, ier = optimize.leastsq(self.residualsPlane, estimate, args=(data))
+		xF,yF,zF,tF,pF = bestFitValues
+
+		#self.point  = [xF,yF,zF]
+		self.point = data[0]
+		self.normal = -np.array([math.sin(tF)*math.cos(pF),math.sin(tF)*math.sin(pF),math.cos(tF)])
+
+		return self.point, self.normal
+
+	def residualsCircle(self, parameters, dataPoint):
+		r,s,Ri = parameters
+		planePoint = s*self.s + r*self.r + np.array(self.point)
+		distance = [ np.linalg.norm( planePoint-np.array([x,y,z])) for x,y,z in dataPoint]
+		res = [(Ri-dist) for dist in distance]
+		return res
+
+	def fitCircle(self, point, normal, data):
+		#creating two inplane vectors
+		self.s = np.cross(np.array([1,0,0]),np.array(normal))#assuming that normal not parallel x!
+		self.s = self.s/np.linalg.norm(self.s)
+		self.r = np.cross(np.array(normal),self.s)
+		self.r = self.r/np.linalg.norm(self.r)#should be normalized already, but anyhow
+
+		# Define rotation
+		R = np.array([self.s,self.r,normal]).T
+
+		estimateCircle = [0, 0, 0] # px,py,pz and zeta, phi
+		bestCircleFitValues, ier = optimize.leastsq(self.residualsCircle, estimateCircle, args=(data))
+
+		rF,sF,RiF = bestCircleFitValues
+
+		# Synthetic Data
+		centerPoint = sF*self.s + rF*self.r + np.array(self.point)
+		synthetic = [list(centerPoint+ RiF*math.cos(phi)*self.r+RiF*math.sin(phi)*self.s) for phi in np.linspace(0, 2*math.pi,50)]
+		[cxTupel,cyTupel,czTupel] = [ x for x in zip(*synthetic)]
+
+		return centerPoint, R, [cxTupel,cyTupel,czTupel]

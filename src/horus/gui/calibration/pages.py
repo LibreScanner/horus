@@ -199,7 +199,7 @@ class CameraIntrinsicsResultPage(Page):
 		self.cameraIntrinsicsParameters = CameraIntrinsicsParameters(self._panel)
 
 		#-- 3D Plot Panel
-		self.plotPanel = Plot3DPanel(self._panel)
+		self.plotPanel = Plot3DCameraIntrinsics(self._panel)
 
 		self.addToPanel(self.cameraIntrinsicsParameters, 1)
 		self.addToPanel(self.plotPanel, 2)
@@ -216,7 +216,7 @@ class CameraIntrinsicsResultPage(Page):
 		self.plotPanel.clear()
 		ret = self.calibration.performCameraIntrinsicsCalibration()
 		self.plotPanel.add(ret[2], ret[3])
-		self.cameraIntrinsicsParameters.updateAllControlsToProfile(ret[0], ret[1])
+		self.cameraIntrinsicsParameters.setParameters((ret[0], ret[1]))
 		self.plotPanel.Show()
 
 
@@ -225,7 +225,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
-class Plot3DPanel(wx.Panel):
+class Plot3DCameraIntrinsics(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 		self.calibration = Calibration.Instance()
@@ -233,8 +233,8 @@ class Plot3DPanel(wx.Panel):
 		self.initialize()
 
 	def initialize(self):
-		self.fig = Figure(tight_layout=False)
-		self.canvas = FigureCanvasWxAgg(self, 1, self.fig)
+		self.fig = Figure(facecolor=(0.7490196,0.7490196,0.7490196,1), tight_layout=True)
+		self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
 
 		#self.ax = Axes3D(self.fig)
@@ -256,9 +256,9 @@ class Plot3DPanel(wx.Panel):
 		event.Skip()
 
 	def printCanvas(self):
-		self.ax.plot([0,50], [0,0], [0,0], linewidth=3.0, color='red')
-		self.ax.plot([0,0], [0,0], [0,50], linewidth=3.0, color='green')
-		self.ax.plot([0,0], [0,50], [0,0], linewidth=3.0, color='blue')
+		self.ax.plot([0,50], [0,0], [0,0], linewidth=2.0, color='red')
+		self.ax.plot([0,0], [0,0], [0,50], linewidth=2.0, color='green')
+		self.ax.plot([0,0], [0,50], [0,0], linewidth=2.0, color='blue')
 
 		self.ax.set_xlabel('X')
 		self.ax.set_ylabel('Z')
@@ -301,9 +301,9 @@ class Plot3DPanel(wx.Panel):
 
 			self.ax.plot_surface(X, Z, Y, linewidth=0, color=color)
 
-			self.ax.plot([t[0][0],CX[0]], [t[2][0],CZ[0]], [t[1][0],CY[0]], linewidth=2.0, color='red')
-			self.ax.plot([t[0][0],CX[1]], [t[2][0],CZ[1]], [t[1][0],CY[1]], linewidth=2.0, color='green')
-			self.ax.plot([t[0][0],CX[2]], [t[2][0],CZ[2]], [t[1][0],CY[2]], linewidth=2.0, color='blue')
+			self.ax.plot([t[0][0],CX[0]], [t[2][0],CZ[0]], [t[1][0],CY[0]], linewidth=1.0, color='red')
+			self.ax.plot([t[0][0],CX[1]], [t[2][0],CZ[1]], [t[1][0],CY[1]], linewidth=1.0, color='green')
+			self.ax.plot([t[0][0],CX[2]], [t[2][0],CZ[2]], [t[1][0],CY[2]], linewidth=1.0, color='blue')
 			self.canvas.draw()
 		
 		self.Layout()
@@ -375,7 +375,7 @@ class LaserTriangulationResultPage(Page):
 		ret = Calibration.Instance().performLaserTriangulationCalibration()
 
 		if ret is not None:
-			self.laserTriangulationParameters.updateAllControlsToProfile(ret[1], ret[0][0], ret[0][1])
+			self.laserTriangulationParameters.setParameters((ret[1], ret[0][0], ret[0][1]))
 
 			self.leftLaserImageSequence.imageLas.setFrame(ret[2][0][0])
 			self.leftLaserImageSequence.imageGray.setFrame(ret[2][0][1])
@@ -462,7 +462,7 @@ class PlatformExtrinsicsResultPage(Page):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
 		self.platformExtrinsicsParameters = PlatformExtrinsicsParameters(self._panel)
-		self.plotPanel = Plot2DPanel(self._panel)
+		self.plotPanel = Plot3DPlatformExtrinsics(self._panel)
 
 		#-- Layout
 
@@ -481,17 +481,15 @@ class PlatformExtrinsicsResultPage(Page):
 		self.plotPanel.clear()
 		ret = Calibration.Instance().performPlatformExtrinsicsCalibration()
 		if ret is not None:
-			xc, zc = ret[2]
-			yc = np.mean(ret[0][1]) + 160 #offset
 			self.plotPanel.add(ret)
-			self.platformExtrinsicsParameters.updateAllControlsToProfile(np.array([[0,-1,0],[0,0,-1],[-1,0,0]]), np.array([xc, yc, zc]))
+			self.platformExtrinsicsParameters.setParameters((ret[0], ret[1]))
 		self.plotPanel.Show()
 
 
-import matplotlib.cm as cm  
-import matplotlib.colors as colors
+from mpl_toolkits.mplot3d import Axes3D
 
-class Plot2DPanel(wx.Panel):
+class Plot3DPlatformExtrinsics(wx.Panel):
+
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 		self.calibration = Calibration.Instance()
@@ -499,83 +497,50 @@ class Plot2DPanel(wx.Panel):
 		self.initialize()
 
 	def initialize(self):
-		self.fig = Figure()
-		self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
+		fig = Figure(facecolor=(0.7490196,0.7490196,0.7490196,1), tight_layout=True)
+		self.canvas = FigureCanvasWxAgg(self, -1, fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
-
-		self.ax = self.fig.gca()
-		self.ax.axis('equal')
-
-		self.x2D = np.array([])
-		self.z2D = np.array([])
-		
-		self.ax.set_xlabel('x')
-		self.ax.set_ylabel('z')
-
-		self.xmin = 0
-		self.xmax = 1
-		self.ymin = 0
-		self.ymax = 1
+		self.ax = fig.gca(projection='3d', axisbg=(0.7490196,0.7490196,0.7490196,1))
 
 		self.Bind(wx.EVT_SIZE, self.onSize)
 		self.Layout()
 
 	def onSize(self,event):
 		self.canvas.SetClientSize(self.GetClientSize())
-		self.ax.set_xlim(xmin=self.xmin, xmax=self.xmax)
-		self.ax.set_ylim(ymin=self.ymin, ymax=self.ymax)
 		self.canvas.draw()
 		self.Layout()
 
 	def add(self, args):
-		tvecs = args[0]
-		Ri = args[1]
-		xc, zc = center = args[2]
+		R, t, center, point, normal, [x,y,z], circle = args
 
-		R = Ri.mean()
+		# plot the surface, data, and synthetic circle
+		self.ax.scatter(x, z, y, c='b', marker='o')
+		#self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
+		self.ax.plot(circle[0], circle[2], circle[1], c='r')
 
-		x2D = tvecs[0]
-		y2D = tvecs[1]
-		z2D = tvecs[2]
+		d = getProfileSettingFloat('pattern_distance')
 
-		theta_fit = np.linspace(-np.pi, np.pi, 180)
+		self.ax.plot([t[0],t[0]+100*R[0][0]], [t[2],t[2]+100*R[2][0]], [t[1],t[1]+100*R[1][0]], linewidth=2.0, color='red')
+		self.ax.plot([t[0],t[0]+100*R[0][1]], [t[2],t[2]+100*R[2][1]], [t[1],t[1]+100*R[1][1]], linewidth=2.0, color='green')
+		self.ax.plot([t[0],t[0]+d*R[0][2]], [t[2],t[2]+d*R[2][2]], [t[1],t[1]+d*R[1][2]], linewidth=2.0, color='blue')
 
-		x_fit2 = xc + R*np.cos(theta_fit)
-		z_fit2 = zc + R*np.sin(theta_fit)
+		self.ax.plot([0,50], [0,0], [0,0], linewidth=2.0, color='red')
+		self.ax.plot([0,0], [0,0], [0,50], linewidth=2.0, color='green')
+		self.ax.plot([0,0], [0,50], [0,0], linewidth=2.0, color='blue')
 
-		self.ax.plot(x_fit2, z_fit2, 'k--', lw=2)
-		self.ax.plot([xc], [zc], 'gD', mec='r', mew=1)
-		self.ax.plot(x2D, z2D, 'ro', label='Pattern corner', ms=8, mec='b', mew=1)
+		self.ax.set_xlabel('X')
+		self.ax.set_ylabel('Z')
+		self.ax.set_zlabel('Y')
 
-		self.xmin = (xc-R)/1.05
-		self.xmax = (xc+R)*1.05
-		self.ymin = (zc-R)/1.05
-		self.ymax = (zc+R)*1.05
+		self.ax.set_xlim(-150, 150)
+		self.ax.set_ylim(0, 400)
+		self.ax.set_zlim(-150, 150)
 
-		vmin = min(self.xmin, self.ymin)
-		vmax = max(self.xmax, self.ymax)
-
-		nb_pts = 100
-
-		xg, zg = np.ogrid[vmin-4*R:(vmin+4*R):nb_pts*1j, vmax-4*R:vmax+R:nb_pts*1j]
-		xg = xg[..., np.newaxis]
-		zg = zg[..., np.newaxis]
-
-		Rig    = np.sqrt( (xg - x2D)**2 + (zg - z2D)**2 )
-		Rig_m  = Rig.mean(axis=2)[..., np.newaxis]  
-		residu = np.sum( (Rig-Rig_m)**2 ,axis=2)
-		lvl = np.exp(np.linspace(np.log(residu.min()), np.log(residu.max()), 15))
-
-		self.ax.contourf(xg.flat, zg.flat, residu.T, lvl, alpha=0.4, cmap=cm.Purples_r) # , norm=colors.LogNorm())
-		self.ax.contour (xg.flat, zg.flat, residu.T, lvl, alpha=0.8, colors="lightblue")
-
-		self.ax.grid()
-		self.ax.set_title("Center: xc = "+str(xc)+"  zc = "+str(zc))
+		self.ax.invert_xaxis()
+		self.ax.invert_yaxis()
+		self.ax.invert_zaxis()
 
 		self.canvas.draw()
-
-		self.onSize(None)
-		
 		self.Layout()
 
 	def clear(self):

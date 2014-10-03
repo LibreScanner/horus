@@ -146,11 +146,13 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onCameraIntrinsicsAcceptCallback(self):
+        params = self.cameraIntrinsicsResultPage.cameraIntrinsicsParameters.getParameters()
+        self.cameraIntrinsicsPanel.parameters.updateAllControlsToProfile(params)
+
         self.cameraIntrinsicsPanel.Show()
         self.laserTriangulationPanel.Show()
         self.platformExtrinsicsPanel.Show()
         self.cameraIntrinsicsResultPage.Hide()
-        self.updateProfileToAllControls()
         self.Layout()
 
     def onLaserTriangulationPerformCallback(self):
@@ -159,11 +161,13 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onLaserTriangulationAcceptCallback(self):
+        params = self.laserTriangulationResultPage.laserTriangulationParameters.getParameters()
+        self.laserTriangulationPanel.parameters.updateAllControlsToProfile(params)
+
         self.cameraIntrinsicsPanel.Show()
         self.laserTriangulationPanel.Show()
         self.platformExtrinsicsPanel.Show()
         self.laserTriangulationResultPage.Hide()
-        self.updateProfileToAllControls()
         self.Layout()
 
     def onPlatformExtrinsicsPerformCallback(self):
@@ -172,11 +176,13 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onPlatformExtrinsicsAcceptCallback(self):
+        params = self.platformExtrinsicsResultPage.platformExtrinsicsParameters.getParameters()
+        self.platformExtrinsicsPanel.parameters.updateAllControlsToProfile(params)
+
         self.cameraIntrinsicsPanel.Show()
         self.laserTriangulationPanel.Show()
         self.platformExtrinsicsPanel.Show()
         self.platformExtrinsicsResultPage.Hide()
-        self.updateProfileToAllControls()
         self.Layout()
 
     def updateToolbarStatus(self, status):
