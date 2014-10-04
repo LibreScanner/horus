@@ -480,10 +480,10 @@ class SceneView(openglGui.glGuiPanel):
 				self._objectShader.bind()
 
 			brightness = 1.0
-			if self._focusObj == self._object:
+			"""if self._focusObj == self._object:
 				brightness = 1.2
 			elif self._focusObj is not None or self._selectedObj is not None and self._object != self._selectedObj:
-				brightness = 0.8
+				brightness = 0.8"""
 
 			if self._selectedObj == self._object or self._selectedObj is None:
 				glStencilOp(GL_INCR, GL_INCR, GL_INCR)

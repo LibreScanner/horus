@@ -299,7 +299,7 @@ setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 # TODO: change default last file
 setting('lastFile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
 
-setting('model_colour', '#FFC924', str, 'preference', 'hidden').setLabel(_('Model colour'), _('Display color for first extruder'))
+setting('model_colour', '#888899', str, 'preference', 'hidden').setLabel(_('Model colour'), _('Display color for first extruder'))
 
 #Remove fake defined _() because later the localization will define a global _()
 del _

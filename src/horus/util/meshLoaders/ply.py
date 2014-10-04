@@ -38,78 +38,112 @@ http://en.wikipedia.org/wiki/PLY_(file_format)
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import sys
 import os
 import struct
+import numpy as np
 
 from horus.util import model
 
-def _loadAscii(m, cnt, idx, body):
-	for i in range(cnt):
-		data = body[i].split(' ')
-		m._addVertex(float(data[idx[0]]),float(data[idx[1]]),float(data[idx[2]]),int(data[idx[3]]),int(data[idx[4]]),int(data[idx[5]]))
+def _loadAscii(mesh, stream, dtype, count):
+	fields = dtype.fields
 
-def _loadBinary(m, cnt, idx, step, format, body):
-	a = b = 0
-	for i in range(cnt):
-		b = a+step
-		data = struct.unpack(format, body[step*i:step*(i+1)])
-		m._addVertex(float(data[idx[0]]),float(data[idx[1]]),float(data[idx[2]]),int(data[idx[3]]),int(data[idx[4]]),int(data[idx[5]]))
-		a = b
+	v = 0
+	c = 0
 
-def loadScene(filename): #-- TODO: Optimize
+	if 'c' in fields:
+		c += 3
+	if 'n' in fields:
+		c += 3
+
+	i = 0
+	while i < count:
+		i += 1
+		data = stream.readline().split(' ')
+		if data is not None:
+			mesh._addVertex(data[v],data[v+1],data[v+2],data[c],data[c+1],data[c+2])
+
+def _loadBinary(mesh, stream, dtype, count):
+	data = np.fromfile(stream, dtype=dtype , count=count)
+
+	fields = dtype.fields
+	mesh.vertexCount = count
+
+	if 'v' in fields:
+		mesh.vertexes = data['v']
+	else:
+		mesh.vertexes = np.zeros((count,3))
+
+	if 'n' in fields:
+		mesh.normal = data['n']
+	else:
+		mesh.normal = np.zeros((count,3))
+
+	if 'c' in fields:
+		mesh.colors = data['c']
+	else:
+		mesh.colors = 255 * np.ones((count,3))
+
+def loadScene(filename):
 	obj = model.Model(filename, isPointCloud=True)
 	m = obj._addMesh()
 	f = open(filename, "rb")
 
-	cnt = 0
-	idx = []
-	pidx = []
-	ridx = ['x', 'y', 'z', 'red', 'green', 'blue'] #-- Current addVertex prototype
-	step = 0
-	format = ""
-	sections = f.read().split('end_header\n')
-	header = sections[0].split('element face ')[0].split('\n') #-- Discart faces
+	dtype = []
+	count = 0
+	format = None
+	line = None
+	header = ''
+
+	while line != 'end_header\n' and line != '':
+		line = f.readline()
+		header += line
+	#-- Discart faces
+	header = header.split('element face ')[0].split('\n')
 
 	if header[0] == 'ply':
 
 		for line in header:
+			if 'format ' in line:
+				format = line.split(' ')[1]
+				break
+
+		if format is not None:
+			if format == 'ascii':
+				fm = ''
+			elif format == 'binary_big_endian':
+				fm = '>'
+			elif format == 'binary_little_endian':
+				fm = '<'
+
+		df = {'float' : fm+'f', 'uchar' : fm+'B'}
+		dt = {'x' : 'v', 'nx' : 'n', 'red' : 'c', 'alpha' : 'a'}
+		ds = {'x' : 3, 'nx' : 3, 'red' : 3, 'alpha' : 1}
+
+		for line in header:
 			if 'element vertex ' in line:
-				cnt = int(line.split('element vertex ')[1])
+				count = int(line.split('element vertex ')[1])
 			elif 'property ' in line:
 				props = line.split(' ')
-				pidx += [props[2]]
-				if props[1] == 'float':
-					format += 'f'
-					step += 4
-				if props[1] == 'uchar':
-					format += 'B'
-					step += 1
+				if props[2] in dt.keys():
+					dtype = dtype + [(dt[props[2]], df[props[1]], (ds[props[2]],))]
 
-		for item in ridx:
-			if item in pidx:
-				idx += [pidx.index(item)]
+		dtype = np.dtype(dtype)
 
-		codec = None
-		for line in header:
-			if 'format ' in line:
-				codec = line.split(' ')[1]
+		if format is not None:
+			if format == 'ascii':
+				m._prepareVertexCount(count)
+				_loadAscii(m, f, dtype, count)
+			elif format == 'binary_big_endian' or format == 'binary_little_endian':
+				_loadBinary(m, f, dtype, count)
 
-		m._prepareVertexCount(cnt)
+		f.close()
+		obj._postProcessAfterLoad()
+		return obj
 
-		if codec is not None:
-			if codec == 'ascii':
-				_loadAscii(m, cnt, idx, sections[1].split('\n'))
-			elif codec == 'binary_big_endian':
-				_loadBinary(m, cnt, idx, step, '>'+format, sections[1])
-			elif codec == 'binary_little_endian':
-				_loadBinary(m, cnt, idx, step, '<'+format, sections[1])
 	else:
 		print "Error: incorrect file format."
-
-	f.close()
-	obj._postProcessAfterLoad()
-	return obj
+		f.close()
+		return None
 
 def saveScene(filename, _object):
 	f = open(filename, 'wb')
@@ -147,4 +181,4 @@ def saveSceneStream(stream, _object):
 			else:
 				for i in range(m.vertexCount):
 					frame += "{0} {1} {2} {3} {4} {5}\n".format(points[i,0], points[i,1], points[i,2] , colors[i,0], colors[i,1], colors[i,2])
-		stream.write(frame)
+			stream.write(frame)

@@ -215,8 +215,9 @@ class MainWindow(wx.Frame):
         dlg.SetWildcard(wildcardFilter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
-            if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
-                filename += '.ply'
+            if not filename.endswith('.ply'):
+                if platform.system() == 'Linux': #hack for linux, as for some reason the .ply is not appended.
+                    filename += '.ply'
             saveMesh(filename, self.scanningWorkbench.sceneView._object)
         dlg.Destroy()
 
@@ -230,7 +231,7 @@ class MainWindow(wx.Frame):
 
     def onOpenProfile(self, event):
         """ """
-        dlg=wx.FileDialog(self, _("Select profile file to load"), "", style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        dlg=wx.FileDialog(self, _("Select profile file to load"), os.path.split(getPreference('lastFile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
@@ -241,13 +242,13 @@ class MainWindow(wx.Frame):
     def onSaveProfile(self, event):
         """ """
         import platform
-
-        dlg=wx.FileDialog(self, _("Select profile file to save"), "", style=wx.FD_SAVE)
+        dlg=wx.FileDialog(self, _("Select profile file to save"), os.path.split(getPreference('lastFile'))[0], style=wx.FD_SAVE)
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
-                profileFile += '.ini'
+            if not profileFile.endswith('.ini'):
+                if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
+                    profileFile += '.ini'
             saveProfile(profileFile)
         dlg.Destroy()
 

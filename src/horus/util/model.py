@@ -66,20 +66,14 @@ class Model(object):
 		if not self._isPointCloud:
 			self._mesh._calculateNormals()
 		self.processMatrix()
-		"""if numpy.max(self.getSize()) > 10000.0:
-			self._mesh.vertexes /= 1000.0
-			self.processMatrix()
-		if numpy.max(self.getSize()) < 1.0:
-			self._mesh.vertexes *= 1000.0
-			self.processMatrix()"""
 
 	def applyMatrix(self, m):
 		self._matrix *= m
 		self.processMatrix()
 
 	def processMatrix(self):
-		self._transformedMin = numpy.array([999999999999,999999999999,999999999999], numpy.float64)
-		self._transformedMax = numpy.array([-999999999999,-999999999999,-999999999999], numpy.float64)
+		self._transformedMin = numpy.array([numpy.inf,numpy.inf,numpy.inf], numpy.float64)
+		self._transformedMax = numpy.array([-numpy.inf,-numpy.inf,-numpy.inf], numpy.float64)
 		self._boundaryCircleSize = 0
 
 		transformedVertexes = self._mesh.getTransformedVertexes()
@@ -175,34 +169,18 @@ class Mesh(object):
 		self.vbo = None
 		self._obj = obj
 
-	def _addVertex(self, x, y, z, r, g, b):
+	def _addVertex(self, x, y, z, r=255, g=255, b=255):
 		n = self.vertexCount
-		self.vertexes[n][0] = x
-		self.vertexes[n][1] = y
-		self.vertexes[n][2] = z
-		self.colors[n][0] = r
-		self.colors[n][1] = g
-		self.colors[n][2] = b
+		self.vertexes[n], self.colors[n] = (x, y, z), (r, g, b)
 		self.vertexCount += 1
-		#print  self.vertexCount
 
 	def _addFace(self, x0, y0, z0, x1, y1, z1, x2, y2, z2):
 		n = self.vertexCount
-		self.vertexes[n][0] = x0
-		self.vertexes[n][1] = y0
-		self.vertexes[n][2] = z0
-		n += 1
-		self.vertexes[n][0] = x1
-		self.vertexes[n][1] = y1
-		self.vertexes[n][2] = z1
-		n += 1
-		self.vertexes[n][0] = x2
-		self.vertexes[n][1] = y2
-		self.vertexes[n][2] = z2
+		self.vertexes[n], self.vertexes[n+1], self.vertexes[n+2] = (x0, y0, z0), (x1, y1, z1), (x2, y2, z2)
 		self.vertexCount += 3
 
 	def _prepareVertexCount(self, vertexNumber):
-		#Set the amount of faces before loading data in them. This way we can create the numpy arrays before we fill them.
+		#Set the amount of vertex before loading data in them. This way we can create the numpy arrays before we fill them.
 		self.vertexes = numpy.zeros((vertexNumber, 3), numpy.float32)
 		self.colors = numpy.zeros((vertexNumber, 3), numpy.int32)
 		self.normal = numpy.zeros((vertexNumber, 3), numpy.float32)
@@ -228,7 +206,6 @@ class Mesh(object):
 		n[:,3:6] = normals
 		n[:,6:9] = normals
 		self.normal = n.reshape(self.vertexCount, 3)
-		self.invNormal = -self.normal
 
 	def _vertexHash(self, idx):
 		v = self.vertexes[idx]
