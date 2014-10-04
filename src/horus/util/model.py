@@ -66,20 +66,14 @@ class Model(object):
 		if not self._isPointCloud:
 			self._mesh._calculateNormals()
 		self.processMatrix()
-		"""if numpy.max(self.getSize()) > 10000.0:
-			self._mesh.vertexes /= 1000.0
-			self.processMatrix()
-		if numpy.max(self.getSize()) < 1.0:
-			self._mesh.vertexes *= 1000.0
-			self.processMatrix()"""
 
 	def applyMatrix(self, m):
 		self._matrix *= m
 		self.processMatrix()
 
 	def processMatrix(self):
-		self._transformedMin = numpy.array([999999999999,999999999999,999999999999], numpy.float64)
-		self._transformedMax = numpy.array([-999999999999,-999999999999,-999999999999], numpy.float64)
+		self._transformedMin = numpy.array([numpy.inf,numpy.inf,numpy.inf], numpy.float64)
+		self._transformedMax = numpy.array([-numpy.inf,-numpy.inf,-numpy.inf], numpy.float64)
 		self._boundaryCircleSize = 0
 
 		transformedVertexes = self._mesh.getTransformedVertexes()

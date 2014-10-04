@@ -48,41 +48,41 @@ import numpy as np
 
 from horus.util import model
 
-def _loadAscii(m, f):
+def _loadAscii(mesh, stream):
 	cnt = 0
-	for lines in f:
+	for lines in stream:
 		for line in lines.split('\r'):
 			if 'vertex' in line:
 				cnt += 1
-	m._prepareFaceCount(int(cnt) / 3)
-	f.seek(5, os.SEEK_SET)
+	mesh._prepareFaceCount(int(cnt) / 3)
+	stream.seek(5, os.SEEK_SET)
 	cnt = 0
 	data = [None,None,None]
-	for lines in f:
+	for lines in stream:
 		for line in lines.split('\r'):
 			if 'vertex' in line:
 				data[cnt] = line.split()[1:]
 				cnt += 1
 				if cnt == 3:
-					m._addFace(float(data[0][0]), float(data[0][1]), float(data[0][2]),
-							   float(data[1][0]), float(data[1][1]), float(data[1][2]),
-							   float(data[2][0]), float(data[2][1]), float(data[2][2]))
+					mesh._addFace(float(data[0][0]), float(data[0][1]), float(data[0][2]),
+								  float(data[1][0]), float(data[1][1]), float(data[1][2]),
+								  float(data[2][0]), float(data[2][1]), float(data[2][2]))
 					cnt = 0
 
-def _loadBinary(m, f):
+def _loadBinary(mesh, stream):
 	#Skip the header
-	f.read(80-5)
-	count = struct.unpack('<I', f.read(4))[0]
+	stream.read(80-5)
+	count = struct.unpack('<I', stream.read(4))[0]
 
 	dtype = np.dtype([
 			('n', np.float32,(3,)),
 			('v', np.float32,(9,)),
 			('atttr', '<i2',(1,))])
 
-	data = np.fromfile(f, dtype=dtype , count=count)
+	data = np.fromfile(stream, dtype=dtype , count=count)
 	
-	m.vertexCount = 3 * count
-	m.vertexes = np.reshape(data['v'], (m.vertexCount, 3))
+	mesh.vertexCount = 3 * count
+	mesh.vertexes = np.reshape(data['v'], (mesh.vertexCount, 3))
 
 def loadScene(filename):
 	obj = model.Model(filename)

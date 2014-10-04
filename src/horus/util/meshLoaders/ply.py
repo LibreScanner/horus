@@ -44,7 +44,7 @@ import numpy as np
 
 from horus.util import model
 
-def _loadAscii(m, f, dtype, count):
+def _loadAscii(mesh, stream, dtype, count):
 	fields = dtype.fields
 
 	v = 0
@@ -58,30 +58,30 @@ def _loadAscii(m, f, dtype, count):
 	i = 0
 	while i < count:
 		i += 1
-		data = f.readline().split(' ')
+		data = stream.readline().split(' ')
 		if data is not None:
-			m._addVertex(data[v],data[v+1],data[v+2],data[c],data[c+1],data[c+2])
+			mesh._addVertex(data[v],data[v+1],data[v+2],data[c],data[c+1],data[c+2])
 
-def _loadBinary(m, f, dtype, count):
-	data = np.fromfile(f, dtype=dtype , count=count)
+def _loadBinary(mesh, stream, dtype, count):
+	data = np.fromfile(stream, dtype=dtype , count=count)
 
 	fields = dtype.fields
-	m.vertexCount = count
+	mesh.vertexCount = count
 
 	if 'v' in fields:
-		m.vertexes = data['v']
+		mesh.vertexes = data['v']
 	else:
-		m.vertexes = np.zeros((count,3))
+		mesh.vertexes = np.zeros((count,3))
 
 	if 'n' in fields:
-		m.normal = data['n']
+		mesh.normal = data['n']
 	else:
-		m.normal = np.zeros((count,3))
+		mesh.normal = np.zeros((count,3))
 
 	if 'c' in fields:
-		m.colors = data['c']
+		mesh.colors = data['c']
 	else:
-		m.colors = 255 * np.ones((count,3))
+		mesh.colors = 255 * np.ones((count,3))
 
 def loadScene(filename):
 	obj = model.Model(filename, isPointCloud=True)
@@ -91,10 +91,10 @@ def loadScene(filename):
 	dtype = []
 	count = 0
 	format = None
+	line = None
 	header = ''
-	line = ''
 
-	while line != 'end_header\n':
+	while line != 'end_header\n' and line != '':
 		line = f.readline()
 		header += line
 	#-- Discart faces
@@ -181,4 +181,4 @@ def saveSceneStream(stream, _object):
 			else:
 				for i in range(m.vertexCount):
 					frame += "{0} {1} {2} {3} {4} {5}\n".format(points[i,0], points[i,1], points[i,2] , colors[i,0], colors[i,1], colors[i,2])
-		stream.write(frame)
+			stream.write(frame)

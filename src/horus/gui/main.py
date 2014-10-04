@@ -213,8 +213,9 @@ class MainWindow(wx.Frame):
         dlg.SetWildcard(wildcardFilter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
-            if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
-                filename += '.ply'
+            if not filename.endswith('.ply'):
+                if platform.system() == 'Linux': #hack for linux, as for some reason the .ply is not appended.
+                    filename += '.ply'
             meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
         dlg.Destroy()
 
@@ -239,8 +240,9 @@ class MainWindow(wx.Frame):
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
-                profileFile += '.ini'
+            if not filename.endswith('.ini'):
+                if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
+                    profileFile += '.ini'
             profile.saveProfile(profileFile)
         dlg.Destroy()
 
