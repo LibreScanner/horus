@@ -465,8 +465,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateScannerProfile(self):
         self.scanner.initialize(int(getProfileSetting('camera_id')[-1:]),
-                                getProfileSetting('serial_name'),
-                                getProfileSettingInteger('baud_rate'))
+                                getProfileSetting('serial_name'))
 
     def updateDeviceCurrentProfile(self):
         self.updateDeviceProfile(getPreference('workbench'))

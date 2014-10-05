@@ -50,6 +50,8 @@ class Core:
 		self.points = None
 		self.colors = None
 
+		self.imgType = 0
+
 		self.rad = math.pi / 180.0
 
 	def resetTheta(self):

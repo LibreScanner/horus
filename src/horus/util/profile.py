@@ -197,7 +197,7 @@ def _(n):
 
 setting('serial_name', '/dev/ttyACM0', str, 'basic', _('Serial Name'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
-setting('baud_rate', '115200', int, 'basic', _('Baud Rate'))
+setting('board', 'BT-328', ['UNO', 'BT-328'], 'basic', _('board'))
 
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
