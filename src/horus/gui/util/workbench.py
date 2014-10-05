@@ -108,7 +108,6 @@ class WorkbenchConnection(Workbench):
 					self.scanner.disconnect()
 					self.updateStatus(False)
 					self.GetParent().onPreferences(None)
-					self.onConnectToolClicked(event)
 					return
 
 			#-- Check correct video

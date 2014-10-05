@@ -60,13 +60,9 @@ class PreferencesDialog(wx.Dialog):
 		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=getPreference('language') , size=(110,-1))
 
 		self.boardLabel = wx.StaticText(self, label=_("Board"))
-		self.boards = ['UNO', 'BT-328']
-		baudRate = getProfileSettingInteger('baud_rate')
-		if baudRate == 9600:
-			value = 'UNO'
-		elif baudRate == 115200:
-			value = 'BT-328'
-		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=value , size=(110,-1))
+		self.boards = getProfileSettingObject('board').getType()
+		board = getProfileSetting('board')
+		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(110,-1))
 		self.uploadFirmwareButton = wx.Button(self, -1, _("Upload Firmware"))
 		self.clearEEPROMButton = wx.Button(self, -1, _("Clear EEPROM"))
 
@@ -150,11 +146,7 @@ class PreferencesDialog(wx.Dialog):
 			putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
 
 	def onBoardsComboChanged(self, event):
-		if self.boardsCombo.GetValue() == 'UNO':
-			baudRate = 9600
-		elif self.boardsCombo.GetValue() == 'BT-328':
-			baudRate = 115200
-		putProfileSetting('baud_rate', baudRate)
+		putProfileSetting('board', self.boardsCombo.GetValue())
 		self.main.updateScannerProfile()
 
 	def onUploadFirmware(self, event):
