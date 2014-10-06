@@ -211,6 +211,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.timer.Start(milliseconds=100)
 
 	def onFinishScanning(self):
+		wx.CallAfter(self.finishMessage)
+
+	def finishMessage(self):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
@@ -224,9 +227,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.buttonLine.Hide()
 		self.timer.Stop()
 		self.videoView.setDefaultImage()
-		wx.CallAfter(self.finishMessage)
-
-	def finishMessage(self):
 		dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK | wx.ICON_INFORMATION)
 		result = dlg.ShowModal() == wx.ID_OK
 		dlg.Destroy()
