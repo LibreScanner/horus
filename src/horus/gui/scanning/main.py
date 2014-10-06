@@ -41,9 +41,10 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		self.showVideoViews = False
 
+		self.timer = wx.Timer(self)
+
 		self.load()
 
-		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 
 	def load(self):
@@ -109,6 +110,8 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonDiff)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
+
+		self.scanner.setFinishCallback(self.onFinishScanning)
 
 		self.Layout()
 
@@ -181,6 +184,12 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, False)
 		self.enableLabelTool(self.deleteTool, True)
+		self.buttonShowVideoViews.Hide()
+		self.buttonRaw.Hide()
+		self.buttonLas.Hide()
+		self.buttonDiff.Hide()
+		self.buttonBin.Hide()
+		self.buttonLine.Hide()
 		
 		self.scanner.stop()
 		self.timer.Stop()
@@ -200,6 +209,27 @@ class ScanningWorkbench(WorkbenchConnection):
 		
 		self.scanner.resume()
 		self.timer.Start(milliseconds=100)
+
+	def onFinishScanning(self):
+		self.enableLabelTool(self.playTool, True)
+		self.enableLabelTool(self.stopTool, False)
+		self.enableLabelTool(self.pauseTool , False)
+		self.enableLabelTool(self.resumeTool, False)
+		self.enableLabelTool(self.deleteTool, True)
+		self.buttonShowVideoViews.Hide()
+		self.buttonRaw.Hide()
+		self.buttonLas.Hide()
+		self.buttonDiff.Hide()
+		self.buttonBin.Hide()
+		self.buttonLine.Hide()
+		self.timer.Stop()
+		self.videoView.setDefaultImage()
+		wx.CallAfter(self.finishMessage)
+
+	def finishMessage(self):
+		dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK | wx.ICON_INFORMATION)
+		result = dlg.ShowModal() == wx.ID_OK
+		dlg.Destroy()
 
 	def onDeleteToolClicked(self, event):
 		if self.sceneView._object is not None:

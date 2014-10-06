@@ -52,6 +52,8 @@ class Scanner:
 		self.moveMotor = True
 		self.generatePointCloud = True
 
+		self.finishCallback = None
+
 		self.core = Core()
 
 		self.theta = 0
@@ -60,6 +62,10 @@ class Scanner:
 
 	def initialize(self, cameraId=0, serialName="/dev/ttyACM0", baudRate=115200):
 		""" """
+		if hasattr(self, 'camera'):
+			self.camera.disconnect()
+		if hasattr(self, 'device'):
+			self.device.disconnect()
 		self.camera = Camera(cameraId)
 		self.device = Device(serialName, baudRate)
 
@@ -110,11 +116,11 @@ class Scanner:
 			self.captureFlag = False
 			self.processFlag = False
 			
-			self.t1.shutdown = True
-			self.t2.shutdown = True
+			#self.t1.shutdown = True
+			#self.t2.shutdown = True
 			
 			#self.t1.join()
-			self.t2.join()
+			#self.t2.join()
 
 			self.isRunning = False
 
@@ -123,6 +129,9 @@ class Scanner:
 
 	def resume(self):
 		self.inactive = False
+
+	def setFinishCallback(self, finishCallback):
+		self.finishCallback = finishCallback
 
 	def captureThread(self):
 		""" """
@@ -178,10 +187,13 @@ class Scanner:
 					self.theta += self.core.degrees
 					if abs(self.theta) >= 360:
 						self.stop()
+						if self.finishCallback is not None and self.generatePointCloud:
+							self.finishCallback()
 				
 				end = datetime.datetime.now()
 				
-				print "Capture end: {0}. Theta: {1}".format(end - begin, self.theta)
+				print "----- Theta: {0}".format(self.theta)
+				print "Capture end: {0}".format(end - begin)
 			else:
 				time.sleep(0.1)
 
@@ -193,9 +205,6 @@ class Scanner:
 		""" """
 		while self.processFlag:
 			if not self.inactive:
-
-				#print "Process begin"
-
 				#-- Get images
 				images = self.imageQueue.get()
 				self.imageQueue.task_done()
@@ -211,7 +220,7 @@ class Scanner:
 
 				end = datetime.datetime.now()
 				
-				print "Process end: {0}. Theta = {1}".format(end - begin, self.theta)
+				print "Process end: {0}".format(end - begin)
 			else:
 				time.sleep(0.1)
 

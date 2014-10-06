@@ -259,13 +259,13 @@ class SceneView(openglGui.glGuiPanel):
 		if self._mouseState == 'dragOrClick':
 			if e.GetButton() == 1:
 				self._selectObject(self._object)
-			if e.GetButton() == 3:
+			"""if e.GetButton() == 3:
 					menu = wx.Menu()
 					if self._object is not None:
 						self.Bind(wx.EVT_MENU, lambda e: self._clearScene(), menu.Append(-1, _("Delete object")))
 					if menu.MenuItemCount > 0:
 						self.PopupMenu(menu)
-					menu.Destroy()
+					menu.Destroy()"""
 		self._mouseState = None
 
 	def OnMouseMotion(self,e):

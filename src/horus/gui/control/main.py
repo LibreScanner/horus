@@ -94,6 +94,10 @@ class ControlWorkbench(WorkbenchConnection):
 		#-- Undo
 		self.undoObjects = []
 
+	def initialize(self):
+		self.cameraPanel.initialize()
+		self.devicePanel.initialize()
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateStatus(self.scanner.isConnected)
