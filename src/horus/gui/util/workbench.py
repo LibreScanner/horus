@@ -99,9 +99,10 @@ class WorkbenchConnection(Workbench):
 			self.GetParent().onPreferences(None)
 		else:
 			#-- Check correct camera
+			self.scanner.camera.setExposure(2)
 			exposure = self.scanner.camera.getExposure()
 			if exposure is not None:
-				if abs(exposure) > 300:
+				if exposure < 1:
 					dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera. Please select other Camera Id"), _("Incorrect camera"), wx.OK|wx.ICON_INFORMATION)
 					result = dlg.ShowModal() == wx.ID_OK
 					dlg.Destroy()

@@ -28,6 +28,7 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import cv2
+import math
 import platform
 
 class Camera:
@@ -54,11 +55,10 @@ class Camera:
 		self.distortionVector = None
 		self.distCameraMatrix = None
 
-		if platform.system() == 'nt':
+		if platform.system() == 'Windows':
 			self.maxBrightness = 1.
 			self.maxContrast = 1.
 			self.maxSaturation = 1.
-			self.maxExposure = -9/300.
 		else:
 			self.maxBrightness = 255.
 			self.maxContrast = 255.
@@ -133,7 +133,10 @@ class Camera:
 
 	def setExposure(self, value):
 		if self.isConnected:
-			value = int(value)/self.maxExposure
+			if platform.system() == 'Windows':
+				value = int(-math.log(value)/math.log(2))
+			else:
+				value = int(value) / self.maxExposure
 			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 
 	def setFrameRate(self, value):
@@ -169,5 +172,9 @@ class Camera:
 
 	def getExposure(self):
 		if self.isConnected:
-			value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE) * self.maxExposure
+			value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
+			if platform.system() == 'Windows':
+				value = 2**-value
+			else:
+				value *= self.maxExposure
 			return value
