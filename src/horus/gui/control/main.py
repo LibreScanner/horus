@@ -55,9 +55,9 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def load(self):
 		#-- Toolbar Configuration
-		self.playTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-		self.stopTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.undoTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
+		self.playTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
+		self.stopTool = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
+		self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
@@ -66,9 +66,9 @@ class ControlWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.undoTool, False)
 
 		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked     , self.playTool)
-		self.Bind(wx.EVT_TOOL, self.onStopToolClicked     , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked     , self.undoTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
+		self.Bind(wx.EVT_TOOL, self.onStopToolClicked, self.stopTool)
+		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked, self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetAutoLayout(1)
