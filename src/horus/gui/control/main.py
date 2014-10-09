@@ -48,9 +48,6 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.load()
 
-		self.timer = wx.Timer(self)
-		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
-
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 	def load(self):
@@ -78,7 +75,7 @@ class ControlWorkbench(WorkbenchConnection):
 		self.cameraPanel.Disable()
 		self.devicePanel.Disable()
 
-		self.videoView = ImageView(self._panel)
+		self.videoView = VideoView(self._panel, self.getFrame)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
@@ -107,26 +104,21 @@ class ControlWorkbench(WorkbenchConnection):
 			except:
 				pass
 
-	def onTimer(self, event):
-		self.timer.Stop()
-		frame = self.scanner.camera.captureImage()
-		if frame is not None:
-			self.videoView.setFrame(frame)
-		self.timer.Start(milliseconds=1)
+	def getFrame(self):
+		return self.scanner.camera.captureImage()
 
 	def onPlayToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
 			self.playing = True
 			self.enableLabelTool(self.playTool, False)
 			self.enableLabelTool(self.stopTool, True)
-			self.timer.Stop()
-			self.timer.Start(milliseconds=1)
+			self.videoView.play()
 
 	def onStopToolClicked(self, event):
 		self.playing = False
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
-		self.timer.Stop()
+		self.videoView.stop()
 		self.videoView.setDefaultImage()
 
 	def onSnapshotToolClicked(self, event):

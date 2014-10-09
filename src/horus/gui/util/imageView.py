@@ -55,16 +55,18 @@ class ImageView(wx.Panel):
 		self.refreshBitmap()
 
 	def setImage(self, image):
-		self.image = image
-		self.refreshBitmap()
+		if image is not None:
+			self.image = image
+			self.refreshBitmap()
 
 	def setDefaultImage(self):
 		self.setImage(self.defaultImage)
 
 	def setFrame(self, frame):
-		height, width = frame.shape[:2]
-		self.image = wx.ImageFromBuffer(width, height, frame)
-		self.refreshBitmap()
+		if frame is not None:
+			height, width = frame.shape[:2]
+			self.image = wx.ImageFromBuffer(width, height, frame)
+			self.refreshBitmap()
 
 	def refreshBitmap(self):
 		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
@@ -92,3 +94,28 @@ class ImageView(wx.Panel):
 		else:
 			return (0, 0, 0, 0)
 
+class VideoView(ImageView):
+	def __init__(self, parent, callback=None, milliseconds=1):
+		ImageView.__init__(self, parent)
+
+		self.callback = callback
+		self.milliseconds = milliseconds
+
+		self.timer = wx.Timer(self)
+		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+
+	def onTimer(self, event):
+		self.stop()
+		if self.callback is not None:
+			self.setFrame(self.callback())
+		self._start()
+
+	def play(self):
+		self.stop()
+		self._start()
+
+	def _start(self):
+		self.timer.Start(milliseconds=self.milliseconds)
+
+	def stop(self):
+		self.timer.Stop()
