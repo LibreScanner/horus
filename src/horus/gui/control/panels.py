@@ -85,9 +85,9 @@ class CameraPanel(wx.Panel):
             self.reloadVideo()
 
     def reloadVideo(self):
-        self.main.timer.Stop()
+        self.main.videoView.stop()
         if self.main.playing and self.scanner.camera.fps > 0:
-            self.main.timer.Start(milliseconds=1)
+            self.main.videoView.play()
 
     def updateProfileToAllControls(self):
         for control in self.controls:

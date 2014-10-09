@@ -48,16 +48,13 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.load()
 
-		self.timer = wx.Timer(self)
-		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
-
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 	def load(self):
 		#-- Toolbar Configuration
-		self.playTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-		self.stopTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.undoTool     = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
+		self.playTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
+		self.stopTool = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
+		self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
@@ -66,19 +63,19 @@ class ControlWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.undoTool, False)
 
 		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked     , self.playTool)
-		self.Bind(wx.EVT_TOOL, self.onStopToolClicked     , self.stopTool)
-		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked     , self.undoTool)
+		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
+		self.Bind(wx.EVT_TOOL, self.onStopToolClicked, self.stopTool)
+		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked, self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
-		self.scrollPanel.SetAutoLayout(1)
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
+		self.scrollPanel.SetAutoLayout(1)
 		self.cameraPanel = CameraPanel(self.scrollPanel)
 		self.devicePanel = DevicePanel(self.scrollPanel)
 		self.cameraPanel.Disable()
 		self.devicePanel.Disable()
 
-		self.videoView = ImageView(self._panel)
+		self.videoView = VideoView(self._panel, self.getFrame)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
@@ -90,6 +87,8 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.addToPanel(self.scrollPanel, 0)
 		self.addToPanel(self.videoView, 1)
+
+		self.Layout()
 
 		#-- Undo
 		self.undoObjects = []
@@ -107,32 +106,21 @@ class ControlWorkbench(WorkbenchConnection):
 			except:
 				pass
 
-	def onTimer(self, event):
-		self.timer.Stop()
-		frame = self.scanner.camera.captureImage()
-		if frame is not None:
-			self.videoView.setFrame(frame)
-		self.timer.Start(milliseconds=1)
+	def getFrame(self):
+		return self.scanner.camera.captureImage()
 
 	def onPlayToolClicked(self, event):
 		if self.scanner.camera.fps > 0:
 			self.playing = True
 			self.enableLabelTool(self.playTool, False)
 			self.enableLabelTool(self.stopTool, True)
-			self.timer.Stop()
-			self.timer.Start(milliseconds=1)
+			self.videoView.play()
 
 	def onStopToolClicked(self, event):
 		self.playing = False
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
-		self.timer.Stop()
-		self.videoView.setDefaultImage()
-
-	def onSnapshotToolClicked(self, event):
-		frame = self.scanner.camera.captureImage()
-		if frame is not None:
-			self.videoView.setFrame(frame)
+		self.videoView.stop()
 
 	def onUndoToolClicked(self, event):
 		self.enableLabelTool(self.undoTool, self.undo())
