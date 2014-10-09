@@ -278,6 +278,7 @@ class MainWindow(wx.Frame):
         wx.CallAfter(prefDialog.Show)
         self.updateScannerProfile()
         self.controlWorkbench.initialize()
+        self.calibrationWorkbench.initialize()
         self.settingsWorkbench.initialize()
 
     def onControlPanelClicked(self, event):

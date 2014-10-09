@@ -34,10 +34,68 @@ from horus.util.profile import *
 from horus.engine.scanner import *
 from horus.engine.calibration import *
 
+from horus.gui.util.itemControls import *
+
+class CalibrationPanel(wx.Panel):
+    def __init__(self, parent):
+        """"""
+        wx.Panel.__init__(self, parent=parent, size=(275, -1))
+        self.initialize()
+
+    def initialize(self):
+        self.scanner = Scanner.Instance()
+        self.main = self.GetParent().GetParent().GetParent()
+
+        if hasattr(self, 'controls'):
+            del self.controls[:]
+        self.controls = []
+
+        #-- Graphic elements
+        control = Control(self, _('Calibration Settings'))
+        control.append(Slider, 'brightness_calibration', self.scanner.camera.setBrightness)
+        control.append(Slider, 'contrast_calibration', self.scanner.camera.setContrast)
+        control.append(Slider, 'saturation_calibration', self.scanner.camera.setSaturation)
+        control.append(Slider, 'exposure_calibration', self.scanner.camera.setExposure)
+        control.append(ComboBox, 'framerate_calibration', lambda v: (self.scanner.camera.setFrameRate(int(v)), self.reloadVideo()))
+        control.append(ComboBox, 'resolution_calibration', lambda v: self.scanner.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        control.append(CheckBox, 'use_distortion_calibration', lambda v: (self.scanner.camera.setUseDistortion(v), self.reloadVideo()))
+        control.append(Button, 'restore_default', self.restoreDefault)
+        self.controls.append(control)
+
+        # - Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        for control in self.controls:
+            vbox.Add(control, 0, wx.ALL|wx.EXPAND, 0)
+        self.SetSizer(vbox)
+        self.Layout()
+
+        #-- Callbacks
+        for control in self.controls:
+            control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
+
+    def restoreDefault(self):
+        dlg = wx.MessageDialog(self, _("This will reset calibration settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Calibration Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
+        result = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        if result:
+            for control in self.controls:
+                control.resetProfile()
+            self.main.enableLabelTool(self.main.undoTool, False)
+            self.reloadVideo()
+
+    def reloadVideo(self):
+        self.main.videoView.stop()
+        if self.main.playing:
+            self.main.videoView.play()
+
+    def updateProfileToAllControls(self):
+        for control in self.controls:
+            control.updateProfile()
+
+
 class CalibrationWorkbenchPanel(wx.Panel):
 
     def __init__(self, parent, titleText="Workbench", parametersType=None, buttonStartCallback=None, description="Workbench description"):
-
         wx.Panel.__init__(self, parent)
 
         self.scanner = Scanner.Instance()
@@ -75,8 +133,8 @@ class CalibrationWorkbenchPanel(wx.Panel):
         contentBox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
         content.SetSizer(contentBox)
 
-        vbox.Add(title, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
-        vbox.Add(content, 1, wx.ALL|wx.EXPAND, 2)
+        vbox.Add(title, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 0)
+        vbox.Add(content, 1, wx.RIGHT|wx.LEFT|wx.EXPAND, 2)
 
     	self.buttonEdit.Bind(wx.EVT_TOGGLEBUTTON, self.parameters.onButtonEditPressed)
     	self.buttonDefault.Bind(wx.EVT_BUTTON, self.parameters.onButtonDefaultPressed)
