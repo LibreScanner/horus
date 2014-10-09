@@ -151,8 +151,11 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.pointCloudTimer.Start(milliseconds=100)
 			self.videoView.play()
 		else:
-			self.pointCloudTimer.Stop()
-			self.videoView.stop()
+			try:
+				self.pointCloudTimer.Stop()
+				self.videoView.stop()
+			except:
+				pass
 
 	def onShowVideoViews(self, event):
 		self.showVideoViews = not self.showVideoViews
