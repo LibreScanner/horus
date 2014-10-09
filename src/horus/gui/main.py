@@ -122,6 +122,7 @@ class MainWindow(wx.Frame):
         self.menuSettingsVideo = self.menuSettings.AppendCheckItem(wx.NewId(), _("Video"))
         menuView.AppendMenu(wx.NewId(), _("Settings"), self.menuSettings)
         self.menuScanning = wx.Menu()
+        self.menuScanningPanel = self.menuScanning.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuScanningVideo = self.menuScanning.AppendCheckItem(wx.NewId(), _("Video"))
         self.menuScanningScene = self.menuScanning.AppendCheckItem(wx.NewId(), _("Scene"))
         menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
@@ -175,6 +176,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onControlVideoClicked, self.menuControlVideo)
         self.Bind(wx.EVT_MENU, self.onSettingsPanelClicked, self.menuSettingsPanel)
         self.Bind(wx.EVT_MENU, self.onSettingsVideoClicked, self.menuSettingsVideo)
+        self.Bind(wx.EVT_MENU, self.onScanningPanelClicked, self.menuScanningPanel)
         self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningVideo)
         self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningScene)
 
@@ -321,6 +323,15 @@ class MainWindow(wx.Frame):
             self.settingsWorkbench.videoView.Hide()
         self.Layout()
 
+    def onScanningPanelClicked(self, event):
+        checkedPanel = self.menuScanningPanel.IsChecked()
+        putPreference('view_scanning_panel', checkedPanel)
+        if checkedPanel:
+            self.scanningWorkbench.scrollPanel.Show()
+        else:
+            self.scanningWorkbench.scrollPanel.Hide()
+        self.Layout()
+
     def onScanningVideoSceneClicked(self, event):
         """ """
         checkedVideo = self.menuScanningVideo.IsChecked()
@@ -344,8 +355,7 @@ class MainWindow(wx.Frame):
                 self.scanningWorkbench.splitterWindow.Unsplit()
             else:
                 self.scanningWorkbench.sceneView.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
-                
+                self.scanningWorkbench.splitterWindow.Unsplit()     
         self.Layout()
 
     def onComboBoxWorkbenchSelected(self, event):
@@ -431,6 +441,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
         else:
             self.settingsWorkbench.videoView.Hide()
             self.menuSettingsVideo.Check(False)
+
+        if getPreferenceBool('view_scanning_panel'):
+            self.scanningWorkbench.scrollPanel.Show()
+            self.menuScanningPanel.Check(True)
+        else:
+            self.scanningWorkbench.scrollPanel.Hide()
+            self.menuScanningPanel.Check(False)
 
         checkedVideo = getPreferenceBool('view_scanning_video')
         checkedScene = getPreferenceBool('view_scanning_scene')

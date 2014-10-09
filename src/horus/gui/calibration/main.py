@@ -187,7 +187,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.playing = False
         self.enableLabelTool(self.playTool, True)
         self.enableLabelTool(self.stopTool, False)
-        self.videoView.setDefaultImage()
 
     def onUndoToolClicked(self, event):
         self.enableLabelTool(self.undoTool, self.undo())

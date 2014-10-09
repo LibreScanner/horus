@@ -293,6 +293,7 @@ setting('view_control_panel', True, bool, 'preference', 'hidden')
 setting('view_control_video', True, bool, 'preference', 'hidden')
 setting('view_settings_panel', True, bool, 'preference', 'hidden')
 setting('view_settings_video', True, bool, 'preference', 'hidden')
+setting('view_scanning_panel', False, bool, 'preference', 'hidden')
 setting('view_scanning_video', False, bool, 'preference', 'hidden')
 setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 

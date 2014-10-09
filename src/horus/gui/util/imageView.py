@@ -111,11 +111,15 @@ class VideoView(ImageView):
 		self._start()
 
 	def play(self):
-		self.stop()
+		self.pause()
 		self._start()
 
 	def _start(self):
 		self.timer.Start(milliseconds=self.milliseconds)
 
+	def pause(self):
+		self.timer.Stop()
+
 	def stop(self):
 		self.timer.Stop()
+		self.setDefaultImage()

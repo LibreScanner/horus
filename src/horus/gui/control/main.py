@@ -68,8 +68,8 @@ class ControlWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked, self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
-		self.scrollPanel.SetAutoLayout(1)
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
+		self.scrollPanel.SetAutoLayout(1)
 		self.cameraPanel = CameraPanel(self.scrollPanel)
 		self.devicePanel = DevicePanel(self.scrollPanel)
 		self.cameraPanel.Disable()
@@ -87,6 +87,8 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.addToPanel(self.scrollPanel, 0)
 		self.addToPanel(self.videoView, 1)
+
+		self.Layout()
 
 		#-- Undo
 		self.undoObjects = []
@@ -119,12 +121,6 @@ class ControlWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.videoView.stop()
-		self.videoView.setDefaultImage()
-
-	def onSnapshotToolClicked(self, event):
-		frame = self.scanner.camera.captureImage()
-		if frame is not None:
-			self.videoView.setFrame(frame)
 
 	def onUndoToolClicked(self, event):
 		self.enableLabelTool(self.undoTool, self.undo())
