@@ -33,8 +33,8 @@ from horus.util.resources import *
 
 from horus.gui.util.imageView import *
 from horus.gui.util.workbench import *
-from horus.gui.calibration.pages import *
-from horus.gui.calibration.panels import *
+from horus.gui.workbench.calibration.pages import *
+from horus.gui.workbench.calibration.panels import *
 
 from horus.engine.scanner import *
 from horus.engine.calibration import *

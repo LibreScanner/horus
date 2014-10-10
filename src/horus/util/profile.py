@@ -286,8 +286,8 @@ setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden')
 ##-- Preferences
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
-setting('workbench', 'main', ['main', 'control', 'settings', 'calibration', 'scanning'], 'preference', 'hidden')
-# TODO: ['basic', 'advanced']
+setting('workbench', 'scanning', ['control', 'calibration', 'scanning'], 'preference', 'hidden')
+setting('show_welcome', True, bool, 'preference', 'hidden')
 setting('basic_mode', True, bool, 'preference', 'hidden')
 setting('view_control_panel', True, bool, 'preference', 'hidden')
 setting('view_control_video', True, bool, 'preference', 'hidden')
@@ -298,7 +298,10 @@ setting('view_scanning_video', False, bool, 'preference', 'hidden')
 setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 
 # TODO: change default last file
-setting('lastFile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
+setting('last_files', [], str, 'preference', 'hidden')
+setting('last_file', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
+setting('last_profile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.ini')), str, 'preference', 'hidden')
+
 
 setting('model_colour', '#888899', str, 'preference', 'hidden').setLabel(_('Model colour'), _('Display color for first extruder'))
 
