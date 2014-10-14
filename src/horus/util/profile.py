@@ -236,7 +236,7 @@ setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right La
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Image Type'))
 
 setting('use_open', True, bool, 'advanced', _('Use Open'))
-setting('open_value', 2, int, 'advanced', _('Open')).setRange(1, 10)
+setting('open_value', 3, int, 'advanced', _('Open')).setRange(1, 10)
 setting('use_threshold', True, bool, 'advanced', _('Use Threshold'))
 setting('threshold_value', 30, int, 'advanced', _('Threshold')).setRange(0, 255)
 

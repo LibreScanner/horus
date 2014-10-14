@@ -58,7 +58,6 @@ class ScanningPage(WizardPage):
 											style=wx.CB_READONLY)
 
 		value = abs(float(getProfileSetting('step_degrees_scanning')))
-		print value
 		if value > 1.35:
 			value = _("Low")
 		elif value > 0.625:

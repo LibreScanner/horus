@@ -121,8 +121,13 @@ class CalibrationPage(WizardPage):
 	def performCalibration(self):
 		ret = self.calibration.performPlatformExtrinsicsCalibration()
 		print ret[0], ret[1]
+		putProfileSettingNumpy('rotation_matrix', ret[0])
+		putProfileSettingNumpy('translation_vector', ret[1])
 		ret = self.calibration.performLaserTriangulationCalibration()
-		print ret[0], ret[1]
+		print ret[1], ret[0][0], ret[0][1]
+		putProfileSettingNumpy('laser_coordinates', ret[1])
+		putProfileSettingNumpy('laser_origin', ret[0][0])
+		putProfileSettingNumpy('laser_normal', ret[0][1])
 		wx.CallAfter(lambda: (self.resultLabel.Enable(), self.leftButton.Enable(), self.rightButton.Enable()))
 
 	def getFrame(self):
