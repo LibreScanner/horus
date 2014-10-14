@@ -265,7 +265,7 @@ setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))
 setting('pattern_distance', 169.0, float, 'advanced', _('Pattern Distance'))
-setting('extrinsics_step', 5.0, float, 'advanced', _('Extrinsics Step'))
+setting('extrinsics_step', -5.0, float, 'advanced', _('Extrinsics Step'), False)
 
 setting('left_button', '', str, 'basic', _('Left'), False)
 setting('right_button', '', str, 'basic', _('Right'), False)

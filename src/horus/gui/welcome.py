@@ -32,12 +32,13 @@ import wx._core
 
 from horus.util.profile import *
 
+from horus.gui.wizard.main import *
 from horus.gui.util.imageView import *
 
 class WelcomeWindow(wx.Frame):
 
     def __init__(self, parent):
-        super(WelcomeWindow, self).__init__(parent, size=(640+100,480+50), style=wx.DEFAULT_FRAME_STYLE^ wx.RESIZE_BORDER)
+        super(WelcomeWindow, self).__init__(parent, size=(640+120,480+40), style=wx.DEFAULT_FRAME_STYLE^ wx.RESIZE_BORDER)
 
         self.parent = parent
         self.parent.Hide()
@@ -92,6 +93,47 @@ class Header(wx.Panel):
         self.Layout()
 
 
+class CreateNew(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+
+        titleText = wx.StaticText(self, label=_("Create new"))
+        titleText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+
+        wizardButton = wx.Button(self, label=_("Wizard mode (step by step)"))
+        scanButton = wx.Button(self, label=_("Scan using recent settings"))
+        advancedButton = wx.Button(self, label=_("Advanced"))
+
+        wizardButton.Bind(wx.EVT_BUTTON, self.onWizard)
+        scanButton.Bind(wx.EVT_BUTTON, self.onScan)
+        advancedButton.Bind(wx.EVT_BUTTON, self.onAdvanced)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(titleText, 0, wx.BOTTOM|wx.CENTER, 10)
+        vbox.Add(wizardButton, 1, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(scanButton, 1, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(advancedButton, 1, wx.ALL|wx.EXPAND, 5)
+
+        self.SetSizer(vbox)
+        self.Layout()
+
+    def onWizard(self, event):
+        wizard = Wizard(self.GetParent().GetParent())
+
+        self.GetParent().GetParent().Hide()
+        self.GetParent().GetParent().parent.Hide()
+
+    def onScan(self, event):
+        putPreference('workbench', 'scanning')
+        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().Close()
+
+    def onAdvanced(self, event):
+        putPreference('workbench', 'control')
+        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().Close()
+
+
 class OpenRecent(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -120,44 +162,6 @@ class OpenRecent(wx.Panel):
         self.GetParent().GetParent().Close()
 
 
-class CreateNew(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-
-        titleText = wx.StaticText(self, label=_("Create new"))
-        titleText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-
-        wizardButton = wx.Button(self, label=_("Wizard mode (step by step)"))
-        scanButton = wx.Button(self, label=_("Scan using recent settings"))
-        advancedButton = wx.Button(self, label=_("Advanced"))
-
-        wizardButton.Bind(wx.EVT_BUTTON, self.onWizard)
-        scanButton.Bind(wx.EVT_BUTTON, self.onScan)
-        advancedButton.Bind(wx.EVT_BUTTON, self.onAdvanced)
-
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(titleText, 0, wx.BOTTOM|wx.CENTER, 10)
-        vbox.Add(wizardButton, 1, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(scanButton, 1, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(advancedButton, 1, wx.ALL|wx.EXPAND, 5)
-
-        self.SetSizer(vbox)
-        self.Layout()
-
-    def onWizard(self, event):
-        pass
-
-    def onScan(self, event):
-        putPreference('workbench', 'scanning')
-        self.GetParent().GetParent().parent.workbenchUpdate()
-        self.GetParent().GetParent().Close()
-
-    def onAdvanced(self, event):
-        putPreference('workbench', 'control')
-        self.GetParent().GetParent().parent.workbenchUpdate()
-        self.GetParent().GetParent().Close()
-
-
 class Content(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -166,9 +170,9 @@ class Content(wx.Panel):
         openRecent = OpenRecent(self)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(openRecent, 1, wx.ALL|wx.EXPAND, 20)
-        hbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 20)
         hbox.Add(createNew, 1, wx.ALL|wx.EXPAND, 20)
+        hbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 20)
+        hbox.Add(openRecent, 1, wx.ALL|wx.EXPAND, 20)
 
         self.SetSizer(hbox)
         self.Layout()

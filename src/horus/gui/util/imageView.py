@@ -33,8 +33,8 @@ from horus.util.resources import *
 
 class ImageView(wx.Panel):
 
-	def __init__(self, parent, resize=True):
-		wx.Panel.__init__(self, parent) #, style=wx.SIMPLE_BORDER)
+	def __init__(self, parent, resize=True, size=(-1,-1)):
+		wx.Panel.__init__(self, parent, size=size) #, style=wx.SIMPLE_BORDER)
 
 		self.xOffset = 0
 		self.yOffset = 0
@@ -95,8 +95,8 @@ class ImageView(wx.Panel):
 			return (0, 0, 0, 0)
 
 class VideoView(ImageView):
-	def __init__(self, parent, callback=None, milliseconds=1):
-		ImageView.__init__(self, parent)
+	def __init__(self, parent, callback=None, milliseconds=1, size=(-1,-1)):
+		ImageView.__init__(self, parent, size=size)
 
 		self.callback = callback
 		self.milliseconds = milliseconds
@@ -109,6 +109,12 @@ class VideoView(ImageView):
 		if self.callback is not None:
 			self.setFrame(self.callback())
 		self._start()
+
+	def setMilliseconds(self, milliseconds):
+		self.milliseconds = milliseconds
+
+	def setCallback(self, callback):
+		self.callback = callback
 
 	def play(self):
 		self.pause()

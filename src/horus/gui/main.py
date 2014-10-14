@@ -185,6 +185,7 @@ class MainWindow(wx.Frame):
 
         self.updateProfileToAllControls()
 
+        self.Center()
         self.Show()
 
     def onLoadModel(self, event):
@@ -559,6 +560,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def workbenchUpdate(self):
         """ """
+
+        #TODO: optimize load
+
         currentWorkbench = getPreference('workbench')
         putPreference('workbench', 'scanning') ##TODO: force save scanning workbench
 
@@ -573,6 +577,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
             if wb[key] is not None:
                 if key == currentWorkbench:
                     wb[key].Show()
+                    wb[key].updateProfileToAllControls()
                     wb[key].combo.SetValue(str(self.workbenchList[key]))
                 else:
                     wb[key].Hide()

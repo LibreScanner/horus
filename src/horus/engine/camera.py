@@ -31,6 +31,25 @@ import cv2
 import math
 import platform
 
+class Error(Exception):
+	def __init__(self, msg):
+		self.msg = msg
+		print msg
+	def __str__(self):
+		return repr(self.msg)
+
+class CameraNotConnected(Error):
+	def __init__(self, msg="Camera not connected"):
+		super(CameraNotConnected, self).__init__(msg)
+
+class WrongCamera(Error):
+	def __init__(self, msg="Wrong Camera"):
+		super(WrongCamera, self).__init__(msg)
+
+class InvalidVideo(Error):
+	def __init__(self, msg="InvalidVideo"):
+		super(InvalidVideo, self).__init__(msg)
+
 class Camera:
 	""" """
 	def __init__(self, cameraId=0):
@@ -68,13 +87,15 @@ class Camera:
 	def connect(self):
 		""" """
 		print ">>> Connecting camera ..."
+		self.isConnected = False
 		self.capture = cv2.VideoCapture(self.cameraId)
 		if self.capture.isOpened():
 			print ">>> Done"
 			self.isConnected = True
+			self.checkVideo()
+			self.checkCamera()
 		else:
-			print ">>> Error"
-			self.isConnected = False
+			raise CameraNotConnected()
 		return self.isConnected
 		
 	def disconnect(self):
@@ -85,7 +106,21 @@ class Camera:
 				self.capture.release()
 			self.isConnected = False
 		print ">>> Done"
-		return True
+
+	def checkCamera(self):
+		""" """
+		#-- Check correct camera
+		self.setExposure(2)
+		exposure = self.getExposure()
+		if exposure is not None:
+			if exposure < 1:
+				raise WrongCamera()
+
+	def checkVideo(self):
+		""" """
+		#-- Check correct video
+		if self.captureImage() is None:
+			raise InvalidVideo()
 
 	def captureImage(self, mirror=False, flush=False, flushValue=1):
 		""" If mirror is set to True, the image will be displayed as a mirror,
