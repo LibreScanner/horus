@@ -43,7 +43,7 @@ from horus.gui.welcome import WelcomeWindow
 from horus.engine.scanner import *
 from horus.engine.calibration import *
 
-VERSION = "0.0.4"
+VERSION = "0.0.4.1"
 
 class MainWindow(wx.Frame):
 
