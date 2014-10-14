@@ -91,30 +91,30 @@ class ConnectionPage(WizardPage):
 		try:
 			self.scanner.connect()
 		except WrongFirmware as e:
-			self.GetParent().GetParent().GetParent().onPreferences(None)
+			self.GetParent().parent.onPreferences(None)
 		except DeviceNotConnected as e:
-			self.GetParent().GetParent().GetParent().onPreferences(None)
+			self.GetParent().parent.onPreferences(None)
 		except CameraNotConnected as e:
-			self.GetParent().GetParent().GetParent().onPreferences(None)
+			self.GetParent().parent.onPreferences(None)
 		except WrongCamera as e:
 			dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera. Please select other Camera Id"), _("Incorrect camera"), wx.OK|wx.ICON_INFORMATION)
 			result = dlg.ShowModal() == wx.ID_OK
 			dlg.Destroy()
 			self.scanner.disconnect()
 			self.updateStatus(False)
-			self.GetParent().GetParent().GetParent().onPreferences(None)
+			self.GetParent().parent.onPreferences(None)
 		except InvalidVideo as e:
 			dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective."), _("Camera Error"), wx.OK|wx.ICON_ERROR)
 			result = dlg.ShowModal() == wx.ID_OK
 			dlg.Destroy()
 			self.scanner.disconnect()
-			self.GetParent().GetParent().GetParent().Close(True)
+			self.GetParent().parent.Close(True)
 		else:		
 			if self.scanner.isConnected:
 				self.videoView.play()
-				self.GetParent().GetParent().GetParent().updateDeviceCurrentProfile()
-				self.GetParent().GetParent().GetParent().updateCameraCurrentProfile()
-				#self.GetParent().GetParent().GetParent().updateCoreCurrentProfile()
+				self.GetParent().parent.updateDeviceCurrentProfile()
+				self.GetParent().parent.updateCameraCurrentProfile()
+				#self.GetParent().parent.updateCoreCurrentProfile()
 				self.patternLabel.Enable()
 				self.imageView.Enable()
 				self.checkButton.Enable()
@@ -147,7 +147,7 @@ class ConnectionPage(WizardPage):
 	def updateStatus(self, status):
 		if status:
 			putPreference('workbench', 'control')
-			self.GetParent().GetParent().parent.workbenchUpdate()
+			self.GetParent().parent.workbenchUpdate()
 			self.videoView.play()
 			self.connectButton.Disable()
 			self.checkButton.Enable()

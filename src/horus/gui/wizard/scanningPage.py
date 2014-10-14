@@ -83,7 +83,7 @@ class ScanningPage(WizardPage):
 		self.laserLabel = wx.StaticText(self.panel, label=_("Laser"))
 		self.laserComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
 										value=value,
-										choices=[_("Use Left Laser"), _("Use Right Laser"), _("Use Both Laser")],
+										choices=[_("Use Left Laser"), _("Use Right Laser")],
 										style=wx.CB_READONLY)
 
 		self.textureLabel = wx.StaticText(self.panel, label=_("Texture"))

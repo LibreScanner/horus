@@ -35,13 +35,12 @@ from horus.util.profile import *
 from horus.gui.wizard.main import *
 from horus.gui.util.imageView import *
 
-class WelcomeWindow(wx.Frame):
+class WelcomeWindow(wx.Dialog):
 
     def __init__(self, parent):
         super(WelcomeWindow, self).__init__(parent, size=(640+120,480+40), style=wx.DEFAULT_FRAME_STYLE^ wx.RESIZE_BORDER)
 
         self.parent = parent
-        self.parent.Hide()
 
         self.lastFiles = eval(getPreference('last_files'))
 
@@ -64,13 +63,12 @@ class WelcomeWindow(wx.Frame):
         self.SetSizer(vbox)
 
         self.Centre()
-        self.Show()
+        self.ShowModal()
 
     def onCheckBoxChanged(self, event):
         putPreference('show_welcome', not event.Checked())
 
     def onClose(self, event):
-        self.parent.Show()
         self.Destroy()
 
 
@@ -118,10 +116,9 @@ class CreateNew(wx.Panel):
         self.Layout()
 
     def onWizard(self, event):
-        wizard = Wizard(self.GetParent().GetParent())
-
         self.GetParent().GetParent().Hide()
-        self.GetParent().GetParent().parent.Hide()
+        wizard = Wizard(self.GetParent().GetParent().parent)
+        self.GetParent().GetParent().Close()
 
     def onScan(self, event):
         putPreference('workbench', 'scanning')
@@ -157,6 +154,8 @@ class OpenRecent(wx.Panel):
 
     def onButtonPressed(self, event):
         button = event.GetEventObject()
+        putPreference('workbench', 'scanning')
+        self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().parent.appendLastFile(button.GetName())
         self.GetParent().GetParent().parent.scanningWorkbench.sceneView.loadFile(button.GetName())
         self.GetParent().GetParent().Close()

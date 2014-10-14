@@ -39,6 +39,7 @@ from horus.gui.workbench.scanning.main import ScanningWorkbench
 from horus.gui.workbench.calibration.main import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
 from horus.gui.welcome import WelcomeWindow
+from horus.gui.wizard.main import *
 
 from horus.engine.scanner import *
 from horus.engine.calibration import *
@@ -94,6 +95,8 @@ class MainWindow(wx.Frame):
 
         #--  Menu File        
         self.menuFile = wx.Menu()
+        self.menuLaunchWizard = self.menuFile.Append(wx.NewId(), _("Launch Wizard"))
+        self.menuFile.AppendSeparator()
         self.menuLoadModel = self.menuFile.Append(wx.NewId(), _("Load Model"))
         self.menuSaveModel = self.menuFile.Append(wx.NewId(), _("Save Model"))
         self.menuClearModel = self.menuFile.Append(wx.NewId(), _("Clear Model"))
@@ -156,6 +159,7 @@ class MainWindow(wx.Frame):
         self.SetSizer(sizer)
 
         ##-- Events
+        self.Bind(wx.EVT_MENU, self.onLaunchWizard, self.menuLaunchWizard)
         self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
         self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
         self.Bind(wx.EVT_MENU, self.onClearModel, self.menuClearModel)
@@ -187,6 +191,9 @@ class MainWindow(wx.Frame):
 
         self.Center()
         self.Show()
+
+    def onLaunchWizard(self, event):
+        wizard = Wizard(self)
 
     def onLoadModel(self, event):
         lastFile = os.path.split(getPreference('last_file'))[0]

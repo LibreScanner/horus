@@ -42,6 +42,8 @@ class Wizard(wx.Dialog):
     def __init__(self, parent):
         super(Wizard, self).__init__(parent, title="", size=(640+120,480+40))
 
+        self.parent = parent
+
         self.scanner = Scanner.Instance()
         self.scanner.disconnect()
  
@@ -67,17 +69,14 @@ class Wizard(wx.Dialog):
         self.SetSizer(hbox)
 
         self.Centre()
-        self.Show()
+        self.ShowModal()
 
     def onConnectionPagePrevClicked(self):
-        dlg = wx.MessageDialog(self, _("You have to exit the wizard.\nDo you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(self, _("Do you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
         if result:
             self.scanner.disconnect()
-            putPreference('workbench', 'scanning')
-            self.GetParent().parent.workbenchUpdate()
-            self.GetParent().Close()
             self.Destroy()
 
     def onCalibrationPagePrevClicked(self):
@@ -106,6 +105,5 @@ class Wizard(wx.Dialog):
         dlg = wx.MessageDialog(self, _("You have finished the wizard.\nPress Play button to start scanning."), _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
-        self.GetParent().parent.workbenchUpdate()
-        self.GetParent().Close()
+        self.parent.workbenchUpdate()
         self.Destroy()
