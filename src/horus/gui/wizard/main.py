@@ -77,6 +77,7 @@ class Wizard(wx.Dialog):
         dlg.Destroy()
         if result:
             self.scanner.disconnect()
+            self.parent.workbenchUpdate()
             self.Destroy()
 
     def onCalibrationPagePrevClicked(self):
@@ -100,10 +101,13 @@ class Wizard(wx.Dialog):
         self.Layout()
 
     def onScanningPageNextClicked(self):
+        self.scanner.device.setLeftLaserOff()
+        self.scanner.device.setRightLaserOff()
         putPreference('workbench', 'scanning')
         saveProfile(os.path.join(getBasePath(), 'current-profile.ini'))
         dlg = wx.MessageDialog(self, _("You have finished the wizard.\nPress Play button to start scanning."), _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
-        self.parent.workbenchUpdate()
-        self.Destroy()
+        if result:
+            self.parent.workbenchUpdate()
+            self.Destroy()

@@ -139,7 +139,7 @@ class CalibrationPage(WizardPage):
 	def updateStatus(self, status):
 		if status:
 			putPreference('workbench', 'calibration')
-			self.GetParent().GetParent().parent.workbenchUpdate()
+			self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			self.calibrateButton.Enable()
 		else:

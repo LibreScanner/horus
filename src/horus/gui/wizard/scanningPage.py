@@ -174,7 +174,7 @@ class ScanningPage(WizardPage):
 	def updateStatus(self, status):
 		if status:
 			putPreference('workbench', 'scanning')
-			self.GetParent().GetParent().parent.workbenchUpdate()
+			self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 		else:
 			self.videoView.stop()

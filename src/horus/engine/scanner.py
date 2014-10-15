@@ -86,6 +86,8 @@ class Scanner:
 		
 	def start(self):
 		""" """
+		self.theta = 0
+
 		self.imageQueue.queue.clear()
 		self.pointCloudQueue.queue.clear()
 
@@ -130,9 +132,6 @@ class Scanner:
 
 	def captureThread(self):
 		""" """
-		#-- Initialize angle
-		self.theta = 0
-
 		if self.moveMotor:
 			self.device.setSpeedMotor(50)
 			self.device.enable()

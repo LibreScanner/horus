@@ -565,7 +565,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                         getProfileSettingFloat('extrinsics_step'),
                                         getProfileSettingInteger('use_distortion_calibration'))
 
-    def workbenchUpdate(self):
+    def workbenchUpdate(self, layout=True):
         """ """
 
         #TODO: optimize load
@@ -580,14 +580,16 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.scanner.moveMotor = True
         self.scanner.generatePointCloud = True
 
-        for key in wb:
-            if wb[key] is not None:
-                if key == currentWorkbench:
-                    wb[key].Show()
-                    wb[key].updateProfileToAllControls()
-                    wb[key].combo.SetValue(str(self.workbenchList[key]))
-                else:
-                    wb[key].Hide()
+        if layout:
+            for key in wb:
+                if wb[key] is not None:
+                    if key == currentWorkbench:
+                        wb[key].Hide()
+                        wb[key].Show()
+                        wb[key].updateProfileToAllControls()
+                        wb[key].combo.SetValue(str(self.workbenchList[key]))
+                    else:
+                        wb[key].Hide()
 
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
@@ -598,7 +600,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCoreProfile(currentWorkbench)
         self.updateCalibrationProfile(currentWorkbench)
 
-        self.Layout()
+        if layout:
+            self.Layout()
 
 
     ##-- TODO: move to util

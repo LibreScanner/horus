@@ -41,11 +41,11 @@ class Error(Exception):
 
 class WrongFirmware(Error):
 	def __init__(self, msg="Wrong firmware"):
-		super(Error, self).__init__(mgs)
+		super(Error, self).__init__(msg)
 
 class DeviceNotConnected(Error):
 	def __init__(self, msg="Device not connected"):
-		super(Error, self).__init__(mgs)
+		super(Error, self).__init__(msg)
 
 class Device:
 	"""Device class. For accessing to the scanner device"""

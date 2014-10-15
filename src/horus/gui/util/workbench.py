@@ -97,24 +97,38 @@ class WorkbenchConnection(Workbench):
 		try:
 			self.scanner.connect()
 		except WrongFirmware as e:
+			dlg = wx.MessageDialog(self, _("Board has a wrong firmware.\nPlease select your Board\nand press Upload Firmware"), _("Wrong firmware"), wx.OK|wx.ICON_INFORMATION)
+			result = dlg.ShowModal() == wx.ID_OK
+			dlg.Destroy()
+			self.scanner.disconnect()
+			self.updateStatus(False)
 			self.GetParent().onPreferences(None)
 		except DeviceNotConnected as e:
+			dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board\nand select a valid Serial Name"), _("Device not connected"), wx.OK|wx.ICON_INFORMATION)
+			result = dlg.ShowModal() == wx.ID_OK
+			dlg.Destroy()
+			self.scanner.disconnect()
+			self.updateStatus(False)
 			self.GetParent().onPreferences(None)
 		except CameraNotConnected as e:
-			self.GetParent().onPreferences(None)
+			dlg = wx.MessageDialog(self, _("Please plug your camera. You have to restart the application to make the changes effective."), _("Camera not connected"), wx.OK|wx.ICON_ERROR)
+			result = dlg.ShowModal() == wx.ID_OK
+			dlg.Destroy()
+			self.scanner.disconnect()
+			self.GetParent().Close(True)
 		except WrongCamera as e:
-			dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera. Please select other Camera Id"), _("Incorrect camera"), wx.OK|wx.ICON_INFORMATION)
+			dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), _("Wrong camera"), wx.OK|wx.ICON_INFORMATION)
 			result = dlg.ShowModal() == wx.ID_OK
 			dlg.Destroy()
 			self.scanner.disconnect()
 			self.updateStatus(False)
 			self.GetParent().onPreferences(None)
 		except InvalidVideo as e:
-			dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective."), _("Camera Error"), wx.OK|wx.ICON_ERROR)
+			dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective"), _("Camera Error"), wx.OK|wx.ICON_ERROR)
 			result = dlg.ShowModal() == wx.ID_OK
 			dlg.Destroy()
 			self.scanner.disconnect()
-			self.GetParent().GetParent().GetParent().Close(True)
+			self.GetParent().Close(True)
 		else:		
 			if self.scanner.isConnected:
 				self.videoView.play()
