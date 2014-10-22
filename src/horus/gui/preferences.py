@@ -32,6 +32,7 @@ import wx
 import os
 import glob
 import time
+import threading
 
 from horus.util.avrHelpers import AvrDude
 
@@ -63,8 +64,10 @@ class PreferencesDialog(wx.Dialog):
 		self.boards = getProfileSettingObject('board').getType()
 		board = getProfileSetting('board')
 		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(110,-1))
+		self.clearCheckBox = wx.CheckBox(self, -1, _("Clear EEPROM"))
 		self.uploadFirmwareButton = wx.Button(self, -1, _("Upload Firmware"))
-		self.clearEEPROMButton = wx.Button(self, -1, _("Clear EEPROM"))
+		self.gauge = wx.Gauge(self, range=100, size=(180, 30))
+		self.gauge.Hide()
 
 		self.okButton = wx.Button(self, -1, _("Ok"))
 
@@ -74,7 +77,6 @@ class PreferencesDialog(wx.Dialog):
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
 		self.boardsCombo.Bind(wx.EVT_COMBOBOX, self.onBoardsComboChanged)
 		self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
-		self.clearEEPROMButton.Bind(wx.EVT_BUTTON, self.onClearEEPROM)
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Close())
 
 		#-- Fill data
@@ -125,8 +127,10 @@ class PreferencesDialog(wx.Dialog):
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.uploadFirmwareButton, 0, wx.ALL, 10)
-		hbox.Add(self.clearEEPROMButton, 0, wx.ALL, 10)
+		hbox.Add(self.clearCheckBox, 0, wx.ALL^wx.LEFT, 15)
 		vbox.Add(hbox)
+
+		vbox.Add(self.gauge, 0, wx.EXPAND|wx.ALL^wx.TOP, 10)
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
 
@@ -150,26 +154,61 @@ class PreferencesDialog(wx.Dialog):
 		self.main.updateScannerProfile()
 
 	def onUploadFirmware(self, event):
-		if self.boardsCombo.GetValue() == 'UNO':
-			baudRate = 115200
-			hexPath = getPathForFirmware("horus-fw-uno.hex")
-		elif self.boardsCombo.GetValue() == 'BT-328':
-			baudRate = 19200
-			hexPath = getPathForFirmware("horus-fw-bt328.hex")
-		self.loadFirmware(hexPath, baudRate)
+		self.beforeLoadFirmware()
+		baudRate = self._getBaudRate(self.boardsCombo.GetValue())
+		clearEEPROM = self.clearCheckBox.GetValue()
+		threading.Thread(target=self.loadFirmware, args=(baudRate,clearEEPROM)).start()
 
-	def onClearEEPROM(self, event):
-		if self.boardsCombo.GetValue() == 'UNO':
-			baudRate = 115200
-		elif self.boardsCombo.GetValue() == 'BT-328':
-			baudRate = 19200
-		self.loadFirmware(getPathForFirmware("eeprom_clear.hex"), baudRate)
+	def _getBaudRate(self, value):
+		if value == 'UNO':
+			return 115200
+		elif value == 'BT-328':
+			return 19200
 
-	def loadFirmware(self, hexPath, hexBaudRate):
-		avr_dude = AvrDude(port=getProfileSetting('serial_name'), baud_rate=hexBaudRate)
-		stdout, stderr = avr_dude.flash(hex_path=hexPath, extra_flags=["-D"])
-		print stdout
-		print stderr
+	def loadFirmware(self, hexBaudRate, clearEEPROM):
+		avr_dude = AvrDude(port=getProfileSetting('serial_name'), baudRate=hexBaudRate)
+		extraFlags = []
+		if clearEEPROM:
+			extraFlags = ["-D"]
+		proc = avr_dude.flash(extraFlags=extraFlags)
+		count = -50
+		while count < 100:
+			if proc:
+				try:
+					out = proc.stderr.read()
+					if 'not in sync' in out:
+						wx.CallAfter(self.wrongBoardMessage)
+						break
+					count += out.count('#')
+					if count >= 0:
+						self.gauge.SetValue(count)
+				except IOError:
+					pass
+		wx.CallAfter(self.afterLoadFirmware)
+
+	def wrongBoardMessage(self):
+		dlg = wx.MessageDialog(self, _("Probably you have selected the wrong board. Select other Board"), 'Wrong Board', wx.OK | wx.ICON_ERROR)
+		result = dlg.ShowModal() == wx.ID_OK
+		dlg.Destroy()
+
+	def beforeLoadFirmware(self):
+		self.uploadFirmwareButton.Disable()
+		self.clearCheckBox.Disable()
+		self.boardsCombo.Disable()
+		self.okButton.Disable()
+		self.gauge.SetValue(0)
+		self.gauge.Show()
+		self.Layout()
+		self.Fit()
+
+	def afterLoadFirmware(self):
+		self.uploadFirmwareButton.Enable()
+		self.clearCheckBox.Enable()
+		self.boardsCombo.Enable()
+		self.okButton.Enable()
+		self.gauge.Hide()
+		self.Layout()
+		self.Fit()
 
 	def onLanguageComboChanged(self, event):
 		if getPreference('language') is not self.languageCombo.GetValue():
