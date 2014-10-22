@@ -175,12 +175,21 @@ class PreferencesDialog(wx.Dialog):
 		while count < 100:
 			if proc:
 				try:
-					count += proc.stderr.read().count('#')
+					out = proc.stderr.read()
+					if 'not in sync' in out:
+						wx.CallAfter(self.wrongBoardMessage)
+						break
+					count += out.count('#')
 					if count >= 0:
 						self.gauge.SetValue(count)
 				except IOError:
 					pass
 		wx.CallAfter(self.afterLoadFirmware)
+
+	def wrongBoardMessage(self):
+		dlg = wx.MessageDialog(self, _("Probably you have selected the wrong board. Select other Board"), 'Wrong Board', wx.OK | wx.ICON_ERROR)
+		result = dlg.ShowModal() == wx.ID_OK
+		dlg.Destroy()
 
 	def beforeLoadFirmware(self):
 		self.uploadFirmwareButton.Disable()
@@ -189,6 +198,7 @@ class PreferencesDialog(wx.Dialog):
 		self.okButton.Disable()
 		self.gauge.SetValue(0)
 		self.gauge.Show()
+		self.Layout()
 		self.Fit()
 
 	def afterLoadFirmware(self):
@@ -197,6 +207,7 @@ class PreferencesDialog(wx.Dialog):
 		self.boardsCombo.Enable()
 		self.okButton.Enable()
 		self.gauge.Hide()
+		self.Layout()
 		self.Fit()
 
 	def onLanguageComboChanged(self, event):
