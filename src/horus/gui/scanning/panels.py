@@ -85,9 +85,9 @@ class SettingsPanel(wx.Panel):
         self.controls.append(control)
 
         control = Control(self, _('Motor'), bold=False)
-        control.append(TextBox, 'step_degrees_scanning', lambda v: self.scanner.device.setRelativePosition(float(v)))
-        control.append(TextBox, 'feed_rate_scanning', lambda v: self.scanner.device.setSpeedMotor(int(v)))
-        control.append(TextBox, 'acceleration_scanning', lambda v: self.scanner.device.setAccelerationMotor(int(v)))
+        control.append(TextBox, 'step_degrees_scanning', lambda v: self.scanner.device.setRelativePosition(self.getValueFloat(v)))
+        control.append(TextBox, 'feed_rate_scanning', lambda v: self.scanner.device.setSpeedMotor(self.getValueInteger(v)))
+        control.append(TextBox, 'acceleration_scanning', lambda v: self.scanner.device.setAccelerationMotor(self.getValueInteger(v)))
         control.append(Button, 'restore_default', self.restoreDefault)
         self.controls.append(control)
 
@@ -101,6 +101,19 @@ class SettingsPanel(wx.Panel):
         #-- Callbacks
         for control in self.controls:
             control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
+
+    #TODO: move
+    def getValueInteger(self, value):
+        try:
+            return int(eval(value, {}, {}))
+        except:
+            return 0
+
+    def getValueFloat(self, value): 
+        try:
+            return float(eval(value.replace(',', '.'), {}, {}))
+        except:
+            return 0.0
 
     def restoreDefault(self):
         dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)

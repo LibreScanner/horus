@@ -155,9 +155,9 @@ class DevicePanel(wx.Panel):
         self.controls.append(control)
 
         control = Control(self, _('Motor Control'))
-        control.append(TextBox, 'step_degrees_control', lambda v: self.scanner.device.setRelativePosition(float(v)))
-        control.append(TextBox, 'feed_rate_control', lambda v: self.scanner.device.setSpeedMotor(int(v)))
-        control.append(TextBox, 'acceleration_control', lambda v: self.scanner.device.setAccelerationMotor(int(v)))
+        control.append(TextBox, 'step_degrees_control', lambda v: self.scanner.device.setRelativePosition(self.getValueFloat(v)))
+        control.append(TextBox, 'feed_rate_control', lambda v: self.scanner.device.setSpeedMotor(self.getValueInteger(v)))
+        control.append(TextBox, 'acceleration_control', lambda v: self.scanner.device.setAccelerationMotor(self.getValueInteger(v)))
         control.append(Button, 'move_button', self.scanner.device.setMoveMotor)
         control.append(ToggleButton, 'enable_button', (self.scanner.device.enable, self.scanner.device.disable))
         self.controls.append(control)
@@ -175,6 +175,19 @@ class DevicePanel(wx.Panel):
         #-- Callbacks
         for control in self.controls:
             control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
+
+    #TODO: move
+    def getValueInteger(self, value):
+        try:
+            return int(eval(value, {}, {}))
+        except:
+            return 0
+
+    def getValueFloat(self, value): 
+        try:
+            return float(eval(value.replace(',', '.'), {}, {}))
+        except:
+            return 0.0
 
     def updateProfileToAllControls(self):
         for control in self.controls:

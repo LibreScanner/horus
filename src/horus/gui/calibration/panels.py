@@ -216,7 +216,7 @@ class CameraIntrinsicsParameters(wx.Panel):
                     self.cameraTexts[i][j].Enable()
                 else:
                     self.cameraTexts[i][j].Disable()
-                    self.cameraValues[i][j] = float(self.cameraTexts[i][j].GetValue())
+                    self.cameraValues[i][j] = self.getValueFloat(self.cameraTexts[i][j].GetValue())
 
         for i in range(5):
             self.distortionTexts[i].SetEditable(enable)
@@ -224,7 +224,7 @@ class CameraIntrinsicsParameters(wx.Panel):
                 self.distortionTexts[i].Enable()
             else:
                 self.distortionTexts[i].Disable()
-                self.distortionValues[i] = float(self.distortionTexts[i].GetValue())
+                self.distortionValues[i] = self.getValueFloat(self.distortionTexts[i].GetValue())
 
         if enable:
             buttonEdit.SetLabel(_("OK"))
@@ -282,6 +282,12 @@ class CameraIntrinsicsParameters(wx.Panel):
         self.putProfileSettings()
         self.updateEngine()
 
+    #TODO: move
+    def getValueFloat(self, value): 
+        try:
+            return float(eval(value.replace(',', '.'), {}, {}))
+        except:
+            return 0.0
 
 class LaserTriangulationParameters(wx.Panel):
 
@@ -368,7 +374,7 @@ class LaserTriangulationParameters(wx.Panel):
                     self.coordinatesTexts[i][j].Enable()
                 else:
                     self.coordinatesTexts[i][j].Disable()
-                    self.coordinatesValues[i][j] = float(self.coordinatesTexts[i][j].GetValue())
+                    self.coordinatesValues[i][j] = self.getValueFloat(self.coordinatesTexts[i][j].GetValue())
 
         for i in range(3):
             self.originTexts[i].SetEditable(enable)
@@ -376,7 +382,7 @@ class LaserTriangulationParameters(wx.Panel):
                 self.originTexts[i].Enable()
             else:
                 self.originTexts[i].Disable()
-                self.originValues[i] = float(self.originTexts[i].GetValue())
+                self.originValues[i] = self.getValueFloat(self.originTexts[i].GetValue())
 
         for i in range(3):
             self.normalTexts[i].SetEditable(enable)
@@ -384,7 +390,7 @@ class LaserTriangulationParameters(wx.Panel):
                 self.normalTexts[i].Enable()
             else:
                 self.normalTexts[i].Disable()
-                self.normalValues[i] = float(self.normalTexts[i].GetValue())
+                self.normalValues[i] = self.getValueFloat(self.normalTexts[i].GetValue())
 
         if enable:
             buttonEdit.SetLabel(_("OK"))
@@ -448,6 +454,12 @@ class LaserTriangulationParameters(wx.Panel):
         self.putProfileSettings()
         self.updateEngine()
 
+    #TODO: move
+    def getValueFloat(self, value): 
+        try:
+            return float(eval(value.replace(',', '.'), {}, {}))
+        except:
+            return 0.0
 
 class PlatformExtrinsicsParameters(wx.Panel):
 
@@ -514,14 +526,14 @@ class PlatformExtrinsicsParameters(wx.Panel):
                     self.rotationTexts[i][j].Enable()
                 else:
                     self.rotationTexts[i][j].Disable()
-                    self.rotationValues[i][j] = float(self.rotationTexts[i][j].GetValue())
+                    self.rotationValues[i][j] = self.getValueFloat(self.rotationTexts[i][j].GetValue())
         for i in range(3):
             self.translationTexts[i].SetEditable(enable)
             if enable:
                 self.translationTexts[i].Enable()
             else:
                 self.translationTexts[i].Disable()
-                self.translationValues[i] = float(self.translationTexts[i].GetValue())
+                self.translationValues[i] = self.getValueFloat(self.translationTexts[i].GetValue())
 
         if enable:
             buttonEdit.SetLabel(_("OK"))
@@ -576,3 +588,10 @@ class PlatformExtrinsicsParameters(wx.Panel):
         self.setParameters(params)
         self.putProfileSettings()
         self.updateEngine()
+
+    #TODO: move
+    def getValueFloat(self, value): 
+        try:
+            return float(eval(value.replace(',', '.'), {}, {}))
+        except:
+            return 0.0
