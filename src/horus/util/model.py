@@ -63,8 +63,8 @@ class Model(object):
 		return self._mesh
 
 	def _postProcessAfterLoad(self):
-		if not self._isPointCloud:
-			self._mesh._calculateNormals()
+		#if not self._isPointCloud:
+		#	self._mesh._calculateNormals()
 		self.processMatrix()
 
 	def applyMatrix(self, m):
