@@ -196,7 +196,6 @@ class GLVBO(GLReferenceCounter):
 					self._buffer = glGenBuffers(1)
 					glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
 					glBufferData(GL_ARRAY_BUFFER, vertexArray, GL_STATIC_DRAW)
-					print self._buffer
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0)
 			if self._hasIndices:
@@ -284,6 +283,7 @@ class GLVBO(GLReferenceCounter):
 				glDeleteBuffers(1, [self._bufferIndices])
 		self._vertexArray = None
 		self._normalArray = None
+		self._colorArray = None
 
 	def __del__(self):
 		if self._buffer is not None and bool(glDeleteBuffers):

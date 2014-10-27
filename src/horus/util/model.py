@@ -32,8 +32,8 @@ import os
 import time
 import math
 
-import numpy
-numpy.seterr(all='ignore')
+import numpy as np
+np.seterr(all='ignore')
 
 class Model(object):
 	"""
@@ -48,13 +48,13 @@ class Model(object):
 		if '.' in self._name:
 			self._name = os.path.splitext(self._name)[0]
 		self._mesh = None
-		self._position = numpy.array([0.0, 0.0, 0.0])
-		self._matrix = numpy.matrix([[1,0,0],[0,1,0],[0,0,1]], numpy.float64)
+		self._position = np.array([0.0, 0.0, 0.0])
+		self._matrix = np.matrix([[1,0,0],[0,1,0],[0,0,1]], np.float64)
 		self._transformedMin = None
 		self._transformedMax = None
-		self._transformedSize = numpy.array([0.0, 0.0, 0.0])
+		self._transformedSize = np.array([0.0, 0.0, 0.0])
 		self._boundaryCircleSize = 20.0
-		self._drawOffset = numpy.array([0.0, 0.0, 0.0])
+		self._drawOffset = np.array([0.0, 0.0, 0.0])
 
 		self._isPointCloud = isPointCloud
 
@@ -72,8 +72,8 @@ class Model(object):
 		self.processMatrix()
 
 	def processMatrix(self):
-		self._transformedMin = numpy.array([numpy.inf,numpy.inf,numpy.inf], numpy.float64)
-		self._transformedMax = numpy.array([-numpy.inf,-numpy.inf,-numpy.inf], numpy.float64)
+		self._transformedMin = np.array([np.inf,np.inf,np.inf], np.float64)
+		self._transformedMax = np.array([-np.inf,-np.inf,-np.inf], np.float64)
 		self._boundaryCircleSize = 0
 
 		transformedVertexes = self._mesh.getTransformedVertexes()
@@ -86,7 +86,7 @@ class Model(object):
 		#Calculate the boundary circle
 		transformedSize = transformedMax - transformedMin
 		center = transformedMin + transformedSize / 2.0
-		boundaryCircleSize = round(math.sqrt(numpy.max(((transformedVertexes[::,0] - center[0]) * (transformedVertexes[::,0] - center[0])) + ((transformedVertexes[::,1] - center[1]) * (transformedVertexes[::,1] - center[1])) + ((transformedVertexes[::,2] - center[2]) * (transformedVertexes[::,2] - center[2])))), 3)
+		boundaryCircleSize = round(math.sqrt(np.max(((transformedVertexes[::,0] - center[0]) * (transformedVertexes[::,0] - center[0])) + ((transformedVertexes[::,1] - center[1]) * (transformedVertexes[::,1] - center[1])) + ((transformedVertexes[::,2] - center[2]) * (transformedVertexes[::,2] - center[2])))), 3)
 		self._boundaryCircleSize = max(self._boundaryCircleSize, boundaryCircleSize)
 
 		self._transformedSize = self._transformedMax - self._transformedMin
@@ -121,13 +121,13 @@ class Model(object):
 		return self._isPointCloud
 
 	def getScale(self):
-		return numpy.array([
-			numpy.linalg.norm(self._matrix[::,0].getA().flatten()),
-			numpy.linalg.norm(self._matrix[::,1].getA().flatten()),
-			numpy.linalg.norm(self._matrix[::,2].getA().flatten())], numpy.float64);
+		return np.array([
+			np.linalg.norm(self._matrix[::,0].getA().flatten()),
+			np.linalg.norm(self._matrix[::,1].getA().flatten()),
+			np.linalg.norm(self._matrix[::,2].getA().flatten())], np.float64);
 
 	def setScale(self, scale, axis, uniform):
-		currentScale = numpy.linalg.norm(self._matrix[::,axis].getA().flatten())
+		currentScale = np.linalg.norm(self._matrix[::,axis].getA().flatten())
 		scale /= currentScale
 		if scale == 0:
 			return
@@ -136,7 +136,7 @@ class Model(object):
 		else:
 			matrix = [[1.0,0,0], [0, 1.0, 0], [0, 0, 1.0]]
 			matrix[axis][axis] = scale
-		self.applyMatrix(numpy.matrix(matrix, numpy.float64))
+		self.applyMatrix(np.matrix(matrix, np.float64))
 
 	def setSize(self, size, axis, uniform):
 		scale = self.getSize()[axis]
@@ -148,13 +148,13 @@ class Model(object):
 		else:
 			matrix = [[1,0,0], [0, 1, 0], [0, 0, 1]]
 			matrix[axis][axis] = scale
-		self.applyMatrix(numpy.matrix(matrix, numpy.float64))
+		self.applyMatrix(np.matrix(matrix, np.float64))
 
 	def resetScale(self):
-		x = 1/numpy.linalg.norm(self._matrix[::,0].getA().flatten())
-		y = 1/numpy.linalg.norm(self._matrix[::,1].getA().flatten())
-		z = 1/numpy.linalg.norm(self._matrix[::,2].getA().flatten())
-		self.applyMatrix(numpy.matrix([[x,0,0],[0,y,0],[0,0,z]], numpy.float64))
+		x = 1/np.linalg.norm(self._matrix[::,0].getA().flatten())
+		y = 1/np.linalg.norm(self._matrix[::,1].getA().flatten())
+		z = 1/np.linalg.norm(self._matrix[::,2].getA().flatten())
+		self.applyMatrix(np.matrix([[x,0,0],[0,y,0],[0,0,z]], np.float64))
 
 
 class Mesh(object):
@@ -165,6 +165,7 @@ class Mesh(object):
 	def __init__(self, obj):
 		self.vertexes = None
 		self.colors = None
+		self.normal = None
 		self.vertexCount = 0
 		self.vbo = None
 		self._obj = obj
@@ -180,28 +181,28 @@ class Mesh(object):
 		self.vertexCount += 3
 
 	def _prepareVertexCount(self, vertexNumber):
-		#Set the amount of vertex before loading data in them. This way we can create the numpy arrays before we fill them.
-		self.vertexes = numpy.zeros((vertexNumber, 3), numpy.float32)
-		self.colors = numpy.zeros((vertexNumber, 3), numpy.int32)
-		self.normal = numpy.zeros((vertexNumber, 3), numpy.float32)
+		#Set the amount of vertex before loading data in them. This way we can create the np arrays before we fill them.
+		self.vertexes = np.zeros((vertexNumber, 3), np.float32)
+		self.colors = np.zeros((vertexNumber, 3), np.int32)
+		self.normal = np.zeros((vertexNumber, 3), np.float32)
 		self.vertexCount = 0
 
 	def _prepareFaceCount(self, faceNumber):
-		#Set the amount of faces before loading data in them. This way we can create the numpy arrays before we fill them.
-		self.vertexes = numpy.zeros((faceNumber*3, 3), numpy.float32)
-		self.normal = numpy.zeros((faceNumber*3, 3), numpy.float32)
+		#Set the amount of faces before loading data in them. This way we can create the np arrays before we fill them.
+		self.vertexes = np.zeros((faceNumber*3, 3), np.float32)
+		self.normal = np.zeros((faceNumber*3, 3), np.float32)
 		self.vertexCount = 0
 
 	def _calculateNormals(self):
 		#Calculate the normals
 		tris = self.vertexes.reshape(self.vertexCount / 3, 3, 3)
-		normals = numpy.cross( tris[::,1 ] - tris[::,0]  , tris[::,2 ] - tris[::,0] )
-		lens = numpy.sqrt( normals[:,0]**2 + normals[:,1]**2 + normals[:,2]**2 )
+		normals = np.cross( tris[::,1 ] - tris[::,0]  , tris[::,2 ] - tris[::,0] )
+		lens = np.sqrt( normals[:,0]**2 + normals[:,1]**2 + normals[:,2]**2 )
 		normals[:,0] /= lens
 		normals[:,1] /= lens
 		normals[:,2] /= lens
 		
-		n = numpy.zeros((self.vertexCount / 3, 9), numpy.float32)
+		n = np.zeros((self.vertexCount / 3, 9), np.float32)
 		n[:,0:3] = normals
 		n[:,3:6] = normals
 		n[:,6:9] = normals
@@ -214,7 +215,7 @@ class Mesh(object):
 	def _idxFromHash(self, map, idx):
 		vHash = self._vertexHash(idx)
 		for i in map[vHash]:
-			if numpy.linalg.norm(self.vertexes[i] - self.vertexes[idx]) < 0.001:
+			if np.linalg.norm(self.vertexes[i] - self.vertexes[idx]) < 0.001:
 				return iz
 
 	def getTransformedVertexes(self, applyOffsets = False):
@@ -224,5 +225,5 @@ class Mesh(object):
 			pos[2] = self._obj.getSize()[2] / 2
 			offset = self._obj._drawOffset.copy()
 			offset[2] += self._obj.getSize()[2] / 2
-			return (numpy.matrix(self.vertexes, copy = False) * numpy.matrix(self._obj._matrix, numpy.float32)).getA() - offset + pos
-		return (numpy.matrix(self.vertexes, copy = False) * numpy.matrix(self._obj._matrix, numpy.float32)).getA()
+			return (np.matrix(self.vertexes, copy = False) * np.matrix(self._obj._matrix, np.float32)).getA() - offset + pos
+		return (np.matrix(self.vertexes, copy = False) * np.matrix(self._obj._matrix, np.float32)).getA()

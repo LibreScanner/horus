@@ -32,6 +32,7 @@ import wx
 import numpy
 import time
 import os
+import gc
 import traceback
 import threading
 import math
@@ -81,6 +82,22 @@ class SceneView(openglGui.glGuiPanel):
 
 		self.updateProfileToControls()
 
+	def __del__(self):
+		if self._object is not None:
+			if self._object._mesh is not None:
+				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
+					self._object._mesh.vbo.release()
+				del self._object._mesh
+			del self._object
+		if self._platformMesh is not None:
+			for _object in self._platformMesh.values():
+				if _object._mesh is not None:
+					if _object._mesh.vbo is not None and _object._mesh.vbo.decRef():
+						_object._mesh.vbo.release()
+					del _object._mesh
+				del _object
+		gc.collect()
+
 	def createDefaultObject(self):
 		self._clearScene()
 		self._object = model.Model(None, isPointCloud=True)
@@ -104,7 +121,6 @@ class SceneView(openglGui.glGuiPanel):
 				modelFilename = filename
 			if modelFilename:
 				self.loadScene(modelFilename)
-				self._selectedObj = self._object
 				self._selectObject(self._object)
 
 	def OnCenter(self, e):
@@ -126,8 +142,9 @@ class SceneView(openglGui.glGuiPanel):
 			if self._object._mesh is not None:
 				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
 					self.glReleaseList.append(self._object._mesh.vbo)
-				self._object = None
-			import gc
+				del self._object._mesh
+			del self._object
+			self._object = None
 			gc.collect()
 
 			newZoom = numpy.max(self._machineSize)
@@ -560,7 +577,7 @@ class SceneView(openglGui.glGuiPanel):
 				self._platformMesh[machine]._drawOffset = numpy.array([0,0,8.05], numpy.float32)
 			glColor4f(0.6,0.6,0.6,0.5)
 			self._objectShader.bind()
-			self._renderObject(self._platformMesh[machine], False)
+			self._renderObject(self._platformMesh[machine])
 			self._objectShader.unbind()
 
 			#-- Text
