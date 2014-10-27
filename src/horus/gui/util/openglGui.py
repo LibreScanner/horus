@@ -107,9 +107,6 @@ class glGuiControl(object):
 	def OnMouseUp(self, x, y):
 		pass
 
-	def OnKeyChar(self, key):
-		pass
-
 	def OnKeyDown(self, key):
 		pass
 
@@ -186,7 +183,6 @@ class glGuiPanel(glcanvas.GLCanvas):
 		wx.EVT_MIDDLE_DCLICK(self, self._OnGuiMouseDown)
 		wx.EVT_MIDDLE_UP(self, self._OnGuiMouseUp)
 		wx.EVT_MOTION(self, self._OnGuiMouseMotion)
-		wx.EVT_CHAR(self, self._OnGuiKeyChar)
 		wx.EVT_KEY_DOWN(self, self._OnGuiKeyDown)
 		wx.EVT_KEY_UP(self, self._OnGuiKeyUp)
 		wx.EVT_KILL_FOCUS(self, self.OnFocusLost)
@@ -200,13 +196,6 @@ class glGuiPanel(glcanvas.GLCanvas):
 				if anim.isDone():
 					self._animationList.remove(anim)
 			self.Refresh()
-
-	def _OnGuiKeyChar(self, e):
-		if self._focus is not None:
-			self._focus.OnKeyChar(e.GetKeyCode())
-			self.Refresh()
-		else:
-			self.OnKeyChar(e.GetKeyCode())
 
 	def _OnGuiKeyUp(self, e):
 		if self._focus is not None:
@@ -344,11 +333,7 @@ class glGuiPanel(glcanvas.GLCanvas):
 		pass
 	def OnMouseMotion(self, e):
 		pass
-	def OnKeyChar(self, keyCode):
-		pass
 	def OnPaint(self, e):
-		pass
-	def OnKeyChar(self, keycode):
 		pass
 
 	def QueueRefresh(self):
