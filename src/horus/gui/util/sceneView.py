@@ -177,25 +177,36 @@ class SceneView(openglGui.glGuiPanel):
 		if self._selectedObj is not None:
 			scale = self._selectedObj.getScale()
 			size = self._selectedObj.getSize()
+		
+	def ShaderUpdate(self, v, f):
+		s = openglHelpers.GLShader(v, f)
+		if s.isValid():
+			self._objectLoadShader.release()
+			self._objectLoadShader = s
+			self.QueueRefresh()
 
-	def OnKeyChar(self, keyCode):
+	def OnKeyDown(self, keyCode):
 		if keyCode == wx.WXK_DELETE or keyCode == wx.WXK_NUMPAD_DELETE or (keyCode == wx.WXK_BACK and platform.system() == "Darwin"):
 			if self._selectedObj is not None:
 				#self._clearScene()
 				self.QueueRefresh()
-		if keyCode == wx.WXK_UP:
+		if keyCode == wx.WXK_DOWN:
 			if wx.GetKeyState(wx.WXK_SHIFT):
 				self._zoom /= 1.2
 				if self._zoom < 1:
 					self._zoom = 1
+			elif wx.GetKeyState(wx.WXK_CONTROL):
+				self._offset += 5
 			else:
 				self._pitch -= 15
 			self.QueueRefresh()
-		elif keyCode == wx.WXK_DOWN:
+		elif keyCode == wx.WXK_UP:
 			if wx.GetKeyState(wx.WXK_SHIFT):
 				self._zoom *= 1.2
 				if self._zoom > numpy.max(self._machineSize) * 3:
 					self._zoom = numpy.max(self._machineSize) * 3
+			elif wx.GetKeyState(wx.WXK_CONTROL):
+				self._offset -= 5
 			else:
 				self._pitch += 15
 			self.QueueRefresh()
@@ -250,14 +261,6 @@ class SceneView(openglGui.glGuiPanel):
 				if self._afterLeakTest[k]-self._beforeLeakTest[k]:
 					print k, self._afterLeakTest[k], self._beforeLeakTest[k], self._afterLeakTest[k] - self._beforeLeakTest[k]
 
-	def ShaderUpdate(self, v, f):
-		s = openglHelpers.GLShader(v, f)
-		if s.isValid():
-			self._objectLoadShader.release()
-			self._objectLoadShader = s
-			self.QueueRefresh()
-
-	def OnKeyDown(self, keyCode):
 		if keyCode == wx.WXK_CONTROL:
 			self._moveVertical = True
 
@@ -335,7 +338,7 @@ class SceneView(openglGui.glGuiPanel):
 		delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
 		delta = max(min(delta,4),-4)
 		if self._moveVertical:
-			self._offset += 3 * delta
+			self._offset += 5 * delta
 		else:
 			self._zoom *= 1.0 - delta / 10.0
 			if self._zoom < 1.0:
