@@ -196,7 +196,6 @@ class GLVBO(GLReferenceCounter):
 					self._buffer = glGenBuffers(1)
 					glBindBuffer(GL_ARRAY_BUFFER, self._buffer)
 					glBufferData(GL_ARRAY_BUFFER, vertexArray, GL_STATIC_DRAW)
-					print self._buffer
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0)
 			if self._hasIndices:

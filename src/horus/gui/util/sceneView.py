@@ -32,6 +32,7 @@ import wx
 import numpy
 import time
 import os
+import gc
 import traceback
 import threading
 import math
@@ -76,10 +77,29 @@ class SceneView(openglGui.glGuiPanel):
 
 		self.viewMode = 'ply'
 
+		self._moveVertical = False
+		self._offset = 0
+
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
 
 		self.updateProfileToControls()
+
+	def __del__(self):
+		if self._object is not None:
+			if self._object._mesh is not None:
+				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
+					self._object._mesh.vbo.release()
+				del self._object._mesh
+			del self._object
+		if self._platformMesh is not None:
+			for _object in self._platformMesh.values():
+				if _object._mesh is not None:
+					if _object._mesh.vbo is not None and _object._mesh.vbo.decRef():
+						_object._mesh.vbo.release()
+					del _object._mesh
+				del _object
+		gc.collect()
 
 	def createDefaultObject(self):
 		self._clearScene()
@@ -104,7 +124,6 @@ class SceneView(openglGui.glGuiPanel):
 				modelFilename = filename
 			if modelFilename:
 				self.loadScene(modelFilename)
-				self._selectedObj = self._object
 				self._selectObject(self._object)
 
 	def OnCenter(self, e):
@@ -126,15 +145,18 @@ class SceneView(openglGui.glGuiPanel):
 			if self._object._mesh is not None:
 				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
 					self.glReleaseList.append(self._object._mesh.vbo)
-				self._object = None
-			import gc
+				del self._object._mesh
+			del self._object
+			self._object = None
 			gc.collect()
 
+			self._offset = 0
 			newZoom = numpy.max(self._machineSize)
 			self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
 			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
 
 	def _selectObject(self, obj, zoom = True):
+		self._offset = 0
 		if obj != self._selectedObj:
 			self._selectedObj = obj
 			self.updateModelSettingsToControls()
@@ -159,7 +181,7 @@ class SceneView(openglGui.glGuiPanel):
 	def OnKeyChar(self, keyCode):
 		if keyCode == wx.WXK_DELETE or keyCode == wx.WXK_NUMPAD_DELETE or (keyCode == wx.WXK_BACK and platform.system() == "Darwin"):
 			if self._selectedObj is not None:
-				self._deleteObject(self._selectedObj)
+				#self._clearScene()
 				self.QueueRefresh()
 		if keyCode == wx.WXK_UP:
 			if wx.GetKeyState(wx.WXK_SHIFT):
@@ -235,6 +257,14 @@ class SceneView(openglGui.glGuiPanel):
 			self._objectLoadShader = s
 			self.QueueRefresh()
 
+	def OnKeyDown(self, keyCode):
+		if keyCode == wx.WXK_CONTROL:
+			self._moveVertical = True
+
+	def OnKeyUp(self, keyCode):
+		if keyCode == wx.WXK_CONTROL:
+			self._moveVertical = False
+
 	def OnMouseDown(self,e):
 		self._mouseX = e.GetX()
 		self._mouseY = e.GetY()
@@ -247,7 +277,7 @@ class SceneView(openglGui.glGuiPanel):
 		p0, p1 = self.getMouseRay(self._mouseX, self._mouseY)
 		p0 -= self.getObjectCenterPos() - self._viewTarget
 		p1 -= self.getObjectCenterPos() - self._viewTarget
-		if self._mouseState == 'dragOrClick':
+		if self._mouseState == 'doubleClick':
 			if e.GetButton() == 1:
 				if self._focusObj is not None:
 					self._selectObject(self._focusObj, False)
@@ -256,7 +286,7 @@ class SceneView(openglGui.glGuiPanel):
 	def OnMouseUp(self, e):
 		if e.LeftIsDown() or e.MiddleIsDown() or e.RightIsDown():
 			return
-		if self._mouseState == 'dragOrClick':
+		if self._mouseState == 'doubleClick':
 			if e.GetButton() == 1:
 				self._selectObject(self._object)
 			"""if e.GetButton() == 3:
@@ -304,16 +334,18 @@ class SceneView(openglGui.glGuiPanel):
 	def OnMouseWheel(self, e):
 		delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
 		delta = max(min(delta,4),-4)
-		self._zoom *= 1.0 - delta / 10.0
-		if self._zoom < 1.0:
-			self._zoom = 1.0
-		if self._zoom > numpy.max(self._machineSize) * 3:
-			self._zoom = numpy.max(self._machineSize) * 3
+		if self._moveVertical:
+			self._offset += 3 * delta
+		else:
+			self._zoom *= 1.0 - delta / 10.0
+			if self._zoom < 1.0:
+				self._zoom = 1.0
+			if self._zoom > numpy.max(self._machineSize) * 3:
+				self._zoom = numpy.max(self._machineSize) * 3
 		self.Refresh()
 
 	def OnMouseLeave(self, e):
-		#self._mouseX = -1
-		pass
+		self._mouseX = -1
 
 	def getMouseRay(self, x, y):
 		if self._viewport is None:
@@ -445,7 +477,7 @@ class SceneView(openglGui.glGuiPanel):
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
 		glRotate(self._yaw, 0,0,1)
-		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
+		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2]-self._offset)
 
 		self._viewport = glGetIntegerv(GL_VIEWPORT)
 		self._modelMatrix = glGetDoublev(GL_MODELVIEW_MATRIX)
@@ -467,7 +499,7 @@ class SceneView(openglGui.glGuiPanel):
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
 		glRotate(self._yaw, 0,0,1)
-		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
+		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2]-self._offset)
 
 		glStencilFunc(GL_ALWAYS, 1, 1)
 		glStencilOp(GL_INCR, GL_INCR, GL_INCR)
@@ -499,17 +531,6 @@ class SceneView(openglGui.glGuiPanel):
 				self._objectShaderNoLight.unbind()
 			else:
 				self._objectShader.unbind()
-
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			glEnable(GL_BLEND)
-			if self._objectLoadShader is not None:
-				#self._objectLoadShader.bind()
-				#glColor4f(0.2, 0.6, 1.0, 1.0)
-				#self._objectLoadShader.setUniform('intensity', self._object._.getPosition())
-				#self._objectLoadShader.setUniform('scale', self._object.getBoundaryCircle() / 10)
-				self._renderObject(self._object)
-				#self._objectLoadShader.unbind()
-				glDisable(GL_BLEND)
 
 		self._drawMachine()
 
@@ -560,7 +581,7 @@ class SceneView(openglGui.glGuiPanel):
 				self._platformMesh[machine]._drawOffset = numpy.array([0,0,8.05], numpy.float32)
 			glColor4f(0.6,0.6,0.6,0.5)
 			self._objectShader.bind()
-			self._renderObject(self._platformMesh[machine], False)
+			self._renderObject(self._platformMesh[machine])
 			self._objectShader.unbind()
 
 			#-- Text

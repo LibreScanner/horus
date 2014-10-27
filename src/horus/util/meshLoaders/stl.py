@@ -82,6 +82,9 @@ def _loadBinary(mesh, stream):
 	data = np.fromfile(stream, dtype=dtype , count=count)
 	
 	mesh.vertexCount = 3 * count
+	n = np.zeros((mesh.vertexCount / 3, 9), np.float32)
+	n[:,0:3] = n[:,3:6] = n[:,6:9] = data['n']
+	mesh.normal = n.reshape(mesh.vertexCount, 3)
 	mesh.vertexes = np.reshape(data['v'], (mesh.vertexCount, 3))
 
 def loadScene(filename):

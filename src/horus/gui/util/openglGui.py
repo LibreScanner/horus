@@ -110,6 +110,12 @@ class glGuiControl(object):
 	def OnKeyChar(self, key):
 		pass
 
+	def OnKeyDown(self, key):
+		pass
+
+	def OnKeyUp(self, key):
+		pass
+
 class glGuiContainer(glGuiControl):
 	def __init__(self, parent, pos):
 		self._glGuiControlList = []
@@ -181,6 +187,8 @@ class glGuiPanel(glcanvas.GLCanvas):
 		wx.EVT_MIDDLE_UP(self, self._OnGuiMouseUp)
 		wx.EVT_MOTION(self, self._OnGuiMouseMotion)
 		wx.EVT_CHAR(self, self._OnGuiKeyChar)
+		wx.EVT_KEY_DOWN(self, self._OnGuiKeyDown)
+		wx.EVT_KEY_UP(self, self._OnGuiKeyUp)
 		wx.EVT_KILL_FOCUS(self, self.OnFocusLost)
 		wx.EVT_IDLE(self, self._OnIdle)
 
@@ -199,6 +207,20 @@ class glGuiPanel(glcanvas.GLCanvas):
 			self.Refresh()
 		else:
 			self.OnKeyChar(e.GetKeyCode())
+
+	def _OnGuiKeyUp(self, e):
+		if self._focus is not None:
+			self._focus.OnKeyUp(e.GetKeyCode())
+			self.Refresh()
+		else:
+			self.OnKeyUp(e.GetKeyCode())
+
+	def _OnGuiKeyDown(self, e):
+		if self._focus is not None:
+			self._focus.OnKeyDown(e.GetKeyCode())
+			self.Refresh()
+		else:
+			self.OnKeyDown(e.GetKeyCode())
 
 	def OnFocusLost(self, e):
 		self._focus = None
