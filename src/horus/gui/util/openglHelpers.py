@@ -283,7 +283,6 @@ class GLVBO(GLReferenceCounter):
 				glDeleteBuffers(1, [self._bufferIndices])
 		self._vertexArray = None
 		self._normalArray = None
-		self._colorArray = None
 
 	def __del__(self):
 		if self._buffer is not None and bool(glDeleteBuffers):

@@ -345,8 +345,7 @@ class SceneView(openglGui.glGuiPanel):
 		self.Refresh()
 
 	def OnMouseLeave(self, e):
-		#self._mouseX = -1
-		pass
+		self._mouseX = -1
 
 	def getMouseRay(self, x, y):
 		if self._viewport is None:
@@ -532,17 +531,6 @@ class SceneView(openglGui.glGuiPanel):
 				self._objectShaderNoLight.unbind()
 			else:
 				self._objectShader.unbind()
-
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			glEnable(GL_BLEND)
-			if self._objectLoadShader is not None:
-				#self._objectLoadShader.bind()
-				#glColor4f(0.2, 0.6, 1.0, 1.0)
-				#self._objectLoadShader.setUniform('intensity', self._object._.getPosition())
-				#self._objectLoadShader.setUniform('scale', self._object.getBoundaryCircle() / 10)
-				self._renderObject(self._object)
-				#self._objectLoadShader.unbind()
-				glDisable(GL_BLEND)
 
 		self._drawMachine()
 
