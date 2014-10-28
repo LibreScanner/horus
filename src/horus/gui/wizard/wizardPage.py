@@ -32,19 +32,21 @@ import wx
 from horus.gui.util.imageView import VideoView
 
 class WizardPage(wx.Panel):
-	def __init__(self, parent, title="Title", buttonLeftCallback=None, buttonRightCallback=None):
+	def __init__(self, parent, title="Title", buttonPrevCallback=None, buttonNextCallback=None):
 		wx.Panel.__init__(self, parent)
 
 		self.title = title
 		self.panel = wx.Panel(self)
 
-		self.buttonLeftCallback = buttonLeftCallback
-		self.buttonRightCallback = buttonRightCallback
+		self.buttonPrevCallback = buttonPrevCallback
+		self.buttonSkipCallback = buttonNextCallback
+		self.buttonNextCallback = buttonNextCallback
 
 		self.videoView = VideoView(self, size=(300, 400))
 		self.videoView.SetBackgroundColour(wx.BLACK)
-		self.leftButton = wx.Button(self, label=_("Prev"))
-		self.rightButton = wx.Button(self, label=_("Next"))
+		self.prevButton = wx.Button(self, label=_("Prev"))
+		self.skipButton = wx.Button(self, label=_("Skip"))
+		self.nextButton = wx.Button(self, label=_("Next"))
 
 	def intialize(self, pages):
 		breadcrumbs = Breadcrumbs(self, pages)
@@ -57,16 +59,18 @@ class WizardPage(wx.Panel):
 		hbox.Add(self.videoView, 0, wx.ALL, 0)
 		vbox.Add(hbox, 1, wx.ALL|wx.EXPAND, 20)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.leftButton, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 2)
+		hbox.Add(self.prevButton, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT, 2)
 		hbox.Add((0, 0), 1, wx.EXPAND)
-		hbox.Add(self.rightButton, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 2)
+		hbox.Add(self.skipButton, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 2)
+		hbox.Add(self.nextButton, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 2)
 		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
 
 		self.SetSizer(vbox)
 
 		#-- Events
-		self.leftButton.Bind(wx.EVT_BUTTON, self._onLeftButtonPressed)
-		self.rightButton.Bind(wx.EVT_BUTTON, self._onRightButtonPressed)
+		self.prevButton.Bind(wx.EVT_BUTTON, self._onPrevButtonPressed)
+		self.skipButton.Bind(wx.EVT_BUTTON, self._onSkipButtonPressed)
+		self.nextButton.Bind(wx.EVT_BUTTON, self._onNextButtonPressed)
 
 		self.Layout()
 
@@ -77,13 +81,17 @@ class WizardPage(wx.Panel):
 		if _object is not None:
 			self.panelBox.Add(_object, _size, wx.ALL|wx.EXPAND, 3)
 
-	def _onLeftButtonPressed(self, event):
-		if self.buttonLeftCallback is not None:
-			self.buttonLeftCallback()
+	def _onPrevButtonPressed(self, event):
+		if self.buttonPrevCallback is not None:
+			self.buttonPrevCallback()
 
-	def _onRightButtonPressed(self, event):
-		if self.buttonRightCallback is not None:
-			self.buttonRightCallback()
+	def _onSkipButtonPressed(self, event):
+		if self.buttonSkipCallback is not None:
+			self.buttonSkipCallback()
+
+	def _onNextButtonPressed(self, event):
+		if self.buttonNextCallback is not None:
+			self.buttonNextCallback()
 
 
 class Breadcrumbs(wx.Panel):

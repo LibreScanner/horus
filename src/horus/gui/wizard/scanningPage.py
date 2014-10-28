@@ -37,8 +37,8 @@ class ScanningPage(WizardPage):
 	def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
 		WizardPage.__init__(self, parent,
 							title=_("Scanning"),
-							buttonLeftCallback=buttonPrevCallback,
-							buttonRightCallback=buttonNextCallback)
+							buttonPrevCallback=buttonPrevCallback,
+							buttonNextCallback=buttonNextCallback)
 
 		self.scanner = Scanner.Instance()
 

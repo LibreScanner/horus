@@ -72,6 +72,7 @@ class Wizard(wx.Dialog):
         self.ShowModal()
 
     def onConnectionPagePrevClicked(self):
+        putPreference('workbench', 'scanning')
         dlg = wx.MessageDialog(self, _("Do you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()

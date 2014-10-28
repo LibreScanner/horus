@@ -36,22 +36,35 @@ from horus.gui.util.imageView import *
 from horus.gui.wizard.wizardPage import *
 
 from horus.engine.scanner import *
+from horus.engine.calibration import *
 
 class ConnectionPage(WizardPage):
 	def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
 		WizardPage.__init__(self, parent,
 							title=_("Connection"),
-							buttonLeftCallback=buttonPrevCallback,
-							buttonRightCallback=buttonNextCallback)
+							buttonPrevCallback=buttonPrevCallback,
+							buttonNextCallback=buttonNextCallback)
 
 		self.scanner = Scanner.Instance()
+		self.calibration = Calibration.Instance()
 
 		self.connectButton = wx.Button(self.panel, label=_("Connect"))
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Auto check\""))
 		self.imageView = ImageView(self.panel)
 		self.imageView.setImage(wx.Image(getPathForImage("pattern-position-left.jpg")))
 		self.checkButton = wx.Button(self.panel, label=_("Auto check"))
-		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"))
+		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
+		self.space = wx.Panel(self.panel, size=(-1, 30))
+		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"), size=(-1, 30))
+
+		self.connectButton.Enable()
+		self.patternLabel.Disable()
+		self.imageView.Disable()
+		self.checkButton.Disable()
+		self.resultLabel.Hide()
+		self.gauge.Hide()
+		self.skipButton.Disable()
+		self.nextButton.Disable()
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		vbox.Add(self.connectButton, 0, wx.ALL|wx.EXPAND, 5)
@@ -59,14 +72,9 @@ class ConnectionPage(WizardPage):
 		vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.checkButton, 0, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
+		vbox.Add(self.gauge, 0, wx.ALL|wx.EXPAND, 5)
+		vbox.Add(self.space, 0, wx.ALL|wx.EXPAND, 5)
 		self.panel.SetSizer(vbox)
-
-		self.connectButton.Enable()
-		self.patternLabel.Disable()
-		self.imageView.Disable()
-		self.checkButton.Disable()
-		self.resultLabel.Disable()
-		self.rightButton.Disable()
 
 		self.Layout()
 
@@ -128,42 +136,79 @@ class ConnectionPage(WizardPage):
 		else:		
 			if self.scanner.isConnected:
 				self.videoView.play()
+				self.updateStatus(True)
 				self.GetParent().parent.updateDeviceCurrentProfile()
 				self.GetParent().parent.updateCameraCurrentProfile()
 				#self.GetParent().parent.updateCoreCurrentProfile()
 				self.patternLabel.Enable()
 				self.imageView.Enable()
 				self.checkButton.Enable()
+				self.skipButton.Enable()
 		if not self.scanner.isConnected:
 			self.connectButton.Enable()
 
 	def onCheckButtonClicked(self, event):
+		self.beforeAutoCheck()
+		thread = threading.Thread(target=self.performAutoCheck).start()
+
+	def beforeAutoCheck(self):
+		self.videoView.setMilliseconds(20)
 		self.checkButton.Disable()
-		self.leftButton.Disable()
-		threading.Thread(target=self.performAutoCheck).start()
+		self.prevButton.Disable()
+		self.skipButton.Disable()
+		self.nextButton.Disable()
+		self.gauge.SetValue(0)
+		self.resultLabel.Hide()
+		self.gauge.Show()
+		self.space.Hide()
+		self.Layout()
+
+	def afterAutoCheck(self, result):
+		self.videoView.setMilliseconds(1)
+		if result:
+			self.skipButton.Disable()
+			self.nextButton.Enable()
+		else:
+			self.skipButton.Enable()
+			self.nextButton.Disable()
+		self.gauge.Hide()
+		self.resultLabel.Show()
+		self.checkButton.Enable()
+		self.prevButton.Enable()
+		self.Layout()
 
 	def performAutoCheck(self):
 		self.scanner.device.setLeftLaserOn()
 		self.scanner.device.setRightLaserOn()
 		self.scanner.device.enable()
 		time.sleep(0.2)
+		wx.CallAfter(lambda: self.gauge.SetValue(20))
 		self.scanner.device.setSpeedMotor(150)
-		self.scanner.device.setRelativePosition(-180)
+		self.scanner.device.setRelativePosition(-100)
 		self.scanner.device.setMoveMotor()
-		self.scanner.device.setRelativePosition(180)
-		self.scanner.device.setMoveMotor()
+		wx.CallAfter(lambda: self.gauge.SetValue(50))
+		ret = self.calibration.performLaserTriangulationCalibration()
+		wx.CallAfter(lambda: self.gauge.SetValue(100))
 		self.scanner.device.disable()
 		self.scanner.device.setLeftLaserOff()
 		self.scanner.device.setRightLaserOff()
-		wx.CallAfter(lambda: (self.resultLabel.Enable(), self.leftButton.Enable(), self.rightButton.Enable()))
+		result = False
+		if ret is None:
+			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error: please check motor and pattern and try again"))
+		elif 0 in ret[1][0] or 0 in ret[1][1]:
+			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in lasers. Please connect the lasers and try again"))
+		else:
+			result = True
+		wx.CallAfter(lambda: self.afterAutoCheck(result))
 
 	def getFrame(self):
 		return self.scanner.camera.captureImage()
 
 	def updateStatus(self, status):
 		if status:
-			putPreference('workbench ', 'control')
-			self.GetParent().parent.workbenchUpdate(False)
+			if getPreference('workbench') != 'calibration':
+				putPreference('workbench', 'calibration')
+				self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			self.connectButton.Disable()
 			self.checkButton.Enable()

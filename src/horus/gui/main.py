@@ -48,9 +48,10 @@ VERSION = "0.0.4.1"
 
 class MainWindow(wx.Frame):
 
+    size = (640+300,480+130)
+
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus " + VERSION),
-                                                size=(640+300,480+130))
+        super(MainWindow, self).__init__(None, title=_("Horus " + VERSION), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -189,7 +190,12 @@ class MainWindow(wx.Frame):
 
         self.updateProfileToAllControls()
 
-        self.Center()
+        x, y, w, h = wx.Display(0).GetGeometry()
+        ws, hs = self.size
+
+        self.SetPosition((x+(w-ws)/2., y+(h-hs)/2.))
+
+        #self.Center()
         self.Show()
 
     def onLaunchWizard(self, event):
@@ -571,7 +577,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
         #TODO: optimize load
 
         currentWorkbench = getPreference('workbench')
-        putPreference('workbench', 'scanning') ##TODO: force save scanning workbench
 
         wb = {'control'     : self.controlWorkbench,
               'calibration' : self.calibrationWorkbench,

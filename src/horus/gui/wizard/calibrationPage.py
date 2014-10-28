@@ -42,8 +42,8 @@ class CalibrationPage(WizardPage):
 	def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
 		WizardPage.__init__(self, parent,
 							title=_("Calibration"),
-							buttonLeftCallback=buttonPrevCallback,
-							buttonRightCallback=buttonNextCallback)
+							buttonPrevCallback=buttonPrevCallback,
+							buttonNextCallback=buttonNextCallback)
 
 		self.scanner = Scanner.Instance()
 		self.calibration = Calibration.Instance()
@@ -70,7 +70,7 @@ class CalibrationPage(WizardPage):
 		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"))
 
 		self.resultLabel.Disable()
-		self.rightButton.Disable()
+		self.nextButton.Disable()
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -83,6 +83,7 @@ class CalibrationPage(WizardPage):
 		vbox.Add(self.calibrateButton, 0, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
 		self.panel.SetSizer(vbox)
+
 		self.Layout()
 
 		self.exposureComboBox.Bind(wx.EVT_COMBOBOX, self.onExposureComboBoxChanged)
@@ -115,7 +116,7 @@ class CalibrationPage(WizardPage):
 
 	def onCalibrationButtonClicked(self, event):
 		self.calibrateButton.Disable()
-		self.leftButton.Disable()
+		self.prevButton.Disable()
 		threading.Thread(target=self.performCalibration).start()
 
 	def performCalibration(self):
@@ -128,7 +129,7 @@ class CalibrationPage(WizardPage):
 		putProfileSettingNumpy('laser_coordinates', ret[1])
 		putProfileSettingNumpy('laser_origin', ret[0][0])
 		putProfileSettingNumpy('laser_normal', ret[0][1])
-		wx.CallAfter(lambda: (self.resultLabel.Enable(), self.leftButton.Enable(), self.rightButton.Enable()))
+		wx.CallAfter(lambda: (self.resultLabel.Enable(), self.prevButton.Enable(), self.nextButton.Enable()))
 
 	def getFrame(self):
 		frame = self.scanner.camera.captureImage()
