@@ -338,7 +338,7 @@ class SceneView(openglGui.glGuiPanel):
 		delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
 		delta = max(min(delta,4),-4)
 		if self._moveVertical:
-			self._offset += 5 * delta
+			self._offset -= 5 * delta
 		else:
 			self._zoom *= 1.0 - delta / 10.0
 			if self._zoom < 1.0:
@@ -566,15 +566,13 @@ class SceneView(openglGui.glGuiPanel):
 		glPopMatrix()
 
 	def _drawMachine(self):
-		glEnable(GL_CULL_FACE)
+		#glEnable(GL_CULL_FACE)
 		glEnable(GL_BLEND)
-
-		size = [profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')]
 
 		machine = profile.getMachineSetting('machine_type')
 		if machine.startswith('ciclop'):
 
-			#-- Platform
+			#-- Draw Platform
 			if machine not in self._platformMesh:
 				mesh = meshLoader.loadMesh(resources.getPathForMesh(machine + '_platform.stl'))
 				if mesh is not None:
@@ -587,90 +585,48 @@ class SceneView(openglGui.glGuiPanel):
 			self._renderObject(self._platformMesh[machine])
 			self._objectShader.unbind()
 
-			#-- Text
-			"""
-			if not hasattr(self._platformMesh[machine], 'texture'):
-				self._platformMesh[machine].texture = openglHelpers.loadGLTexture('Ciclopbackplate.png')
-			glBindTexture(GL_TEXTURE_2D, self._platformMesh[machine].texture)
-			glEnable(GL_TEXTURE_2D)
-			glPushMatrix()
-			glColor4f(1,1,1,1)
-			glTranslate(0,150,0)
-			h = 50
-			d = 8
-			w = 100
-			glEnable(GL_BLEND)
-			glBlendFunc(GL_DST_COLOR, GL_ZERO)
-			glBegin(GL_QUADS)
-			glTexCoord2f(1, 0)
-			glVertex3f( w, 0, h)
-			glTexCoord2f(0, 0)
-			glVertex3f(-w, 0, h)
-			glTexCoord2f(0, 1)
-			glVertex3f(-w, 0, 0)
-			glTexCoord2f(1, 1)
-			glVertex3f( w, 0, 0)
-
-			glTexCoord2f(1, 0)
-			glVertex3f(-w, d, h)
-			glTexCoord2f(0, 0)
-			glVertex3f( w, d, h)
-			glTexCoord2f(0, 1)
-			glVertex3f( w, d, 0)
-			glTexCoord2f(1, 1)
-			glVertex3f(-w, d, 0)
-			glEnd()
-			glDisable(GL_TEXTURE_2D)
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			glPopMatrix()"""
-
-			#-- Coordinate system
-			"""
-			glColor4f(0,0,0,1)
-			glLineWidth(3)
-			glBegin(GL_LINES)
-			glVertex3f(-size[0] / 2, -size[1] / 2, 0)
-			glVertex3f(-size[0] / 2, -size[1] / 2, 10)
-			glVertex3f(-size[0] / 2, -size[1] / 2, 0)
-			glVertex3f(-size[0] / 2+10, -size[1] / 2, 0)
-			glVertex3f(-size[0] / 2, -size[1] / 2, 0)
-			glVertex3f(-size[0] / 2, -size[1] / 2+10, 0)
-			glEnd()"""
-
 		glDepthMask(False)
-
 		
-		polys = profile.getMachineSizePolygons()
-		height = profile.getMachineSettingFloat('machine_height')
-		circular = profile.getMachineSetting('machine_shape') == 'Circular'
+		size = numpy.array([profile.getProfileSettingFloat('roi_radius'),
+							profile.getProfileSettingFloat('roi_radius'),
+							profile.getProfileSettingFloat('roi_height')], numpy.float32)
 
-		"""
-		glBegin(GL_QUADS)
-		# Draw the sides of the build volume.
-		for n in xrange(0, len(polys[0])):
-			if not circular:
-				if n % 2 == 0:
-					glColor4ub(5, 171, 231, 96)
+		if profile.getProfileSettingBool('view_roi'):
+			polys = profile.getSizePolygons(size)
+			height = profile.getProfileSettingFloat('roi_height')
+			circular = profile.getMachineSetting('machine_shape') == 'Circular'
+			# Draw the sides of the build volume.
+			glBegin(GL_QUADS)
+			for n in xrange(0, len(polys[0])):
+				if not circular:
+					if n % 2 == 0:
+						glColor4ub(5, 171, 231, 96)
+					else:
+						glColor4ub(5, 171, 231, 64)
 				else:
-					glColor4ub(5, 171, 231, 64)
-			else:
-				#glColor4ub(5, 171, 231, 96)
-				glColor4ub(200, 200, 200, 60)
+					glColor4ub(5, 171, 231, 96)
+					#glColor4ub(200, 200, 200, 150)
 
-			glVertex3f(polys[0][n][0], polys[0][n][1], height)
-			glVertex3f(polys[0][n][0], polys[0][n][1], 0)
-			glVertex3f(polys[0][n-1][0], polys[0][n-1][1], 0)
-			glVertex3f(polys[0][n-1][0], polys[0][n-1][1], height)
-		glEnd()
+				glVertex3f(polys[0][n][0], polys[0][n][1], height)
+				glVertex3f(polys[0][n][0], polys[0][n][1], 0)
+				glVertex3f(polys[0][n-1][0], polys[0][n-1][1], 0)
+				glVertex3f(polys[0][n-1][0], polys[0][n-1][1], height)
+			glEnd()
 
-		#Draw top of build volume.
-		#glColor4ub(5, 171, 231, 128)
-		glColor4ub(200, 200, 200, 70)
-		glBegin(GL_TRIANGLE_FAN)
-		for p in polys[0][::-1]:
-			glVertex3f(p[0], p[1], height)
-		glEnd()"""
+			#Draw bottom and top of build volume.
+			glColor4ub(5, 171, 231, 150)#128)
+			#glColor4ub(200, 200, 200, 200)
+			glBegin(GL_TRIANGLE_FAN)
+			for p in polys[0][::-1]:
+				glVertex3f(p[0], p[1], 0)
+			glEnd()
+			glBegin(GL_TRIANGLE_FAN)
+			for p in polys[0][::-1]:
+				glVertex3f(p[0], p[1], height)
+			glEnd()
 
+		polys = profile.getMachineSizePolygons()
+		
 		#-- Draw checkerboard
 		if self._platformTexture is None:
 			self._platformTexture = openglHelpers.loadGLTexture('checkerboard.png')
@@ -686,20 +642,9 @@ class SceneView(openglGui.glGuiPanel):
 			glVertex3f(p[0], p[1], 0)
 		glEnd()
 
-		"""
-		#Draw no-go zones. (clips in case of UM2)
-		glDisable(GL_TEXTURE_2D)
-		glColor4ub(127, 127, 127, 200)
-		for poly in polys[1:]:
-			glBegin(GL_TRIANGLE_FAN)
-			for p in poly:
-				glTexCoord2f(p[0]/20, p[1]/20)
-				glVertex3f(p[0], p[1], 0)
-			glEnd()"""
-
 		glDepthMask(True)
 		glDisable(GL_BLEND)
-		glDisable(GL_CULL_FACE)
+		#glDisable(GL_CULL_FACE)
 
 	def getObjectCenterPos(self):
 		if self._selectedObj is None:

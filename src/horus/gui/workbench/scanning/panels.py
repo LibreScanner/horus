@@ -74,10 +74,9 @@ class SettingsPanel(wx.Panel):
         self.controls.append(control)
 
         control = Control(self, _('3D ROI'), bold=False)
-        control.append(Slider, 'min_r', lambda v: self.scanner.core.setMinR(int(v)))
-        control.append(Slider, 'max_r', lambda v: self.scanner.core.setMaxR(int(v)))
-        control.append(Slider, 'min_h', lambda v: self.scanner.core.setMinH(int(v)))
-        control.append(Slider, 'max_h', lambda v: self.scanner.core.setMaxH(int(v)))
+        control.append(CheckBox, 'view_roi', lambda v: self.main.sceneView.QueueRefresh())
+        control.append(Slider, 'roi_radius', lambda v: (self.scanner.core.setROIRadius(int(v)), self.main.sceneView.QueueRefresh()))
+        control.append(Slider, 'roi_height', lambda v: (self.scanner.core.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
         self.controls.append(control)
 
         control = Control(self, _('Laser'), bold=False)
