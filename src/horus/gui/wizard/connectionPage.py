@@ -182,21 +182,32 @@ class ConnectionPage(WizardPage):
 		self.scanner.device.setRightLaserOn()
 		self.scanner.device.enable()
 		time.sleep(0.2)
-		wx.CallAfter(lambda: self.gauge.SetValue(20))
+		wx.CallAfter(lambda: self.gauge.SetValue(10))
+
 		self.scanner.device.setSpeedMotor(150)
 		self.scanner.device.setRelativePosition(-100)
 		self.scanner.device.setMoveMotor()
-		wx.CallAfter(lambda: self.gauge.SetValue(50))
+		wx.CallAfter(lambda: self.gauge.SetValue(40))
+
 		ret = self.calibration.performLaserTriangulationCalibration()
-		wx.CallAfter(lambda: self.gauge.SetValue(100))
+		wx.CallAfter(lambda: self.gauge.SetValue(80))
+
+		self.scanner.device.setSpeedMotor(150)
+		self.scanner.device.setRelativePosition(90)
+		self.scanner.device.setMoveMotor()
+		wx.CallAfter(lambda: self.gauge.SetValue(90))
+
 		self.scanner.device.disable()
 		self.scanner.device.setLeftLaserOff()
 		self.scanner.device.setRightLaserOff()
+		wx.CallAfter(lambda: self.gauge.SetValue(100))
+
+		#-- Result
 		result = False
 		if ret is None:
 			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error: please check motor and pattern and try again"))
 		elif 0 in ret[1][0] or 0 in ret[1][1]:
-			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in lasers. Please connect the lasers and try again"))
+			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again"))
 		else:
 			result = True
 		wx.CallAfter(lambda: self.afterAutoCheck(result))

@@ -48,6 +48,7 @@ class HorusApp(wx.App):
 		basePath = getBasePath()
 		loadPreferences(os.path.join(basePath, 'preferences.ini'))
 		loadProfile(os.path.join(basePath, 'current-profile.ini'))
+		putPreference('workbench', 'scanning')
 
 		#-- Load Language
 		setupLocalization(profile.getPreference('language'))

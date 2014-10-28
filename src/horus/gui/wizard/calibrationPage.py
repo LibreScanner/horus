@@ -29,6 +29,7 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx
 import time
+import numpy #TODO: move
 import threading
 
 from horus.gui.util.imageView import *
@@ -50,7 +51,7 @@ class CalibrationPage(WizardPage):
 
 		#TODO: use dictionaries
 
-		value = getProfileSetting('exposure_calibration')
+		value = getProfileSettingInteger('exposure_calibration')
 		if value > 200:
 			value = _("High")
 		elif value > 100:
@@ -67,9 +68,13 @@ class CalibrationPage(WizardPage):
 		self.imageView = ImageView(self.panel)
 		self.imageView.setImage(wx.Image(getPathForImage("pattern-position-left.jpg")))
 		self.calibrateButton = wx.Button(self.panel, label=_("Calibrate"))
+		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
+		self.space = wx.Panel(self.panel, size=(-1, 30))
 		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"))
 
-		self.resultLabel.Disable()
+		self.resultLabel.Hide()
+		self.gauge.Hide()
+		self.skipButton.Enable()
 		self.nextButton.Disable()
 
 		#-- Layout
@@ -82,6 +87,8 @@ class CalibrationPage(WizardPage):
 		vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.calibrateButton, 0, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
+		vbox.Add(self.gauge, 0, wx.ALL|wx.EXPAND, 5)
+		vbox.Add(self.space, 0, wx.ALL|wx.EXPAND, 5)
 		self.panel.SetSizer(vbox)
 
 		self.Layout()
@@ -96,6 +103,8 @@ class CalibrationPage(WizardPage):
 
 	def onShow(self, event):
 		if event.GetShow():
+			self.skipButton.Enable()
+			self.nextButton.Disable()
 			self.updateStatus(self.scanner.isConnected)
 		else:
 			try:
@@ -115,21 +124,61 @@ class CalibrationPage(WizardPage):
 		self.scanner.camera.setExposure(value)
 
 	def onCalibrationButtonClicked(self, event):
-		self.calibrateButton.Disable()
-		self.prevButton.Disable()
+		self.beforeCalibration()
 		threading.Thread(target=self.performCalibration).start()
 
+	def beforeCalibration(self):
+		self.calibrateButton.Disable()
+		self.prevButton.Disable()
+		self.skipButton.Disable()
+		self.nextButton.Disable()
+		self.gauge.SetValue(0)
+		self.resultLabel.Hide()
+		self.gauge.Show()
+		self.space.Hide()
+		self.Layout()
+
+	def afterCalibration(self, result):
+		if result:
+			self.skipButton.Disable()
+			self.nextButton.Enable()
+		else:
+			self.skipButton.Enable()
+			self.nextButton.Disable()
+		self.gauge.Hide()
+		self.resultLabel.Show()
+		self.calibrateButton.Enable()
+		self.prevButton.Enable()
+		self.Layout()
+
 	def performCalibration(self):
-		ret = self.calibration.performPlatformExtrinsicsCalibration()
-		print ret[0], ret[1]
-		putProfileSettingNumpy('rotation_matrix', ret[0])
-		putProfileSettingNumpy('translation_vector', ret[1])
+		wx.CallAfter(lambda: self.gauge.SetValue(10))
+
+		retP = self.calibration.performPlatformExtrinsicsCalibration()
+		wx.CallAfter(lambda: self.gauge.SetValue(70))
+
 		ret = self.calibration.performLaserTriangulationCalibration()
-		print ret[1], ret[0][0], ret[0][1]
-		putProfileSettingNumpy('laser_coordinates', ret[1])
-		putProfileSettingNumpy('laser_origin', ret[0][0])
-		putProfileSettingNumpy('laser_normal', ret[0][1])
-		wx.CallAfter(lambda: (self.resultLabel.Enable(), self.prevButton.Enable(), self.nextButton.Enable()))
+		wx.CallAfter(lambda: self.gauge.SetValue(100))
+
+		#-- Result
+		result = False
+		if retP is not None:
+			if numpy.linalg.norm(retP[1]-[5,80,320]) > 1000:
+				wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in pattern: please check the pattern and try again"))
+		if ret is not None:
+			print ret[1], ret[0][0], ret[0][1]
+			if 0 in ret[1][0] or 0 in ret[1][1]:
+				wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again"))
+		if retP is None or ret is None:
+			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error: please check motor and pattern and try again"))
+		else:
+			result = True
+			putProfileSettingNumpy('rotation_matrix', retP[0])
+			putProfileSettingNumpy('translation_vector', retP[1])
+			putProfileSettingNumpy('laser_coordinates', ret[1])
+			putProfileSettingNumpy('laser_origin', ret[0][0])
+			putProfileSettingNumpy('laser_normal', ret[0][1])
+		wx.CallAfter(lambda: self.afterCalibration(result))
 
 	def getFrame(self):
 		frame = self.scanner.camera.captureImage()
@@ -139,8 +188,9 @@ class CalibrationPage(WizardPage):
 
 	def updateStatus(self, status):
 		if status:
-			putPreference('workbench', 'calibration')
-			self.GetParent().parent.workbenchUpdate(False)
+			if getPreference('workbench') != 'calibration':
+				putPreference('workbench', 'calibration')
+				self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			self.calibrateButton.Enable()
 		else:

@@ -92,6 +92,7 @@ class ScanningPage(WizardPage):
 											choices=[_("Yes"), _("No")],
 											style=wx.CB_READONLY)
 
+		self.skipButton.Hide()
 		self.textureLabel.Disable()
 		self.textureComboBox.Disable()
 
