@@ -146,7 +146,7 @@ class PreferencesDialog(wx.Dialog):
 			putProfileSetting('serial_name', self.serialNameCombo.GetValue())
 
 	def onCameraIdTextChanged(self, event):
-		if len(self.cameraIdCombo.GetValue()) > 0:
+		if len(self.cameraIdCombo.GetValue()):
 			putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
 
 	def onBoardsComboChanged(self, event):
@@ -154,10 +154,11 @@ class PreferencesDialog(wx.Dialog):
 		self.main.updateScannerProfile()
 
 	def onUploadFirmware(self, event):
-		self.beforeLoadFirmware()
-		baudRate = self._getBaudRate(self.boardsCombo.GetValue())
-		clearEEPROM = self.clearCheckBox.GetValue()
-		threading.Thread(target=self.loadFirmware, args=(baudRate,clearEEPROM)).start()
+		if self.serialNameCombo.GetValue() != '':
+			self.beforeLoadFirmware()
+			baudRate = self._getBaudRate(self.boardsCombo.GetValue())
+			clearEEPROM = self.clearCheckBox.GetValue()
+			threading.Thread(target=self.loadFirmware, args=(baudRate,clearEEPROM)).start()
 
 	def _getBaudRate(self, value):
 		if value == 'UNO':
@@ -176,7 +177,7 @@ class PreferencesDialog(wx.Dialog):
 			if proc:
 				try:
 					out = proc.stderr.read()
-					if 'not in sync' in out:
+					if 'not in sync' in out or 'Invalid' in out:
 						wx.CallAfter(self.wrongBoardMessage)
 						break
 					count += out.count('#')
@@ -198,8 +199,8 @@ class PreferencesDialog(wx.Dialog):
 		self.okButton.Disable()
 		self.gauge.SetValue(0)
 		self.gauge.Show()
-		self.Layout()
 		self.Fit()
+		self.Layout()
 
 	def afterLoadFirmware(self):
 		self.uploadFirmwareButton.Enable()
@@ -207,8 +208,8 @@ class PreferencesDialog(wx.Dialog):
 		self.boardsCombo.Enable()
 		self.okButton.Enable()
 		self.gauge.Hide()
-		self.Layout()
 		self.Fit()
+		self.Layout()
 
 	def onLanguageComboChanged(self, event):
 		if getPreference('language') is not self.languageCombo.GetValue():
