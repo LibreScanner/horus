@@ -27,27 +27,31 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx._core
-
 import os
+import wx._core
 
 from horus.util.profile import *
 from horus.util.resources import *
 from horus.util.meshLoader import *
 
-from horus.gui.control.main import ControlWorkbench
-from horus.gui.scanning.main import ScanningWorkbench
-from horus.gui.calibration.main import CalibrationWorkbench
+from horus.gui.workbench.control.main import ControlWorkbench
+from horus.gui.workbench.scanning.main import ScanningWorkbench
+from horus.gui.workbench.calibration.main import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
+from horus.gui.welcome import WelcomeWindow
+from horus.gui.wizard.main import *
 
 from horus.engine.scanner import *
 from horus.engine.calibration import *
 
+VERSION = "0.0.4.2"
+
 class MainWindow(wx.Frame):
 
+    size = (640+300,480+130)
+
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus 0.0.4"),
-                                                size=(640+300,480+130))
+        super(MainWindow, self).__init__(None, title=_("Horus " + VERSION), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -70,6 +74,8 @@ class MainWindow(wx.Frame):
         self.workbenchList = {'control'     : _("Control workbench"),
                               'calibration' : _("Calibration workbench"),
                               'scanning'    : _("Scanning workbench")}
+
+        self.lastFiles = eval(getPreference('last_files'))
             
         self.scanner = Scanner.Instance()
         self.calibration = Calibration.Instance()
@@ -90,6 +96,8 @@ class MainWindow(wx.Frame):
 
         #--  Menu File        
         self.menuFile = wx.Menu()
+        self.menuLaunchWizard = self.menuFile.Append(wx.NewId(), _("Launch Wizard"))
+        self.menuFile.AppendSeparator()
         self.menuLoadModel = self.menuFile.Append(wx.NewId(), _("Load Model"))
         self.menuSaveModel = self.menuFile.Append(wx.NewId(), _("Save Model"))
         self.menuClearModel = self.menuFile.Append(wx.NewId(), _("Clear Model"))
@@ -135,8 +143,6 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(menuBar)
 
         ##-- Create Workbenchs
-
-        self.mainWorkbench = MainWorkbench(self)
         self.controlWorkbench = ControlWorkbench(self)
         self.scanningWorkbench = ScanningWorkbench(self)
         self.calibrationWorkbench = CalibrationWorkbench(self)
@@ -148,13 +154,13 @@ class MainWindow(wx.Frame):
             workbench.combo.Append(self.workbenchList['scanning'])
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.mainWorkbench, 1, wx.ALL|wx.EXPAND, 30)
-        sizer.Add(self.controlWorkbench, 1, wx.EXPAND)
-        sizer.Add(self.calibrationWorkbench, 1, wx.EXPAND)
-        sizer.Add(self.scanningWorkbench, 1, wx.EXPAND)
+        sizer.Add(self.controlWorkbench, 1, wx.ALL|wx.EXPAND)
+        sizer.Add(self.calibrationWorkbench, 1, wx.ALL|wx.EXPAND)
+        sizer.Add(self.scanningWorkbench, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer)
 
         ##-- Events
+        self.Bind(wx.EVT_MENU, self.onLaunchWizard, self.menuLaunchWizard)
         self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
         self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
         self.Bind(wx.EVT_MENU, self.onClearModel, self.menuClearModel)
@@ -184,10 +190,20 @@ class MainWindow(wx.Frame):
 
         self.updateProfileToAllControls()
 
+        x, y, w, h = wx.Display(0).GetGeometry()
+        ws, hs = self.size
+
+        self.SetPosition((x+(w-ws)/2., y+(h-hs)/2.))
+
+        #self.Center()
         self.Show()
 
+    def onLaunchWizard(self, event):
+        wizard = Wizard(self)
+
     def onLoadModel(self, event):
-        dlg=wx.FileDialog(self, _("Open 3D model"), os.path.split(getPreference('lastFile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        lastFile = os.path.split(getPreference('last_file'))[0]
+        dlg = wx.FileDialog(self, _("Open 3D model"), lastFile, style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
         wildcardList = ';'.join(map(lambda s: '*' + s, loadSupportedExtensions()))
         wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
         wildcardList = ';'.join(map(lambda s: '*' + s, loadSupportedExtensions()))
@@ -196,15 +212,15 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if filename is not None:
-                putPreference('lastFile', filename)
                 self.scanningWorkbench.sceneView.loadFile(filename)
+                self.appendLastFile(filename)
         dlg.Destroy()
 
     def onSaveModel(self, event):
         import platform
         if self.scanningWorkbench.sceneView._object is None:
             return
-        dlg=wx.FileDialog(self, _("Save 3D model"), os.path.split(getPreference('lastFile'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(getPreference('last_file'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
         fileExtensions = saveSupportedExtensions()
         wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
         wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
@@ -215,6 +231,7 @@ class MainWindow(wx.Frame):
                 if platform.system() == 'Linux': #hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
             saveMesh(filename, self.scanningWorkbench.sceneView._object)
+            self.appendLastFile(filename)
         dlg.Destroy()
 
     def onClearModel(self, event):
@@ -227,7 +244,7 @@ class MainWindow(wx.Frame):
 
     def onOpenProfile(self, event):
         """ """
-        dlg=wx.FileDialog(self, _("Select profile file to load"), os.path.split(getPreference('lastFile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        dlg=wx.FileDialog(self, _("Select profile file to load"), os.path.split(getPreference('last_profile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
@@ -238,7 +255,7 @@ class MainWindow(wx.Frame):
     def onSaveProfile(self, event):
         """ """
         import platform
-        dlg=wx.FileDialog(self, _("Select profile file to save"), os.path.split(getPreference('lastFile'))[0], style=wx.FD_SAVE)
+        dlg=wx.FileDialog(self, _("Select profile file to save"), os.path.split(getPreference('last_profile'))[0], style=wx.FD_SAVE)
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
@@ -259,6 +276,15 @@ class MainWindow(wx.Frame):
 
     def onExit(self, event):
         self.Close(True)
+
+    def appendLastFile(self, lastFile):
+        if lastFile in self.lastFiles:
+            self.lastFiles.remove(lastFile)
+        self.lastFiles.append(lastFile)
+        if len(self.lastFiles) > 4:
+            self.lastFiles = self.lastFiles[1:5]
+        putPreference('last_file', lastFile)
+        putPreference('last_files', self.lastFiles)
 
     def onModeChanged(self, event):
         putPreference('basic_mode', self.menuBasicMode.IsChecked())
@@ -356,8 +382,6 @@ class MainWindow(wx.Frame):
             if self.workbenchList[key] == str(event.GetEventObject().GetValue()):
                 if key is not None:
                     putPreference('workbench', key)
-                else:
-                    putPreference('workbench', 'main')
                 self.workbenchUpdate()
 
     def onAbout(self, event):
@@ -366,7 +390,7 @@ class MainWindow(wx.Frame):
         icon = wx.Icon(getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
-        info.SetVersion(u'0.0.4')
+        info.SetVersion(VERSION)
         info.SetDescription(_('Horus is an open source 3D Scanner manager...'))
         info.SetCopyright(u'(C) 2014 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
@@ -391,8 +415,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def onWelcome(self, event):
         """ """
-        putPreference('workbench', 'main')
-        self.workbenchUpdate()
+        welcome = WelcomeWindow(self)
 
     def updateProfileToAllControls(self):
         """ """
@@ -548,26 +571,30 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                         getProfileSettingFloat('extrinsics_step'),
                                         getProfileSettingInteger('use_distortion_calibration'))
 
-    def workbenchUpdate(self):
+    def workbenchUpdate(self, layout=True):
         """ """
+
+        #TODO: optimize load
+
         currentWorkbench = getPreference('workbench')
 
-        wb = {'main'        : self.mainWorkbench, 
-              'control'     : self.controlWorkbench,
+        wb = {'control'     : self.controlWorkbench,
               'calibration' : self.calibrationWorkbench,
               'scanning'    : self.scanningWorkbench}
 
         self.scanner.moveMotor = True
         self.scanner.generatePointCloud = True
 
-        for key in wb:
-            if wb[key] is not None:
-                if key == currentWorkbench:
-                    wb[key].Show()
-                    if key is not 'main':
+        if layout:
+            for key in wb:
+                if wb[key] is not None:
+                    if key == currentWorkbench:
+                        wb[key].Hide()
+                        wb[key].Show()
+                        wb[key].updateProfileToAllControls()
                         wb[key].combo.SetValue(str(self.workbenchList[key]))
-                else:
-                    wb[key].Hide()
+                    else:
+                        wb[key].Hide()
 
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
@@ -578,7 +605,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCoreProfile(currentWorkbench)
         self.updateCalibrationProfile(currentWorkbench)
 
-        self.Layout()
+        if layout:
+            self.Layout()
 
 
     ##-- TODO: move to util
@@ -620,82 +648,3 @@ Suite 330, Boston, MA  02111-1307  USA""")
         return baselist
 
     ##-- END TODO
-
-from horus.gui.util.imageView import *
-
-class MainWorkbench(wx.Panel):
-
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        titleBox = wx.BoxSizer(wx.VERTICAL)
-        panelBox = wx.BoxSizer(wx.HORIZONTAL)
-
-        self._title = wx.Panel(self)
-        self._panel = wx.Panel(self)
-        self._controlPanel = ItemWorkbench(self._panel, label=_("Control"), image=wx.Image(getPathForImage("control.png")))
-        self._calibrationPanel = ItemWorkbench(self._panel, label=_("Calibration"), image=wx.Image(getPathForImage("calibration.png")))
-        self._scanningPanel = ItemWorkbench(self._panel, label=_("Scanning"), image=wx.Image(getPathForImage("scanning.png")))
-
-        logo = ImageView(self._title)
-        logo.setImage(wx.Image(getPathForImage("logo.png")))
-        titleText = wx.StaticText(self._title, label=_("3D scanning for everyone"))
-        titleText.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_LIGHT)))
-        separator = wx.StaticLine(self._title, -1, style=wx.LI_HORIZONTAL)
-
-        titleBox.Add(logo, 3, wx.ALL^wx.BOTTOM|wx.EXPAND, 30)
-        titleBox.Add(titleText, 0, wx.ALL|wx.CENTER, 20)
-        titleBox.Add((0,0), 1, wx.ALL|wx.EXPAND, 2)
-        titleBox.Add(separator, 0, wx.ALL|wx.EXPAND, 10)
-        self._title.SetSizer(titleBox)
-
-        panelBox.Add(self._controlPanel, 1, wx.ALL|wx.EXPAND, 20)
-        panelBox.Add(self._calibrationPanel, 1, wx.ALL|wx.EXPAND, 20)
-        panelBox.Add(self._scanningPanel, 1, wx.ALL|wx.EXPAND, 20)
-        self._panel.SetSizer(panelBox)
-
-        vbox.Add(self._title, 7, wx.ALL|wx.EXPAND, 2)
-        vbox.Add((0,0), 1, wx.ALL|wx.EXPAND, 0)
-        vbox.Add(self._panel, 7, wx.ALL|wx.EXPAND, 2)
-
-        self._controlPanel.imageView.Bind(wx.EVT_LEFT_UP, self.onWorkbenchSelected)
-        self._calibrationPanel.imageView.Bind(wx.EVT_LEFT_UP, self.onWorkbenchSelected)
-        self._scanningPanel.imageView.Bind(wx.EVT_LEFT_UP, self.onWorkbenchSelected)
-
-        self.SetSizer(vbox)
-        self.Layout()
-
-    def onWorkbenchSelected(self, event):
-        """ """
-        currentWorkbench = {self._controlPanel.imageView.GetId()     : 'control',
-                            self._calibrationPanel.imageView.GetId() : 'calibration',
-                            self._scanningPanel.imageView.GetId()    : 'scanning'}.get(event.GetId())
-
-        if currentWorkbench is not None:
-            putPreference('workbench', currentWorkbench)
-        else:
-            putPreference('workbench', 'main')
-
-        self.GetParent().workbenchUpdate()
-
-
-class ItemWorkbench(wx.Panel):
-
-    def __init__(self, parent, label="Workbench", image=None):
-        wx.Panel.__init__(self, parent)
-
-        vbox = wx.BoxSizer(wx.VERTICAL)
-
-        self.imageView = ImageView(self)
-        self.imageView.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
-        if image is not None:
-            self.imageView.setImage(image)
-        labelText = wx.StaticText(self, label=label)
-        labelText.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-
-        vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 10)
-        vbox.Add(labelText, 0, wx.CENTER, 20)
-
-        self.SetSizer(vbox)
-        self.Layout()

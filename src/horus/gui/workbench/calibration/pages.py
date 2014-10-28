@@ -31,7 +31,7 @@ from horus.util.resources import *
 
 from horus.gui.util.page import *
 from horus.gui.util.imageView import *
-from horus.gui.calibration.panels import *
+from horus.gui.workbench.calibration.panels import *
 
 from horus.engine.scanner import *
 from horus.engine.calibration import *
@@ -327,7 +327,7 @@ class LaserTriangulationMainPage(Page):
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
 		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(getPathForImage("pattern-position.jpg")))
+		imageView.setImage(wx.Image(getPathForImage("pattern-position-right.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
@@ -436,7 +436,7 @@ class PlatformExtrinsicsMainPage(Page):
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
 		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(getPathForImage("pattern-position.jpg")))
+		imageView.setImage(wx.Image(getPathForImage("pattern-position-left.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 

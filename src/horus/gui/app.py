@@ -35,6 +35,7 @@ from horus.util.resources import *
 
 from horus.gui.main import *
 from horus.gui.splash import *
+from horus.gui.welcome import *
 
 class HorusApp(wx.App):
 	def __init__(self):
@@ -47,14 +48,17 @@ class HorusApp(wx.App):
 		basePath = getBasePath()
 		loadPreferences(os.path.join(basePath, 'preferences.ini'))
 		loadProfile(os.path.join(basePath, 'current-profile.ini'))
+		putPreference('workbench', 'scanning')
 
 		#-- Load Language
 		setupLocalization(profile.getPreference('language'))
 
 		#-- Create Main Window
-		self.mainWindow = MainWindow()
-		#self.mainWindow.Center()
-		self.mainWindow.Show()
+		mainWindow = MainWindow()
+
+		if profile.getPreferenceBool('show_welcome'):
+			#-- Create Welcome Window
+			welcome = WelcomeWindow(mainWindow)
 
 	def __del__(self):
 		#-- Save Profile and Preferences

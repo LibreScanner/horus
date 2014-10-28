@@ -28,6 +28,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import time
 import wx._core
 
 from horus.util.resources import getPathForImage
@@ -38,13 +39,12 @@ class SplashScreen(wx.SplashScreen):
 		self.callback = callback
 
 		bitmap = wx.Image(getPathForImage("splash.png"), wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-		super(SplashScreen, self).__init__(bitmap, 1, 0, None)
+		super(SplashScreen, self).__init__(bitmap, wx.SPLASH_CENTRE_ON_SCREEN, 0, None)
 		#-- TODO: fix in wx.SplashScreen class
-		import time
 		time.sleep(0.03)
 		#--
 		wx.CallAfter(self.DoCallback)
 
 	def DoCallback(self):
-		self.callback()
 		self.Destroy()
+		self.callback()

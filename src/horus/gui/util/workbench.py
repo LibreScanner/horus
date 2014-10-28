@@ -94,35 +94,49 @@ class WorkbenchConnection(Workbench):
 
 	def onConnectToolClicked(self, event):
 		self.updateStatus(True)
-		if not self.scanner.connect():
+		try:
+			self.scanner.connect()
+		except WrongFirmware as e:
+			dlg = wx.MessageDialog(self, _("Board has a wrong firmware.\nPlease select your Board\nand press Upload Firmware"), _("Wrong firmware"), wx.OK|wx.ICON_INFORMATION)
+			result = dlg.ShowModal() == wx.ID_OK
+			dlg.Destroy()
+			self.scanner.disconnect()
 			self.updateStatus(False)
 			self.GetParent().onPreferences(None)
-		else:
-			#-- Check correct camera
-			self.scanner.camera.setExposure(2)
-			exposure = self.scanner.camera.getExposure()
-			if exposure is not None:
-				if exposure < 1:
-					dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera. Please select other Camera Id"), _("Incorrect camera"), wx.OK|wx.ICON_INFORMATION)
-					result = dlg.ShowModal() == wx.ID_OK
-					dlg.Destroy()
-					self.scanner.disconnect()
-					self.updateStatus(False)
-					self.GetParent().onPreferences(None)
-					return
+		except DeviceNotConnected as e:
+			dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board\nand select a valid Serial Name"), _("Device not connected"), wx.OK|wx.ICON_INFORMATION)
+			result = dlg.ShowModal() == wx.ID_OK
+			dlg.Destroy()
+			self.scanner.disconnect()
+			self.updateStatus(False)
+			self.GetParent().onPreferences(None)
+		except CameraNotConnected as e:
+			dlg = wx.MessageDialog(self, _("Please plug your camera. You have to restart the application to make the changes effective."), _("Camera not connected"), wx.OK|wx.ICON_ERROR)
+			result = dlg.ShowModal() == wx.ID_OK
+			dlg.Destroy()
+			self.scanner.disconnect()
+			self.GetParent().Close(True)
+		except WrongCamera as e:
+			dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), _("Wrong camera"), wx.OK|wx.ICON_INFORMATION)
+			result = dlg.ShowModal() == wx.ID_OK
+			dlg.Destroy()
+			self.scanner.disconnect()
+			self.updateStatus(False)
+			self.GetParent().onPreferences(None)
+		except InvalidVideo as e:
+			dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective"), _("Camera Error"), wx.OK|wx.ICON_ERROR)
+			result = dlg.ShowModal() == wx.ID_OK
+			dlg.Destroy()
+			self.scanner.disconnect()
+			self.GetParent().Close(True)
+		else:		
+			if self.scanner.isConnected:
+				self.videoView.play()
+				self.GetParent().updateDeviceCurrentProfile()
+				self.GetParent().updateCameraCurrentProfile()
+				#self.GetParent().updateCoreCurrentProfile()
 
-			#-- Check correct video
-			if self.scanner.camera.captureImage() is None:
-				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective."), _("Camera Error"), wx.OK|wx.ICON_ERROR)
-				result = dlg.ShowModal() == wx.ID_OK
-				dlg.Destroy()
-				self.scanner.disconnect()
-				self.GetParent().Close(True)
-
-		if self.scanner.isConnected:
-			self.GetParent().updateDeviceCurrentProfile()
-			self.GetParent().updateCameraCurrentProfile()
-			#self.GetParent().updateCoreCurrentProfile()
+		self.updateStatus(self.scanner.isConnected)
 
 	def onDisconnectToolClicked(self, event):
 		self.scanner.stop()

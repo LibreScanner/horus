@@ -236,7 +236,7 @@ setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right La
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Image Type'))
 
 setting('use_open', True, bool, 'advanced', _('Use Open'))
-setting('open_value', 2, int, 'advanced', _('Open')).setRange(1, 10)
+setting('open_value', 3, int, 'advanced', _('Open')).setRange(1, 10)
 setting('use_threshold', True, bool, 'advanced', _('Use Threshold'))
 setting('threshold_value', 30, int, 'advanced', _('Threshold')).setRange(0, 255)
 
@@ -265,7 +265,7 @@ setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))
 setting('pattern_distance', 169.0, float, 'advanced', _('Pattern Distance'))
-setting('extrinsics_step', 5.0, float, 'advanced', _('Extrinsics Step'))
+setting('extrinsics_step', -5.0, float, 'advanced', _('Extrinsics Step'), False)
 
 setting('left_button', '', str, 'basic', _('Left'), False)
 setting('right_button', '', str, 'basic', _('Right'), False)
@@ -286,9 +286,9 @@ setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden')
 ##-- Preferences
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
-setting('workbench', 'main', ['main', 'control', 'settings', 'calibration', 'scanning'], 'preference', 'hidden')
-# TODO: ['basic', 'advanced']
-setting('basic_mode', True, bool, 'preference', 'hidden')
+setting('workbench', 'scanning', ['control', 'calibration', 'scanning'], 'preference', 'hidden')
+setting('show_welcome', True, bool, 'preference', 'hidden')
+setting('basic_mode', False, bool, 'preference', 'hidden')
 setting('view_control_panel', True, bool, 'preference', 'hidden')
 setting('view_control_video', True, bool, 'preference', 'hidden')
 setting('view_calibration_panel', True, bool, 'preference', 'hidden')
@@ -298,7 +298,10 @@ setting('view_scanning_video', False, bool, 'preference', 'hidden')
 setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 
 # TODO: change default last file
-setting('lastFile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
+setting('last_files', [], str, 'preference', 'hidden')
+setting('last_file', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
+setting('last_profile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.ini')), str, 'preference', 'hidden')
+
 
 setting('model_colour', '#888899', str, 'preference', 'hidden').setLabel(_('Model colour'), _('Display color for first extruder'))
 

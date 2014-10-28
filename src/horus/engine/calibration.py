@@ -291,10 +291,10 @@ class Calibration:
 			angle = 0
 			device.setSpeedMotor(1)
 			device.enable()
-			device.setSpeedMotor(100)
-			time.sleep(0.5)
+			device.setSpeedMotor(150)
+			time.sleep(0.2)
 
-			while angle <= 180:
+			while abs(angle) <= 180:
 				angle += step
 				t = self.getPatternPosition(step, device, camera)
 				time.sleep(0.1)

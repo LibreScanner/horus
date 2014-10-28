@@ -71,15 +71,10 @@ class Scanner:
 
 	def connect(self):
 		""" """
-		if self.camera.connect():
-			if self.device.connect():
-				self.isConnected = True
-			else:
-				self.camera.disconnect()
-				self.device.disconnect()
-				self.isConnected = False
-		else:
-			self.isConnected = False
+		self.isConnected = self.camera.connect() and self.device.connect()
+		if not self.isConnected:
+			self.camera.disconnect()
+			self.device.disconnect()
 		return self.isConnected
 		
 	def disconnect(self):
@@ -91,6 +86,8 @@ class Scanner:
 		
 	def start(self):
 		""" """
+		self.theta = 0
+
 		self.imageQueue.queue.clear()
 		self.pointCloudQueue.queue.clear()
 
@@ -135,9 +132,6 @@ class Scanner:
 
 	def captureThread(self):
 		""" """
-		#-- Initialize angle
-		self.theta = 0
-
 		if self.moveMotor:
 			self.device.setSpeedMotor(50)
 			self.device.enable()
@@ -185,7 +179,7 @@ class Scanner:
 				if self.generatePointCloud:
 					#-- Check stop condition
 					self.theta += self.core.degrees
-					if abs(self.theta) >= 360:
+					if abs(self.theta) > 360:
 						self.stop()
 						if self.finishCallback is not None and self.generatePointCloud:
 							self.finishCallback()

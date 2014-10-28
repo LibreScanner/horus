@@ -33,6 +33,20 @@ import serial
 
 from math import trunc
 
+class Error(Exception):
+	def __init__(self, msg):
+		self.msg = msg
+	def __str__(self):
+		return repr(self.msg)
+
+class WrongFirmware(Error):
+	def __init__(self, msg="Wrong firmware"):
+		super(Error, self).__init__(msg)
+
+class DeviceNotConnected(Error):
+	def __init__(self, msg="Device not connected"):
+		super(Error, self).__init__(msg)
+
 class Device:
 	"""Device class. For accessing to the scanner device"""
 	"""
@@ -59,6 +73,7 @@ class Device:
 	def connect(self):
 		""" Opens serial port and performs handshake"""
 		print ">>> Connecting device ..."
+		self.isConnected = False
 		try:
 			self.serialPort = serial.Serial(self.serialName, self.baudRate, timeout=2)
 			if self.serialPort.isOpen():
@@ -82,20 +97,17 @@ class Device:
 					self.setSpeedMotor(1)
 					self.setAbsolutePosition(0)
 					#self.enable()
+					print ">>> Done"
+					self.isConnected = True
 				else:
-					print ">>> Error"
-					return False
+					raise WrongFirmware()
 			else:
-				print "Serial port is not connected."
-				print ">>> Error"
-				return False
+				raise DeviceNotConnected()
 		except serial.SerialException:
 			sys.stderr.write("Error opening the port {0}\n".format(self.serialName))
 			self.serialPort = None
-			print ">>> Error"
-			return False
-		print ">>> Done"
-		return True
+			raise DeviceNotConnected()
+		return self.isConnected
 
 	def disconnect(self):
 		""" Closes serial port """
@@ -106,9 +118,7 @@ class Device:
 		except serial.SerialException:
 			sys.stderr.write("Error closing the port {0}\n".format(self.serialName))
 			print ">>> Error"
-			return False
 		print ">>> Done"
-		return True
 
 	def enable(self):
 		"""Enables motor"""
@@ -139,7 +149,7 @@ class Device:
 		"""Moves the motor"""
 		self._position += self._posIncrement
 		return self._checkAcknowledge(self.sendCommand("G1X{0}".format(self._position)))
-   
+
 	def setRightLaserOn(self):
 		"""Turns right laser on"""
 		return self._checkAcknowledge(self.sendCommand("M71T2"))

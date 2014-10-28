@@ -85,7 +85,7 @@ class SettingsPanel(wx.Panel):
         self.controls.append(control)
 
         control = Control(self, _('Motor'), bold=False)
-        control.append(TextBox, 'step_degrees_scanning', lambda v: self.scanner.device.setRelativePosition(self.getValueFloat(v)))
+        control.append(TextBox, 'step_degrees_scanning', lambda v: (self.scanner.device.setRelativePosition(self.getValueFloat(v)), self.scanner.core.setDegrees(self.getValueFloat(v))))
         control.append(TextBox, 'feed_rate_scanning', lambda v: self.scanner.device.setSpeedMotor(self.getValueInteger(v)))
         control.append(TextBox, 'acceleration_scanning', lambda v: self.scanner.device.setAccelerationMotor(self.getValueInteger(v)))
         control.append(Button, 'restore_default', self.restoreDefault)

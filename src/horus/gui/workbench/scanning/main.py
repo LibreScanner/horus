@@ -33,7 +33,7 @@ from horus.util.resources import *
 from horus.gui.util.imageView import *
 from horus.gui.util.sceneView import *
 from horus.gui.util.workbench import *
-from horus.gui.scanning.panels import *
+from horus.gui.workbench.scanning.panels import *
 
 from horus.engine.scanner import *
 
