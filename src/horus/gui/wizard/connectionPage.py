@@ -65,6 +65,7 @@ class ConnectionPage(WizardPage):
 		self.gauge.Hide()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
+		self.enableNext = False
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		vbox.Add(self.connectButton, 0, wx.ALL|wx.EXPAND, 5)
@@ -144,6 +145,7 @@ class ConnectionPage(WizardPage):
 				self.imageView.Enable()
 				self.checkButton.Enable()
 				self.skipButton.Enable()
+				self.enableNext = True
 		if not self.scanner.isConnected:
 			self.connectButton.Enable()
 
@@ -157,6 +159,7 @@ class ConnectionPage(WizardPage):
 		self.prevButton.Disable()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
+		self.enableNext = False
 		self.gauge.SetValue(0)
 		self.resultLabel.Hide()
 		self.gauge.Show()
@@ -171,6 +174,7 @@ class ConnectionPage(WizardPage):
 		else:
 			self.skipButton.Enable()
 			self.nextButton.Disable()
+		self.enableNext = True
 		self.gauge.Hide()
 		self.resultLabel.Show()
 		self.checkButton.Enable()

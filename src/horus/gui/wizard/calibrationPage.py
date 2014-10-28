@@ -132,6 +132,7 @@ class CalibrationPage(WizardPage):
 		self.prevButton.Disable()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
+		self.enableNext = False
 		self.gauge.SetValue(0)
 		self.resultLabel.Hide()
 		self.gauge.Show()
@@ -145,6 +146,7 @@ class CalibrationPage(WizardPage):
 		else:
 			self.skipButton.Enable()
 			self.nextButton.Disable()
+		self.enableNext = True
 		self.gauge.Hide()
 		self.resultLabel.Show()
 		self.calibrateButton.Enable()

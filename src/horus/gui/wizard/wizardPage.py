@@ -38,6 +38,8 @@ class WizardPage(wx.Panel):
 		self.title = title
 		self.panel = wx.Panel(self)
 
+		self.enableNext = True
+
 		self.buttonPrevCallback = buttonPrevCallback
 		self.buttonSkipCallback = buttonNextCallback
 		self.buttonNextCallback = buttonNextCallback
@@ -73,9 +75,6 @@ class WizardPage(wx.Panel):
 		self.nextButton.Bind(wx.EVT_BUTTON, self._onNextButtonPressed)
 
 		self.Layout()
-
-	def enableNext(self):
-		return True
 
 	def addToPanel(self, _object, _size):
 		if _object is not None:
@@ -123,10 +122,12 @@ class Breadcrumbs(wx.Panel):
 	def onTitlePressed(self, event):
 		label = event.GetEventObject().GetLabel()
 		for page in self.pages:
-			if page.enableNext():
+			if page.enableNext:
 				if page.title == label:
 					page.Show()
 				else:
 					page.Hide()
+			else:
+				break
 
 		self.GetParent().GetParent().Layout()
