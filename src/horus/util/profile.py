@@ -243,10 +243,9 @@ setting('threshold_value', 30, int, 'advanced', _('Threshold')).setRange(0, 255)
 setting('use_compact', False, bool, 'advanced', _('Compact'))
 setting('use_complete', True, bool, 'advanced', _('Complete'))
 
-setting('min_r', -100, int, 'advanced', _('Min R')).setRange(-150, 150)
-setting('max_r', 100, int, 'advanced', _('Max R')).setRange(-150, 150)
-setting('min_h', 0, int, 'advanced', _('Min H')).setRange(-100, 300)
-setting('max_h', 200, int, 'advanced', _('Max H')).setRange(-100, 300)
+setting('view_roi', True, bool, 'advanced', _('View ROI'))
+setting('roi_radius', 200, int, 'advanced', _('Radius')).setRange(0, 250)
+setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
 
 setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
 setting('laser_angle_right', 30.0, float, 'advanced', _('Laser Angle Right'))
@@ -732,6 +731,9 @@ def getMachineCenterCoords():
 # the rest of the polygons are the dis-allowed areas of the machine.
 def getMachineSizePolygons():
 	size = numpy.array([getMachineSettingFloat('machine_width'), getMachineSettingFloat('machine_depth'), getMachineSettingFloat('machine_height')], numpy.float32)
+	return getSizePolygons(size)
+
+def getSizePolygons(size):
 	ret = []
 	if getMachineSetting('machine_shape') == 'Circular':
 		circle = []
@@ -740,12 +742,12 @@ def getMachineSizePolygons():
 			circle.append([math.cos(float(n)/steps*2*math.pi) * size[0]/2, math.sin(float(n)/steps*2*math.pi) * size[1]/2])
 		ret.append(numpy.array(circle, numpy.float32))
 
-	"""if getMachineSetting('machine_type') == 'ciclop':
+	if getMachineSetting('machine_type') == 'ciclop':
 		w = 20
 		h = 20
 		ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))
 		ret.append(numpy.array([[ size[0]/2-w-2,-size[1]/2],[ size[0]/2,-size[1]/2], [ size[0]/2,-size[1]/2+h],[ size[0]/2-w,-size[1]/2+h]], numpy.float32))
 		ret.append(numpy.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], numpy.float32))
 		ret.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
-	"""
+	
 	return ret

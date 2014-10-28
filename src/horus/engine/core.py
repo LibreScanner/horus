@@ -76,17 +76,11 @@ class Core:
 	def setUseCompact(self, enable):
 		self.useCompact = enable
 
-	def setMinR(self, value):
-		self.rhoMin = value
+	def setROIRadius(self, value):
+		self.roiRadius = value
 
-	def setMaxR(self, value):
-		self.rhoMax = value
-
-	def setMinH(self, value):
-		self.hMin = value
-
-	def setMaxH(self, value):
-		self.hMax = value
+	def setROIHeight(self, value):
+		self.roiHeight = value
 
 	def setDegrees(self, degrees):
 		self.degrees = degrees
@@ -233,10 +227,10 @@ class Core:
 	def pointCloudFilter(self, points, colors, rho, z):
 		""" """
 		#-- Point Cloud Filter
-		idx = np.where((z >= self.hMin) &
-					   (z <= self.hMax) &
-					   (rho >= self.rhoMin) &
-					   (rho <= self.rhoMax))[1]
+		idx = np.where((z >= 0) &
+					   (z <= self.roiHeight) &
+					   (rho >= -self.roiRadius) &
+					   (rho <= self.roiRadius))[1]
 
 		return points[idx], colors[idx]
 
