@@ -27,11 +27,10 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
-
+import wx._core
 from collections import OrderedDict
 
-from horus.util.profile import *
+from horus.util import profile
 
 class Control(wx.Panel):
 	def __init__(self, parent, title, bold=True):
@@ -105,7 +104,7 @@ class ControlItem(wx.Panel):
 		self.control = None
 
 		self.name = name
-		self.setting = getProfileSettingObject(self.name)
+		self.setting = profile.getProfileSettingObject(self.name)
 
 	def setEngineCallback(self, engineCallback=None):
 		self.engineCallback = engineCallback
@@ -115,7 +114,7 @@ class ControlItem(wx.Panel):
 		self.releaseUndoCallback = releaseUndoCallback
 
 	def isVisible(self):
-		if getPreferenceBool('basic_mode'):
+		if profile.getPreferenceBool('basic_mode'):
 			return self.setting.getCategory() is 'basic'
 		else:
 			return self.setting.getCategory() is 'basic' or self.setting.getCategory() is 'advanced'
@@ -135,11 +134,11 @@ class ControlItem(wx.Panel):
 	def undo(self):
 		if len(self.undoValues) > 0:
 			value = self.undoValues.pop()
-			putProfileSetting(self.name, value)
+			profile.putProfileSetting(self.name, value)
 			self.update(value)
 
 	def resetProfile(self):
-		resetProfileSetting(self.name)
+		profile.resetProfileSetting(self.name)
 		del self.undoValues[:]
 		self.updateProfile()
 
@@ -154,7 +153,7 @@ class Slider(ControlItem):
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
 		self.control = wx.Slider(self, wx.ID_ANY,
-								 getProfileSettingInteger(self.name),
+								 profile.getProfileSettingInteger(self.name),
 								 int(eval(self.setting.getMinValue(), {}, {})),
 								 int(eval(self.setting.getMaxValue(), {}, {})),
 								 size=(150,-1),
@@ -178,18 +177,18 @@ class Slider(ControlItem):
 
 	def onSliderTracked(self, event):
 		if self.flagFirstMove:
-			value = getProfileSettingInteger(self.name)
+			value = profile.getProfileSettingInteger(self.name)
 			self.undoValues.append(value)
 			if self.appendUndoCallback is not None:
 				self.appendUndoCallback(self)
 			self.flagFirstMove = False
 		value = self.control.GetValue()
-		putProfileSetting(self.name, value)
+		profile.putProfileSetting(self.name, value)
 		self._updateEngine(value)
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = getProfileSettingInteger(self.name)
+			value = profile.getProfileSettingInteger(self.name)
 			self.update(value)
 
 
@@ -201,7 +200,7 @@ class ComboBox(ControlItem):
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
 		self.control = wx.ComboBox(self, wx.ID_ANY,
-								   value=getProfileSetting(self.name),
+								   value=profile.getProfileSetting(self.name),
 								   choices=self.setting.getType(),
 								   size=(150, -1),
 								   style=wx.CB_READONLY)
@@ -217,9 +216,9 @@ class ComboBox(ControlItem):
 		self.control.Bind(wx.EVT_COMBOBOX, self.onComboBoxChanged)
 
 	def onComboBoxChanged(self, event):
-		self.undoValues.append(getProfileSetting(self.name))
+		self.undoValues.append(profile.getProfileSetting(self.name))
 		value = self.control.GetValue()
-		putProfileSetting(self.name, value)
+		profile.putProfileSetting(self.name, value)
 		self._updateEngine(value)
 		if self.appendUndoCallback is not None:
 			self.appendUndoCallback(self)
@@ -228,7 +227,7 @@ class ComboBox(ControlItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = getProfileSetting(self.name)
+			value = profile.getProfileSetting(self.name)
 			self.update(value)
 
 
@@ -252,9 +251,9 @@ class CheckBox(ControlItem):
 		self.control.Bind(wx.EVT_CHECKBOX, self.onCheckBoxChanged)
 
 	def onCheckBoxChanged(self, event):
-		self.undoValues.append(getProfileSettingBool(self.name))
+		self.undoValues.append(profile.getProfileSettingBool(self.name))
 		value = self.control.GetValue()
-		putProfileSetting(self.name, value)
+		profile.putProfileSetting(self.name, value)
 		self._updateEngine(value)
 		if self.appendUndoCallback is not None:
 			self.appendUndoCallback(self)
@@ -263,7 +262,7 @@ class CheckBox(ControlItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = getProfileSettingBool(self.name)
+			value = profile.getProfileSettingBool(self.name)
 			self.update(value)
 
 class RadioButton(ControlItem):
@@ -286,9 +285,9 @@ class RadioButton(ControlItem):
 		self.control.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonChanged)
 
 	def onRadioButtonChanged(self, event):
-		self.undoValues.append(getProfileSettingBool(self.name))
+		self.undoValues.append(profile.getProfileSettingBool(self.name))
 		value = self.control.GetValue()
-		putProfileSetting(self.name, value)
+		profile.putProfileSetting(self.name, value)
 		self._updateEngine(value)
 		if self.appendUndoCallback is not None:
 			self.appendUndoCallback(self)
@@ -297,7 +296,7 @@ class RadioButton(ControlItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = getProfileSettingBool(self.name)
+			value = profile.getProfileSettingBool(self.name)
 			self.update(value)
 
 class TextBox(ControlItem):
@@ -320,9 +319,9 @@ class TextBox(ControlItem):
 		self.control.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
 
 	def onTextBoxChanged(self, event):
-		#self.undoValues.append(getProfileSetting(self.name))
+		#self.undoValues.append(profile.getProfileSetting(self.name))
 		value = self.control.GetValue()
-		putProfileSetting(self.name, value)
+		profile.putProfileSetting(self.name, value)
 		self._updateEngine(value)
 		#if self.appendUndoCallback is not None:
 		#	self.appendUndoCallback(self)
@@ -331,7 +330,7 @@ class TextBox(ControlItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = getProfileSetting(self.name)
+			value = profile.getProfileSetting(self.name)
 			self.update(value)
 
 class Button(ControlItem):

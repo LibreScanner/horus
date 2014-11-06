@@ -27,14 +27,17 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from horus.util.resources import *
+import cv2
 
-from horus.gui.util.page import *
-from horus.gui.util.imageView import *
+from horus.util import resources
+
+from horus.gui.util.page import Page
+from horus.gui.util.imageView import ImageView, VideoView
 from horus.gui.workbench.calibration.panels import *
 
-from horus.engine.scanner import *
-from horus.engine.calibration import *
+import horus.util.error as Error
+from horus.engine.driver import Driver
+from horus.engine import calibration
 
 class CameraIntrinsicsMainPage(Page):
 
@@ -47,13 +50,14 @@ class CameraIntrinsicsMainPage(Page):
 							buttonRightCallback=buttonPerformCallback,
 							panelOrientation=wx.HORIZONTAL)
 
-		self.scanner = Scanner.Instance()
-		self.calibration = Calibration.Instance()
+		self.driver = Driver.Instance()
+		self.camera = self.driver.camera
+		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 
 		#-- Video View
 		self.videoView = ImageView(self._panel)
 		self.videoView.SetBackgroundColour(wx.BLACK)
-		self.videoView.setImage(wx.Image(getPathForImage("bq.png")))
+		self.videoView.setImage(wx.Image(resources.getPathForImage("bq.png")))
 		
 		#--Guide Panel
 		self.guidePanel = wx.Panel(self._panel)
@@ -89,7 +93,7 @@ class CameraIntrinsicsMainPage(Page):
 		for panel in range(self.rows*self.columns):
 			self.panelGrid.append(ImageView(self.imageGridPanel))
 			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
-			self.panelGrid[panel].setImage(wx.Image(getPathForImage("void.png")))
+			self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
 			self.gridSizer.Add(self.panelGrid[panel], 0, wx.ALL|wx.EXPAND)
 		self.imageGridPanel.SetSizer(self.gridSizer)
 
@@ -115,57 +119,57 @@ class CameraIntrinsicsMainPage(Page):
 		self.guidePanel.Show()
 		self.imageGridPanel.Hide()
 		self.guideTitleText.SetLabel("1. Place the pattern in the plate")
-		self.guideImage.setImage(wx.Image(getPathForImage("instructions-1.png")))
-		self.guideProgress.setImage(wx.Image(getPathForImage("progress-1.png")))
+		self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-1.png")))
+		self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-1.png")))
 		self._rightButton.Disable()
 		self.currentGrid = 0
 		for panel in range(self.rows*self.columns):
 			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
-			self.panelGrid[panel].setImage(wx.Image(getPathForImage("void.png")))
+			self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
 
 	def onShow(self, event):
 		self.videoManagement(event.GetShow())
 
+	# TODO: use VideoView
 	def videoManagement(self, status):
 		if status:
 			if not self.timer.IsRunning():
-				if self.scanner.camera.fps > 0:
-					mseconds = 1000/(self.scanner.camera.fps)
-					self.timer.Start(milliseconds=mseconds)
-					self.calibration.clearImageStack()
+				self.timer.Start(milliseconds=20)
+				calibration.CameraIntrinsics.Instance().clearImageStack()
 		else:
 			self.timer.Stop()
 			self.initialize()
 
 	def onTimer(self, event):
-		if self.scanner.isConnected:
-			frame = self.scanner.camera.captureImage(mirror=True)
+		self.timer.Stop()
+		if self.driver.isConnected:
+			frame = Driver.Instance().camera.captureImage(mirror=True)
 			if frame is not None:
+				retval, frame = calibration.CameraIntrinsics.Instance().detectChessboard(frame)
 				self.videoView.setFrame(frame)
+		self.timer.Start(milliseconds=20)
 
 	def onKeyPress(self, event):
 		if event.GetKeyCode() == 32: #-- spacebar
 			if self.guidePage == 0:
 				self.guideTitleText.SetLabel("2. Move it using the yellow lines as reference")
-				self.guideImage.setImage(wx.Image(getPathForImage("instructions-2.png")))
-				self.guideProgress.setImage(wx.Image(getPathForImage("progress-2.png")))
+				self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-2.png")))
+				self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-2.png")))
 				self.guidePage = 1
 			elif self.guidePage == 1:
 				self.guideTitleText.SetLabel("3. Press spacebar to perform captures")
-				self.guideImage.setImage(wx.Image(getPathForImage("instructions-3.png")))
-				self.guideProgress.setImage(wx.Image(getPathForImage("progress-3.png")))
+				self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-3.png")))
+				self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-3.png")))
 				self.guidePage = 2
 			elif self.guidePage == 2:
 				self.guidePanel.Hide()
 				self.imageGridPanel.Show()
 				self.Layout()
-				width, height = self.scanner.camera.getResolution()
-				self.calibration.generateGuides(width, height)
 				self.guidePage = 3
 			elif self.guidePage == 3:
-				if self.scanner.isConnected:
-					frame = self.scanner.camera.captureImage(mirror=False, flush=True)
-					retval, frame = self.calibration.detectChessboard(frame)
+				if self.driver.isConnected:
+					frame = self.camera.captureImage(mirror=False, flush=True)
+					retval, frame = self.cameraIntrinsics.detectChessboard(frame, capture=True)
 					frame = cv2.flip(frame, 1) #-- Mirror
 					self.addFrameToGrid(retval, frame)
 
@@ -194,8 +198,7 @@ class CameraIntrinsicsResultPage(Page):
 							buttonRightCallback=buttonAcceptCallback,
 							panelOrientation=wx.HORIZONTAL)
 
-		self.calibration = Calibration.Instance()
-
+		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.cameraIntrinsicsParameters = CameraIntrinsicsParameters(self._panel)
 
 		#-- 3D Plot Panel
@@ -212,12 +215,29 @@ class CameraIntrinsicsResultPage(Page):
 			self.performCalibration()
 
 	def performCalibration(self):
+		self.cameraIntrinsics.setCallbacks(self.beforeCalibrate, None, lambda r: wx.CallAfter(self.afterCalibrate,r))
+		self.cameraIntrinsics.start()
+
+	def beforeCalibrate(self):
 		self.plotPanel.Hide()
 		self.plotPanel.clear()
-		ret = self.calibration.performCameraIntrinsicsCalibration()
-		self.plotPanel.add(ret[2], ret[3])
-		self.cameraIntrinsicsParameters.setParameters((ret[0], ret[1]))
-		self.plotPanel.Show()
+		self.waitCursor = wx.BusyCursor()
+
+	def afterCalibrate(self, response):
+		ret, result = response
+
+		if ret:
+			mtx, dist, rvecs, tvecs = result
+			self.cameraIntrinsicsParameters.setParameters((mtx, dist))
+			self.plotPanel.add(rvecs, tvecs)
+			self.plotPanel.Show()
+			self.Layout()
+		else:
+			dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+
+		del self.waitCursor
 
 
 import random
@@ -228,7 +248,6 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 class Plot3DCameraIntrinsics(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
-		self.calibration = Calibration.Instance()
 
 		self.initialize()
 
@@ -327,7 +346,7 @@ class LaserTriangulationMainPage(Page):
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
 		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(getPathForImage("pattern-position-right.jpg")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
@@ -352,6 +371,7 @@ class LaserTriangulationResultPage(Page):
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
+		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 		self.laserTriangulationParameters = LaserTriangulationParameters(self._panel)
 
 		self.leftLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Left Laser Image Sequence")
@@ -372,19 +392,33 @@ class LaserTriangulationResultPage(Page):
 			self.performCalibration()
 
 	def performCalibration(self):
-		ret = Calibration.Instance().performLaserTriangulationCalibration()
+		self.laserTriangulation.setCallbacks(self.beforeCalibrate, None, lambda r: wx.CallAfter(self.afterCalibrate,r))
+		self.laserTriangulation.start()
 
-		if ret is not None:
-			self.laserTriangulationParameters.setParameters((ret[1], ret[0][0], ret[0][1]))
+	def beforeCalibrate(self):
+		self.waitCursor = wx.BusyCursor()
 
-			self.leftLaserImageSequence.imageLas.setFrame(ret[2][0][0])
-			self.leftLaserImageSequence.imageGray.setFrame(ret[2][0][1])
-			self.leftLaserImageSequence.imageBin.setFrame(ret[2][0][2])
-			self.leftLaserImageSequence.imageLine.setFrame(ret[2][0][3])
-			self.rightLaserImageSequence.imageLas.setFrame(ret[2][1][0])
-			self.rightLaserImageSequence.imageGray.setFrame(ret[2][1][1])
-			self.rightLaserImageSequence.imageBin.setFrame(ret[2][1][2])
-			self.rightLaserImageSequence.imageLine.setFrame(ret[2][1][3])
+	def afterCalibrate(self, response):
+		ret, result = response
+
+		if ret:
+			vectors, parameters, images = result
+			self.laserTriangulationParameters.setParameters((parameters, vectors[0], vectors[1]))
+			self.leftLaserImageSequence.imageLas.setFrame(images[0][0])
+			self.leftLaserImageSequence.imageGray.setFrame(images[0][1])
+			self.leftLaserImageSequence.imageBin.setFrame(images[0][2])
+			self.leftLaserImageSequence.imageLine.setFrame(images[0][3])
+			self.rightLaserImageSequence.imageLas.setFrame(images[1][0])
+			self.rightLaserImageSequence.imageGray.setFrame(images[1][1])
+			self.rightLaserImageSequence.imageBin.setFrame(images[1][2])
+			self.rightLaserImageSequence.imageLine.setFrame(images[1][3])
+			self.Layout()
+		else:
+			dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+
+		del self.waitCursor
 
 
 class LaserTriangulationImageSequence(wx.Panel):
@@ -436,7 +470,7 @@ class PlatformExtrinsicsMainPage(Page):
 		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
 
 		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(getPathForImage("pattern-position-left.jpg")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
 		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
@@ -461,6 +495,7 @@ class PlatformExtrinsicsResultPage(Page):
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
+		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 		self.platformExtrinsicsParameters = PlatformExtrinsicsParameters(self._panel)
 		self.plotPanel = Plot3DPlatformExtrinsics(self._panel)
 
@@ -477,13 +512,30 @@ class PlatformExtrinsicsResultPage(Page):
 			self.performCalibration()
 
 	def performCalibration(self):
+		self.platformExtrinsics.setCallbacks(self.beforeCalibrate, None, lambda r: wx.CallAfter(self.afterCalibrate,r))
+		self.platformExtrinsics.start()
+
+	def beforeCalibrate(self):
 		self.plotPanel.Hide()
 		self.plotPanel.clear()
-		ret = Calibration.Instance().performPlatformExtrinsicsCalibration()
-		if ret is not None:
-			self.plotPanel.add(ret)
-			self.platformExtrinsicsParameters.setParameters((ret[0], ret[1]))
-		self.plotPanel.Show()
+		self.waitCursor = wx.BusyCursor()
+
+	def afterCalibrate(self, response):
+		ret, result = response
+
+		if ret:
+			R = result[0]
+			t = result[1]
+			self.platformExtrinsicsParameters.setParameters((R, t))
+			self.plotPanel.add(result)
+			self.plotPanel.Show()
+			self.Layout()
+		else:
+			dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+
+		del self.waitCursor
 
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -492,7 +544,6 @@ class Plot3DPlatformExtrinsics(wx.Panel):
 
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
-		self.calibration = Calibration.Instance()
 
 		self.initialize()
 
@@ -518,7 +569,7 @@ class Plot3DPlatformExtrinsics(wx.Panel):
 		#self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
 		self.ax.plot(circle[0], circle[2], circle[1], c='r')
 
-		d = getProfileSettingFloat('pattern_distance')
+		d = profile.getProfileSettingFloat('pattern_distance')
 
 		self.ax.plot([t[0],t[0]+100*R[0][0]], [t[2],t[2]+100*R[2][0]], [t[1],t[1]+100*R[1][0]], linewidth=2.0, color='red')
 		self.ax.plot([t[0],t[0]+100*R[0][1]], [t[2],t[2]+100*R[2][1]], [t[1],t[1]+100*R[1][1]], linewidth=2.0, color='green')

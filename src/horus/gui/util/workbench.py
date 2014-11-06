@@ -27,7 +27,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
+import wx._core
 
 class Workbench(wx.Panel):
 
@@ -60,20 +60,21 @@ class Workbench(wx.Panel):
 			self.hbox.Add(_object, _size, wx.ALL|wx.EXPAND, 3)
 
 
-from horus.util.resources import *
+import horus.util.error as Error
+from horus.util import resources
 
-from horus.engine.scanner import *
+from horus.engine.driver import Driver
 
 class WorkbenchConnection(Workbench):
 
 	def __init__(self, parent):
 		Workbench.__init__(self, parent)
 
-		self.scanner = Scanner.Instance()
+		self.driver = Driver.Instance()
 
 		#-- Toolbar Configuration
-		self.connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(getPathForImage("connect.png")), shortHelp=_("Connect"))
-		self.disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
+		self.connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(resources.getPathForImage("connect.png")), shortHelp=_("Connect"))
+		self.disconnectTool = self.toolbar.AddLabelTool(wx.NewId(), _("Disconnect"), wx.Bitmap(resources.getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
@@ -90,58 +91,61 @@ class WorkbenchConnection(Workbench):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.scanner.isConnected)
+			self.updateStatus(self.driver.isConnected)
 
 	def onConnectToolClicked(self, event):
-		self.updateStatus(True)
-		try:
-			self.scanner.connect()
-		except WrongFirmware as e:
-			dlg = wx.MessageDialog(self, _("Board has a wrong firmware.\nPlease select your Board\nand press Upload Firmware"), _("Wrong firmware"), wx.OK|wx.ICON_INFORMATION)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.updateStatus(False)
-			self.GetParent().onPreferences(None)
-		except DeviceNotConnected as e:
-			dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board\nand select a valid Serial Name"), _("Device not connected"), wx.OK|wx.ICON_INFORMATION)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.updateStatus(False)
-			self.GetParent().onPreferences(None)
-		except CameraNotConnected as e:
-			dlg = wx.MessageDialog(self, _("Please plug your camera. You have to restart the application to make the changes effective."), _("Camera not connected"), wx.OK|wx.ICON_ERROR)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.GetParent().Close(True)
-		except WrongCamera as e:
-			dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), _("Wrong camera"), wx.OK|wx.ICON_INFORMATION)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.updateStatus(False)
-			self.GetParent().onPreferences(None)
-		except InvalidVideo as e:
-			dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective"), _("Camera Error"), wx.OK|wx.ICON_ERROR)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.GetParent().Close(True)
-		else:		
-			if self.scanner.isConnected:
-				self.videoView.play()
-				self.GetParent().updateDeviceCurrentProfile()
-				self.GetParent().updateCameraCurrentProfile()
-				#self.GetParent().updateCoreCurrentProfile()
-
-		self.updateStatus(self.scanner.isConnected)
+		self.driver.setCallbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
+		self.driver.connect()
 
 	def onDisconnectToolClicked(self, event):
-		self.scanner.stop()
-		if self.scanner.disconnect():
-			self.updateStatus(False)
+		self.driver.disconnect()
+		self.updateStatus(False)
+
+	def beforeConnect(self):
+		self.enableLabelTool(self.connectTool, False)
+		self.combo.Disable()
+		self.waitCursor = wx.BusyCursor()
+
+	def afterConnect(self, response):
+		ret, result = response
+
+		if not ret:
+			if result is Error.WrongFirmware:
+				dlg = wx.MessageDialog(self, _("Board has a wrong firmware.\nPlease select your Board\nand press Upload Firmware"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.updateStatus(False)
+				self.GetParent().onPreferences(None)
+			elif result is Error.BoardNotConnected:
+				dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board\nand select a valid Serial Name"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.updateStatus(False)
+				self.GetParent().onPreferences(None)
+			elif result is Error.CameraNotConnected:
+				dlg = wx.MessageDialog(self, _("Please plug your camera. You have to restart the application to make the changes effective."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.GetParent().Close(True)
+			elif result is Error.WrongCamera:
+				dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.updateStatus(False)
+				self.GetParent().onPreferences(None)
+			elif result is Error.InvalidVideo:
+				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.GetParent().Close(True)
+
+		if self.driver.isConnected:
+			self.GetParent().updateBoardCurrentProfile()
+			self.GetParent().updateCameraCurrentProfile()
+
+		self.updateStatus(self.driver.isConnected)
+		self.combo.Enable()
+		del self.waitCursor
 
 	def enableLabelTool(self, item, enable):
 		self.toolbar.EnableTool(item.GetId(), enable)

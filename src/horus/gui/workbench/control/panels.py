@@ -27,13 +27,13 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
+import wx._core
 
 from horus.gui.util.itemControls import *
 
-from horus.util.profile import *
+from horus.util import profile
 
-from horus.engine.scanner import *
+from horus.engine.driver import Driver
 
 class CameraPanel(wx.Panel):
     """
@@ -44,7 +44,7 @@ class CameraPanel(wx.Panel):
         self.initialize()
         
     def initialize(self):
-        self.scanner = Scanner.Instance()
+        self.driver = Driver.Instance()
         self.main = self.GetParent().GetParent().GetParent()
 
         if hasattr(self, 'controls'):
@@ -53,13 +53,13 @@ class CameraPanel(wx.Panel):
 
         #-- Graphic elements
         control = Control(self, _('Camera Control'))
-        control.append(Slider, 'brightness_control', self.scanner.camera.setBrightness)
-        control.append(Slider, 'contrast_control', self.scanner.camera.setContrast)
-        control.append(Slider, 'saturation_control', self.scanner.camera.setSaturation)
-        control.append(Slider, 'exposure_control', self.scanner.camera.setExposure)
-        control.append(ComboBox, 'framerate_control', lambda v: (self.scanner.camera.setFrameRate(int(v)), self.reloadVideo()))
-        control.append(ComboBox, 'resolution_control', lambda v: self.scanner.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        control.append(CheckBox, 'use_distortion_control', lambda v: (self.scanner.camera.setUseDistortion(v), self.reloadVideo()))
+        control.append(Slider, 'brightness_control', self.driver.camera.setBrightness)
+        control.append(Slider, 'contrast_control', self.driver.camera.setContrast)
+        control.append(Slider, 'saturation_control', self.driver.camera.setSaturation)
+        control.append(Slider, 'exposure_control', self.driver.camera.setExposure)
+        control.append(ComboBox, 'framerate_control', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        control.append(ComboBox, 'resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        control.append(CheckBox, 'use_distortion_control', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
         control.append(Button, 'restore_default', self.restoreDefault)
         self.controls.append(control)
 
@@ -85,8 +85,8 @@ class CameraPanel(wx.Panel):
             self.reloadVideo()
 
     def reloadVideo(self):
-        self.main.videoView.stop()
-        if self.main.playing and self.scanner.camera.fps > 0:
+        self.main.videoView.pause()
+        if self.main.playing:
             self.main.videoView.play()
 
     def updateProfileToAllControls(self):
@@ -141,7 +141,7 @@ class DevicePanel(wx.Panel):
         self.initialize()
 
     def initialize(self):
-        self.scanner = Scanner.Instance()
+        self.driver = Driver.Instance()
         self.main = self.GetParent().GetParent().GetParent()
 
         if hasattr(self, 'controls'):
@@ -150,20 +150,20 @@ class DevicePanel(wx.Panel):
 
         #-- Graphic elements
         control = Control(self, _('Laser Control'))
-        control.append(ToggleButton, 'left_button', (self.scanner.device.setLeftLaserOn, self.scanner.device.setLeftLaserOff))
-        control.append(ToggleButton, 'right_button', (self.scanner.device.setRightLaserOn, self.scanner.device.setRightLaserOff))
+        control.append(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
+        control.append(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
         self.controls.append(control)
 
         control = Control(self, _('Motor Control'))
-        control.append(TextBox, 'step_degrees_control', lambda v: self.scanner.device.setRelativePosition(self.getValueFloat(v)))
-        control.append(TextBox, 'feed_rate_control', lambda v: self.scanner.device.setSpeedMotor(self.getValueInteger(v)))
-        control.append(TextBox, 'acceleration_control', lambda v: self.scanner.device.setAccelerationMotor(self.getValueInteger(v)))
-        control.append(Button, 'move_button', self.scanner.device.setMoveMotor)
-        control.append(ToggleButton, 'enable_button', (self.scanner.device.enable, self.scanner.device.disable))
+        control.append(TextBox, 'step_degrees_control', lambda v: self.driver.board.setRelativePosition(self.getValueFloat(v)))
+        control.append(TextBox, 'feed_rate_control', lambda v: self.driver.board.setSpeedMotor(self.getValueInteger(v)))
+        control.append(TextBox, 'acceleration_control', lambda v: self.driver.board.setAccelerationMotor(self.getValueInteger(v)))
+        control.append(Button, 'move_button', self.driver.board.moveMotor)
+        control.append(ToggleButton, 'enable_button', (self.driver.board.enableMotor, self.driver.board.disableMotor))
         self.controls.append(control)
 
         control = Control(self, _('Gcode Commands'))
-        control.append(GcodeGui, 'gcode_gui', lambda v: self.scanner.device.sendCommand(v, readLines=True))
+        control.append(GcodeGui, 'gcode_gui', lambda v: self.driver.board.sendRequest(v, readLines=True))
         self.controls.append(control)
 
         #-- Layout

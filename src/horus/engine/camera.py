@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: March & Octobrer 2014                                           #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -31,6 +31,7 @@ import cv2
 import math
 import platform
 
+
 class Error(Exception):
 	def __init__(self, msg):
 		self.msg = msg
@@ -39,33 +40,26 @@ class Error(Exception):
 		return repr(self.msg)
 
 class CameraNotConnected(Error):
-	def __init__(self, msg="Camera not connected"):
+	def __init__(self, msg="CameraNotConnected"):
 		super(CameraNotConnected, self).__init__(msg)
 
 class WrongCamera(Error):
-	def __init__(self, msg="Wrong Camera"):
+	def __init__(self, msg="WrongCamera"):
 		super(WrongCamera, self).__init__(msg)
 
 class InvalidVideo(Error):
 	def __init__(self, msg="InvalidVideo"):
 		super(InvalidVideo, self).__init__(msg)
 
+
 class Camera:
 	""" """
 	def __init__(self, cameraId=0):
-		""" """
-		print ">>> Initializing camera ..."
-		print " - Camera ID: {0}".format(cameraId)
 		self.cameraId = cameraId
 
-		self._initialize()
-
-	def _initialize(self):
+		self.capture = None
 		self.isConnected = False
 
-		self.capture = None
-		
-		self.fps = 30
 		self.width = 800
 		self.height = 600
 		self.useDistortion = False
@@ -84,9 +78,11 @@ class Camera:
 			self.maxSaturation = 255.
 			self.maxExposure = 10000.
 
+	def setCameraId(self, cameraId):
+		self.cameraId = cameraId
+
 	def connect(self):
-		""" """
-		print ">>> Connecting camera ..."
+		print ">>> Connecting camera {0}".format(self.cameraId)
 		self.isConnected = False
 		self.capture = cv2.VideoCapture(self.cameraId)
 		if self.capture.isOpened():
@@ -96,11 +92,9 @@ class Camera:
 			self.checkCamera()
 		else:
 			raise CameraNotConnected()
-		return self.isConnected
 		
 	def disconnect(self):
-		""" """
-		print ">>> Disconnecting camera ..."
+		print ">>> Disconnecting camera {0}".format(self.cameraId)
 		if self.capture is not None:
 			if self.capture.isOpened():
 				self.capture.release()
@@ -108,8 +102,7 @@ class Camera:
 		print ">>> Done"
 
 	def checkCamera(self):
-		""" """
-		#-- Check correct camera
+		""" Checks correct camera """
 		self.setExposure(2)
 		exposure = self.getExposure()
 		if exposure is not None:
@@ -117,8 +110,7 @@ class Camera:
 				raise WrongCamera()
 
 	def checkVideo(self):
-		""" """
-		#-- Check correct video
+		""" Checks correct video """
 		if self.captureImage() is None:
 			raise InvalidVideo()
 
@@ -176,7 +168,6 @@ class Camera:
 
 	def setFrameRate(self, value):
 		if self.isConnected:
-			self.fps = value
 			self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
 
 	def _setWidth(self, value):

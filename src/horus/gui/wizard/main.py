@@ -27,16 +27,17 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
+import os
+import wx._core
 
-from horus.util.profile import *
-from horus.util.resources import *
+from horus.util import profile
 
-from horus.engine.scanner import *
+from horus.engine.driver import Driver
 
-from horus.gui.wizard.connectionPage import *
-from horus.gui.wizard.calibrationPage import *
-from horus.gui.wizard.scanningPage import *
+from horus.gui.wizard.connectionPage import ConnectionPage
+from horus.gui.wizard.calibrationPage import CalibrationPage
+from horus.gui.wizard.scanningPage import ScanningPage
+
 
 class Wizard(wx.Dialog):
     def __init__(self, parent):
@@ -44,8 +45,8 @@ class Wizard(wx.Dialog):
 
         self.parent = parent
 
-        self.scanner = Scanner.Instance()
-        self.scanner.disconnect()
+        self.driver = Driver.Instance()
+        self.driver.disconnect()
  
         self.connectionPage = ConnectionPage(self, buttonPrevCallback=self.onConnectionPagePrevClicked, buttonNextCallback=self.onConnectionPageNextClicked)
         self.calibrationPage = CalibrationPage(self, buttonPrevCallback=self.onCalibrationPagePrevClicked, buttonNextCallback=self.onCalibrationPageNextClicked)
@@ -72,12 +73,12 @@ class Wizard(wx.Dialog):
         self.ShowModal()
 
     def onConnectionPagePrevClicked(self):
-        putPreference('workbench', 'scanning')
+        profile.putPreference('workbench', 'scanning')
         dlg = wx.MessageDialog(self, _("Do you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
         if result:
-            self.scanner.disconnect()
+            self.driver.disconnect()
             self.parent.workbenchUpdate()
             self.Destroy()
 
@@ -102,10 +103,10 @@ class Wizard(wx.Dialog):
         self.Layout()
 
     def onScanningPageNextClicked(self):
-        self.scanner.device.setLeftLaserOff()
-        self.scanner.device.setRightLaserOff()
-        putPreference('workbench', 'scanning')
-        saveProfile(os.path.join(getBasePath(), 'current-profile.ini'))
+        self.driver.board.setLeftLaserOff()
+        self.driver.board.setRightLaserOff()
+        profile.putPreference('workbench', 'scanning')
+        profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
         dlg = wx.MessageDialog(self, _("You have finished the wizard.\nPress Play button to start scanning."), _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()

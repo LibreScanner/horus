@@ -29,13 +29,13 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx.lib.scrolledpanel
 
-from horus.util.resources import *
+from horus.util import resources
 
-from horus.gui.util.imageView import *
-from horus.gui.util.workbench import *
-from horus.gui.workbench.control.panels import *
+from horus.gui.util.imageView import VideoView
+from horus.gui.util.workbench import WorkbenchConnection
+from horus.gui.workbench.control.panels import CameraPanel, DevicePanel
 
-from horus.engine.scanner import *
+from horus.engine.driver import Driver
 
 class ControlWorkbench(WorkbenchConnection):
 
@@ -44,7 +44,7 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.playing = False
 
-		self.scanner = Scanner.Instance()
+		self.driver = Driver.Instance()
 
 		self.load()
 
@@ -52,9 +52,9 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def load(self):
 		#-- Toolbar Configuration
-		self.playTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-		self.stopTool = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
+		self.playTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
+		self.stopTool = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
+		self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
@@ -99,7 +99,7 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.scanner.isConnected)
+			self.updateStatus(self.driver.isConnected)
 		else:
 			try:
 				self.onStopToolClicked(None)
@@ -107,14 +107,13 @@ class ControlWorkbench(WorkbenchConnection):
 				pass
 
 	def getFrame(self):
-		return self.scanner.camera.captureImage()
+		return self.driver.camera.captureImage()
 
 	def onPlayToolClicked(self, event):
-		if self.scanner.camera.fps > 0:
-			self.playing = True
-			self.enableLabelTool(self.playTool, False)
-			self.enableLabelTool(self.stopTool, True)
-			self.videoView.play()
+		self.playing = True
+		self.enableLabelTool(self.playTool, False)
+		self.enableLabelTool(self.stopTool, True)
+		self.videoView.play()
 
 	def onStopToolClicked(self, event):
 		self.playing = False
@@ -148,6 +147,7 @@ class ControlWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.stopTool, False)
 			self.cameraPanel.Disable()
 			self.devicePanel.Disable()
+			self.videoView.stop()
 
 	def updateProfileToAllControls(self):
 		self.cameraPanel.updateProfileToAllControls()

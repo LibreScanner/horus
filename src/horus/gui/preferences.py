@@ -27,17 +27,13 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
-
 import os
-import glob
-import time
+import wx._core
 import threading
 
+from horus.util import profile, resources
 from horus.util.avrHelpers import AvrDude
 
-from horus.util.profile import *
-from horus.util.resources import *
 
 class PreferencesDialog(wx.Dialog):
 	def __init__(self, parent):
@@ -57,12 +53,12 @@ class PreferencesDialog(wx.Dialog):
 		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(143,-1))
 
 		self.languageLabel = wx.StaticText(self, label=_("Language"))
-		self.languages = [row[1] for row in getLanguageOptions()]
-		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=getPreference('language') , size=(110,-1))
+		self.languages = [row[1] for row in resources.getLanguageOptions()]
+		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(110,-1))
 
 		self.boardLabel = wx.StaticText(self, label=_("Board"))
-		self.boards = getProfileSettingObject('board').getType()
-		board = getProfileSetting('board')
+		self.boards = profile.getProfileSettingObject('board').getType()
+		board = profile.getProfileSetting('board')
 		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(110,-1))
 		self.clearCheckBox = wx.CheckBox(self, -1, _("Clear EEPROM"))
 		self.uploadFirmwareButton = wx.Button(self, -1, _("Upload Firmware"))
@@ -80,14 +76,14 @@ class PreferencesDialog(wx.Dialog):
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Close())
 
 		#-- Fill data
-		currentSerial = getProfileSetting('serial_name')
+		currentSerial = profile.getProfileSetting('serial_name')
 		if len(self.serialNames) > 0:
 			if currentSerial not in self.serialNames:
 				self.serialNameCombo.SetValue(self.serialNames[0])
 			else:
 				self.serialNameCombo.SetValue(currentSerial)
 
-		currentVideoId = getProfileSetting('camera_id')
+		currentVideoId = profile.getProfileSetting('camera_id')
 		if len(self.cameraIdNames) > 0:
 			if currentVideoId not in self.cameraIdNames:
 				self.cameraIdCombo.SetValue(self.cameraIdNames[0])
@@ -143,14 +139,14 @@ class PreferencesDialog(wx.Dialog):
 
 	def onSerialNameTextChanged(self, event):
 		if len(self.serialNameCombo.GetValue()):
-			putProfileSetting('serial_name', self.serialNameCombo.GetValue())
+			profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
 
 	def onCameraIdTextChanged(self, event):
 		if len(self.cameraIdCombo.GetValue()):
-			putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
+			profile.putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
 
 	def onBoardsComboChanged(self, event):
-		putProfileSetting('board', self.boardsCombo.GetValue())
+		profile.putProfileSetting('board', self.boardsCombo.GetValue())
 		self.main.updateScannerProfile()
 
 	def onUploadFirmware(self, event):
@@ -167,7 +163,7 @@ class PreferencesDialog(wx.Dialog):
 			return 19200
 
 	def loadFirmware(self, hexBaudRate, clearEEPROM):
-		avr_dude = AvrDude(port=getProfileSetting('serial_name'), baudRate=hexBaudRate)
+		avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'), baudRate=hexBaudRate)
 		extraFlags = []
 		if clearEEPROM:
 			extraFlags = ["-D"]
@@ -212,9 +208,9 @@ class PreferencesDialog(wx.Dialog):
 		self.Layout()
 
 	def onLanguageComboChanged(self, event):
-		if getPreference('language') is not self.languageCombo.GetValue():
-			putPreference('language', self.languageCombo.GetValue())
-			setupLocalization(getPreference('language'))
+		if profile.getPreference('language') is not self.languageCombo.GetValue():
+			profile.putPreference('language', self.languageCombo.GetValue())
+			resources.setupLocalization(profile.getPreference('language'))
 			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
 
 	def onClose(self, e):

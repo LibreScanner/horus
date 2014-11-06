@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: June 2014                                                       #
+# Date: June & November 2014                                            #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -27,15 +27,17 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-from horus.util.profile import *
-from horus.util.resources import *
+import wx._core
 
-from horus.gui.util.imageView import *
-from horus.gui.util.sceneView import *
-from horus.gui.util.workbench import *
-from horus.gui.workbench.scanning.panels import *
+import horus.util.error as Error
+from horus.util import resources, profile
 
-from horus.engine.scanner import *
+from horus.gui.util.imageView import VideoView
+from horus.gui.util.sceneView import SceneView
+from horus.gui.util.workbench import WorkbenchConnection
+from horus.gui.workbench.scanning.panels import SettingsPanel
+
+from horus.engine.scan import SimpleScan
 
 class ScanningWorkbench(WorkbenchConnection):
 
@@ -45,7 +47,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.playing = False
 		self.showVideoViews = False
 
-		self.scanner = Scanner.Instance()
+		self.simpleScan = SimpleScan.Instance()
 
 		self.load()
 
@@ -54,12 +56,12 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def load(self):
 		#-- Toolbar Configuration
-		self.playTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-		self.stopTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-		self.pauseTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(getPathForImage("pause.png")), shortHelp=_("Pause"))
-		self.resumeTool = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(getPathForImage("resume.png")), shortHelp=_("Resume"))
-		self.undoTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
-		self.deleteTool = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(getPathForImage("delete.png")), shortHelp=_("Clear"))
+		self.playTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
+		self.stopTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
+		self.pauseTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(resources.getPathForImage("pause.png")), shortHelp=_("Pause"))
+		self.resumeTool = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(resources.getPathForImage("resume.png")), shortHelp=_("Resume"))
+		self.undoTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
+		self.deleteTool = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(resources.getPathForImage("delete.png")), shortHelp=_("Clear"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
@@ -104,7 +106,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.addToPanel(self.splitterWindow, 1)
 
 		#- Video View Selector
-		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
+		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
 		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(10,15+40))
 		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+80))
 		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(10,15+120))
@@ -137,8 +139,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
 
-		self.scanner.setFinishCallback(self.onFinishScanning)
-
 		self.Layout()
 
 		#-- Undo
@@ -146,7 +146,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.scanner.isConnected)
+			self.updateStatus(self.simpleScan.driver.isConnected)
 			self.pointCloudTimer.Stop()
 			self.pointCloudTimer.Start(milliseconds=100)
 			self.videoView.play()
@@ -179,61 +179,89 @@ class ScanningWorkbench(WorkbenchConnection):
 						self.buttonBin.GetId()  : 'bin',
 						self.buttonLine.GetId() : 'line'}.get(event.GetId())
 
-		self.scanner.core.setImageType(selectedView)
+		self.simpleScan.pcg.setImageType(selectedView)
 		profile.putProfileSetting('img_type', selectedView)
 
 	def getFrame(self):
-		return self.scanner.core.getImage()
+		return self.simpleScan.pcg.getImage()
 
 	def onPointCloudTimer(self, event):
-		pointCloud = self.scanner.getPointCloudIncrement()
+		pointCloud = self.simpleScan.getPointCloudIncrement()
 		if pointCloud is not None:
 			if pointCloud[0] is not None and pointCloud[1] is not None:
 				if len(pointCloud[0]) > 0:
 					self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
 	def onPlayToolClicked(self, event):
-		result = True
+		self.simpleScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
+		self.simpleScan.start()
 
+	def beforeScan(self):
 		if self.sceneView._object is not None:
 			dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
 			result = dlg.ShowModal() == wx.ID_YES
 			dlg.Destroy()
 
-		if result:
-			self.enableLabelTool(self.playTool, False)
-			self.enableLabelTool(self.stopTool, True)
-			self.enableLabelTool(self.pauseTool , True)
+		self.enableLabelTool(self.playTool, False)
+		self.enableLabelTool(self.stopTool, True)
+		self.enableLabelTool(self.pauseTool , True)
+		self.enableLabelTool(self.resumeTool, False)
+		self.enableLabelTool(self.deleteTool, False)
+		self.sceneView.createDefaultObject()
+		self.videoView.play()
+		self.pointCloudTimer.Start(milliseconds=100)
+
+	def afterScan(self, response):
+		ret, result = response
+		if ret:
+			self.enableLabelTool(self.playTool, True)
+			self.enableLabelTool(self.stopTool, False)
+			self.enableLabelTool(self.pauseTool , False)
 			self.enableLabelTool(self.resumeTool, False)
-			self.enableLabelTool(self.deleteTool, False)
-			self.sceneView.createDefaultObject()
-			self.scanner.start()
-			self.pointCloudTimer.Start(milliseconds=100)
-			self.videoView.play()
+			self.enableLabelTool(self.deleteTool, True)
+			self.buttonShowVideoViews.Hide()
+			self.buttonRaw.Hide()
+			self.buttonLas.Hide()
+			self.buttonDiff.Hide()
+			self.buttonBin.Hide()
+			self.buttonLine.Hide()
+			self.pointCloudTimer.Stop()
+			self.videoView.stop()
+			dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK|wx.ICON_INFORMATION)
+			dlg.ShowModal()
+			dlg.Destroy()
 
 	def onStopToolClicked(self, event):
-		self.enableLabelTool(self.playTool, True)
-		self.enableLabelTool(self.stopTool, False)
-		self.enableLabelTool(self.pauseTool , False)
-		self.enableLabelTool(self.resumeTool, False)
-		self.enableLabelTool(self.deleteTool, True)
-		self.buttonShowVideoViews.Hide()
-		self.buttonRaw.Hide()
-		self.buttonLas.Hide()
-		self.buttonDiff.Hide()
-		self.buttonBin.Hide()
-		self.buttonLine.Hide()
-		
-		self.scanner.stop()
-		self.pointCloudTimer.Stop()
-		self.videoView.stop()
+		self.simpleScan.pause()
+		dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
+		result = dlg.ShowModal() == wx.ID_YES
+		dlg.Destroy()
+
+		if result:
+			self.enableLabelTool(self.playTool, True)
+			self.enableLabelTool(self.stopTool, False)
+			self.enableLabelTool(self.pauseTool , False)
+			self.enableLabelTool(self.resumeTool, False)
+			self.enableLabelTool(self.deleteTool, True)
+			self.buttonShowVideoViews.Hide()
+			self.buttonRaw.Hide()
+			self.buttonLas.Hide()
+			self.buttonDiff.Hide()
+			self.buttonBin.Hide()
+			self.buttonLine.Hide()
+			
+			self.simpleScan.stop()
+			self.pointCloudTimer.Stop()
+			self.videoView.stop()
+		else:
+			self.simpleScan.resume()
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, True)
 		self.enableLabelTool(self.deleteTool, False)
 		
-		self.scanner.pause()
+		self.simpleScan.pause()
 		self.pointCloudTimer.Stop()
 		self.videoView.pause()
 
@@ -242,30 +270,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.resumeTool, False)
 		self.enableLabelTool(self.deleteTool, False)
 		
-		self.scanner.resume()
+		self.simpleScan.resume()
 		self.pointCloudTimer.Start(milliseconds=100)
 		self.videoView.play()
-
-	def onFinishScanning(self):
-		wx.CallAfter(self.finishMessage)
-
-	def finishMessage(self):
-		self.enableLabelTool(self.playTool, True)
-		self.enableLabelTool(self.stopTool, False)
-		self.enableLabelTool(self.pauseTool , False)
-		self.enableLabelTool(self.resumeTool, False)
-		self.enableLabelTool(self.deleteTool, True)
-		self.buttonShowVideoViews.Hide()
-		self.buttonRaw.Hide()
-		self.buttonLas.Hide()
-		self.buttonDiff.Hide()
-		self.buttonBin.Hide()
-		self.buttonLine.Hide()
-		self.pointCloudTimer.Stop()
-		self.videoView.stop()
-		dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK | wx.ICON_INFORMATION)
-		result = dlg.ShowModal() == wx.ID_OK
-		dlg.Destroy()
 
 	def onDeleteToolClicked(self, event):
 		if self.sceneView._object is not None:

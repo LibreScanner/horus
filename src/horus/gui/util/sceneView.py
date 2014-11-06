@@ -566,12 +566,12 @@ class SceneView(openglGui.glGuiPanel):
 		glPopMatrix()
 
 	def _drawMachine(self):
-		#glEnable(GL_CULL_FACE)
 		glEnable(GL_BLEND)
 
 		machine = profile.getMachineSetting('machine_type')
 		if machine.startswith('ciclop'):
 
+			glEnable(GL_CULL_FACE)
 			#-- Draw Platform
 			if machine not in self._platformMesh:
 				mesh = meshLoader.loadMesh(resources.getPathForMesh(machine + '_platform.stl'))
@@ -584,6 +584,7 @@ class SceneView(openglGui.glGuiPanel):
 			self._objectShader.bind()
 			self._renderObject(self._platformMesh[machine])
 			self._objectShader.unbind()
+			glDisable(GL_CULL_FACE)
 
 		glDepthMask(False)
 		
@@ -644,7 +645,6 @@ class SceneView(openglGui.glGuiPanel):
 
 		glDepthMask(True)
 		glDisable(GL_BLEND)
-		#glDisable(GL_CULL_FACE)
 
 	def getObjectCenterPos(self):
 		if self._selectedObj is None:
