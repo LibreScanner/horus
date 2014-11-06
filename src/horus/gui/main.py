@@ -503,7 +503,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def updateDriverProfile(self):
         self.driver.camera.setCameraId(int(profile.getProfileSetting('camera_id')[-1:]))
         self.driver.board.setSerialName(profile.getProfileSetting('serial_name'))
-        self.driver.board.setBaudRate(profile.getProfileSetting('baud_rate'))
+        self.driver.board.setBaudRate(profile.getProfileSettingInteger('baud_rate'))
 
     def updateBoardCurrentProfile(self):
         self.updateBoardProfile(profile.getPreference('workbench'))
@@ -649,6 +649,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
         else:
             for device in ['/dev/ttyACM*', '/dev/ttyUSB*', "/dev/tty.usb*", "/dev/cu.*", "/dev/rfcomm*"]:
                 baselist = baselist + glob.glob(device)
+        return baselist
+
+    def baudRateList(self):
+        baselist=['9600', '14400', '19200', '38400', '57600', '115200']
         return baselist
 
     def videoList(self):

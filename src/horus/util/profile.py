@@ -196,9 +196,9 @@ def _(n):
 #-- Settings
 
 setting('serial_name', '/dev/ttyUSB0', str, 'basic', _('Serial Name'))
-setting('baud_rate', 115200, int, 'basic', _('Baud rate'))
+setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic', _('Baud rate'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
-setting('board', 'BT-328', ['UNO', 'BT-328'], 'basic', _('Board'))
+setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
 
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)

@@ -111,7 +111,7 @@ class WorkbenchConnection(Workbench):
 
 		if not ret:
 			if result is Error.WrongFirmware:
-				dlg = wx.MessageDialog(self, _("Board has a wrong firmware.\nPlease select your Board\nand press Upload Firmware"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg = wx.MessageDialog(self, _("Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board\nand press Upload Firmware"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
 				dlg.Destroy()
 				self.updateStatus(False)

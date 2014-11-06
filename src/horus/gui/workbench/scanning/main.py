@@ -233,7 +233,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def onStopToolClicked(self, event):
 		self.simpleScan.pause()
-		dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
+		dlg = wx.MessageDialog(self, _("Your current scanning will be stopped.\nDo you really want to do it?"), _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
 		result = dlg.ShowModal() == wx.ID_YES
 		dlg.Destroy()
 
