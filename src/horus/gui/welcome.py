@@ -55,7 +55,7 @@ class WelcomeWindow(wx.Dialog):
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(header, 2, wx.ALL|wx.EXPAND, 1)
-        vbox.Add(content, 3, wx.ALL|wx.EXPAND, 20)
+        vbox.Add(content, 3, wx.ALL|wx.EXPAND^wx.BOTTOM, 20)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add((0,0), 1, wx.ALL|wx.EXPAND, 0)
         hbox.Add(checkBoxShow, 0, wx.ALL, 0)
@@ -100,17 +100,20 @@ class CreateNew(wx.Panel):
 
         wizardButton = wx.Button(self, label=_("Wizard mode (step by step)"))
         scanButton = wx.Button(self, label=_("Scan using recent settings"))
-        advancedButton = wx.Button(self, label=_("Advanced"))
+        advancedControlButton = wx.Button(self, label=_("Advanced Control"))
+        advancedCalibrationButton = wx.Button(self, label=_("Advanced Calibration"))
 
         wizardButton.Bind(wx.EVT_BUTTON, self.onWizard)
         scanButton.Bind(wx.EVT_BUTTON, self.onScan)
-        advancedButton.Bind(wx.EVT_BUTTON, self.onAdvanced)
+        advancedControlButton.Bind(wx.EVT_BUTTON, self.onAdvancedControl)
+        advancedCalibrationButton.Bind(wx.EVT_BUTTON, self.onAdvancedCalibration)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(titleText, 0, wx.BOTTOM|wx.CENTER, 10)
         vbox.Add(wizardButton, 1, wx.ALL|wx.EXPAND, 5)
         vbox.Add(scanButton, 1, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(advancedButton, 1, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(advancedControlButton, 1, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(advancedCalibrationButton, 1, wx.ALL|wx.EXPAND, 5)
 
         self.SetSizer(vbox)
         self.Layout()
@@ -125,8 +128,13 @@ class CreateNew(wx.Panel):
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
-    def onAdvanced(self, event):
+    def onAdvancedControl(self, event):
         putPreference('workbench', 'control')
+        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().Close()
+
+    def onAdvancedCalibration(self, event):
+        putPreference('workbench', 'calibration')
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
