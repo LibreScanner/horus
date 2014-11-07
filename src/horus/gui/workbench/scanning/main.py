@@ -210,52 +210,46 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.deleteTool, False)
 		self.sceneView.createDefaultObject()
 		self.videoView.play()
+		self.combo.Disable()
 		self.pointCloudTimer.Start(milliseconds=100)
 
 	def afterScan(self, response):
 		ret, result = response
 		if ret:
-			self.enableLabelTool(self.playTool, True)
-			self.enableLabelTool(self.stopTool, False)
-			self.enableLabelTool(self.pauseTool , False)
-			self.enableLabelTool(self.resumeTool, False)
-			self.enableLabelTool(self.deleteTool, True)
-			self.buttonShowVideoViews.Hide()
-			self.buttonRaw.Hide()
-			self.buttonLas.Hide()
-			self.buttonDiff.Hide()
-			self.buttonBin.Hide()
-			self.buttonLine.Hide()
-			self.pointCloudTimer.Stop()
-			self.videoView.stop()
 			dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK|wx.ICON_INFORMATION)
 			dlg.ShowModal()
 			dlg.Destroy()
+			self.onScanFinished()
 
 	def onStopToolClicked(self, event):
+		paused = self.simpleScan.inactive
 		self.simpleScan.pause()
 		dlg = wx.MessageDialog(self, _("Your current scanning will be stopped.\nDo you really want to do it?"), _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
 		result = dlg.ShowModal() == wx.ID_YES
 		dlg.Destroy()
 
 		if result:
-			self.enableLabelTool(self.playTool, True)
-			self.enableLabelTool(self.stopTool, False)
-			self.enableLabelTool(self.pauseTool , False)
-			self.enableLabelTool(self.resumeTool, False)
-			self.enableLabelTool(self.deleteTool, True)
-			self.buttonShowVideoViews.Hide()
-			self.buttonRaw.Hide()
-			self.buttonLas.Hide()
-			self.buttonDiff.Hide()
-			self.buttonBin.Hide()
-			self.buttonLine.Hide()
-			
 			self.simpleScan.stop()
-			self.pointCloudTimer.Stop()
-			self.videoView.stop()
+			self.onScanFinished()
 		else:
-			self.simpleScan.resume()
+			if not paused:
+				self.simpleScan.resume()
+
+	def onScanFinished(self):
+		self.enableLabelTool(self.playTool, True)
+		self.enableLabelTool(self.stopTool, False)
+		self.enableLabelTool(self.pauseTool , False)
+		self.enableLabelTool(self.resumeTool, False)
+		self.enableLabelTool(self.deleteTool, True)
+		self.buttonShowVideoViews.Hide()
+		self.buttonRaw.Hide()
+		self.buttonLas.Hide()
+		self.buttonDiff.Hide()
+		self.buttonBin.Hide()
+		self.buttonLine.Hide()
+		self.combo.Enable()
+		self.videoView.stop()
+		self.pointCloudTimer.Stop()
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)

@@ -239,8 +239,8 @@ class CameraIntrinsicsParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            resetProfileSetting('camera_matrix')
-            resetProfileSetting('distortion_vector')
+            profile.resetProfileSetting('camera_matrix')
+            profile.resetProfileSetting('distortion_vector')
             self.updateProfileToAllControls()
 
     def getParameters(self):
@@ -414,9 +414,9 @@ class LaserTriangulationParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            resetProfileSetting('laser_coordinates')
-            resetProfileSetting('laser_origin')
-            resetProfileSetting('laser_normal')
+            profile.resetProfileSetting('laser_coordinates')
+            profile.resetProfileSetting('laser_origin')
+            profile.resetProfileSetting('laser_normal')
             self.updateProfileToAllControls()
 
     def getParameters(self):
@@ -561,8 +561,8 @@ class PlatformExtrinsicsParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            resetProfileSetting('rotation_matrix')
-            resetProfileSetting('translation_vector')
+            profile.resetProfileSetting('rotation_matrix')
+            profile.resetProfileSetting('translation_vector')
             self.updateProfileToAllControls()
 
     def getParameters(self):

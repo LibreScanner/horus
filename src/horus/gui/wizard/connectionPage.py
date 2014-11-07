@@ -105,6 +105,7 @@ class ConnectionPage(WizardPage):
 
 	def beforeConnect(self):
 		self.connectButton.Disable()
+		self.prevButton.Disable()
 		self.waitCursor = wx.BusyCursor()
 
 	def afterConnect(self, response):
@@ -148,6 +149,7 @@ class ConnectionPage(WizardPage):
 			self.patternLabel.Enable()
 			self.imageView.Enable()
 			self.checkButton.Enable()
+			self.prevButton.Enable()
 			self.skipButton.Enable()
 			self.enableNext = True
 		else:
