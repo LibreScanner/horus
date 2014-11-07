@@ -135,11 +135,9 @@ class ConnectionPage(WizardPage):
 				self.updateStatus(False)
 				self.GetParent().parent.onPreferences(None)
 			elif result is Error.InvalidVideo:
-				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable.\nYou have to relaunch the wizard to make the changes effective"), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
-				# TODO: close properly
-				#self.GetParent().parent.Close(True)
 				self.GetParent().Close(True)
 
 		if self.driver.isConnected:

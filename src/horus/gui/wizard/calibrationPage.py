@@ -29,7 +29,6 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 import time
-import numpy #TODO: move
 
 from horus.gui.util.imageView import ImageView
 
@@ -129,10 +128,12 @@ class CalibrationPage(WizardPage):
 		self.driver.camera.setExposure(value)
 
 	def onCalibrationButtonClicked(self, event):
-		self.beforeCalibration()
-		self.performCalibration()
+		self.platformExtrinsics.setCallbacks(self.beforePlatformCalibration,
+											 lambda p: wx.CallAfter(self.processPlatformCalibration,p),
+											 lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
+		self.platformExtrinsics.start()
 
-	def beforeCalibration(self):
+	def beforePlatformCalibration(self):
 		self.calibrateButton.Disable()
 		self.prevButton.Disable()
 		self.skipButton.Disable()
@@ -143,51 +144,62 @@ class CalibrationPage(WizardPage):
 		self.gauge.Show()
 		self.space.Hide()
 		self.Layout()
+		self.waitCursor = wx.BusyCursor()
 
-	def afterCalibration(self, result):
-		if result:
+	def processPlatformCalibration(self, process):
+		self.gauge.SetValue(process*0.7)
+
+	def afterPlatformCalibration(self, response):
+		ret, result = response
+
+		if ret:
+			profile.putProfileSettingNumpy('rotation_matrix', result[0])
+			profile.putProfileSettingNumpy('translation_vector', result[1])
+			self.laserTriangulation.setCallbacks(None,
+											 lambda p: wx.CallAfter(self.processLaserCalibration,p),
+											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
+			self.laserTriangulation.start()
+		else:
+			self.resultLabel.SetLabel("Error in pattern: please check the pattern and try again")
+			dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+			self.onFinishCalibration()
+
+	def processLaserCalibration(self, process):
+		self.gauge.SetValue(70 + process*0.3)
+
+	def afterLaserCalibration(self, response):
+		ret, result = response
+		
+		if ret:
+			self.resultLabel.SetLabel("All OK. Please press next to continue")
+			profile.putProfileSettingNumpy('laser_coordinates', result[1])
+			profile.putProfileSettingNumpy('laser_origin', result[0][0])
+			profile.putProfileSettingNumpy('laser_normal', result[0][1])
+		else:
+			self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again")
+			dlg = wx.MessageDialog(self, _("Laser Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+
+		if ret:
 			self.skipButton.Disable()
 			self.nextButton.Enable()
 		else:
 			self.skipButton.Enable()
 			self.nextButton.Disable()
+
+		self.onFinishCalibration()
+
+	def onFinishCalibration(self):
 		self.enableNext = True
 		self.gauge.Hide()
 		self.resultLabel.Show()
 		self.calibrateButton.Enable()
 		self.prevButton.Enable()
 		self.Layout()
-
-	def performCalibration(self):
-		# TODO: use progress
-
-		wx.CallAfter(lambda: self.gauge.SetValue(10))
-
-		retP = self.platformExtrinsics.start()
-		wx.CallAfter(lambda: self.gauge.SetValue(70))
-
-		#ret = self.laserTriangulation.start()
-		#wx.CallAfter(lambda: self.gauge.SetValue(100))
-
-		#-- Result
-		result = False
-		if retP is not None:
-			if numpy.linalg.norm(retP[1]-[5,80,320]) > 1000:
-				wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in pattern: please check the pattern and try again"))
-		if ret is not None:
-			print ret[1], ret[0][0], ret[0][1]
-			if 0 in ret[1][0] or 0 in ret[1][1]:
-				wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again"))
-		if retP is None or ret is None:
-			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error: please check motor and pattern and try again"))
-		else:
-			result = True
-			profile.putProfileSettingNumpy('rotation_matrix', retP[0])
-			profile.putProfileSettingNumpy('translation_vector', retP[1])
-			profile.putProfileSettingNumpy('laser_coordinates', ret[1])
-			profile.putProfileSettingNumpy('laser_origin', ret[0][0])
-			profile.putProfileSettingNumpy('laser_normal', ret[0][1])
-		wx.CallAfter(lambda: self.afterCalibration(result))
+		del self.waitCursor
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()

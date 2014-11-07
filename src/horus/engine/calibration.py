@@ -188,6 +188,8 @@ class LaserTriangulation(Calibration):
 		return objp
 
 	def _start(self, progressCallback, afterCallback):
+		t = None
+
 		if self.driver.isConnected:
 
 			board = self.driver.board
@@ -202,7 +204,7 @@ class LaserTriangulation(Calibration):
 			board.enableMotor()
 			time.sleep(0.5)
 
-			t, n, corners = self.getPatternDepth(board, camera)
+			t, n, corners = self.getPatternDepth(board, camera, progressCallback)
 
 			if t is not None and corners is not None:
 				time.sleep(0.2)
@@ -229,11 +231,10 @@ class LaserTriangulation(Calibration):
 			#-- Disable motor
 			board.disableMotor()
 
-		if progressCallback is not None:
-			progressCallback(100)
-
-		if t is not None:
+		if t is not None and not (0 in retL[0] or 0 in retR[0]):
 			response = (True, ([t, n], [retL[0], retR[0]], [retL[1], retR[1]]))
+			if progressCallback is not None:
+				progressCallback(100)
 		else:
 			response = (False, Error.CalibrationError)
 
@@ -242,7 +243,7 @@ class LaserTriangulation(Calibration):
 
 		self.isCalibrating = False
 
-	def getPatternDepth(self, board, camera):
+	def getPatternDepth(self, board, camera, progressCallback):
 		epsilon = 0.0002
 		distance = np.inf
 		distanceAnt = np.inf
@@ -253,6 +254,10 @@ class LaserTriangulation(Calibration):
 		tries = 5
 		board.setRelativePosition(angle)
 		board.setSpeedMotor(40)
+
+		if progressCallback is not None:
+			progressCallback(5)
+
 		while distance > epsilon and tries > 0:
 			image = camera.captureImage(flush=True, flushValue=2)
 			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
@@ -274,6 +279,13 @@ class LaserTriangulation(Calibration):
 			board.setRelativePosition(angle)
 			board.moveMotor()
 
+			if progressCallback is not None:
+				if distance < np.inf:
+					progressCallback(min(80,max(0,80-100*abs(distance-epsilon))))
+
+		if progressCallback is not None:
+			progressCallback(80)
+
 		image = camera.captureImage(flush=True, flushValue=2)
 		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 		if ret is not None:
@@ -283,6 +295,9 @@ class LaserTriangulation(Calibration):
 			corners = ret[3]
 			distance = np.linalg.norm((0,0,1)-n)
 			angle = np.max(((distance-epsilon) * 15, 0.1))
+
+		if progressCallback is not None:
+			progressCallback(90)
 
 		#print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
@@ -382,6 +397,8 @@ class PlatformExtrinsics(Calibration):
 		return objp
 
 	def _start(self, progressCallback, afterCallback):
+		t = None
+
 		if self.driver.isConnected:
 
 			board = self.driver.board
@@ -403,9 +420,14 @@ class PlatformExtrinsics(Calibration):
 			board.setSpeedMotor(150)
 			time.sleep(0.2)
 
+			if progressCallback is not None:
+				progressCallback(0)
+
 			while abs(angle) <= 180:
 				angle += step
 				t = self.getPatternPosition(step, board, camera)
+				if progressCallback is not None:
+					progressCallback(abs(angle/2.))
 				time.sleep(0.1)
 				if t is not None:
 					x += [t[0][0]]
@@ -418,31 +440,33 @@ class PlatformExtrinsics(Calibration):
 
 			points = zip(x,y,z)
 
-			if len(points) <= 0:
-				return None
+			if len(points) > 3:
 
-			#-- Fitting a plane
-			point, normal = self.fitPlane(points)
+				#-- Fitting a plane
+				point, normal = self.fitPlane(points)
 
-			#-- Fitting a circle inside the plane
-			center, R, circle = self.fitCircle(point, normal, points)
+				#-- Fitting a circle inside the plane
+				center, R, circle = self.fitCircle(point, normal, points)
 
-			# Get real origin
-			t = center - self.patternDistance * np.array(normal)
+				# Get real origin
+				t = center - self.patternDistance * np.array(normal)
 
 			#-- Disable motor
 			board.disableMotor()
 
-		if progressCallback is not None:
-			progressCallback(100)
+		print np.linalg.norm(t-[5,80,320])
 
-		if t is not None:
+		if t is not None and np.linalg.norm(t-[5,80,320]) < 20:
 			response = (True, (R, t, center, point, normal, [x,y,z], circle))
+			if progressCallback is not None:
+				progressCallback(100)
 		else:
 			response = (False, Error.CalibrationError)
 
 		if afterCallback is not None:
 			afterCallback(response)
+
+		self.isCalibrating = False
 
 	def getPatternPosition(self, step, board, camera):
 		t = None

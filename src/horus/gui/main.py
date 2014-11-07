@@ -233,7 +233,7 @@ class MainWindow(wx.Frame):
             if not filename.endswith('.ply'):
                 if platform.system() == 'Linux': #hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
-            saveMesh(filename, self.scanningWorkbench.sceneView._object)
+            meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
             self.appendLastFile(filename)
         dlg.Destroy()
 
@@ -251,7 +251,7 @@ class MainWindow(wx.Frame):
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            loadProfile(profileFile)
+            profile.loadProfile(profileFile)
             self.updateProfileToAllControls()
         dlg.Destroy()
 
@@ -264,7 +264,7 @@ class MainWindow(wx.Frame):
             if not profileFile.endswith('.ini'):
                 if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
                     profileFile += '.ini'
-            saveProfile(profileFile)
+            profile.saveProfile(profileFile)
         dlg.Destroy()
 
     def onResetProfile(self, event):
@@ -273,7 +273,7 @@ class MainWindow(wx.Frame):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            resetProfile()
+            profile.resetProfile()
             self.updateProfileToAllControls()
 
     def onExit(self, event):

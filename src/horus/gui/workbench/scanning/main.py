@@ -193,15 +193,16 @@ class ScanningWorkbench(WorkbenchConnection):
 					self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
 	def onPlayToolClicked(self, event):
-		self.simpleScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
-		self.simpleScan.start()
-
-	def beforeScan(self):
+		result = True
 		if self.sceneView._object is not None:
 			dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
 			result = dlg.ShowModal() == wx.ID_YES
 			dlg.Destroy()
+		if result:
+			self.simpleScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
+			self.simpleScan.start()
 
+	def beforeScan(self):
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
 		self.enableLabelTool(self.pauseTool , True)
