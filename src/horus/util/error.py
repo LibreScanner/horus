@@ -28,26 +28,28 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 
-WrongFirmware      = "wrong_firmware"
-BoardNotConnected  = "board_not_connected"
-CameraNotConnected = "camera_not_connected"
-WrongCamera        = "wrong_camera"
-InvalidVideo       = "invalid_video"
-CalibrationError   = "calibration_error"
-ScanError          = "scan_error"
+WrongFirmware       = "wrong_firmware"
+BoardNotConnected   = "board_not_connected"
+CameraNotConnected  = "camera_not_connected"
+WrongCamera         = "wrong_camera"
+InvalidVideo        = "invalid_video"
+CalibrationError    = "calibration_error"
+CalibrationCanceled = "calibration_canceled"
+ScanError           = "scan_error"
 
 #Define a fake _() function to fake the gettext tools in to generating strings for the error messages.
 def _(n):
 	return n
 
 _dict = { 
-	WrongFirmware      : _("Wrong Firmware"),
-	BoardNotConnected  : _("Board Not Connected"),
-	CameraNotConnected : _("Camera Not Connected"),
-	WrongCamera        : _("Wrong Camera"),
-	InvalidVideo       : _("Invalid Video"),
-	CalibrationError   : _("Calibration Error"),
-	ScanError          : _("Scan Error")
+	WrongFirmware       : _("Wrong Firmware"),
+	BoardNotConnected   : _("Board Not Connected"),
+	CameraNotConnected  : _("Camera Not Connected"),
+	WrongCamera         : _("Wrong Camera"),
+	InvalidVideo        : _("Invalid Video"),
+	CalibrationError    : _("Calibration Error"),
+	CalibrationCanceled : _("Calibration Canceled"),
+	ScanError           : _("Scan Error")
 }
 
 del _

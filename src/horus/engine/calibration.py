@@ -80,8 +80,6 @@ class Calibration:
 
 	def cancel(self):
 		self.isCalibrating = False
-		if self.afterCallback is not None:
-			self.afterCallback()
 
 
 @Singleton
@@ -131,8 +129,6 @@ class CameraIntrinsics(Calibration):
 
 		if afterCallback is not None:
 			afterCallback(response)
-
-		self.isCalibrating = False
 
 	def detectChessboard(self, frame, capture=False):
 		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
@@ -202,12 +198,12 @@ class LaserTriangulation(Calibration):
 			##-- Move pattern until ||(R-I)|| < e
 			board.setSpeedMotor(1)
 			board.enableMotor()
-			time.sleep(0.5)
+			time.sleep(0.3)
 
 			t, n, corners = self.getPatternDepth(board, camera, progressCallback)
 
 			if t is not None and corners is not None:
-				time.sleep(0.2)
+				time.sleep(0.1)
 
 				#-- Get images
 				imgRaw = camera.captureImage(flush=True, flushValue=2)
@@ -231,17 +227,18 @@ class LaserTriangulation(Calibration):
 			#-- Disable motor
 			board.disableMotor()
 
-		if t is not None and not (0 in retL[0] or 0 in retR[0]):
+		if self.isCalibrating and t is not None and not (0 in retL[0] or 0 in retR[0]):
 			response = (True, ([t, n], [retL[0], retR[0]], [retL[1], retR[1]]))
 			if progressCallback is not None:
 				progressCallback(100)
 		else:
-			response = (False, Error.CalibrationError)
+			if self.isCalibrating:
+				response = (False, Error.CalibrationError)
+			else:
+				response = (False, Error.CalibrationCanceled)
 
 		if afterCallback is not None:
 			afterCallback(response)
-
-		self.isCalibrating = False
 
 	def getPatternDepth(self, board, camera, progressCallback):
 		epsilon = 0.0002
@@ -256,9 +253,9 @@ class LaserTriangulation(Calibration):
 		board.setSpeedMotor(40)
 
 		if progressCallback is not None:
-			progressCallback(5)
+			progressCallback(0)
 
-		while distance > epsilon and tries > 0:
+		while self.isCalibrating and distance > epsilon and tries > 0:
 			image = camera.captureImage(flush=True, flushValue=2)
 			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 			if ret is not None:
@@ -423,7 +420,7 @@ class PlatformExtrinsics(Calibration):
 			if progressCallback is not None:
 				progressCallback(0)
 
-			while abs(angle) <= 180:
+			while self.isCalibrating and abs(angle) <= 180:
 				angle += step
 				t = self.getPatternPosition(step, board, camera)
 				if progressCallback is not None:
@@ -440,7 +437,7 @@ class PlatformExtrinsics(Calibration):
 
 			points = zip(x,y,z)
 
-			if len(points) > 3:
+			if len(points) > 4:
 
 				#-- Fitting a plane
 				point, normal = self.fitPlane(points)
@@ -454,19 +451,18 @@ class PlatformExtrinsics(Calibration):
 			#-- Disable motor
 			board.disableMotor()
 
-		print np.linalg.norm(t-[5,80,320])
-
-		if t is not None and np.linalg.norm(t-[5,80,320]) < 20:
+		if self.isCalibrating and t is not None and np.linalg.norm(t-[5,80,320]) < 20:
 			response = (True, (R, t, center, point, normal, [x,y,z], circle))
 			if progressCallback is not None:
 				progressCallback(100)
 		else:
-			response = (False, Error.CalibrationError)
+			if self.isCalibrating:
+				response = (False, Error.CalibrationError)
+			else:
+				response = (False, Error.CalibrationCanceled)
 
 		if afterCallback is not None:
 			afterCallback(response)
-
-		self.isCalibrating = False
 
 	def getPatternPosition(self, step, board, camera):
 		t = None

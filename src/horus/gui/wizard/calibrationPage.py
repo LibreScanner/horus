@@ -72,10 +72,12 @@ class CalibrationPage(WizardPage):
 		self.imageView = ImageView(self.panel)
 		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 		self.calibrateButton = wx.Button(self.panel, label=_("Calibrate"))
+		self.cancelButton = wx.Button(self.panel, label=_("Cancel"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
 		self.space = wx.Panel(self.panel, size=(-1, 30))
-		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"))
+		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"), size=(-1, 30))
 
+		self.cancelButton.Disable()
 		self.resultLabel.Hide()
 		self.gauge.Hide()
 		self.skipButton.Enable()
@@ -89,7 +91,10 @@ class CalibrationPage(WizardPage):
 		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
 		vbox.Add(self.patternLabel, 0, wx.ALL|wx.CENTER, 5)
 		vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
-		vbox.Add(self.calibrateButton, 0, wx.ALL|wx.EXPAND, 5)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.cancelButton, 1, wx.ALL|wx.EXPAND, 5)
+		hbox.Add(self.calibrateButton, 1, wx.ALL|wx.EXPAND, 5)
+		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
 		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
 		vbox.Add(self.gauge, 0, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.space, 0, wx.ALL|wx.EXPAND, 5)
@@ -99,6 +104,7 @@ class CalibrationPage(WizardPage):
 
 		self.exposureComboBox.Bind(wx.EVT_COMBOBOX, self.onExposureComboBoxChanged)
 		self.calibrateButton.Bind(wx.EVT_BUTTON, self.onCalibrationButtonClicked)
+		self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 		self.videoView.setMilliseconds(20)
@@ -133,8 +139,15 @@ class CalibrationPage(WizardPage):
 											 lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
 		self.platformExtrinsics.start()
 
+	def onCancelButtonClicked(self, event):
+		self.resultLabel.SetLabel("Calibration canceled. To try again press \"Calibrate\"")
+		self.platformExtrinsics.cancel()
+		self.laserTriangulation.cancel()
+		self.onFinishCalibration()
+
 	def beforePlatformCalibration(self):
 		self.calibrateButton.Disable()
+		self.cancelButton.Enable()
 		self.prevButton.Disable()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
@@ -160,11 +173,12 @@ class CalibrationPage(WizardPage):
 											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
 			self.laserTriangulation.start()
 		else:
-			self.resultLabel.SetLabel("Error in pattern: please check the pattern and try again")
-			dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.onFinishCalibration()
+			if result == Error.CalibrationError:
+				self.resultLabel.SetLabel("Error in pattern: please check the pattern and try again")
+				dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.onFinishCalibration()
 
 	def processLaserCalibration(self, process):
 		self.gauge.SetValue(70 + process*0.3)
@@ -178,10 +192,11 @@ class CalibrationPage(WizardPage):
 			profile.putProfileSettingNumpy('laser_origin', result[0][0])
 			profile.putProfileSettingNumpy('laser_normal', result[0][1])
 		else:
-			self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again")
-			dlg = wx.MessageDialog(self, _("Laser Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
-			dlg.ShowModal()
-			dlg.Destroy()
+			if result == Error.CalibrationError:
+				self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again")
+				dlg = wx.MessageDialog(self, _("Laser Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
 
 		if ret:
 			self.skipButton.Disable()
@@ -197,9 +212,11 @@ class CalibrationPage(WizardPage):
 		self.gauge.Hide()
 		self.resultLabel.Show()
 		self.calibrateButton.Enable()
+		self.cancelButton.Disable()
 		self.prevButton.Enable()
 		self.Layout()
-		del self.waitCursor
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()
