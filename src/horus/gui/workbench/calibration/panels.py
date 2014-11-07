@@ -27,14 +27,15 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
+import wx._core
+import numpy as np
 
-from horus.util.profile import *
-
-from horus.engine.scanner import *
-from horus.engine.calibration import *
+from horus.util import profile
 
 from horus.gui.util.itemControls import *
+
+from horus.engine.driver import Driver
+from horus.engine import scan, calibration
 
 class CalibrationPanel(wx.Panel):
     def __init__(self, parent):
@@ -43,7 +44,7 @@ class CalibrationPanel(wx.Panel):
         self.initialize()
 
     def initialize(self):
-        self.scanner = Scanner.Instance()
+        self.driver = Driver.Instance()
         self.main = self.GetParent().GetParent().GetParent()
 
         if hasattr(self, 'controls'):
@@ -52,13 +53,13 @@ class CalibrationPanel(wx.Panel):
 
         #-- Graphic elements
         control = Control(self, _('Calibration Settings'))
-        control.append(Slider, 'brightness_calibration', self.scanner.camera.setBrightness)
-        control.append(Slider, 'contrast_calibration', self.scanner.camera.setContrast)
-        control.append(Slider, 'saturation_calibration', self.scanner.camera.setSaturation)
-        control.append(Slider, 'exposure_calibration', self.scanner.camera.setExposure)
-        control.append(ComboBox, 'framerate_calibration', lambda v: (self.scanner.camera.setFrameRate(int(v)), self.reloadVideo()))
-        control.append(ComboBox, 'resolution_calibration', lambda v: self.scanner.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        control.append(CheckBox, 'use_distortion_calibration', lambda v: (self.scanner.camera.setUseDistortion(v), self.reloadVideo()))
+        control.append(Slider, 'brightness_calibration', self.driver.camera.setBrightness)
+        control.append(Slider, 'contrast_calibration', self.driver.camera.setContrast)
+        control.append(Slider, 'saturation_calibration', self.driver.camera.setSaturation)
+        control.append(Slider, 'exposure_calibration', self.driver.camera.setExposure)
+        control.append(ComboBox, 'framerate_calibration', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        control.append(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        control.append(CheckBox, 'use_distortion_calibration', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
         control.append(Button, 'restore_default', self.restoreDefault)
         self.controls.append(control)
 
@@ -97,9 +98,6 @@ class CalibrationWorkbenchPanel(wx.Panel):
 
     def __init__(self, parent, titleText="Workbench", parametersType=None, buttonStartCallback=None, description="Workbench description"):
         wx.Panel.__init__(self, parent)
-
-        self.scanner = Scanner.Instance()
-        self.calibration = Calibration.Instance()
 
         self.buttonStartCallback = buttonStartCallback
 
@@ -147,13 +145,17 @@ class CalibrationWorkbenchPanel(wx.Panel):
         if self.buttonStartCallback is not None:
             self.buttonStartCallback()
 
+
 class CameraIntrinsicsParameters(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        self.scanner = Scanner.Instance()
-        self.calibration = Calibration.Instance()
+        self.driver = Driver.Instance()
+        self.pcg = scan.PointCloudGenerator.Instance()
+        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+        self.laserTriangulation = calibration.LaserTriangulation.Instance()
+        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -237,8 +239,8 @@ class CameraIntrinsicsParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            resetProfileSetting('camera_matrix')
-            resetProfileSetting('distortion_vector')
+            profile.resetProfileSetting('camera_matrix')
+            profile.resetProfileSetting('distortion_vector')
             self.updateProfileToAllControls()
 
     def getParameters(self):
@@ -250,12 +252,12 @@ class CameraIntrinsicsParameters(wx.Panel):
         self.updateAllControls()
 
     def getProfileSettings(self):
-        self.cameraValues = getProfileSettingNumpy('camera_matrix')
-        self.distortionValues = getProfileSettingNumpy('distortion_vector')
+        self.cameraValues = profile.getProfileSettingNumpy('camera_matrix')
+        self.distortionValues = profile.getProfileSettingNumpy('distortion_vector')
 
     def putProfileSettings(self):
-        putProfileSettingNumpy('camera_matrix', self.cameraValues)
-        putProfileSettingNumpy('distortion_vector', self.distortionValues)
+        profile.putProfileSettingNumpy('camera_matrix', self.cameraValues)
+        profile.putProfileSettingNumpy('distortion_vector', self.distortionValues)
 
     def updateAllControls(self):
         for i in range(3):
@@ -267,10 +269,16 @@ class CameraIntrinsicsParameters(wx.Panel):
             self.distortionTexts[i].SetValue(str(self.distortionValues[i]))
 
     def updateEngine(self):
-        if hasattr(self, 'calibration'):
-            self.calibration.setIntrinsics(self.cameraValues, self.distortionValues) ## TODO: remove setIntrinsics on calibration
-        if hasattr(self, 'scanner'):
-            self.scanner.camera.setIntrinsics(self.cameraValues, self.distortionValues)
+        if hasattr(self, 'driver'):
+            self.driver.camera.setIntrinsics(self.cameraValues, self.distortionValues)
+        if hasattr(self, 'cameraIntrinsics'):
+            self.cameraIntrinsics.setIntrinsics(self.cameraValues, self.distortionValues)
+        if hasattr(self, 'laserTriangulation'):
+            self.laserTriangulation.setIntrinsics(self.cameraValues, self.distortionValues)
+        if hasattr(self, 'platformExtrinsics'):
+            self.platformExtrinsics.setIntrinsics(self.cameraValues, self.distortionValues)
+        if hasattr(self, 'pcg'):
+            self.pcg.setCameraIntrinsics(self.cameraValues, self.distortionValues)
 
     def updateProfileToAllControls(self):
         self.getProfileSettings()
@@ -289,10 +297,13 @@ class CameraIntrinsicsParameters(wx.Panel):
         except:
             return 0.0
 
+
 class LaserTriangulationParameters(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
+
+        self.pcg = scan.PointCloudGenerator.Instance()
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -403,9 +414,9 @@ class LaserTriangulationParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            resetProfileSetting('laser_coordinates')
-            resetProfileSetting('laser_origin')
-            resetProfileSetting('laser_normal')
+            profile.resetProfileSetting('laser_coordinates')
+            profile.resetProfileSetting('laser_origin')
+            profile.resetProfileSetting('laser_normal')
             self.updateProfileToAllControls()
 
     def getParameters(self):
@@ -418,14 +429,14 @@ class LaserTriangulationParameters(wx.Panel):
         self.updateAllControls()
 
     def getProfileSettings(self):
-        self.coordinatesValues = getProfileSettingNumpy('laser_coordinates')
-        self.originValues = getProfileSettingNumpy('laser_origin')
-        self.normalValues = getProfileSettingNumpy('laser_normal')
+        self.coordinatesValues = profile.getProfileSettingNumpy('laser_coordinates')
+        self.originValues = profile.getProfileSettingNumpy('laser_origin')
+        self.normalValues = profile.getProfileSettingNumpy('laser_normal')
 
     def putProfileSettings(self):
-        putProfileSettingNumpy('laser_coordinates', self.coordinatesValues)
-        putProfileSettingNumpy('laser_origin', self.originValues)
-        putProfileSettingNumpy('laser_normal', self.normalValues)
+        profile.putProfileSettingNumpy('laser_coordinates', self.coordinatesValues)
+        profile.putProfileSettingNumpy('laser_origin', self.originValues)
+        profile.putProfileSettingNumpy('laser_normal', self.normalValues)
 
     def updateAllControls(self):
         for i in range(2):
@@ -442,7 +453,8 @@ class LaserTriangulationParameters(wx.Panel):
             self.normalTexts[i].SetValue(str(self.normalValues[i]))
 
     def updateEngine(self):
-        pass
+        if hasattr(self, 'pcg'):
+            self.pcg.setLaserTriangulation(self.coordinatesValues, self.originValues, self.normalValues)
 
     def updateProfileToAllControls(self):
         self.getProfileSettings()
@@ -461,10 +473,13 @@ class LaserTriangulationParameters(wx.Panel):
         except:
             return 0.0
 
+
 class PlatformExtrinsicsParameters(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
+
+        self.pcg = scan.PointCloudGenerator.Instance()
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -546,8 +561,8 @@ class PlatformExtrinsicsParameters(wx.Panel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            resetProfileSetting('rotation_matrix')
-            resetProfileSetting('translation_vector')
+            profile.resetProfileSetting('rotation_matrix')
+            profile.resetProfileSetting('translation_vector')
             self.updateProfileToAllControls()
 
     def getParameters(self):
@@ -559,12 +574,12 @@ class PlatformExtrinsicsParameters(wx.Panel):
         self.updateAllControls()
 
     def getProfileSettings(self):
-        self.rotationValues = getProfileSettingNumpy('rotation_matrix')
-        self.translationValues = getProfileSettingNumpy('translation_vector')
+        self.rotationValues = profile.getProfileSettingNumpy('rotation_matrix')
+        self.translationValues = profile.getProfileSettingNumpy('translation_vector')
 
     def putProfileSettings(self):
-        putProfileSettingNumpy('rotation_matrix', self.rotationValues)
-        putProfileSettingNumpy('translation_vector', self.translationValues)
+        profile.putProfileSettingNumpy('rotation_matrix', self.rotationValues)
+        profile.putProfileSettingNumpy('translation_vector', self.translationValues)
 
     def updateAllControls(self):
         for i in range(3):
@@ -577,7 +592,8 @@ class PlatformExtrinsicsParameters(wx.Panel):
             self.translationTexts[i].SetValue(str(self.translationValues[i]))
 
     def updateEngine(self):
-        pass
+        if hasattr(self, 'pcg'):
+            self.pcg.setPlatformExtrinsics(self.rotationValues, self.translationValues)
 
     def updateProfileToAllControls(self):
         self.getProfileSettings()

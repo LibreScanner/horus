@@ -29,15 +29,18 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import wx.lib.scrolledpanel
 
-from horus.util.resources import *
+from horus.util import resources
 
-from horus.gui.util.imageView import *
-from horus.gui.util.workbench import *
-from horus.gui.workbench.calibration.pages import *
-from horus.gui.workbench.calibration.panels import *
+from horus.gui.util.imageView import VideoView
+from horus.gui.util.workbench import WorkbenchConnection
+from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, CameraIntrinsicsResultPage, \
+                                                  LaserTriangulationMainPage, LaserTriangulationResultPage, \
+                                                  PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
+from horus.gui.workbench.calibration.panels import CalibrationPanel, CalibrationWorkbenchPanel, CameraIntrinsicsParameters, \
+                                                   LaserTriangulationParameters, PlatformExtrinsicsParameters
 
-from horus.engine.scanner import *
-from horus.engine.calibration import *
+from horus.engine.driver import Driver
+from horus.engine.calibration import CameraIntrinsics
 
 class CalibrationWorkbench(WorkbenchConnection):
 
@@ -46,18 +49,15 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.playing = False
 
-        self.scanner = Scanner.Instance()
-        self.calibration = Calibration.Instance()
-
         self.load()
 
         self.Bind(wx.EVT_SHOW, self.onShow)
 
     def load(self):
         #-- Toolbar Configuration
-        self.playTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(getPathForImage("play.png")), shortHelp=_("Play"))
-        self.stopTool = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(getPathForImage("stop.png")), shortHelp=_("Stop"))
-        self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(getPathForImage("undo.png")), shortHelp=_("Undo"))
+        self.playTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
+        self.stopTool = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
+        self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
         self.toolbar.Realize()
 
         #-- Disable Toolbar Items
@@ -162,7 +162,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onShow(self, event):
         if event.GetShow():
-            self.updateStatus(self.scanner.isConnected)
+            self.updateStatus(Driver.Instance().isConnected)
         else:
             try:
                 self.onStopToolClicked(None)
@@ -170,17 +170,16 @@ class CalibrationWorkbench(WorkbenchConnection):
                 pass
 
     def getFrame(self):
-        frame = self.scanner.camera.captureImage()
+        frame = Driver.Instance().camera.captureImage()
         if frame is not None:
-            retval, frame = self.calibration.detectChessboard(frame)
+            retval, frame = CameraIntrinsics.Instance().detectChessboard(frame)
         return frame
 
     def onPlayToolClicked(self, event):
-        if self.scanner.camera.fps > 0:
-            self.playing = True
-            self.enableLabelTool(self.playTool, False)
-            self.enableLabelTool(self.stopTool, True)
-            self.videoView.play()
+        self.playing = True
+        self.enableLabelTool(self.playTool, False)
+        self.enableLabelTool(self.stopTool, True)
+        self.videoView.play()
 
     def onStopToolClicked(self, event):
         self.videoView.stop()
@@ -219,6 +218,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.cameraIntrinsicsPanel.buttonStart.Disable()
             self.laserTriangulationPanel.buttonStart.Disable()
             self.platformExtrinsicsPanel.buttonStart.Disable()
+            self.videoView.stop()
 
     def onCameraIntrinsicsStartCallback(self):
         self.videoView.stop()

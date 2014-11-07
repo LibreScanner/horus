@@ -27,11 +27,9 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import sys
 import time
 import serial
 
-from math import trunc
 
 class Error(Exception):
 	def __init__(self, msg):
@@ -40,15 +38,16 @@ class Error(Exception):
 		return repr(self.msg)
 
 class WrongFirmware(Error):
-	def __init__(self, msg="Wrong firmware"):
+	def __init__(self, msg="WrongFirmware"):
 		super(Error, self).__init__(msg)
 
-class DeviceNotConnected(Error):
-	def __init__(self, msg="Device not connected"):
+class BoardNotConnected(Error):
+	def __init__(self, msg="BoardNotConnected"):
 		super(Error, self).__init__(msg)
 
-class Device:
-	"""Device class. For accessing to the scanner device"""
+
+class Board:
+	"""Board class. For accessing to the scanner board"""
 	"""
 	Gcode commands:
 
@@ -59,32 +58,28 @@ class Device:
 		M71 Tn  : switch on laser n
 
 	"""
-  
-	def __init__(self, serialName='/dev/ttyACM0', baudRate=115200):
-		""" """
-		print ">>> Initializing device ..."
-		print " - Serial Name: {0}".format(serialName)
+	def __init__(self, serialName='/dev/ttyUSB0', baudRate=115200):
 		self.serialName = serialName
-		self.serialPort = None
 		self.baudRate = baudRate
+		self.serialPort = None
+		self.isConnected = False
 		self._position = 0
-   		print ">>> Done"
+
+	def setSerialName(self, serialName):
+		self.serialName = serialName
+
+	def setBaudRate(self, baudRate):
+		self.baudRate = baudRate
 
 	def connect(self):
 		""" Opens serial port and performs handshake"""
-		print ">>> Connecting device ..."
+		print ">>> Connecting board {0} {1}".format(self.serialName, self.baudRate)
 		self.isConnected = False
 		try:
 			self.serialPort = serial.Serial(self.serialName, self.baudRate, timeout=2)
 			if self.serialPort.isOpen():
-
 				#-- Force Reset and flush
-				self.serialPort.setDTR(False)
-				time.sleep(0.022)
-				self.serialPort.flushInput()
-				self.serialPort.flushOutput()
-				self.serialPort.setDTR(True)
-
+				self._reset()
 				tries = 3
 				#-- Check Handshake
 				while tries:
@@ -96,47 +91,42 @@ class Device:
 				if version == "Horus 0.1 ['$' for help]\r\n":
 					self.setSpeedMotor(1)
 					self.setAbsolutePosition(0)
-					#self.enable()
+					#self.enableMotor()
 					print ">>> Done"
 					self.isConnected = True
 				else:
 					raise WrongFirmware()
 			else:
-				raise DeviceNotConnected()
+				raise BoardNotConnected()
 		except serial.SerialException:
-			sys.stderr.write("Error opening the port {0}\n".format(self.serialName))
+			print "Error opening the port {0}\n".format(self.serialName)
 			self.serialPort = None
-			raise DeviceNotConnected()
-		return self.isConnected
+			raise BoardNotConnected()
 
 	def disconnect(self):
 		""" Closes serial port """
-		print ">>> Disconnecting device ..."
+		print ">>> Disconnecting board {0}".format(self.serialName)
 		try:
 			if self.serialPort is not None:
 				self.serialPort.close()
 		except serial.SerialException:
-			sys.stderr.write("Error closing the port {0}\n".format(self.serialName))
+			print "Error closing the port {0}\n".format(self.serialName)
 			print ">>> Error"
 		print ">>> Done"
 
-	def enable(self):
-		"""Enables motor"""
-		return self._checkAcknowledge(self.sendCommand("M17"))
+	def enableMotor(self):
+		return self._sendCommand("M17")
 
-	def disable(self):
-		"""Disables motor"""
-		return self._checkAcknowledge(self.sendCommand("M18"))
+	def disableMotor(self):
+		return self._sendCommand("M18")
 
 	def setSpeedMotor(self, feedRate):
-		"""Sets motor feed rate"""
 		self.feedRate = feedRate
-		return self._checkAcknowledge(self.sendCommand("G1F{0}".format(self.feedRate)))
+		return self._sendCommand("G1F{0}".format(self.feedRate))
 
 	def setAccelerationMotor(self, acceleration):
-		"""Sets motor acceleration"""
 		self.acceleration = acceleration
-		return self._checkAcknowledge(self.sendCommand("$120={0}".format(self.acceleration)))
+		return self._sendCommand("$120={0}".format(self.acceleration))
 
 	def setRelativePosition(self, pos):
 		self._posIncrement = pos
@@ -145,43 +135,48 @@ class Device:
 		self._posIncrement = 0
 		self._position = pos
 
-	def setMoveMotor(self):
-		"""Moves the motor"""
+	def moveMotor(self):
 		self._position += self._posIncrement
-		return self._checkAcknowledge(self.sendCommand("G1X{0}".format(self._position)))
+		return self._sendCommand("G1X{0}".format(self._position))
 
 	def setRightLaserOn(self):
-		"""Turns right laser on"""
-		return self._checkAcknowledge(self.sendCommand("M71T2"))
+		return self._sendCommand("M71T2")
 	 
 	def setLeftLaserOn(self):
-		"""Turns left laser on"""
-		return self._checkAcknowledge(self.sendCommand("M71T1"))
+		return self._sendCommand("M71T1")
 	
 	def setRightLaserOff(self):
-		"""Turns right laser off"""
-		return self._checkAcknowledge(self.sendCommand("M70T2"))
+		return self._sendCommand("M70T2")
 	 
 	def setLeftLaserOff(self):
-		"""Turns left laser off"""
-		return self._checkAcknowledge(self.sendCommand("M70T1"))
+		return self._sendCommand("M70T1")
 
-	def sendCommand(self, cmd, readLines=False):
-		"""Sends the command"""
+	def sendRequest(self, req, readLines=False):
+		"""Sends the request and returns the response"""
 		if self.serialPort is not None and self.serialPort.isOpen():
-			self.serialPort.flushInput()
-			self.serialPort.flushOutput()
-			self.serialPort.write(cmd+"\r\n")
-			if readLines:
-				return ''.join(self.serialPort.readlines())
-			else:
-				return ''.join(self.serialPort.readline())
-		else:
-			pass
-			#print "Serial port is not connected."
+			try:
+				self.serialPort.flushInput()
+				self.serialPort.flushOutput()
+				self.serialPort.write(req+"\r\n")
+				if readLines:
+					return ''.join(self.serialPort.readlines())
+				else:
+					return ''.join(self.serialPort.readline())
+			except:
+				pass
 
 	def _checkAcknowledge(self, ack):
 		if ack is not None:
 			return ack.endswith("ok\r\n")
 		else:
 			return False
+
+	def _sendCommand(self, cmd):
+		return self._checkAcknowledge(self.sendRequest(cmd))
+
+	def _reset(self):
+		self.serialPort.setDTR(False)
+		time.sleep(0.022)
+		self.serialPort.flushInput()
+		self.serialPort.flushOutput()
+		self.serialPort.setDTR(True)

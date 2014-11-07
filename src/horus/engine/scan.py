@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March & September 2014                                          #
+# Date: March & November 2014                                           #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -28,37 +28,221 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import cv2
-import math
+import time
+import Queue
+import threading
+import datetime
 import numpy as np
 
-class Core:
-	""" """
+from horus.engine.driver import Driver
+
+import horus.util.error as Error
+from horus.util.singleton import Singleton
+
+
+class Scan:
+	""" 
+		Performs scanning process:
+
+			- Multithread scanning:
+				laser, motor and video synchronized
+	"""
 	def __init__(self):
 		""" """
-		self._initialize()
+		self.driver = Driver.Instance()
+		self.pcg = PointCloudGenerator.Instance()
 
-	def _initialize(self):
+		self.isRunning = False
+		self.moveMotor = True
+		self.generatePointCloud = True
+
+		#TODO: Callbacks to Observer pattern
+		self.beforeCallback = None
+		self.progressCallback = None
+		self.afterCallback = None
+
+		self.imageQueue = Queue.Queue(1000)
+		self.pointCloudQueue = Queue.Queue(10000)
+
+	def setCallbacks(self, before, progress, after):
+		self.beforeCallback = before
+		self.progressCallback = progress
+		self.afterCallback = after
+
+	def start(self):
+		if self.beforeCallback is not None:
+			self.beforeCallback()
+
+		self.imageQueue.queue.clear()
+		self.pointCloudQueue.queue.clear()
+		
+		self.inactive = False
+		self.isRunning = True
+
+		threading.Thread(target=self._captureThread, args=(self.progressCallback,self.afterCallback)).start()
+		threading.Thread(target=self._processThread).start()
+		
+	def stop(self):
+		self.isRunning = False
+
+	def pause(self):
+		self.inactive = True
+
+	def resume(self):
+		self.inactive = False
+
+	#-- Threads
+
+	def _captureThread(self):
+		""" """
+		pass
+
+	def _processThread(self):
+		""" """
+		while self.isRunning:
+			if not self.inactive:
+				#-- Get images
+				images = self.imageQueue.get()
+				self.imageQueue.task_done()
+
+				begin = datetime.datetime.now()
+
+				#-- Generate Point Cloud
+				points, colors = self.pcg.getPointCloud(images[0], images[1], images[2])
+
+				if self.generatePointCloud:
+					#-- Put point cloud into the queue
+					self.pointCloudQueue.put((points, colors))
+
+				end = datetime.datetime.now()
+				
+				print "Process end: {0}".format(end - begin)
+			else:
+				time.sleep(0.1)
+
+	def isPointCloudQueueEmpty(self):
+		return self.pointCloudQueue.empty()
+		
+	def getPointCloudIncrement(self):
+		""" """
+		if not self.isPointCloudQueueEmpty():
+			pc = self.pointCloudQueue.get_nowait()
+			if pc != None:
+				self.pointCloudQueue.task_done()
+			return pc
+		else:
+			return None
+
+
+@Singleton
+class SimpleScan(Scan):
+
+	def _captureThread(self, progressCallback, afterCallback):
+		""" """
+		ret = False
+		self.pcg.resetTheta()
+
+		#-- Setup board
+		if self.moveMotor:
+			self.driver.board.setSpeedMotor(50)
+			self.driver.board.enableMotor()
+			time.sleep(0.5)
+		else:
+			self.driver.board.disableMotor()
+
+		self.driver.board.setLeftLaserOff()
+		self.driver.board.setRightLaserOff()
+
+		#-- Main loop
+		while self.isRunning:
+			if not self.inactive:
+				begin = datetime.datetime.now()
+
+				#-- Switch of laser
+				if self.pcg.useLeftLaser:
+					self.driver.board.setLeftLaserOff()
+				if self.pcg.useRightLaser:
+					self.driver.board.setRightLaserOff()
+
+				#-- Capture images
+				imgRaw = self.driver.camera.captureImage(flush=True, flushValue=2)
+				if self.pcg.useLeftLaser:
+					self.driver.board.setLeftLaserOn()
+					imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=2)
+				else:
+					imgLaserLeft = None
+				if self.pcg.useRightLaser:
+					self.driver.board.setRightLaserOn()
+					imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=2)
+				else:
+					imgLaserRight = None
+
+				#-- Move motor
+				if self.moveMotor:
+					self.driver.board.setRelativePosition(self.pcg.degrees)
+					self.driver.board.moveMotor()
+				else:
+					time.sleep(0.2)
+				
+				#-- Put images into the queue
+				self.imageQueue.put((imgRaw, imgLaserLeft, imgLaserRight))
+				
+				if self.generatePointCloud:
+					#-- Check stop condition
+					if abs(self.pcg.theta * 180.0 / np.pi) >= 360.0:
+						ret = True
+						self.stop()
+				
+				end = datetime.datetime.now()
+				
+				print "----- Theta: {0}".format(self.pcg.theta * 180.0 / np.pi)
+				print "Capture end: {0}".format(end - begin)
+			else:
+				time.sleep(0.1)
+
+		#-- Disable board
+		self.driver.board.setLeftLaserOff()
+		self.driver.board.setRightLaserOff()
+		self.driver.board.disableMotor()
+
+		if progressCallback is not None:
+			progressCallback(100)
+
+		if ret:
+			response = (True, None)
+		else:
+			response = (False, Error.ScanError)
+
+		if afterCallback is not None:
+			afterCallback(response)
+
+
+@Singleton
+class PointCloudGenerator:
+	""" 
+		Contains all scanning algorithms:
+
+			- Image processing
+			- Red line laser detection
+			- Point cloud generation and filtering
+	"""
+	def __init__(self):
+		self.theta = 0
 		self.points = None
 		self.colors = None
-		
+		self.driver = Driver.Instance()
+
 		self.imgRaw  = None
 		self.imgLas  = None
 		self.imgDiff = None
 		self.imgBin  = None
 		self.imgLine = None
 
-		self.points = None
-		self.colors = None
-
 		self.imgType = 0
 
-		self.rad = math.pi / 180.0
-
-	def resetTheta(self):
-		self.theta = 0
+		self.rad = np.pi / 180.0
 
 	def setImageType(self, imgType):
-		""" """
 		self.imgType = imgType
 
 	def setUseOpen(self, enable):
@@ -98,14 +282,11 @@ class Core:
 		self.alphaLeft = angleLeft * self.rad
 		self.alphaRight = angleRight * self.rad
 
-	def setIntrinsics(self, cameraMatrix, distortionVector):
-		self.cameraMatrix = cameraMatrix
-		self.distortionVector = distortionVector
-		if cameraMatrix is not None:
-			self.fx = cameraMatrix[0][0]
-			self.fy = cameraMatrix[1][1]
-			self.cx = cameraMatrix[0][2]
-			self.cy = cameraMatrix[1][2]
+	def setCameraIntrinsics(self, cameraMatrix, distortionVector):
+		self.fx = cameraMatrix[0][0]
+		self.fy = cameraMatrix[1][1]
+		self.cx = cameraMatrix[0][2]
+		self.cy = cameraMatrix[1][2]
 
 	def setLaserTriangulation(self, laserCoordinates, laserOrigin, laserNormal):
 		if laserCoordinates is not None:
@@ -120,12 +301,14 @@ class Core:
 		if laserNormal is not None:
 			self.normal = laserNormal
 
-	def setExtrinsics(self, rotationMatrix, translationVector):
+	def setPlatformExtrinsics(self, rotationMatrix, translationVector):
 		self.rotationMatrix = rotationMatrix
 		self.translationVector = translationVector
 
+	def resetTheta(self):
+		self.theta = 0
+
 	def getImage(self):
-		""" """
 		return { 'raw' : self.imgRaw,
 				 'las' : self.imgLas,
 				 'diff' : self.imgDiff,
@@ -134,7 +317,7 @@ class Core:
 				}[self.imgType]
 
 	def getDiffImage(self, img1, img2):
-		""" """
+		""" Returns img1 - img2 """
 		r1 = cv2.split(img1)[0]
 		r2 = cv2.split(img2)[0]
 
@@ -189,11 +372,11 @@ class Core:
 
 		z = (ny0*y0 + nz0*z0) / (ny0*b + nz0)
 
-		zl = z * (1 + (self.u1 - self.cx + ((self.u2-self.u1)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * math.tan(self.alpha)))
+		zl = z * (1 + (self.u1 - self.cx + ((self.u2-self.u1)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * np.tan(self.alpha)))
 
 		##TODO: Optimize
 
-		Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / math.tan(self.alpha)))).T
+		Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / np.tan(self.alpha)))).T
 		Xc = (a * Zc.T).T
 		Yc = b * Zc
 
@@ -211,8 +394,8 @@ class Core:
 		zw = self.Zw[v,u]
 
 		#-- Rotating point cloud
-		x = np.array(xw * math.cos(self.theta) - yw * math.sin(self.theta))
-		y = np.array(xw * math.sin(self.theta) + yw * math.cos(self.theta))
+		x = np.array(xw * np.cos(self.theta) - yw * np.sin(self.theta))
+		y = np.array(xw * np.sin(self.theta) + yw * np.cos(self.theta))
 		z = np.array(zw)
 
 		#-- Return result

@@ -27,16 +27,20 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
 import time
+import wx._core
 import threading
 
-from horus.gui.util.imageView import *
+from horus.gui.util.imageView import ImageView
 
-from horus.gui.wizard.wizardPage import *
+from horus.gui.wizard.wizardPage import WizardPage
 
-from horus.engine.scanner import *
-from horus.engine.calibration import *
+import horus.util.error as Error
+from horus.util import profile, resources
+
+from horus.engine.driver import Driver
+from horus.engine import calibration
+
 
 class ConnectionPage(WizardPage):
 	def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
@@ -45,13 +49,13 @@ class ConnectionPage(WizardPage):
 							buttonPrevCallback=buttonPrevCallback,
 							buttonNextCallback=buttonNextCallback)
 
-		self.scanner = Scanner.Instance()
-		self.calibration = Calibration.Instance()
+		self.driver = Driver.Instance()
+		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 
 		self.connectButton = wx.Button(self.panel, label=_("Connect"))
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Auto check\""))
 		self.imageView = ImageView(self.panel)
-		self.imageView.setImage(wx.Image(getPathForImage("pattern-position-left.jpg")))
+		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 		self.checkButton = wx.Button(self.panel, label=_("Auto check"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
 		self.space = wx.Panel(self.panel, size=(-1, 30))
@@ -84,11 +88,11 @@ class ConnectionPage(WizardPage):
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 		self.videoView.setCallback(self.getFrame)
-		self.updateStatus(self.scanner.isConnected)
+		self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.scanner.isConnected)
+			self.updateStatus(self.driver.isConnected)
 		else:
 			try:
 				self.videoView.stop()
@@ -96,58 +100,62 @@ class ConnectionPage(WizardPage):
 				pass
 
 	def onConnectButtonClicked(self, event):
+		self.driver.setCallbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
+		self.driver.connect()
+
+	def beforeConnect(self):
 		self.connectButton.Disable()
-		try:
-			self.scanner.connect()
-		except WrongFirmware as e:
-			dlg = wx.MessageDialog(self, _("Board has a wrong firmware.\nPlease select your Board\nand press Upload Firmware"), _("Wrong firmware"), wx.OK|wx.ICON_INFORMATION)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.updateStatus(False)
-			self.GetParent().parent.onPreferences(None)
-		except DeviceNotConnected as e:
-			dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board\nand select a valid Serial Name"), _("Device not connected"), wx.OK|wx.ICON_INFORMATION)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.updateStatus(False)
-			self.GetParent().parent.onPreferences(None)
-		except CameraNotConnected as e:
-			dlg = wx.MessageDialog(self, _("Please plug your camera. You have to restart the application to make the changes effective"), _("Camera not connected"), wx.OK|wx.ICON_ERROR)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.GetParent().Close()
-			self.GetParent().parent.Close(True)
-		except WrongCamera as e:
-			dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), _("Wrong camera"), wx.OK|wx.ICON_INFORMATION)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.updateStatus(False)
-			self.GetParent().parent.onPreferences(None)
-		except InvalidVideo as e:
-			dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective"), _("Camera Error"), wx.OK|wx.ICON_ERROR)
-			result = dlg.ShowModal() == wx.ID_OK
-			dlg.Destroy()
-			self.scanner.disconnect()
-			self.GetParent().Close()
-			self.GetParent().parent.Close(True)
-		else:		
-			if self.scanner.isConnected:
-				self.videoView.play()
-				self.updateStatus(True)
-				self.GetParent().parent.updateDeviceCurrentProfile()
-				self.GetParent().parent.updateCameraCurrentProfile()
-				#self.GetParent().parent.updateCoreCurrentProfile()
-				self.patternLabel.Enable()
-				self.imageView.Enable()
-				self.checkButton.Enable()
-				self.skipButton.Enable()
-				self.enableNext = True
-		if not self.scanner.isConnected:
+		self.prevButton.Disable()
+		self.waitCursor = wx.BusyCursor()
+
+	def afterConnect(self, response):
+		ret, result = response
+
+		if not ret:
+			if result is Error.WrongFirmware:
+				dlg = wx.MessageDialog(self, _("Board has a wrong firmware.\nPlease select your Board\nand press Upload Firmware"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.updateStatus(False)
+				self.GetParent().parent.onPreferences(None)
+			elif result is Error.BoardNotConnected:
+				dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board\nand select a valid Serial Name"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.updateStatus(False)
+				self.GetParent().parent.onPreferences(None)
+			elif result is Error.CameraNotConnected:
+				dlg = wx.MessageDialog(self, _("Please plug your camera. You have to restart the application to make the changes effective."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.GetParent().parent.Close(True)
+			elif result is Error.WrongCamera:
+				dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.updateStatus(False)
+				self.GetParent().parent.onPreferences(None)
+			elif result is Error.InvalidVideo:
+				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable.\nYou have to relaunch the wizard to make the changes effective"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
+				self.GetParent().Close(True)
+
+		if self.driver.isConnected:
+			self.videoView.play()
+			self.updateStatus(True)
+			self.GetParent().parent.updateBoardCurrentProfile()
+			self.GetParent().parent.updateCameraCurrentProfile()
+			self.patternLabel.Enable()
+			self.imageView.Enable()
+			self.checkButton.Enable()
+			self.prevButton.Enable()
+			self.skipButton.Enable()
+			self.enableNext = True
+		else:
 			self.connectButton.Enable()
+
+		del self.waitCursor
 
 	def onCheckButtonClicked(self, event):
 		self.beforeAutoCheck()
@@ -182,47 +190,47 @@ class ConnectionPage(WizardPage):
 		self.Layout()
 
 	def performAutoCheck(self):
-		self.scanner.device.setLeftLaserOn()
-		self.scanner.device.setRightLaserOn()
-		self.scanner.device.enable()
+		self.driver.board.setLeftLaserOn()
+		self.driver.board.setRightLaserOn()
+		self.driver.board.enableMotor()
 		time.sleep(0.2)
 		wx.CallAfter(lambda: self.gauge.SetValue(10))
 
-		self.scanner.device.setSpeedMotor(150)
-		self.scanner.device.setRelativePosition(-100)
-		self.scanner.device.setMoveMotor()
+		self.driver.board.setSpeedMotor(150)
+		self.driver.board.setRelativePosition(-100)
+		self.driver.board.moveMotor()
 		wx.CallAfter(lambda: self.gauge.SetValue(40))
 
-		ret = self.calibration.performLaserTriangulationCalibration()
+		ret = True #self.laserTriangulation.start() TODO: move autocheck to Engine
 		wx.CallAfter(lambda: self.gauge.SetValue(80))
 
-		self.scanner.device.setSpeedMotor(150)
-		self.scanner.device.setRelativePosition(90)
-		self.scanner.device.setMoveMotor()
+		self.driver.board.setSpeedMotor(150)
+		self.driver.board.setRelativePosition(90)
+		self.driver.board.moveMotor()
 		wx.CallAfter(lambda: self.gauge.SetValue(90))
 
-		self.scanner.device.disable()
-		self.scanner.device.setLeftLaserOff()
-		self.scanner.device.setRightLaserOff()
+		self.driver.board.disableMotor()
+		self.driver.board.setLeftLaserOff()
+		self.driver.board.setRightLaserOff()
 		wx.CallAfter(lambda: self.gauge.SetValue(100))
 
-		#-- Result
-		result = False
-		if ret is None:
-			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error: please check motor and pattern and try again"))
-		elif 0 in ret[1][0] or 0 in ret[1][1]:
-			wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again"))
-		else:
-			result = True
+		#-- Result: TODO
+		#result = False
+		#if ret is None:
+		#	wx.CallAfter(lambda: self.resultLabel.SetLabel("Error: please check motor and pattern and try again"))
+		#elif 0 in ret[1][0] or 0 in ret[1][1]:
+		#	wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again"))
+		#else:
+		result = True
 		wx.CallAfter(lambda: self.afterAutoCheck(result))
 
 	def getFrame(self):
-		return self.scanner.camera.captureImage()
+		return self.driver.camera.captureImage()
 
 	def updateStatus(self, status):
 		if status:
-			if getPreference('workbench') != 'calibration':
-				putPreference('workbench', 'calibration')
+			if profile.getPreference('workbench') != 'calibration':
+				profile.putPreference('workbench', 'calibration')
 				self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			self.connectButton.Disable()

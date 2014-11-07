@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: March & November 2014                                           #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -27,40 +27,68 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import os
-import wx._core
+import threading
 
-from horus.util import profile, resources
+from horus.engine.board import Board
+from horus.engine.camera import Camera
 
-from horus.gui.main import MainWindow
-from horus.gui.splash import SplashScreen
-from horus.gui.welcome import WelcomeWindow
+from horus.engine.board import WrongFirmware, BoardNotConnected
+from horus.engine.camera import CameraNotConnected, WrongCamera, InvalidVideo
 
-class HorusApp(wx.App):
+import horus.util.error as Error
+from horus.util.singleton import Singleton
+
+
+@Singleton
+class Driver:
+	"""Driver class. For managing scanner hw"""
 	def __init__(self):
-		super(HorusApp, self).__init__(redirect=False)
+		self.isConnected = False
 
-		self.basePath = profile.getBasePath()
+		#TODO: Callbacks to Observer pattern
+		self.beforeCallback = None
+		self.afterCallback = None
 
-		SplashScreen(self.afterSplashCallback)
+		self.board = Board()
+		self.camera = Camera()
 
-	def afterSplashCallback(self):
-		#-- Load Profile and Preferences
-		profile.loadPreferences(os.path.join(self.basePath, 'preferences.ini'))
-		profile.loadProfile(os.path.join(self.basePath, 'current-profile.ini'))
-		profile.putPreference('workbench', 'scanning')
+	def setCallbacks(self, before, after):
+		self.beforeCallback = before
+		self.afterCallback = after
 
-		#-- Load Language
-		resources.setupLocalization(profile.getPreference('language'))
+	def connect(self):
+		if self.beforeCallback is not None:
+			self.beforeCallback()
+		threading.Thread(target=self._connect, args=(self.afterCallback,)).start()
 
-		#-- Create Main Window
-		mainWindow = MainWindow()
-
-		if profile.getPreferenceBool('show_welcome'):
-			#-- Create Welcome Window
-			welcome = WelcomeWindow(mainWindow)
-
-	def __del__(self):
-		#-- Save Profile and Preferences
-		profile.savePreferences(os.path.join(self.basePath, 'preferences.ini'))
-		profile.saveProfile(os.path.join(self.basePath, 'current-profile.ini'))
+	def _connect(self, callback):
+		error = None
+		self.isConnected = False
+		try:
+			self.camera.connect()
+			self.board.connect()
+		except WrongFirmware:
+			error = Error.WrongFirmware
+		except BoardNotConnected:
+			error = Error.BoardNotConnected
+		except CameraNotConnected:
+			error = Error.CameraNotConnected
+		except WrongCamera:
+			error = Error.WrongCamera
+		except InvalidVideo:
+			error = Error.InvalidVideo
+		else:
+			self.isConnected = True
+		finally:
+			if error is None:
+				response = (True, self.isConnected)
+			else:
+				response = (False, error)
+				self.disconnect()
+			if callback is not None:
+				callback(response)
+		
+	def disconnect(self):
+		self.camera.disconnect()
+		self.board.disconnect()
+		self.isConnected = False

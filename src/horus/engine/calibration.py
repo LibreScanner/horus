@@ -10,6 +10,9 @@
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
 #         Carlos Crespo <carlos.crespo@bq.com>                          #
 #                                                                       #
+# Date: November 2014                                                   #
+# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
+#                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
 # the Free Software Foundation, either version 3 of the License, or     #
@@ -29,86 +32,116 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import cv2
-import math
-import numpy as np
-from numpy import linalg
-from scipy import optimize
-import functools
-
 import time
+import threading
+import numpy as np
+from scipy import optimize
 
-from horus.util import profile
-from horus.util.singleton import *
+from horus.engine.driver import Driver
 
-from horus.engine.scanner import *
+import horus.util.error as Error
+from horus.util.singleton import Singleton
 
-@Singleton
+
 class Calibration:
+	""" 
+		Performs calibration processes:
+
+			- Multithread calibration
+	"""
 
 	def __init__(self):
-		self.scanner = Scanner.Instance()
+		self.isCalibrating = False
+		self.driver = Driver.Instance()
 
-	def initialize(self, cameraMatrix, distortionVector, patternRows, patternColumns, squareWidth, patternDistance, extrinsicsStep, useDistortion):
-		self.cameraMatrix = cameraMatrix
-		self.distortionVector = distortionVector
-		self.patternRows = patternRows # points_per_column
-		self.patternColumns = patternColumns # points_per_row
-		self.squareWidth = squareWidth # milimeters of each square's side
-		self.patternDistance = patternDistance
-		self.extrinsicsStep = extrinsicsStep
-		self.useDistortion = useDistortion
+		#TODO: Callbacks to Observer pattern
+		self.beforeCallback = None
+		self.progressCallback = None
+		self.afterCallback = None
 
-		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
+	def setCallbacks(self, before, progress, after):
+		self.beforeCallback = before
+		self.progressCallback = progress
+		self.afterCallback = after
 
-		self.imagePointsStack=[]
-		self.objPointsStack=[]
+	def start(self):
+		if self.beforeCallback is not None:
+			self.beforeCallback()
 
-		self.thickness = 20
+		if self.progressCallback is not None:
+			self.progressCallback(0)
 
+		self.isCalibrating = True
+		threading.Thread(target=self._start, args=(self.progressCallback,self.afterCallback)).start()
+
+	def _start(self, progressCallback, afterCallback):
+		if progressCallback is not None:
+			progressCallback(100)
+
+	def cancel(self):
+		self.isCalibrating = False
+
+
+@Singleton
+class CameraIntrinsics(Calibration):
+	""" 
+		Camera calibration algorithms, based on [Zhang2000] and [BouguetMCT]:
+
+			- Camera matrix
+			- Distortion vector
+	"""
+	def __init__(self):
+		Calibration.__init__(self)
+		self.objPointsStack = []
+		self.imagePointsStack = []
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
 
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
 		self.distortionVector = distortionVector
 
-	def setPatternDistance(self, patternDistance):
-		self.patternDistance = patternDistance
+	def setUseDistortion(self, useDistortion):
+		self.useDistortion = useDistortion
 
-	def generateGuides(self, width, height):
-		xfactor = width / 960.
-		yfactor = height / 1280.
-		self.thickness = int(round(20*xfactor))
+	def setPatternParameters(self, rows, columns, squareWidth, distance):
+		self.patternRows = rows
+		self.patternColumns = columns
+		self.squareWidth = squareWidth
+		self.patternDistance = distance
+		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
 
-	def detectChessboard(self, frame):
+	def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
+		objp = np.zeros((patternRows*patternColumns,3), np.float32)
+		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
+		objp = np.multiply(objp, squareWidth)
+		return objp
+
+	def _start(self, progressCallback, afterCallback):
+		ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(self.objPointsStack, self.imagePointsStack, self.shape)
+		
+		if progressCallback is not None:
+			progressCallback(100)
+
+		if ret:
+			response = (True, (mtx, dist[0], rvecs, tvecs))
+		else:
+			response = (False, Error.CalibrationError)
+
+		if afterCallback is not None:
+			afterCallback(response)
+
+	def detectChessboard(self, frame, capture=False):
 		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 		self.shape = gray.shape
 		retval, corners = cv2.findChessboardCorners(gray, (self.patternColumns,self.patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
 		if retval:
 			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=self.criteria)
-			self.imagePointsStack.append(corners)
-			self.objPointsStack.append(self.objpoints) 
+			if capture:
+				if len(self.objPointsStack) < 12:
+					self.imagePointsStack.append(corners)
+					self.objPointsStack.append(self.objpoints) 
 			cv2.drawChessboardCorners(frame, (self.patternColumns,self.patternRows), corners, retval)
 		return retval, frame
-
-	def performCameraIntrinsicsCalibration(self):
-		ret = cv2.calibrateCamera(self.objPointsStack, self.imagePointsStack, self.shape)
-		
-		if ret[0]:
-			self.cameraMatrix = ret[1]
-			self.distortionVector = ret[2][0]
-			return self.cameraMatrix, self.distortionVector, ret[3], ret[4]
-		else:
-			"Calibrate Camera Error"
-
-		#self.meanError()
-
-	"""def meanError(self):
-		mean_error = 0
-		for i in xrange(len(self.objPointsStack)):
-			imgpoints2,_=cv2.projectPoints(self.objPointsStack[i],self.rvecs[i],self.tvecs[i],self.cameraMatrix,self._distortionVector)
-			error=cv2.norm(self.imagePointsStack[i],imgpoints2,cv2.NORM_L2)/len(imgpoints2)
-			mean_error+=error
-		self.mean_error=mean_error"""
 
 	def clearImageStack(self):
 		if hasattr(self, 'imagePointsStack'):
@@ -116,34 +149,70 @@ class Calibration:
 		if hasattr(self, 'objPointsStack'):
 			del self.objPointsStack[:]
 
-	def performLaserTriangulationCalibration(self):
-		if self.scanner.isConnected:
 
-			device = self.scanner.device
-			camera = self.scanner.camera
+@Singleton
+class LaserTriangulation(Calibration):
+	""" 
+		Laser triangulation algorithms:
+
+			- Laser coordinates matrix
+			- Pattern's origin
+			- Pattern's normal
+	"""
+	def __init__(self):
+		Calibration.__init__(self)
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+
+	def setIntrinsics(self, cameraMatrix, distortionVector):
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
+
+	def setUseDistortion(self, useDistortion):
+		self.useDistortion = useDistortion
+
+	def setPatternParameters(self, rows, columns, squareWidth, distance):
+		self.patternRows = rows
+		self.patternColumns = columns
+		self.squareWidth = squareWidth
+		self.patternDistance = distance
+		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
+
+	def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
+		objp = np.zeros((patternRows*patternColumns,3), np.float32)
+		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
+		objp = np.multiply(objp, squareWidth)
+		return objp
+
+	def _start(self, progressCallback, afterCallback):
+		t = None
+
+		if self.driver.isConnected:
+
+			board = self.driver.board
+			camera = self.driver.camera
 
 			##-- Switch off lasers
-			device.setLeftLaserOff()
-			device.setRightLaserOff()
+			board.setLeftLaserOff()
+			board.setRightLaserOff()
 
 			##-- Move pattern until ||(R-I)|| < e
-			device.setSpeedMotor(1)
-			device.enable()
-			time.sleep(0.5)
+			board.setSpeedMotor(1)
+			board.enableMotor()
+			time.sleep(0.3)
 
-			t, n, corners = self.getPatternDepth(device, camera)
+			t, n, corners = self.getPatternDepth(board, camera, progressCallback)
 
 			if t is not None and corners is not None:
-				time.sleep(0.2)
+				time.sleep(0.1)
 
 				#-- Get images
 				imgRaw = camera.captureImage(flush=True, flushValue=2)
-				device.setLeftLaserOn()
+				board.setLeftLaserOn()
 				imgLasL = camera.captureImage(flush=True, flushValue=2)
-				device.setLeftLaserOff()
-				device.setRightLaserOn()
+				board.setLeftLaserOff()
+				board.setRightLaserOn()
 				imgLasR = camera.captureImage(flush=True, flushValue=2)
-				device.setRightLaserOff()
+				board.setRightLaserOff()
 
 				##-- Corners ROI mask
 				imgLasL = self.cornersMask(imgLasL, corners)
@@ -156,14 +225,22 @@ class Calibration:
 				retR = self.obtainLine(imgRaw, imgLasR)
 
 			#-- Disable motor
-			device.disable()
+			board.disableMotor()
 
-			if t is not None:
-				return [[t, n], [retL[0], retR[0]], [retL[1], retR[1]]]
+		if self.isCalibrating and t is not None and not (0 in retL[0] or 0 in retR[0]):
+			response = (True, ([t, n], [retL[0], retR[0]], [retL[1], retR[1]]))
+			if progressCallback is not None:
+				progressCallback(100)
+		else:
+			if self.isCalibrating:
+				response = (False, Error.CalibrationError)
 			else:
-				return None
+				response = (False, Error.CalibrationCanceled)
 
-	def getPatternDepth(self, device, camera):
+		if afterCallback is not None:
+			afterCallback(response)
+
+	def getPatternDepth(self, board, camera, progressCallback):
 		epsilon = 0.0002
 		distance = np.inf
 		distanceAnt = np.inf
@@ -172,9 +249,13 @@ class Calibration:
 		n = None
 		corners = None
 		tries = 5
-		device.setRelativePosition(angle)
-		device.setSpeedMotor(40)
-		while distance > epsilon and tries > 0:
+		board.setRelativePosition(angle)
+		board.setSpeedMotor(40)
+
+		if progressCallback is not None:
+			progressCallback(0)
+
+		while self.isCalibrating and distance > epsilon and tries > 0:
 			image = camera.captureImage(flush=True, flushValue=2)
 			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 			if ret is not None:
@@ -183,17 +264,24 @@ class Calibration:
 					t = ret[2].T[0]
 					n = R.T[2]
 					corners = ret[3]
-					distance = numpy.linalg.norm((0,0,1)-n)
+					distance = np.linalg.norm((0,0,1)-n)
 					if distance < epsilon or distanceAnt < distance:
-						device.setRelativePosition(-angle)
-						device.setMoveMotor()
+						board.setRelativePosition(-angle)
+						board.moveMotor()
 						break
 					distanceAnt = distance
 					angle = np.max(((distance-epsilon) * 15, 0.1))
 			else:
 				tries -= 1
-			device.setRelativePosition(angle)
-			device.setMoveMotor()
+			board.setRelativePosition(angle)
+			board.moveMotor()
+
+			if progressCallback is not None:
+				if distance < np.inf:
+					progressCallback(min(80,max(0,80-100*abs(distance-epsilon))))
+
+		if progressCallback is not None:
+			progressCallback(80)
 
 		image = camera.captureImage(flush=True, flushValue=2)
 		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
@@ -202,10 +290,13 @@ class Calibration:
 			t = ret[2].T[0]
 			n = R.T[2]
 			corners = ret[3]
-			distance = numpy.linalg.norm((0,0,1)-n)
+			distance = np.linalg.norm((0,0,1)-n)
 			angle = np.max(((distance-epsilon) * 15, 0.1))
 
-		print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
+		if progressCallback is not None:
+			progressCallback(90)
+
+		#print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
 		return t, n, corners
 
@@ -266,37 +357,74 @@ class Calibration:
 				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, None)
 			return (ret, cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
+
+@Singleton
+class PlatformExtrinsics(Calibration):
+	""" 
+		Platform extrinsics algorithms:
+
+			- Rotation matrix
+			- Translation vector
+	"""
+	def __init__(self):
+		Calibration.__init__(self)
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+
+	def setExtrinsicsStep(self, step):
+		self.extrinsicsStep = step
+
+	def setIntrinsics(self, cameraMatrix, distortionVector):
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
+
+	def setUseDistortion(self, useDistortion):
+		self.useDistortion = useDistortion
+
+	def setPatternParameters(self, rows, columns, squareWidth, distance):
+		self.patternRows = rows
+		self.patternColumns = columns
+		self.squareWidth = squareWidth
+		self.patternDistance = distance
+		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
+
 	def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
 		objp = np.zeros((patternRows*patternColumns,3), np.float32)
 		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
 		objp = np.multiply(objp, squareWidth)
 		return objp
 
-	def performPlatformExtrinsicsCalibration(self):
-		if self.scanner.isConnected:
+	def _start(self, progressCallback, afterCallback):
+		t = None
 
-			device = self.scanner.device
-			camera = self.scanner.camera
+		if self.driver.isConnected:
+
+			board = self.driver.board
+			camera = self.driver.camera
 
 			x = []
 			y = []
 			z = []
 
 			##-- Switch off lasers
-			device.setLeftLaserOff()
-			device.setRightLaserOff()
+			board.setLeftLaserOff()
+			board.setRightLaserOff()
 
 			##-- Move pattern 180 degrees
 			step = self.extrinsicsStep # degrees
 			angle = 0
-			device.setSpeedMotor(1)
-			device.enable()
-			device.setSpeedMotor(150)
+			board.setSpeedMotor(1)
+			board.enableMotor()
+			board.setSpeedMotor(150)
 			time.sleep(0.2)
 
-			while abs(angle) <= 180:
+			if progressCallback is not None:
+				progressCallback(0)
+
+			while self.isCalibrating and abs(angle) <= 180:
 				angle += step
-				t = self.getPatternPosition(step, device, camera)
+				t = self.getPatternPosition(step, board, camera)
+				if progressCallback is not None:
+					progressCallback(abs(angle/2.))
 				time.sleep(0.1)
 				if t is not None:
 					x += [t[0][0]]
@@ -309,33 +437,56 @@ class Calibration:
 
 			points = zip(x,y,z)
 
-			if len(points) <= 0:
-				return None
+			if len(points) > 4:
 
-			#-- Fitting a plane
-			point, normal = self.fitPlane(points)
+				#-- Fitting a plane
+				point, normal = self.fitPlane(points)
 
-			#-- Fitting a circle inside the plane
-			center, R, circle = self.fitCircle(point, normal, points)
+				#-- Fitting a circle inside the plane
+				center, R, circle = self.fitCircle(point, normal, points)
 
-			# Get real origin
-			t = center - self.patternDistance * np.array(normal)
+				# Get real origin
+				t = center - self.patternDistance * np.array(normal)
 
 			#-- Disable motor
-			device.disable()
+			board.disableMotor()
 
-			return [R, t, center, point, normal, [x,y,z], circle]	
+		if self.isCalibrating and t is not None and np.linalg.norm(t-[5,80,320]) < 20:
+			response = (True, (R, t, center, point, normal, [x,y,z], circle))
+			if progressCallback is not None:
+				progressCallback(100)
+		else:
+			if self.isCalibrating:
+				response = (False, Error.CalibrationError)
+			else:
+				response = (False, Error.CalibrationCanceled)
 
-	def getPatternPosition(self, step, device, camera):
+		if afterCallback is not None:
+			afterCallback(response)
+
+	def getPatternPosition(self, step, board, camera):
 		t = None
 		image = camera.captureImage(flush=True, flushValue=2)
 		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 		if ret is not None:
 			if ret[0]:
 				t = ret[2]
-		device.setRelativePosition(step)
-		device.setMoveMotor()
+		board.setRelativePosition(step)
+		board.moveMotor()
 		return t
+
+	def solvePnp(self, image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):
+		gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+		# the fast check flag reduces significantly the computation time if the pattern is out of sight 
+		retval, corners = cv2.findChessboardCorners(gray, (patternColumns,patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
+
+		if retval:
+			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=self.criteria)
+			if self.useDistortion:
+				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, distortionVector)
+			else:
+				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, None)
+			return (ret, cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
 	#-- Fitting a plane
 	def distanceToPlane(self, p0,n0,p):
@@ -343,7 +494,7 @@ class Calibration:
 
 	def residualsPlane(self, parameters,dataPoint):
 		px,py,pz,theta,phi = parameters
-		nx,ny,nz = math.sin(theta)*math.cos(phi),math.sin(theta)*math.sin(phi),math.cos(theta)
+		nx,ny,nz = np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta)
 		distances = [self.distanceToPlane([px,py,pz],[nx,ny,nz],[x,y,z]) for x,y,z in dataPoint]
 		return distances
 
@@ -356,7 +507,7 @@ class Calibration:
 
 		#self.point  = [xF,yF,zF]
 		self.point = data[0]
-		self.normal = -np.array([math.sin(tF)*math.cos(pF),math.sin(tF)*math.sin(pF),math.cos(tF)])
+		self.normal = -np.array([np.sin(tF)*np.cos(pF),np.sin(tF)*np.sin(pF),np.cos(tF)])
 
 		return self.point, self.normal
 
@@ -384,7 +535,7 @@ class Calibration:
 
 		# Synthetic Data
 		centerPoint = sF*self.s + rF*self.r + np.array(self.point)
-		synthetic = [list(centerPoint+ RiF*math.cos(phi)*self.r+RiF*math.sin(phi)*self.s) for phi in np.linspace(0, 2*math.pi,50)]
+		synthetic = [list(centerPoint+ RiF*np.cos(phi)*self.r+RiF*np.sin(phi)*self.s) for phi in np.linspace(0, 2*np.pi,50)]
 		[cxTupel,cyTupel,czTupel] = [ x for x in zip(*synthetic)]
 
 		return centerPoint, R, [cxTupel,cyTupel,czTupel]

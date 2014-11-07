@@ -28,13 +28,14 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 
-import wx
+import wx._core
 
 from horus.gui.util.itemControls import *
 
-from horus.util.profile import *
+from horus.util import profile
 
-from horus.engine.scanner import *
+from horus.engine.driver import Driver
+from horus.engine.scan import PointCloudGenerator
 
 class SettingsPanel(wx.Panel):
     def __init__(self, parent):
@@ -43,7 +44,8 @@ class SettingsPanel(wx.Panel):
         self.initialize()
 
     def initialize(self):
-        self.scanner = Scanner.Instance()
+        self.driver = Driver.Instance()
+        self.pcg = PointCloudGenerator.Instance()
         self.main = self.GetParent().GetParent().GetParent()
 
         if hasattr(self, 'controls'):
@@ -52,41 +54,41 @@ class SettingsPanel(wx.Panel):
 
         #-- Graphic elements
         control = Control(self, _('Scanner Settings'))
-        control.append(Slider, 'brightness_scanning', self.scanner.camera.setBrightness)
-        control.append(Slider, 'contrast_scanning', self.scanner.camera.setContrast)
-        control.append(Slider, 'saturation_scanning', self.scanner.camera.setSaturation)
-        control.append(Slider, 'exposure_scanning', self.scanner.camera.setExposure)
-        control.append(ComboBox, 'framerate_scanning', lambda v: (self.scanner.camera.setFrameRate(int(v)), self.reloadVideo()))
-        control.append(ComboBox, 'resolution_scanning', lambda v: self.scanner.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        control.append(CheckBox, 'use_distortion_scanning', lambda v: (self.scanner.camera.setUseDistortion(v), self.reloadVideo()))
+        control.append(Slider, 'brightness_scanning', self.driver.camera.setBrightness)
+        control.append(Slider, 'contrast_scanning', self.driver.camera.setContrast)
+        control.append(Slider, 'saturation_scanning', self.driver.camera.setSaturation)
+        control.append(Slider, 'exposure_scanning', self.driver.camera.setExposure)
+        control.append(ComboBox, 'framerate_scanning', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        control.append(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        control.append(CheckBox, 'use_distortion_scanning', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
         control.append(Button, 'restore_default', self.restoreDefault)
         self.controls.append(control)
         
         control = Control(self, _('Image Processing'), bold=False)
-        control.append(CheckBox, 'use_open', lambda v: self.scanner.core.setUseOpen(bool(v)))
-        control.append(Slider, 'open_value', lambda v: self.scanner.core.setOpenValue(int(v)))
-        control.append(CheckBox, 'use_threshold', lambda v: self.scanner.core.setUseThreshold(bool(v)))
-        control.append(Slider, 'threshold_value', lambda v: self.scanner.core.setThresholdValue(int(v)))
+        control.append(CheckBox, 'use_open', lambda v: self.pcg.setUseOpen(bool(v)))
+        control.append(Slider, 'open_value', lambda v: self.pcg.setOpenValue(int(v)))
+        control.append(CheckBox, 'use_threshold', lambda v: self.pcg.setUseThreshold(bool(v)))
+        control.append(Slider, 'threshold_value', lambda v: self.pcg.setThresholdValue(int(v)))
         self.controls.append(control)
 
         control = Control(self, _('Algorithm'), bold=False)
-        control.append(CheckBox, 'use_compact', lambda v: self.scanner.core.setUseCompact(bool(v)))
+        control.append(CheckBox, 'use_compact', lambda v: self.pcg.setUseCompact(bool(v)))
         self.controls.append(control)
 
         control = Control(self, _('3D ROI'), bold=False)
         control.append(CheckBox, 'view_roi', lambda v: self.main.sceneView.QueueRefresh())
-        control.append(Slider, 'roi_radius', lambda v: (self.scanner.core.setROIRadius(int(v)), self.main.sceneView.QueueRefresh()))
-        control.append(Slider, 'roi_height', lambda v: (self.scanner.core.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
+        control.append(Slider, 'roi_radius', lambda v: (self.pcg.setROIRadius(int(v)), self.main.sceneView.QueueRefresh()))
+        control.append(Slider, 'roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
         self.controls.append(control)
 
         control = Control(self, _('Laser'), bold=False)
-        control.append(ComboBox, 'use_laser', lambda v: self.scanner.core.setUseLaser(v==_("Use Left Laser"), v==_("Use Right Laser"))) #TODO: use combo choices
+        control.append(ComboBox, 'use_laser', lambda v: self.pcg.setUseLaser(v==_("Use Left Laser"), v==_("Use Right Laser"))) #TODO: use combo choices
         self.controls.append(control)
 
         control = Control(self, _('Motor'), bold=False)
-        control.append(TextBox, 'step_degrees_scanning', lambda v: (self.scanner.device.setRelativePosition(self.getValueFloat(v)), self.scanner.core.setDegrees(self.getValueFloat(v))))
-        control.append(TextBox, 'feed_rate_scanning', lambda v: self.scanner.device.setSpeedMotor(self.getValueInteger(v)))
-        control.append(TextBox, 'acceleration_scanning', lambda v: self.scanner.device.setAccelerationMotor(self.getValueInteger(v)))
+        control.append(TextBox, 'step_degrees_scanning', lambda v: (self.driver.board.setRelativePosition(self.getValueFloat(v)), self.pcg.setDegrees(self.getValueFloat(v))))
+        control.append(TextBox, 'feed_rate_scanning', lambda v: self.driver.board.setSpeedMotor(self.getValueInteger(v)))
+        control.append(TextBox, 'acceleration_scanning', lambda v: self.driver.board.setAccelerationMotor(self.getValueInteger(v)))
         control.append(Button, 'restore_default', self.restoreDefault)
         self.controls.append(control)
 

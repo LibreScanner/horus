@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: November 2014                                                   #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -27,40 +27,36 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import os
-import wx._core
 
-from horus.util import profile, resources
+WrongFirmware       = "wrong_firmware"
+BoardNotConnected   = "board_not_connected"
+CameraNotConnected  = "camera_not_connected"
+WrongCamera         = "wrong_camera"
+InvalidVideo        = "invalid_video"
+CalibrationError    = "calibration_error"
+CalibrationCanceled = "calibration_canceled"
+ScanError           = "scan_error"
 
-from horus.gui.main import MainWindow
-from horus.gui.splash import SplashScreen
-from horus.gui.welcome import WelcomeWindow
+#Define a fake _() function to fake the gettext tools in to generating strings for the error messages.
+def _(n):
+	return n
 
-class HorusApp(wx.App):
-	def __init__(self):
-		super(HorusApp, self).__init__(redirect=False)
+_dict = { 
+	WrongFirmware       : _("Wrong Firmware"),
+	BoardNotConnected   : _("Board Not Connected"),
+	CameraNotConnected  : _("Camera Not Connected"),
+	WrongCamera         : _("Wrong Camera"),
+	InvalidVideo        : _("Invalid Video"),
+	CalibrationError    : _("Calibration Error"),
+	CalibrationCanceled : _("Calibration Canceled"),
+	ScanError           : _("Scan Error")
+}
 
-		self.basePath = profile.getBasePath()
+del _
 
-		SplashScreen(self.afterSplashCallback)
+def contains(key):
+	return key in _dict
 
-	def afterSplashCallback(self):
-		#-- Load Profile and Preferences
-		profile.loadPreferences(os.path.join(self.basePath, 'preferences.ini'))
-		profile.loadProfile(os.path.join(self.basePath, 'current-profile.ini'))
-		profile.putPreference('workbench', 'scanning')
-
-		#-- Load Language
-		resources.setupLocalization(profile.getPreference('language'))
-
-		#-- Create Main Window
-		mainWindow = MainWindow()
-
-		if profile.getPreferenceBool('show_welcome'):
-			#-- Create Welcome Window
-			welcome = WelcomeWindow(mainWindow)
-
-	def __del__(self):
-		#-- Save Profile and Preferences
-		profile.savePreferences(os.path.join(self.basePath, 'preferences.ini'))
-		profile.saveProfile(os.path.join(self.basePath, 'current-profile.ini'))
+def str(key):
+	if contains(key):
+		return _dict[key]

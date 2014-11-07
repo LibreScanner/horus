@@ -30,10 +30,10 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 import os
 import wx._core
 
-from horus.util.profile import *
+from horus.util import profile, resources
 
-from horus.gui.wizard.main import *
-from horus.gui.util.imageView import *
+from horus.gui.wizard.main import Wizard
+from horus.gui.util.imageView import ImageView
 
 class WelcomeWindow(wx.Dialog):
 
@@ -42,12 +42,12 @@ class WelcomeWindow(wx.Dialog):
 
         self.parent = parent
 
-        self.lastFiles = eval(getPreference('last_files'))
+        self.lastFiles = eval(profile.getPreference('last_files'))
 
         header = Header(self)
         content = Content(self)
         checkBoxShow = wx.CheckBox(self, label=_("Don't show this dialog again"), style=wx.ALIGN_LEFT)
-        checkBoxShow.SetValue(not getPreferenceBool('show_welcome'))
+        checkBoxShow.SetValue(not profile.getPreferenceBool('show_welcome'))
 
         checkBoxShow.Bind(wx.EVT_CHECKBOX, self.onCheckBoxChanged)
         self.Bind(wx.EVT_CLOSE, self.onClose)
@@ -55,7 +55,7 @@ class WelcomeWindow(wx.Dialog):
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(header, 2, wx.ALL|wx.EXPAND, 1)
-        vbox.Add(content, 3, wx.ALL|wx.EXPAND, 20)
+        vbox.Add(content, 3, wx.ALL|wx.EXPAND^wx.BOTTOM, 20)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add((0,0), 1, wx.ALL|wx.EXPAND, 0)
         hbox.Add(checkBoxShow, 0, wx.ALL, 0)
@@ -66,7 +66,7 @@ class WelcomeWindow(wx.Dialog):
         self.ShowModal()
 
     def onCheckBoxChanged(self, event):
-        putPreference('show_welcome', not event.Checked())
+        profile.putPreference('show_welcome', not event.Checked())
 
     def onClose(self, event):
         self.Destroy()
@@ -77,7 +77,7 @@ class Header(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         logo = ImageView(self)
-        logo.setImage(wx.Image(getPathForImage("logo.png")))
+        logo.setImage(wx.Image(resources.getPathForImage("logo.png")))
         titleText = wx.StaticText(self, label=_("3D Scanning for everyone"))
         titleText.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
         separator = wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL)
@@ -100,17 +100,20 @@ class CreateNew(wx.Panel):
 
         wizardButton = wx.Button(self, label=_("Wizard mode (step by step)"))
         scanButton = wx.Button(self, label=_("Scan using recent settings"))
-        advancedButton = wx.Button(self, label=_("Advanced"))
+        advancedControlButton = wx.Button(self, label=_("Advanced Control"))
+        advancedCalibrationButton = wx.Button(self, label=_("Advanced Calibration"))
 
         wizardButton.Bind(wx.EVT_BUTTON, self.onWizard)
         scanButton.Bind(wx.EVT_BUTTON, self.onScan)
-        advancedButton.Bind(wx.EVT_BUTTON, self.onAdvanced)
+        advancedControlButton.Bind(wx.EVT_BUTTON, self.onAdvancedControl)
+        advancedCalibrationButton.Bind(wx.EVT_BUTTON, self.onAdvancedCalibration)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(titleText, 0, wx.BOTTOM|wx.CENTER, 10)
         vbox.Add(wizardButton, 1, wx.ALL|wx.EXPAND, 5)
         vbox.Add(scanButton, 1, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(advancedButton, 1, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(advancedControlButton, 1, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(advancedCalibrationButton, 1, wx.ALL|wx.EXPAND, 5)
 
         self.SetSizer(vbox)
         self.Layout()
@@ -121,12 +124,17 @@ class CreateNew(wx.Panel):
         self.GetParent().GetParent().Close()
 
     def onScan(self, event):
-        putPreference('workbench', 'scanning')
+        profile.putPreference('workbench', 'scanning')
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
-    def onAdvanced(self, event):
-        putPreference('workbench', 'control')
+    def onAdvancedControl(self, event):
+        profile.putPreference('workbench', 'control')
+        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().Close()
+
+    def onAdvancedCalibration(self, event):
+        profile.putPreference('workbench', 'calibration')
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
@@ -138,7 +146,7 @@ class OpenRecent(wx.Panel):
         titleText = wx.StaticText(self, label=_("Open recent file"))
         titleText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
-        lastFiles = eval(getPreference('last_files'))
+        lastFiles = eval(profile.getPreference('last_files'))
         lastFiles.reverse()
 
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -154,7 +162,7 @@ class OpenRecent(wx.Panel):
 
     def onButtonPressed(self, event):
         button = event.GetEventObject()
-        putPreference('workbench', 'scanning')
+        profile.putPreference('workbench', 'scanning')
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().parent.appendLastFile(button.GetName())
         self.GetParent().GetParent().parent.scanningWorkbench.sceneView.loadFile(button.GetName())

@@ -27,11 +27,14 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
+import wx._core
 
-from horus.gui.wizard.wizardPage import *
+from horus.gui.wizard.wizardPage import WizardPage
 
-from horus.engine.scanner import *
+from horus.util import profile
+
+from horus.engine.driver import Driver
+from horus.engine.scan import PointCloudGenerator
 
 class ScanningPage(WizardPage):
 	def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
@@ -40,11 +43,12 @@ class ScanningPage(WizardPage):
 							buttonPrevCallback=buttonPrevCallback,
 							buttonNextCallback=buttonNextCallback)
 
-		self.scanner = Scanner.Instance()
+		self.driver = Driver.Instance()
+		self.pcg = PointCloudGenerator.Instance()
 
 		#TODO: use dictionaries
 
-		value = getProfileSetting('exposure_scanning')
+		value = profile.getProfileSettingInteger('exposure_scanning')
 		if value > 200:
 			value = _("High")
 		elif value > 100:
@@ -57,7 +61,7 @@ class ScanningPage(WizardPage):
 											choices=[_("High"), _("Medium"), _("Low")],
 											style=wx.CB_READONLY)
 
-		value = abs(float(getProfileSetting('step_degrees_scanning')))
+		value = abs(float(profile.getProfileSetting('step_degrees_scanning')))
 		if value > 1.35:
 			value = _("Low")
 		elif value > 0.625:
@@ -70,16 +74,16 @@ class ScanningPage(WizardPage):
 												choices=[_("High"), _("Medium"), _("Low")],
 												style=wx.CB_READONLY)
 
-		value = getProfileSetting('use_laser')
+		value = profile.getProfileSetting('use_laser')
 		if value ==_("Use Left Laser"):
-			self.scanner.device.setLeftLaserOn()
-			self.scanner.device.setRightLaserOff()
+			self.driver.board.setLeftLaserOn()
+			self.driver.board.setRightLaserOff()
 		elif value ==_("Use Right Laser"):
-			self.scanner.device.setLeftLaserOff()
-			self.scanner.device.setRightLaserOn()
+			self.driver.board.setLeftLaserOff()
+			self.driver.board.setRightLaserOn()
 		elif value ==_("Use Both Laser"):
-			self.scanner.device.setLeftLaserOn()
-			self.scanner.device.setRightLaserOn()
+			self.driver.board.setLeftLaserOn()
+			self.driver.board.setRightLaserOn()
 		self.laserLabel = wx.StaticText(self.panel, label=_("Laser"))
 		self.laserComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
 										value=value,
@@ -126,7 +130,7 @@ class ScanningPage(WizardPage):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.scanner.isConnected)
+			self.updateStatus(self.driver.isConnected)
 		else:
 			try:
 				self.videoView.stop()
@@ -141,8 +145,8 @@ class ScanningPage(WizardPage):
 			value = 150
 		elif value ==_("Low"):
 			value = 80
-		putProfileSetting('exposure_scanning', value)
-		self.scanner.camera.setExposure(value)
+		profile.putProfileSetting('exposure_scanning', value)
+		self.driver.camera.setExposure(value)
 
 	def onResolutionComboBoxChanged(self, event):
 		value = event.GetEventObject().GetValue()
@@ -152,29 +156,30 @@ class ScanningPage(WizardPage):
 			value = -0.9
 		elif value ==_("Low"):
 			value = -1.8
-		putProfileSetting('step_degrees_scanning', value)
+		profile.putProfileSetting('step_degrees_scanning', value)
+		self.pcg.setDegrees(value)
 
 	def onLaserComboBoxChanged(self, event):
 		value = event.GetEventObject().GetValue()
-		putProfileSetting('use_laser', value)
+		profile.putProfileSetting('use_laser', value)
 		if value ==_("Use Left Laser"):
-			self.scanner.device.setLeftLaserOn()
-			self.scanner.device.setRightLaserOff()
+			self.driver.board.setLeftLaserOn()
+			self.driver.board.setRightLaserOff()
 		elif value ==_("Use Right Laser"):
-			self.scanner.device.setLeftLaserOff()
-			self.scanner.device.setRightLaserOn()
+			self.driver.board.setLeftLaserOff()
+			self.driver.board.setRightLaserOn()
 		elif value ==_("Use Both Laser"):
-			self.scanner.device.setLeftLaserOn()
-			self.scanner.device.setRightLaserOn()
-		self.scanner.core.setUseLaser(value==_("Use Left Laser"), value==_("Use Right Laser"))
+			self.driver.board.setLeftLaserOn()
+			self.driver.board.setRightLaserOn()
+		self.pcg.setUseLaser(value==_("Use Left Laser"), value==_("Use Right Laser"))
 
 	def getFrame(self):
-		frame = self.scanner.camera.captureImage()
+		frame = self.driver.camera.captureImage()
 		return frame
 
 	def updateStatus(self, status):
 		if status:
-			putPreference('workbench', 'scanning')
+			profile.putPreference('workbench', 'scanning')
 			self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 		else:
