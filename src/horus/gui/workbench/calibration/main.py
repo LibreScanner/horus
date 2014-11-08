@@ -93,7 +93,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         #-- Add Calibration Pages
         self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(self._panel,
-                                                                 buttonCancelCallback=self.onCancelCallback,
+                                                                 afterCancelCallback=self.onCancelCallback,
                                                                  afterCalibrationCallback=self.onCameraIntrinsicsAfterCalibrationCallback)
 
         self.cameraIntrinsicsResultPage = CameraIntrinsicsResultPage(self._panel,
@@ -101,7 +101,7 @@ class CalibrationWorkbench(WorkbenchConnection):
                                                                      buttonAcceptCallback=self.onCameraIntrinsicsAcceptCallback)
 
         self.laserTriangulationMainPage = LaserTriangulationMainPage(self._panel,
-                                                                     buttonCancelCallback=self.onCancelCallback,
+                                                                     afterCancelCallback=self.onCancelCallback,
                                                                      afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
 
         self.laserTriangulationResultPage = LaserTriangulationResultPage(self._panel,
@@ -109,7 +109,7 @@ class CalibrationWorkbench(WorkbenchConnection):
                                                                          buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
 
         self.platformExtrinsicsMainPage = PlatformExtrinsicsMainPage(self._panel,
-                                                                     buttonCancelCallback=self.onCancelCallback,
+                                                                     afterCancelCallback=self.onCancelCallback,
                                                                      afterCalibrationCallback=self.onPlatformExtrinsicsAfterCalibrationCallback)
 
         self.platformExtrinsicsResultPage = PlatformExtrinsicsResultPage(self._panel,

@@ -43,13 +43,13 @@ from horus.engine import calibration
 
 class CameraIntrinsicsMainPage(Page):
 
-	def __init__(self, parent, buttonCancelCallback=None, afterCalibrationCallback=None):
+	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Camera Intrinsics"),
 							subTitle=_("Press space bar to perform capures"),
 							left=_("Cancel"),
 							right=_("Calibrate"),
-							buttonLeftCallback=buttonCancelCallback,
+							buttonLeftCallback=self.onCancel,
 							buttonRightCallback=self.onCalibrate,
 							panelOrientation=wx.HORIZONTAL,
 							viewProgress=True)
@@ -57,6 +57,7 @@ class CameraIntrinsicsMainPage(Page):
 		self.driver = Driver.Instance()
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 
+		self.afterCancelCallback = afterCancelCallback
 		self.afterCalibrationCallback = afterCalibrationCallback
 
 		#-- Video View
@@ -147,7 +148,6 @@ class CameraIntrinsicsMainPage(Page):
 
 	def beforeCalibration(self):
 		self.videoView.pause()
-		self._leftButton.Disable()
 		self._rightButton.Disable()
 		self.gauge.SetValue(95)
 		self.waitCursor = wx.BusyCursor()
@@ -156,11 +156,18 @@ class CameraIntrinsicsMainPage(Page):
 		self.gauge.SetValue(max(95, progress))
 
 	def afterCalibration(self, result):
-		self._leftButton.Enable()
 		self._rightButton.Enable()
-		del self.waitCursor
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
+
+	def onCancel(self):
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		self.cameraIntrinsics.cancel()
+		if self.afterCancelCallback is not None:
+			self.afterCancelCallback()
 
 
 class CameraIntrinsicsResultPage(Page):
@@ -194,9 +201,10 @@ class CameraIntrinsicsResultPage(Page):
 			self.plotPanel.Show()
 			self.Layout()
 		else:
-			dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
-			dlg.ShowModal()
-			dlg.Destroy()
+			if result == Error.CalibrationError:
+				dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
 
 import random
 from matplotlib.figure import Figure
@@ -290,13 +298,13 @@ class Plot3DCameraIntrinsics(wx.Panel):
 
 class LaserTriangulationMainPage(Page):
 
-	def __init__(self, parent, buttonCancelCallback=None, afterCalibrationCallback=None):
+	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Laser Triangulation"),
 							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
 							left=_("Cancel"),
 							right=_("Calibrate"),
-							buttonLeftCallback=buttonCancelCallback,
+							buttonLeftCallback=self.onCancel,
 							buttonRightCallback=self.onCalibrate,
 							panelOrientation=wx.HORIZONTAL,
 							viewProgress=True)
@@ -305,6 +313,7 @@ class LaserTriangulationMainPage(Page):
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 
+		self.afterCancelCallback = afterCancelCallback
 		self.afterCalibrationCallback = afterCalibrationCallback
 
 		#-- Image View
@@ -347,7 +356,6 @@ class LaserTriangulationMainPage(Page):
 		self.laserTriangulation.start()
 
 	def beforeCalibration(self):
-		self._leftButton.Disable()
 		self._rightButton.Disable()
 		self.gauge.SetValue(0)
 		self.waitCursor = wx.BusyCursor()
@@ -356,11 +364,19 @@ class LaserTriangulationMainPage(Page):
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
-		self._leftButton.Enable()
 		self._rightButton.Enable()
-		del self.waitCursor
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
+
+	def onCancel(self):
+		self.laserTriangulation.cancel()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCancelCallback is not None:
+			self.afterCancelCallback()
+
 
 class LaserTriangulationResultPage(Page):
 
@@ -402,9 +418,10 @@ class LaserTriangulationResultPage(Page):
 			self.rightLaserImageSequence.imageLine.setFrame(images[1][3])
 			self.Layout()
 		else:
-			dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
-			dlg.ShowModal()
-			dlg.Destroy()
+			if result == Error.CalibrationError:
+				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
 
 
 class LaserTriangulationImageSequence(wx.Panel):
@@ -444,13 +461,13 @@ class LaserTriangulationImageSequence(wx.Panel):
 
 class PlatformExtrinsicsMainPage(Page):
 
-	def __init__(self, parent, buttonCancelCallback=None, afterCalibrationCallback=None):
+	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Platform Extrinsics"),
 							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
 							left=_("Cancel"),
-							right=_("Perform"),
-							buttonLeftCallback=buttonCancelCallback,
+							right=_("Calibrate"),
+							buttonLeftCallback=self.onCancel,
 							buttonRightCallback=self.onCalibrate,
 							panelOrientation=wx.HORIZONTAL,
 							viewProgress=True)
@@ -459,6 +476,7 @@ class PlatformExtrinsicsMainPage(Page):
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
+		self.afterCancelCallback = afterCancelCallback
 		self.afterCalibrationCallback = afterCalibrationCallback
 
 		#-- Image View
@@ -501,21 +519,26 @@ class PlatformExtrinsicsMainPage(Page):
 		self.platformExtrinsics.start()
 
 	def beforeCalibration(self):
-		self._leftButton.Disable()
 		self._rightButton.Disable()
 		self.gauge.SetValue(0)
 		self.waitCursor = wx.BusyCursor()
 
 	def progressCalibration(self, progress):
-		print progress
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
-		self._leftButton.Enable()
 		self._rightButton.Enable()
-		del self.waitCursor
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
+
+	def onCancel(self):
+		self.platformExtrinsics.cancel()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCancelCallback is not None:
+			self.afterCancelCallback()
 
 
 class PlatformExtrinsicsResultPage(Page):
@@ -548,9 +571,10 @@ class PlatformExtrinsicsResultPage(Page):
 			self.plotPanel.Show()
 			self.Layout()
 		else:
-			dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
-			dlg.ShowModal()
-			dlg.Destroy()
+			if result == Error.CalibrationError:
+				dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
 
 
 from mpl_toolkits.mplot3d import Axes3D
