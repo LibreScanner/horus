@@ -27,7 +27,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
+import wx._core
 
 class Page(wx.Panel):
 	def __init__(self, parent, title="Title", left="Left", right="Right", buttonLeftCallback=None, buttonRightCallback=None, panelOrientation=wx.VERTICAL):

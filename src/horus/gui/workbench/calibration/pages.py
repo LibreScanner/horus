@@ -28,14 +28,15 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import cv2
-
-from horus.util import resources
-
-from horus.gui.util.page import Page
-from horus.gui.util.imageView import ImageView, VideoView
-from horus.gui.workbench.calibration.panels import *
+import wx._core
 
 import horus.util.error as Error
+from horus.util import resources
+
+from horus.gui.util.imageView import ImageView, VideoView
+
+from horus.gui.workbench.calibration.page import Page
+
 from horus.engine.driver import Driver
 from horus.engine import calibration
 
@@ -199,12 +200,10 @@ class CameraIntrinsicsResultPage(Page):
 							panelOrientation=wx.HORIZONTAL)
 
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.cameraIntrinsicsParameters = CameraIntrinsicsParameters(self._panel)
 
 		#-- 3D Plot Panel
 		self.plotPanel = Plot3DCameraIntrinsics(self._panel)
 
-		self.addToPanel(self.cameraIntrinsicsParameters, 1)
 		self.addToPanel(self.plotPanel, 2)
 
 		#-- Events
@@ -228,7 +227,6 @@ class CameraIntrinsicsResultPage(Page):
 
 		if ret:
 			mtx, dist, rvecs, tvecs = result
-			self.cameraIntrinsicsParameters.setParameters((mtx, dist))
 			self.plotPanel.add(rvecs, tvecs)
 			self.plotPanel.Show()
 			self.Layout()
@@ -372,7 +370,6 @@ class LaserTriangulationResultPage(Page):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
-		self.laserTriangulationParameters = LaserTriangulationParameters(self._panel)
 
 		self.leftLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Left Laser Image Sequence")
 		self.rightLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Right Laser Image Sequence")
@@ -381,7 +378,6 @@ class LaserTriangulationResultPage(Page):
 		vbox.Add(self.leftLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
 		vbox.Add(self.rightLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
 
-		self.addToPanel(self.laserTriangulationParameters, 1)
 		self.addToPanel(vbox, 3)
 
 		#-- Events
@@ -403,7 +399,6 @@ class LaserTriangulationResultPage(Page):
 
 		if ret:
 			vectors, parameters, images = result
-			self.laserTriangulationParameters.setParameters((parameters, vectors[0], vectors[1]))
 			self.leftLaserImageSequence.imageLas.setFrame(images[0][0])
 			self.leftLaserImageSequence.imageGray.setFrame(images[0][1])
 			self.leftLaserImageSequence.imageBin.setFrame(images[0][2])
@@ -496,12 +491,9 @@ class PlatformExtrinsicsResultPage(Page):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
-		self.platformExtrinsicsParameters = PlatformExtrinsicsParameters(self._panel)
 		self.plotPanel = Plot3DPlatformExtrinsics(self._panel)
 
 		#-- Layout
-
-		self.addToPanel(self.platformExtrinsicsParameters, 1)
 		self.addToPanel(self.plotPanel, 3)
 
 		#-- Events
@@ -526,7 +518,6 @@ class PlatformExtrinsicsResultPage(Page):
 		if ret:
 			R = result[0]
 			t = result[1]
-			self.platformExtrinsicsParameters.setParameters((R, t))
 			self.plotPanel.add(result)
 			self.plotPanel.Show()
 			self.Layout()

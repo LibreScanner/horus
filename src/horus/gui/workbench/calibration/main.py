@@ -36,8 +36,8 @@ from horus.gui.util.workbench import WorkbenchConnection
 from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, CameraIntrinsicsResultPage, \
                                                   LaserTriangulationMainPage, LaserTriangulationResultPage, \
                                                   PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
-from horus.gui.workbench.calibration.panels import CalibrationPanel, CalibrationWorkbenchPanel, CameraIntrinsicsParameters, \
-                                                   LaserTriangulationParameters, PlatformExtrinsicsParameters
+from horus.gui.workbench.calibration.panels import CameraSettingsPanel, CameraIntrinsicsPanel, \
+                                                   LaserTriangulationPanel, PlatformExtrinsicsPanel
 
 from horus.engine.driver import Driver
 from horus.engine.calibration import CameraIntrinsics
@@ -77,29 +77,19 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.videoView = VideoView(self._panel, self.getFrame)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
-        #-- Add Calibration Workbench Panels
-        self.calibrationPanel = CalibrationPanel(self.scrollPanel)
-        self.calibrationPanel.Disable()
+        #-- Add Scroll Panels
+        self.cameraSettingsPanel = CameraSettingsPanel(self.scrollPanel)
 
-        self.cameraIntrinsicsPanel = CalibrationWorkbenchPanel(self.scrollPanel,
-                                                               titleText=_("Camera Intrinsics"),
-                                                               parametersType=CameraIntrinsicsParameters,
-                                                               buttonStartCallback=self.onCameraIntrinsicsStartCallback,
-                                                               description=_("Determines the camera matrix and the distortion coefficients using Zhang2000 algorithm and pinhole camera model."))
+        self.cameraIntrinsicsPanel = CameraIntrinsicsPanel(self.scrollPanel,
+                                                           buttonStartCallback=self.onCameraIntrinsicsStartCallback)
 
-        self.laserTriangulationPanel = CalibrationWorkbenchPanel(self.scrollPanel,
-                                                                 titleText=_("Laser Triangulation"),
-                                                                 parametersType=LaserTriangulationParameters,
-                                                                 buttonStartCallback=self.onLaserTriangulationStartCallback,
-                                                                 description=_("Determines the depth of the intersection camera-laser considering the inclination of the lasers."))
+        self.laserTriangulationPanel = LaserTriangulationPanel(self.scrollPanel,
+                                                               buttonStartCallback=self.onLaserTriangulationStartCallback)
 
-        self.platformExtrinsicsPanel = CalibrationWorkbenchPanel(self.scrollPanel,
-                                                                 titleText=_("Platform Extrinsics"),
-                                                                 parametersType=PlatformExtrinsicsParameters,
-                                                                 buttonStartCallback=self.onPlatformExtrinsicsStartCallback,
-                                                                 description=_("Determines the transformation matrix between the camera and the platform using a circular interpolation method."))
+        self.platformExtrinsicsPanel = PlatformExtrinsicsPanel(self.scrollPanel,
+                                                               buttonStartCallback=self.onPlatformExtrinsicsStartCallback)
 
-        #-- Add CalibrationPages
+        #-- Add Calibration Pages
         self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(self._panel,
                                                                  buttonCancelCallback=self.onCancelCallback,
                                                                  buttonPerformCallback=self.onCameraIntrinsicsPerformCallback)
@@ -124,6 +114,11 @@ class CalibrationWorkbench(WorkbenchConnection):
                                                                          buttonRejectCallback=self.onCancelCallback,
                                                                          buttonAcceptCallback=self.onPlatformExtrinsicsAcceptCallback)
 
+        self.cameraSettingsPanel.disableContent()
+        self.cameraIntrinsicsPanel.hideContent()
+        self.laserTriangulationPanel.hideContent()
+        self.platformExtrinsicsPanel.hideContent()
+
         self.cameraIntrinsicsMainPage.Hide()
         self.cameraIntrinsicsResultPage.Hide()
         self.laserTriangulationMainPage.Hide()
@@ -134,10 +129,10 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         #-- Layout
         vsbox = wx.BoxSizer(wx.VERTICAL)
-        vsbox.Add(self.calibrationPanel, 1, wx.ALL|wx.EXPAND, 2)
-        vsbox.Add(self.cameraIntrinsicsPanel, 1, wx.ALL|wx.EXPAND, 2)
-        vsbox.Add(self.laserTriangulationPanel, 1, wx.ALL|wx.EXPAND, 2)
-        vsbox.Add(self.platformExtrinsicsPanel, 1, wx.ALL|wx.EXPAND, 2)
+        vsbox.Add(self.cameraSettingsPanel, 0, wx.ALL|wx.EXPAND, 2)
+        vsbox.Add(self.cameraIntrinsicsPanel, 0, wx.ALL|wx.EXPAND, 2)
+        vsbox.Add(self.platformExtrinsicsPanel, 0, wx.ALL|wx.EXPAND, 2)
+        vsbox.Add(self.laserTriangulationPanel, 0, wx.ALL|wx.EXPAND, 2)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
 
@@ -157,8 +152,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def initialize(self):
-        self.calibrationPanel.initialize()
-        pass
+        self.cameraSettingsPanel.initialize()
 
     def onShow(self, event):
         if event.GetShow():
@@ -174,6 +168,14 @@ class CalibrationWorkbench(WorkbenchConnection):
         if frame is not None:
             retval, frame = CameraIntrinsics.Instance().detectChessboard(frame)
         return frame
+
+    def hideAllPanels(self):
+        self.cameraSettingsPanel.hideContent()
+        self.cameraIntrinsicsPanel.hideContent()
+        self.laserTriangulationPanel.hideContent()
+        self.platformExtrinsicsPanel.hideContent()
+        self.scrollPanel.Fit()
+        self.Layout()
 
     def onPlayToolClicked(self, event):
         self.playing = True
@@ -205,14 +207,14 @@ class CalibrationWorkbench(WorkbenchConnection):
     def updateToolbarStatus(self, status):
         self.cameraIntrinsicsMainPage.videoManagement(not status)
         if status:
-            self.calibrationPanel.Enable()
+            self.cameraSettingsPanel.enableContent()
             self.enableLabelTool(self.playTool, True)
             self.enableLabelTool(self.stopTool, False)
             self.cameraIntrinsicsPanel.buttonStart.Enable()
             self.laserTriangulationPanel.buttonStart.Enable()
             self.platformExtrinsicsPanel.buttonStart.Enable()
         else:
-            self.calibrationPanel.Disable()
+            self.cameraSettingsPanel.disableContent()
             self.enableLabelTool(self.playTool, False)
             self.enableLabelTool(self.stopTool, False)
             self.cameraIntrinsicsPanel.buttonStart.Disable()
@@ -222,7 +224,6 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onCameraIntrinsicsStartCallback(self):
         self.videoView.stop()
-        self.scrollPanel.Hide()
         self.videoView.Hide()
         self.cameraIntrinsicsMainPage.Show()
         self.cameraIntrinsicsMainPage.videoView.SetFocus()
@@ -230,14 +231,12 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onLaserTriangulationStartCallback(self):
         self.videoView.stop()
-        self.scrollPanel.Hide()
         self.videoView.Hide()
         self.laserTriangulationMainPage.Show()
         self.Layout()
 
     def onPlatformExtrinsicsStartCallback(self):
         self.videoView.stop()
-        self.scrollPanel.Hide()
         self.videoView.Hide()
         self.platformExtrinsicsMainPage.Show()
         self.Layout()
@@ -319,10 +318,10 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.videoView.stop()
         if self.playing:
             self.GetParent().updateCameraProfile('calibration')
-            self.calibrationPanel.updateProfileToAllControls()
+            self.cameraSettingsPanel.updateProfileToAllControls()
             self.videoView.play()
-        self.calibrationPanel.updateProfileToAllControls()
-        self.cameraIntrinsicsPanel.parameters.updateProfileToAllControls()
-        self.laserTriangulationPanel.parameters.updateProfileToAllControls()
-        self.platformExtrinsicsPanel.parameters.updateProfileToAllControls()
+        self.cameraSettingsPanel.updateProfileToAllControls()
+        self.cameraIntrinsicsPanel.updateProfileToAllControls()
+        self.laserTriangulationPanel.updateProfileToAllControls()
+        self.platformExtrinsicsPanel.updateProfileToAllControls()
         self.Layout()
