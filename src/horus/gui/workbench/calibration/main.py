@@ -32,12 +32,13 @@ import wx.lib.scrolledpanel
 from horus.util import resources
 
 from horus.gui.util.imageView import VideoView
-from horus.gui.util.workbench import WorkbenchConnection
+
+from horus.gui.workbench.workbench import WorkbenchConnection
+from horus.gui.workbench.calibration.panels import CameraSettingsPanel, CameraIntrinsicsPanel, \
+                                                   LaserTriangulationPanel, PlatformExtrinsicsPanel
 from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, CameraIntrinsicsResultPage, \
                                                   LaserTriangulationMainPage, LaserTriangulationResultPage, \
                                                   PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
-from horus.gui.workbench.calibration.panels import CameraSettingsPanel, CameraIntrinsicsPanel, \
-                                                   LaserTriangulationPanel, PlatformExtrinsicsPanel
 
 from horus.engine.driver import Driver
 from horus.engine.calibration import CameraIntrinsics
@@ -100,7 +101,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.laserTriangulationMainPage = LaserTriangulationMainPage(self._panel,
                                                                      buttonCancelCallback=self.onCancelCallback,
-                                                                     buttonPerformCallback=self.onLaserTriangulationPerformCallback)
+                                                                     afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
 
         self.laserTriangulationResultPage = LaserTriangulationResultPage(self._panel,
                                                                          buttonRejectCallback=self.onCancelCallback,
@@ -263,8 +264,11 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onCameraIntrinsicsAfterCalibrationCallback(self, result):
         self.cameraIntrinsicsResultPage.processCalibration(result)
-        self.cameraIntrinsicsMainPage.Hide()
-        self.cameraIntrinsicsResultPage.Show()
+        if result[0]:
+            self.cameraIntrinsicsMainPage.Hide()
+            self.cameraIntrinsicsResultPage.Show()
+        else:
+            self.cameraIntrinsicsMainPage.initialize()
         self.Layout()
 
     def onCameraIntrinsicsAcceptCallback(self):
@@ -276,14 +280,19 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.cameraIntrinsicsResultPage.Hide()
         self.Layout()
 
-    def onLaserTriangulationPerformCallback(self):
-        self.laserTriangulationMainPage.Hide()
-        self.laserTriangulationResultPage.Show()
+    def onLaserTriangulationAfterCalibrationCallback(self, result):
+        self.laserTriangulationResultPage.processCalibration(result)
+        if result[0]:
+            self.laserTriangulationMainPage.Hide()
+            self.laserTriangulationResultPage.Show()
+        else:
+            self.laserTriangulationMainPage.initialize()
         self.Layout()
 
     def onLaserTriangulationAcceptCallback(self):
         if self.playing:
             self.videoView.play()
+        self.laserTriangulationPanel.buttonStart.Enable()
         self.laserTriangulationPanel.updateAllControlsToProfile()
         self.videoView.Show()
         self.laserTriangulationResultPage.Hide()

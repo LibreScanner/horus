@@ -34,7 +34,8 @@ from horus.util import resources, profile
 
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.sceneView import SceneView
-from horus.gui.util.workbench import WorkbenchConnection
+
+from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.scanning.panels import SettingsPanel
 
 from horus.engine.scan import SimpleScan

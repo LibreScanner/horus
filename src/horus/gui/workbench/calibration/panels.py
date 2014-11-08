@@ -245,8 +245,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         self.Layout()
 
     def onButtonEditPressed(self, event):
-        buttonEdit = self.GetParent().GetParent().buttonEdit
-        enable = buttonEdit.GetValue()
+        enable = self.buttonEdit.GetValue()
 
         for i in range(3):
             for j in range(3):
@@ -266,13 +265,13 @@ class CameraIntrinsicsPanel(CalibrationPanel):
                 self.distortionValues[i] = self.getValueFloat(self.distortionTexts[i].GetValue())
 
         if enable:
-            buttonEdit.SetLabel(_("OK"))
+            self.buttonEdit.SetLabel(_("OK"))
         else:
-            buttonEdit.SetLabel(_("Edit"))
+            self.buttonEdit.SetLabel(_("Edit"))
             self.updateAllControlsToProfile((self.cameraValues, self.distortionValues))
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -410,8 +409,7 @@ class LaserTriangulationPanel(CalibrationPanel):
         self.Layout()
 
     def onButtonEditPressed(self, event):
-        buttonEdit =self.GetParent().GetParent().buttonEdit
-        enable = buttonEdit.GetValue()
+        enable = self.buttonEdit.GetValue()
         for i in range(2):
             for j in range(2):
                 self.coordinatesTexts[i][j].SetEditable(enable)
@@ -438,13 +436,13 @@ class LaserTriangulationPanel(CalibrationPanel):
                 self.normalValues[i] = self.getValueFloat(self.normalTexts[i].GetValue())
 
         if enable:
-            buttonEdit.SetLabel(_("OK"))
+            self.buttonEdit.SetLabel(_("OK"))
         else:
-            buttonEdit.SetLabel(_("Edit"))
+            self.buttonEdit.SetLabel(_("Edit"))
             self.updateAllControlsToProfile((self.coordinatesValues, self.originValues, self.normalValues))
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -565,8 +563,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         self.Layout
 
     def onButtonEditPressed(self, event):
-        buttonEdit = self.GetParent().GetParent().buttonEdit
-        enable = buttonEdit.GetValue()
+        enable = self.buttonEdit.GetValue()
         for i in range(3):
             for j in range(3):
                 self.rotationTexts[i][j].SetEditable(enable)
@@ -584,13 +581,13 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
                 self.translationValues[i] = self.getValueFloat(self.translationTexts[i].GetValue())
 
         if enable:
-            buttonEdit.SetLabel(_("OK"))
+            self.buttonEdit.SetLabel(_("OK"))
         else:
-            buttonEdit.SetLabel(_("Edit"))
+            self.buttonEdit.SetLabel(_("Edit"))
             self.updateAllControlsToProfile((self.rotationValues, self.translationValues))
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset platform extrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset platform extrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:

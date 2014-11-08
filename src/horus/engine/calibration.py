@@ -279,9 +279,6 @@ class LaserTriangulation(Calibration):
 				if distance < np.inf:
 					progressCallback(min(80,max(0,80-100*abs(distance-epsilon))))
 
-		if progressCallback is not None:
-			progressCallback(80)
-
 		image = camera.captureImage(flush=True, flushValue=2)
 		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 		if ret is not None:
@@ -292,8 +289,8 @@ class LaserTriangulation(Calibration):
 			distance = np.linalg.norm((0,0,1)-n)
 			angle = np.max(((distance-epsilon) * 15, 0.1))
 
-		if progressCallback is not None:
-			progressCallback(90)
+			if progressCallback is not None:
+				progressCallback(90)
 
 		#print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
