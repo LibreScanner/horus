@@ -75,8 +75,7 @@ class Calibration:
 		threading.Thread(target=self._start, args=(self.progressCallback,self.afterCallback)).start()
 
 	def _start(self, progressCallback, afterCallback):
-		if progressCallback is not None:
-			progressCallback(100)
+		pass
 
 	def cancel(self):
 		self.isCalibrating = False

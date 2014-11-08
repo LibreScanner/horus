@@ -135,7 +135,7 @@ class CalibrationPage(WizardPage):
 
 	def onCalibrationButtonClicked(self, event):
 		self.platformExtrinsics.setCallbacks(self.beforePlatformCalibration,
-											 lambda p: wx.CallAfter(self.processPlatformCalibration,p),
+											 lambda p: wx.CallAfter(self.progressPlatformCalibration,p),
 											 lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
 		self.platformExtrinsics.start()
 
@@ -159,8 +159,8 @@ class CalibrationPage(WizardPage):
 		self.Layout()
 		self.waitCursor = wx.BusyCursor()
 
-	def processPlatformCalibration(self, process):
-		self.gauge.SetValue(process*0.7)
+	def progressPlatformCalibration(self, progress):
+		self.gauge.SetValue(progress*0.7)
 
 	def afterPlatformCalibration(self, response):
 		ret, result = response
@@ -169,7 +169,7 @@ class CalibrationPage(WizardPage):
 			profile.putProfileSettingNumpy('rotation_matrix', result[0])
 			profile.putProfileSettingNumpy('translation_vector', result[1])
 			self.laserTriangulation.setCallbacks(None,
-											 lambda p: wx.CallAfter(self.processLaserCalibration,p),
+											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
 											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
 			self.laserTriangulation.start()
 		else:
@@ -180,8 +180,8 @@ class CalibrationPage(WizardPage):
 				dlg.Destroy()
 				self.onFinishCalibration()
 
-	def processLaserCalibration(self, process):
-		self.gauge.SetValue(70 + process*0.3)
+	def progressLaserCalibration(self, progress):
+		self.gauge.SetValue(70 + progress*0.3)
 
 	def afterLaserCalibration(self, response):
 		ret, result = response

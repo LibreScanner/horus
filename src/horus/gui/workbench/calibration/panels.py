@@ -322,8 +322,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         self.updateAllControls()
         self.updateEngine()
 
-    def updateAllControlsToProfile(self, params):
-        self.setParameters(params)
+    def updateAllControlsToProfile(self):
         self.putProfileSettings()
         self.updateEngine()
 
@@ -496,8 +495,7 @@ class LaserTriangulationPanel(CalibrationPanel):
         self.updateAllControls()
         self.updateEngine()
 
-    def updateAllControlsToProfile(self, params):
-        self.setParameters(params)
+    def updateAllControlsToProfile(self):
         self.putProfileSettings()
         self.updateEngine()
 
@@ -635,8 +633,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         self.updateAllControls()
         self.updateEngine()
 
-    def updateAllControlsToProfile(self, params):
-        self.setParameters(params)
+    def updateAllControlsToProfile(self):
         self.putProfileSettings()
         self.updateEngine()
 
