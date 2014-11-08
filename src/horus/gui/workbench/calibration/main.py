@@ -49,6 +49,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         WorkbenchConnection.__init__(self, parent)
 
         self.playing = False
+        self.calibrating = False
 
         self.load()
 
@@ -109,7 +110,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.platformExtrinsicsMainPage = PlatformExtrinsicsMainPage(self._panel,
                                                                      buttonCancelCallback=self.onCancelCallback,
-                                                                     buttonPerformCallback=self.onPlatformExtrinsicsPerformCallback)
+                                                                     afterCalibrationCallback=self.onPlatformExtrinsicsAfterCalibrationCallback)
 
         self.platformExtrinsicsResultPage = PlatformExtrinsicsResultPage(self._panel,
                                                                          buttonRejectCallback=self.onCancelCallback,
@@ -126,7 +127,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationResultPage.Hide()
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
-        
 
         #-- Layout
         vsbox = wx.BoxSizer(wx.VERTICAL)
@@ -171,12 +171,14 @@ class CalibrationWorkbench(WorkbenchConnection):
         return frame
 
     def hideAllPanels(self):
-        self.cameraSettingsPanel.hideContent()
-        self.cameraIntrinsicsPanel.hideContent()
-        self.laserTriangulationPanel.hideContent()
-        self.platformExtrinsicsPanel.hideContent()
-        self.scrollPanel.Fit()
-        self.Layout()
+        if not self.calibrating:
+            self.cameraSettingsPanel.hideContent()
+            self.cameraIntrinsicsPanel.hideContent()
+            self.laserTriangulationPanel.hideContent()
+            self.platformExtrinsicsPanel.hideContent()
+            self.scrollPanel.Fit()
+            self.Layout()
+        return not self.calibrating
 
     def onPlayToolClicked(self, event):
         self.playing = True
@@ -223,7 +225,12 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.videoView.stop()
 
     def onCameraIntrinsicsStartCallback(self):
+        self.calibrating = True
+        self.enableLabelTool(self.playTool, False)
+        self.enableLabelTool(self.stopTool, False)
         self.cameraIntrinsicsPanel.buttonStart.Disable()
+        self.cameraIntrinsicsPanel.buttonDefault.Disable()
+        self.cameraIntrinsicsPanel.buttonEdit.Disable()
         self.videoView.stop()
         self.videoView.Hide()
         self.cameraIntrinsicsMainPage.Show()
@@ -231,14 +238,24 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onLaserTriangulationStartCallback(self):
+        self.calibrating = True
+        self.enableLabelTool(self.playTool, False)
+        self.enableLabelTool(self.stopTool, False)
         self.laserTriangulationPanel.buttonStart.Disable()
+        self.laserTriangulationPanel.buttonDefault.Disable()
+        self.laserTriangulationPanel.buttonEdit.Disable()
         self.videoView.stop()
         self.videoView.Hide()
         self.laserTriangulationMainPage.Show()
         self.Layout()
 
     def onPlatformExtrinsicsStartCallback(self):
+        self.calibrating = True
+        self.enableLabelTool(self.playTool, False)
+        self.enableLabelTool(self.stopTool, False)
         self.platformExtrinsicsPanel.buttonStart.Disable()
+        self.platformExtrinsicsPanel.buttonDefault.Disable()
+        self.platformExtrinsicsPanel.buttonEdit.Disable()
         self.videoView.stop()
         self.videoView.Hide()
         self.platformExtrinsicsMainPage.Show()
@@ -247,9 +264,21 @@ class CalibrationWorkbench(WorkbenchConnection):
     def onCancelCallback(self):
         if self.playing:
             self.videoView.play()
+            self.enableLabelTool(self.playTool, False)
+            self.enableLabelTool(self.stopTool, True)
+        else:
+            self.enableLabelTool(self.playTool, True)
+            self.enableLabelTool(self.stopTool, False)
+        self.calibrating = False
         self.cameraIntrinsicsPanel.buttonStart.Enable()
+        self.cameraIntrinsicsPanel.buttonDefault.Enable()
+        self.cameraIntrinsicsPanel.buttonEdit.Enable()
         self.laserTriangulationPanel.buttonStart.Enable()
+        self.laserTriangulationPanel.buttonDefault.Enable()
+        self.laserTriangulationPanel.buttonEdit.Enable()
         self.platformExtrinsicsPanel.buttonStart.Enable()
+        self.platformExtrinsicsPanel.buttonDefault.Enable()
+        self.platformExtrinsicsPanel.buttonEdit.Enable()
         self.cameraIntrinsicsPanel.updateProfileToAllControls()
         self.laserTriangulationPanel.updateProfileToAllControls()
         self.platformExtrinsicsPanel.updateProfileToAllControls()
@@ -274,7 +303,15 @@ class CalibrationWorkbench(WorkbenchConnection):
     def onCameraIntrinsicsAcceptCallback(self):
         if self.playing:
             self.videoView.play()
+            self.enableLabelTool(self.playTool, False)
+            self.enableLabelTool(self.stopTool, True)
+        else:
+            self.enableLabelTool(self.playTool, True)
+            self.enableLabelTool(self.stopTool, False)
+        self.calibrating = False
         self.cameraIntrinsicsPanel.buttonStart.Enable()
+        self.cameraIntrinsicsPanel.buttonDefault.Enable()
+        self.cameraIntrinsicsPanel.buttonEdit.Enable()
         self.cameraIntrinsicsPanel.updateAllControlsToProfile()
         self.videoView.Show()
         self.cameraIntrinsicsResultPage.Hide()
@@ -292,20 +329,41 @@ class CalibrationWorkbench(WorkbenchConnection):
     def onLaserTriangulationAcceptCallback(self):
         if self.playing:
             self.videoView.play()
+            self.enableLabelTool(self.playTool, False)
+            self.enableLabelTool(self.stopTool, True)
+        else:
+            self.enableLabelTool(self.playTool, True)
+            self.enableLabelTool(self.stopTool, False)
+        self.calibrating = False
         self.laserTriangulationPanel.buttonStart.Enable()
+        self.laserTriangulationPanel.buttonDefault.Enable()
+        self.laserTriangulationPanel.buttonEdit.Enable()
         self.laserTriangulationPanel.updateAllControlsToProfile()
         self.videoView.Show()
         self.laserTriangulationResultPage.Hide()
         self.Layout()
 
-    def onPlatformExtrinsicsPerformCallback(self):
-        self.platformExtrinsicsMainPage.Hide()
-        self.platformExtrinsicsResultPage.Show()
+    def onPlatformExtrinsicsAfterCalibrationCallback(self, result):
+        self.platformExtrinsicsResultPage.processCalibration(result)
+        if result[0]:
+            self.platformExtrinsicsMainPage.Hide()
+            self.platformExtrinsicsResultPage.Show()
+        else:
+            self.platformExtrinsicsMainPage.initialize()
         self.Layout()
 
     def onPlatformExtrinsicsAcceptCallback(self):
         if self.playing:
             self.videoView.play()
+            self.enableLabelTool(self.playTool, False)
+            self.enableLabelTool(self.stopTool, True)
+        else:
+            self.enableLabelTool(self.playTool, True)
+            self.enableLabelTool(self.stopTool, False)
+        self.calibrating = False
+        self.platformExtrinsicsPanel.buttonStart.Enable()
+        self.platformExtrinsicsPanel.buttonDefault.Enable()
+        self.platformExtrinsicsPanel.buttonEdit.Enable()
         self.platformExtrinsicsPanel.updateAllControlsToProfile()
         self.videoView.Show()
         self.platformExtrinsicsResultPage.Hide()

@@ -416,11 +416,11 @@ class PlatformExtrinsics(Calibration):
 			if progressCallback is not None:
 				progressCallback(0)
 
-			while self.isCalibrating and abs(angle) <= 180:
+			while self.isCalibrating and abs(angle) < 180:
 				angle += step
 				t = self.getPatternPosition(step, board, camera)
 				if progressCallback is not None:
-					progressCallback(abs(angle/2.))
+					progressCallback(1.1*abs(angle/2.))
 				time.sleep(0.1)
 				if t is not None:
 					x += [t[0][0]]

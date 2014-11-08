@@ -113,9 +113,9 @@ class CameraSettingsPanel(wx.Panel):
             control.updateProfile()
 
     def onTitleClicked(self, event):
-        self.GetParent().GetParent().GetParent().hideAllPanels()
-        self.showContent()
-        self.Layout()
+        if self.GetParent().GetParent().GetParent().hideAllPanels():
+            self.showContent()
+            self.Layout()
 
 
 #TODO: inheritance from CustomPanel
@@ -180,9 +180,9 @@ class CalibrationPanel(wx.Panel):
         self.content.Hide()
 
     def onTitleClicked(self, event):
-        self.GetParent().GetParent().GetParent().hideAllPanels()
-        self.content.Show()
-        self.Layout()
+        if self.GetParent().GetParent().GetParent().hideAllPanels():
+            self.content.Show()
+            self.Layout()
 
 
 class CameraIntrinsicsPanel(CalibrationPanel):

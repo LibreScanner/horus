@@ -444,28 +444,78 @@ class LaserTriangulationImageSequence(wx.Panel):
 
 class PlatformExtrinsicsMainPage(Page):
 
-	def __init__(self, parent, buttonCancelCallback=None, buttonPerformCallback=None):
+	def __init__(self, parent, buttonCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Platform Extrinsics"),
+							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
 							left=_("Cancel"),
 							right=_("Perform"),
 							buttonLeftCallback=buttonCancelCallback,
-							buttonRightCallback=buttonPerformCallback,
-							panelOrientation=wx.VERTICAL)
+							buttonRightCallback=self.onCalibrate,
+							panelOrientation=wx.HORIZONTAL,
+							viewProgress=True)
 
-		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
+		self.driver = Driver.Instance()
+		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
+		self.afterCalibrationCallback = afterCalibrationCallback
+
+		#-- Image View
 		imageView = ImageView(self._panel)
 		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
-		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
-		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-		detailsBox.Add((0, 0), 1, wx.EXPAND)
-		detailsBox.Add(detailsText, 0, wx.ALL|wx.EXPAND, 3)
-		detailsBox.Add((0, 0), 1, wx.EXPAND)
+		#-- Video View
+		self.videoView = VideoView(self._panel, self.getFrame)
+		self.videoView.SetBackgroundColour(wx.BLACK)
 
-		self.addToPanel(imageView, 1)
-		self.addToPanel(detailsBox, 0)
+		#-- Layout
+		self.addToPanel(imageView, 3)
+		self.addToPanel(self.videoView, 2)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+		self.Layout()
+
+	def initialize(self):
+		self.gauge.SetValue(0)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.videoView.play()
+		else:
+			self.initialize()
+			self.videoView.stop()
+
+	def getFrame(self):
+		frame = self.driver.camera.captureImage()
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		return frame
+
+	def onCalibrate(self):
+		self.platformExtrinsics.setCallbacks(self.beforeCalibration,
+											 lambda p: wx.CallAfter(self.progressCalibration,p),
+											 lambda r: wx.CallAfter(self.afterCalibration,r))
+		self.platformExtrinsics.start()
+
+	def beforeCalibration(self):
+		self._leftButton.Disable()
+		self._rightButton.Disable()
+		self.gauge.SetValue(0)
+		self.waitCursor = wx.BusyCursor()
+
+	def progressCalibration(self, progress):
+		print progress
+		self.gauge.SetValue(progress)
+
+	def afterCalibration(self, result):
+		self._leftButton.Enable()
+		self._rightButton.Enable()
+		del self.waitCursor
+		if self.afterCalibrationCallback is not None:
+			self.afterCalibrationCallback(result)
 
 
 class PlatformExtrinsicsResultPage(Page):
@@ -487,37 +537,20 @@ class PlatformExtrinsicsResultPage(Page):
 		#-- Layout
 		self.addToPanel(self.plotPanel, 3)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
-	def onShow(self, event):
-		if event.GetShow():
-			self.performCalibration()
-
-	def performCalibration(self):
-		self.platformExtrinsics.setCallbacks(self.beforeCalibrate, None, lambda r: wx.CallAfter(self.afterCalibrate,r))
-		self.platformExtrinsics.start()
-
-	def beforeCalibrate(self):
-		self.plotPanel.Hide()
-		self.plotPanel.clear()
-		self.waitCursor = wx.BusyCursor()
-
-	def afterCalibrate(self, response):
+	def processCalibration(self, response):
 		ret, result = response
 
 		if ret:
 			R = result[0]
 			t = result[1]
+			self.GetParent().GetParent().platformExtrinsicsPanel.setParameters((R, t))
 			self.plotPanel.add(result)
 			self.plotPanel.Show()
 			self.Layout()
 		else:
-			dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+			dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
 			dlg.ShowModal()
 			dlg.Destroy()
-
-		del self.waitCursor
 
 
 from mpl_toolkits.mplot3d import Axes3D
