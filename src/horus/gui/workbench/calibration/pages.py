@@ -101,8 +101,11 @@ class CameraIntrinsicsMainPage(Page):
 			self.videoView.play()
 			calibration.CameraIntrinsics.Instance().clearImageStack()
 		else:
-			self.initialize()
-			self.videoView.stop()
+			try:
+				self.initialize()
+				self.videoView.stop()
+			except:
+				pass
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()
@@ -340,8 +343,11 @@ class LaserTriangulationMainPage(Page):
 		if event.GetShow():
 			self.videoView.play()
 		else:
-			self.initialize()
-			self.videoView.stop()
+			try:
+				self.initialize()
+				self.videoView.stop()
+			except:
+				pass
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()
@@ -503,8 +509,11 @@ class PlatformExtrinsicsMainPage(Page):
 		if event.GetShow():
 			self.videoView.play()
 		else:
-			self.initialize()
-			self.videoView.stop()
+			try:
+				self.initialize()
+				self.videoView.stop()
+			except:
+				pass
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()

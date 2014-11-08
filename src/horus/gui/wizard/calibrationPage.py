@@ -74,12 +74,10 @@ class CalibrationPage(WizardPage):
 		self.calibrateButton = wx.Button(self.panel, label=_("Calibrate"))
 		self.cancelButton = wx.Button(self.panel, label=_("Cancel"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
-		self.space = wx.Panel(self.panel, size=(-1, 30))
 		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"), size=(-1, 30))
 
 		self.cancelButton.Disable()
 		self.resultLabel.Hide()
-		self.gauge.Hide()
 		self.skipButton.Enable()
 		self.nextButton.Disable()
 
@@ -91,13 +89,12 @@ class CalibrationPage(WizardPage):
 		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
 		vbox.Add(self.patternLabel, 0, wx.ALL|wx.CENTER, 5)
 		vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
+		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
+		vbox.Add(self.gauge, 0, wx.ALL|wx.EXPAND, 5)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.cancelButton, 1, wx.ALL|wx.EXPAND, 5)
 		hbox.Add(self.calibrateButton, 1, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
-		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
-		vbox.Add(self.gauge, 0, wx.ALL|wx.EXPAND, 5)
-		vbox.Add(self.space, 0, wx.ALL|wx.EXPAND, 5)
 		self.panel.SetSizer(vbox)
 
 		self.Layout()
@@ -121,6 +118,12 @@ class CalibrationPage(WizardPage):
 				self.videoView.stop()
 			except:
 				pass
+
+	def getFrame(self):
+		frame = self.driver.camera.captureImage()
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		return frame
 
 	def onExposureComboBoxChanged(self, event):
 		value = event.GetEventObject().GetValue()
@@ -155,7 +158,6 @@ class CalibrationPage(WizardPage):
 		self.gauge.SetValue(0)
 		self.resultLabel.Hide()
 		self.gauge.Show()
-		self.space.Hide()
 		self.Layout()
 		self.waitCursor = wx.BusyCursor()
 
@@ -217,12 +219,6 @@ class CalibrationPage(WizardPage):
 		self.Layout()
 		if hasattr(self, 'waitCursor'):
 			del self.waitCursor
-
-	def getFrame(self):
-		frame = self.driver.camera.captureImage()
-		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
-		return frame
 
 	def updateStatus(self, status):
 		if status:

@@ -29,7 +29,6 @@ __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.htm
 
 import time
 import wx._core
-import threading
 
 from horus.gui.util.imageView import ImageView
 
@@ -50,23 +49,22 @@ class ConnectionPage(WizardPage):
 							buttonNextCallback=buttonNextCallback)
 
 		self.driver = Driver.Instance()
+		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 
 		self.connectButton = wx.Button(self.panel, label=_("Connect"))
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Auto check\""))
 		self.imageView = ImageView(self.panel)
 		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
-		self.checkButton = wx.Button(self.panel, label=_("Auto check"))
+		self.autoCheckButton = wx.Button(self.panel, label=_("Auto check"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
-		self.space = wx.Panel(self.panel, size=(-1, 30))
 		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"), size=(-1, 30))
 
 		self.connectButton.Enable()
 		self.patternLabel.Disable()
 		self.imageView.Disable()
-		self.checkButton.Disable()
+		self.autoCheckButton.Disable()
 		self.resultLabel.Hide()
-		self.gauge.Hide()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
 		self.enableNext = False
@@ -75,18 +73,18 @@ class ConnectionPage(WizardPage):
 		vbox.Add(self.connectButton, 0, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.patternLabel, 0, wx.ALL|wx.CENTER, 5)
 		vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
-		vbox.Add(self.checkButton, 0, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
 		vbox.Add(self.gauge, 0, wx.ALL|wx.EXPAND, 5)
-		vbox.Add(self.space, 0, wx.ALL|wx.EXPAND, 5)
+		vbox.Add(self.autoCheckButton, 0, wx.ALL|wx.EXPAND, 5)
 		self.panel.SetSizer(vbox)
 
 		self.Layout()
 
 		self.connectButton.Bind(wx.EVT_BUTTON, self.onConnectButtonClicked)
-		self.checkButton.Bind(wx.EVT_BUTTON, self.onCheckButtonClicked)
+		self.autoCheckButton.Bind(wx.EVT_BUTTON, self.onAutoCheckButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
+		self.videoView.setMilliseconds(20)
 		self.videoView.setCallback(self.getFrame)
 		self.updateStatus(self.driver.isConnected)
 
@@ -98,6 +96,12 @@ class ConnectionPage(WizardPage):
 				self.videoView.stop()
 			except:
 				pass
+
+	def getFrame(self):
+		frame = self.driver.camera.captureImage()
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		return frame
 
 	def onConnectButtonClicked(self, event):
 		self.driver.setCallbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
@@ -148,7 +152,7 @@ class ConnectionPage(WizardPage):
 			self.GetParent().parent.updateCameraCurrentProfile()
 			self.patternLabel.Enable()
 			self.imageView.Enable()
-			self.checkButton.Enable()
+			self.autoCheckButton.Enable()
 			self.prevButton.Enable()
 			self.skipButton.Enable()
 			self.enableNext = True
@@ -157,35 +161,54 @@ class ConnectionPage(WizardPage):
 
 		del self.waitCursor
 
-	def onCheckButtonClicked(self, event):
-		self.beforeAutoCheck()
-		thread = threading.Thread(target=self.performAutoCheck).start()
+	def onAutoCheckButtonClicked(self, event):
+		#-- Move motor
+		self.driver.board.setSpeedMotor(200)
+		self.driver.board.setRelativePosition(-180)
+		self.driver.board.enableMotor()
+		time.sleep(0.5)
+		self.driver.board.moveMotor()
+		self.driver.board.disableMotor()
+
+		#-- Perform auto check
+		self.laserTriangulation.setCallbacks(self.beforeAutoCheck,
+											 lambda p: wx.CallAfter(self.progressAutoCheck,p),
+											 lambda r: wx.CallAfter(self.afterAutoCheck,r))
+		self.laserTriangulation.start()
 
 	def beforeAutoCheck(self):
-		self.videoView.setMilliseconds(20)
-		self.checkButton.Disable()
+		self.autoCheckButton.Disable()
 		self.prevButton.Disable()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
 		self.enableNext = False
-		self.gauge.SetValue(0)
+		self.gauge.SetValue(30)
 		self.resultLabel.Hide()
 		self.gauge.Show()
-		self.space.Hide()
 		self.Layout()
 
-	def afterAutoCheck(self, result):
-		self.videoView.setMilliseconds(1)
-		if result:
+	def progressAutoCheck(self, progress):
+		self.gauge.SetValue(30 + 0.7*progress)
+
+	def afterAutoCheck(self, response):
+		ret, result = response
+
+		if ret:
+			self.resultLabel.SetLabel("All OK. Please press next to continue")
+		else:
+			self.resultLabel.SetLabel("Error in Auto check. Please try again")
+
+		if ret:
 			self.skipButton.Disable()
 			self.nextButton.Enable()
 		else:
 			self.skipButton.Enable()
 			self.nextButton.Disable()
+
 		self.enableNext = True
 		self.gauge.Hide()
 		self.resultLabel.Show()
-		self.checkButton.Enable()
+		self.autoCheckButton.Enable()
 		self.prevButton.Enable()
 		self.Layout()
 
@@ -224,9 +247,6 @@ class ConnectionPage(WizardPage):
 		result = True
 		wx.CallAfter(lambda: self.afterAutoCheck(result))
 
-	def getFrame(self):
-		return self.driver.camera.captureImage()
-
 	def updateStatus(self, status):
 		if status:
 			if profile.getPreference('workbench') != 'calibration':
@@ -234,8 +254,8 @@ class ConnectionPage(WizardPage):
 				self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			self.connectButton.Disable()
-			self.checkButton.Enable()
+			self.autoCheckButton.Enable()
 		else:
 			self.videoView.stop()
 			self.connectButton.Enable()
-			self.checkButton.Disable()
+			self.autoCheckButton.Disable()
