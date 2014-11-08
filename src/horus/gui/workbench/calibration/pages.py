@@ -28,62 +28,41 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import cv2
-
-from horus.util import resources
-
-from horus.gui.util.page import Page
-from horus.gui.util.imageView import ImageView, VideoView
-from horus.gui.workbench.calibration.panels import *
+import wx._core
+import numpy as np
 
 import horus.util.error as Error
+from horus.util import profile, resources
+
+from horus.gui.util.imageView import ImageView, VideoView
+
+from horus.gui.workbench.calibration.page import Page
+
 from horus.engine.driver import Driver
 from horus.engine import calibration
 
 class CameraIntrinsicsMainPage(Page):
 
-	def __init__(self, parent, buttonCancelCallback=None, buttonPerformCallback=None):
+	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Camera Intrinsics"),
+							subTitle=_("Press space bar to perform capures"),
 							left=_("Cancel"),
-							right=_("Perform"),
-							buttonLeftCallback=buttonCancelCallback,
-							buttonRightCallback=buttonPerformCallback,
-							panelOrientation=wx.HORIZONTAL)
+							right=_("Calibrate"),
+							buttonLeftCallback=self.onCancel,
+							buttonRightCallback=self.onCalibrate,
+							panelOrientation=wx.HORIZONTAL,
+							viewProgress=True)
 
 		self.driver = Driver.Instance()
-		self.camera = self.driver.camera
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 
+		self.afterCancelCallback = afterCancelCallback
+		self.afterCalibrationCallback = afterCalibrationCallback
+
 		#-- Video View
-		self.videoView = ImageView(self._panel)
+		self.videoView = VideoView(self._panel, self.getFrame)
 		self.videoView.SetBackgroundColour(wx.BLACK)
-		self.videoView.setImage(wx.Image(resources.getPathForImage("bq.png")))
-		
-		#--Guide Panel
-		self.guidePanel = wx.Panel(self._panel)
-		guideBox = wx.BoxSizer(wx.VERTICAL)
-
-		self.guideTitleText = wx.StaticText(self.guidePanel)
-		self.guideTitleText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-		self.guideTitleText.SetFont( wx.Font(pointSize=16,family=wx.FONTFAMILY_DECORATIVE,style=wx.FONTSTYLE_ITALIC,weight=wx.FONTWEIGHT_NORMAL))
-		self.guideTitleText.SetForegroundColour((100,100,100))
-
-		self.guideImage = ImageView(self.guidePanel)
-
-		self.guideProgress = ImageView(self.guidePanel)
-		self.guideProgress.size = (100,100)
-
-		guideSpacebarText = wx.StaticText(self.guidePanel, label=_("Press spacebar to continue"))
-
-		guideBox.Add(self.guideTitleText, 0, wx.CENTER, 3)
-		guideBox.Add((0, 0), 1, wx.EXPAND)
-		guideBox.Add(self.guideImage, 10, wx.ALL|wx.EXPAND, 3)
-		guideBox.Add((0, 0), 2, wx.EXPAND)
-		guideBox.Add(self.guideProgress, 0, wx.ALL|wx.EXPAND|wx.CENTER, 3)
-		guideBox.Add((0, 0), 1, wx.EXPAND)
-		guideBox.Add(guideSpacebarText, 0, wx.CENTER, 3)
-
-		self.guidePanel.SetSizer(guideBox)
 
 		#-- Image Grid Panel
 		self.imageGridPanel = wx.Panel(self._panel)
@@ -97,81 +76,55 @@ class CameraIntrinsicsMainPage(Page):
 			self.gridSizer.Add(self.panelGrid[panel], 0, wx.ALL|wx.EXPAND)
 		self.imageGridPanel.SetSizer(self.gridSizer)
 
-		self.addToPanel(self.videoView, 2)
-		self.addToPanel(self.guidePanel, 3)
+		#-- Layout
+		self.addToPanel(self.videoView, 1)
 		self.addToPanel(self.imageGridPanel, 3)
-
-		self.initialize()
-
-		self.timer = wx.Timer(self)
 
 		#-- Events
 		self.Bind(wx.EVT_SHOW, self.onShow)
-		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
 		
 		self.videoView.SetFocus()
-
 		self.Layout()
 
 	def initialize(self):
-		self.guidePage = 0
-		self.guidePanel.Show()
-		self.imageGridPanel.Hide()
-		self.guideTitleText.SetLabel("1. Place the pattern in the plate")
-		self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-1.png")))
-		self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-1.png")))
 		self._rightButton.Disable()
+		self.subTitleText.SetLabel(_("Press space bar to perform capures"))
 		self.currentGrid = 0
+		self.gauge.SetValue(0)
 		for panel in range(self.rows*self.columns):
 			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
 			self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
 
 	def onShow(self, event):
-		self.videoManagement(event.GetShow())
-
-	# TODO: use VideoView
-	def videoManagement(self, status):
-		if status:
-			if not self.timer.IsRunning():
-				self.timer.Start(milliseconds=20)
-				calibration.CameraIntrinsics.Instance().clearImageStack()
+		if event.GetShow():
+			self.videoView.play()
+			calibration.CameraIntrinsics.Instance().clearImageStack()
 		else:
-			self.timer.Stop()
 			self.initialize()
+			self.videoView.stop()
 
-	def onTimer(self, event):
-		self.timer.Stop()
-		if self.driver.isConnected:
-			frame = Driver.Instance().camera.captureImage(mirror=True)
-			if frame is not None:
-				retval, frame = calibration.CameraIntrinsics.Instance().detectChessboard(frame)
-				self.videoView.setFrame(frame)
-		self.timer.Start(milliseconds=20)
+	def getFrame(self):
+		frame = self.driver.camera.captureImage()
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+			if retval:
+				self.videoView.SetBackgroundColour((45,178,0))
+			else:
+				self.videoView.SetBackgroundColour((217,0,0))
+		return frame
 
 	def onKeyPress(self, event):
 		if event.GetKeyCode() == 32: #-- spacebar
-			if self.guidePage == 0:
-				self.guideTitleText.SetLabel("2. Move it using the yellow lines as reference")
-				self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-2.png")))
-				self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-2.png")))
-				self.guidePage = 1
-			elif self.guidePage == 1:
-				self.guideTitleText.SetLabel("3. Press spacebar to perform captures")
-				self.guideImage.setImage(wx.Image(resources.getPathForImage("instructions-3.png")))
-				self.guideProgress.setImage(wx.Image(resources.getPathForImage("progress-3.png")))
-				self.guidePage = 2
-			elif self.guidePage == 2:
-				self.guidePanel.Hide()
-				self.imageGridPanel.Show()
-				self.Layout()
-				self.guidePage = 3
-			elif self.guidePage == 3:
-				if self.driver.isConnected:
-					frame = self.camera.captureImage(mirror=False, flush=True)
+			if self.driver.isConnected:
+				self.videoView.pause()
+				frame = self.driver.camera.captureImage(mirror=False, flush=True)
+				if frame is not None:
 					retval, frame = self.cameraIntrinsics.detectChessboard(frame, capture=True)
 					frame = cv2.flip(frame, 1) #-- Mirror
 					self.addFrameToGrid(retval, frame)
+					self.gauge.SetValue(7*self.currentGrid)
+				self.videoView.play()
 
 	def addFrameToGrid(self, retval, image):
 		if self.currentGrid < (self.columns*self.rows):
@@ -184,7 +137,37 @@ class CameraIntrinsicsMainPage(Page):
 				self.panelGrid[self.currentGrid].SetBackgroundColour((217,0,0))
 
 		if self.currentGrid is (self.columns*self.rows):
+			self.subTitleText.SetLabel(_("Press Calibrate to continue"))
 			self._rightButton.Enable()
+
+	def onCalibrate(self):
+		self.cameraIntrinsics.setCallbacks(self.beforeCalibration,
+										   lambda p: wx.CallAfter(self.progressCalibration,p),
+										   lambda r: wx.CallAfter(self.afterCalibration,r))
+		self.cameraIntrinsics.start()
+
+	def beforeCalibration(self):
+		self.videoView.pause()
+		self._rightButton.Disable()
+		self.gauge.SetValue(95)
+		self.waitCursor = wx.BusyCursor()
+
+	def progressCalibration(self, progress):
+		self.gauge.SetValue(max(95, progress))
+
+	def afterCalibration(self, result):
+		self._rightButton.Enable()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCalibrationCallback is not None:
+			self.afterCalibrationCallback(result)
+
+	def onCancel(self):
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		self.cameraIntrinsics.cancel()
+		if self.afterCancelCallback is not None:
+			self.afterCancelCallback()
 
 
 class CameraIntrinsicsResultPage(Page):
@@ -199,49 +182,31 @@ class CameraIntrinsicsResultPage(Page):
 							panelOrientation=wx.HORIZONTAL)
 
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.cameraIntrinsicsParameters = CameraIntrinsicsParameters(self._panel)
 
 		#-- 3D Plot Panel
 		self.plotPanel = Plot3DCameraIntrinsics(self._panel)
 
-		self.addToPanel(self.cameraIntrinsicsParameters, 1)
+		#-- Layout
 		self.addToPanel(self.plotPanel, 2)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
-	def onShow(self, event):
-		if event.GetShow():
-			self.performCalibration()
-
-	def performCalibration(self):
-		self.cameraIntrinsics.setCallbacks(self.beforeCalibrate, None, lambda r: wx.CallAfter(self.afterCalibrate,r))
-		self.cameraIntrinsics.start()
-
-	def beforeCalibrate(self):
+	def processCalibration(self, response):
 		self.plotPanel.Hide()
 		self.plotPanel.clear()
-		self.waitCursor = wx.BusyCursor()
-
-	def afterCalibrate(self, response):
 		ret, result = response
 
 		if ret:
 			mtx, dist, rvecs, tvecs = result
-			self.cameraIntrinsicsParameters.setParameters((mtx, dist))
+			self.GetParent().GetParent().cameraIntrinsicsPanel.setParameters((mtx, dist))
 			self.plotPanel.add(rvecs, tvecs)
 			self.plotPanel.Show()
 			self.Layout()
 		else:
-			dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
-			dlg.ShowModal()
-			dlg.Destroy()
-
-		del self.waitCursor
-
+			if result == Error.CalibrationError:
+				dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
 
 import random
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
@@ -256,13 +221,12 @@ class Plot3DCameraIntrinsics(wx.Panel):
 		self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
 		self.canvas.SetExtraStyle(wx.EXPAND)
 
-		#self.ax = Axes3D(self.fig)
 		self.ax = self.fig.gca(projection='3d', axisbg=(0.7490196,0.7490196,0.7490196,1))
 
 		# Parameters of the pattern
-		self.columns = 6
-		self.rows = 11
-		self.squareWidth = 13
+		self.rows = profile.getProfileSettingInteger('pattern_rows')
+		self.columns = profile.getProfileSettingInteger('pattern_columns')
+		self.squareWidth = profile.getProfileSettingInteger('square_width')
 		
 		self.printCanvas()
 
@@ -334,28 +298,84 @@ class Plot3DCameraIntrinsics(wx.Panel):
 
 class LaserTriangulationMainPage(Page):
 
-	def __init__(self, parent, buttonCancelCallback=None, buttonPerformCallback=None):
+	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Laser Triangulation"),
+							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
 							left=_("Cancel"),
-							right=_("Perform"),
-							buttonLeftCallback=buttonCancelCallback,
-							buttonRightCallback=buttonPerformCallback,
-							panelOrientation=wx.VERTICAL)
+							right=_("Calibrate"),
+							buttonLeftCallback=self.onCancel,
+							buttonRightCallback=self.onCalibrate,
+							panelOrientation=wx.HORIZONTAL,
+							viewProgress=True)
 
-		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
+		self.driver = Driver.Instance()
+		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 
+		self.afterCancelCallback = afterCancelCallback
+		self.afterCalibrationCallback = afterCalibrationCallback
+
+		#-- Image View
 		imageView = ImageView(self._panel)
 		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
-		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
-		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-		detailsBox.Add((0, 0), 1, wx.EXPAND)
-		detailsBox.Add(detailsText, 0, wx.ALL|wx.EXPAND, 3)
-		detailsBox.Add((0, 0), 1, wx.EXPAND)
+		#-- Video View
+		self.videoView = VideoView(self._panel, self.getFrame)
+		self.videoView.SetBackgroundColour(wx.BLACK)
 
-		self.addToPanel(imageView, 1)
-		self.addToPanel(detailsBox, 0)
+		#-- Layout
+		self.addToPanel(imageView, 3)
+		self.addToPanel(self.videoView, 2)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+		self.Layout()
+
+	def initialize(self):
+		self.gauge.SetValue(0)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.videoView.play()
+		else:
+			self.initialize()
+			self.videoView.stop()
+
+	def getFrame(self):
+		frame = self.driver.camera.captureImage()
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		return frame
+
+	def onCalibrate(self):
+		self.laserTriangulation.setCallbacks(self.beforeCalibration,
+											 lambda p: wx.CallAfter(self.progressCalibration,p),
+											 lambda r: wx.CallAfter(self.afterCalibration,r))
+		self.laserTriangulation.start()
+
+	def beforeCalibration(self):
+		self._rightButton.Disable()
+		self.gauge.SetValue(0)
+		self.waitCursor = wx.BusyCursor()
+
+	def progressCalibration(self, progress):
+		self.gauge.SetValue(progress)
+
+	def afterCalibration(self, result):
+		self._rightButton.Enable()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCalibrationCallback is not None:
+			self.afterCalibrationCallback(result)
+
+	def onCancel(self):
+		self.laserTriangulation.cancel()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCancelCallback is not None:
+			self.afterCancelCallback()
 
 
 class LaserTriangulationResultPage(Page):
@@ -372,7 +392,6 @@ class LaserTriangulationResultPage(Page):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
-		self.laserTriangulationParameters = LaserTriangulationParameters(self._panel)
 
 		self.leftLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Left Laser Image Sequence")
 		self.rightLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Right Laser Image Sequence")
@@ -381,29 +400,14 @@ class LaserTriangulationResultPage(Page):
 		vbox.Add(self.leftLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
 		vbox.Add(self.rightLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
 
-		self.addToPanel(self.laserTriangulationParameters, 1)
 		self.addToPanel(vbox, 3)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
-	def onShow(self, event):
-		if event.GetShow():
-			self.performCalibration()
-
-	def performCalibration(self):
-		self.laserTriangulation.setCallbacks(self.beforeCalibrate, None, lambda r: wx.CallAfter(self.afterCalibrate,r))
-		self.laserTriangulation.start()
-
-	def beforeCalibrate(self):
-		self.waitCursor = wx.BusyCursor()
-
-	def afterCalibrate(self, response):
+	def processCalibration(self, response):
 		ret, result = response
 
 		if ret:
 			vectors, parameters, images = result
-			self.laserTriangulationParameters.setParameters((parameters, vectors[0], vectors[1]))
+			self.GetParent().GetParent().laserTriangulationPanel.setParameters((parameters, vectors[0], vectors[1]))
 			self.leftLaserImageSequence.imageLas.setFrame(images[0][0])
 			self.leftLaserImageSequence.imageGray.setFrame(images[0][1])
 			self.leftLaserImageSequence.imageBin.setFrame(images[0][2])
@@ -414,11 +418,10 @@ class LaserTriangulationResultPage(Page):
 			self.rightLaserImageSequence.imageLine.setFrame(images[1][3])
 			self.Layout()
 		else:
-			dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
-			dlg.ShowModal()
-			dlg.Destroy()
-
-		del self.waitCursor
+			if result == Error.CalibrationError:
+				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
 
 
 class LaserTriangulationImageSequence(wx.Panel):
@@ -458,28 +461,84 @@ class LaserTriangulationImageSequence(wx.Panel):
 
 class PlatformExtrinsicsMainPage(Page):
 
-	def __init__(self, parent, buttonCancelCallback=None, buttonPerformCallback=None):
+	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Platform Extrinsics"),
+							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
 							left=_("Cancel"),
-							right=_("Perform"),
-							buttonLeftCallback=buttonCancelCallback,
-							buttonRightCallback=buttonPerformCallback,
-							panelOrientation=wx.VERTICAL)
+							right=_("Calibrate"),
+							buttonLeftCallback=self.onCancel,
+							buttonRightCallback=self.onCalibrate,
+							panelOrientation=wx.HORIZONTAL,
+							viewProgress=True)
 
-		detailsBox = wx.BoxSizer(wx.HORIZONTAL)
+		self.driver = Driver.Instance()
+		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
+		self.afterCancelCallback = afterCancelCallback
+		self.afterCalibrationCallback = afterCalibrationCallback
+
+		#-- Image View
 		imageView = ImageView(self._panel)
 		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
-		detailsText = wx.StaticText(self._panel, label=_("Put the pattern on the platform"))
-		detailsText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
 
-		detailsBox.Add((0, 0), 1, wx.EXPAND)
-		detailsBox.Add(detailsText, 0, wx.ALL|wx.EXPAND, 3)
-		detailsBox.Add((0, 0), 1, wx.EXPAND)
+		#-- Video View
+		self.videoView = VideoView(self._panel, self.getFrame)
+		self.videoView.SetBackgroundColour(wx.BLACK)
 
-		self.addToPanel(imageView, 1)
-		self.addToPanel(detailsBox, 0)
+		#-- Layout
+		self.addToPanel(imageView, 3)
+		self.addToPanel(self.videoView, 2)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+		self.Layout()
+
+	def initialize(self):
+		self.gauge.SetValue(0)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.videoView.play()
+		else:
+			self.initialize()
+			self.videoView.stop()
+
+	def getFrame(self):
+		frame = self.driver.camera.captureImage()
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		return frame
+
+	def onCalibrate(self):
+		self.platformExtrinsics.setCallbacks(self.beforeCalibration,
+											 lambda p: wx.CallAfter(self.progressCalibration,p),
+											 lambda r: wx.CallAfter(self.afterCalibration,r))
+		self.platformExtrinsics.start()
+
+	def beforeCalibration(self):
+		self._rightButton.Disable()
+		self.gauge.SetValue(0)
+		self.waitCursor = wx.BusyCursor()
+
+	def progressCalibration(self, progress):
+		self.gauge.SetValue(progress)
+
+	def afterCalibration(self, result):
+		self._rightButton.Enable()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCalibrationCallback is not None:
+			self.afterCalibrationCallback(result)
+
+	def onCancel(self):
+		self.platformExtrinsics.cancel()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCancelCallback is not None:
+			self.afterCancelCallback()
 
 
 class PlatformExtrinsicsResultPage(Page):
@@ -496,46 +555,26 @@ class PlatformExtrinsicsResultPage(Page):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
-		self.platformExtrinsicsParameters = PlatformExtrinsicsParameters(self._panel)
 		self.plotPanel = Plot3DPlatformExtrinsics(self._panel)
 
 		#-- Layout
-
-		self.addToPanel(self.platformExtrinsicsParameters, 1)
 		self.addToPanel(self.plotPanel, 3)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
-	def onShow(self, event):
-		if event.GetShow():
-			self.performCalibration()
-
-	def performCalibration(self):
-		self.platformExtrinsics.setCallbacks(self.beforeCalibrate, None, lambda r: wx.CallAfter(self.afterCalibrate,r))
-		self.platformExtrinsics.start()
-
-	def beforeCalibrate(self):
-		self.plotPanel.Hide()
-		self.plotPanel.clear()
-		self.waitCursor = wx.BusyCursor()
-
-	def afterCalibrate(self, response):
+	def processCalibration(self, response):
 		ret, result = response
 
 		if ret:
 			R = result[0]
 			t = result[1]
-			self.platformExtrinsicsParameters.setParameters((R, t))
+			self.GetParent().GetParent().platformExtrinsicsPanel.setParameters((R, t))
 			self.plotPanel.add(result)
 			self.plotPanel.Show()
 			self.Layout()
 		else:
-			dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
-			dlg.ShowModal()
-			dlg.Destroy()
-
-		del self.waitCursor
+			if result == Error.CalibrationError:
+				dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
 
 
 from mpl_toolkits.mplot3d import Axes3D

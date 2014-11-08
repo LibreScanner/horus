@@ -75,8 +75,7 @@ class Calibration:
 		threading.Thread(target=self._start, args=(self.progressCallback,self.afterCallback)).start()
 
 	def _start(self, progressCallback, afterCallback):
-		if progressCallback is not None:
-			progressCallback(100)
+		pass
 
 	def cancel(self):
 		self.isCalibrating = False
@@ -280,9 +279,6 @@ class LaserTriangulation(Calibration):
 				if distance < np.inf:
 					progressCallback(min(80,max(0,80-100*abs(distance-epsilon))))
 
-		if progressCallback is not None:
-			progressCallback(80)
-
 		image = camera.captureImage(flush=True, flushValue=2)
 		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 		if ret is not None:
@@ -293,8 +289,8 @@ class LaserTriangulation(Calibration):
 			distance = np.linalg.norm((0,0,1)-n)
 			angle = np.max(((distance-epsilon) * 15, 0.1))
 
-		if progressCallback is not None:
-			progressCallback(90)
+			if progressCallback is not None:
+				progressCallback(90)
 
 		#print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
@@ -420,11 +416,11 @@ class PlatformExtrinsics(Calibration):
 			if progressCallback is not None:
 				progressCallback(0)
 
-			while self.isCalibrating and abs(angle) <= 180:
+			while self.isCalibrating and abs(angle) < 180:
 				angle += step
 				t = self.getPatternPosition(step, board, camera)
 				if progressCallback is not None:
-					progressCallback(abs(angle/2.))
+					progressCallback(1.1*abs(angle/2.))
 				time.sleep(0.1)
 				if t is not None:
 					x += [t[0][0]]

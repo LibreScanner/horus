@@ -111,13 +111,13 @@ class WorkbenchConnection(Workbench):
 
 		if not ret:
 			if result is Error.WrongFirmware:
-				dlg = wx.MessageDialog(self, _("Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board\nand press Upload Firmware"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg = wx.MessageDialog(self, _("Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board and press Upload Firmware"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
 				dlg.Destroy()
 				self.updateStatus(False)
 				self.GetParent().onPreferences(None)
 			elif result is Error.BoardNotConnected:
-				dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board\nand select a valid Serial Name"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board and select a valid Serial Name"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
 				dlg.Destroy()
 				self.updateStatus(False)

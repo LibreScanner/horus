@@ -60,6 +60,26 @@ class Control(wx.Panel):
 		for item in self.items.values():
 			item.resetProfile()
 
+	def disableContent(self):
+		for item in self.items.values():
+			item.Disable()
+		self.Layout()
+
+	def enableContent(self):
+		for item in self.items.values():
+			item.Enable()
+		self.Layout()
+
+	def hideContent(self):
+		for item in self.items.values():
+			item.Hide()
+		self.Layout()
+
+	def showContent(self):
+		for item in self.items.values():
+			item.Show()
+		self.Layout()
+
 	def updateProfile(self):
 		v = 0
 		for item in self.items.values():
@@ -87,7 +107,7 @@ class TitleText(wx.Panel):
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		vbox.Add(self.title, 0, flag=wx.ALL|wx.EXPAND, border=5)
-		vbox.Add(wx.StaticLine(self), 1, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=5)
+		vbox.Add(wx.StaticLine(self), 1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND, border=5)
 		self.SetSizer(vbox)
 		self.Layout()
 
@@ -242,8 +262,8 @@ class CheckBox(ControlItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 15)
-		hbox.Add(self.control, 1, wx.TOP|wx.BOTTOM|wx.EXPAND, 15)
+		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 7)
+		hbox.Add(self.control, 1, wx.TOP|wx.BOTTOM|wx.EXPAND, 7)
 		self.SetSizer(hbox)
 		self.Layout()
 

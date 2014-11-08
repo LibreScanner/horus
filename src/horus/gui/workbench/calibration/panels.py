@@ -37,7 +37,8 @@ from horus.gui.util.itemControls import *
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
-class CalibrationPanel(wx.Panel):
+#TODO: inheritance from CustomPanel
+class CameraSettingsPanel(wx.Panel):
     def __init__(self, parent):
         """"""
         wx.Panel.__init__(self, parent=parent, size=(275, -1))
@@ -52,7 +53,7 @@ class CalibrationPanel(wx.Panel):
         self.controls = []
 
         #-- Graphic elements
-        control = Control(self, _('Calibration Settings'))
+        control = Control(self, _('Camera Settings'))
         control.append(Slider, 'brightness_calibration', self.driver.camera.setBrightness)
         control.append(Slider, 'contrast_calibration', self.driver.camera.setContrast)
         control.append(Slider, 'saturation_calibration', self.driver.camera.setSaturation)
@@ -74,6 +75,8 @@ class CalibrationPanel(wx.Panel):
         for control in self.controls:
             control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
 
+        control.title.title.Bind(wx.EVT_LEFT_DOWN, self.onTitleClicked)
+
     def restoreDefault(self):
         dlg = wx.MessageDialog(self, _("This will reset calibration settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Calibration Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
@@ -84,6 +87,22 @@ class CalibrationPanel(wx.Panel):
             self.main.enableLabelTool(self.main.undoTool, False)
             self.reloadVideo()
 
+    def disableContent(self):
+        for control in self.controls:
+            control.disableContent()
+
+    def enableContent(self):
+        for control in self.controls:
+            control.enableContent()
+
+    def hideContent(self):
+        for control in self.controls:
+            control.hideContent()
+
+    def showContent(self):
+        for control in self.controls:
+            control.showContent()
+
     def reloadVideo(self):
         self.main.videoView.stop()
         if self.main.playing:
@@ -93,10 +112,16 @@ class CalibrationPanel(wx.Panel):
         for control in self.controls:
             control.updateProfile()
 
+    def onTitleClicked(self, event):
+        if self.GetParent().GetParent().GetParent().hideAllPanels():
+            self.showContent()
+            self.Layout()
 
-class CalibrationWorkbenchPanel(wx.Panel):
 
-    def __init__(self, parent, titleText="Workbench", parametersType=None, buttonStartCallback=None, description="Workbench description"):
+#TODO: inheritance from CustomPanel
+class CalibrationPanel(wx.Panel):
+
+    def __init__(self, parent, titleText="Workbench", buttonStartCallback=None, description="Workbench description"):
         wx.Panel.__init__(self, parent)
 
         self.buttonStartCallback = buttonStartCallback
@@ -104,52 +129,67 @@ class CalibrationWorkbenchPanel(wx.Panel):
         vbox = wx.BoxSizer(wx.VERTICAL)
         titleBox = wx.BoxSizer(wx.VERTICAL)
         contentBox = wx.BoxSizer(wx.VERTICAL)
+        self.parametersBox = wx.BoxSizer(wx.VERTICAL)
 
         title = wx.Panel(self)
-        content = wx.Panel(self)
+        self.content = wx.Panel(self)
 
         titleText = wx.StaticText(title, label=titleText)
         titleText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         titleText.SetToolTip(wx.ToolTip(description))
-        self.buttonEdit = wx.ToggleButton(content, wx.NewId(), label=_("Edit"))
+        self.buttonEdit = wx.ToggleButton(self.content, wx.NewId(), label=_("Edit"))
         self.buttonEdit.SetMinSize((0,-1))
-        self.buttonDefault = wx.Button(content, wx.NewId(), label=_("Default"))
+        self.buttonDefault = wx.Button(self.content, wx.NewId(), label=_("Default"))
         self.buttonDefault.SetMinSize((0,-1))
-        self.buttonStart = wx.Button(content, wx.NewId(), label=_("Start"))
+        self.buttonStart = wx.Button(self.content, wx.NewId(), label=_("Start"))
         self.buttonStart.SetMinSize((0,-1))
 
         titleBox.Add(titleText, 0, wx.ALL|wx.EXPAND, 5)
         titleBox.Add(wx.StaticLine(title), 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 5)
         title.SetSizer(titleBox)
-        if parametersType is not None:
-            self.parameters = parametersType(content)
-            contentBox.Add(self.parameters, 0, wx.ALL|wx.EXPAND, 0)
+        contentBox.Add(self.parametersBox, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.buttonEdit, 1, wx.ALL|wx.EXPAND, 2)
-        hbox.Add(self.buttonDefault, 2, wx.ALL|wx.EXPAND, 2)
-        hbox.Add(self.buttonStart, 3, wx.ALL|wx.EXPAND, 2)
-        contentBox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
-        content.SetSizer(contentBox)
+        hbox.Add(self.buttonEdit, 2, wx.ALL|wx.EXPAND, 3)
+        hbox.Add(self.buttonDefault, 2, wx.ALL|wx.EXPAND, 3)
+        hbox.Add(self.buttonStart, 3, wx.ALL|wx.EXPAND, 3)
+        contentBox.Add(hbox, 0, wx.ALL|wx.EXPAND, 3)
+        self.content.SetSizer(contentBox)
 
         vbox.Add(title, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 0)
-        vbox.Add(content, 1, wx.RIGHT|wx.LEFT|wx.EXPAND, 2)
+        vbox.Add(self.content, 1, wx.RIGHT|wx.LEFT|wx.BOTTOM|wx.EXPAND, 2)
 
-    	self.buttonEdit.Bind(wx.EVT_TOGGLEBUTTON, self.parameters.onButtonEditPressed)
-    	self.buttonDefault.Bind(wx.EVT_BUTTON, self.parameters.onButtonDefaultPressed)
+        titleText.Bind(wx.EVT_LEFT_DOWN, self.onTitleClicked)
+    	self.buttonEdit.Bind(wx.EVT_TOGGLEBUTTON, self.onButtonEditPressed)
+    	self.buttonDefault.Bind(wx.EVT_BUTTON, self.onButtonDefaultPressed)
     	self.buttonStart.Bind(wx.EVT_BUTTON, self.onButtonStartPressed)
 
         self.SetSizer(vbox)
         self.Layout()
 
+    def onButtonEditPressed(self, event):
+        pass
+
+    def onButtonDefaultPressed(self, event):
+        pass
+
     def onButtonStartPressed(self, event):
         if self.buttonStartCallback is not None:
             self.buttonStartCallback()
 
+    def hideContent(self):
+        self.content.Hide()
 
-class CameraIntrinsicsParameters(wx.Panel):
+    def onTitleClicked(self, event):
+        if self.GetParent().GetParent().GetParent().hideAllPanels():
+            self.content.Show()
+            self.Layout()
 
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
+
+class CameraIntrinsicsPanel(CalibrationPanel):
+
+    def __init__(self, parent, buttonStartCallback):
+        CalibrationPanel.__init__(self, parent, titleText=_("Camera Intrinsics Calibration"), buttonStartCallback=buttonStartCallback,
+                                  description=_("Determines the camera matrix and the distortion coefficients using Zhang2000 algorithm and pinhole camera model."))
 
         self.driver = Driver.Instance()
         self.pcg = scan.PointCloudGenerator.Instance()
@@ -157,13 +197,11 @@ class CameraIntrinsicsParameters(wx.Panel):
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
+        cameraPanel = wx.Panel(self.content)
+        distortionPanel = wx.Panel(self.content)
 
-        cameraPanel = wx.Panel(self)
-        distortionPanel = wx.Panel(self)
-
-        cameraText = wx.StaticText(self, label=_("Camera matrix"))
-        cameraText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        cameraText = wx.StaticText(self.content, label=_("Camera matrix"))
+        cameraText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.cameraTexts = [[0.0 for j in range(3)] for i in range(3)]
         self.cameraValues = np.zeros((3,3))
@@ -182,8 +220,8 @@ class CameraIntrinsicsParameters(wx.Panel):
                 ibox.Add(jbox, 1, wx.ALL|wx.EXPAND, 2)
             cameraBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
-        distortionText = wx.StaticText(self, label=_("Distortion vector"))
-        distortionText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        distortionText = wx.StaticText(self.content, label=_("Distortion vector"))
+        distortionText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.distortionTexts = [0]*5
         self.distortionValues = np.zeros(5)
@@ -199,17 +237,15 @@ class CameraIntrinsicsParameters(wx.Panel):
             ibox.Add(self.distortionTexts[i], 1, wx.ALL|wx.EXPAND, 2)
             distortionBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
-        vbox.Add(cameraText, 0, wx.ALL|wx.EXPAND, 5)
-       	vbox.Add(cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
-        vbox.Add(distortionText, 0, wx.ALL|wx.EXPAND, 5)
-       	vbox.Add(distortionPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(cameraText, 0, wx.ALL|wx.EXPAND, 8)
+       	self.parametersBox.Add(cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(distortionText, 0, wx.ALL|wx.EXPAND, 8)
+       	self.parametersBox.Add(distortionPanel, 0, wx.ALL|wx.EXPAND, 2)
 
-        self.SetSizer(vbox)
         self.Layout()
 
     def onButtonEditPressed(self, event):
-        buttonEdit = self.GetParent().GetParent().buttonEdit
-        enable = buttonEdit.GetValue()
+        enable = self.buttonEdit.GetValue()
 
         for i in range(3):
             for j in range(3):
@@ -229,13 +265,13 @@ class CameraIntrinsicsParameters(wx.Panel):
                 self.distortionValues[i] = self.getValueFloat(self.distortionTexts[i].GetValue())
 
         if enable:
-            buttonEdit.SetLabel(_("OK"))
+            self.buttonEdit.SetLabel(_("OK"))
         else:
-            buttonEdit.SetLabel(_("Edit"))
+            self.buttonEdit.SetLabel(_("Edit"))
             self.updateAllControlsToProfile((self.cameraValues, self.distortionValues))
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -285,8 +321,7 @@ class CameraIntrinsicsParameters(wx.Panel):
         self.updateAllControls()
         self.updateEngine()
 
-    def updateAllControlsToProfile(self, params):
-        self.setParameters(params)
+    def updateAllControlsToProfile(self):
         self.putProfileSettings()
         self.updateEngine()
 
@@ -298,21 +333,20 @@ class CameraIntrinsicsParameters(wx.Panel):
             return 0.0
 
 
-class LaserTriangulationParameters(wx.Panel):
+class LaserTriangulationPanel(CalibrationPanel):
 
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
+    def __init__(self, parent, buttonStartCallback):
+        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
+                                  description=_("Determines the depth of the intersection camera-laser considering the inclination of the lasers."))
 
         self.pcg = scan.PointCloudGenerator.Instance()
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
+        coordinatesPanel = wx.Panel(self.content)
+        originPanel = wx.Panel(self.content)
+        normalPanel = wx.Panel(self.content)
 
-        coordinatesPanel = wx.Panel(self)
-        originPanel = wx.Panel(self)
-        normalPanel = wx.Panel(self)
-
-        coordinatesText = wx.StaticText(self, label=_("Coordinates"))
-        coordinatesText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        coordinatesText = wx.StaticText(self.content, label=_("Coordinates"))
+        coordinatesText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.coordinatesTexts = [[0 for j in range(2)] for i in range(2)]
         self.coordinatesValues = np.zeros((2,2))
@@ -331,8 +365,8 @@ class LaserTriangulationParameters(wx.Panel):
                 ibox.Add(jbox, 1, wx.ALL|wx.EXPAND, 2)
             coordinatesBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
-        originText = wx.StaticText(self, label=_("Origin"))
-        originText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        originText = wx.StaticText(self.content, label=_("Origin"))
+        originText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.originTexts = [0]*3
         self.originValues = np.zeros(3)
@@ -348,8 +382,8 @@ class LaserTriangulationParameters(wx.Panel):
             ibox.Add(self.originTexts[i], 1, wx.ALL|wx.EXPAND, 2)
             originBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
-        normalText = wx.StaticText(self, label=_("Normal"))
-        normalText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        normalText = wx.StaticText(self.content, label=_("Normal"))
+        normalText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.normalTexts = [0]*3
         self.normalValues = np.zeros(3)
@@ -365,19 +399,17 @@ class LaserTriangulationParameters(wx.Panel):
             ibox.Add(self.normalTexts[i], 1, wx.ALL|wx.EXPAND, 2)
             normalBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
-        vbox.Add(coordinatesText, 0, wx.ALL|wx.EXPAND, 5)
-       	vbox.Add(coordinatesPanel, 0, wx.ALL|wx.EXPAND, 2)
-        vbox.Add(originText, 0, wx.ALL|wx.EXPAND, 5)
-       	vbox.Add(originPanel, 0, wx.ALL|wx.EXPAND, 2)
-        vbox.Add(normalText, 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(normalPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(coordinatesText, 0, wx.ALL|wx.EXPAND, 8)
+       	self.parametersBox.Add(coordinatesPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(originText, 0, wx.ALL|wx.EXPAND, 8)
+       	self.parametersBox.Add(originPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(normalText, 0, wx.ALL|wx.EXPAND, 8)
+        self.parametersBox.Add(normalPanel, 0, wx.ALL|wx.EXPAND, 2)
 
-        self.SetSizer(vbox)
         self.Layout()
 
     def onButtonEditPressed(self, event):
-        buttonEdit =self.GetParent().GetParent().buttonEdit
-        enable = buttonEdit.GetValue()
+        enable = self.buttonEdit.GetValue()
         for i in range(2):
             for j in range(2):
                 self.coordinatesTexts[i][j].SetEditable(enable)
@@ -404,13 +436,13 @@ class LaserTriangulationParameters(wx.Panel):
                 self.normalValues[i] = self.getValueFloat(self.normalTexts[i].GetValue())
 
         if enable:
-            buttonEdit.SetLabel(_("OK"))
+            self.buttonEdit.SetLabel(_("OK"))
         else:
-            buttonEdit.SetLabel(_("Edit"))
+            self.buttonEdit.SetLabel(_("Edit"))
             self.updateAllControlsToProfile((self.coordinatesValues, self.originValues, self.normalValues))
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -461,8 +493,7 @@ class LaserTriangulationParameters(wx.Panel):
         self.updateAllControls()
         self.updateEngine()
 
-    def updateAllControlsToProfile(self, params):
-        self.setParameters(params)
+    def updateAllControlsToProfile(self):
         self.putProfileSettings()
         self.updateEngine()
 
@@ -474,20 +505,21 @@ class LaserTriangulationParameters(wx.Panel):
             return 0.0
 
 
-class PlatformExtrinsicsParameters(wx.Panel):
+class PlatformExtrinsicsPanel(CalibrationPanel):
 
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
+    def __init__(self, parent, buttonStartCallback):
+        CalibrationPanel.__init__(self, parent, titleText=_("Platform Extrinsics Calibration"), buttonStartCallback=buttonStartCallback,
+                                  description=_("Determines the transformation matrix between the camera and the platform using a circular interpolation method."))
 
         self.pcg = scan.PointCloudGenerator.Instance()
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        rotationPanel = wx.Panel(self)
-        translationPanel = wx.Panel(self)
+        rotationPanel = wx.Panel(self.content)
+        translationPanel = wx.Panel(self.content)
 
-        rotationText = wx.StaticText(self, label=_("Rotation matrix"))
-        rotationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        rotationText = wx.StaticText(self.content, label=_("Rotation matrix"))
+        rotationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.rotationTexts = [[0 for j in range(3)] for i in range(3)]
         self.rotationValues = np.zeros((3,3))
@@ -506,8 +538,8 @@ class PlatformExtrinsicsParameters(wx.Panel):
                 ibox.Add(jbox, 1, wx.ALL|wx.EXPAND, 2)
             rotationBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
-        translationText = wx.StaticText(self, label=_("Translation vector"))
-        translationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        translationText = wx.StaticText(self.content, label=_("Translation vector"))
+        translationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.translationTexts = [0]*3
         self.translationValues = np.zeros(3)
@@ -523,17 +555,15 @@ class PlatformExtrinsicsParameters(wx.Panel):
             ibox.Add(self.translationTexts[i], 1, wx.ALL|wx.EXPAND, 2)
             translationBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
-        vbox.Add(rotationText, 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(rotationPanel, 0, wx.ALL|wx.EXPAND, 2)
-        vbox.Add(translationText, 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(translationPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(rotationText, 0, wx.ALL|wx.EXPAND, 8)
+        self.parametersBox.Add(rotationPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(translationText, 0, wx.ALL|wx.EXPAND, 8)
+        self.parametersBox.Add(translationPanel, 0, wx.ALL|wx.EXPAND, 2)
 
-        self.SetSizer(vbox)
         self.Layout
 
     def onButtonEditPressed(self, event):
-        buttonEdit = self.GetParent().GetParent().buttonEdit
-        enable = buttonEdit.GetValue()
+        enable = self.buttonEdit.GetValue()
         for i in range(3):
             for j in range(3):
                 self.rotationTexts[i][j].SetEditable(enable)
@@ -551,13 +581,13 @@ class PlatformExtrinsicsParameters(wx.Panel):
                 self.translationValues[i] = self.getValueFloat(self.translationTexts[i].GetValue())
 
         if enable:
-            buttonEdit.SetLabel(_("OK"))
+            self.buttonEdit.SetLabel(_("OK"))
         else:
-            buttonEdit.SetLabel(_("Edit"))
+            self.buttonEdit.SetLabel(_("Edit"))
             self.updateAllControlsToProfile((self.rotationValues, self.translationValues))
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset platform extrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset platform extrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -600,8 +630,7 @@ class PlatformExtrinsicsParameters(wx.Panel):
         self.updateAllControls()
         self.updateEngine()
 
-    def updateAllControlsToProfile(self, params):
-        self.setParameters(params)
+    def updateAllControlsToProfile(self):
         self.putProfileSettings()
         self.updateEngine()
 
