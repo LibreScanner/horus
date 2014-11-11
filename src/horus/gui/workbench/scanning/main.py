@@ -121,6 +121,14 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.buttonBin.Hide()
 		self.buttonLine.Hide()
 
+		selectedView = {'raw'  : self.buttonRaw,
+						'las'  : self.buttonLas,
+						'diff' : self.buttonDiff,
+						'bin'  : self.buttonBin,
+						'line' : self.buttonLine}
+
+		selectedView[profile.getProfileSetting('img_type')].SetValue(True)
+
 		self.buttonRaw.SetForegroundColour(wx.WHITE)
 		self.buttonLas.SetForegroundColour(wx.WHITE)
 		self.buttonDiff.SetForegroundColour(wx.WHITE)
@@ -204,6 +212,8 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.simpleScan.start()
 
 	def beforeScan(self):
+		self.buttonShowVideoViews.Show()
+		self.enableLabelTool(self.disconnectTool, False)
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
 		self.enableLabelTool(self.pauseTool , True)
@@ -237,6 +247,7 @@ class ScanningWorkbench(WorkbenchConnection):
 				self.simpleScan.resume()
 
 	def onScanFinished(self):
+		self.enableLabelTool(self.disconnectTool, True)
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)

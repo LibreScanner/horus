@@ -242,6 +242,12 @@ class PointCloudGenerator:
 
 		self.rad = np.pi / 180.0
 
+		self.roiChanged = False
+		self.circleResolution = 30
+		self.circleArray = np.array([[np.cos(i*2*np.pi/self.circleResolution) for i in range(self.circleResolution)],
+									 [np.sin(i*2*np.pi/self.circleResolution) for i in range(self.circleResolution)],
+									 np.zeros(self.circleResolution)])
+
 	def setImageType(self, imgType):
 		self.imgType = imgType
 
@@ -260,11 +266,48 @@ class PointCloudGenerator:
 	def setUseCompact(self, enable):
 		self.useCompact = enable
 
-	def setROIRadius(self, value):
-		self.roiRadius = value
+	def setViewROI(self, value):
+		self.viewROI = value
+
+	def setROIDiameter(self, value):
+		self.roiRadius = value / 2.0
+		self.roiChanged = True
 
 	def setROIHeight(self, value):
 		self.roiHeight = value
+		self.roiChanged = True
+
+	def calculateROI(self):
+		if hasattr(self, 'roiRadius') and \
+		   hasattr(self, 'roiHeight') and \
+		   hasattr(self, 'rotationMatrix') and \
+		   hasattr(self, 'translationVector') and \
+		   hasattr(self, 'fx') and hasattr(self, 'fy') and \
+		   hasattr(self, 'cx') and hasattr(self, 'cy'):
+
+			#-- Platform system
+			bottom = np.matrix(self.roiRadius * self.circleArray)
+			top = bottom + np.matrix([0,0,self.roiHeight]).T
+			data = np.concatenate((bottom, top), axis=1)
+
+			#-- Camera system
+			data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
+
+			#-- Video system
+			u = self.fx * data[0] / data[2] + self.cx
+			v = self.fy * data[1] / data[2] + self.cy
+
+			umin = int(round(np.min(u)))
+			umax = int(round(np.max(u)))
+			vmin = int(round(np.min(v)))
+			vmax = int(round(np.max(v)))
+
+			self.umin = max(umin, 0)
+			self.umax = min(umax, self.width)
+			self.vmin = max(vmin, 0)
+			self.vmax = min(vmax, self.height)
+
+			self.roiChanged = False
 
 	def setDegrees(self, degrees):
 		self.degrees = degrees
@@ -309,12 +352,19 @@ class PointCloudGenerator:
 		self.theta = 0
 
 	def getImage(self):
-		return { 'raw' : self.imgRaw,
-				 'las' : self.imgLas,
-				 'diff' : self.imgDiff,
-				 'bin' : self.imgBin,
-				 'line' : self.imgLine
-				}[self.imgType]
+		img = { 'raw' : self.imgRaw,
+				'las' : self.imgLas,
+				'diff' : self.imgDiff,
+				'bin' : self.imgBin,
+				'line' : self.imgLine
+			  }[self.imgType]
+
+		if img is not None:
+			if self.viewROI:
+				img = img.copy()
+				cv2.rectangle(img, (self.umin, self.vmin), (self.umax, self.vmax), (0, 0, 255), 3)
+			
+		return img
 
 	def getDiffImage(self, img1, img2):
 		""" Returns img1 - img2 """
@@ -335,6 +385,12 @@ class PointCloudGenerator:
 			image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_BINARY)[1]
 
 		return image
+
+	def applyROIMask(self, image):
+		mask = np.zeros(image.shape,np.uint8)
+		mask[self.vmin:self.vmax,self.umin:self.umax] = image[self.vmin:self.vmax,self.umin:self.umax]
+
+		return mask
 
 	def pointCloudGeneration(self, imageRaw, imageBin, leftLaser=True):
 		""" """
@@ -424,11 +480,13 @@ class PointCloudGenerator:
 
 			points = None
 			colors = None
-			self.imgRaw = imageRaw
+			if self.roiChanged:
+				self.calculateROI()
+			self.imgRaw = self.applyROIMask(imageRaw)
 
 			if self.useLeftLaser:
-				self.imgLas = imageLaserLeft
-				imgDiff = self.getDiffImage(imageLaserLeft, imageRaw)
+				self.imgLas = self.applyROIMask(imageLaserLeft)
+				imgDiff = self.getDiffImage(self.imgLas, self.imgRaw)
 				self.imgDiff = cv2.merge((imgDiff,imgDiff,imgDiff))
 
 				imgBin = self.imageProcessing(imgDiff)
@@ -448,8 +506,8 @@ class PointCloudGenerator:
 						self.colors = np.concatenate((self.colors, colors))
 
 			if self.useRightLaser:
-				self.imgLas = imageLaserRight
-				imgDiff = self.getDiffImage(imageLaserRight, imageRaw)
+				self.imgLas = self.applyROIMask(imageLaserRight)
+				imgDiff = self.getDiffImage(self.imgLas, self.imgRaw)
 				self.imgDiff = cv2.merge((imgDiff,imgDiff,imgDiff))
 
 				imgBin = self.imageProcessing(imgDiff)

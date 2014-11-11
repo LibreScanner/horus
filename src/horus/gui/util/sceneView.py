@@ -192,9 +192,9 @@ class SceneView(openglGui.glGuiPanel):
 				self.QueueRefresh()
 		if keyCode == wx.WXK_DOWN:
 			if wx.GetKeyState(wx.WXK_SHIFT):
-				self._zoom /= 1.2
-				if self._zoom < 1:
-					self._zoom = 1
+				self._zoom *= 1.2
+				if self._zoom > numpy.max(self._machineSize) * 3:
+					self._zoom = numpy.max(self._machineSize) * 3
 			elif wx.GetKeyState(wx.WXK_CONTROL):
 				self._offset += 5
 			else:
@@ -202,9 +202,9 @@ class SceneView(openglGui.glGuiPanel):
 			self.QueueRefresh()
 		elif keyCode == wx.WXK_UP:
 			if wx.GetKeyState(wx.WXK_SHIFT):
-				self._zoom *= 1.2
-				if self._zoom > numpy.max(self._machineSize) * 3:
-					self._zoom = numpy.max(self._machineSize) * 3
+				self._zoom /= 1.2
+				if self._zoom < 1:
+					self._zoom = 1
 			elif wx.GetKeyState(wx.WXK_CONTROL):
 				self._offset -= 5
 			else:
@@ -389,11 +389,11 @@ class SceneView(openglGui.glGuiPanel):
 
 		glBegin(GL_QUADS)
 		glColor3f(1,1,1)
-		glVertex3f (-1,-1,-1)
-		glVertex3f (1,-1,-1)
+		glVertex3f(-1,-1,-1)
+		glVertex3f(1,-1,-1)
 		glColor3f(0,0,0)
-		glVertex3f (1,1,-1)
-		glVertex3f (-1,1,-1)
+		glVertex3f(1,1,-1)
+		glVertex3f(-1,1,-1)
 		glEnd()
 
 		glClear(GL_DEPTH_BUFFER_BIT)
@@ -588,8 +588,8 @@ class SceneView(openglGui.glGuiPanel):
 
 		glDepthMask(False)
 		
-		size = numpy.array([profile.getProfileSettingFloat('roi_radius'),
-							profile.getProfileSettingFloat('roi_radius'),
+		size = numpy.array([profile.getProfileSettingFloat('roi_diameter'),
+							profile.getProfileSettingFloat('roi_diameter'),
 							profile.getProfileSettingFloat('roi_height')], numpy.float32)
 
 		if profile.getProfileSettingBool('view_roi'):
