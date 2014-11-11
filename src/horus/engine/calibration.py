@@ -31,6 +31,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import os
 import cv2
 import time
 import threading
@@ -205,13 +206,24 @@ class LaserTriangulation(Calibration):
 				time.sleep(0.1)
 
 				#-- Get images
-				imgRaw = camera.captureImage(flush=True, flushValue=2)
-				board.setLeftLaserOn()
-				imgLasL = camera.captureImage(flush=True, flushValue=2)
-				board.setLeftLaserOff()
-				board.setRightLaserOn()
-				imgLasR = camera.captureImage(flush=True, flushValue=2)
-				board.setRightLaserOff()
+				if os.name == 'nt':
+					imgRaw = camera.captureImage(flush=False)
+					board.setLeftLaserOn()
+					time.sleep(0.1)
+					imgLasL = camera.captureImage(flush=False)
+					board.setLeftLaserOff()
+					board.setRightLaserOn()
+					time.sleep(0.1)
+					imgLasR = camera.captureImage(flush=False)
+					board.setRightLaserOff()
+				else:
+					imgRaw = camera.captureImage(flush=True, flushValue=2)
+					board.setLeftLaserOn()
+					imgLasL = camera.captureImage(flush=True, flushValue=2)
+					board.setLeftLaserOff()
+					board.setRightLaserOn()
+					imgLasR = camera.captureImage(flush=True, flushValue=2)
+					board.setRightLaserOff()
 
 				##-- Corners ROI mask
 				imgLasL = self.cornersMask(imgLasL, corners)

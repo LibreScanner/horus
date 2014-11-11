@@ -86,7 +86,7 @@ class MainWindow(wx.Frame):
 
         self.updateDriverProfile()
 
-        print "Horus " + VERSION
+        print ">>> Horus " + VERSION + " <<<"
 
         ###-- Initialize GUI
 
