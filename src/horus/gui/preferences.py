@@ -48,16 +48,16 @@ class PreferencesDialog(wx.Dialog):
 		self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(170,-1))
 		self.baudRateLabel = wx.StaticText(self, label=_("Baud Rate"))
 		self.baudRates = self.main.baudRateList()
-		self.baudRateCombo = wx.ComboBox(self, choices=self.baudRates, size=(172,-1))
+		self.baudRateCombo = wx.ComboBox(self, choices=self.baudRates, size=(172,-1), style=wx.CB_READONLY)
 		self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id"))
 		self.cameraIdNames = self.main.videoList()
-		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(173,-1))
+		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(173,-1), style=wx.CB_READONLY)
 
 		self.firmwareStaticText = wx.StaticText(self, label=_("Burn Firmware"), style=wx.ALIGN_CENTRE)
 		self.boardLabel = wx.StaticText(self, label=_("AVR Board"))
 		self.boards = profile.getProfileSettingObject('board').getType()
 		board = profile.getProfileSetting('board')
-		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(170,-1))
+		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(170,-1), style=wx.CB_READONLY)
 		self.clearCheckBox = wx.CheckBox(self, label=_("Clear EEPROM"))
 		self.uploadFirmwareButton = wx.Button(self, label=_("Upload Firmware"))
 		self.gauge = wx.Gauge(self, range=100, size=(180, 30))
@@ -65,7 +65,7 @@ class PreferencesDialog(wx.Dialog):
 
 		self.languageLabel = wx.StaticText(self, label=_("Language"))
 		self.languages = [row[1] for row in resources.getLanguageOptions()]
-		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(177,-1))
+		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(177,-1), style=wx.CB_READONLY)
 
 		self.okButton = wx.Button(self, label=_("Ok"))
 
@@ -208,8 +208,10 @@ class PreferencesDialog(wx.Dialog):
 		self.clearCheckBox.Disable()
 		self.boardsCombo.Disable()
 		self.okButton.Disable()
-		self.gauge.SetValue(0)
-		self.gauge.Show()
+		if os.name != 'nt':
+			self.gauge.SetValue(0)
+			self.gauge.Show()
+		self.waitCursor = wx.BusyCursor()
 		self.Fit()
 		self.Layout()
 
@@ -218,7 +220,9 @@ class PreferencesDialog(wx.Dialog):
 		self.clearCheckBox.Enable()
 		self.boardsCombo.Enable()
 		self.okButton.Enable()
-		self.gauge.Hide()
+		if os.name != 'nt':
+			self.gauge.Hide()
+		del self.waitCursor
 		self.Fit()
 		self.Layout()
 
