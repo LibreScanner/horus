@@ -76,8 +76,8 @@ class SettingsPanel(wx.Panel):
         self.controls.append(control)
 
         control = Control(self, _('3D ROI'), bold=False)
-        control.append(CheckBox, 'view_roi', lambda v: self.main.sceneView.QueueRefresh())
-        control.append(Slider, 'roi_radius', lambda v: (self.pcg.setROIRadius(int(v)), self.main.sceneView.QueueRefresh()))
+        control.append(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
+        control.append(Slider, 'roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
         control.append(Slider, 'roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
         self.controls.append(control)
 

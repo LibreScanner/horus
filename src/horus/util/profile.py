@@ -245,7 +245,7 @@ setting('use_compact', False, bool, 'advanced', _('Compact'))
 setting('use_complete', True, bool, 'advanced', _('Complete'))
 
 setting('view_roi', True, bool, 'advanced', _('View ROI'))
-setting('roi_radius', 200, int, 'advanced', _('Radius')).setRange(0, 250)
+setting('roi_diameter', 200, int, 'advanced', _('Diameter')).setRange(0, 250)
 setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
 
 setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
