@@ -28,6 +28,7 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
 import os
+import cv2
 import glob
 import platform
 import wx._core
@@ -63,7 +64,6 @@ class MainWindow(wx.Frame):
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
-
         #-- Serial Name initialization
         serialList = self.serialList()
         currentSerial = profile.getProfileSetting('serial_name')
@@ -84,7 +84,9 @@ class MainWindow(wx.Frame):
 
         self.lastFiles = eval(profile.getPreference('last_files'))
 
-        self.updateEngineProfile()
+        self.updateDriverProfile()
+
+        print "Horus " + VERSION
 
         ###-- Initialize GUI
 
@@ -408,10 +410,10 @@ See the GNU General Public License for more details. You should have
 received a copy of the GNU General Public License along with File Hunter; 
 if not, write to the Free Software Foundation, Inc., 59 Temple Place, 
 Suite 330, Boston, MA  02111-1307  USA""")
-        info.AddDeveloper(u'Jesús Arroyo\n Álvaro Velad')
+        info.AddDeveloper(u'Jesús Arroyo')
         info.AddDocWriter(u'Jesús Arroyo')
         info.AddArtist(u'Jesús Arroyo')
-        info.AddTranslator(u'Jesús Arroyo\n Álvaro Velad')
+        info.AddTranslator(u'Jesús Arroyo')
 
         wx.AboutBox(info)
 
@@ -492,13 +494,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
         self.workbenchUpdate()
         self.Layout()
-
-    def updateEngineProfile(self):
-        self.updateDriverProfile()
-        self.updateBoardCurrentProfile()
-        self.updateCameraCurrentProfile()
-        self.updatePCGCurrentProfile()
-        self.updateCalibrationCurrentProfile()
 
     def updateDriverProfile(self):
         self.driver.camera.setCameraId(int(profile.getProfileSetting('camera_id')[-1:]))
