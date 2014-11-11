@@ -27,6 +27,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
+import os
 import cv2
 import time
 import Queue
@@ -165,17 +166,32 @@ class SimpleScan(Scan):
 					self.driver.board.setRightLaserOff()
 
 				#-- Capture images
-				imgRaw = self.driver.camera.captureImage(flush=True, flushValue=2)
-				if self.pcg.useLeftLaser:
-					self.driver.board.setLeftLaserOn()
-					imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=2)
+				if os.name == 'nt':
+					#time.sleep(0.1)
+					imgRaw = self.driver.camera.captureImage(flush=False)
+					time.sleep(0.1)
+					if self.pcg.useLeftLaser:
+						self.driver.board.setLeftLaserOn()
+						imgLaserLeft = self.driver.camera.captureImage(flush=False)
+					else:
+						imgLaserLeft = None
+					if self.pcg.useRightLaser:
+						self.driver.board.setRightLaserOn()
+						imgLaserRight = self.driver.camera.captureImage(flush=False)
+					else:
+						imgLaserRight = None
 				else:
-					imgLaserLeft = None
-				if self.pcg.useRightLaser:
-					self.driver.board.setRightLaserOn()
-					imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=2)
-				else:
-					imgLaserRight = None
+					imgRaw = self.driver.camera.captureImage(flush=True, flushValue=2)
+					if self.pcg.useLeftLaser:
+						self.driver.board.setLeftLaserOn()
+						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=2)
+					else:
+						imgLaserLeft = None
+					if self.pcg.useRightLaser:
+						self.driver.board.setRightLaserOn()
+						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=2)
+					else:
+						imgLaserRight = None
 
 				#-- Move motor
 				if self.moveMotor:

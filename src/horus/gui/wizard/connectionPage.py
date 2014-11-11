@@ -153,12 +153,12 @@ class ConnectionPage(WizardPage):
 			self.patternLabel.Enable()
 			self.imageView.Enable()
 			self.autoCheckButton.Enable()
-			self.prevButton.Enable()
 			self.skipButton.Enable()
 			self.enableNext = True
 		else:
 			self.connectButton.Enable()
 
+		self.prevButton.Enable()
 		del self.waitCursor
 
 	def onAutoCheckButtonClicked(self, event):

@@ -30,7 +30,8 @@
 ##                    ##
 
 import os
-import fcntl
+if os.name != 'nt':
+    import fcntl
 import platform
 import resources
 from subprocess import Popen, PIPE, CalledProcessError
@@ -77,8 +78,11 @@ class AvrDude(SerialDevice):
         config = dict(avrdude=self.avrdude, avrconf=self.avrconf)
         cmd = ['%(avrdude)s'] + flags
         cmd = [v % config for v in cmd]
-        p = Popen(cmd, stderr=PIPE, close_fds=True)
-        fcntl.fcntl(p.stderr.fileno(), fcntl.F_SETFL, fcntl.fcntl(p.stderr.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK)
+        if os.name != 'nt':
+            p = Popen(cmd, stderr=PIPE, close_fds=True)
+            fcntl.fcntl(p.stderr.fileno(), fcntl.F_SETFL, fcntl.fcntl(p.stderr.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK)
+        else:
+            p = Popen(cmd, stderr=PIPE)
         return p
 
     def flash(self, hexPath=resources.getPathForFirmware("horus-fw.hex"), extraFlags=None):

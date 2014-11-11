@@ -27,7 +27,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v3 http://www.gnu.org/licenses/gpl.html"
 
-import wx
+import wx._core
 
 from horus.util.resources import *
 
@@ -42,6 +42,8 @@ class ImageView(wx.Panel):
 		self.defaultImage = wx.Image(getPathForImage("bq.png"))
 		self.image = self.defaultImage
 		self.bitmap = wx.BitmapFromImage(self.defaultImage)
+
+		self.SetDoubleBuffered(True)
 
 		self.Bind(wx.EVT_PAINT, self.onPaint)
 		if resize:
