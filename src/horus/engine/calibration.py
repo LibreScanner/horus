@@ -209,11 +209,11 @@ class LaserTriangulation(Calibration):
 				if os.name == 'nt':
 					imgRaw = camera.captureImage(flush=False)
 					board.setLeftLaserOn()
-					time.sleep(0.1)
+					time.sleep(0.2)
 					imgLasL = camera.captureImage(flush=False)
 					board.setLeftLaserOff()
 					board.setRightLaserOn()
-					time.sleep(0.1)
+					time.sleep(0.2)
 					imgLasR = camera.captureImage(flush=False)
 					board.setRightLaserOff()
 				else:

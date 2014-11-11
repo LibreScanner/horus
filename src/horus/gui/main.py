@@ -194,6 +194,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.calibrationWorkbench.combo)
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.scanningWorkbench.combo)
 
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+
         self.updateProfileToAllControls()
 
         x, y, w, h = wx.Display(0).GetGeometry()
@@ -280,6 +282,14 @@ class MainWindow(wx.Frame):
 
     def onExit(self, event):
         self.Close(True)
+
+    def onClose(self, event):
+        try:
+            self.simpleScan.stop()
+            self.driver.disconnect()
+        except:
+            pass
+        event.Skip()
 
     def appendLastFile(self, lastFile):
         if lastFile in self.lastFiles:

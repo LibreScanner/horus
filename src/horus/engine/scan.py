@@ -167,8 +167,9 @@ class SimpleScan(Scan):
 
 				#-- Capture images
 				if os.name == 'nt':
+					#time.sleep(0.1)
 					imgRaw = self.driver.camera.captureImage(flush=False)
-					time.sleep(0.05)
+					time.sleep(0.1)
 					if self.pcg.useLeftLaser:
 						self.driver.board.setLeftLaserOn()
 						imgLaserLeft = self.driver.camera.captureImage(flush=False)
