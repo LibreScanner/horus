@@ -85,7 +85,7 @@ class ConnectionPage(WizardPage):
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 		self.videoView.setMilliseconds(20)
-		self.videoView.setCallback(self.getFrame)
+		self.videoView.setCallback(self.getDetectChessboardFrame)
 		self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
@@ -98,7 +98,10 @@ class ConnectionPage(WizardPage):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
+		return self.driver.camera.captureImage()
+
+	def getDetectChessboardFrame(self):
+		frame = self.getFrame()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
@@ -171,6 +174,7 @@ class ConnectionPage(WizardPage):
 		self.driver.board.moveMotor(nonblocking=True, callback=(lambda r: wx.CallAfter(self.afterMoveMotor)))
 
 	def beforeAutoCheck(self):
+		self.videoView.setCallback(self.getFrame)
 		self.autoCheckButton.Disable()
 		self.prevButton.Disable()
 		self.skipButton.Disable()
@@ -183,6 +187,7 @@ class ConnectionPage(WizardPage):
 		self.Layout()
 
 	def afterMoveMotor(self):
+		self.videoView.setCallback(self.getDetectChessboardFrame)
 		self.driver.board.disableMotor()
 		self.gauge.SetValue(30)
 
