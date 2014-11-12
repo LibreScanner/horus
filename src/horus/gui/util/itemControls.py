@@ -384,6 +384,43 @@ class Button(ControlItem):
 		else:
 			self.Hide()
 
+class CallbackButton(ControlItem):
+	def __init__(self, parent, name, engineCallback=None):
+		""" """
+		ControlItem.__init__(self, parent, name, engineCallback)
+
+		#-- Elements
+		self.control = wx.Button(self, label=self.setting.getLabel())
+
+		#-- Layout
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.control, 1, wx.ALL^wx.LEFT|wx.EXPAND, 10)
+		self.SetSizer(hbox)
+		self.Layout()
+
+		#-- Events
+		self.control.Bind(wx.EVT_BUTTON, self.onButtonClicked)
+
+	def onButtonClicked(self, event):
+		if self.engineCallback is not None:
+			self.control.Disable()
+			self.waitCursor = wx.BusyCursor()
+			self.engineCallback(self.onFinishCallback)
+
+	def onFinishCallback(self, ret):
+		wx.CallAfter(self.control.Enable)
+		del self.waitCursor
+
+	def updateProfile(self):
+		if hasattr(self,'control'):
+			self.update(None)
+
+	def update(self, value):
+		if self.isVisible():
+			self.Show()
+		else:
+			self.Hide()
+
 class ToggleButton(ControlItem):
 	def __init__(self, parent, name, engineCallback=None):
 		""" """
