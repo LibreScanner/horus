@@ -29,6 +29,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import time
 import serial
+import threading
 
 
 class Error(Exception):
@@ -135,9 +136,9 @@ class Board:
 		self._posIncrement = 0
 		self._position = pos
 
-	def moveMotor(self):
+	def moveMotor(self, nonblocking=False, callback=None):
 		self._position += self._posIncrement
-		return self._sendCommand("G1X{0}".format(self._position))
+		return self._sendCommand("G1X{0}".format(self._position), nonblocking, callback)
 
 	def setRightLaserOn(self):
 		return self._sendCommand("M71T2")
@@ -151,19 +152,29 @@ class Board:
 	def setLeftLaserOff(self):
 		return self._sendCommand("M70T1")
 
-	def sendRequest(self, req, readLines=False):
+	def sendRequest(self, req, nonblocking=False, callback=None, readLines=False):
+		if nonblocking:
+			threading.Thread(target=self._sendRequest, args=(req, callback, readLines)).start()
+		else:
+			return self._sendRequest(req, callback, readLines)
+
+	def _sendRequest(self, req, callback=None, readLines=False):
 		"""Sends the request and returns the response"""
+		ret = None
 		if self.serialPort is not None and self.serialPort.isOpen():
 			try:
 				self.serialPort.flushInput()
 				self.serialPort.flushOutput()
 				self.serialPort.write(req+"\r\n")
 				if readLines:
-					return ''.join(self.serialPort.readlines())
+					ret = ''.join(self.serialPort.readlines())
 				else:
-					return ''.join(self.serialPort.readline())
+					ret = ''.join(self.serialPort.readline())
 			except:
 				pass
+		if callback is not None:
+			callback(ret)
+		return ret
 
 	def _checkAcknowledge(self, ack):
 		if ack is not None:
@@ -171,8 +182,11 @@ class Board:
 		else:
 			return False
 
-	def _sendCommand(self, cmd):
-		return self._checkAcknowledge(self.sendRequest(cmd))
+	def _sendCommand(self, cmd, nonblocking=False, callback=None):
+		if nonblocking:
+			self.sendRequest(cmd, nonblocking, callback)
+		else:
+			return self._checkAcknowledge(self._sendRequest(cmd))
 
 	def _reset(self):
 		self.serialPort.setDTR(False)

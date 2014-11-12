@@ -118,9 +118,15 @@ class GcodeGui(ControlItem):
         self.control.Bind(wx.EVT_BUTTON, self.onButtonClicked)
 
     def onButtonClicked(self, event):
+        self.control.Disable()
+        self.waitCursor = wx.BusyCursor()
         if self.engineCallback is not None:
-            ret = self.engineCallback(self.request.GetValue())
-            self.response.SetValue(ret)
+            ret = self.engineCallback(self.request.GetValue(), self.onFinishCallback)
+
+    def onFinishCallback(self, ret):
+        wx.CallAfter(self.control.Enable)
+        wx.CallAfter(lambda: self.response.SetValue(ret))
+        del self.waitCursor
 
     def updateProfile(self):
         if hasattr(self,'control'):
@@ -158,12 +164,12 @@ class DevicePanel(wx.Panel):
         control.append(TextBox, 'step_degrees_control', lambda v: self.driver.board.setRelativePosition(self.getValueFloat(v)))
         control.append(TextBox, 'feed_rate_control', lambda v: self.driver.board.setSpeedMotor(self.getValueInteger(v)))
         control.append(TextBox, 'acceleration_control', lambda v: self.driver.board.setAccelerationMotor(self.getValueInteger(v)))
-        control.append(Button, 'move_button', self.driver.board.moveMotor)
+        control.append(CallbackButton, 'move_button', lambda c: self.driver.board.moveMotor(nonblocking=True, callback=c))
         control.append(ToggleButton, 'enable_button', (self.driver.board.enableMotor, self.driver.board.disableMotor))
         self.controls.append(control)
 
         control = Control(self, _('Gcode Commands'))
-        control.append(GcodeGui, 'gcode_gui', lambda v: self.driver.board.sendRequest(v, readLines=True))
+        control.append(GcodeGui, 'gcode_gui', lambda v, c: self.driver.board.sendRequest(v, nonblocking=True, callback=c, readLines=True))
         self.controls.append(control)
 
         #-- Layout

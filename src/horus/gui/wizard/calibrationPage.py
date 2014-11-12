@@ -146,6 +146,7 @@ class CalibrationPage(WizardPage):
 		self.resultLabel.SetLabel("Calibration canceled. To try again press \"Calibrate\"")
 		self.platformExtrinsics.cancel()
 		self.laserTriangulation.cancel()
+		self.skipButton.Enable()
 		self.onFinishCalibration()
 
 	def beforePlatformCalibration(self):
@@ -180,6 +181,7 @@ class CalibrationPage(WizardPage):
 				dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
+				self.skipButton.Enable()
 				self.onFinishCalibration()
 
 	def progressLaserCalibration(self, progress):

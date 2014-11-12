@@ -85,7 +85,7 @@ class ConnectionPage(WizardPage):
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 		self.videoView.setMilliseconds(20)
-		self.videoView.setCallback(self.getFrame)
+		self.videoView.setCallback(self.getDetectChessboardFrame)
 		self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
@@ -98,7 +98,10 @@ class ConnectionPage(WizardPage):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
+		return self.driver.camera.captureImage()
+
+	def getDetectChessboardFrame(self):
+		frame = self.getFrame()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
@@ -162,30 +165,37 @@ class ConnectionPage(WizardPage):
 		del self.waitCursor
 
 	def onAutoCheckButtonClicked(self, event):
+		self.beforeAutoCheck()
+
 		#-- Move motor
 		self.driver.board.setSpeedMotor(200)
 		self.driver.board.setRelativePosition(-180)
 		self.driver.board.enableMotor()
-		time.sleep(0.5)
-		self.driver.board.moveMotor()
-		self.driver.board.disableMotor()
-
-		#-- Perform auto check
-		self.laserTriangulation.setCallbacks(self.beforeAutoCheck,
-											 lambda p: wx.CallAfter(self.progressAutoCheck,p),
-											 lambda r: wx.CallAfter(self.afterAutoCheck,r))
-		self.laserTriangulation.start()
+		self.driver.board.moveMotor(nonblocking=True, callback=(lambda r: wx.CallAfter(self.afterMoveMotor)))
 
 	def beforeAutoCheck(self):
+		self.videoView.setCallback(self.getFrame)
 		self.autoCheckButton.Disable()
 		self.prevButton.Disable()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
 		self.enableNext = False
-		self.gauge.SetValue(30)
+		self.gauge.SetValue(0)
 		self.resultLabel.Hide()
 		self.gauge.Show()
+		self.waitCursor = wx.BusyCursor()
 		self.Layout()
+
+	def afterMoveMotor(self):
+		self.videoView.setCallback(self.getDetectChessboardFrame)
+		self.driver.board.disableMotor()
+		self.gauge.SetValue(30)
+
+		#-- Perform auto check
+		self.laserTriangulation.setCallbacks(None,
+											 lambda p: wx.CallAfter(self.progressAutoCheck,p),
+											 lambda r: wx.CallAfter(self.afterAutoCheck,r))
+		self.laserTriangulation.start()
 
 	def progressAutoCheck(self, progress):
 		self.gauge.SetValue(30 + 0.7*progress)
@@ -210,42 +220,8 @@ class ConnectionPage(WizardPage):
 		self.resultLabel.Show()
 		self.autoCheckButton.Enable()
 		self.prevButton.Enable()
+		del self.waitCursor
 		self.Layout()
-
-	def performAutoCheck(self):
-		self.driver.board.setLeftLaserOn()
-		self.driver.board.setRightLaserOn()
-		self.driver.board.enableMotor()
-		time.sleep(0.2)
-		wx.CallAfter(lambda: self.gauge.SetValue(10))
-
-		self.driver.board.setSpeedMotor(150)
-		self.driver.board.setRelativePosition(-100)
-		self.driver.board.moveMotor()
-		wx.CallAfter(lambda: self.gauge.SetValue(40))
-
-		ret = True #self.laserTriangulation.start() TODO: move autocheck to Engine
-		wx.CallAfter(lambda: self.gauge.SetValue(80))
-
-		self.driver.board.setSpeedMotor(150)
-		self.driver.board.setRelativePosition(90)
-		self.driver.board.moveMotor()
-		wx.CallAfter(lambda: self.gauge.SetValue(90))
-
-		self.driver.board.disableMotor()
-		self.driver.board.setLeftLaserOff()
-		self.driver.board.setRightLaserOff()
-		wx.CallAfter(lambda: self.gauge.SetValue(100))
-
-		#-- Result: TODO
-		#result = False
-		#if ret is None:
-		#	wx.CallAfter(lambda: self.resultLabel.SetLabel("Error: please check motor and pattern and try again"))
-		#elif 0 in ret[1][0] or 0 in ret[1][1]:
-		#	wx.CallAfter(lambda: self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again"))
-		#else:
-		result = True
-		wx.CallAfter(lambda: self.afterAutoCheck(result))
 
 	def updateStatus(self, status):
 		if status:
