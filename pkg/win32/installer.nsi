@@ -108,6 +108,14 @@ Function LaunchLink
   ExecShell "" "$SMPROGRAMS\Horus ${VERSION}\Horus ${VERSION}.lnk"
 FunctionEnd
 
+Section "Install FTDI Drivers"
+  ; Set output path to the driver directory.
+  SetOutPath "$INSTDIR\drivers\"
+  File /r "drivers\"
+ 
+  ExecWait '"$INSTDIR\drivers\CDM v2.10.00 WHQL Certified.exe" /lm'
+SectionEnd
+
 Section "Install Arduino Drivers"
   ; Set output path to the driver directory.
   SetOutPath "$INSTDIR\drivers\"
@@ -118,14 +126,6 @@ Section "Install Arduino Drivers"
   ${Else}
     ExecWait '"$INSTDIR\drivers\dpinst32.exe" /lm'
   ${EndIf}
-SectionEnd
-
-Section "Install FTDI Drivers"
-  ; Set output path to the driver directory.
-  SetOutPath "$INSTDIR\drivers\"
-  File /r "drivers\"
- 
-  ExecWait '"$INSTDIR\drivers\CDM v2.10.00 WHQL Certified.exe" /lm'
 SectionEnd
 
 ;Section "Open PLY files with Horus"

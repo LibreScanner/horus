@@ -7,6 +7,9 @@
 *.po~
 *.zip
 *.exe
+!CDM v2.10.00 WHQL Certified.exe
+!dpinst32.exe
+!dpinst64.exe
 !avrdude.exe
 *.deb
 *.ini
@@ -17,4 +20,3 @@ pkg/linux/debian_*/usr/local/*
 pkg/win32/dist*
 LIN/*
 WIN/*
-testAvr.py
