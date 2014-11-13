@@ -45,9 +45,15 @@ class ImageView(wx.Panel):
 
 		self.SetDoubleBuffered(True)
 
+		self.Bind(wx.EVT_SHOW, self.onShow)
 		self.Bind(wx.EVT_PAINT, self.onPaint)
 		if resize:
 			self.Bind(wx.EVT_SIZE, self.onResize)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.GetParent().Layout()
+			self.Layout()
 
 	def onPaint(self, event):
 		dc = wx.PaintDC(self)

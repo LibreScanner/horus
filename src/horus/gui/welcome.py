@@ -38,7 +38,7 @@ from horus.gui.util.imageView import ImageView
 class WelcomeWindow(wx.Dialog):
 
     def __init__(self, parent):
-        super(WelcomeWindow, self).__init__(parent, size=(640+120,480+40), style=wx.DEFAULT_FRAME_STYLE^ wx.RESIZE_BORDER)
+        super(WelcomeWindow, self).__init__(parent, size=(640+120,480+40), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         self.parent = parent
 

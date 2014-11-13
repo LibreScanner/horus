@@ -315,57 +315,42 @@ class MainWindow(wx.Frame):
         self.controlWorkbench.initialize()
         self.calibrationWorkbench.initialize()
 
-    def onControlPanelClicked(self, event):
-        """ """
-        checked = self.menuControlPanel.IsChecked()
-        profile.putPreference('view_control_panel', checked)
+    def onMenuViewClicked(self, key, checked, panel):
+        profile.putPreference(key, checked)
         if checked:
-            self.controlWorkbench.scrollPanel.Show()
+            panel.Show()
         else:
-            self.controlWorkbench.scrollPanel.Hide()
+            panel.Hide()
+        panel.GetParent().Layout()
+        panel.Layout()
         self.Layout()
+
+    def onControlPanelClicked(self, event):
+        self.onMenuViewClicked('view_control_panel',
+                                self.menuControlPanel.IsChecked(),
+                                self.controlWorkbench.scrollPanel)
 
     def onControlVideoClicked(self, event):
-        """ """
-        checked = self.menuControlVideo.IsChecked()
-        profile.putPreference('view_control_video', checked)
-        if checked:
-            self.controlWorkbench.videoView.Show()
-        else:
-            self.controlWorkbench.videoView.Hide()
-        self.Layout()
+        self.onMenuViewClicked('view_control_video',
+                                self.menuControlVideo.IsChecked(),
+                                self.controlWorkbench.videoView)
 
     def onCalibrationPanelClicked(self, event):
-        """ """
-        checked = self.menuCalibrationPanel.IsChecked()
-        profile.putPreference('view_calibration_panel', checked)
-        if checked:
-            self.calibrationWorkbench.scrollPanel.Show()
-        else:
-            self.calibrationWorkbench.scrollPanel.Hide()
-        self.Layout()
+        self.onMenuViewClicked('view_calibration_panel',
+                                self.menuCalibrationPanel.IsChecked(),
+                                self.calibrationWorkbench.scrollPanel)
 
     def onCalibrationVideoClicked(self, event):
-        """ """
-        checked = self.menuCalibrationVideo.IsChecked()
-        profile.putPreference('view_calibration_video', checked)
-        if checked:
-            self.calibrationWorkbench.videoView.Show()
-        else:
-            self.calibrationWorkbench.videoView.Hide()
-        self.Layout()
+        self.onMenuViewClicked('view_calibration_video',
+                                self.menuCalibrationVideo.IsChecked(),
+                                self.calibrationWorkbench.videoView)
 
     def onScanningPanelClicked(self, event):
-        checkedPanel = self.menuScanningPanel.IsChecked()
-        profile.putPreference('view_scanning_panel', checkedPanel)
-        if checkedPanel:
-            self.scanningWorkbench.scrollPanel.Show()
-        else:
-            self.scanningWorkbench.scrollPanel.Hide()
-        self.Layout()
+        self.onMenuViewClicked('view_scanning_panel',
+                                self.menuScanningPanel.IsChecked(),
+                                self.scanningWorkbench.scrollPanel)
 
     def onScanningVideoSceneClicked(self, event):
-        """ """
         checkedVideo = self.menuScanningVideo.IsChecked()
         checkedScene = self.menuScanningScene.IsChecked()
         profile.putPreference('view_scanning_video', checkedVideo)
@@ -387,7 +372,10 @@ class MainWindow(wx.Frame):
                 self.scanningWorkbench.splitterWindow.Unsplit()
             else:
                 self.scanningWorkbench.sceneView.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()     
+                self.scanningWorkbench.splitterWindow.Unsplit()
+
+        self.scanningWorkbench.splitterWindow.Layout()
+        self.scanningWorkbench.Layout()
         self.Layout()
 
     def onComboBoxWorkbenchSelected(self, event):
@@ -401,7 +389,7 @@ class MainWindow(wx.Frame):
     def onAbout(self, event):
         """ """
         info = wx.AboutDialogInfo()
-        icon = wx.Icon(getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(VERSION)
@@ -596,29 +584,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.platformExtrinsics.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
 
     def workbenchUpdate(self, layout=True):
-        """ """
-
-        #TODO: optimize load
-
         currentWorkbench = profile.getPreference('workbench')
 
         wb = {'control'     : self.controlWorkbench,
               'calibration' : self.calibrationWorkbench,
               'scanning'    : self.scanningWorkbench}
 
-        self.simpleScan.moveMotor = True
-        self.simpleScan.generatePointCloud = True
-
-        if layout:
-            for key in wb:
-                if wb[key] is not None:
-                    if key == currentWorkbench:
-                        wb[key].Hide()
-                        wb[key].Show()
-                        wb[key].updateProfileToAllControls()
-                        wb[key].combo.SetValue(str(self.workbenchList[key]))
-                    else:
-                        wb[key].Hide()
+        waitCursor = wx.BusyCursor()
 
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
@@ -630,8 +602,23 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.updateCalibrationProfile(currentWorkbench)
 
         if layout:
+            for key in wb:
+                if wb[key] is not None:
+                    if key == currentWorkbench:
+                        wb[key].updateProfileToAllControls()
+                        wb[key].combo.SetValue(str(self.workbenchList[key]))
+
+            for key in wb:
+                if wb[key] is not None:
+                    if key == currentWorkbench:
+                        wb[key].Hide()
+                        wb[key].Show()
+                    else:
+                        wb[key].Hide()
+
             self.Layout()
 
+        del waitCursor
 
     ##-- TODO: move to util
 

@@ -121,7 +121,7 @@ class GcodeGui(ControlItem):
         self.control.Disable()
         self.waitCursor = wx.BusyCursor()
         if self.engineCallback is not None:
-            ret = self.engineCallback(self.request.GetValue(), self.onFinishCallback)
+            ret = self.engineCallback(str(self.request.GetValue()), self.onFinishCallback)
 
     def onFinishCallback(self, ret):
         wx.CallAfter(self.control.Enable)

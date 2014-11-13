@@ -42,6 +42,8 @@ class Workbench(wx.Panel):
 		self.combo = wx.ComboBox(self, -1, style=wx.CB_READONLY)
 		self._panel = wx.Panel(self)
 
+		self.toolbar.SetDoubleBuffered(True)
+
 		hbox.Add(self.toolbar, 0, wx.ALL|wx.EXPAND, 1)
 		hbox.Add((0,0), 1, wx.ALL|wx.EXPAND, 1)
 		hbox.Add(self.combo, 0, wx.ALL, 10)

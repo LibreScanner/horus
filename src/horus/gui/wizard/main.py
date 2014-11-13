@@ -69,10 +69,14 @@ class Wizard(wx.Dialog):
 
         self.SetSizer(hbox)
 
+        self.Bind(wx.EVT_CLOSE, lambda e: self.onExit())
+
         self.Centre()
         self.ShowModal()
 
-    def onConnectionPagePrevClicked(self):
+    def onExit(self):
+        self.driver.board.setLeftLaserOff()
+        self.driver.board.setRightLaserOff()
         profile.putPreference('workbench', 'scanning')
         dlg = wx.MessageDialog(self, _("Do you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
@@ -81,6 +85,9 @@ class Wizard(wx.Dialog):
             self.driver.disconnect()
             self.parent.workbenchUpdate()
             self.Destroy()
+
+    def onConnectionPagePrevClicked(self):
+        self.onExit()
 
     def onCalibrationPagePrevClicked(self):
         self.calibrationPage.Hide()

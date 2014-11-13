@@ -104,7 +104,7 @@ class CameraSettingsPanel(wx.Panel):
             control.showContent()
 
     def reloadVideo(self):
-        self.main.videoView.stop()
+        self.main.videoView.pause()
         if self.main.playing:
             self.main.videoView.play()
 
@@ -116,6 +116,7 @@ class CameraSettingsPanel(wx.Panel):
         if self.GetParent().GetParent().GetParent().hideAllPanels():
             self.showContent()
             self.Layout()
+            self.GetParent().GetParent().Layout()
 
 
 #TODO: inheritance from CustomPanel
@@ -183,6 +184,7 @@ class CalibrationPanel(wx.Panel):
         if self.GetParent().GetParent().GetParent().hideAllPanels():
             self.content.Show()
             self.Layout()
+            self.GetParent().GetParent().Layout()
 
 
 class CameraIntrinsicsPanel(CalibrationPanel):
