@@ -401,7 +401,7 @@ class MainWindow(wx.Frame):
     def onAbout(self, event):
         """ """
         info = wx.AboutDialogInfo()
-        icon = wx.Icon(getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(VERSION)

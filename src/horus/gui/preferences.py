@@ -77,6 +77,7 @@ class PreferencesDialog(wx.Dialog):
 		self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Destroy())
+		self.Bind(wx.EVT_CLOSE, lambda e: self.Destroy())
 
 		#-- Fill data
 		currentSerial = profile.getProfileSetting('serial_name')
