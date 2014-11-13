@@ -82,8 +82,14 @@ class SceneView(openglGui.glGuiPanel):
 
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
+		self.Bind(wx.EVT_SHOW, self.onShow)
 
 		self.updateProfileToControls()
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.GetParent().Layout()
+			self.Layout()
 
 	def __del__(self):
 		if self._object is not None:
