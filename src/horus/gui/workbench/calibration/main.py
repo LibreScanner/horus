@@ -286,13 +286,13 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationPanel.updateProfileToAllControls()
         self.platformExtrinsicsPanel.updateProfileToAllControls()
         self.combo.Enable()
-        self.videoView.Show()
         self.cameraIntrinsicsMainPage.Hide()
         self.cameraIntrinsicsResultPage.Hide()
         self.laserTriangulationMainPage.Hide()
         self.laserTriangulationResultPage.Hide()
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
+        self.videoView.Show()
         self.Layout()
 
     def onCameraIntrinsicsAfterCalibrationCallback(self, result):
@@ -318,8 +318,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.cameraIntrinsicsPanel.buttonEdit.Enable()
         self.cameraIntrinsicsPanel.updateAllControlsToProfile()
         self.combo.Enable()
-        self.videoView.Show()
         self.cameraIntrinsicsResultPage.Hide()
+        self.videoView.Show()
         self.Layout()
 
     def onLaserTriangulationAfterCalibrationCallback(self, result):
@@ -345,8 +345,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationPanel.buttonEdit.Enable()
         self.laserTriangulationPanel.updateAllControlsToProfile()
         self.combo.Enable()
-        self.videoView.Show()
         self.laserTriangulationResultPage.Hide()
+        self.videoView.Show()
         self.Layout()
 
     def onPlatformExtrinsicsAfterCalibrationCallback(self, result):
@@ -372,8 +372,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.platformExtrinsicsPanel.buttonEdit.Enable()
         self.platformExtrinsicsPanel.updateAllControlsToProfile()
         self.combo.Enable()
-        self.videoView.Show()
         self.platformExtrinsicsResultPage.Hide()
+        self.videoView.Show()
         self.Layout()
 
     def updateProfileToAllControls(self):

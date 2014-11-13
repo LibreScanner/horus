@@ -100,6 +100,8 @@ class CameraIntrinsicsMainPage(Page):
 		if event.GetShow():
 			self.videoView.play()
 			calibration.CameraIntrinsics.Instance().clearImageStack()
+			self.GetParent().Layout()
+			self.Layout()
 		else:
 			try:
 				self.initialize()
@@ -191,6 +193,14 @@ class CameraIntrinsicsResultPage(Page):
 
 		#-- Layout
 		self.addToPanel(self.plotPanel, 2)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.GetParent().Layout()
+			self.Layout()
 
 	def processCalibration(self, response):
 		self.plotPanel.Hide()
@@ -342,6 +352,8 @@ class LaserTriangulationMainPage(Page):
 	def onShow(self, event):
 		if event.GetShow():
 			self.videoView.play()
+			self.GetParent().Layout()
+			self.Layout()
 		else:
 			try:
 				self.initialize()
@@ -407,6 +419,14 @@ class LaserTriangulationResultPage(Page):
 		vbox.Add(self.rightLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
 
 		self.addToPanel(vbox, 3)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.GetParent().Layout()
+			self.Layout()
 
 	def processCalibration(self, response):
 		ret, result = response
@@ -508,6 +528,8 @@ class PlatformExtrinsicsMainPage(Page):
 	def onShow(self, event):
 		if event.GetShow():
 			self.videoView.play()
+			self.GetParent().Layout()
+			self.Layout()
 		else:
 			try:
 				self.initialize()
@@ -568,6 +590,14 @@ class PlatformExtrinsicsResultPage(Page):
 
 		#-- Layout
 		self.addToPanel(self.plotPanel, 3)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.GetParent().Layout()
+			self.Layout()
 
 	def processCalibration(self, response):
 		ret, result = response
