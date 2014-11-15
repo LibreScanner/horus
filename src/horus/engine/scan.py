@@ -147,7 +147,7 @@ class SimpleScan(Scan):
 		if self.moveMotor:
 			self.driver.board.setSpeedMotor(50)
 			self.driver.board.enableMotor()
-			time.sleep(0.5)
+			time.sleep(0.2)
 		else:
 			self.driver.board.disableMotor()
 
@@ -167,7 +167,7 @@ class SimpleScan(Scan):
 
 				#-- Capture images
 				if os.name == 'nt':
-					#time.sleep(0.1)
+					time.sleep(0.1)
 					imgRaw = self.driver.camera.captureImage(flush=False)
 					time.sleep(0.1)
 					if self.pcg.useLeftLaser:
@@ -182,16 +182,22 @@ class SimpleScan(Scan):
 						imgLaserRight = None
 				else:
 					imgRaw = self.driver.camera.captureImage(flush=True, flushValue=2)
+
 					if self.pcg.useLeftLaser:
 						self.driver.board.setLeftLaserOn()
+						self.driver.board.setRightLaserOff()
 						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=2)
 					else:
 						imgLaserLeft = None
+
 					if self.pcg.useRightLaser:
 						self.driver.board.setRightLaserOn()
+						self.driver.board.setLeftLaserOff()
 						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=2)
 					else:
 						imgLaserRight = None
+
+					self.driver.board.setRightLaserOff()
 
 				#-- Move motor
 				if self.moveMotor:
@@ -384,8 +390,12 @@ class PointCloudGenerator:
 
 	def getDiffImage(self, img1, img2):
 		""" Returns img1 - img2 """
-		r1 = cv2.split(img1)[0]
-		r2 = cv2.split(img2)[0]
+
+		#r1 = cv2.split(img1)[0]
+		#r2 = cv2.split(img2)[0]
+
+		r1 = cv2.subtract(cv2.split(img1)[0], cv2.split(img1)[1])
+		r2 = cv2.subtract(cv2.split(img2)[0], cv2.split(img2)[1])
 
 		return cv2.subtract(r1, r2)
 
@@ -494,8 +504,11 @@ class PointCloudGenerator:
 		#-- Check images
 		if (imageRaw is not None) and not (self.useLeftLaser^(imageLaserLeft is not None)) and not (self.useRightLaser^(imageLaserRight is not None)):
 
-			points = None
-			colors = None
+			leftPoints = None
+			leftColors = None
+			rightPoints = None
+			rightColors = None
+
 			if self.roiChanged:
 				self.calculateROI()
 			self.imgRaw = self.applyROIMask(imageRaw)
@@ -508,18 +521,18 @@ class PointCloudGenerator:
 				imgBin = self.imageProcessing(imgDiff)
 				self.imgBin = cv2.merge((imgBin,imgBin,imgBin))
 
-				points, colors, rho, z = self.pointCloudGeneration(imageRaw, imgBin, True)
+				leftPoints, leftColors, rho, z = self.pointCloudGeneration(imageRaw, imgBin, True)
 
-				if points != None and colors != None:
-					points, colors = self.pointCloudFilter(points, colors, rho, z)
+				if leftPoints != None and leftColors != None:
+					leftPoints, leftColors = self.pointCloudFilter(leftPoints, leftColors, rho, z)
 
-				if points != None and colors != None:
+				if leftPoints != None and leftColors != None:
 					if self.points == None and self.colors == None:
-						self.points = points
-						self.colors = colors
+						self.points = leftPoints
+						self.colors = leftColors
 					else:
-						self.points = np.concatenate((self.points, points))
-						self.colors = np.concatenate((self.colors, colors))
+						self.points = np.concatenate((self.points, leftPoints))
+						self.colors = np.concatenate((self.colors, leftColors))
 
 			if self.useRightLaser:
 				self.imgLas = self.applyROIMask(imageLaserRight)
@@ -529,25 +542,40 @@ class PointCloudGenerator:
 				imgBin = self.imageProcessing(imgDiff)
 				self.imgBin = cv2.merge((imgBin,imgBin,imgBin))
 
-				points, colors, rho, z = self.pointCloudGeneration(imageRaw, imgBin, False)
+				rightPoints, rightColors, rho, z = self.pointCloudGeneration(imageRaw, imgBin, False)
 
-				if points != None and colors != None:
-					points, colors = self.pointCloudFilter(points, colors, rho, z)
+				if rightPoints != None and rightColors != None:
+					rightPoints, rightColors = self.pointCloudFilter(rightPoints, rightColors, rho, z)
 
-				if points != None and colors != None:
+				if rightPoints != None and rightColors != None:
 					if self.points == None and self.colors == None:
-						self.points = points
-						self.colors = colors
+						self.points = rightPoints
+						self.colors = rightColors
 					else:
-						self.points = np.concatenate((self.points, points))
-						self.colors = np.concatenate((self.colors, colors))
-
-			#-- Update images
+						self.points = np.concatenate((self.points, rightPoints))
+						self.colors = np.concatenate((self.colors, rightColors))
 
 			#-- Update Theta
 			self.theta -= self.degrees * self.rad
 
-			return points, colors
+			#-- Update images
+			#self.imgLas = self.imgRaw
+			#self.imgDiff = np.zeros_like(self.imgRaw)
+			#self.imgBin = np.zeros_like(self.imgRaw)
+			#self.imgLine = np.zeros_like(self.imgRaw)
+
+			if leftPoints != None and leftColors != None:
+				if rightPoints != None and rightColors != None:
+					retPoints = np.concatenate((leftPoints, rightPoints))
+					retColors = np.concatenate((leftColors, rightColors))
+				else:
+					retPoints = leftPoints
+					retColors = leftColors
+			else:
+				retPoints = rightPoints
+				retColors = rightColors
+
+			return retPoints, retColors
 
 		else:
 			return None, None

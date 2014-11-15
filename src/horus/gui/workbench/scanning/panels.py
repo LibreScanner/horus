@@ -82,7 +82,7 @@ class SettingsPanel(wx.Panel):
         self.controls.append(control)
 
         control = Control(self, _('Laser'), bold=False)
-        control.append(ComboBox, 'use_laser', lambda v: self.pcg.setUseLaser(v==_("Use Left Laser"), v==_("Use Right Laser"))) #TODO: use combo choices
+        control.append(ComboBox, 'use_laser', lambda v: self.pcg.setUseLaser(v==_("Use Left Laser") or v==_("Use Both Laser"), v==_("Use Right Laser") or v==_("Use Both Laser"))) #TODO: use combo choices
         self.controls.append(control)
 
         control = Control(self, _('Motor'), bold=False)

@@ -232,7 +232,7 @@ setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRan
 setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
 setting('acceleration_scanning', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
-setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right Laser")], 'basic', _('Use Laser')) #, _("Use Both Lasers")]
+setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right Laser"), _("Use Both Laser")], 'basic', _('Use Laser'))
 
 setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Image Type'))
 
