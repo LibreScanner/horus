@@ -226,6 +226,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onCameraIntrinsicsStartCallback(self):
         self.calibrating = True
+        self.enableLabelTool(self.disconnectTool, False)
         self.enableLabelTool(self.playTool, False)
         self.enableLabelTool(self.stopTool, False)
         self.cameraIntrinsicsPanel.buttonStart.Disable()
@@ -240,6 +241,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onLaserTriangulationStartCallback(self):
         self.calibrating = True
+        self.enableLabelTool(self.disconnectTool, False)
         self.enableLabelTool(self.playTool, False)
         self.enableLabelTool(self.stopTool, False)
         self.laserTriangulationPanel.buttonStart.Disable()
@@ -253,6 +255,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onPlatformExtrinsicsStartCallback(self):
         self.calibrating = True
+        self.enableLabelTool(self.disconnectTool, False)
         self.enableLabelTool(self.playTool, False)
         self.enableLabelTool(self.stopTool, False)
         self.platformExtrinsicsPanel.buttonStart.Disable()
@@ -273,6 +276,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.enableLabelTool(self.playTool, True)
             self.enableLabelTool(self.stopTool, False)
         self.calibrating = False
+        self.enableLabelTool(self.disconnectTool, True)
         self.cameraIntrinsicsPanel.buttonStart.Enable()
         self.cameraIntrinsicsPanel.buttonDefault.Enable()
         self.cameraIntrinsicsPanel.buttonEdit.Enable()
@@ -313,6 +317,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.enableLabelTool(self.playTool, True)
             self.enableLabelTool(self.stopTool, False)
         self.calibrating = False
+        self.enableLabelTool(self.disconnectTool, True)
         self.cameraIntrinsicsPanel.buttonStart.Enable()
         self.cameraIntrinsicsPanel.buttonDefault.Enable()
         self.cameraIntrinsicsPanel.buttonEdit.Enable()
@@ -340,6 +345,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.enableLabelTool(self.playTool, True)
             self.enableLabelTool(self.stopTool, False)
         self.calibrating = False
+        self.enableLabelTool(self.disconnectTool, True)
         self.laserTriangulationPanel.buttonStart.Enable()
         self.laserTriangulationPanel.buttonDefault.Enable()
         self.laserTriangulationPanel.buttonEdit.Enable()
@@ -367,6 +373,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.enableLabelTool(self.playTool, True)
             self.enableLabelTool(self.stopTool, False)
         self.calibrating = False
+        self.enableLabelTool(self.disconnectTool, True)
         self.platformExtrinsicsPanel.buttonStart.Enable()
         self.platformExtrinsicsPanel.buttonDefault.Enable()
         self.platformExtrinsicsPanel.buttonEdit.Enable()
