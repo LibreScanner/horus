@@ -258,6 +258,11 @@ setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'ad
 setting('laser_origin', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Origin'))
 setting('laser_normal', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Normal'))
 
+setting('distance_left', 0.0, float, 'advanced', _('Distance'))
+setting('normal_left', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
+setting('distance_right', 0.0, float, 'advanced', _('Distance'))
+setting('normal_right', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
+
 setting('rotation_matrix', ([[0.0,1.0,0.0],[0.0,0.0,-1.0],[-1.0,0.0,0.0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
 setting('translation_vector', ([5.0,80.0,320.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
 

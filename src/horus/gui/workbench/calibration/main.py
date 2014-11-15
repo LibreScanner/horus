@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: August 2014                                                     #
+# Date: August & November 2014                                          #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -132,8 +132,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         vsbox = wx.BoxSizer(wx.VERTICAL)
         vsbox.Add(self.cameraSettingsPanel, 0, wx.ALL|wx.EXPAND, 2)
         vsbox.Add(self.cameraIntrinsicsPanel, 0, wx.ALL|wx.EXPAND, 2)
-        vsbox.Add(self.platformExtrinsicsPanel, 0, wx.ALL|wx.EXPAND, 2)
         vsbox.Add(self.laserTriangulationPanel, 0, wx.ALL|wx.EXPAND, 2)
+        vsbox.Add(self.platformExtrinsicsPanel, 0, wx.ALL|wx.EXPAND, 2)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
 

@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: August 2014                                                     #
+# Date: August & November 2014                                          #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -339,6 +339,191 @@ class LaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
+                                  description=_("Determines the planes of both line lasers: minimum distance and normal vector."))
+
+        self.pcg = scan.PointCloudGenerator.Instance()
+
+        distanceLeftPanel = wx.Panel(self.content)
+        normalLeftPanel = wx.Panel(self.content)
+        distanceRightPanel = wx.Panel(self.content)
+        normalRightPanel = wx.Panel(self.content)
+
+        laserLeftText = wx.StaticText(self.content, label=_("Left Laser Plane"))
+        laserLeftText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+
+        self.distanceLeftValue = 0
+
+        distanceLeftBox = wx.BoxSizer(wx.HORIZONTAL)
+        distanceLeftPanel.SetSizer(distanceLeftBox)
+        self.distanceLeftText = wx.TextCtrl(distanceLeftPanel, wx.ID_ANY, "")
+        self.distanceLeftText.SetMinSize((0,-1))
+        self.distanceLeftText.SetEditable(False)
+        self.distanceLeftText.Disable()
+        distanceLeftBox.Add(self.distanceLeftText, 1, wx.ALL|wx.EXPAND, 4)
+
+        self.normalLeftTexts = [0]*3
+        self.normalLeftValues = np.zeros(3)
+
+        normalLeftBox = wx.BoxSizer(wx.HORIZONTAL)
+        normalLeftPanel.SetSizer(normalLeftBox)
+        for i in range(3):
+            ibox = wx.BoxSizer(wx.HORIZONTAL)
+            self.normalLeftTexts[i] = wx.TextCtrl(normalLeftPanel, wx.ID_ANY, "")
+            self.normalLeftTexts[i].SetMinSize((0,-1))
+            self.normalLeftTexts[i].SetEditable(False)
+            self.normalLeftTexts[i].Disable()
+            ibox.Add(self.normalLeftTexts[i], 1, wx.ALL|wx.EXPAND, 2)
+            normalLeftBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+
+        laserRightText = wx.StaticText(self.content, label=_("Right Laser Plane"))
+        laserRightText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+
+        self.distanceRightValue = 0
+
+        distanceRightBox = wx.BoxSizer(wx.HORIZONTAL)
+        distanceRightPanel.SetSizer(distanceRightBox)
+        self.distanceRightText = wx.TextCtrl(distanceRightPanel, wx.ID_ANY, "")
+        self.distanceRightText.SetMinSize((0,-1))
+        self.distanceRightText.SetEditable(False)
+        self.distanceRightText.Disable()
+        distanceRightBox.Add(self.distanceRightText, 1, wx.ALL|wx.EXPAND, 4)
+
+        self.normalRightTexts = [0]*3
+        self.normalRightValues = np.zeros(3)
+
+        normalRightBox = wx.BoxSizer(wx.HORIZONTAL)
+        normalRightPanel.SetSizer(normalRightBox)
+        for i in range(3):
+            ibox = wx.BoxSizer(wx.HORIZONTAL)
+            self.normalRightTexts[i] = wx.TextCtrl(normalRightPanel, wx.ID_ANY, "")
+            self.normalRightTexts[i].SetMinSize((0,-1))
+            self.normalRightTexts[i].SetEditable(False)
+            self.normalRightTexts[i].Disable()
+            ibox.Add(self.normalRightTexts[i], 1, wx.ALL|wx.EXPAND, 2)
+            normalRightBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+
+        self.parametersBox.Add(laserLeftText, 0, wx.ALL|wx.EXPAND, 8)
+        self.parametersBox.Add(distanceLeftPanel, 1, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(normalLeftPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(laserRightText, 0, wx.ALL|wx.EXPAND, 8)
+        self.parametersBox.Add(distanceRightPanel, 1, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(normalRightPanel, 0, wx.ALL|wx.EXPAND, 2)
+
+        self.Layout()
+
+    def onButtonEditPressed(self, event):
+        enable = self.buttonEdit.GetValue()
+
+        self.distanceLeftText.SetEditable(enable)
+        if enable:
+            self.distanceLeftText.Enable()
+        else:
+            self.distanceLeftText.Disable()
+            self.distanceLeftValue = self.getValueFloat(self.distanceLeftText.GetValue())
+
+        for i in range(3):
+            self.normalLeftTexts[i].SetEditable(enable)
+            if enable:
+                self.normalLeftTexts[i].Enable()
+            else:
+                self.normalLeftTexts[i].Disable()
+                self.normalLeftValues[i] = self.getValueFloat(self.normalLeftTexts[i].GetValue())
+
+        self.distanceRightText.SetEditable(enable)
+        if enable:
+            self.distanceRightText.Enable()
+        else:
+            self.distanceRightText.Disable()
+            self.distanceRightValue = self.getValueFloat(self.distanceRightText.GetValue())
+
+        for i in range(3):
+            self.normalRightTexts[i].SetEditable(enable)
+            if enable:
+                self.normalRightTexts[i].Enable()
+            else:
+                self.normalRightTexts[i].Disable()
+                self.normalRightValues[i] = self.getValueFloat(self.normalRightTexts[i].GetValue())
+
+        if enable:
+            self.buttonEdit.SetLabel(_("OK"))
+        else:
+            self.buttonEdit.SetLabel(_("Edit"))
+            self.updateAllControlsToProfile()
+
+    def onButtonDefaultPressed(self, event):
+        dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
+        result = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        if result:
+            profile.resetProfileSetting('distance_left')
+            profile.resetProfileSetting('normal_left')
+            profile.resetProfileSetting('distance_right')
+            profile.resetProfileSetting('normal_right')
+            self.updateProfileToAllControls()
+
+    def getParameters(self):
+        return self.distanceLeftValue, self.normalLeftValues, self.distanceLeftValue, self.normalRightValues
+
+    def setParameters(self, params):
+        self.distanceLeftValue = params[0]
+        self.normalLeftValues = params[1]
+        self.distanceLeftValue = params[2]
+        self.normalRightValues = params[3]
+        self.updateAllControls()
+
+    def getProfileSettings(self):
+        self.distanceLeftValue = profile.getProfileSettingFloat('distance_left')
+        self.normalLeftValues = profile.getProfileSettingNumpy('normal_left')
+        self.distanceLeftValue = profile.getProfileSettingFloat('distance_right')
+        self.normalRightValues = profile.getProfileSettingNumpy('normal_right')
+
+    def putProfileSettings(self):
+        profile.putProfileSettingNumpy('distance_left', self.distanceLeftValue)
+        profile.putProfileSettingNumpy('normal_left', self.normalLeftValues)
+        profile.putProfileSettingNumpy('distance_right', self.distanceLeftValue)
+        profile.putProfileSettingNumpy('normal_right', self.normalRightValues)
+
+    def updateAllControls(self):
+        self.distanceLeftValue = round(self.distanceLeftValue, 4)
+        self.distanceLeftText.SetValue(str(self.distanceLeftValue))
+
+        for i in range(3):
+            self.normalLeftValues[i] = round(self.normalLeftValues[i], 4)
+            self.normalLeftTexts[i].SetValue(str(self.normalLeftValues[i]))
+
+        self.distanceRightValue = round(self.distanceRightValue, 4)
+        self.distanceRightText.SetValue(str(self.distanceRightValue))
+
+        for i in range(3):
+            self.normalRightValues[i] = round(self.normalRightValues[i], 4)
+            self.normalRightTexts[i].SetValue(str(self.normalRightValues[i]))
+
+    def updateEngine(self):
+        if hasattr(self, 'pcg'):
+            pass # TODO
+            #self.pcg.setLaserTriangulation(self.coordinatesValues, self.originValues, self.normalValues)
+
+    def updateProfileToAllControls(self):
+        self.getProfileSettings()
+        self.updateAllControls()
+        self.updateEngine()
+
+    def updateAllControlsToProfile(self):
+        self.putProfileSettings()
+        self.updateEngine()
+
+    #TODO: move
+    def getValueFloat(self, value): 
+        try:
+            return float(eval(value.replace(',', '.'), {}, {}))
+        except:
+            return 0.0
+
+
+class SimpleLaserTriangulationPanel(CalibrationPanel):
+
+    def __init__(self, parent, buttonStartCallback):
+        CalibrationPanel.__init__(self, parent, titleText=_("Simple Laser Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
                                   description=_("Determines the depth of the intersection camera-laser considering the inclination of the lasers."))
 
         self.pcg = scan.PointCloudGenerator.Instance()
@@ -402,9 +587,9 @@ class LaserTriangulationPanel(CalibrationPanel):
             normalBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
 
         self.parametersBox.Add(coordinatesText, 0, wx.ALL|wx.EXPAND, 8)
-       	self.parametersBox.Add(coordinatesPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(coordinatesPanel, 0, wx.ALL|wx.EXPAND, 2)
         self.parametersBox.Add(originText, 0, wx.ALL|wx.EXPAND, 8)
-       	self.parametersBox.Add(originPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(originPanel, 0, wx.ALL|wx.EXPAND, 2)
         self.parametersBox.Add(normalText, 0, wx.ALL|wx.EXPAND, 8)
         self.parametersBox.Add(normalPanel, 0, wx.ALL|wx.EXPAND, 2)
 
@@ -444,7 +629,7 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.updateAllControlsToProfile((self.coordinatesValues, self.originValues, self.normalValues))
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset simple laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
