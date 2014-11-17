@@ -57,6 +57,10 @@ class Scan:
 		self.moveMotor = True
 		self.generatePointCloud = True
 
+		self.fastScan = False
+		self.speedMotor = 200
+		self.accelerationMotor = 400
+
 		#TODO: Callbacks to Observer pattern
 		self.beforeCallback = None
 		self.progressCallback = None
@@ -91,6 +95,15 @@ class Scan:
 
 	def resume(self):
 		self.inactive = False
+
+	def setFastScan(self, value):
+		self.fastScan = value
+
+	def setSpeedMotor(self, value):
+		self.speedMotor = value
+
+	def setAccelerationMotor(self, value):
+		self.accelerationMotor = value
 
 	#-- Threads
 
@@ -145,8 +158,9 @@ class SimpleScan(Scan):
 
 		#-- Setup board
 		if self.moveMotor:
-			self.driver.board.setSpeedMotor(50)
 			self.driver.board.enableMotor()
+			self.driver.board.setSpeedMotor(self.speedMotor)
+			self.driver.board.setAccelerationMotor(self.setAccelerationMotor)
 			time.sleep(0.2)
 		else:
 			self.driver.board.disableMotor()
@@ -154,57 +168,107 @@ class SimpleScan(Scan):
 		self.driver.board.setLeftLaserOff()
 		self.driver.board.setRightLaserOff()
 
+		self.driver.camera.capture.read()
+
 		#-- Main loop
 		while self.isRunning:
 			if not self.inactive:
 				begin = datetime.datetime.now()
 
-				#-- Switch of laser
-				if self.pcg.useLeftLaser:
-					self.driver.board.setLeftLaserOff()
-				if self.pcg.useRightLaser:
-					self.driver.board.setRightLaserOff()
+				if self.fastScan: #-- FAST METHOD
 
-				#-- Capture images
-				if os.name == 'nt':
-					time.sleep(0.1)
-					imgRaw = self.driver.camera.captureImage(flush=False)
-					time.sleep(0.1)
-					if self.pcg.useLeftLaser:
-						self.driver.board.setLeftLaserOn()
-						imgLaserLeft = self.driver.camera.captureImage(flush=False)
-					else:
-						imgLaserLeft = None
-					if self.pcg.useRightLaser:
-						self.driver.board.setRightLaserOn()
-						imgLaserRight = self.driver.camera.captureImage(flush=False)
-					else:
-						imgLaserRight = None
-				else:
-					imgRaw = self.driver.camera.captureImage(flush=True, flushValue=2)
-
-					if self.pcg.useLeftLaser:
-						self.driver.board.setLeftLaserOn()
-						self.driver.board.setRightLaserOff()
-						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=2)
-					else:
-						imgLaserLeft = None
-
-					if self.pcg.useRightLaser:
-						self.driver.board.setRightLaserOn()
+					#-- Left laser
+					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
 						self.driver.board.setLeftLaserOff()
-						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=2)
-					else:
+						imgLaserLeft = self.driver.camera.capture.read()[1]
+						imgRaw = self.driver.camera.capture.read()[1]
+						self.driver.board.setLeftLaserOn()
+
+						imgRaw = cv2.transpose(imgRaw)
+						imgRaw = cv2.flip(imgRaw, 1)
+						imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+
 						imgLaserRight = None
 
-					self.driver.board.setRightLaserOff()
+						imgLaserLeft = cv2.transpose(imgLaserLeft)
+						imgLaserLeft = cv2.flip(imgLaserLeft, 1)
+						imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
+
+					#-- Right laser
+					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+						self.driver.board.setRightLaserOff()
+						imgLaserRight = self.driver.camera.capture.read()[1]
+						imgRaw = self.driver.camera.capture.read()[1]
+						self.driver.board.setRightLaserOn()
+
+						imgRaw = cv2.transpose(imgRaw)
+						imgRaw = cv2.flip(imgRaw, 1)
+						imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+
+						imgLaserLeft = None
+
+						imgLaserRight = cv2.transpose(imgLaserRight)
+						imgLaserRight = cv2.flip(imgLaserRight, 1)
+						imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
+
+					##-- Both laser
+					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+						imgRaw = self.driver.camera.capture.read()[1]
+						self.driver.board.setLeftLaserOn()
+						imgLaserLeft = self.driver.camera.capture.read()[1]
+						self.driver.board.setLeftLaserOff()
+						self.driver.board.setRightLaserOn()
+						imgLaserRight = self.driver.camera.capture.read()[1]
+						self.driver.board.setRightLaserOff()
+						imgRaw = self.driver.camera.capture.read()[1]
+
+						imgRaw = cv2.transpose(imgRaw)
+						imgRaw = cv2.flip(imgRaw, 1)
+						imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+
+						imgLaserLeft = cv2.transpose(imgLaserLeft)
+						imgLaserLeft = cv2.flip(imgLaserLeft, 1)
+						imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
+
+						imgLaserRight = cv2.transpose(imgLaserRight)
+						imgLaserRight = cv2.flip(imgLaserRight, 1)
+						imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
+
+				else: #-- SLOW METHOD
+
+					#-- Switch off laser
+					if self.pcg.useLeftLaser:
+						self.driver.board.setLeftLaserOff()
+					if self.pcg.useRightLaser:
+						self.driver.board.setRightLaserOff()
+
+					#-- Capture images
+					if os.name == 'nt':
+						#TODO
+						pass
+					else:
+						imgRaw = self.driver.camera.captureImage(flush=True, flushValue=1)
+
+						if self.pcg.useLeftLaser:
+							self.driver.board.setLeftLaserOn()
+							self.driver.board.setRightLaserOff()
+							imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=1)
+						else:
+							imgLaserLeft = None
+
+						if self.pcg.useRightLaser:
+							self.driver.board.setRightLaserOn()
+							self.driver.board.setLeftLaserOff()
+							imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
+						else:
+							imgLaserRight = None
 
 				#-- Move motor
 				if self.moveMotor:
 					self.driver.board.setRelativePosition(self.pcg.degrees)
 					self.driver.board.moveMotor()
 				else:
-					time.sleep(0.2)
+					time.sleep(0.05)
 				
 				#-- Put images into the queue
 				self.imageQueue.put((imgRaw, imgLaserLeft, imgLaserRight))
@@ -391,11 +455,11 @@ class PointCloudGenerator:
 	def getDiffImage(self, img1, img2):
 		""" Returns img1 - img2 """
 
-		#r1 = cv2.split(img1)[0]
-		#r2 = cv2.split(img2)[0]
+		r1 = cv2.split(img1)[0]
+		r2 = cv2.split(img2)[0]
 
-		r1 = cv2.subtract(cv2.split(img1)[0], cv2.split(img1)[1])
-		r2 = cv2.subtract(cv2.split(img2)[0], cv2.split(img2)[1])
+		#r1 = cv2.subtract(cv2.split(img1)[0], cv2.split(img1)[1])
+		#r2 = cv2.subtract(cv2.split(img2)[0], cv2.split(img2)[1])
 
 		return cv2.subtract(r1, r2)
 

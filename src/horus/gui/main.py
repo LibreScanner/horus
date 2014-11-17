@@ -552,6 +552,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                            profile.getProfileSettingNumpy('laser_normal'))
             self.pcg.setPlatformExtrinsics(profile.getProfileSettingNumpy('rotation_matrix'),
                                            profile.getProfileSettingNumpy('translation_vector'))
+            self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
+            self.simpleScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
+            self.simpleScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
     
     def updateCalibrationCurrentProfile(self):
         self.updateCalibrationProfile(profile.getPreference('workbench'))

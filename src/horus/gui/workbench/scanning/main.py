@@ -157,7 +157,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		if event.GetShow():
 			self.updateStatus(self.simpleScan.driver.isConnected)
 			self.pointCloudTimer.Stop()
-			self.pointCloudTimer.Start(milliseconds=100)
+			self.pointCloudTimer.Start(milliseconds=50)
 			self.videoView.play()
 		else:
 			try:
@@ -222,7 +222,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.sceneView.createDefaultObject()
 		self.videoView.play()
 		self.combo.Disable()
-		self.pointCloudTimer.Start(milliseconds=100)
+		self.pointCloudTimer.Start(milliseconds=50)
 
 	def afterScan(self, response):
 		ret, result = response
@@ -278,7 +278,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.deleteTool, False)
 		
 		self.simpleScan.resume()
-		self.pointCloudTimer.Start(milliseconds=100)
+		self.pointCloudTimer.Start(milliseconds=50)
 		self.videoView.play()
 
 	def onDeleteToolClicked(self, event):

@@ -35,7 +35,7 @@ from horus.gui.util.itemControls import *
 from horus.util import profile
 
 from horus.engine.driver import Driver
-from horus.engine.scan import PointCloudGenerator
+from horus.engine.scan import SimpleScan, PointCloudGenerator
 
 class SettingsPanel(wx.Panel):
     def __init__(self, parent):
@@ -45,6 +45,7 @@ class SettingsPanel(wx.Panel):
 
     def initialize(self):
         self.driver = Driver.Instance()
+        self.simpleScan = SimpleScan.Instance()
         self.pcg = PointCloudGenerator.Instance()
         self.main = self.GetParent().GetParent().GetParent()
 
@@ -73,6 +74,7 @@ class SettingsPanel(wx.Panel):
 
         control = Control(self, _('Algorithm'), bold=False)
         control.append(CheckBox, 'use_compact', lambda v: self.pcg.setUseCompact(bool(v)))
+        control.append(CheckBox, 'fast_scan', lambda v: self.simpleScan.setFastScan(bool(v)))
         self.controls.append(control)
 
         control = Control(self, _('3D ROI'), bold=False)
@@ -87,8 +89,8 @@ class SettingsPanel(wx.Panel):
 
         control = Control(self, _('Motor'), bold=False)
         control.append(TextBox, 'step_degrees_scanning', lambda v: (self.driver.board.setRelativePosition(self.getValueFloat(v)), self.pcg.setDegrees(self.getValueFloat(v))))
-        control.append(TextBox, 'feed_rate_scanning', lambda v: self.driver.board.setSpeedMotor(self.getValueInteger(v)))
-        control.append(TextBox, 'acceleration_scanning', lambda v: self.driver.board.setAccelerationMotor(self.getValueInteger(v)))
+        control.append(TextBox, 'feed_rate_scanning', lambda v: (self.driver.board.setSpeedMotor(self.getValueInteger(v)), self.simpleScan.setSpeedMotor(self.getValueInteger(v))))
+        control.append(TextBox, 'acceleration_scanning', lambda v: (self.driver.board.setAccelerationMotor(self.getValueInteger(v)), self.simpleScan.setAccelerationMotor(self.getValueInteger(v))))
         control.append(Button, 'restore_default', self.restoreDefault)
         self.controls.append(control)
 
