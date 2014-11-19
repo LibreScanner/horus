@@ -70,6 +70,7 @@ class ExpandableControl(wx.Panel):
 					panel.content.Hide()
 			self.Layout()
 			self.GetParent().Layout()
+			self.GetParent().GetParent().Layout()
 
 	def initialize(self):
 		for panel in self.panels.values():
@@ -115,12 +116,12 @@ class ExpandablePanel(wx.Panel):
 		self.SetSizer(self.vbox)
 		self.Layout()
 
-	def createSection(self, name):
-		section = SectionPanel(self.content)
+	def createSection(self, name, title=None):
+		section = SectionPanel(self.content, title)
 		self.sections.update({name : section})
-		self.contentBox.Add(section, 1, wx.ALL|wx.EXPAND, 5)
+		self.contentBox.Add(section, 0, wx.ALL|wx.EXPAND, 5)
 		self.Layout()
-		#self.GetParent().Layout()
+		self.GetParent().Layout()
 		return section
 
 	def clearSections(self):
@@ -155,7 +156,7 @@ class SectionPanel(wx.Panel):
 		#-- Layout
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		if title is not None:
-			self.vbox.Add(self.title, 0, wx.ALL|wx.EXPAND, 5)
+			self.vbox.Add(self.title, 0, wx.BOTTOM|wx.RIGHT|wx.EXPAND, 5)
 		self.SetSizer(self.vbox)
 		self.Layout()
 

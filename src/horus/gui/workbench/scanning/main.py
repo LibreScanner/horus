@@ -34,9 +34,11 @@ from horus.util import resources, profile
 
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.sceneView import SceneView
+from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.scanning.panels import SettingsPanel
+from horus.gui.workbench.scanning.panels import ImageAcquisition, ImageSegmentation, \
+												PointCloudGeneration
 
 from horus.engine.scan import SimpleScan
 
@@ -84,8 +86,14 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
 		self.scrollPanel.SetAutoLayout(1)
-		self.settingsPanel = SettingsPanel(self.scrollPanel)
-		self.settingsPanel.Disable()
+
+		self.controls = ExpandableControl(self.scrollPanel)
+
+		self.controls.addPanel('image_acquisition', ImageAcquisition(self.controls))
+		self.controls.addPanel('image_segmentation', ImageSegmentation(self.controls))
+		self.controls.addPanel('point_cloud_generation', PointCloudGeneration(self.controls))
+
+		self.controls.setUndoCallbacks(self.appendToUndo, self.releaseUndo)
 
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 
@@ -99,7 +107,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		#-- Layout
 		vsbox = wx.BoxSizer(wx.VERTICAL)
-		vsbox.Add(self.settingsPanel, 0, wx.ALL|wx.EXPAND, 2)
+		vsbox.Add(self.controls, 0, wx.ALL|wx.EXPAND, 0)
 		self.scrollPanel.SetSizer(vsbox)
 		vsbox.Fit(self.scrollPanel)
 
@@ -152,6 +160,9 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		#-- Undo
 		self.undoObjects = []
+
+	def initialize(self):
+		self.controls.initialize()
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -311,7 +322,7 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.pauseTool , False)
 			self.enableLabelTool(self.resumeTool, False)
 			self.enableLabelTool(self.deleteTool, True)
-			self.settingsPanel.Enable()
+			self.controls.enableContent()
 			self.buttonShowVideoViews.Show()
 		else:
 			self.enableLabelTool(self.playTool  , False)
@@ -319,7 +330,7 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.pauseTool , False)
 			self.enableLabelTool(self.resumeTool, False)
 			self.enableLabelTool(self.deleteTool, True)
-			self.settingsPanel.Disable()
+			self.controls.disableContent()
 			self.buttonShowVideoViews.Hide()
 			self.buttonRaw.Hide()
 			self.buttonLas.Hide()
@@ -328,4 +339,4 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.buttonLine.Hide()
 
 	def updateProfileToAllControls(self):
-		self.settingsPanel.updateProfileToAllControls()
+		self.controls.updateProfile()

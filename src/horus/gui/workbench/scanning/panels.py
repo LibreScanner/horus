@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: October 2014                                                    #
+# Date: November 2014                                                   #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -30,80 +30,64 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
-from horus.gui.util.itemControls import *
+from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
+                                        CheckBox, Button, TextBox
 
 from horus.util import profile
 
 from horus.engine.driver import Driver
 from horus.engine.scan import SimpleScan, PointCloudGenerator
 
-class SettingsPanel(wx.Panel):
+
+class ImageAcquisition(ExpandablePanel):
+    """"""
     def __init__(self, parent):
         """"""
-        wx.Panel.__init__(self, parent=parent, size=(275, 0))
-        self.initialize()
+        ExpandablePanel.__init__(self, parent, _("Image Acquisition"))
 
-    def initialize(self):
         self.driver = Driver.Instance()
         self.simpleScan = SimpleScan.Instance()
         self.pcg = PointCloudGenerator.Instance()
-        self.main = self.GetParent().GetParent().GetParent()
+        self.main = self.GetParent().GetParent().GetParent().GetParent()
 
-        if hasattr(self, 'controls'):
-            del self.controls[:]
-        self.controls = []
-
-        #-- Graphic elements
-        control = Control(self, _('Scanner Settings'))
-        control.append(Slider, 'brightness_scanning', self.driver.camera.setBrightness)
-        control.append(Slider, 'contrast_scanning', self.driver.camera.setContrast)
-        control.append(Slider, 'saturation_scanning', self.driver.camera.setSaturation)
-        control.append(Slider, 'exposure_scanning', self.driver.camera.setExposure)
-        control.append(ComboBox, 'framerate_scanning', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
-        control.append(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        control.append(CheckBox, 'use_distortion_scanning', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
-        control.append(Button, 'restore_default', self.restoreDefault)
-        self.controls.append(control)
+        self.initialize()
         
-        control = Control(self, _('Image Processing'), bold=False)
-        control.append(CheckBox, 'use_open', lambda v: self.pcg.setUseOpen(bool(v)))
-        control.append(Slider, 'open_value', lambda v: self.pcg.setOpenValue(int(v)))
-        control.append(CheckBox, 'use_threshold', lambda v: self.pcg.setUseThreshold(bool(v)))
-        control.append(Slider, 'threshold_value', lambda v: self.pcg.setThresholdValue(int(v)))
-        self.controls.append(control)
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('camera_scanning', _("Camera"))
+        section.addItem(Slider, 'brightness_scanning', self.driver.camera.setBrightness)
+        section.addItem(Slider, 'contrast_scanning', self.driver.camera.setContrast)
+        section.addItem(Slider, 'saturation_scanning', self.driver.camera.setSaturation)
+        section.addItem(Slider, 'exposure_scanning', self.driver.camera.setExposure)
+        section.addItem(ComboBox, 'framerate_scanning', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        section.addItem(CheckBox, 'use_distortion_scanning', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
+        section.addItem(Button, 'restore_default', self.restoreDefault)
+        section = self.createSection('laser_scanning', _("Laser"))
+        section.addItem(ComboBox, 'use_laser', lambda v: self.pcg.setUseLaser(v==_("Use Left Laser") or v==_("Use Both Laser"), v==_("Use Right Laser") or v==_("Use Both Laser"))) #TODO: use combo choices
+        section = self.createSection('motor_scanning', _("Motor"))
+        section.addItem(TextBox, 'step_degrees_scanning', lambda v: (self.driver.board.setRelativePosition(self.getValueFloat(v)), self.pcg.setDegrees(self.getValueFloat(v))))
+        section.addItem(TextBox, 'feed_rate_scanning', lambda v: (self.driver.board.setSpeedMotor(self.getValueInteger(v)), self.simpleScan.setSpeedMotor(self.getValueInteger(v))))
+        section.addItem(TextBox, 'acceleration_scanning', lambda v: (self.driver.board.setAccelerationMotor(self.getValueInteger(v)), self.simpleScan.setAccelerationMotor(self.getValueInteger(v))))
+        section.addItem(Button, 'restore_default', self.restoreDefault)
 
-        control = Control(self, _('Algorithm'), bold=False)
-        control.append(CheckBox, 'use_compact', lambda v: self.pcg.setUseCompact(bool(v)))
-        control.append(CheckBox, 'fast_scan', lambda v: self.simpleScan.setFastScan(bool(v)))
-        self.controls.append(control)
+        #section.addItem(CheckBox, 'use_compact', lambda v: self.pcg.setUseCompact(bool(v)))
+        section.addItem(CheckBox, 'fast_scan', lambda v: self.simpleScan.setFastScan(bool(v)))
+        
 
-        control = Control(self, _('3D ROI'), bold=False)
-        control.append(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
-        control.append(Slider, 'roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
-        control.append(Slider, 'roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
-        self.controls.append(control)
+    def restoreDefault(self):
+        dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
+        result = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        if result:
+            self.resetProfile()
+            self.main.enableLabelTool(self.main.undoTool, False)
+            self.reloadVideo()
 
-        control = Control(self, _('Laser'), bold=False)
-        control.append(ComboBox, 'use_laser', lambda v: self.pcg.setUseLaser(v==_("Use Left Laser") or v==_("Use Both Laser"), v==_("Use Right Laser") or v==_("Use Both Laser"))) #TODO: use combo choices
-        self.controls.append(control)
-
-        control = Control(self, _('Motor'), bold=False)
-        control.append(TextBox, 'step_degrees_scanning', lambda v: (self.driver.board.setRelativePosition(self.getValueFloat(v)), self.pcg.setDegrees(self.getValueFloat(v))))
-        control.append(TextBox, 'feed_rate_scanning', lambda v: (self.driver.board.setSpeedMotor(self.getValueInteger(v)), self.simpleScan.setSpeedMotor(self.getValueInteger(v))))
-        control.append(TextBox, 'acceleration_scanning', lambda v: (self.driver.board.setAccelerationMotor(self.getValueInteger(v)), self.simpleScan.setAccelerationMotor(self.getValueInteger(v))))
-        control.append(Button, 'restore_default', self.restoreDefault)
-        self.controls.append(control)
-
-        # - Layout
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        for control in self.controls:
-            vbox.Add(control, 0, wx.ALL|wx.EXPAND, 0)
-        self.SetSizer(vbox)
-        self.Layout()
-
-        #-- Callbacks
-        for control in self.controls:
-            control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
+    def reloadVideo(self):
+        self.main.videoView.pause()
+        if self.main.playing:
+            self.main.videoView.play()
 
     #TODO: move
     def getValueInteger(self, value):
@@ -118,21 +102,42 @@ class SettingsPanel(wx.Panel):
         except:
             return 0.0
 
-    def restoreDefault(self):
-        dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal() == wx.ID_YES
-        dlg.Destroy()
-        if result:
-            for control in self.controls:
-                control.resetProfile()
-            self.main.enableLabelTool(self.main.undoTool, False)
-            self.reloadVideo()
 
-    def reloadVideo(self):
-    	self.main.videoView.stop()
-        if self.main.playing:
-            self.main.videoView.play()
+class ImageSegmentation(ExpandablePanel):
+    """"""
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Image Segmentation"))
+        
+        self.driver = Driver.Instance()
+        self.pcg = PointCloudGenerator.Instance()
 
-    def updateProfileToAllControls(self):
-        for control in self.controls:
-            control.updateProfile()
+        self.initialize()
+        
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('image_segmentation')
+        section.addItem(CheckBox, 'use_open', lambda v: self.pcg.setUseOpen(bool(v)))
+        section.addItem(Slider, 'open_value', lambda v: self.pcg.setOpenValue(int(v)))
+        section.addItem(CheckBox, 'use_threshold', lambda v: self.pcg.setUseThreshold(bool(v)))
+        section.addItem(Slider, 'threshold_value', lambda v: self.pcg.setThresholdValue(int(v)))
+
+
+class PointCloudGeneration(ExpandablePanel):
+    """"""
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Point Cloud Generation"))
+        
+        self.driver = Driver.Instance()
+        self.pcg = PointCloudGenerator.Instance()
+        self.main = self.GetParent().GetParent().GetParent().GetParent()
+
+        self.initialize()
+        
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('point_cloud_generation')
+        section.addItem(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
+        section.addItem(Slider, 'roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
+        section.addItem(Slider, 'roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
