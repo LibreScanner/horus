@@ -32,9 +32,11 @@ import wx.lib.scrolledpanel
 from horus.util import resources
 
 from horus.gui.util.imageView import VideoView
+from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.control.panels import CameraPanel, DevicePanel
+from horus.gui.workbench.control.panels import CameraControl, LaserControl, \
+											   MotorControl, GcodeControl
 
 from horus.engine.driver import Driver
 
@@ -71,18 +73,22 @@ class ControlWorkbench(WorkbenchConnection):
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
 		self.scrollPanel.SetAutoLayout(1)
-		self.cameraPanel = CameraPanel(self.scrollPanel)
-		self.devicePanel = DevicePanel(self.scrollPanel)
-		self.cameraPanel.Disable()
-		self.devicePanel.Disable()
 
-		self.videoView = VideoView(self._panel, self.getFrame)
+		self.controls = ExpandableControl(self.scrollPanel)
+
+		self.controls.addPanel('camera_control', CameraControl(self.controls))
+		self.controls.addPanel('laser_control', LaserControl(self.controls))
+		self.controls.addPanel('motor_control', MotorControl(self.controls))
+		self.controls.addPanel('gcode_control', GcodeControl(self.controls))
+
+		self.controls.setUndoCallbacks(self.appendToUndo, self.releaseUndo)
+
+		self.videoView = VideoView(self._panel, self.getFrame, 30)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
 		vsbox = wx.BoxSizer(wx.VERTICAL)
-		vsbox.Add(self.cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
-		vsbox.Add(self.devicePanel, 0, wx.ALL|wx.EXPAND, 2)
+		vsbox.Add(self.controls, 0, wx.ALL|wx.EXPAND, 0)
 		self.scrollPanel.SetSizer(vsbox)
 		vsbox.Fit(self.scrollPanel)
 
@@ -95,8 +101,7 @@ class ControlWorkbench(WorkbenchConnection):
 		self.undoObjects = []
 
 	def initialize(self):
-		self.cameraPanel.initialize()
-		self.devicePanel.initialize()
+		self.controls.initialize()
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -141,15 +146,12 @@ class ControlWorkbench(WorkbenchConnection):
 		if status:
 			self.enableLabelTool(self.playTool, True)
 			self.enableLabelTool(self.stopTool, False)
-			self.cameraPanel.Enable()
-			self.devicePanel.Enable()
+			self.controls.enableContent()
 		else:
 			self.enableLabelTool(self.playTool, False)
 			self.enableLabelTool(self.stopTool, False)
-			self.cameraPanel.Disable()
-			self.devicePanel.Disable()
+			self.controls.disableContent()
 			self.videoView.stop()
 
 	def updateProfileToAllControls(self):
-		self.cameraPanel.updateProfileToAllControls()
-		self.devicePanel.updateProfileToAllControls()
+		self.controls.updateProfile()

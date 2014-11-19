@@ -313,6 +313,7 @@ class MainWindow(wx.Frame):
         wx.CallAfter(prefDialog.Show)
         self.updateDriverProfile()
         self.controlWorkbench.initialize()
+        self.controlWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.initialize()
 
     def onMenuViewClicked(self, key, checked, panel):
