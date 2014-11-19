@@ -30,53 +30,37 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import wx._core
 import numpy as np
 
-from horus.util import profile
+from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
+                                        CheckBox, Button
 
-from horus.gui.util.itemControls import *
+from horus.util import profile
 
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
-#TODO: inheritance from CustomPanel
-class CameraSettingsPanel(wx.Panel):
+
+class CameraSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
-        wx.Panel.__init__(self, parent=parent, size=(275, -1))
+        ExpandablePanel.__init__(self, parent, _("Camera Settings"))
+
+        self.driver = Driver.Instance()
+        self.main = self.GetParent().GetParent().GetParent().GetParent()
+
         self.initialize()
 
     def initialize(self):
-        self.driver = Driver.Instance()
-        self.main = self.GetParent().GetParent().GetParent()
-
-        if hasattr(self, 'controls'):
-            del self.controls[:]
-        self.controls = []
-
-        #-- Graphic elements
-        control = Control(self, _('Camera Settings'))
-        control.append(Slider, 'brightness_calibration', self.driver.camera.setBrightness)
-        control.append(Slider, 'contrast_calibration', self.driver.camera.setContrast)
-        control.append(Slider, 'saturation_calibration', self.driver.camera.setSaturation)
-        control.append(Slider, 'exposure_calibration', self.driver.camera.setExposure)
-        control.append(ComboBox, 'framerate_calibration', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
-        control.append(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        control.append(CheckBox, 'use_distortion_calibration', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
-        control.append(Button, 'restore_default', self.restoreDefault)
-        self.controls.append(control)
-
-        # - Layout
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        for control in self.controls:
-            vbox.Add(control, 0, wx.ALL|wx.EXPAND, 0)
-        self.SetSizer(vbox)
-        self.Layout()
-
-        #-- Callbacks
-        for control in self.controls:
-            control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
-
-        control.title.title.Bind(wx.EVT_LEFT_DOWN, self.onTitleClicked)
-
+        self.clearSections()
+        section = self.createSection('camera_calibration')
+        section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness)
+        section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast)
+        section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation)
+        section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure)
+        section.addItem(ComboBox, 'framerate_calibration', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        section.addItem(CheckBox, 'use_distortion_calibration', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
+        section.addItem(Button, 'restore_default', self.restoreDefault)
+        
     def restoreDefault(self):
         dlg = wx.MessageDialog(self, _("This will reset calibration settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Calibration Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
@@ -87,84 +71,43 @@ class CameraSettingsPanel(wx.Panel):
             self.main.enableLabelTool(self.main.undoTool, False)
             self.reloadVideo()
 
-    def disableContent(self):
-        for control in self.controls:
-            control.disableContent()
-
-    def enableContent(self):
-        for control in self.controls:
-            control.enableContent()
-
-    def hideContent(self):
-        for control in self.controls:
-            control.hideContent()
-
-    def showContent(self):
-        for control in self.controls:
-            control.showContent()
-
     def reloadVideo(self):
         self.main.videoView.pause()
         if self.main.playing:
             self.main.videoView.play()
 
-    def updateProfileToAllControls(self):
-        for control in self.controls:
-            control.updateProfile()
 
-    def onTitleClicked(self, event):
-        if self.GetParent().GetParent().GetParent().hideAllPanels():
-            self.showContent()
-            self.Layout()
-            self.GetParent().GetParent().Layout()
+## TODO: Use TextBoxArray
 
-
-#TODO: inheritance from CustomPanel
-class CalibrationPanel(wx.Panel):
+class CalibrationPanel(ExpandablePanel):
 
     def __init__(self, parent, titleText="Workbench", buttonStartCallback=None, description="Workbench description"):
-        wx.Panel.__init__(self, parent)
+        ExpandablePanel.__init__(self, parent, titleText)
 
         self.buttonStartCallback = buttonStartCallback
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        titleBox = wx.BoxSizer(wx.VERTICAL)
-        contentBox = wx.BoxSizer(wx.VERTICAL)
         self.parametersBox = wx.BoxSizer(wx.VERTICAL)
+        self.buttonsPanel = wx.Panel(self.content)
 
-        title = wx.Panel(self)
-        self.content = wx.Panel(self)
-
-        titleText = wx.StaticText(title, label=titleText)
-        titleText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-        titleText.SetToolTip(wx.ToolTip(description))
-        self.buttonEdit = wx.ToggleButton(self.content, wx.NewId(), label=_("Edit"))
+        self.buttonEdit = wx.ToggleButton(self.buttonsPanel, wx.NewId(), label=_("Edit"))
         self.buttonEdit.SetMinSize((0,-1))
-        self.buttonDefault = wx.Button(self.content, wx.NewId(), label=_("Default"))
+        self.buttonDefault = wx.Button(self.buttonsPanel, wx.NewId(), label=_("Default"))
         self.buttonDefault.SetMinSize((0,-1))
-        self.buttonStart = wx.Button(self.content, wx.NewId(), label=_("Start"))
+        self.buttonStart = wx.Button(self.buttonsPanel, wx.NewId(), label=_("Start"))
         self.buttonStart.SetMinSize((0,-1))
 
-        titleBox.Add(titleText, 0, wx.ALL|wx.EXPAND, 5)
-        titleBox.Add(wx.StaticLine(title), 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 5)
-        title.SetSizer(titleBox)
-        contentBox.Add(self.parametersBox, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.buttonEdit, 2, wx.ALL|wx.EXPAND, 3)
-        hbox.Add(self.buttonDefault, 2, wx.ALL|wx.EXPAND, 3)
-        hbox.Add(self.buttonStart, 3, wx.ALL|wx.EXPAND, 3)
-        contentBox.Add(hbox, 0, wx.ALL|wx.EXPAND, 3)
-        self.content.SetSizer(contentBox)
+        self.contentBox.Add(self.parametersBox, 1, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.buttonEdit, 2, wx.ALL|wx.EXPAND, 3)
+        self.hbox.Add(self.buttonDefault, 2, wx.ALL|wx.EXPAND, 3)
+        self.hbox.Add(self.buttonStart, 3, wx.ALL|wx.EXPAND, 3)
+        self.buttonsPanel.SetSizer(self.hbox)
+        self.contentBox.Add(self.buttonsPanel, 0, wx.ALL|wx.EXPAND, 3)
 
-        vbox.Add(title, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 0)
-        vbox.Add(self.content, 1, wx.RIGHT|wx.LEFT|wx.BOTTOM|wx.EXPAND, 2)
+        self.buttonEdit.Bind(wx.EVT_TOGGLEBUTTON, self.onButtonEditPressed)
+        self.buttonDefault.Bind(wx.EVT_BUTTON, self.onButtonDefaultPressed)
+        self.buttonStart.Bind(wx.EVT_BUTTON, self.onButtonStartPressed)
 
-        titleText.Bind(wx.EVT_LEFT_DOWN, self.onTitleClicked)
-    	self.buttonEdit.Bind(wx.EVT_TOGGLEBUTTON, self.onButtonEditPressed)
-    	self.buttonDefault.Bind(wx.EVT_BUTTON, self.onButtonDefaultPressed)
-    	self.buttonStart.Bind(wx.EVT_BUTTON, self.onButtonStartPressed)
-
-        self.SetSizer(vbox)
         self.Layout()
 
     def onButtonEditPressed(self, event):
@@ -176,15 +119,6 @@ class CalibrationPanel(wx.Panel):
     def onButtonStartPressed(self, event):
         if self.buttonStartCallback is not None:
             self.buttonStartCallback()
-
-    def hideContent(self):
-        self.content.Hide()
-
-    def onTitleClicked(self, event):
-        if self.GetParent().GetParent().GetParent().hideAllPanels():
-            self.content.Show()
-            self.Layout()
-            self.GetParent().GetParent().Layout()
 
 
 class CameraIntrinsicsPanel(CalibrationPanel):
@@ -270,7 +204,6 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.buttonEdit.SetLabel(_("OK"))
         else:
             self.buttonEdit.SetLabel(_("Edit"))
-            self.updateAllControlsToProfile((self.cameraValues, self.distortionValues))
 
     def onButtonDefaultPressed(self, event):
         dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -279,7 +212,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         if result:
             profile.resetProfileSetting('camera_matrix')
             profile.resetProfileSetting('distortion_vector')
-            self.updateProfileToAllControls()
+            self.updateProfile()
 
     def getParameters(self):
         return self.cameraValues, self.distortionValues
@@ -318,7 +251,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         if hasattr(self, 'pcg'):
             self.pcg.setCameraIntrinsics(self.cameraValues, self.distortionValues)
 
-    def updateProfileToAllControls(self):
+    def updateProfile(self):
         self.getProfileSettings()
         self.updateAllControls()
         self.updateEngine()
@@ -459,7 +392,7 @@ class LaserTriangulationPanel(CalibrationPanel):
             profile.resetProfileSetting('normal_left')
             profile.resetProfileSetting('distance_right')
             profile.resetProfileSetting('normal_right')
-            self.updateProfileToAllControls()
+            self.updateProfile()
 
     def getParameters(self):
         return self.distanceLeftValue, self.normalLeftValues, self.distanceLeftValue, self.normalRightValues
@@ -503,7 +436,7 @@ class LaserTriangulationPanel(CalibrationPanel):
             pass # TODO
             #self.pcg.setLaserTriangulation(self.coordinatesValues, self.originValues, self.normalValues)
 
-    def updateProfileToAllControls(self):
+    def updateProfile(self):
         self.getProfileSettings()
         self.updateAllControls()
         self.updateEngine()
@@ -626,7 +559,7 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
             self.buttonEdit.SetLabel(_("OK"))
         else:
             self.buttonEdit.SetLabel(_("Edit"))
-            self.updateAllControlsToProfile((self.coordinatesValues, self.originValues, self.normalValues))
+            self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
         dlg = wx.MessageDialog(self, _("This will reset simple laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -636,7 +569,7 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
             profile.resetProfileSetting('laser_coordinates')
             profile.resetProfileSetting('laser_origin')
             profile.resetProfileSetting('laser_normal')
-            self.updateProfileToAllControls()
+            self.updateProfile()
 
     def getParameters(self):
         return self.coordinatesValues, self.originValues, self.normalValues
@@ -675,7 +608,7 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
         if hasattr(self, 'pcg'):
             self.pcg.setLaserTriangulation(self.coordinatesValues, self.originValues, self.normalValues)
 
-    def updateProfileToAllControls(self):
+    def updateProfile(self):
         self.getProfileSettings()
         self.updateAllControls()
         self.updateEngine()
@@ -771,7 +704,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
             self.buttonEdit.SetLabel(_("OK"))
         else:
             self.buttonEdit.SetLabel(_("Edit"))
-            self.updateAllControlsToProfile((self.rotationValues, self.translationValues))
+            self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
         dlg = wx.MessageDialog(self, _("This will reset platform extrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -780,7 +713,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         if result:
             profile.resetProfileSetting('rotation_matrix')
             profile.resetProfileSetting('translation_vector')
-            self.updateProfileToAllControls()
+            self.updateProfile()
 
     def getParameters(self):
         return self.rotationValues, self.translationValues
@@ -812,7 +745,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         if hasattr(self, 'pcg'):
             self.pcg.setPlatformExtrinsics(self.rotationValues, self.translationValues)
 
-    def updateProfileToAllControls(self):
+    def updateProfile(self):
         self.getProfileSettings()
         self.updateAllControls()
         self.updateEngine()

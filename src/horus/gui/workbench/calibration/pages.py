@@ -214,7 +214,7 @@ class CameraIntrinsicsResultPage(Page):
 
 		if ret:
 			mtx, dist, rvecs, tvecs = result
-			self.GetParent().GetParent().cameraIntrinsicsPanel.setParameters((mtx, dist))
+			self.GetParent().GetParent().controls.panels['camera_intrinsics_panel'].setParameters((mtx, dist))
 			self.plotPanel.add(rvecs, tvecs)
 			self.plotPanel.Show()
 			self.Layout()
@@ -433,7 +433,7 @@ class LaserTriangulationResultPage(Page):
 			nL = result[0][1]
 			dR = result[1][0]
 			nR = result[1][1]
-			self.GetParent().GetParent().laserTriangulationPanel.setParameters((dL, nL, dR, nR))
+			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((dL, nL, dR, nR))
 			self.plotPanel.clear()
 			self.plotPanel.add(result)
 			self.plotPanel.Show()
@@ -810,7 +810,7 @@ class PlatformExtrinsicsResultPage(Page):
 		if ret:
 			R = result[0]
 			t = result[1]
-			self.GetParent().GetParent().platformExtrinsicsPanel.setParameters((R, t))
+			self.GetParent().GetParent().controls.panels['platform_extrinsics_panel'].setParameters((R, t))
 			self.plotPanel.clear()
 			self.plotPanel.add(result)
 			self.plotPanel.Show()

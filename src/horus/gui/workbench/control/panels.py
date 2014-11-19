@@ -29,9 +29,8 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
-from horus.gui.util.customPanels import ExpandablePanel, SectionPanel, SectionItem, \
-                                        Slider, ComboBox, CheckBox, Button, TextBox, \
-                                        ToggleButton, CallbackButton
+from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
+                                        CheckBox, Button, TextBox, ToggleButton, CallbackButton
 
 from horus.util import profile
 

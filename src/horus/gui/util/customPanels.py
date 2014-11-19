@@ -27,7 +27,6 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
-import ast
 import wx._core
 from collections import OrderedDict
 
@@ -70,6 +69,7 @@ class ExpandableControl(wx.Panel):
 				else:
 					panel.content.Hide()
 			self.Layout()
+			self.GetParent().Layout()
 
 	def initialize(self):
 		for panel in self.panels.values():
@@ -443,6 +443,10 @@ class TextBox(SectionItem):
 		if hasattr(self,'control'):
 			value = profile.getProfileSetting(self.name)
 			self.update(value)
+
+
+##TODO: Create TextBoxArray
+
 
 class Button(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
