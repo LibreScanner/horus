@@ -37,10 +37,10 @@ from horus.gui.util.sceneView import SceneView
 from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.scanning.panels import ImageAcquisition, ImageSegmentation, \
-												PointCloudGeneration
+from horus.gui.workbench.scanning.panels import ScanParameters, ImageAcquisition, \
+												ImageSegmentation, PointCloudGeneration
 
-from horus.engine.scan import SimpleScan
+from horus.engine.scan import SimpleScan, TextureScan
 
 class ScanningWorkbench(WorkbenchConnection):
 
@@ -51,6 +51,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.showVideoViews = False
 
 		self.simpleScan = SimpleScan.Instance()
+		self.textureScan = TextureScan.Instance()
+
+		self.currentScan = self.simpleScan
 
 		self.load()
 
@@ -89,6 +92,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		self.controls = ExpandableControl(self.scrollPanel)
 
+		self.controls.addPanel('scan_parameters', ScanParameters(self.controls))
 		self.controls.addPanel('image_acquisition', ImageAcquisition(self.controls))
 		self.controls.addPanel('image_segmentation', ImageSegmentation(self.controls))
 		self.controls.addPanel('point_cloud_generation', PointCloudGeneration(self.controls))
@@ -116,45 +120,39 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		#- Video View Selector
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
-		self.buttonRaw  = wx.RadioButton(self.videoView, wx.NewId(), _("Raw"), pos=(10,15+40))
-		self.buttonLas  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+80))
-		self.buttonDiff = wx.RadioButton(self.videoView, wx.NewId(), _("Diff"), pos=(10,15+120))
-		self.buttonBin  = wx.RadioButton(self.videoView, wx.NewId(), _("Binary"), pos=(10,15+160))
-		self.buttonLine = wx.RadioButton(self.videoView, wx.NewId(), _("Line"), pos=(10,15+200))
+		self.buttonLaser  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+40))
+		self.buttonGray = wx.RadioButton(self.videoView, wx.NewId(), _("Gray"), pos=(10,15+80))
+		self.buttonLine  = wx.RadioButton(self.videoView, wx.NewId(), _("Line"), pos=(10,15+120))
+		self.buttonColor  = wx.RadioButton(self.videoView, wx.NewId(), _("Color"), pos=(10,15+160))
 
 		self.buttonShowVideoViews.Hide()
-		self.buttonRaw.Hide()
-		self.buttonLas.Hide()
-		self.buttonDiff.Hide()
-		self.buttonBin.Hide()
+		self.buttonLaser.Hide()
+		self.buttonGray.Hide()
 		self.buttonLine.Hide()
+		self.buttonColor.Hide()
 
-		selectedView = {'raw'  : self.buttonRaw,
-						'las'  : self.buttonLas,
-						'diff' : self.buttonDiff,
-						'bin'  : self.buttonBin,
-						'line' : self.buttonLine}
+		selectedView = {'laser' : self.buttonLaser,
+						'gray'  : self.buttonGray,
+						'line'  : self.buttonLine,
+						'color' : self.buttonColor}
 
 		selectedView[profile.getProfileSetting('img_type')].SetValue(True)
 
-		self.buttonRaw.SetForegroundColour(wx.WHITE)
-		self.buttonLas.SetForegroundColour(wx.WHITE)
-		self.buttonDiff.SetForegroundColour(wx.WHITE)
-		self.buttonBin.SetForegroundColour(wx.WHITE)
+		self.buttonLaser.SetForegroundColour(wx.WHITE)
+		self.buttonGray.SetForegroundColour(wx.WHITE)
 		self.buttonLine.SetForegroundColour(wx.WHITE)
+		self.buttonColor.SetForegroundColour(wx.WHITE)
 
-		self.buttonRaw.SetBackgroundColour(wx.BLACK)
-		self.buttonLas.SetBackgroundColour(wx.BLACK)
-		self.buttonDiff.SetBackgroundColour(wx.BLACK)
-		self.buttonBin.SetBackgroundColour(wx.BLACK)
+		self.buttonLaser.SetBackgroundColour(wx.BLACK)
+		self.buttonGray.SetBackgroundColour(wx.BLACK)
 		self.buttonLine.SetBackgroundColour(wx.BLACK)
+		self.buttonColor.SetBackgroundColour(wx.BLACK)
 
 		self.Bind(wx.EVT_BUTTON, self.onShowVideoViews, self.buttonShowVideoViews)
-		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonRaw)
-		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLas)
-		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonDiff)
-		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonBin)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLaser)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonGray)
 		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
+		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonColor)
 
 		self.Layout()
 
@@ -166,7 +164,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.simpleScan.driver.isConnected)
+			self.updateStatus(self.currentScan.driver.isConnected)
 			self.pointCloudTimer.Stop()
 			self.pointCloudTimer.Start(milliseconds=50)
 			self.videoView.play()
@@ -180,33 +178,30 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onShowVideoViews(self, event):
 		self.showVideoViews = not self.showVideoViews
 		if self.showVideoViews:
-			self.buttonRaw.Show()
-			self.buttonLas.Show()
-			self.buttonDiff.Show()
-			self.buttonBin.Show()
+			self.buttonLaser.Show()
+			self.buttonGray.Show()
 			self.buttonLine.Show()
+			self.buttonColor.Show()
 		else:
-			self.buttonRaw.Hide()
-			self.buttonLas.Hide()
-			self.buttonDiff.Hide()
-			self.buttonBin.Hide()
+			self.buttonLaser.Hide()
+			self.buttonGray.Hide()
 			self.buttonLine.Hide()
+			self.buttonColor.Hide()
 
 	def onSelectVideoView(self, event):
-		selectedView = {self.buttonRaw.GetId()  : 'raw',
-						self.buttonLas.GetId()  : 'las',
-						self.buttonDiff.GetId() : 'diff',
-						self.buttonBin.GetId()  : 'bin',
-						self.buttonLine.GetId() : 'line'}.get(event.GetId())
+		selectedView = {self.buttonLaser.GetId() : 'laser',
+						self.buttonGray.GetId()  : 'gray',
+						self.buttonLine.GetId()  : 'line',
+						self.buttonColor.GetId() : 'color'}.get(event.GetId())
 
-		self.simpleScan.pcg.setImageType(selectedView)
+		self.currentScan.setImageType(selectedView)
 		profile.putProfileSetting('img_type', selectedView)
 
 	def getFrame(self):
-		return self.simpleScan.pcg.getImage()
+		return self.currentScan.getImage()
 
 	def onPointCloudTimer(self, event):
-		pointCloud = self.simpleScan.getPointCloudIncrement()
+		pointCloud = self.currentScan.getPointCloudIncrement()
 		if pointCloud is not None:
 			if pointCloud[0] is not None and pointCloud[1] is not None:
 				if len(pointCloud[0]) > 0:
@@ -219,8 +214,8 @@ class ScanningWorkbench(WorkbenchConnection):
 			result = dlg.ShowModal() == wx.ID_YES
 			dlg.Destroy()
 		if result:
-			self.simpleScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
-			self.simpleScan.start()
+			self.currentScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
+			self.currentScan.start()
 
 	def beforeScan(self):
 		self.buttonShowVideoViews.Show()
@@ -244,18 +239,18 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.onScanFinished()
 
 	def onStopToolClicked(self, event):
-		paused = self.simpleScan.inactive
-		self.simpleScan.pause()
+		paused = self.currentScan.inactive
+		self.currentScan.pause()
 		dlg = wx.MessageDialog(self, _("Your current scanning will be stopped.\nDo you really want to do it?"), _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
 		result = dlg.ShowModal() == wx.ID_YES
 		dlg.Destroy()
 
 		if result:
-			self.simpleScan.stop()
+			self.currentScan.stop()
 			self.onScanFinished()
 		else:
 			if not paused:
-				self.simpleScan.resume()
+				self.currentScan.resume()
 
 	def onScanFinished(self):
 		self.enableLabelTool(self.disconnectTool, True)
@@ -264,14 +259,13 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, False)
 		self.enableLabelTool(self.deleteTool, True)
-		self.buttonShowVideoViews.Hide()
-		self.buttonRaw.Hide()
-		self.buttonLas.Hide()
-		self.buttonDiff.Hide()
-		self.buttonBin.Hide()
-		self.buttonLine.Hide()
 		self.combo.Enable()
-		self.videoView.stop()
+		#self.buttonShowVideoViews.Hide()
+		#self.buttonLaser.Hide()
+		#self.buttonGray.Hide()
+		#self.buttonLine.Hide()
+		#self.buttonColor.Hide()
+		#self.videoView.stop()
 		self.pointCloudTimer.Stop()
 
 	def onPauseToolClicked(self, event):
@@ -279,18 +273,18 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.resumeTool, True)
 		self.enableLabelTool(self.deleteTool, False)
 		
-		self.simpleScan.pause()
+		self.currentScan.pause()
 		self.pointCloudTimer.Stop()
-		self.videoView.pause()
+		#self.videoView.pause()
 
 	def onResumeToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , True)
 		self.enableLabelTool(self.resumeTool, False)
 		self.enableLabelTool(self.deleteTool, False)
 		
-		self.simpleScan.resume()
+		self.currentScan.resume()
 		self.pointCloudTimer.Start(milliseconds=50)
-		self.videoView.play()
+		#self.videoView.play()
 
 	def onDeleteToolClicked(self, event):
 		if self.sceneView._object is not None:
@@ -332,11 +326,10 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.deleteTool, True)
 			self.controls.disableContent()
 			self.buttonShowVideoViews.Hide()
-			self.buttonRaw.Hide()
-			self.buttonLas.Hide()
-			self.buttonDiff.Hide()
-			self.buttonBin.Hide()
+			self.buttonLaser.Hide()
+			self.buttonGray.Hide()
 			self.buttonLine.Hide()
+			self.buttonColor.Hide()
 
 	def updateProfileToAllControls(self):
 		self.controls.updateProfile()

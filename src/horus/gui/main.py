@@ -59,6 +59,7 @@ class MainWindow(wx.Frame):
         ###-- Initialize Engine
         self.driver = Driver.Instance()
         self.simpleScan = scan.SimpleScan.Instance()
+        self.textureScan = scan.TextureScan.Instance()
         self.pcg = scan.PointCloudGenerator.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
@@ -315,6 +316,8 @@ class MainWindow(wx.Frame):
         self.controlWorkbench.initialize()
         self.controlWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.initialize()
+        self.scanningWorkbench.initialize()
+        self.scanningWorkbench.updateProfileToAllControls()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.putPreference(key, checked)
@@ -530,12 +533,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def updatePCGProfile(self, workbench):
         if workbench in ['scanning']:
             self.pcg.resetTheta()
-            self.pcg.setImageType(profile.getProfileSetting('img_type'))
-            self.pcg.setUseOpen(profile.getProfileSettingBool('use_open'))
-            self.pcg.setOpenValue(profile.getProfileSettingInteger('open_value'))
-            self.pcg.setUseThreshold(profile.getProfileSettingBool('use_threshold'))
-            self.pcg.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
-            self.pcg.setUseCompact(profile.getProfileSettingBool('use_compact'))
             self.pcg.setViewROI(profile.getProfileSettingBool('view_roi'))
             self.pcg.setROIDiameter(profile.getProfileSettingInteger('roi_diameter'))
             self.pcg.setROIHeight(profile.getProfileSettingInteger('roi_height'))
@@ -553,9 +550,23 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                            profile.getProfileSettingNumpy('laser_normal'))
             self.pcg.setPlatformExtrinsics(profile.getProfileSettingNumpy('rotation_matrix'),
                                            profile.getProfileSettingNumpy('translation_vector'))
+
             self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
             self.simpleScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
             self.simpleScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
+            self.simpleScan.setImageType(profile.getProfileSetting('img_type'))
+            self.simpleScan.setUseThreshold(profile.getProfileSettingBool('use_cr_threshold'))
+            self.simpleScan.setThresholdValue(profile.getProfileSettingInteger('cr_threshold_value'))
+
+            self.textureScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
+            self.textureScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
+            self.textureScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
+            self.textureScan.setImageType(profile.getProfileSetting('img_type'))
+            self.textureScan.setUseOpen(profile.getProfileSettingBool('use_open'))
+            self.textureScan.setOpenValue(profile.getProfileSettingInteger('open_value'))
+            self.textureScan.setUseThreshold(profile.getProfileSettingBool('use_threshold'))
+            self.textureScan.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
+            
     
     def updateCalibrationCurrentProfile(self):
         self.updateCalibrationProfile(profile.getPreference('workbench'))

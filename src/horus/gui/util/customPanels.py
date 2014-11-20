@@ -163,7 +163,7 @@ class SectionPanel(wx.Panel):
 	def addItem(self, _type, _name, _callback):
 		item = _type(self, _name, _callback)
 		self.items.update({_name : item})
-		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 0)
+		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 1)
 		self.Layout()
 
 	def resetProfile(self):
@@ -268,7 +268,6 @@ class Slider(SectionItem):
 								 profile.getProfileSettingInteger(self.name),
 								 int(eval(self.setting.getMinValue(), {}, {})),
 								 int(eval(self.setting.getMaxValue(), {}, {})),
-								 size=(150,-1),
 								 style=wx.SL_LABELS)
 
 		#-- Layout
@@ -355,7 +354,7 @@ class CheckBox(SectionItem):
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 7)
-		hbox.Add(self.control, 1, wx.TOP|wx.BOTTOM|wx.EXPAND, 7)
+		hbox.Add(self.control, 1, wx.TOP|wx.EXPAND, 8)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -422,8 +421,8 @@ class TextBox(SectionItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.ALL^wx.LEFT|wx.EXPAND, 18)
-		hbox.Add(self.control, 1, wx.ALL^wx.LEFT|wx.EXPAND, 12)
+		hbox.Add(self.label, 0, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 18)
+		hbox.Add(self.control, 1, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 12)
 		self.SetSizer(hbox)
 		self.Layout()
 
