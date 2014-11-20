@@ -37,7 +37,7 @@ from horus.gui.util.sceneView import SceneView
 from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.scanning.panels import ScanParameters, ImageAcquisition, \
+from horus.gui.workbench.scanning.panels import ScanParameters, RotativePlatform, ImageAcquisition, \
 												ImageSegmentation, PointCloudGeneration
 
 from horus.engine.scan import SimpleScan, TextureScan
@@ -93,6 +93,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.controls = ExpandableControl(self.scrollPanel)
 
 		self.controls.addPanel('scan_parameters', ScanParameters(self.controls))
+		self.controls.addPanel('rotative_platform', RotativePlatform(self.controls))
 		self.controls.addPanel('image_acquisition', ImageAcquisition(self.controls))
 		self.controls.addPanel('image_segmentation', ImageSegmentation(self.controls))
 		self.controls.addPanel('point_cloud_generation', PointCloudGeneration(self.controls))

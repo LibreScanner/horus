@@ -251,6 +251,8 @@ setting('view_roi', True, bool, 'advanced', _('View ROI'))
 setting('roi_diameter', 200, int, 'advanced', _('Diameter')).setRange(0, 250)
 setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
 
+setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
+
 setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
 setting('laser_angle_right', 30.0, float, 'advanced', _('Laser Angle Right'))
 
@@ -309,7 +311,6 @@ setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 setting('last_files', [], str, 'preference', 'hidden')
 setting('last_file', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
 setting('last_profile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.ini')), str, 'preference', 'hidden')
-
 
 setting('model_colour', '#888899', str, 'preference', 'hidden').setLabel(_('Model colour'), _('Display color for first extruder'))
 

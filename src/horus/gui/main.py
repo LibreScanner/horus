@@ -30,6 +30,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import os
 import cv2
 import glob
+import struct
 import platform
 import wx._core
 
@@ -557,6 +558,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.simpleScan.setImageType(profile.getProfileSetting('img_type'))
             self.simpleScan.setUseThreshold(profile.getProfileSettingBool('use_cr_threshold'))
             self.simpleScan.setThresholdValue(profile.getProfileSettingInteger('cr_threshold_value'))
+            self.simpleScan.setColor(struct.unpack('BBB',profile.getProfileSetting('point_cloud_color').decode('hex')))
 
             self.textureScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
             self.textureScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))

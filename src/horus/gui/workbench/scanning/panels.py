@@ -59,22 +59,46 @@ class ScanParameters(ExpandablePanel):
         section.addItem(ComboBox, 'scan_type', self.setCurrentScan)
         section.addItem(ComboBox, 'use_laser', self.setUseLaser)
         section.addItem(CheckBox, 'fast_scan', self.setFastScan)
-        section = self.createSection('motor_scanning', _("Motor"))
-        section.addItem(TextBox, 'step_degrees_scanning', self.setDegrees)
-        section.addItem(TextBox, 'feed_rate_scanning', self.setFeedRate)
-        section.addItem(TextBox, 'acceleration_scanning', self.setAcceleration)
-        section.addItem(Button, 'restore_default', self.restoreDefault)
-
-    def restoreDefault(self):
-        dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal() == wx.ID_YES
-        dlg.Destroy()
-        if result:
-            self.resetProfile()
 
     def setFastScan(self, value):
         self.simpleScan.setFastScan(bool(value))
         self.textureScan.setFastScan(bool(value))
+
+    def setUseLaser(self, value):
+        self.pcg.setUseLaser(value==_("Use Left Laser") or value==_("Use Both Laser"),
+                             value==_("Use Right Laser") or value==_("Use Both Laser"))
+
+    def setCurrentScan(self, value):
+        if not self.main.currentScan.run or self.main.currentScan.inactive:
+            if value == _("Without Texture"):
+                self.main.currentScan = self.simpleScan
+            elif value == _("With Texture"):
+                self.main.currentScan = self.textureScan
+        else:
+            print "Can not change scan type"
+
+
+class RotativePlatform(ExpandablePanel):
+    """"""
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Rotative Platform"))
+        
+        self.driver = Driver.Instance()
+        self.simpleScan = SimpleScan.Instance()
+        self.textureScan = TextureScan.Instance()
+        self.pcg = PointCloudGenerator.Instance()
+        self.main = self.GetParent().GetParent().GetParent().GetParent()
+
+        self.initialize()
+        
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('motor_scanning')
+        section.addItem(TextBox, 'step_degrees_scanning', self.setDegrees)
+        section.addItem(TextBox, 'feed_rate_scanning', self.setFeedRate)
+        section.addItem(TextBox, 'acceleration_scanning', self.setAcceleration)
+        section.addItem(Button, 'restore_default', self.restoreDefault)
 
     def setDegrees(self, value):
         self.driver.board.setRelativePosition(self.getValueFloat(value))
@@ -90,18 +114,12 @@ class ScanParameters(ExpandablePanel):
         self.simpleScan.setAccelerationMotor(self.getValueInteger(value))
         self.textureScan.setAccelerationMotor(self.getValueInteger(value))
 
-    def setCurrentScan(self, value):
-        if not self.main.currentScan.run or self.main.currentScan.inactive:
-            if value == _("Without Texture"):
-                self.main.currentScan = self.simpleScan
-            elif value == _("With Texture"):
-                self.main.currentScan = self.textureScan
-        else:
-            print "Can not change scan type"
-
-    def setUseLaser(self, value):
-        self.pcg.setUseLaser(value==_("Use Left Laser") or value==_("Use Both Laser"),
-                             value==_("Use Right Laser") or value==_("Use Both Laser"))
+    def restoreDefault(self):
+        dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
+        result = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        if result:
+            self.resetProfile()
 
     #TODO: move
     def getValueInteger(self, value):
@@ -188,6 +206,7 @@ class PointCloudGeneration(ExpandablePanel):
         ExpandablePanel.__init__(self, parent, _("Point Cloud Generation"))
         
         self.driver = Driver.Instance()
+        self.simpleScan = SimpleScan.Instance()
         self.pcg = PointCloudGenerator.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
 
@@ -199,3 +218,16 @@ class PointCloudGeneration(ExpandablePanel):
         section.addItem(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
         section.addItem(Slider, 'roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
         section.addItem(Slider, 'roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
+        section.addItem(Button, 'point_cloud_color', self.onColourPicker)
+
+    def onColourPicker(self):
+        data = wx.ColourData()
+        data.SetColour(self.simpleScan.color)
+        dialog = wx.ColourDialog(self, data)
+        dialog.GetColourData().SetChooseFull(True)
+        if dialog.ShowModal() == wx.ID_OK:
+            data = dialog.GetColourData()
+            color = data.GetColour().Get()
+            self.simpleScan.setColor(color)
+            profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
+        dialog.Destroy()

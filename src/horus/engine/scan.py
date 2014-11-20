@@ -292,6 +292,9 @@ class SimpleScan(Scan):
 		if afterCallback is not None:
 			afterCallback(response)
 
+	def setColor(self, value):
+		self.color = value
+
 	def setUseThreshold(self, enable):
 		self.thresholdEnable = enable
 
@@ -299,13 +302,11 @@ class SimpleScan(Scan):
 		self.thresholdValue = value
 
 	def compute2DPoints(self, image):
-		color = (200, 230, 140) ## TODO: parameter
-
 		self.imgLaser = image
 		tempColor = np.ones_like(image)
-		tempColor[:,:,0] *= color[0]
-		tempColor[:,:,1] *= color[1]
-		tempColor[:,:,2] *= color[2]
+		tempColor[:,:,0] *= self.color[0]
+		tempColor[:,:,1] *= self.color[1]
+		tempColor[:,:,2] *= self.color[2]
 		self.imgColor = tempColor
 
 		#-- Convert tp Y Cr Cb format
@@ -342,7 +343,7 @@ class SimpleScan(Scan):
 		self.imgLine = tempLine
 		self.imgGray = cv2.merge((image, image, image))
 
-		colors = np.array(np.matrix(np.ones(len(u))).T*np.matrix(color))
+		colors = np.array(np.matrix(np.ones(len(u))).T*np.matrix(self.color))
 
 		return (u, v), colors
 
