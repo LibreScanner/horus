@@ -36,9 +36,9 @@ from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.calibration.panels import CameraSettingsPanel, CameraIntrinsicsPanel, \
-                                                   LaserTriangulationPanel, PlatformExtrinsicsPanel
+                                                   SimpleLaserTriangulationPanel, PlatformExtrinsicsPanel
 from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, CameraIntrinsicsResultPage, \
-                                                  LaserTriangulationMainPage, LaserTriangulationResultPage, \
+                                                  SimpleLaserTriangulationMainPage, SimpleLaserTriangulationResultPage, \
                                                   PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
 from horus.engine.driver import Driver
@@ -85,8 +85,10 @@ class CalibrationWorkbench(WorkbenchConnection):
         #-- Add Scroll Panels
         self.controls.addPanel('camera_settings', CameraSettingsPanel(self.controls))
         self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
-        self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
+        self.controls.addPanel('laser_triangulation_panel', SimpleLaserTriangulationPanel(self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
         self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
+
+        self.controls.setUndoCallbacks(self.appendToUndo, self.releaseUndo)
 
         #-- Add Calibration Pages
         self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(self._panel,
@@ -97,11 +99,11 @@ class CalibrationWorkbench(WorkbenchConnection):
                                                                      buttonRejectCallback=self.onCancelCallback,
                                                                      buttonAcceptCallback=self.onCameraIntrinsicsAcceptCallback)
 
-        self.laserTriangulationMainPage = LaserTriangulationMainPage(self._panel,
+        self.laserTriangulationMainPage = SimpleLaserTriangulationMainPage(self._panel,
                                                                      afterCancelCallback=self.onCancelCallback,
                                                                      afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
 
-        self.laserTriangulationResultPage = LaserTriangulationResultPage(self._panel,
+        self.laserTriangulationResultPage = SimpleLaserTriangulationResultPage(self._panel,
                                                                          buttonRejectCallback=self.onCancelCallback,
                                                                          buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
 
@@ -112,7 +114,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.platformExtrinsicsResultPage = PlatformExtrinsicsResultPage(self._panel,
                                                                          buttonRejectCallback=self.onCancelCallback,
                                                                          buttonAcceptCallback=self.onPlatformExtrinsicsAcceptCallback)
-        self.controls.setUndoCallbacks(self.appendToUndo, self.releaseUndo)
 
         self.cameraIntrinsicsMainPage.Hide()
         self.cameraIntrinsicsResultPage.Hide()

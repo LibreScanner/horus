@@ -456,7 +456,7 @@ class LaserTriangulationPanel(CalibrationPanel):
 class SimpleLaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Simple Laser Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
+        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
                                   description=_("Determines the depth of the intersection camera-laser considering the inclination of the lasers."))
 
         self.pcg = scan.PointCloudGenerator.Instance()

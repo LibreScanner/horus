@@ -638,7 +638,7 @@ class SimpleLaserTriangulationResultPage(Page):
 
 		if ret:
 			vectors, parameters, images = result
-			self.GetParent().GetParent().laserTriangulationPanel.setParameters((parameters, vectors[0], vectors[1]))
+			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((parameters, vectors[0], vectors[1]))
 			self.leftLaserImageSequence.imageLas.setFrame(images[0][0])
 			self.leftLaserImageSequence.imageGray.setFrame(images[0][1])
 			self.leftLaserImageSequence.imageBin.setFrame(images[0][2])
