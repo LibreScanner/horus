@@ -552,6 +552,14 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.pcg.setPlatformExtrinsics(profile.getProfileSettingNumpy('rotation_matrix'),
                                            profile.getProfileSettingNumpy('translation_vector'))
 
+            scanType = profile.getProfileSetting('scan_type')
+            if scanType == _("Without Texture"):
+                self.scanningWorkbench.currentScan = self.simpleScan
+                self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+            elif scanType == _("With Texture"):
+                self.scanningWorkbench.currentScan = self.textureScan
+                self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
+
             self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
             self.simpleScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
             self.simpleScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))

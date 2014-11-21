@@ -72,8 +72,10 @@ class ScanParameters(ExpandablePanel):
         if not self.main.currentScan.run or self.main.currentScan.inactive:
             if value == _("Without Texture"):
                 self.main.currentScan = self.simpleScan
+                self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
             elif value == _("With Texture"):
                 self.main.currentScan = self.textureScan
+                self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
         else:
             print "Can not change scan type"
 
@@ -143,6 +145,8 @@ class ImageAcquisition(ExpandablePanel):
 
         self.driver = Driver.Instance()
         self.pcg = PointCloudGenerator.Instance()
+        self.simpleScan = SimpleScan.Instance()
+        self.textureScan = TextureScan.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
 
         self.initialize()
@@ -153,11 +157,21 @@ class ImageAcquisition(ExpandablePanel):
         section.addItem(Slider, 'brightness_scanning', self.driver.camera.setBrightness)
         section.addItem(Slider, 'contrast_scanning', self.driver.camera.setContrast)
         section.addItem(Slider, 'saturation_scanning', self.driver.camera.setSaturation)
-        section.addItem(Slider, 'exposure_scanning', self.driver.camera.setExposure) # TODO: laser and texture exposure scanning
+        #section.addItem(Slider, 'exposure_scanning', self.driver.camera.setExposure)
+        section.addItem(Slider, 'laser_exposure_scanning', self.setLaserExposure)
+        section.addItem(Slider, 'color_exposure_scanning', self.setColorExposure)
         section.addItem(ComboBox, 'framerate_scanning', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
         section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
         #section.addItem(CheckBox, 'use_distortion_scanning', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
         section.addItem(Button, 'restore_default', self.restoreDefault)
+
+    def setLaserExposure(self, value):
+        if self.main.currentScan is self.simpleScan:
+            self.driver.camera.setExposure(value)
+
+    def setColorExposure(self, value):
+        if self.main.currentScan is self.textureScan:
+            self.driver.camera.setExposure(value)
 
     def restoreDefault(self):
         dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)

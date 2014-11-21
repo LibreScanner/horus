@@ -144,6 +144,7 @@ class WorkbenchConnection(Workbench):
 		if self.driver.isConnected:
 			self.GetParent().updateBoardCurrentProfile()
 			self.GetParent().updateCameraCurrentProfile()
+			self.GetParent().updatePCGCurrentProfile()
 
 		self.updateStatus(self.driver.isConnected)
 		self.combo.Enable()
