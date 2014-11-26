@@ -254,8 +254,23 @@ class SimpleScan(Scan):
 
 				##-- Both laser
 				if self.pcg.useLeftLaser and self.pcg.useRightLaser:
-					pass
-					#TODO
+					self.driver.board.setLeftLaserOn()
+					self.driver.board.setRightLaserOff()
+					imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=1)
+
+					self.driver.board.setRightLaserOn()
+					self.driver.board.setLeftLaserOff()
+					imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
+
+					#-- Compute 2D points from images
+					points2D, colors = self.compute2DPoints(imgLaserLeft)
+					#-- Put 2D points into the queue
+					self.points2DQueue.put((True, points2D, colors))
+
+					#-- Compute 2D points from images
+					points2D, colors = self.compute2DPoints(imgLaserRight)
+					#-- Put 2D points into the queue
+					self.points2DQueue.put((False, points2D, colors))
 
 				#-- Move motor
 				if self.moveMotor:
