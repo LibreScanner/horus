@@ -204,6 +204,14 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.sceneView.createDefaultObject()
 		self.videoView.play()
 		self.combo.Disable()
+		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), False)
+		self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), False)
+		self.GetParent().menuFile.Enable(self.GetParent().menuSaveModel.GetId(), False)
+		self.GetParent().menuFile.Enable(self.GetParent().menuClearModel.GetId(), False)
+		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), False)
+		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), False)
+		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), False)
+
 		self.pointCloudTimer.Start(milliseconds=50)
 
 	def afterScan(self, response):
@@ -236,6 +244,13 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.resumeTool, False)
 		self.enableLabelTool(self.deleteTool, True)
 		self.combo.Enable()
+		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
+		self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), True)
+		self.GetParent().menuFile.Enable(self.GetParent().menuSaveModel.GetId(), True)
+		self.GetParent().menuFile.Enable(self.GetParent().menuClearModel.GetId(), True)
+		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), True)
+		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
+		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
 		self.pointCloudTimer.Stop()
 
 	def onPauseToolClicked(self, event):
