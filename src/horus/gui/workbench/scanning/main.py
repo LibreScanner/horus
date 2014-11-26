@@ -121,39 +121,20 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		#- Video View Selector
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
-		self.buttonLaser  = wx.RadioButton(self.videoView, wx.NewId(), _("Laser"), pos=(10,15+40))
-		self.buttonGray = wx.RadioButton(self.videoView, wx.NewId(), _("Gray"), pos=(10,15+80))
-		self.buttonLine  = wx.RadioButton(self.videoView, wx.NewId(), _("Line"), pos=(10,15+120))
-		self.buttonColor  = wx.RadioButton(self.videoView, wx.NewId(), _("Color"), pos=(10,15+160))
+		self.comboVideoViews = wx.ComboBox(self.videoView, choices=[_("Laser"), _("Gray"), _("Line"), _("Color")], style=wx.CB_READONLY, pos=(60,10))
 
 		self.buttonShowVideoViews.Hide()
-		self.buttonLaser.Hide()
-		self.buttonGray.Hide()
-		self.buttonLine.Hide()
-		self.buttonColor.Hide()
+		self.comboVideoViews.Hide()
 
-		selectedView = {'laser' : self.buttonLaser,
-						'gray'  : self.buttonGray,
-						'line'  : self.buttonLine,
-						'color' : self.buttonColor}
+		selectedView = {'laser' : _("Laser"),
+						'gray'  : _("Gray"),
+						'line'  : _("Line"),
+						'color' : _("Color")}
 
-		selectedView[profile.getProfileSetting('img_type')].SetValue(True)
+		self.comboVideoViews.SetValue(selectedView[profile.getProfileSetting('img_type')])
 
-		self.buttonLaser.SetForegroundColour(wx.WHITE)
-		self.buttonGray.SetForegroundColour(wx.WHITE)
-		self.buttonLine.SetForegroundColour(wx.WHITE)
-		self.buttonColor.SetForegroundColour(wx.WHITE)
-
-		self.buttonLaser.SetBackgroundColour(wx.BLACK)
-		self.buttonGray.SetBackgroundColour(wx.BLACK)
-		self.buttonLine.SetBackgroundColour(wx.BLACK)
-		self.buttonColor.SetBackgroundColour(wx.BLACK)
-
-		self.Bind(wx.EVT_BUTTON, self.onShowVideoViews, self.buttonShowVideoViews)
-		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLaser)
-		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonGray)
-		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonLine)
-		self.Bind(wx.EVT_RADIOBUTTON, self.onSelectVideoView, self.buttonColor)
+		self.buttonShowVideoViews.Bind(wx.EVT_BUTTON, self.onShowVideoViews)
+		self.comboVideoViews.Bind(wx.EVT_COMBOBOX, self.onComboBoVideoViewsSelect)
 
 		self.Layout()
 
@@ -179,21 +160,15 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onShowVideoViews(self, event):
 		self.showVideoViews = not self.showVideoViews
 		if self.showVideoViews:
-			self.buttonLaser.Show()
-			self.buttonGray.Show()
-			self.buttonLine.Show()
-			self.buttonColor.Show()
+			self.comboVideoViews.Show()
 		else:
-			self.buttonLaser.Hide()
-			self.buttonGray.Hide()
-			self.buttonLine.Hide()
-			self.buttonColor.Hide()
+			self.comboVideoViews.Hide()
 
-	def onSelectVideoView(self, event):
-		selectedView = {self.buttonLaser.GetId() : 'laser',
-						self.buttonGray.GetId()  : 'gray',
-						self.buttonLine.GetId()  : 'line',
-						self.buttonColor.GetId() : 'color'}.get(event.GetId())
+	def onComboBoVideoViewsSelect(self, event):
+		selectedView = {_("Laser") : 'laser',
+						_("Gray")  : 'gray',
+						_("Line")  : 'line',
+						_("Color") : 'color'}.get(self.comboVideoViews.GetValue())
 
 		self.currentScan.setImageType(selectedView)
 		profile.putProfileSetting('img_type', selectedView)
@@ -261,12 +236,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.resumeTool, False)
 		self.enableLabelTool(self.deleteTool, True)
 		self.combo.Enable()
-		#self.buttonShowVideoViews.Hide()
-		#self.buttonLaser.Hide()
-		#self.buttonGray.Hide()
-		#self.buttonLine.Hide()
-		#self.buttonColor.Hide()
-		#self.videoView.stop()
 		self.pointCloudTimer.Stop()
 
 	def onPauseToolClicked(self, event):
@@ -327,10 +296,7 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.deleteTool, True)
 			self.controls.disableContent()
 			self.buttonShowVideoViews.Hide()
-			self.buttonLaser.Hide()
-			self.buttonGray.Hide()
-			self.buttonLine.Hide()
-			self.buttonColor.Hide()
+			self.comboVideoViews.Hide()
 
 	def updateProfileToAllControls(self):
 		self.controls.updateProfile()
