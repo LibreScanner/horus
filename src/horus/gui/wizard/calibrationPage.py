@@ -104,7 +104,7 @@ class CalibrationPage(WizardPage):
 		self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
-		self.videoView.setMilliseconds(20)
+		self.videoView.setMilliseconds(50)
 		self.videoView.setCallback(self.getFrame)
 		self.updateStatus(self.driver.isConnected)
 

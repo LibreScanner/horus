@@ -87,7 +87,7 @@ class ScanningPage(WizardPage):
 		self.laserLabel = wx.StaticText(self.panel, label=_("Laser"))
 		self.laserComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
 										value=value,
-										choices=[_("Use Left Laser"), _("Use Right Laser")],
+										choices=[_("Use Left Laser"), _("Use Right Laser"), _("Use Both Laser")],
 										style=wx.CB_READONLY)
 
 		self.textureLabel = wx.StaticText(self.panel, label=_("Texture"))
@@ -162,16 +162,18 @@ class ScanningPage(WizardPage):
 	def onLaserComboBoxChanged(self, event):
 		value = event.GetEventObject().GetValue()
 		profile.putProfileSetting('use_laser', value)
-		if value ==_("Use Left Laser"):
+		useLeft = value == _("Use Left Laser") or value ==_("Use Both Laser")
+		useRight = value == _("Use Right Laser") or value ==_("Use Both Laser")
+		if useLeft:
 			self.driver.board.setLeftLaserOn()
+		else:
 			self.driver.board.setRightLaserOff()
-		elif value ==_("Use Right Laser"):
+
+		if useRight:
+			self.driver.board.setRightLaserOn()
+		else:
 			self.driver.board.setLeftLaserOff()
-			self.driver.board.setRightLaserOn()
-		elif value ==_("Use Both Laser"):
-			self.driver.board.setLeftLaserOn()
-			self.driver.board.setRightLaserOn()
-		self.pcg.setUseLaser(value==_("Use Left Laser"), value==_("Use Right Laser"))
+		self.pcg.setUseLaser(useLeft, useRight)
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()

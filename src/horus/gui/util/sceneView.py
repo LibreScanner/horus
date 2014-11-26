@@ -111,7 +111,7 @@ class SceneView(openglGui.glGuiPanel):
 		self._clearScene()
 		self._object = model.Model(None, isPointCloud=True)
 		self._object._addMesh()
-		self._object._mesh._prepareVertexCount(1000000)
+		self._object._mesh._prepareVertexCount(2000000)
 		#self._object._postProcessAfterLoad()
 
 	def appendPointCloud(self, point, color):

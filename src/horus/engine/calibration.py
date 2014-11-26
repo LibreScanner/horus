@@ -474,7 +474,7 @@ class PlatformExtrinsics(Calibration):
 
 	def getPatternPosition(self, step, board, camera):
 		t = None
-		image = camera.captureImage(flush=True, flushValue=2)
+		image = camera.captureImage(flush=True, flushValue=1)
 		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 		if ret is not None:
 			if ret[0]:

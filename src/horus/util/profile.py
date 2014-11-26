@@ -220,33 +220,38 @@ setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), st
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
 
+setting('scan_type', _("Without Texture"), [_("Without Texture"), _("With Texture")], 'basic', _('Scan Type'))
+setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right Laser"), _("Use Both Laser")], 'basic', _('Use Laser'))
+setting('fast_scan', False, bool, 'advanced', _('Fast Scan'))
+
+setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
+setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
+setting('acceleration_scanning', 400, int, 'advanced', _('Acceleration')).setRange(1, 100)
+
 setting('brightness_scanning', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_scanning', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_scanning', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_scanning', 166, int, 'basic', _('Exposure')).setRange(2, 512)
+setting('laser_exposure_scanning', 60, int, 'basic', _('Laser Exposure')).setRange(2, 512)
+setting('color_exposure_scanning', 140, int, 'basic', _('Color Exposure')).setRange(2, 512)
 setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
 setting('resolution_scanning', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
 
-setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
-setting('acceleration_scanning', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
-
-setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right Laser")], 'basic', _('Use Laser')) #, _("Use Both Lasers")]
-
-setting('img_type', 'raw', ['raw', 'las', 'diff', 'bin', 'line'], 'advanced', _('Image Type'))
+setting('img_type', 'laser', ['laser', 'gray', 'line', 'color'], 'advanced', _('Image Type'))
 
 setting('use_open', True, bool, 'advanced', _('Use Open'))
 setting('open_value', 3, int, 'advanced', _('Open')).setRange(1, 10)
 setting('use_threshold', True, bool, 'advanced', _('Use Threshold'))
 setting('threshold_value', 30, int, 'advanced', _('Threshold')).setRange(0, 255)
-
-setting('use_compact', False, bool, 'advanced', _('Compact'))
-setting('use_complete', True, bool, 'advanced', _('Complete'))
+setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'))
+setting('cr_threshold_value', 140, int, 'advanced', _('Threshold')).setRange(0, 255)
 
 setting('view_roi', True, bool, 'advanced', _('View ROI'))
 setting('roi_diameter', 200, int, 'advanced', _('Diameter')).setRange(0, 250)
 setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
+
+setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
 setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
 setting('laser_angle_right', 30.0, float, 'advanced', _('Laser Angle Right'))
@@ -257,6 +262,11 @@ setting('distortion_vector',([0.0,0.0,0.0,0.0,0.0]),numpy.ndarray,'advanced',_('
 setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
 setting('laser_origin', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Origin'))
 setting('laser_normal', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Normal'))
+
+setting('distance_left', 0.0, float, 'advanced', _('Distance'))
+setting('normal_left', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
+setting('distance_right', 0.0, float, 'advanced', _('Distance'))
+setting('normal_right', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
 
 setting('rotation_matrix', ([[0.0,1.0,0.0],[0.0,0.0,-1.0],[-1.0,0.0,0.0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
 setting('translation_vector', ([5.0,80.0,320.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
@@ -272,7 +282,7 @@ setting('right_button', '', str, 'basic', _('Right'), False)
 setting('move_button', '', str, 'basic', _('Move'), False)
 setting('enable_button', '', str, 'basic', _('Enable'), False)
 setting('gcode_gui', '', str, 'advanced', _('Send'), False)
-setting('restore_default', '', str, 'basic', _('Restore Default'), False)
+setting('restore_default', '', str, 'advanced', _('Restore Default'), False)
 
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'ciclop', str, 'machine', 'hidden')
@@ -301,7 +311,6 @@ setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 setting('last_files', [], str, 'preference', 'hidden')
 setting('last_file', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
 setting('last_profile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.ini')), str, 'preference', 'hidden')
-
 
 setting('model_colour', '#888899', str, 'preference', 'hidden').setLabel(_('Model colour'), _('Display color for first extruder'))
 

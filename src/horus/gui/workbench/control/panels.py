@@ -29,58 +29,43 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
-from horus.gui.util.itemControls import *
+from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
+                                        CheckBox, Button, TextBox, ToggleButton, CallbackButton
 
 from horus.util import profile
 
 from horus.engine.driver import Driver
 
-class CameraPanel(wx.Panel):
-    """
-    """
+
+class CameraControl(ExpandablePanel):
+    """"""
     def __init__(self, parent):
         """"""
-        wx.Panel.__init__(self, parent=parent, size=(275, 0))
+        ExpandablePanel.__init__(self, parent, _("Camera Control"))
+        
+        self.driver = Driver.Instance()
+        self.main = self.GetParent().GetParent().GetParent().GetParent()
+
         self.initialize()
         
     def initialize(self):
-        self.driver = Driver.Instance()
-        self.main = self.GetParent().GetParent().GetParent()
-
-        if hasattr(self, 'controls'):
-            del self.controls[:]
-        self.controls = []
-
-        #-- Graphic elements
-        control = Control(self, _('Camera Control'))
-        control.append(Slider, 'brightness_control', self.driver.camera.setBrightness)
-        control.append(Slider, 'contrast_control', self.driver.camera.setContrast)
-        control.append(Slider, 'saturation_control', self.driver.camera.setSaturation)
-        control.append(Slider, 'exposure_control', self.driver.camera.setExposure)
-        control.append(ComboBox, 'framerate_control', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
-        control.append(ComboBox, 'resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        control.append(CheckBox, 'use_distortion_control', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
-        control.append(Button, 'restore_default', self.restoreDefault)
-        self.controls.append(control)
-
-        #-- Layout
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        for control in self.controls:
-            vbox.Add(control, 0, wx.ALL|wx.EXPAND, 0)
-        self.SetSizer(vbox)
-        self.Layout()
-
-        #-- Callbacks
-        for control in self.controls:
-            control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
-
+        self.clearSections()
+        section = self.createSection('camera_control')
+        section.addItem(Slider, 'brightness_control', self.driver.camera.setBrightness)
+        section.addItem(Slider, 'contrast_control', self.driver.camera.setContrast)
+        section.addItem(Slider, 'saturation_control', self.driver.camera.setSaturation)
+        section.addItem(Slider, 'exposure_control', self.driver.camera.setExposure)
+        section.addItem(ComboBox, 'framerate_control', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        section.addItem(ComboBox, 'resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        section.addItem(CheckBox, 'use_distortion_control', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
+        section.addItem(Button, 'restore_default', self.restoreDefault)
+        
     def restoreDefault(self):
         dlg = wx.MessageDialog(self, _("This will reset control camera settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Control reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            for control in self.controls:
-                control.resetProfile()
+            self.resetProfile()
             self.main.enableLabelTool(self.main.undoTool, False)
             self.reloadVideo()
 
@@ -89,20 +74,82 @@ class CameraPanel(wx.Panel):
         if self.main.playing:
             self.main.videoView.play()
 
-    def updateProfileToAllControls(self):
-        for control in self.controls:
-            control.updateProfile()
+
+class LaserControl(ExpandablePanel):
+    """"""
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Laser Control"))
+        
+        self.driver = Driver.Instance()
+
+        self.initialize()
+        
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('laser_control')
+        section.addItem(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
+        section.addItem(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
 
 
-class GcodeGui(ControlItem):
+class MotorControl(ExpandablePanel):
+    """"""
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Motor Control"))
+        
+        self.driver = Driver.Instance()
+
+        self.initialize()
+        
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('motor_control')
+        section.addItem(TextBox, 'step_degrees_control', lambda v: self.driver.board.setRelativePosition(self.getValueFloat(v)))
+        section.addItem(TextBox, 'feed_rate_control', lambda v: self.driver.board.setSpeedMotor(self.getValueInteger(v)))
+        section.addItem(TextBox, 'acceleration_control', lambda v: self.driver.board.setAccelerationMotor(self.getValueInteger(v)))
+        section.addItem(CallbackButton, 'move_button', lambda c: self.driver.board.moveMotor(nonblocking=True, callback=c))
+        section.addItem(ToggleButton, 'enable_button', (self.driver.board.enableMotor, self.driver.board.disableMotor))
+
+    #TODO: move
+    def getValueInteger(self, value):
+        try:
+            return int(eval(value, {}, {}))
+        except:
+            return 0
+
+    def getValueFloat(self, value): 
+        try:
+            return float(eval(value.replace(',', '.'), {}, {}))
+        except:
+            return 0.0
+
+
+class GcodeControl(ExpandablePanel):
+    """"""
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Gcode Control"))
+        
+        self.driver = Driver.Instance()
+
+        self.initialize()
+        
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('gcode_control')
+        section.addItem(GcodeSection, 'gcode_gui', lambda v, c: self.driver.board.sendRequest(v, nonblocking=True, callback=c, readLines=True))
+
+
+class GcodeSection(SectionItem):
     def __init__(self, parent, name, engineCallback=None):
-        """ """
-        ControlItem.__init__(self, parent, name, engineCallback)
+        """"""
+        SectionItem.__init__(self, parent, name, engineCallback)
 
         #-- Elements
         self.request = wx.TextCtrl(self, size=(10,10))
         self.control = wx.Button(self, label=self.setting.getLabel())
-        self.response = wx.TextCtrl(self, size=(10,150), style=wx.TE_MULTILINE)
+        self.response = wx.TextCtrl(self, size=(10,250), style=wx.TE_MULTILINE)
 
         #-- Layout
         vbox =wx.BoxSizer(wx.VERTICAL)
@@ -137,64 +184,3 @@ class GcodeGui(ControlItem):
             self.Show()
         else:
             self.Hide()
-
-class DevicePanel(wx.Panel):
-    """
-    """
-    def __init__(self, parent):
-        """"""
-        wx.Panel.__init__(self, parent=parent, size=(275, 0))
-        self.initialize()
-
-    def initialize(self):
-        self.driver = Driver.Instance()
-        self.main = self.GetParent().GetParent().GetParent()
-
-        if hasattr(self, 'controls'):
-            del self.controls[:]
-        self.controls = []
-
-        #-- Graphic elements
-        control = Control(self, _('Laser Control'))
-        control.append(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
-        control.append(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
-        self.controls.append(control)
-
-        control = Control(self, _('Motor Control'))
-        control.append(TextBox, 'step_degrees_control', lambda v: self.driver.board.setRelativePosition(self.getValueFloat(v)))
-        control.append(TextBox, 'feed_rate_control', lambda v: self.driver.board.setSpeedMotor(self.getValueInteger(v)))
-        control.append(TextBox, 'acceleration_control', lambda v: self.driver.board.setAccelerationMotor(self.getValueInteger(v)))
-        control.append(CallbackButton, 'move_button', lambda c: self.driver.board.moveMotor(nonblocking=True, callback=c))
-        control.append(ToggleButton, 'enable_button', (self.driver.board.enableMotor, self.driver.board.disableMotor))
-        self.controls.append(control)
-
-        control = Control(self, _('Gcode Commands'))
-        control.append(GcodeGui, 'gcode_gui', lambda v, c: self.driver.board.sendRequest(v, nonblocking=True, callback=c, readLines=True))
-        self.controls.append(control)
-
-        #-- Layout
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        for control in self.controls:
-            vbox.Add(control, 0, wx.ALL|wx.EXPAND, 0)
-        self.SetSizer(vbox)
-
-        #-- Callbacks
-        for control in self.controls:
-            control.setUndoCallbacks(self.main.appendToUndo, self.main.releaseUndo)
-
-    #TODO: move
-    def getValueInteger(self, value):
-        try:
-            return int(eval(value, {}, {}))
-        except:
-            return 0
-
-    def getValueFloat(self, value): 
-        try:
-            return float(eval(value.replace(',', '.'), {}, {}))
-        except:
-            return 0.0
-
-    def updateProfileToAllControls(self):
-        for control in self.controls:
-            control.updateProfile()

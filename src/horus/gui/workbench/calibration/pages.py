@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014 Mundo Reader S.L.                                  #
 #                                                                       #
-# Date: August 2014                                                     #
+# Date: August & November 2014                                          #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -30,6 +30,11 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import cv2
 import wx._core
 import numpy as np
+
+import random
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
 import horus.util.error as Error
 from horus.util import profile, resources
@@ -61,7 +66,7 @@ class CameraIntrinsicsMainPage(Page):
 		self.afterCalibrationCallback = afterCalibrationCallback
 
 		#-- Video View
-		self.videoView = VideoView(self._panel, self.getFrame)
+		self.videoView = VideoView(self._panel, self.getFrame, 50)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Image Grid Panel
@@ -189,7 +194,7 @@ class CameraIntrinsicsResultPage(Page):
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 
 		#-- 3D Plot Panel
-		self.plotPanel = Plot3DCameraIntrinsics(self._panel)
+		self.plotPanel = CameraIntrinsics3DPlot(self._panel)
 
 		#-- Layout
 		self.addToPanel(self.plotPanel, 2)
@@ -209,7 +214,7 @@ class CameraIntrinsicsResultPage(Page):
 
 		if ret:
 			mtx, dist, rvecs, tvecs = result
-			self.GetParent().GetParent().cameraIntrinsicsPanel.setParameters((mtx, dist))
+			self.GetParent().GetParent().controls.panels['camera_intrinsics_panel'].setParameters((mtx, dist))
 			self.plotPanel.add(rvecs, tvecs)
 			self.plotPanel.Show()
 			self.Layout()
@@ -219,11 +224,8 @@ class CameraIntrinsicsResultPage(Page):
 				dlg.ShowModal()
 				dlg.Destroy()
 
-import random
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
-class Plot3DCameraIntrinsics(wx.Panel):
+class CameraIntrinsics3DPlot(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 
@@ -331,10 +333,10 @@ class LaserTriangulationMainPage(Page):
 
 		#-- Image View
 		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 
 		#-- Video View
-		self.videoView = VideoView(self._panel, self.getFrame)
+		self.videoView = VideoView(self._panel, self.getFrame, 50)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
@@ -410,9 +412,212 @@ class LaserTriangulationResultPage(Page):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
+		self.plotPanel = LaserTriangulation3DPlot(self._panel)
 
-		self.leftLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Left Laser Image Sequence")
-		self.rightLaserImageSequence = LaserTriangulationImageSequence(self._panel, "Right Laser Image Sequence")
+		#-- Layout
+		self.addToPanel(self.plotPanel, 3)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.GetParent().Layout()
+			self.Layout()
+
+	def processCalibration(self, response):
+		ret, result = response
+
+		if ret:
+			dL = result[0][0]
+			nL = result[0][1]
+			dR = result[1][0]
+			nR = result[1][1]
+			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((dL, nL, dR, nR))
+			self.plotPanel.clear()
+			self.plotPanel.add(result)
+			self.plotPanel.Show()
+			self.Layout()
+		else:
+			if result == Error.CalibrationError:
+				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
+
+
+class LaserTriangulation3DPlot(wx.Panel):
+
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent)
+
+		self.initialize()
+
+	def initialize(self):
+		fig = Figure(facecolor=(0.7490196,0.7490196,0.7490196,1), tight_layout=True)
+		self.canvas = FigureCanvasWxAgg(self, -1, fig)
+		self.canvas.SetExtraStyle(wx.EXPAND)
+		self.ax = fig.gca(projection='3d', axisbg=(0.7490196,0.7490196,0.7490196,1))
+
+		self.Bind(wx.EVT_SIZE, self.onSize)
+		self.Layout()
+
+	def onSize(self,event):
+		self.canvas.SetClientSize(self.GetClientSize())
+		self.canvas.draw()
+		self.Layout()
+
+	def add(self, args):
+		dL, nL, RL = args[0]
+		dR, nR, RR = args[1]
+
+		self.addPlane(RL, dL*nL)
+		self.addPlane(RR, dR*nR)
+
+		self.ax.plot([0,50], [0,0], [0,0], linewidth=2.0, color='red')
+		self.ax.plot([0,0], [0,0], [0,50], linewidth=2.0, color='green')
+		self.ax.plot([0,0], [0,50], [0,0], linewidth=2.0, color='blue')
+
+		self.ax.set_xlabel('X')
+		self.ax.set_ylabel('Z')
+		self.ax.set_zlabel('Y')
+
+		self.ax.set_xlim(-150, 150)
+		self.ax.set_ylim(0, 400)
+		self.ax.set_zlim(-150, 150)
+
+		self.ax.invert_xaxis()
+		self.ax.invert_yaxis()
+		self.ax.invert_zaxis()
+
+		self.canvas.draw()
+		self.Layout()
+
+	def addPlane(self, R, t):
+		w = 300
+		h = 300
+
+		p = np.array([[0,0,0],[w,0,0],[w,h,0],[0,h,0],[0,0,0]])
+		n = np.array([[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]])
+
+		points = np.dot(R, p.T) + np.array([t,t,t,t,t]).T
+		normals = np.dot(R, n.T)
+
+		X = np.array([points[0], normals[0]])
+		Y = np.array([points[1], normals[1]])
+		Z = np.array([points[2], normals[2]])
+
+		self.ax.plot_surface(X, Z, Y, linewidth=0, color=(1,0,0,0.8))
+
+		self.canvas.draw()
+
+	def clear(self):
+		self.ax.cla()
+
+
+class SimpleLaserTriangulationMainPage(Page):
+
+	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
+		Page.__init__(self, parent,
+							title=_("Simple Laser Triangulation"),
+							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
+							left=_("Cancel"),
+							right=_("Calibrate"),
+							buttonLeftCallback=self.onCancel,
+							buttonRightCallback=self.onCalibrate,
+							panelOrientation=wx.HORIZONTAL,
+							viewProgress=True)
+
+		self.driver = Driver.Instance()
+		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+		self.laserTriangulation = calibration.LaserTriangulation.Instance()
+
+		self.afterCancelCallback = afterCancelCallback
+		self.afterCalibrationCallback = afterCalibrationCallback
+
+		#-- Image View
+		imageView = ImageView(self._panel)
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
+
+		#-- Video View
+		self.videoView = VideoView(self._panel, self.getFrame, 50)
+		self.videoView.SetBackgroundColour(wx.BLACK)
+
+		#-- Layout
+		self.addToPanel(imageView, 3)
+		self.addToPanel(self.videoView, 2)
+
+		#-- Events
+		self.Bind(wx.EVT_SHOW, self.onShow)
+
+		self.Layout()
+
+	def initialize(self):
+		self.gauge.SetValue(0)
+
+	def onShow(self, event):
+		if event.GetShow():
+			self.videoView.play()
+			self.GetParent().Layout()
+			self.Layout()
+		else:
+			try:
+				self.initialize()
+				self.videoView.stop()
+			except:
+				pass
+
+	def getFrame(self):
+		frame = self.driver.camera.captureImage()
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		return frame
+
+	def onCalibrate(self):
+		self.laserTriangulation.setCallbacks(self.beforeCalibration,
+											 lambda p: wx.CallAfter(self.progressCalibration,p),
+											 lambda r: wx.CallAfter(self.afterCalibration,r))
+		self.laserTriangulation.start()
+
+	def beforeCalibration(self):
+		self._rightButton.Disable()
+		self.gauge.SetValue(0)
+		self.waitCursor = wx.BusyCursor()
+
+	def progressCalibration(self, progress):
+		self.gauge.SetValue(progress)
+
+	def afterCalibration(self, result):
+		self._rightButton.Enable()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCalibrationCallback is not None:
+			self.afterCalibrationCallback(result)
+
+	def onCancel(self):
+		self.laserTriangulation.cancel()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
+		if self.afterCancelCallback is not None:
+			self.afterCancelCallback()
+
+
+class SimpleLaserTriangulationResultPage(Page):
+
+	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
+		Page.__init__(self, parent,
+							title=_("Laser Triangulation"),
+							left=_("Reject"),
+							right=_("Accept"),
+							buttonLeftCallback=buttonRejectCallback,
+							buttonRightCallback=buttonAcceptCallback,
+							panelOrientation=wx.HORIZONTAL)
+
+		vbox = wx.BoxSizer(wx.VERTICAL)
+
+		self.laserTriangulation = calibration.LaserTriangulation.Instance()
+
+		self.leftLaserImageSequence = SimpleLaserTriangulationImageSequence(self._panel, "Left Laser Image Sequence")
+		self.rightLaserImageSequence = SimpleLaserTriangulationImageSequence(self._panel, "Right Laser Image Sequence")
 
 		#-- Layout
 		vbox.Add(self.leftLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
@@ -433,7 +638,7 @@ class LaserTriangulationResultPage(Page):
 
 		if ret:
 			vectors, parameters, images = result
-			self.GetParent().GetParent().laserTriangulationPanel.setParameters((parameters, vectors[0], vectors[1]))
+			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((parameters, vectors[0], vectors[1]))
 			self.leftLaserImageSequence.imageLas.setFrame(images[0][0])
 			self.leftLaserImageSequence.imageGray.setFrame(images[0][1])
 			self.leftLaserImageSequence.imageBin.setFrame(images[0][2])
@@ -450,7 +655,7 @@ class LaserTriangulationResultPage(Page):
 				dlg.Destroy()
 
 
-class LaserTriangulationImageSequence(wx.Panel):
+class SimpleLaserTriangulationImageSequence(wx.Panel):
 
 	def __init__(self, parent, title="Title"):
 		wx.Panel.__init__(self, parent)
@@ -510,7 +715,7 @@ class PlatformExtrinsicsMainPage(Page):
 		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 
 		#-- Video View
-		self.videoView = VideoView(self._panel, self.getFrame)
+		self.videoView = VideoView(self._panel, self.getFrame, 50)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
@@ -586,7 +791,7 @@ class PlatformExtrinsicsResultPage(Page):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
-		self.plotPanel = Plot3DPlatformExtrinsics(self._panel)
+		self.plotPanel = PlatformExtrinsics3DPlot(self._panel)
 
 		#-- Layout
 		self.addToPanel(self.plotPanel, 3)
@@ -605,7 +810,8 @@ class PlatformExtrinsicsResultPage(Page):
 		if ret:
 			R = result[0]
 			t = result[1]
-			self.GetParent().GetParent().platformExtrinsicsPanel.setParameters((R, t))
+			self.GetParent().GetParent().controls.panels['platform_extrinsics_panel'].setParameters((R, t))
+			self.plotPanel.clear()
 			self.plotPanel.add(result)
 			self.plotPanel.Show()
 			self.Layout()
@@ -616,9 +822,7 @@ class PlatformExtrinsicsResultPage(Page):
 				dlg.Destroy()
 
 
-from mpl_toolkits.mplot3d import Axes3D
-
-class Plot3DPlatformExtrinsics(wx.Panel):
+class PlatformExtrinsics3DPlot(wx.Panel):
 
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
