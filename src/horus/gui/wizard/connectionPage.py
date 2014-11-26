@@ -132,10 +132,9 @@ class ConnectionPage(WizardPage):
 				self.updateStatus(False)
 				self.GetParent().parent.onPreferences(None)
 			elif result is Error.CameraNotConnected:
-				dlg = wx.MessageDialog(self, _("Please plug your camera. You have to restart the application to make the changes effective."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Please plug your camera and try to connect again"), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
-				self.GetParent().parent.Close(True)
 			elif result is Error.WrongCamera:
 				dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
@@ -143,10 +142,9 @@ class ConnectionPage(WizardPage):
 				self.updateStatus(False)
 				self.GetParent().parent.onPreferences(None)
 			elif result is Error.InvalidVideo:
-				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable.\nYou have to relaunch the wizard to make the changes effective"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable and try to connect again."), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
-				self.GetParent().Close(True)
 
 		if self.driver.isConnected:
 			self.videoView.play()
@@ -158,9 +156,8 @@ class ConnectionPage(WizardPage):
 			self.autoCheckButton.Enable()
 			self.skipButton.Enable()
 			self.enableNext = True
-		else:
-			self.connectButton.Enable()
 
+		self.connectButton.Enable()
 		self.prevButton.Enable()
 		del self.waitCursor
 

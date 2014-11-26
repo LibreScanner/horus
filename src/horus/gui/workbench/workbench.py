@@ -125,10 +125,9 @@ class WorkbenchConnection(Workbench):
 				self.updateStatus(False)
 				self.GetParent().onPreferences(None)
 			elif result is Error.CameraNotConnected:
-				dlg = wx.MessageDialog(self, _("Please plug your camera. You have to restart the application to make the changes effective."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Please plug your camera and try to connect again"), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
-				self.GetParent().Close(True)
 			elif result is Error.WrongCamera:
 				dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
@@ -136,10 +135,9 @@ class WorkbenchConnection(Workbench):
 				self.updateStatus(False)
 				self.GetParent().onPreferences(None)
 			elif result is Error.InvalidVideo:
-				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable. You have to restart the application to make the changes effective"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable and try to connect again"), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
-				self.GetParent().Close(True)
 
 		if self.driver.isConnected:
 			self.GetParent().updateBoardCurrentProfile()

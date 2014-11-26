@@ -29,6 +29,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import cv2
 import math
+import time
 import platform
 
 
@@ -84,7 +85,13 @@ class Camera:
 	def connect(self):
 		print ">>> Connecting camera {0}".format(self.cameraId)
 		self.isConnected = False
+		if self.capture is not None:
+			self.capture.release()
 		self.capture = cv2.VideoCapture(self.cameraId)
+		time.sleep(0.2)
+		if not self.capture.isOpened():
+			time.sleep(1)
+			self.capture.open(self.cameraId)
 		if self.capture.isOpened():
 			print ">>> Done"
 			self.isConnected = True
