@@ -76,6 +76,7 @@ class CameraIntrinsicsMainPage(Page):
 		self.gridSizer = wx.GridSizer(self.rows, self.columns, 3, 3)
 		for panel in range(self.rows*self.columns):
 			self.panelGrid.append(ImageView(self.imageGridPanel))
+			self.panelGrid[panel].Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
 			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
 			self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
 			self.gridSizer.Add(self.panelGrid[panel], 0, wx.ALL|wx.EXPAND)
@@ -88,6 +89,7 @@ class CameraIntrinsicsMainPage(Page):
 		#-- Events
 		self.Bind(wx.EVT_SHOW, self.onShow)
 		self.videoView.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
+		self.imageGridPanel.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
 		
 		self.videoView.SetFocus()
 		self.Layout()
