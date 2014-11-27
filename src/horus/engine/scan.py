@@ -375,6 +375,9 @@ class TextureScan(Scan):
 	def _captureThread(self, progressCallback, afterCallback):
 		""""""
 		ret = False
+		imgRaw = None
+		imgLaserLeft = None
+		imgLaserRight = None
 		while self.run:
 			if not self.inactive:
 				begin = datetime.datetime.now()

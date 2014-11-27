@@ -30,6 +30,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import os
 import cv2
 import glob
+import time
 import struct
 import platform
 import wx._core
@@ -200,9 +201,6 @@ class MainWindow(wx.Frame):
 
         self.updateProfileToAllControls()
 
-        self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.onBoardUnplugged))
-        self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.onCameraUnplugged))
-
         x, y, w, h = wx.Display(0).GetGeometry()
         ws, hs = self.size
 
@@ -290,7 +288,13 @@ class MainWindow(wx.Frame):
 
     def onClose(self, event):
         try:
-            self.simpleScan.stop()
+            if self.simpleScan.run or self.textureScan.run:
+                self.simpleScan.stop()
+                self.textureScan.stop()
+                time.sleep(0.5)
+            self.controlWorkbench.videoView.stop()
+            self.calibrationWorkbench.videoView.stop()
+            self.scanningWorkbench.videoView.stop()
             self.driver.disconnect()
         except:
             pass
@@ -436,13 +440,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def _onDeviceUnplugged(self, title="", description=""):
         self.simpleScan.stop()
         self.textureScan.stop()
-        dlg = wx.MessageDialog(self, description, title, wx.OK|wx.ICON_ERROR)
-        dlg.ShowModal()
-        dlg.Destroy()
-        self.driver.disconnect()
         self.controlWorkbench.updateStatus(False)
         self.calibrationWorkbench.updateStatus(False)
         self.scanningWorkbench.updateStatus(False)
+        self.driver.disconnect()
+        dlg = wx.MessageDialog(self, description, title, wx.OK|wx.ICON_ERROR)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def updateProfileToAllControls(self):
         """ """
@@ -560,8 +564,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.pcg.setDegrees(profile.getProfileSettingFloat('step_degrees_scanning'))
             resolution = profile.getProfileSetting('resolution_scanning')
             self.pcg.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
-            self.pcg.setUseLaser(profile.getProfileSetting('use_laser')==_("Use Left Laser"),
-                                 profile.getProfileSetting('use_laser')==_("Use Right Laser"))
+            useLaser = profile.getProfileSetting('use_laser')
+            self.pcg.setUseLaser(useLaser==_("Use Left Laser") or useLaser==_("Use Both Laser"),
+                                 useLaser==_("Use Right Laser") or useLaser==_("Use Both Laser"))
             self.pcg.setLaserAngles(profile.getProfileSettingFloat('laser_angle_left'),
                                     profile.getProfileSettingFloat('laser_angle_right'))
             self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),

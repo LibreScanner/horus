@@ -47,7 +47,7 @@ class ScanningWorkbench(WorkbenchConnection):
 	def __init__(self, parent):
 		WorkbenchConnection.__init__(self, parent)
 
-		self.playing = False
+		self.scanning = False
 		self.showVideoViews = False
 
 		self.simpleScan = SimpleScan.Instance()
@@ -67,7 +67,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.pauseTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(resources.getPathForImage("pause.png")), shortHelp=_("Pause"))
 		self.resumeTool = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(resources.getPathForImage("resume.png")), shortHelp=_("Resume"))
 		self.undoTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
-		self.deleteTool = self.toolbar.AddLabelTool(wx.NewId(), _("Delete"), wx.Bitmap(resources.getPathForImage("delete.png")), shortHelp=_("Clear"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
@@ -76,7 +75,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, False)
 		self.enableLabelTool(self.undoTool  , False)
-		self.enableLabelTool(self.deleteTool, True)
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked  , self.playTool)
@@ -84,7 +82,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked , self.pauseTool)
 		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked, self.resumeTool)
 		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked  , self.undoTool)
-		self.Bind(wx.EVT_TOOL, self.onDeleteToolClicked, self.deleteTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
@@ -102,7 +99,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 
-		self.videoView = VideoView(self.splitterWindow, self.getFrame, 200)
+		self.videoView = VideoView(self.splitterWindow, self.getFrame, 5)
 		self.sceneView = SceneView(self.splitterWindow)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
@@ -149,7 +146,6 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.updateStatus(self.currentScan.driver.isConnected)
 			self.pointCloudTimer.Stop()
 			self.pointCloudTimer.Start(milliseconds=50)
-			self.videoView.play()
 		else:
 			try:
 				self.pointCloudTimer.Stop()
@@ -174,7 +170,10 @@ class ScanningWorkbench(WorkbenchConnection):
 		profile.putProfileSetting('img_type', selectedView)
 
 	def getFrame(self):
-		return self.currentScan.getImage()
+		if self.scanning:
+			return self.currentScan.getImage()
+		else:
+			return self.driver.camera.captureImage()
 
 	def onPointCloudTimer(self, event):
 		pointCloud = self.currentScan.getPointCloudIncrement()
@@ -194,15 +193,15 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.currentScan.start()
 
 	def beforeScan(self):
+		self.scanning = True
 		self.buttonShowVideoViews.Show()
 		self.enableLabelTool(self.disconnectTool, False)
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
 		self.enableLabelTool(self.pauseTool , True)
 		self.enableLabelTool(self.resumeTool, False)
-		self.enableLabelTool(self.deleteTool, False)
 		self.sceneView.createDefaultObject()
-		self.videoView.play()
+		self.videoView.setMilliseconds(200)
 		self.combo.Disable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), False)
@@ -211,7 +210,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), False)
-
 		self.pointCloudTimer.Start(milliseconds=50)
 
 	def afterScan(self, response):
@@ -230,6 +228,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		dlg.Destroy()
 
 		if result:
+			self.scanning = False
 			self.currentScan.stop()
 			self.onScanFinished()
 		else:
@@ -237,12 +236,14 @@ class ScanningWorkbench(WorkbenchConnection):
 				self.currentScan.resume()
 
 	def onScanFinished(self):
+		self.buttonShowVideoViews.Hide()
+		self.comboVideoViews.Hide()
 		self.enableLabelTool(self.disconnectTool, True)
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, False)
-		self.enableLabelTool(self.deleteTool, True)
+		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), True)
@@ -256,28 +257,16 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, True)
-		self.enableLabelTool(self.deleteTool, False)
 		
 		self.currentScan.pause()
 		self.pointCloudTimer.Stop()
-		#self.videoView.pause()
 
 	def onResumeToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , True)
 		self.enableLabelTool(self.resumeTool, False)
-		self.enableLabelTool(self.deleteTool, False)
 		
 		self.currentScan.resume()
 		self.pointCloudTimer.Start(milliseconds=50)
-		#self.videoView.play()
-
-	def onDeleteToolClicked(self, event):
-		if self.sceneView._object is not None:
-			dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
-			result = dlg.ShowModal() == wx.ID_YES
-			dlg.Destroy()
-			if result:
-				self.sceneView._clearScene()
 
 	def onUndoToolClicked(self, event):
 		self.enableLabelTool(self.undoTool, self.undo())
@@ -296,22 +285,20 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def updateToolbarStatus(self, status):
 		if status:
+			if self.IsShown():
+				self.videoView.play()
 			self.enableLabelTool(self.playTool  , True)
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.pauseTool , False)
 			self.enableLabelTool(self.resumeTool, False)
-			self.enableLabelTool(self.deleteTool, True)
 			self.controls.enableContent()
-			self.buttonShowVideoViews.Show()
 		else:
+			self.videoView.stop()
 			self.enableLabelTool(self.playTool  , False)
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.pauseTool , False)
 			self.enableLabelTool(self.resumeTool, False)
-			self.enableLabelTool(self.deleteTool, True)
 			self.controls.disableContent()
-			self.buttonShowVideoViews.Hide()
-			self.comboVideoViews.Hide()
 
 	def updateProfileToAllControls(self):
 		self.controls.updateProfile()
