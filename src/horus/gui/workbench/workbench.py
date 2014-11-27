@@ -101,11 +101,15 @@ class WorkbenchConnection(Workbench):
 
 	def onDisconnectToolClicked(self, event):
 		self.driver.disconnect()
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
 		self.updateStatus(False)
 
 	def beforeConnect(self):
 		self.enableLabelTool(self.connectTool, False)
 		self.combo.Disable()
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
 		self.waitCursor = wx.BusyCursor()
 
 	def afterConnect(self, response):
@@ -143,6 +147,8 @@ class WorkbenchConnection(Workbench):
 			self.GetParent().updateBoardCurrentProfile()
 			self.GetParent().updateCameraCurrentProfile()
 			self.GetParent().updatePCGCurrentProfile()
+			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
+			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
 
 		self.updateStatus(self.driver.isConnected)
 		self.combo.Enable()

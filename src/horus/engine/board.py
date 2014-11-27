@@ -114,6 +114,9 @@ class Board:
 		print ">>> Disconnecting board {0}".format(self.serialName)
 		try:
 			if self.serialPort is not None:
+				self.setLeftLaserOff()
+				self.setRightLaserOff()
+				self.disableMotor()
 				self.serialPort.close()
 		except serial.SerialException:
 			print "Error closing the port {0}\n".format(self.serialName)

@@ -200,7 +200,8 @@ class MainWindow(wx.Frame):
 
         self.updateProfileToAllControls()
 
-        self.driver.board.setUnplugCallback(self.onBoardUnplugged)
+        self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.onBoardUnplugged))
+        self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.onCameraUnplugged))
 
         x, y, w, h = wx.Display(0).GetGeometry()
         ws, hs = self.size
@@ -429,7 +430,12 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def onBoardUnplugged(self):
         self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it and press connect"))
 
+    def onCameraUnplugged(self):
+        self._onDeviceUnplugged(_("Camera unplugged"), _("Camera has been unplugged. Please, plug it and press connect"))
+
     def _onDeviceUnplugged(self, title="", description=""):
+        self.simpleScan.stop()
+        self.textureScan.stop()
         dlg = wx.MessageDialog(self, description, title, wx.OK|wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
