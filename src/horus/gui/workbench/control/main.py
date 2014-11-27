@@ -45,8 +45,6 @@ class ControlWorkbench(WorkbenchConnection):
 	def __init__(self, parent):
 		WorkbenchConnection.__init__(self, parent)
 
-		self.playing = False
-
 		self.driver = Driver.Instance()
 
 		self.load()
@@ -55,19 +53,13 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def load(self):
 		#-- Toolbar Configuration
-		self.playTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
-		self.stopTool = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
-		self.enableLabelTool(self.playTool, False)
-		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.undoTool, False)
 
 		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
-		self.Bind(wx.EVT_TOOL, self.onStopToolClicked, self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked, self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
@@ -83,7 +75,7 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.controls.setUndoCallbacks(self.appendToUndo, self.releaseUndo)
 
-		self.videoView = VideoView(self._panel, self.getFrame, 30)
+		self.videoView = VideoView(self._panel, self.getFrame, 5)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
@@ -108,24 +100,12 @@ class ControlWorkbench(WorkbenchConnection):
 			self.updateStatus(self.driver.isConnected)
 		else:
 			try:
-				self.onStopToolClicked(None)
+				self.videoView.stop()
 			except:
 				pass
 
 	def getFrame(self):
 		return self.driver.camera.captureImage()
-
-	def onPlayToolClicked(self, event):
-		self.playing = True
-		self.enableLabelTool(self.playTool, False)
-		self.enableLabelTool(self.stopTool, True)
-		self.videoView.play()
-
-	def onStopToolClicked(self, event):
-		self.playing = False
-		self.enableLabelTool(self.playTool, True)
-		self.enableLabelTool(self.stopTool, False)
-		self.videoView.stop()
 
 	def onUndoToolClicked(self, event):
 		self.enableLabelTool(self.undoTool, self.undo())
@@ -144,14 +124,12 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def updateToolbarStatus(self, status):
 		if status:
-			self.enableLabelTool(self.playTool, True)
-			self.enableLabelTool(self.stopTool, False)
+			if self.IsShown():
+				self.videoView.play()
 			self.controls.enableContent()
 		else:
-			self.enableLabelTool(self.playTool, False)
-			self.enableLabelTool(self.stopTool, False)
-			self.controls.disableContent()
 			self.videoView.stop()
+			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
 		self.controls.updateProfile()

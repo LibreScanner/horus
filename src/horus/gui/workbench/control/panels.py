@@ -70,8 +70,7 @@ class CameraControl(ExpandablePanel):
             self.reloadVideo()
 
     def reloadVideo(self):
-        self.main.videoView.pause()
-        if self.main.playing:
+        if self.main.IsShown():
             self.main.videoView.play()
 
 

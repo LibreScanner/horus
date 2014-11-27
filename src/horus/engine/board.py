@@ -180,6 +180,8 @@ class Board:
 					ret = ''.join(self.serialPort.readline())
 				self._success()
 			except:
+				if callback is not None:
+					callback(ret)
 				self._fail()
 		else:
 			self._fail()

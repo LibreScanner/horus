@@ -149,7 +149,7 @@ class WorkbenchConnection(Workbench):
 			self.GetParent().updatePCGCurrentProfile()
 			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
-
+		
 		self.updateStatus(self.driver.isConnected)
 		self.combo.Enable()
 		del self.waitCursor

@@ -49,7 +49,6 @@ class CalibrationWorkbench(WorkbenchConnection):
     def __init__(self, parent):
         WorkbenchConnection.__init__(self, parent)
 
-        self.playing = False
         self.calibrating = False
 
         self.load()
@@ -58,19 +57,13 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def load(self):
         #-- Toolbar Configuration
-        self.playTool = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
-        self.stopTool = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
         self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
         self.toolbar.Realize()
 
         #-- Disable Toolbar Items
-        self.enableLabelTool(self.playTool, False)
-        self.enableLabelTool(self.stopTool, False)
         self.enableLabelTool(self.undoTool, False)
 
         #-- Bind Toolbar Items
-        self.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
-        self.Bind(wx.EVT_TOOL, self.onStopToolClicked, self.stopTool)
         self.Bind(wx.EVT_TOOL, self.onUndoToolClicked, self.undoTool)
 
         self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
@@ -79,7 +72,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.controls = ExpandableControl(self.scrollPanel)
 
-        self.videoView = VideoView(self._panel, self.getFrame)
+        self.videoView = VideoView(self._panel, self.getFrame, 5)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         #-- Add Scroll Panels
@@ -148,10 +141,10 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onShow(self, event):
         if event.GetShow():
-            self.updateStatus(Driver.Instance().isConnected)
+            self.updateStatus(self.driver.isConnected)
         else:
             try:
-                self.onStopToolClicked(None)
+                self.videoView.stop()
             except:
                 pass
 
@@ -160,18 +153,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         if frame is not None:
             retval, frame = CameraIntrinsics.Instance().detectChessboard(frame)
         return frame
-
-    def onPlayToolClicked(self, event):
-        self.playing = True
-        self.enableLabelTool(self.playTool, False)
-        self.enableLabelTool(self.stopTool, True)
-        self.videoView.play()
-
-    def onStopToolClicked(self, event):
-        self.videoView.stop()
-        self.playing = False
-        self.enableLabelTool(self.playTool, True)
-        self.enableLabelTool(self.stopTool, False)
 
     def onUndoToolClicked(self, event):
         self.enableLabelTool(self.undoTool, self.undo())
@@ -190,26 +171,22 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def updateToolbarStatus(self, status):
         if status:
-            self.enableLabelTool(self.playTool, True)
-            self.enableLabelTool(self.stopTool, False)
+            if self.IsShown():
+                self.videoView.play()
             self.controls.enableContent()
             self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
             self.controls.panels['laser_triangulation_panel'].buttonsPanel.Enable()
             self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Enable()
         else:
-            self.enableLabelTool(self.playTool, False)
-            self.enableLabelTool(self.stopTool, False)
+            self.videoView.stop()
             self.controls.disableContent()
             self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Disable()
             self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
             self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
-            self.videoView.stop()
 
     def onCameraIntrinsicsStartCallback(self):
         self.calibrating = True
         self.enableLabelTool(self.disconnectTool, False)
-        self.enableLabelTool(self.playTool, False)
-        self.enableLabelTool(self.stopTool, False)
         self.controls.setExpandable(False)
         self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Disable()
         self.combo.Disable()
@@ -222,8 +199,6 @@ class CalibrationWorkbench(WorkbenchConnection):
     def onLaserTriangulationStartCallback(self):
         self.calibrating = True
         self.enableLabelTool(self.disconnectTool, False)
-        self.enableLabelTool(self.playTool, False)
-        self.enableLabelTool(self.stopTool, False)
         self.controls.setExpandable(False)
         self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
         self.combo.Disable()
@@ -235,8 +210,6 @@ class CalibrationWorkbench(WorkbenchConnection):
     def onPlatformExtrinsicsStartCallback(self):
         self.calibrating = True
         self.enableLabelTool(self.disconnectTool, False)
-        self.enableLabelTool(self.playTool, False)
-        self.enableLabelTool(self.stopTool, False)
         self.controls.setExpandable(False)
         self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
         self.combo.Disable()
@@ -246,13 +219,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onCancelCallback(self):
-        if self.playing:
-            self.videoView.play()
-            self.enableLabelTool(self.playTool, False)
-            self.enableLabelTool(self.stopTool, True)
-        else:
-            self.enableLabelTool(self.playTool, True)
-            self.enableLabelTool(self.stopTool, False)
+        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -280,13 +247,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onCameraIntrinsicsAcceptCallback(self):
-        if self.playing:
-            self.videoView.play()
-            self.enableLabelTool(self.playTool, False)
-            self.enableLabelTool(self.stopTool, True)
-        else:
-            self.enableLabelTool(self.playTool, True)
-            self.enableLabelTool(self.stopTool, False)
+        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -307,13 +268,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onLaserTriangulationAcceptCallback(self):
-        if self.playing:
-            self.videoView.play()
-            self.enableLabelTool(self.playTool, False)
-            self.enableLabelTool(self.stopTool, True)
-        else:
-            self.enableLabelTool(self.playTool, True)
-            self.enableLabelTool(self.stopTool, False)
+        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -334,13 +289,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onPlatformExtrinsicsAcceptCallback(self):
-        if self.playing:
-            self.videoView.play()
-            self.enableLabelTool(self.playTool, False)
-            self.enableLabelTool(self.stopTool, True)
-        else:
-            self.enableLabelTool(self.playTool, True)
-            self.enableLabelTool(self.stopTool, False)
+        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -353,8 +302,5 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def updateProfileToAllControls(self):
         self.controls.updateProfile()
-        self.videoView.pause()
-        if self.playing:
-            self.GetParent().updateCameraProfile('calibration')
-            self.videoView.play()
+        self.GetParent().updateCameraProfile('calibration')
         self.Layout()
