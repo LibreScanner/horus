@@ -110,9 +110,9 @@ class MainWindow(wx.Frame):
         self.menuSaveModel = self.menuFile.Append(wx.NewId(), _("Save Model"))
         self.menuClearModel = self.menuFile.Append(wx.NewId(), _("Clear Model"))
         self.menuFile.AppendSeparator()
-        menuOpenProfile = self.menuFile.Append(wx.NewId(), _("Open Profile"), _("Opens Profile .ini"))
-        menuSaveProfile = self.menuFile.Append(wx.NewId(), _("Save Profile"))
-        menuResetProfile = self.menuFile.Append(wx.NewId(), _("Reset Profile"))
+        self.menuOpenProfile = self.menuFile.Append(wx.NewId(), _("Open Profile"), _("Opens Profile .ini"))
+        self.menuSaveProfile = self.menuFile.Append(wx.NewId(), _("Save Profile"))
+        self.menuResetProfile = self.menuFile.Append(wx.NewId(), _("Reset Profile"))
         self.menuFile.AppendSeparator()
         menuExit = self.menuFile.Append(wx.ID_EXIT, _("Exit"))
         menuBar.Append(self.menuFile, _("File"))
@@ -172,9 +172,9 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
         self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
         self.Bind(wx.EVT_MENU, self.onClearModel, self.menuClearModel)
-        self.Bind(wx.EVT_MENU, self.onOpenProfile, menuOpenProfile)
-        self.Bind(wx.EVT_MENU, self.onSaveProfile, menuSaveProfile)
-        self.Bind(wx.EVT_MENU, self.onResetProfile, menuResetProfile)
+        self.Bind(wx.EVT_MENU, self.onOpenProfile, self.menuOpenProfile)
+        self.Bind(wx.EVT_MENU, self.onSaveProfile, self.menuSaveProfile)
+        self.Bind(wx.EVT_MENU, self.onResetProfile, self.menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
 
         self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
@@ -199,6 +199,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         self.updateProfileToAllControls()
+
+        self.driver.board.setUnplugCallback(self.onBoardUnplugged)
 
         x, y, w, h = wx.Display(0).GetGeometry()
         ws, hs = self.size
@@ -423,6 +425,18 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def onWelcome(self, event):
         """ """
         welcome = WelcomeWindow(self)
+
+    def onBoardUnplugged(self):
+        self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it and press connect"))
+
+    def _onDeviceUnplugged(self, title="", description=""):
+        dlg = wx.MessageDialog(self, description, title, wx.OK|wx.ICON_ERROR)
+        dlg.ShowModal()
+        dlg.Destroy()
+        self.driver.disconnect()
+        self.controlWorkbench.updateStatus(False)
+        self.calibrationWorkbench.updateStatus(False)
+        self.scanningWorkbench.updateStatus(False)
 
     def updateProfileToAllControls(self):
         """ """
