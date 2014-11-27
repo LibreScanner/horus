@@ -79,8 +79,14 @@ class Camera:
 			self.maxSaturation = 255.
 			self.maxExposure = 10000.
 
+		self.unplugCallback = None
+		self._n = 0 # Check if command fails
+
 	def setCameraId(self, cameraId):
 		self.cameraId = cameraId
+
+	def setUnplugCallback(self, unplugCallback=None):
+		self.unplugCallback = unplugCallback
 
 	def connect(self):
 		print ">>> Connecting camera {0}".format(self.cameraId)
@@ -141,11 +147,23 @@ class Camera:
 				image = cv2.transpose(image)
 				if not mirror:
 					image = cv2.flip(image, 1)
+				self._success()
 				return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 			else:
+				self._fail()
 				return None
 		else:
+			self._fail()
 			return None
+
+	def _success(self):
+		self._n = 0
+
+	def _fail(self):
+		self._n += 1
+		if self._n == 1:
+			if self.unplugCallback is not None:
+				self.unplugCallback()
 
 	def getResolution(self):
 		return self.height, self.width #-- Inverted values because of transpose

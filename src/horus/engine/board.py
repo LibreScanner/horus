@@ -64,13 +64,18 @@ class Board:
 		self.baudRate = baudRate
 		self.serialPort = None
 		self.isConnected = False
+		self.unplugCallback = None
 		self._position = 0
+		self._n = 0 # Check if command fails
 
 	def setSerialName(self, serialName):
 		self.serialName = serialName
 
 	def setBaudRate(self, baudRate):
 		self.baudRate = baudRate
+
+	def setUnplugCallback(self, unplugCallback=None):
+		self.unplugCallback = unplugCallback
 
 	def connect(self):
 		""" Opens serial port and performs handshake"""
@@ -109,6 +114,9 @@ class Board:
 		print ">>> Disconnecting board {0}".format(self.serialName)
 		try:
 			if self.serialPort is not None:
+				self.setLeftLaserOff()
+				self.setRightLaserOff()
+				self.disableMotor()
 				self.serialPort.close()
 		except serial.SerialException:
 			print "Error closing the port {0}\n".format(self.serialName)
@@ -170,11 +178,23 @@ class Board:
 					ret = ''.join(self.serialPort.readlines())
 				else:
 					ret = ''.join(self.serialPort.readline())
+				self._success()
 			except:
-				pass
+				self._fail()
+		else:
+			self._fail()
 		if callback is not None:
 			callback(ret)
 		return ret
+
+	def _success(self):
+		self._n = 0
+
+	def _fail(self):
+		self._n += 1
+		if self._n == 1:
+			if self.unplugCallback is not None:
+				self.unplugCallback()
 
 	def _checkAcknowledge(self, ack):
 		if ack is not None:

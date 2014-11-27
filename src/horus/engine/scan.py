@@ -235,22 +235,23 @@ class SimpleScan(Scan):
 			if not self.inactive:
 				begin = datetime.datetime.now()
 
-
 				#-- Left laser
 				if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
 					image = self.driver.camera.captureImage()
-					#-- Compute 2D points from images
-					points2D, colors = self.compute2DPoints(image)
-					#-- Put 2D points into the queue
-					self.points2DQueue.put((True, points2D, colors))
+					if image is not None:
+						#-- Compute 2D points from images
+						points2D, colors = self.compute2DPoints(image)
+						#-- Put 2D points into the queue
+						self.points2DQueue.put((True, points2D, colors))
 
 				#-- Right laser
 				if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
 					image = self.driver.camera.captureImage()
-					#-- Compute 2D points from images
-					points2D, colors = self.compute2DPoints(image)
-					#-- Put 2D points into the queue
-					self.points2DQueue.put((False, points2D, colors))
+					if image is not None:
+						#-- Compute 2D points from images
+						points2D, colors = self.compute2DPoints(image)
+						#-- Put 2D points into the queue
+						self.points2DQueue.put((False, points2D, colors))
 
 				##-- Both laser
 				if self.pcg.useLeftLaser and self.pcg.useRightLaser:
@@ -262,15 +263,17 @@ class SimpleScan(Scan):
 					self.driver.board.setLeftLaserOff()
 					imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
 
-					#-- Compute 2D points from images
-					points2D, colors = self.compute2DPoints(imgLaserLeft)
-					#-- Put 2D points into the queue
-					self.points2DQueue.put((True, points2D, colors))
+					if imgLaserLeft is not None:
+						#-- Compute 2D points from images
+						points2D, colors = self.compute2DPoints(imgLaserLeft)
+						#-- Put 2D points into the queue
+						self.points2DQueue.put((True, points2D, colors))
 
-					#-- Compute 2D points from images
-					points2D, colors = self.compute2DPoints(imgLaserRight)
-					#-- Put 2D points into the queue
-					self.points2DQueue.put((False, points2D, colors))
+					if imgLaserRight is not None:
+						#-- Compute 2D points from images
+						points2D, colors = self.compute2DPoints(imgLaserRight)
+						#-- Put 2D points into the queue
+						self.points2DQueue.put((False, points2D, colors))
 
 				#-- Move motor
 				if self.moveMotor:
@@ -465,18 +468,18 @@ class TextureScan(Scan):
 							imgLaserRight = None
 
 				if self.pcg.useLeftLaser:
-					#-- Compute 2D points from images
-					points2D, colors = self.compute2DPoints(imgRaw, imgLaserLeft)
-					
-					#-- Put 2D points into the queue
-					self.points2DQueue.put((True, points2D, colors))
+					if imgRaw is not None and imgLaserLeft is not None:
+						#-- Compute 2D points from images
+						points2D, colors = self.compute2DPoints(imgRaw, imgLaserLeft)
+						#-- Put 2D points into the queue
+						self.points2DQueue.put((True, points2D, colors))
 
 				if self.pcg.useRightLaser:
-					#-- Compute 2D points from images
-					points2D, colors = self.compute2DPoints(imgRaw, imgLaserRight)
-					
-					#-- Put 2D points into the queue
-					self.points2DQueue.put((False, points2D, colors))
+					if imgRaw is not None and imgLaserRight is not None:
+						#-- Compute 2D points from images
+						points2D, colors = self.compute2DPoints(imgRaw, imgLaserRight)
+						#-- Put 2D points into the queue
+						self.points2DQueue.put((False, points2D, colors))
 
 				#-- Move motor
 				if self.moveMotor:

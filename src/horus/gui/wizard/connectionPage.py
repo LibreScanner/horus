@@ -113,6 +113,8 @@ class ConnectionPage(WizardPage):
 	def beforeConnect(self):
 		self.connectButton.Disable()
 		self.prevButton.Disable()
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
 		self.waitCursor = wx.BusyCursor()
 
 	def afterConnect(self, response):
@@ -151,6 +153,8 @@ class ConnectionPage(WizardPage):
 			self.updateStatus(True)
 			self.GetParent().parent.updateBoardCurrentProfile()
 			self.GetParent().parent.updateCameraCurrentProfile()
+			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onBoardUnplugged))
+			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onCameraUnplugged))
 			self.patternLabel.Enable()
 			self.imageView.Enable()
 			self.autoCheckButton.Enable()
