@@ -295,17 +295,25 @@ class SceneView(openglGui.glGuiPanel):
 	def OnMouseUp(self, e):
 		if e.LeftIsDown() or e.MiddleIsDown() or e.RightIsDown():
 			return
-		if self._mouseState == 'doubleClick':
+		if self._mouseState == 'dragOrClick':
 			if e.GetButton() == 1:
 				self._selectObject(self._object)
-			"""if e.GetButton() == 3:
+			if e.GetButton() == 3:
 					menu = wx.Menu()
 					if self._object is not None:
-						self.Bind(wx.EVT_MENU, lambda e: self._clearScene(), menu.Append(-1, _("Delete object")))
+						self.Bind(wx.EVT_MENU, self.onDeleteObject, menu.Append(-1, _("Delete object")))
 					if menu.MenuItemCount > 0:
 						self.PopupMenu(menu)
-					menu.Destroy()"""
+					menu.Destroy()
 		self._mouseState = None
+
+	def onDeleteObject(self, event):
+		if self._object is not None:
+			dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+			result = dlg.ShowModal() == wx.ID_YES
+			dlg.Destroy()
+			if result:
+				self._clearScene()
 
 	def OnMouseMotion(self,e):
 		p0, p1 = self.getMouseRay(e.GetX(), e.GetY())
