@@ -59,6 +59,7 @@ class Scan:
 		self.colors = None
 
 		self.run = False
+		self.inactive = False
 		self.moveMotor = True
 		self.generatePointCloud = True
 
@@ -99,6 +100,7 @@ class Scan:
 		
 	def stop(self):
 		self.run = False
+		self.inactive = False
 
 	def pause(self):
 		self.inactive = True

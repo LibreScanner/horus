@@ -65,20 +65,17 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.playTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Play"), wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
 		self.stopTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.pauseTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(resources.getPathForImage("pause.png")), shortHelp=_("Pause"))
-		self.resumeTool = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(resources.getPathForImage("resume.png")), shortHelp=_("Resume"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
 		self.enableLabelTool(self.playTool  , False)
 		self.enableLabelTool(self.stopTool  , False)
 		self.enableLabelTool(self.pauseTool , False)
-		self.enableLabelTool(self.resumeTool, False)
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked  , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked  , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked , self.pauseTool)
-		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked, self.resumeTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
@@ -175,14 +172,21 @@ class ScanningWorkbench(WorkbenchConnection):
 					self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
 	def onPlayToolClicked(self, event):
-		result = True
-		if self.sceneView._object is not None:
-			dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
-			result = dlg.ShowModal() == wx.ID_YES
-			dlg.Destroy()
-		if result:
-			self.currentScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
-			self.currentScan.start()
+		if self.currentScan.inactive:
+			#-- Resume
+			self.enableLabelTool(self.pauseTool , True)
+			self.enableLabelTool(self.playTool, False)
+			self.currentScan.resume()
+			self.pointCloudTimer.Start(milliseconds=50)
+		else:
+			result = True
+			if self.sceneView._object is not None:
+				dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+				result = dlg.ShowModal() == wx.ID_YES
+				dlg.Destroy()
+			if result:
+				self.currentScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
+				self.currentScan.start()
 
 	def beforeScan(self):
 		self.scanning = True
@@ -191,7 +195,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.playTool, False)
 		self.enableLabelTool(self.stopTool, True)
 		self.enableLabelTool(self.pauseTool , True)
-		self.enableLabelTool(self.resumeTool, False)
 		self.sceneView.createDefaultObject()
 		self.videoView.setMilliseconds(200)
 		self.combo.Disable()
@@ -234,7 +237,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
-		self.enableLabelTool(self.resumeTool, False)
 		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
@@ -248,17 +250,9 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
-		self.enableLabelTool(self.resumeTool, True)
-		
+		self.enableLabelTool(self.playTool, True)
 		self.currentScan.pause()
 		self.pointCloudTimer.Stop()
-
-	def onResumeToolClicked(self, event):
-		self.enableLabelTool(self.pauseTool , True)
-		self.enableLabelTool(self.resumeTool, False)
-		
-		self.currentScan.resume()
-		self.pointCloudTimer.Start(milliseconds=50)
 
 	def updateToolbarStatus(self, status):
 		if status:
@@ -267,14 +261,12 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.enableLabelTool(self.playTool  , True)
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.pauseTool , False)
-			self.enableLabelTool(self.resumeTool, False)
 			self.controls.enableContent()
 		else:
 			self.videoView.stop()
 			self.enableLabelTool(self.playTool  , False)
 			self.enableLabelTool(self.stopTool  , False)
 			self.enableLabelTool(self.pauseTool , False)
-			self.enableLabelTool(self.resumeTool, False)
 			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
