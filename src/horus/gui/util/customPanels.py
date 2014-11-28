@@ -187,6 +187,9 @@ class ExpandablePanel(wx.Panel):
 		if result:
 			self.resetProfile()
 			self.restoreButton.Disable()
+			if self.hasUndo:
+				del self.undoObjects[:]
+				self.undoButton.Disable()
 
 	def appendUndo(self, _object):
 		self.undoObjects.append(_object)
@@ -340,8 +343,24 @@ class Slider(SectionItem):
 		self.Layout()
 
 		#-- Events
+		self.control.Bind(wx.EVT_COMMAND_SCROLL_LINEUP, self.onSlider)
+		self.control.Bind(wx.EVT_COMMAND_SCROLL_LINEDOWN, self.onSlider)
 		self.control.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.onSliderReleased)
 		self.control.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onSliderTracked)
+
+	def onSlider(self, event):
+		value = profile.getProfileSettingInteger(self.name)
+		self.undoValues.append(value)
+
+		if self.appendUndoCallback is not None:
+			self.appendUndoCallback(self)
+
+		value = self.control.GetValue()
+		profile.putProfileSetting(self.name, value)
+		self._updateEngine(value)
+
+		if self.releaseUndoCallback is not None:
+			self.releaseUndoCallback()
 
 	def onSliderReleased(self, event):
 		self.flagFirstMove = True
