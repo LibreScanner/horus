@@ -53,14 +53,7 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def load(self):
 		#-- Toolbar Configuration
-		self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
-
-		#-- Disable Toolbar Items
-		self.enableLabelTool(self.undoTool, False)
-
-		#-- Bind Toolbar Items
-		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked, self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
@@ -72,8 +65,6 @@ class ControlWorkbench(WorkbenchConnection):
 		self.controls.addPanel('laser_control', LaserControl(self.controls))
 		self.controls.addPanel('motor_control', MotorControl(self.controls))
 		self.controls.addPanel('gcode_control', GcodeControl(self.controls))
-
-		self.controls.setUndoCallbacks(self.appendToUndo, self.releaseUndo)
 
 		self.videoView = VideoView(self._panel, self.getFrame, 5)
 		self.videoView.SetBackgroundColour(wx.BLACK)
@@ -89,9 +80,6 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.Layout()
 
-		#-- Undo
-		self.undoObjects = []
-
 	def initialize(self):
 		self.controls.initialize()
 
@@ -106,21 +94,6 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def getFrame(self):
 		return self.driver.camera.captureImage()
-
-	def onUndoToolClicked(self, event):
-		self.enableLabelTool(self.undoTool, self.undo())
-
-	def appendToUndo(self, _object):
-		self.undoObjects.append(_object)
-
-	def releaseUndo(self):
-		self.enableLabelTool(self.undoTool, True)
-
-	def undo(self):
-		if len(self.undoObjects) > 0:
-			objectToUndo = self.undoObjects.pop()
-			objectToUndo.undo()
-		return len(self.undoObjects) > 0
 
 	def updateToolbarStatus(self, status):
 		if status:

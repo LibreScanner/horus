@@ -84,7 +84,7 @@ class RotativePlatform(ExpandablePanel):
     """"""
     def __init__(self, parent):
         """"""
-        ExpandablePanel.__init__(self, parent, _("Rotative Platform"))
+        ExpandablePanel.__init__(self, parent, _("Rotative Platform"), hasUndo=False)
         
         self.driver = Driver.Instance()
         self.simpleScan = SimpleScan.Instance()
@@ -100,7 +100,6 @@ class RotativePlatform(ExpandablePanel):
         section.addItem(TextBox, 'step_degrees_scanning', self.setDegrees)
         section.addItem(TextBox, 'feed_rate_scanning', self.setFeedRate)
         section.addItem(TextBox, 'acceleration_scanning', self.setAcceleration)
-        section.addItem(Button, 'restore_default', self.restoreDefault)
 
     def setDegrees(self, value):
         self.driver.board.setRelativePosition(self.getValueFloat(value))
@@ -115,13 +114,6 @@ class RotativePlatform(ExpandablePanel):
         self.driver.board.setAccelerationMotor(self.getValueInteger(value))
         self.simpleScan.setAccelerationMotor(self.getValueInteger(value))
         self.textureScan.setAccelerationMotor(self.getValueInteger(value))
-
-    def restoreDefault(self):
-        dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal() == wx.ID_YES
-        dlg.Destroy()
-        if result:
-            self.resetProfile()
 
     #TODO: move
     def getValueInteger(self, value):
@@ -163,7 +155,6 @@ class ImageAcquisition(ExpandablePanel):
         section.addItem(ComboBox, 'framerate_scanning', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
         section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
         #section.addItem(CheckBox, 'use_distortion_scanning', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
-        section.addItem(Button, 'restore_default', self.restoreDefault)
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:
@@ -172,15 +163,6 @@ class ImageAcquisition(ExpandablePanel):
     def setColorExposure(self, value):
         if self.main.currentScan is self.textureScan:
             self.driver.camera.setExposure(value)
-
-    def restoreDefault(self):
-        dlg = wx.MessageDialog(self, _("This will reset scanner settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Scanner Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal() == wx.ID_YES
-        dlg.Destroy()
-        if result:
-            self.resetProfile()
-            self.main.enableLabelTool(self.main.undoTool, False)
-            self.reloadVideo()
 
     def reloadVideo(self):
         if self.main.IsShown():

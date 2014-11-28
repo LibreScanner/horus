@@ -282,7 +282,6 @@ setting('right_button', '', str, 'basic', _('Right'), False)
 setting('move_button', '', str, 'basic', _('Move'), False)
 setting('enable_button', '', str, 'basic', _('Enable'), False)
 setting('gcode_gui', '', str, 'advanced', _('Send'), False)
-setting('restore_default', '', str, 'advanced', _('Restore Default'), False)
 
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'ciclop', str, 'machine', 'hidden')
