@@ -212,8 +212,8 @@ setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRan
 setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 300)
 setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
-setting('brightness_calibration', 156, int, 'advanced', _('Brightness')).setRange(0, 255)
-setting('contrast_calibration', 56, int, 'advanced', _('Contrast')).setRange(0, 255)
+setting('brightness_calibration', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
+setting('contrast_calibration', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_calibration', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_calibration', 166, int, 'basic', _('Exposure')).setRange(2, 512)
 setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
@@ -229,7 +229,7 @@ setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 
 setting('acceleration_scanning', 400, int, 'advanced', _('Acceleration')).setRange(1, 100)
 
 setting('brightness_scanning', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
-setting('contrast_scanning', 37, int, 'advanced', _('Contrast')).setRange(0, 255)
+setting('contrast_scanning', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_scanning', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_scanning', 166, int, 'basic', _('Exposure')).setRange(2, 512)
 setting('laser_exposure_scanning', 60, int, 'basic', _('Laser Exposure')).setRange(2, 512)
@@ -274,7 +274,7 @@ setting('translation_vector', ([5.0,80.0,320.0]), numpy.ndarray, 'advanced', _('
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))
-setting('pattern_distance', 169.0, float, 'advanced', _('Pattern Distance'))
+setting('pattern_distance', 18.8, float, 'advanced', _('Pattern Distance'))
 setting('extrinsics_step', -5.0, float, 'advanced', _('Extrinsics Step'), False)
 
 setting('left_button', '', str, 'basic', _('Left'), False)

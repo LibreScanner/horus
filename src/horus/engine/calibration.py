@@ -34,9 +34,13 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import os
 import cv2
 import time
+import struct
 import threading
 import numpy as np
+from scipy import linalg
 from scipy import optimize
+
+import datetime
 
 from horus.engine.driver import Driver
 
@@ -152,6 +156,248 @@ class CameraIntrinsics(Calibration):
 
 @Singleton
 class LaserTriangulation(Calibration):
+	""" 
+		Laser triangulation algorithms:
+
+			- Laser coordinates matrix
+			- Pattern's origin
+			- Pattern's normal
+	"""
+	def __init__(self):
+		Calibration.__init__(self)
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+
+	def setIntrinsics(self, cameraMatrix, distortionVector):
+		self.cameraMatrix = cameraMatrix
+		self.distortionVector = distortionVector
+
+	def setUseDistortion(self, useDistortion):
+		self.useDistortion = useDistortion
+
+	def setPatternParameters(self, rows, columns, squareWidth, distance):
+		self.patternRows = rows
+		self.patternColumns = columns
+		self.squareWidth = squareWidth
+		self.patternDistance = distance
+		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
+
+	def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
+		objp = np.zeros((patternRows*patternColumns,3), np.float32)
+		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
+		objp = np.multiply(objp, squareWidth)
+		return objp
+
+	def _start(self, progressCallback, afterCallback):
+		XL = None
+		XR = None
+
+		if self.driver.isConnected:
+
+			board = self.driver.board
+			camera = self.driver.camera
+
+			##-- Switch off lasers
+			board.setLeftLaserOff()
+			board.setRightLaserOff()
+
+			##-- Setup motor
+			step = 5
+			angle = 0
+			board.setSpeedMotor(1)
+			board.enableMotor()
+			board.setSpeedMotor(150)
+			time.sleep(0.2)
+
+			if progressCallback is not None:
+				progressCallback(0)
+
+			while self.isCalibrating and abs(angle) < 180:
+
+				if progressCallback is not None:
+					progressCallback(0.9*abs(angle/2.))
+
+				angle += step
+
+				#-- Image acquisition
+				imageRaw = camera.captureImage(flush=True, flushValue=1)
+
+				#-- Pattern detection
+				ret = self.getPatternPlane(imageRaw)
+
+				if ret is not None:
+					step = 5 #2
+
+					d, n, corners = ret
+			
+					#-- Image laser acquisition
+					board.setLeftLaserOn()
+					imageLeft = camera.captureImage(flush=True, flushValue=1)
+					board.setLeftLaserOff()
+					board.setRightLaserOn()
+					imageRight = camera.captureImage(flush=True, flushValue=1)
+					board.setRightLaserOff()
+
+					#-- Pattern ROI mask
+					imageRaw = self.cornersMask(imageRaw, corners)
+					imageLeft = self.cornersMask(imageLeft, corners)
+					imageRight = self.cornersMask(imageRight, corners)
+
+					#-- Line segmentation
+					uL, vL = self.getLaserLine(imageLeft, imageRaw)
+					uR, vR = self.getLaserLine(imageRight, imageRaw)
+
+					#-- Point Cloud generation
+					xL = self.getPointCloudLaser(uL, vL, d, n)
+					if xL is not None:
+						if XL is None:
+							XL = xL
+						else:
+							XL = np.concatenate((XL,xL))
+					xR = self.getPointCloudLaser(uR, vR, d, n)
+					if xR is not None:
+						if XR is None:
+							XR = xR
+						else:
+							XR = np.concatenate((XR,xR))
+				else:
+					step = 5
+
+				board.setRelativePosition(step)
+				board.moveMotor()
+
+			self.saveScene('XL.ply', XL)
+			self.saveScene('XR.ply', XR)
+
+			#-- Compute planes
+			dL, nL, RL = self.computePlane(XL)
+			dR, nR, RR = self.computePlane(XR)
+
+		#-- Disable motor
+		board.disableMotor()
+
+		if self.isCalibrating:
+			response = (True, ((dL, nL, RL), (dR, nR, RR)))
+			if progressCallback is not None:
+				progressCallback(100)
+		else:
+			if self.isCalibrating:
+				response = (False, Error.CalibrationError)
+			else:
+				response = (False, Error.CalibrationCanceled)
+
+		if afterCallback is not None:
+			afterCallback(response)
+
+	def getPatternPlane(self, image):
+		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+		if ret is not None:
+			if ret[0]:
+				R = ret[1]
+				t = ret[2].T[0]
+				n = R.T[2]
+				c = ret[3]
+				d = -np.dot(n,t)
+				return (d, n, c)
+
+	def getLaserLine(self, imageLaser, imageRaw):
+		#-- Image segmentation
+		sub = cv2.subtract(imageLaser,imageRaw)
+		r,g,b = cv2.split(sub)
+
+		#-- Threshold
+		r = cv2.threshold(r, 80., 255.0, cv2.THRESH_TOZERO)[1]
+
+		h, w = r.shape
+
+		#-- Peak detection: center of mass
+		W = np.array((np.matrix(np.linspace(0,w-1,w)).T*np.matrix(np.ones(h))).T)
+		s = r.sum(axis=1)
+		v = np.where(s > 0)[0]
+		u = (W*r).sum(axis=1)[v] / s[v]
+
+		return u, v
+
+	def getPointCloudLaser(self, u, v, d, n):
+		fx = self.cameraMatrix[0][0]
+		fy = self.cameraMatrix[1][1]
+		cx = self.cameraMatrix[0][2]
+		cy = self.cameraMatrix[1][2]
+
+		x = np.concatenate(((u-cx)/fx, (v-cy)/fy, np.ones(len(u)))).reshape(3,len(u))
+
+		X = -d/np.dot(n,x)*x
+
+		return X.T
+
+	def computePlane(self, X):
+		X = np.matrix(X).T
+		n = X.shape[1]
+		Xm = X.sum(axis=1)/n
+		M = X - Xm
+		begin = datetime.datetime.now()
+		U = linalg.svd(M, overwrite_a=True, check_finite=False)[0]
+		print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
+		n = np.array(U.T[2])
+		d = np.dot(n,np.array(Xm))
+		return d[0], n, np.array(U.T)
+
+	def cornersMask(self, frame, corners):
+		p1 = corners[0][0]
+		p2 = corners[self.patternColumns-1][0]
+		p3 = corners[self.patternColumns*(self.patternRows-1)-1][0]
+		p4 = corners[self.patternColumns*self.patternRows-1][0]
+		p11 = min(p1[1], p2[1], p3[1], p4[1])
+		p12 = max(p1[1], p2[1], p3[1], p4[1])
+		p21 = min(p1[0], p2[0], p3[0], p4[0])
+		p22 = max(p1[0], p2[0], p3[0], p4[0])
+		d = max(corners[1][0][0]-corners[0][0][0],
+				corners[1][0][1]-corners[0][0][1],
+				corners[self.patternColumns][0][1]-corners[0][0][1],
+				corners[self.patternColumns][0][0]-corners[0][0][0])
+		mask = np.zeros(frame.shape[:2], np.uint8)
+		mask[p11-d:p12+d,p21-d:p22+d] = 255
+		frame = cv2.bitwise_and(frame, frame, mask=mask)
+		return frame
+
+	def saveScene(self, filename, pointCloud):
+		f = open(filename, 'wb')
+		self.saveSceneStream(f, pointCloud)
+		f.close()
+
+	def saveSceneStream(self, stream, pointCloud):
+		frame  = "ply\n"
+		frame += "format binary_little_endian 1.0\n"
+		frame += "comment Generated by Horus software\n"
+		frame += "element vertex {0}\n".format(len(pointCloud))
+		frame += "property float x\n"
+		frame += "property float y\n"
+		frame += "property float z\n"
+		frame += "property uchar red\n"
+		frame += "property uchar green\n"
+		frame += "property uchar blue\n"
+		frame += "element face 0\n"
+		frame += "property list uchar int vertex_indices\n"
+		frame += "end_header\n"
+		for point in pointCloud:
+			frame += struct.pack("<fffBBB", point[0], point[1], point[2] , 255, 0, 0)
+		stream.write(frame)
+
+	def solvePnp(self, image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):
+		gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+		# the fast check flag reduces significantly the computation time if the pattern is out of sight 
+		retval, corners = cv2.findChessboardCorners(gray, (patternColumns,patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
+
+		if retval:
+			cv2.cornerSubPix(gray, corners, winSize=(11,11), zeroZone=(-1,-1), criteria=self.criteria)
+			if self.useDistortion:
+				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, distortionVector)
+			else:
+				ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, cameraMatrix, None)
+			return (ret, cv2.Rodrigues(rvecs)[0], tvecs, corners)
+
+
+@Singleton
+class SimpleLaserTriangulation(Calibration):
 	""" 
 		Laser triangulation algorithms:
 
@@ -452,6 +698,10 @@ class PlatformExtrinsics(Calibration):
 
 				#-- Fitting a circle inside the plane
 				center, R, circle = self.fitCircle(point, normal, points)
+
+				if normal[1] > 0:
+					normal = -normal
+					R.T[2] = -R.T[2]
 
 				# Get real origin
 				t = center - self.patternDistance * np.array(normal)
