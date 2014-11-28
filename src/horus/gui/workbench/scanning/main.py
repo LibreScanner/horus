@@ -66,7 +66,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.stopTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Stop"), wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
 		self.pauseTool  = self.toolbar.AddLabelTool(wx.NewId(), _("Pause"), wx.Bitmap(resources.getPathForImage("pause.png")), shortHelp=_("Pause"))
 		self.resumeTool = self.toolbar.AddLabelTool(wx.NewId(), _("Resume"), wx.Bitmap(resources.getPathForImage("resume.png")), shortHelp=_("Resume"))
-		self.undoTool   = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
 		self.toolbar.Realize()
 
 		#-- Disable Toolbar Items
@@ -74,14 +73,12 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.stopTool  , False)
 		self.enableLabelTool(self.pauseTool , False)
 		self.enableLabelTool(self.resumeTool, False)
-		self.enableLabelTool(self.undoTool  , False)
 
 		#-- Bind Toolbar Items
 		self.Bind(wx.EVT_TOOL, self.onPlayToolClicked  , self.playTool)
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked  , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked , self.pauseTool)
 		self.Bind(wx.EVT_TOOL, self.onResumeToolClicked, self.resumeTool)
-		self.Bind(wx.EVT_TOOL, self.onUndoToolClicked  , self.undoTool)
 
 		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
@@ -132,9 +129,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.comboVideoViews.Bind(wx.EVT_COMBOBOX, self.onComboBoVideoViewsSelect)
 
 		self.Layout()
-
-		#-- Undo
-		self.undoObjects = []
 
 	def initialize(self):
 		self.controls.initialize()
@@ -265,21 +259,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		
 		self.currentScan.resume()
 		self.pointCloudTimer.Start(milliseconds=50)
-
-	def onUndoToolClicked(self, event):
-		self.enableLabelTool(self.undoTool, self.undo())
-
-	def appendToUndo(self, _object):
-		self.undoObjects.append(_object)
-
-	def releaseUndo(self):
-		self.enableLabelTool(self.undoTool, True)
-
-	def undo(self):
-		if len(self.undoObjects) > 0:
-			objectToUndo = self.undoObjects.pop()
-			objectToUndo.undo()
-		return len(self.undoObjects) > 0
 
 	def updateToolbarStatus(self, status):
 		if status:

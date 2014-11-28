@@ -59,17 +59,6 @@ class CameraSettingsPanel(ExpandablePanel):
         section.addItem(ComboBox, 'framerate_calibration', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
         section.addItem(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
         section.addItem(CheckBox, 'use_distortion_calibration', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
-        section.addItem(Button, 'restore_default', self.restoreDefault)
-        
-    def restoreDefault(self):
-        dlg = wx.MessageDialog(self, _("This will reset calibration settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Calibration Settings reset"), wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal() == wx.ID_YES
-        dlg.Destroy()
-        if result:
-            for control in self.controls:
-                control.resetProfile()
-            self.main.enableLabelTool(self.main.undoTool, False)
-            self.reloadVideo()
 
     def reloadVideo(self):
         if self.main.IsShown():
@@ -81,7 +70,7 @@ class CameraSettingsPanel(ExpandablePanel):
 class CalibrationPanel(ExpandablePanel):
 
     def __init__(self, parent, titleText="Workbench", buttonStartCallback=None, description="Workbench description"):
-        ExpandablePanel.__init__(self, parent, titleText)
+        ExpandablePanel.__init__(self, parent, titleText, hasUndo=False, hasRestore=False)
 
         self.buttonStartCallback = buttonStartCallback
 
@@ -123,7 +112,7 @@ class CalibrationPanel(ExpandablePanel):
 class CameraIntrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Camera Intrinsics Calibration"), buttonStartCallback=buttonStartCallback,
+        CalibrationPanel.__init__(self, parent, titleText=_("Camera Intrinsics"), buttonStartCallback=buttonStartCallback,
                                   description=_("Determines the camera matrix and the distortion coefficients using Zhang2000 algorithm and pinhole camera model."))
 
         self.driver = Driver.Instance()
@@ -270,7 +259,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
 class LaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
+        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation"), buttonStartCallback=buttonStartCallback,
                                   description=_("Determines the planes of both line lasers: minimum distance and normal vector."))
 
         self.pcg = scan.PointCloudGenerator.Instance()
@@ -455,7 +444,7 @@ class LaserTriangulationPanel(CalibrationPanel):
 class SimpleLaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
+        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation"), buttonStartCallback=buttonStartCallback,
                                   description=_("Determines the depth of the intersection camera-laser considering the inclination of the lasers."))
 
         self.pcg = scan.PointCloudGenerator.Instance()
@@ -627,7 +616,7 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
 class PlatformExtrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Platform Extrinsics Calibration"), buttonStartCallback=buttonStartCallback,
+        CalibrationPanel.__init__(self, parent, titleText=_("Platform Extrinsics"), buttonStartCallback=buttonStartCallback,
                                   description=_("Determines the transformation matrix between the camera and the platform using a circular interpolation method."))
 
         self.pcg = scan.PointCloudGenerator.Instance()

@@ -58,16 +58,6 @@ class CameraControl(ExpandablePanel):
         section.addItem(ComboBox, 'framerate_control', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
         section.addItem(ComboBox, 'resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
         section.addItem(CheckBox, 'use_distortion_control', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
-        section.addItem(Button, 'restore_default', self.restoreDefault)
-        
-    def restoreDefault(self):
-        dlg = wx.MessageDialog(self, _("This will reset control camera settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Camera Control reset"), wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal() == wx.ID_YES
-        dlg.Destroy()
-        if result:
-            self.resetProfile()
-            self.main.enableLabelTool(self.main.undoTool, False)
-            self.reloadVideo()
 
     def reloadVideo(self):
         if self.main.IsShown():
@@ -78,7 +68,7 @@ class LaserControl(ExpandablePanel):
     """"""
     def __init__(self, parent):
         """"""
-        ExpandablePanel.__init__(self, parent, _("Laser Control"))
+        ExpandablePanel.__init__(self, parent, _("Laser Control"), hasUndo=False, hasRestore=False)
         
         self.driver = Driver.Instance()
 
@@ -95,7 +85,7 @@ class MotorControl(ExpandablePanel):
     """"""
     def __init__(self, parent):
         """"""
-        ExpandablePanel.__init__(self, parent, _("Motor Control"))
+        ExpandablePanel.__init__(self, parent, _("Motor Control"), hasUndo=False)
         
         self.driver = Driver.Instance()
 
@@ -128,7 +118,7 @@ class GcodeControl(ExpandablePanel):
     """"""
     def __init__(self, parent):
         """"""
-        ExpandablePanel.__init__(self, parent, _("Gcode Control"))
+        ExpandablePanel.__init__(self, parent, _("Gcode Control"), hasUndo=False, hasRestore=False)
         
         self.driver = Driver.Instance()
 

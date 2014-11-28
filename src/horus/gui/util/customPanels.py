@@ -52,12 +52,16 @@ class ExpandableControl(wx.Panel):
 		panel.titleText.title.Bind(wx.EVT_LEFT_DOWN, self._onTitleClicked)
 		if len(self.panels) == 1:
 			panel.content.Show()
-			panel.undoButton.Show()
-			panel.restoreButton.Show()
+			if panel.hasUndo:
+				panel.undoButton.Show()
+			if panel.hasRestore:
+				panel.restoreButton.Show()
 		else:
 			panel.content.Hide()
-			panel.undoButton.Hide()
-			panel.restoreButton.Hide()
+			if panel.hasUndo:
+				panel.undoButton.Hide()
+			if panel.hasRestore:
+				panel.restoreButton.Hide()
 		self.Layout()
 		#self.GetParent().Layout()
 
@@ -68,14 +72,18 @@ class ExpandableControl(wx.Panel):
 		if self.isExpandable:
 			title = event.GetEventObject()
 			for panel in self.panels.values():
-				if panel.title.title is title:
+				if panel.titleText.title is title:
 					panel.content.Show()
-					panel.undoButton.Show()
-					panel.restoreButton.Show()
+					if panel.hasUndo:
+						panel.undoButton.Show()
+					if panel.hasRestore:
+						panel.restoreButton.Show()
 				else:
 					panel.content.Hide()
-					panel.undoButton.Hide()
-					panel.restoreButton.Hide()
+					if panel.hasUndo:
+						panel.undoButton.Hide()
+					if panel.hasRestore:
+						panel.restoreButton.Hide()
 			self.Layout()
 			self.GetParent().Layout()
 			self.GetParent().GetParent().Layout()
@@ -112,7 +120,8 @@ class ExpandablePanel(wx.Panel):
 		self.content = wx.Panel(self)
 		self.sections = OrderedDict()
 
-		self.undoButton.Disable()
+		if self.hasUndo:
+			self.undoButton.Disable()
 		self.content.Disable()
 		self.content.Hide()
 
@@ -184,7 +193,8 @@ class ExpandablePanel(wx.Panel):
 
 	def releaseUndo(self):
 		self.undoButton.Enable()
-		self.restoreButton.Enable()
+		if self.hasRestore:
+			self.restoreButton.Enable()
 
 	def undo(self):
 		if len(self.undoObjects) > 0:

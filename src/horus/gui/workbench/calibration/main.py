@@ -57,14 +57,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def load(self):
         #-- Toolbar Configuration
-        self.undoTool = self.toolbar.AddLabelTool(wx.NewId(), _("Undo"), wx.Bitmap(resources.getPathForImage("undo.png")), shortHelp=_("Undo"))
         self.toolbar.Realize()
-
-        #-- Disable Toolbar Items
-        self.enableLabelTool(self.undoTool, False)
-
-        #-- Bind Toolbar Items
-        self.Bind(wx.EVT_TOOL, self.onUndoToolClicked, self.undoTool)
 
         self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
         self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
@@ -129,9 +122,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.addToPanel(self.platformExtrinsicsMainPage, 1)
         self.addToPanel(self.platformExtrinsicsResultPage, 1)
 
-        #-- Undo
-        self.undoObjects = []
-
         self.Layout()
 
     def initialize(self):
@@ -151,21 +141,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         if frame is not None:
             retval, frame = CameraIntrinsics.Instance().detectChessboard(frame)
         return frame
-
-    def onUndoToolClicked(self, event):
-        self.enableLabelTool(self.undoTool, self.undo())
-
-    def appendToUndo(self, _object):
-        self.undoObjects.append(_object)
-
-    def releaseUndo(self):
-        self.enableLabelTool(self.undoTool, True)
-
-    def undo(self):
-        if len(self.undoObjects) > 0:
-            objectToUndo = self.undoObjects.pop()
-            objectToUndo.undo()
-        return len(self.undoObjects) > 0
 
     def updateToolbarStatus(self, status):
         if status:
