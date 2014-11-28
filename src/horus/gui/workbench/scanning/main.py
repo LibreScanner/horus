@@ -95,8 +95,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.controls.addPanel('image_segmentation', ImageSegmentation(self.controls))
 		self.controls.addPanel('point_cloud_generation', PointCloudGeneration(self.controls))
 
-		self.controls.setUndoCallbacks(self.appendToUndo, self.releaseUndo)
-
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 
 		self.videoView = VideoView(self.splitterWindow, self.getFrame, 5)

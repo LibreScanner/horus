@@ -30,7 +30,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import wx._core
 from collections import OrderedDict
 
-from horus.util import profile
+from horus.util import profile, resources
 
 
 class ExpandableControl(wx.Panel):
@@ -49,11 +49,15 @@ class ExpandableControl(wx.Panel):
 	def addPanel(self, name, panel):
 		self.panels.update({name : panel})
 		self.vbox.Add(panel, 0, wx.ALL|wx.EXPAND, 0)
-		panel.title.title.Bind(wx.EVT_LEFT_DOWN, self._onTitleClicked)
+		panel.titleText.title.Bind(wx.EVT_LEFT_DOWN, self._onTitleClicked)
 		if len(self.panels) == 1:
 			panel.content.Show()
+			panel.undoButton.Show()
+			panel.restoreButton.Show()
 		else:
 			panel.content.Hide()
+			panel.undoButton.Hide()
+			panel.restoreButton.Hide()
 		self.Layout()
 		#self.GetParent().Layout()
 
@@ -66,8 +70,12 @@ class ExpandableControl(wx.Panel):
 			for panel in self.panels.values():
 				if panel.title.title is title:
 					panel.content.Show()
+					panel.undoButton.Show()
+					panel.restoreButton.Show()
 				else:
 					panel.content.Hide()
+					panel.undoButton.Hide()
+					panel.restoreButton.Hide()
 			self.Layout()
 			self.GetParent().Layout()
 			self.GetParent().GetParent().Layout()
@@ -88,36 +96,54 @@ class ExpandableControl(wx.Panel):
 		for panel in self.panels.values():
 			panel.updateProfile()
 
-	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
-		for panel in self.panels.values():
-			panel.setUndoCallbacks(appendUndoCallback, releaseUndoCallback)
-
-
 class ExpandablePanel(wx.Panel):
-	def __init__(self, parent, title=None):
+	def __init__(self, parent, title="", hasUndo=True, hasRestore=True):
 		wx.Panel.__init__(self, parent, size=(275, -1))
 
 		#-- Elements
-		if title is not None:
-			self.title = TitleText(self, title, bold=True)
+		self.hasUndo = hasUndo
+		self.hasRestore = hasRestore
+		self.title = title
+		self.titleText = TitleText(self, title, bold=True)
+		if self.hasUndo:
+			self.undoButton = wx.BitmapButton(self, wx.NewId(), wx.Bitmap(resources.getPathForImage("undo.png"), wx.BITMAP_TYPE_ANY))
+		if self.hasRestore:
+			self.restoreButton = wx.BitmapButton(self, wx.NewId(), wx.Bitmap(resources.getPathForImage("restore.png"), wx.BITMAP_TYPE_ANY))
 		self.content = wx.Panel(self)
 		self.sections = OrderedDict()
 
+		self.undoButton.Disable()
 		self.content.Disable()
 		self.content.Hide()
 
+		#-- Events
+		if self.hasUndo:
+			self.undoButton.Bind(wx.EVT_BUTTON, self.onUndoButtonClicked)
+		if self.hasRestore:
+			self.restoreButton.Bind(wx.EVT_BUTTON, self.onRestoreButtonClicked)
+
 		#-- Layout
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
-		if title is not None:
-			self.vbox.Add(self.title, 0, wx.LEFT|wx.EXPAND, 2)
+		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox.Add(self.titleText, 1, wx.LEFT|wx.EXPAND, 2)
+		if self.hasUndo:
+			self.hbox.Add(self.undoButton, 0, wx.ALL, 0)
+		if self.hasRestore:
+			self.hbox.Add(self.restoreButton, 0, wx.ALL, 0)
+		self.vbox.Add(self.hbox, 0, wx.ALL|wx.EXPAND, 0)
 		self.contentBox = wx.BoxSizer(wx.VERTICAL)
 		self.content.SetSizer(self.contentBox)
 		self.vbox.Add(self.content, 1, wx.LEFT|wx.EXPAND, 10)
 		self.SetSizer(self.vbox)
 		self.Layout()
 
+		#-- Undo
+		self.undoObjects = []
+
 	def createSection(self, name, title=None):
 		section = SectionPanel(self.content, title)
+		if self.hasUndo:
+			section.setUndoCallbacks(self.appendUndo, self.releaseUndo)
 		self.sections.update({name : section})
 		self.contentBox.Add(section, 0, wx.ALL|wx.EXPAND, 5)
 		self.Layout()
@@ -138,11 +164,33 @@ class ExpandablePanel(wx.Panel):
 	def updateProfile(self):
 		for section in self.sections.values():
 			section.updateProfile()
+			
+	def onUndoButtonClicked(self, event):
+		if self.undo():
+			self.undoButton.Enable()
+		else:
+			self.undoButton.Disable()
 
-	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
-		for section in self.sections.values():
-			section.setUndoCallbacks(appendUndoCallback, releaseUndoCallback)
+	def onRestoreButtonClicked(self, event):
+		dlg = wx.MessageDialog(self, _("This will reset all section settings to defaults.\nUnless you have saved your current profile, all section settings will be lost!\nDo you really want to reset?"), self.title, wx.YES_NO | wx.ICON_QUESTION)
+		result = dlg.ShowModal() == wx.ID_YES
+		dlg.Destroy()
+		if result:
+			self.resetProfile()
+			self.restoreButton.Disable()
 
+	def appendUndo(self, _object):
+		self.undoObjects.append(_object)
+
+	def releaseUndo(self):
+		self.undoButton.Enable()
+		self.restoreButton.Enable()
+
+	def undo(self):
+		if len(self.undoObjects) > 0:
+			objectToUndo = self.undoObjects.pop()
+			objectToUndo.undo()
+		return len(self.undoObjects) > 0
 
 class SectionPanel(wx.Panel):
 	def __init__(self, parent, title=None):
@@ -153,6 +201,9 @@ class SectionPanel(wx.Panel):
 			self.title = TitleText(self, title, bold=False)
 		self.items = OrderedDict()
 
+		self.appendUndoCallback = None
+		self.releaseUndoCallback = None
+
 		#-- Layout
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		if title is not None:
@@ -162,6 +213,7 @@ class SectionPanel(wx.Panel):
 
 	def addItem(self, _type, _name, _callback):
 		item = _type(self, _name, _callback)
+		item.setUndoCallbacks(self.appendUndoCallback, self.releaseUndoCallback)
 		self.items.update({_name : item})
 		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 1)
 		self.Layout()
@@ -175,8 +227,8 @@ class SectionPanel(wx.Panel):
 			item.updateProfile()
 
 	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
-		for item in self.items.values():
-			item.setUndoCallbacks(appendUndoCallback, releaseUndoCallback)
+		self.appendUndoCallback = appendUndoCallback
+		self.releaseUndoCallback = releaseUndoCallback
 
 
 class SectionItem(wx.Panel):

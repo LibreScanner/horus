@@ -81,8 +81,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.controls.addPanel('laser_triangulation_panel', SimpleLaserTriangulationPanel(self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
         self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
 
-        self.controls.setUndoCallbacks(self.appendToUndo, self.releaseUndo)
-
         #-- Add Calibration Pages
         self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(self._panel,
                                                                  afterCancelCallback=self.onCancelCallback,
