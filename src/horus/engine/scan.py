@@ -78,7 +78,8 @@ class Scan:
 		self.progressCallback = None
 		self.afterCallback = None
 
-		self.points2DQueue = Queue.Queue(1000)
+		self.imagesQueue = Queue.Queue(1000)
+		# self.points2DQueue = Queue.Queue(1000)
 		self.points3DQueue = Queue.Queue(10000)
 
 	def setCallbacks(self, before, progress, after):
@@ -145,7 +146,7 @@ class Scan:
 	def initializeScan(self):
 		self.pcg.resetTheta()
 
-		self.points2DQueue.queue.clear()
+		# self.points2DQueue.queue.clear()
 		self.points3DQueue.queue.clear()
 
 		#-- Setup board
@@ -173,15 +174,31 @@ class Scan:
 		""""""
 		while self.run:
 			if not self.inactive:
-				#-- Get 2D points from the queue
-				if not self.points2DQueue.empty():
-					laser, points2D, colors = self.points2DQueue.get(timeout=0.1)
-					self.points2DQueue.task_done()
+
+				if not self.imagesQueue.empty():
+					imagesQueueItem=self.imagesQueue.get(timeout=0.1)
+					self.imagesQueue.task_done();
+					# laser=False
+					updateTheta=True
+					#-- Compute 2D points from images
+					points2D, colors = self.compute2DPoints(imagesQueueItem)
+					#-- Put 2D points into the queue
+					if imagesQueueItem[0]=='right':
+						laser=False
+					elif imagesQueueItem[0]=='left':
+						laser=True
+					elif imagesQueueItem[0]=='both_right':
+						updateTheta=False
+						laser=False
+
+					elif imagesQueueItem[0]=='both_left':
+						updateTheta=True
+						laser=True
 
 					begin = datetime.datetime.now()
 
 					#-- Compute 3D points
-					points3D = self.pcg.compute3DPoints(points2D, laser)
+					points3D = self.pcg.compute3DPoints(points2D, laser, updateTheta)
 
 					if points3D is not None and colors is not None:
 						if self.points == None and self.colors == None:
@@ -199,7 +216,7 @@ class Scan:
 					print "Process end: {0}".format(end - begin)
 			else:
 				time.sleep(0.1)
-		
+
 	def getPointCloudIncrement(self):
 		""" """
 		if not self.points3DQueue.empty():
@@ -240,20 +257,12 @@ class SimpleScan(Scan):
 				#-- Left laser
 				if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
 					image = self.driver.camera.captureImage()
-					if image is not None:
-						#-- Compute 2D points from images
-						points2D, colors = self.compute2DPoints(image)
-						#-- Put 2D points into the queue
-						self.points2DQueue.put((True, points2D, colors))
+					self.imagesQueue.put(('left',image))
 
 				#-- Right laser
 				if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
 					image = self.driver.camera.captureImage()
-					if image is not None:
-						#-- Compute 2D points from images
-						points2D, colors = self.compute2DPoints(image)
-						#-- Put 2D points into the queue
-						self.points2DQueue.put((False, points2D, colors))
+					self.imagesQueue.put(('right',image))
 
 				##-- Both laser
 				if self.pcg.useLeftLaser and self.pcg.useRightLaser:
@@ -265,17 +274,8 @@ class SimpleScan(Scan):
 					self.driver.board.setLeftLaserOff()
 					imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
 
-					if imgLaserLeft is not None:
-						#-- Compute 2D points from images
-						points2D, colors = self.compute2DPoints(imgLaserLeft)
-						#-- Put 2D points into the queue
-						self.points2DQueue.put((True, points2D, colors))
-
-					if imgLaserRight is not None:
-						#-- Compute 2D points from images
-						points2D, colors = self.compute2DPoints(imgLaserRight)
-						#-- Put 2D points into the queue
-						self.points2DQueue.put((False, points2D, colors))
+					self.imagesQueue.put(('both_left',imgLaserLeft))
+					self.imagesQueue.put(('both_right',imgLaserRight))
 
 				#-- Move motor
 				if self.moveMotor:
@@ -321,7 +321,8 @@ class SimpleScan(Scan):
 	def setThresholdValue(self, value):
 		self.thresholdValue = value
 
-	def compute2DPoints(self, image):
+	def compute2DPoints(self, image_info):
+		image=image_info[1]
 		self.imgLaser = image
 		tempColor = np.ones_like(image)
 		tempColor[:,:,0] *= self.color[0]
@@ -472,19 +473,15 @@ class TextureScan(Scan):
 						else:
 							imgLaserRight = None
 
-				if self.pcg.useLeftLaser:
-					if imgRaw is not None and imgLaserLeft is not None:
-						#-- Compute 2D points from images
-						points2D, colors = self.compute2DPoints(imgRaw, imgLaserLeft)
-						#-- Put 2D points into the queue
-						self.points2DQueue.put((True, points2D, colors))
+				if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+					self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
 
-				if self.pcg.useRightLaser:
-					if imgRaw is not None and imgLaserRight is not None:
-						#-- Compute 2D points from images
-						points2D, colors = self.compute2DPoints(imgRaw, imgLaserRight)
-						#-- Put 2D points into the queue
-						self.points2DQueue.put((False, points2D, colors))
+				elif self.pcg.useRightLaser and not self.pcg.useLeftLaser:
+					self.imagesQueue.put(('right',imgRaw,imgLaserRight))
+
+				elif self.pcg.useRightLaser and self.pcg.useLeftLaser:
+					self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
+					self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
 
 				#-- Move motor
 				if self.moveMotor:
@@ -533,7 +530,10 @@ class TextureScan(Scan):
 	def setThresholdValue(self, value):
 		self.thresholdValue = value
 
-	def compute2DPoints(self, imageColor, imageLaser):
+	# def compute2DPoints(self, imageColor, imageLaser):
+	def compute2DPoints(self, images):
+		imageColor=images[1]
+		imageLaser=images[2]
 		self.imgLaser = imageLaser
 		self.imgColor = imageColor
 
@@ -763,7 +763,7 @@ class PointCloudGenerator:
 
 		return points[idx]
 
-	def compute3DPoints(self, points2D, leftLaser):
+	def compute3DPoints(self, points2D, leftLaser, updateTheta):
 		""" """
 		#-- Point Cloud Generation
 		points3D, rho, z = self.pointCloudGeneration(points2D, leftLaser)
@@ -772,7 +772,9 @@ class PointCloudGenerator:
 			#-- Point Cloud Filter
 			points3D = self.pointCloudFilter(points3D, rho, z)
 
-		#-- Update Theta
-		self.theta -= self.degrees * self.rad
+		if updateTheta: 
+			#-- Update Theta
+			self.theta -= self.degrees * self.rad
+
 
 		return points3D
