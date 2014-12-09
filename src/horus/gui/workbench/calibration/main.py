@@ -275,7 +275,4 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def updateProfileToAllControls(self):
-        print 'updateProfileToAllControls --> workbench\calibration'
         self.controls.updateProfile()
-        #self.GetParent().updateCameraProfile('calibration')
-        self.Layout()

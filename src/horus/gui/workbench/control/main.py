@@ -105,5 +105,4 @@ class ControlWorkbench(WorkbenchConnection):
 			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
-		print 'updateProfileToAllControls --> workbench\control'
 		self.controls.updateProfile()

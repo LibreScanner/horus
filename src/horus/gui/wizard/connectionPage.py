@@ -86,7 +86,7 @@ class ConnectionPage(WizardPage):
 
 		self.videoView.setMilliseconds(20)
 		self.videoView.setCallback(self.getDetectChessboardFrame)
-		self.updateStatus(self.driver.isConnected)
+		#self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -149,15 +149,11 @@ class ConnectionPage(WizardPage):
 				dlg.Destroy()
 
 		if self.driver.isConnected:
-			self.videoView.play()
 			self.updateStatus(True)
-			self.GetParent().parent.updateBoardCurrentProfile()
-			self.GetParent().parent.updateCameraCurrentProfile()
 			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onCameraUnplugged))
 			self.patternLabel.Enable()
 			self.imageView.Enable()
-			self.autoCheckButton.Enable()
 			self.skipButton.Enable()
 			self.enableNext = True
 
@@ -236,3 +232,4 @@ class ConnectionPage(WizardPage):
 			self.videoView.stop()
 			self.connectButton.Enable()
 			self.autoCheckButton.Disable()
+		self.Layout()

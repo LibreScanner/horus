@@ -144,9 +144,7 @@ class WorkbenchConnection(Workbench):
 				dlg.Destroy()
 
 		if self.driver.isConnected:
-			self.GetParent().updateBoardCurrentProfile()
-			#self.GetParent().updateCameraCurrentProfile()
-			self.GetParent().updatePCGCurrentProfile()
+			self.GetParent().workbenchUpdate()
 			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
 		

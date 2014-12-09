@@ -237,6 +237,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
+		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
 		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
@@ -270,5 +271,5 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
-		#print 'updateProfileToAllControls --> workbench\scanning'
 		self.controls.updateProfile()
+		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))

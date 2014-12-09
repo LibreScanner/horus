@@ -87,8 +87,6 @@ class MainWindow(wx.Frame):
 
         self.lastFiles = eval(profile.getPreference('last_files'))
 
-        self.updateDriverProfile()
-
         print ">>> Horus " + VERSION + " <<<"
 
         ###-- Initialize GUI
@@ -450,10 +448,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateProfileToAllControls(self):
         """ """
-        self.controlWorkbench.updateProfileToAllControls()
-        self.calibrationWorkbench.updateProfileToAllControls()
-        self.scanningWorkbench.updateProfileToAllControls()
-
         if profile.getPreferenceBool('basic_mode'):
             self.menuBasicMode.Check(True)
         else:
@@ -519,6 +513,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 self.scanningWorkbench.sceneView.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
 
+        self.updateDriverProfile()
+        self.updatePCGProfile()
+        self.updateCalibrationProfile()
+
         self.workbenchUpdate()
         self.Layout()
 
@@ -527,36 +525,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.driver.board.setSerialName(profile.getProfileSetting('serial_name'))
         self.driver.board.setBaudRate(profile.getProfileSettingInteger('baud_rate'))
 
-    def updateBoardCurrentProfile(self):
-        self.updateBoardProfile(profile.getPreference('workbench'))
-
-    def updateBoardProfile(self, workbench):
-        if workbench in ['control', 'scanning']:
-            self.driver.board.setRelativePosition(profile.getProfileSettingInteger('step_degrees_' + workbench))
-            self.driver.board.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_' + workbench))
-            self.driver.board.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_' + workbench))
-
-    def updateCameraCurrentProfile(self):
-        self.updateCameraProfile(profile.getPreference('workbench'))
-
-    def updateCameraProfile(self, workbench):
-        if workbench in ['control', 'calibration', 'scanning']:
-            self.driver.camera.setBrightness(profile.getProfileSettingInteger('brightness_' + workbench))
-            self.driver.camera.setContrast(profile.getProfileSettingInteger('contrast_' + workbench))
-            self.driver.camera.setSaturation(profile.getProfileSettingInteger('saturation_' + workbench))
-            self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_' + workbench))
-            self.driver.camera.setFrameRate(profile.getProfileSettingInteger('framerate_' + workbench))
-            resolution = profile.getProfileSetting('resolution_' + workbench)
-            self.driver.camera.setResolution(int(resolution.split('x')[0]), int(resolution.split('x')[1]))
-            self.driver.camera.setUseDistortion(profile.getProfileSettingBool('use_distortion_' + workbench))
-            self.driver.camera.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                             profile.getProfileSettingNumpy('distortion_vector'))
-
-    def updatePCGCurrentProfile(self):
-        self.updatePCGProfile(profile.getPreference('workbench'))
-
-    def updatePCGProfile(self, workbench):
-        if workbench in ['scanning']:
+    def updatePCGProfile(self):
             self.pcg.resetTheta()
             self.pcg.setViewROI(profile.getProfileSettingBool('view_roi'))
             self.pcg.setROIDiameter(profile.getProfileSettingInteger('roi_diameter'))
@@ -601,13 +570,11 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.textureScan.setOpenValue(profile.getProfileSettingInteger('open_value'))
             self.textureScan.setUseThreshold(profile.getProfileSettingBool('use_threshold'))
             self.textureScan.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
-            
-    
-    def updateCalibrationCurrentProfile(self):
-        self.updateCalibrationProfile(profile.getPreference('workbench'))
 
-    def updateCalibrationProfile(self, workbench):
-        #if workbench in ['calibration']:
+    def updateCalibrationProfile(self):
+        self.driver.camera.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
+                                         profile.getProfileSettingNumpy('distortion_vector'))
+
         self.cameraIntrinsics.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
                                             profile.getProfileSettingNumpy('distortion_vector'))
         self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
@@ -646,27 +613,18 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
 
-        #print 'self.updateBoardProfile(currentWorkbench)'
-        self.updateBoardProfile(currentWorkbench)
-        #print 'self.updateCameraProfile(currentWorkbench)'
-        #self.updateCameraProfile(currentWorkbench)
-        #print 'self.updatePCGProfile(currentWorkbench)'
-        self.updatePCGProfile(currentWorkbench)
-        #print 'self.updateCalibrationProfile(currentWorkbench)'
-        self.updateCalibrationProfile(currentWorkbench)
+        for key in wb:
+            if wb[key] is not None:
+                if key == currentWorkbench:
+                    wb[key].updateProfileToAllControls()
 
         if layout:
             for key in wb:
                 if wb[key] is not None:
                     if key == currentWorkbench:
-                        wb[key].updateProfileToAllControls()
-                        wb[key].combo.SetValue(str(self.workbenchList[key]))
-
-            for key in wb:
-                if wb[key] is not None:
-                    if key == currentWorkbench:
                         wb[key].Hide()
                         wb[key].Show()
+                        wb[key].combo.SetValue(str(self.workbenchList[key]))
                     else:
                         wb[key].Hide()
 
@@ -712,7 +670,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 if not cap.isOpened():
                     break
                 cap.release()
-#                print id(cap)
                 caps.append(id(cap))
 
                 if caps[0] == id(cap) and i!=0:
@@ -720,7 +677,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
                 baselist.append(str(i))
                 i+=1
-#                print 'CAPS',caps, baselist
         else:
             for device in ['/dev/video*']:
                 baselist = baselist + glob.glob(device)

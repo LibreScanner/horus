@@ -56,9 +56,9 @@ class CalibrationPage(WizardPage):
 		#TODO: use dictionaries
 
 		value = profile.getProfileSettingInteger('exposure_calibration')
-		if value > 200:
+		if value > 25:
 			value = _("High")
-		elif value > 100:
+		elif value > 12:
 			value = _("Medium")
 		else:
 			value = _("Low")
@@ -106,7 +106,7 @@ class CalibrationPage(WizardPage):
 
 		self.videoView.setMilliseconds(50)
 		self.videoView.setCallback(self.getFrame)
-		self.updateStatus(self.driver.isConnected)
+		#self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -128,11 +128,11 @@ class CalibrationPage(WizardPage):
 	def onExposureComboBoxChanged(self, event):
 		value = event.GetEventObject().GetValue()
 		if value ==_("High"):
-			value = 250
+			value = 32
 		elif value ==_("Medium"):
-			value = 150
+			value = 16
 		elif value ==_("Low"):
-			value = 80
+			value = 8
 		profile.putProfileSetting('exposure_calibration', value)
 		self.driver.camera.setExposure(value)
 

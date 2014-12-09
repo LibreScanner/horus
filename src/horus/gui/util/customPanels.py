@@ -274,7 +274,7 @@ class SectionItem(wx.Panel):
 	def update(self, value):
 		if self.isVisible():
 			self.Show()
-			#self.control.SetValue(value)
+			self.control.SetValue(value)
 			self._updateEngine(value)
 		else:
 			self.Hide()

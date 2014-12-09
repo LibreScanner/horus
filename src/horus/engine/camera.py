@@ -80,7 +80,7 @@ class Camera:
 			self.maxExposure = 1000.
 
 		self.unplugCallback = None
-		self._n = 0 # Check if command fails
+		self._n = 1 # Check if command fails
 
 	def setCameraId(self, cameraId):
 		self.cameraId = cameraId

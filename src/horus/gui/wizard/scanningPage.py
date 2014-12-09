@@ -49,9 +49,9 @@ class ScanningPage(WizardPage):
 		#TODO: use dictionaries
 
 		value = profile.getProfileSettingInteger('exposure_scanning')
-		if value > 200:
+		if value > 25:
 			value = _("High")
-		elif value > 100:
+		elif value > 12:
 			value = _("Medium")
 		else:
 			value = _("Low")
@@ -140,11 +140,11 @@ class ScanningPage(WizardPage):
 	def onLuminosityComboBoxChanged(self, event):
 		value = event.GetEventObject().GetValue()
 		if value ==_("High"):
-			value = 250
+			value = 32
 		elif value ==_("Medium"):
-			value = 150
+			value = 16
 		elif value ==_("Low"):
-			value = 80
+			value = 8
 		profile.putProfileSetting('exposure_scanning', value)
 		self.driver.camera.setExposure(value)
 
@@ -183,6 +183,7 @@ class ScanningPage(WizardPage):
 		if status:
 			profile.putPreference('workbench', 'scanning')
 			self.GetParent().parent.workbenchUpdate(False)
+			self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
 			self.videoView.play()
 		else:
 			self.videoView.stop()
