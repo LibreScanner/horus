@@ -646,9 +646,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
 
+        #print 'self.updateBoardProfile(currentWorkbench)'
         self.updateBoardProfile(currentWorkbench)
-        self.updateCameraProfile(currentWorkbench)
+        #print 'self.updateCameraProfile(currentWorkbench)'
+        #self.updateCameraProfile(currentWorkbench)
+        #print 'self.updatePCGProfile(currentWorkbench)'
         self.updatePCGProfile(currentWorkbench)
+        #print 'self.updateCalibrationProfile(currentWorkbench)'
         self.updateCalibrationProfile(currentWorkbench)
 
         if layout:
@@ -700,13 +704,23 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def videoList(self):
         baselist=[]
+        caps=[]
         if os.name=="nt":
-            for i in range(10):
+            i=0
+            while True:
                 cap = cv2.VideoCapture(i)
                 if not cap.isOpened():
                     break
                 cap.release()
+#                print id(cap)
+                caps.append(id(cap))
+
+                if caps[0] == id(cap) and i!=0:
+                        break;
+
                 baselist.append(str(i))
+                i+=1
+#                print 'CAPS',caps, baselist
         else:
             for device in ['/dev/video*']:
                 baselist = baselist + glob.glob(device)

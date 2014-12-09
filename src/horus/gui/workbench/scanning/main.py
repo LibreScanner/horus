@@ -270,4 +270,5 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
+		#print 'updateProfileToAllControls --> workbench\scanning'
 		self.controls.updateProfile()

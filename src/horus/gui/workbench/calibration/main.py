@@ -140,6 +140,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         frame = Driver.Instance().camera.captureImage()
         if frame is not None:
             retval, frame = CameraIntrinsics.Instance().detectChessboard(frame)
+        #print frame
         return frame
 
     def updateToolbarStatus(self, status):
@@ -274,6 +275,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def updateProfileToAllControls(self):
+        print 'updateProfileToAllControls --> workbench\calibration'
         self.controls.updateProfile()
-        self.GetParent().updateCameraProfile('calibration')
+        #self.GetParent().updateCameraProfile('calibration')
         self.Layout()

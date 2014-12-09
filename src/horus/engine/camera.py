@@ -124,7 +124,7 @@ class Camera:
 
 	def checkVideo(self):
 		""" Checks correct video """
-		if self.captureImage() is None:
+		if self.captureImage() is None or (self.captureImage()==0).all():
 			raise InvalidVideo()
 
 	def captureImage(self, mirror=False, flush=False, flushValue=1):
@@ -169,21 +169,30 @@ class Camera:
 		return self.height, self.width #-- Inverted values because of transpose
 
 	def setBrightness(self, value):
+		time.sleep(0.1)
+		#print 'setBrightness -->', value
+
 		if self.isConnected:
 			value = int(value)/self.maxBrightness
 			self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
 
 	def setContrast(self, value):
+		time.sleep(0.1)
+		#print 'setContrast -->', value
 		if self.isConnected:
 			value = int(value)/self.maxContrast
 			self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
 
 	def setSaturation(self, value):
+		time.sleep(0.1)
+		#print 'setSaturation -->', value
 		if self.isConnected:
 			value = int(value)/self.maxSaturation
 			self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
 
 	def setExposure(self, value):
+		time.sleep(0.1)
+		#print 'setExposure -->', value
 		if self.isConnected:
 			if platform.system() == 'Windows':
 				value = int(-math.log(value)/math.log(2))
@@ -192,6 +201,8 @@ class Camera:
 			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 
 	def setFrameRate(self, value):
+		time.sleep(0.1)
+		#print 'setFrameRate -->', value
 		if self.isConnected:
 			self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
 
