@@ -77,7 +77,7 @@ class Camera:
 			self.maxBrightness = 255.
 			self.maxContrast = 255.
 			self.maxSaturation = 255.
-			self.maxExposure = 10000.
+			self.maxExposure = 1000.
 
 		self.unplugCallback = None
 		self._n = 0 # Check if command fails
@@ -169,39 +169,43 @@ class Camera:
 		return self.height, self.width #-- Inverted values because of transpose
 
 	def setBrightness(self, value):
-		time.sleep(0.1)
+		if platform.system() == 'Windows':
+			time.sleep(0.1)
 		#print 'setBrightness -->', value
-
 		if self.isConnected:
 			value = int(value)/self.maxBrightness
 			self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
 
 	def setContrast(self, value):
-		time.sleep(0.1)
+		if platform.system() == 'Windows':
+			time.sleep(0.1)
 		#print 'setContrast -->', value
 		if self.isConnected:
 			value = int(value)/self.maxContrast
 			self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
 
 	def setSaturation(self, value):
-		time.sleep(0.1)
+		if platform.system() == 'Windows':
+			time.sleep(0.1)
 		#print 'setSaturation -->', value
 		if self.isConnected:
 			value = int(value)/self.maxSaturation
 			self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
 
 	def setExposure(self, value):
-		time.sleep(0.1)
+		if platform.system() == 'Windows':
+			time.sleep(0.1)
 		#print 'setExposure -->', value
 		if self.isConnected:
 			if platform.system() == 'Windows':
-				value = int(-math.log(value)/math.log(2))
+				value = int(round(-math.log(value)/math.log(2)))
 			else:
 				value = int(value) / self.maxExposure
 			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 
 	def setFrameRate(self, value):
-		time.sleep(0.1)
+		if platform.system() == 'Windows':
+			time.sleep(0.1)
 		#print 'setFrameRate -->', value
 		if self.isConnected:
 			self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
@@ -220,6 +224,8 @@ class Camera:
 			self.height = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
 	def setResolution(self, width, height):
+		if platform.system() == 'Windows':
+			time.sleep(0.1)
 		self._setWidth(width)
 		self._setHeight(height)
 		self._updateResolution()
