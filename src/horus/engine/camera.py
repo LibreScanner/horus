@@ -77,7 +77,7 @@ class Camera:
 			self.maxBrightness = 255.
 			self.maxContrast = 255.
 			self.maxSaturation = 255.
-			self.maxExposure = 10000.
+			self.maxExposure = 1000.
 
 		self.unplugCallback = None
 		self._n = 0 # Check if command fails
@@ -107,12 +107,13 @@ class Camera:
 			raise CameraNotConnected()
 		
 	def disconnect(self):
-		print ">>> Disconnecting camera {0}".format(self.cameraId)
-		if self.capture is not None:
-			if self.capture.isOpened():
-				self.capture.release()
+		if self.isConnected:
+			print ">>> Disconnecting camera {0}".format(self.cameraId)
+			if self.capture is not None:
+				if self.capture.isOpened():
+					self.capture.release()
 			self.isConnected = False
-		print ">>> Done"
+			print ">>> Done"
 
 	def checkCamera(self):
 		""" Checks correct camera """
@@ -124,12 +125,12 @@ class Camera:
 
 	def checkVideo(self):
 		""" Checks correct video """
-		if self.captureImage() is None:
+		if self.captureImage() is None or (self.captureImage()==0).all():
 			raise InvalidVideo()
 
 	def captureImage(self, mirror=False, flush=False, flushValue=1):
 		""" If mirror is set to True, the image will be displayed as a mirror,
-		otherwise it will be displayed as the camera sees it"""
+		otherwise it will be displayed as the camera sees it """
 		if self.isConnected:
 			if flush:
 				for i in range(0, flushValue):
@@ -186,7 +187,7 @@ class Camera:
 	def setExposure(self, value):
 		if self.isConnected:
 			if platform.system() == 'Windows':
-				value = int(-math.log(value)/math.log(2))
+				value = int(round(-math.log(value)/math.log(2)))
 			else:
 				value = int(value) / self.maxExposure
 			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)

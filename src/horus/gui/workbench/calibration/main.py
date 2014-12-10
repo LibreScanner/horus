@@ -140,22 +140,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         frame = Driver.Instance().camera.captureImage()
         if frame is not None:
             retval, frame = CameraIntrinsics.Instance().detectChessboard(frame)
+        #print frame
         return frame
-
-    def updateToolbarStatus(self, status):
-        if status:
-            if self.IsShown():
-                self.videoView.play()
-            self.controls.enableContent()
-            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
-            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Enable()
-            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Enable()
-        else:
-            self.videoView.stop()
-            self.controls.disableContent()
-            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Disable()
-            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
-            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
 
     def onCameraIntrinsicsStartCallback(self):
         self.calibrating = True
@@ -273,7 +259,35 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.videoView.Show()
         self.Layout()
 
+    def updateToolbarStatus(self, status):
+        if status:
+            if self.IsShown():
+                self.videoView.play()
+            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
+            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Enable()
+            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Enable()
+            self.controls.enableContent()
+        else:
+            self.videoView.stop()
+            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Disable()
+            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
+            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
+            self.controls.disableContent()
+            self.calibrating = False
+            self.combo.Enable()
+            self.controls.setExpandable(True)
+            self.cameraIntrinsicsMainPage.Hide()
+            self.cameraIntrinsicsResultPage.Hide()
+            self.laserTriangulationMainPage.Hide()
+            self.laserTriangulationResultPage.Hide()
+            self.platformExtrinsicsMainPage.Hide()
+            self.platformExtrinsicsResultPage.Hide()
+            self.videoView.Show()
+
     def updateProfileToAllControls(self):
+        self.videoView.pause()
         self.controls.updateProfile()
-        self.GetParent().updateCameraProfile('calibration')
-        self.Layout()
+        if self.IsEnabled():
+            self.videoView.play()
+        else:
+            self.videoView.stop()

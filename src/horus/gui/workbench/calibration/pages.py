@@ -117,7 +117,7 @@ class CameraIntrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
+		frame = self.driver.camera.captureImage(mirror=True)
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 			if retval:

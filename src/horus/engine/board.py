@@ -111,17 +111,19 @@ class Board:
 
 	def disconnect(self):
 		""" Closes serial port """
-		print ">>> Disconnecting board {0}".format(self.serialName)
-		try:
-			if self.serialPort is not None:
-				self.setLeftLaserOff()
-				self.setRightLaserOff()
-				self.disableMotor()
-				self.serialPort.close()
-		except serial.SerialException:
-			print "Error closing the port {0}\n".format(self.serialName)
-			print ">>> Error"
-		print ">>> Done"
+		if self.isConnected:
+			print ">>> Disconnecting board {0}".format(self.serialName)
+			try:
+				if self.serialPort is not None:
+					self.setLeftLaserOff()
+					self.setRightLaserOff()
+					self.disableMotor()
+					self.serialPort.close()
+			except serial.SerialException:
+				print "Error closing the port {0}\n".format(self.serialName)
+				print ">>> Error"
+			self.isConnected = False
+			print ">>> Done"
 
 	def enableMotor(self):
 		return self._sendCommand("M17")
@@ -169,22 +171,23 @@ class Board:
 	def _sendRequest(self, req, callback=None, readLines=False):
 		"""Sends the request and returns the response"""
 		ret = None
-		if self.serialPort is not None and self.serialPort.isOpen():
-			try:
-				self.serialPort.flushInput()
-				self.serialPort.flushOutput()
-				self.serialPort.write(req+"\r\n")
-				if readLines:
-					ret = ''.join(self.serialPort.readlines())
-				else:
-					ret = ''.join(self.serialPort.readline())
-				self._success()
-			except:
-				if callback is not None:
-					callback(ret)
+		if self.isConnected:
+			if self.serialPort is not None and self.serialPort.isOpen():
+				try:
+					self.serialPort.flushInput()
+					self.serialPort.flushOutput()
+					self.serialPort.write(req+"\r\n")
+					if readLines:
+						ret = ''.join(self.serialPort.readlines())
+					else:
+						ret = ''.join(self.serialPort.readline())
+					self._success()
+				except:
+					if callback is not None:
+						callback(ret)
+					self._fail()
+			else:
 				self._fail()
-		else:
-			self._fail()
 		if callback is not None:
 			callback(ret)
 		return ret

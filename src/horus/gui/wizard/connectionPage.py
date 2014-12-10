@@ -58,15 +58,15 @@ class ConnectionPage(WizardPage):
 		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 		self.autoCheckButton = wx.Button(self.panel, label=_("Auto check"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
-		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"), size=(-1, 30))
+		self.resultLabel = wx.StaticText(self.panel, size=(-1, 30))
 
 		self.connectButton.Enable()
 		self.patternLabel.Disable()
 		self.imageView.Disable()
 		self.autoCheckButton.Disable()
-		self.resultLabel.Hide()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
+		self.resultLabel.Hide()
 		self.enableNext = False
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -113,6 +113,7 @@ class ConnectionPage(WizardPage):
 	def beforeConnect(self):
 		self.connectButton.Disable()
 		self.prevButton.Disable()
+		self.videoView.stop()
 		self.driver.board.setUnplugCallback(None)
 		self.driver.camera.setUnplugCallback(None)
 		self.waitCursor = wx.BusyCursor()
@@ -149,19 +150,11 @@ class ConnectionPage(WizardPage):
 				dlg.Destroy()
 
 		if self.driver.isConnected:
-			self.videoView.play()
-			self.updateStatus(True)
-			self.GetParent().parent.updateBoardCurrentProfile()
-			self.GetParent().parent.updateCameraCurrentProfile()
+			self.GetParent().parent.workbenchUpdate(False)
 			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onCameraUnplugged))
-			self.patternLabel.Enable()
-			self.imageView.Enable()
-			self.autoCheckButton.Enable()
-			self.skipButton.Enable()
-			self.enableNext = True
 
-		self.connectButton.Enable()
+		self.updateStatus(self.driver.isConnected)
 		self.prevButton.Enable()
 		del self.waitCursor
 
@@ -222,6 +215,8 @@ class ConnectionPage(WizardPage):
 		self.autoCheckButton.Enable()
 		self.prevButton.Enable()
 		del self.waitCursor
+		self.panel.Fit()
+		self.panel.Layout()
 		self.Layout()
 
 	def updateStatus(self, status):
@@ -232,7 +227,12 @@ class ConnectionPage(WizardPage):
 			self.videoView.play()
 			self.connectButton.Disable()
 			self.autoCheckButton.Enable()
+			self.patternLabel.Enable()
+			self.imageView.Enable()
+			self.skipButton.Enable()
+			self.enableNext = True
 		else:
 			self.videoView.stop()
 			self.connectButton.Enable()
 			self.autoCheckButton.Disable()
+		self.Layout()

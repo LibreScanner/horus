@@ -56,9 +56,9 @@ class CalibrationPage(WizardPage):
 		#TODO: use dictionaries
 
 		value = profile.getProfileSettingInteger('exposure_calibration')
-		if value > 200:
+		if value > 25:
 			value = _("High")
-		elif value > 100:
+		elif value > 12:
 			value = _("Medium")
 		else:
 			value = _("Low")
@@ -74,7 +74,7 @@ class CalibrationPage(WizardPage):
 		self.calibrateButton = wx.Button(self.panel, label=_("Calibrate"))
 		self.cancelButton = wx.Button(self.panel, label=_("Cancel"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
-		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"), size=(-1, 30))
+		self.resultLabel = wx.StaticText(self.panel, size=(-1, 30))
 
 		self.cancelButton.Disable()
 		self.resultLabel.Hide()
@@ -106,7 +106,7 @@ class CalibrationPage(WizardPage):
 
 		self.videoView.setMilliseconds(50)
 		self.videoView.setCallback(self.getFrame)
-		self.updateStatus(self.driver.isConnected)
+		#self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -128,11 +128,11 @@ class CalibrationPage(WizardPage):
 	def onExposureComboBoxChanged(self, event):
 		value = event.GetEventObject().GetValue()
 		if value ==_("High"):
-			value = 250
+			value = 32
 		elif value ==_("Medium"):
-			value = 150
+			value = 16
 		elif value ==_("Low"):
-			value = 80
+			value = 8
 		profile.putProfileSetting('exposure_calibration', value)
 		self.driver.camera.setExposure(value)
 
@@ -218,6 +218,8 @@ class CalibrationPage(WizardPage):
 		self.calibrateButton.Enable()
 		self.cancelButton.Disable()
 		self.prevButton.Enable()
+		self.panel.Fit()
+		self.panel.Layout()
 		self.Layout()
 		if hasattr(self, 'waitCursor'):
 			del self.waitCursor

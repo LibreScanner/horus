@@ -46,7 +46,8 @@ class Wizard(wx.Dialog):
         self.parent = parent
 
         self.driver = Driver.Instance()
-        self.driver.disconnect()
+
+        self.currentWorkbench = profile.getPreference('workbench')
  
         self.connectionPage = ConnectionPage(self, buttonPrevCallback=self.onConnectionPagePrevClicked, buttonNextCallback=self.onConnectionPageNextClicked)
         self.calibrationPage = CalibrationPage(self, buttonPrevCallback=self.onCalibrationPagePrevClicked, buttonNextCallback=self.onCalibrationPageNextClicked)
@@ -77,12 +78,14 @@ class Wizard(wx.Dialog):
     def onExit(self):
         self.driver.board.setLeftLaserOff()
         self.driver.board.setRightLaserOff()
-        profile.putPreference('workbench', 'scanning')
+        profile.putPreference('workbench', self.currentWorkbench)
         dlg = wx.MessageDialog(self, _("Do you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
         if result:
-            self.driver.disconnect()
+            self.connectionPage.videoView.stop()
+            self.calibrationPage.videoView.stop()
+            self.scanningPage.videoView.stop()
             self.parent.workbenchUpdate()
             self.Destroy()
 
@@ -112,11 +115,15 @@ class Wizard(wx.Dialog):
     def onScanningPageNextClicked(self):
         self.driver.board.setLeftLaserOff()
         self.driver.board.setRightLaserOff()
-        profile.putPreference('workbench', 'scanning')
         profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
         dlg = wx.MessageDialog(self, _("You have finished the wizard.\nPress Play button to start scanning."), _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
         if result:
+            self.connectionPage.videoView.stop()
+            self.calibrationPage.videoView.stop()
+            self.scanningPage.videoView.stop()
+            profile.putPreference('workbench', 'scanning')
             self.parent.workbenchUpdate()
+            self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
             self.Destroy()

@@ -72,10 +72,8 @@ class ScanParameters(ExpandablePanel):
         if not self.main.currentScan.run or self.main.currentScan.inactive:
             if value == _("Without Texture"):
                 self.main.currentScan = self.simpleScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
             elif value == _("With Texture"):
                 self.main.currentScan = self.textureScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
         else:
             print "Can not change scan type"
 

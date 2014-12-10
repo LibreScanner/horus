@@ -52,6 +52,8 @@ class Scan:
 
 	def __init__(self):
 		""" """
+		self.theta = 0
+
 		self.driver = Driver.Instance()
 		self.pcg = PointCloudGenerator.Instance()
 
@@ -81,6 +83,9 @@ class Scan:
 		self.imagesQueue = Queue.Queue(1000)
 		# self.points2DQueue = Queue.Queue(1000)
 		self.points3DQueue = Queue.Queue(10000)
+
+	def resetTheta(self):
+		self.theta = 0
 
 	def setCallbacks(self, before, progress, after):
 		self.beforeCallback = before
@@ -145,9 +150,12 @@ class Scan:
 
 	def initializeScan(self):
 		self.pcg.resetTheta()
+		self.resetTheta()
 
 		# self.points2DQueue.queue.clear()
 		self.points3DQueue.queue.clear()
+		self.imagesQueue.queue.clear()
+
 
 		#-- Setup board
 		if self.moveMotor:
@@ -172,12 +180,13 @@ class Scan:
 
 	def _processThread(self):
 		""""""
+
 		while self.run:
 			if not self.inactive:
-
 				if not self.imagesQueue.empty():
 					imagesQueueItem=self.imagesQueue.get(timeout=0.1)
 					self.imagesQueue.task_done();
+
 					# laser=False
 					updateTheta=True
 					#-- Compute 2D points from images
@@ -254,52 +263,65 @@ class SimpleScan(Scan):
 			if not self.inactive:
 				begin = datetime.datetime.now()
 
-				#-- Left laser
-				if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-					image = self.driver.camera.captureImage()
-					self.imagesQueue.put(('left',image))
+				if abs(self.theta * 180.0 / np.pi) < 360.0:
+					#print 'self.theta', self.theta * 180.0 / np.pi
 
-				#-- Right laser
-				if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-					image = self.driver.camera.captureImage()
-					self.imagesQueue.put(('right',image))
+					#-- Left laser
+					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+						image = self.driver.camera.captureImage()
+						self.imagesQueue.put(('left',image))
 
-				##-- Both laser
-				if self.pcg.useLeftLaser and self.pcg.useRightLaser:
-					self.driver.board.setLeftLaserOn()
-					self.driver.board.setRightLaserOff()
-					imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=1)
+					#-- Right laser
+					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+						image = self.driver.camera.captureImage()
+						self.imagesQueue.put(('right',image))
 
-					self.driver.board.setRightLaserOn()
-					self.driver.board.setLeftLaserOff()
-					imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
+					##-- Both laser
+					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+						self.driver.board.setLeftLaserOn()
+						self.driver.board.setRightLaserOff()
+						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=1)
 
-					self.imagesQueue.put(('both_left',imgLaserLeft))
-					self.imagesQueue.put(('both_right',imgLaserRight))
+						self.driver.board.setRightLaserOn()
+						self.driver.board.setLeftLaserOff()
+						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
 
-				#-- Move motor
-				if self.moveMotor:
-					self.driver.board.setRelativePosition(self.pcg.degrees)
-					self.driver.board.moveMotor()
-				else:
-					time.sleep(0.05)
+						self.imagesQueue.put(('both_left',imgLaserLeft))
+						self.imagesQueue.put(('both_right',imgLaserRight))
+
+					self.theta -= self.pcg.degrees * self.pcg.rad
+
+					#-- Move motor
+					if self.moveMotor:
+						self.driver.board.setRelativePosition(self.pcg.degrees)
+						self.driver.board.moveMotor()
+					else:
+						time.sleep(0.05)
 				
 				if self.generatePointCloud:
 					#-- Check stop condition
 					if abs(self.pcg.theta * 180.0 / np.pi) >= 360.0:
-						ret = True
+						#print 'self.pcg.theta', self.pcg.theta * 180.0 / np.pi
+						ret=True
 						self.stop()
+						self.resetTheta()
 				
 				end = datetime.datetime.now()
-				print "----- Theta: {0}".format(self.pcg.theta * 180.0 / np.pi)
+				print "----- Theta capture: {0}".format(self.theta * 180.0 / np.pi)
+				print "----- Theta process: {0}".format(self.pcg.theta * 180.0 / np.pi)
+				
+				if abs(self.theta * 180.0 / np.pi) >= 360.0:
+					#-- Disable board
+					self.driver.board.setLeftLaserOff()
+					self.driver.board.setRightLaserOff()
+					self.driver.board.disableMotor()
+
 				print "Capture end: {0}".format(end - begin)
+
 			else:
 				time.sleep(0.1)
 
-		#-- Disable board
-		self.driver.board.setLeftLaserOff()
-		self.driver.board.setRightLaserOff()
-		self.driver.board.disableMotor()
+
 
 		if progressCallback is not None:
 			progressCallback(100)
@@ -383,80 +405,78 @@ class TextureScan(Scan):
 		imgLaserRight = None
 		while self.run:
 			if not self.inactive:
-				begin = datetime.datetime.now()
+				if abs(self.theta * 180.0 / np.pi) < 360.0:
+					#print 'self.theta', self.theta * 180.0 / np.pi
+					begin = datetime.datetime.now()
 
-				if self.fastScan: #-- FAST METHOD
+					if self.fastScan: #-- FAST METHOD
 
-					#-- Left laser
-					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						self.driver.board.setLeftLaserOff()
-						imgLaserLeft = self.driver.camera.capture.read()[1]
-						imgRaw = self.driver.camera.capture.read()[1]
-						self.driver.board.setLeftLaserOn()
+						#-- Left laser
+						if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+							self.driver.board.setLeftLaserOff()
+							imgLaserLeft = self.driver.camera.capture.read()[1]
+							imgRaw = self.driver.camera.capture.read()[1]
+							self.driver.board.setLeftLaserOn()
 
-						imgRaw = cv2.transpose(imgRaw)
-						imgRaw = cv2.flip(imgRaw, 1)
-						imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+							imgRaw = cv2.transpose(imgRaw)
+							imgRaw = cv2.flip(imgRaw, 1)
+							imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-						imgLaserRight = None
+							imgLaserRight = None
 
-						imgLaserLeft = cv2.transpose(imgLaserLeft)
-						imgLaserLeft = cv2.flip(imgLaserLeft, 1)
-						imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
+							imgLaserLeft = cv2.transpose(imgLaserLeft)
+							imgLaserLeft = cv2.flip(imgLaserLeft, 1)
+							imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
 
-					#-- Right laser
-					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						self.driver.board.setRightLaserOff()
-						imgLaserRight = self.driver.camera.capture.read()[1]
-						imgRaw = self.driver.camera.capture.read()[1]
-						self.driver.board.setRightLaserOn()
+						#-- Right laser
+						if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+							self.driver.board.setRightLaserOff()
+							imgLaserRight = self.driver.camera.capture.read()[1]
+							imgRaw = self.driver.camera.capture.read()[1]
+							self.driver.board.setRightLaserOn()
 
-						imgRaw = cv2.transpose(imgRaw)
-						imgRaw = cv2.flip(imgRaw, 1)
-						imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+							imgRaw = cv2.transpose(imgRaw)
+							imgRaw = cv2.flip(imgRaw, 1)
+							imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-						imgLaserLeft = None
+							imgLaserLeft = None
 
-						imgLaserRight = cv2.transpose(imgLaserRight)
-						imgLaserRight = cv2.flip(imgLaserRight, 1)
-						imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
+							imgLaserRight = cv2.transpose(imgLaserRight)
+							imgLaserRight = cv2.flip(imgLaserRight, 1)
+							imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
 
-					##-- Both laser
-					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						imgRaw = self.driver.camera.capture.read()[1]
-						self.driver.board.setLeftLaserOn()
-						imgLaserLeft = self.driver.camera.capture.read()[1]
-						self.driver.board.setLeftLaserOff()
-						self.driver.board.setRightLaserOn()
-						imgLaserRight = self.driver.camera.capture.read()[1]
-						self.driver.board.setRightLaserOff()
-						imgRaw = self.driver.camera.capture.read()[1]
+						##-- Both laser
+						if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+							imgRaw = self.driver.camera.capture.read()[1]
+							self.driver.board.setLeftLaserOn()
+							imgLaserLeft = self.driver.camera.capture.read()[1]
+							self.driver.board.setLeftLaserOff()
+							self.driver.board.setRightLaserOn()
+							imgLaserRight = self.driver.camera.capture.read()[1]
+							self.driver.board.setRightLaserOff()
+							imgRaw = self.driver.camera.capture.read()[1]
 
-						imgRaw = cv2.transpose(imgRaw)
-						imgRaw = cv2.flip(imgRaw, 1)
-						imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+							imgRaw = cv2.transpose(imgRaw)
+							imgRaw = cv2.flip(imgRaw, 1)
+							imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-						imgLaserLeft = cv2.transpose(imgLaserLeft)
-						imgLaserLeft = cv2.flip(imgLaserLeft, 1)
-						imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
+							imgLaserLeft = cv2.transpose(imgLaserLeft)
+							imgLaserLeft = cv2.flip(imgLaserLeft, 1)
+							imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
 
-						imgLaserRight = cv2.transpose(imgLaserRight)
-						imgLaserRight = cv2.flip(imgLaserRight, 1)
-						imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
+							imgLaserRight = cv2.transpose(imgLaserRight)
+							imgLaserRight = cv2.flip(imgLaserRight, 1)
+							imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
 
-				else: #-- SLOW METHOD
+					else: #-- SLOW METHOD
 
-					#-- Switch off laser
-					if self.pcg.useLeftLaser:
-						self.driver.board.setLeftLaserOff()
-					if self.pcg.useRightLaser:
-						self.driver.board.setRightLaserOff()
+						#-- Switch off laser
+						if self.pcg.useLeftLaser:
+							self.driver.board.setLeftLaserOff()
+						if self.pcg.useRightLaser:
+							self.driver.board.setRightLaserOff()
 
-					#-- Capture images
-					if os.name == 'nt':
-						#TODO
-						pass
-					else:
+						#-- Capture images
 						imgRaw = self.driver.camera.captureImage(flush=True, flushValue=1)
 
 						if self.pcg.useLeftLaser:
@@ -473,39 +493,45 @@ class TextureScan(Scan):
 						else:
 							imgLaserRight = None
 
-				if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-					self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
+					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+						self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
 
-				elif self.pcg.useRightLaser and not self.pcg.useLeftLaser:
-					self.imagesQueue.put(('right',imgRaw,imgLaserRight))
+					elif self.pcg.useRightLaser and not self.pcg.useLeftLaser:
+						self.imagesQueue.put(('right',imgRaw,imgLaserRight))
 
-				elif self.pcg.useRightLaser and self.pcg.useLeftLaser:
-					self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
-					self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
+					elif self.pcg.useRightLaser and self.pcg.useLeftLaser:
+						self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
+						self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
 
-				#-- Move motor
-				if self.moveMotor:
-					self.driver.board.setRelativePosition(self.pcg.degrees)
-					self.driver.board.moveMotor()
-				else:
-					time.sleep(0.05)
-				
+					self.theta -= self.pcg.degrees * self.pcg.rad
+
+					#-- Move motor
+					if self.moveMotor:
+						self.driver.board.setRelativePosition(self.pcg.degrees)
+						self.driver.board.moveMotor()
+					else:
+						time.sleep(0.05)
+
+					if abs(self.theta * 180.0 / np.pi) >= 360.0:
+						#-- Disable board
+						self.driver.board.setLeftLaserOff()
+						self.driver.board.setRightLaserOff()
+						self.driver.board.disableMotor()
+						
 				if self.generatePointCloud:
 					#-- Check stop condition
-					if abs(self.pcg.theta * 180.0 / np.pi) >= 360.0:
+					if abs(self.theta * 180.0 / np.pi) >= 360.0:
 						ret = True
 						self.stop()
+						self.resetTheta()
 				
 				end = datetime.datetime.now()
-				print "----- Theta: {0}".format(self.pcg.theta * 180.0 / np.pi)
+				print "----- Theta capture: {0}".format(self.theta * 180.0 / np.pi)
+				print "----- Theta process: {0}".format(self.theta * 180.0 / np.pi)
+
 				print "Capture end: {0}".format(end - begin)
 			else:
 				time.sleep(0.1)
-
-		#-- Disable board
-		self.driver.board.setLeftLaserOff()
-		self.driver.board.setRightLaserOff()
-		self.driver.board.disableMotor()
 
 		if progressCallback is not None:
 			progressCallback(100)
