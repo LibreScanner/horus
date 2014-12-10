@@ -74,7 +74,7 @@ class CalibrationPage(WizardPage):
 		self.calibrateButton = wx.Button(self.panel, label=_("Calibrate"))
 		self.cancelButton = wx.Button(self.panel, label=_("Cancel"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
-		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"), size=(-1, 30))
+		self.resultLabel = wx.StaticText(self.panel, size=(-1, 30))
 
 		self.cancelButton.Disable()
 		self.resultLabel.Hide()
@@ -218,6 +218,8 @@ class CalibrationPage(WizardPage):
 		self.calibrateButton.Enable()
 		self.cancelButton.Disable()
 		self.prevButton.Enable()
+		self.panel.Fit()
+		self.panel.Layout()
 		self.Layout()
 		if hasattr(self, 'waitCursor'):
 			del self.waitCursor

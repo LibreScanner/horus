@@ -58,15 +58,15 @@ class ConnectionPage(WizardPage):
 		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 		self.autoCheckButton = wx.Button(self.panel, label=_("Auto check"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
-		self.resultLabel = wx.StaticText(self.panel, label=_("All OK. Please press next to continue"), size=(-1, 30))
+		self.resultLabel = wx.StaticText(self.panel, size=(-1, 30))
 
 		self.connectButton.Enable()
 		self.patternLabel.Disable()
 		self.imageView.Disable()
 		self.autoCheckButton.Disable()
-		self.resultLabel.Hide()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
+		self.resultLabel.Hide()
 		self.enableNext = False
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -215,6 +215,8 @@ class ConnectionPage(WizardPage):
 		self.autoCheckButton.Enable()
 		self.prevButton.Enable()
 		del self.waitCursor
+		self.panel.Fit()
+		self.panel.Layout()
 		self.Layout()
 
 	def updateStatus(self, status):
