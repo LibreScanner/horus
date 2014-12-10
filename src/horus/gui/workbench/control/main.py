@@ -105,4 +105,9 @@ class ControlWorkbench(WorkbenchConnection):
 			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
+		self.videoView.pause()
 		self.controls.updateProfile()
+		if self.IsEnabled():
+			self.videoView.play()
+		else:
+			self.videoView.stop()

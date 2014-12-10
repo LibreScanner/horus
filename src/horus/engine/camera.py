@@ -82,6 +82,8 @@ class Camera:
 		self.unplugCallback = None
 		self._n = 1 # Check if command fails
 
+		self.setSleep = 0.01
+
 	def setCameraId(self, cameraId):
 		self.cameraId = cameraId
 
@@ -130,7 +132,7 @@ class Camera:
 
 	def captureImage(self, mirror=False, flush=False, flushValue=1):
 		""" If mirror is set to True, the image will be displayed as a mirror,
-		otherwise it will be displayed as the camera sees it"""
+		otherwise it will be displayed as the camera sees it """
 		if self.isConnected:
 			if flush:
 				for i in range(0, flushValue):
@@ -171,32 +173,28 @@ class Camera:
 
 	def setBrightness(self, value):
 		if platform.system() == 'Windows':
-			time.sleep(0.1)
-		#print 'setBrightness -->', value
+			time.sleep(self.setSleep)
 		if self.isConnected:
 			value = int(value)/self.maxBrightness
 			self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
 
 	def setContrast(self, value):
 		if platform.system() == 'Windows':
-			time.sleep(0.1)
-		#print 'setContrast -->', value
+			time.sleep(self.setSleep)
 		if self.isConnected:
 			value = int(value)/self.maxContrast
 			self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
 
 	def setSaturation(self, value):
 		if platform.system() == 'Windows':
-			time.sleep(0.1)
-		#print 'setSaturation -->', value
+			time.sleep(self.setSleep)
 		if self.isConnected:
 			value = int(value)/self.maxSaturation
 			self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
 
 	def setExposure(self, value):
 		if platform.system() == 'Windows':
-			time.sleep(0.1)
-		#print 'setExposure -->', value
+			time.sleep(self.setSleep)
 		if self.isConnected:
 			if platform.system() == 'Windows':
 				value = int(round(-math.log(value)/math.log(2)))
@@ -206,17 +204,20 @@ class Camera:
 
 	def setFrameRate(self, value):
 		if platform.system() == 'Windows':
-			time.sleep(0.1)
-		#print 'setFrameRate -->', value
+			time.sleep(self.setSleep)
 		if self.isConnected:
 			self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
 
 	def _setWidth(self, value):
 		if self.isConnected:
+			if platform.system() == 'Windows':
+				time.sleep(self.setSleep)
 			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
 
 	def _setHeight(self, value):
 		if self.isConnected:
+			if platform.system() == 'Windows':
+				time.sleep(self.setSleep)
 			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)	
 
 	def _updateResolution(self):
@@ -225,8 +226,6 @@ class Camera:
 			self.height = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
 	def setResolution(self, width, height):
-		if platform.system() == 'Windows':
-			time.sleep(0.1)
 		self._setWidth(width)
 		self._setHeight(height)
 		self._updateResolution()

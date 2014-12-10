@@ -143,21 +143,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         #print frame
         return frame
 
-    def updateToolbarStatus(self, status):
-        if status:
-            if self.IsShown():
-                self.videoView.play()
-            self.controls.enableContent()
-            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
-            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Enable()
-            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Enable()
-        else:
-            self.videoView.stop()
-            self.controls.disableContent()
-            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Disable()
-            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
-            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
-
     def onCameraIntrinsicsStartCallback(self):
         self.calibrating = True
         self.enableLabelTool(self.disconnectTool, False)
@@ -274,5 +259,25 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.videoView.Show()
         self.Layout()
 
+    def updateToolbarStatus(self, status):
+        if status:
+            if self.IsShown():
+                self.videoView.play()
+            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
+            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Enable()
+            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Enable()
+            self.controls.enableContent()
+        else:
+            self.videoView.stop()
+            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Disable()
+            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
+            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
+            self.controls.disableContent()
+
     def updateProfileToAllControls(self):
+        self.videoView.pause()
         self.controls.updateProfile()
+        if self.IsEnabled():
+            self.videoView.play()
+        else:
+            self.videoView.stop()

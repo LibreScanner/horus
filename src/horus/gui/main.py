@@ -211,7 +211,13 @@ class MainWindow(wx.Frame):
         self.controlWorkbench.videoView.stop()
         self.calibrationWorkbench.videoView.stop()
         self.scanningWorkbench.videoView.stop()
+        self.controlWorkbench.Disable()
+        self.calibrationWorkbench.Disable()
+        self.scanningWorkbench.Disable()
         wizard = Wizard(self)
+        self.controlWorkbench.Enable()
+        self.calibrationWorkbench.Enable()
+        self.scanningWorkbench.Enable()
 
     def onLoadModel(self, event):
         lastFile = os.path.split(profile.getPreference('last_file'))[0]
