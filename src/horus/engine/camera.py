@@ -80,9 +80,7 @@ class Camera:
 			self.maxExposure = 1000.
 
 		self.unplugCallback = None
-		self._n = 1 # Check if command fails
-
-		self.setSleep = 0.01
+		self._n = 0 # Check if command fails
 
 	def setCameraId(self, cameraId):
 		self.cameraId = cameraId
@@ -172,29 +170,21 @@ class Camera:
 		return self.height, self.width #-- Inverted values because of transpose
 
 	def setBrightness(self, value):
-		if platform.system() == 'Windows':
-			time.sleep(self.setSleep)
 		if self.isConnected:
 			value = int(value)/self.maxBrightness
 			self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
 
 	def setContrast(self, value):
-		if platform.system() == 'Windows':
-			time.sleep(self.setSleep)
 		if self.isConnected:
 			value = int(value)/self.maxContrast
 			self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
 
 	def setSaturation(self, value):
-		if platform.system() == 'Windows':
-			time.sleep(self.setSleep)
 		if self.isConnected:
 			value = int(value)/self.maxSaturation
 			self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
 
 	def setExposure(self, value):
-		if platform.system() == 'Windows':
-			time.sleep(self.setSleep)
 		if self.isConnected:
 			if platform.system() == 'Windows':
 				value = int(round(-math.log(value)/math.log(2)))
@@ -203,21 +193,15 @@ class Camera:
 			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 
 	def setFrameRate(self, value):
-		if platform.system() == 'Windows':
-			time.sleep(self.setSleep)
 		if self.isConnected:
 			self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
 
 	def _setWidth(self, value):
 		if self.isConnected:
-			if platform.system() == 'Windows':
-				time.sleep(self.setSleep)
 			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
 
 	def _setHeight(self, value):
 		if self.isConnected:
-			if platform.system() == 'Windows':
-				time.sleep(self.setSleep)
 			self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)	
 
 	def _updateResolution(self):
