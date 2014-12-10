@@ -273,6 +273,16 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
             self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
             self.controls.disableContent()
+            self.calibrating = False
+            self.combo.Enable()
+            self.controls.setExpandable(True)
+            self.cameraIntrinsicsMainPage.Hide()
+            self.cameraIntrinsicsResultPage.Hide()
+            self.laserTriangulationMainPage.Hide()
+            self.laserTriangulationResultPage.Hide()
+            self.platformExtrinsicsMainPage.Hide()
+            self.platformExtrinsicsResultPage.Hide()
+            self.videoView.Show()
 
     def updateProfileToAllControls(self):
         self.videoView.pause()
