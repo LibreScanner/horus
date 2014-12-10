@@ -459,7 +459,7 @@ class PlatformExtrinsics(Calibration):
 			#-- Disable motor
 			board.disableMotor()
 
-		if self.isCalibrating and t is not None and np.linalg.norm(t-[5,80,320]) < 20:
+		if self.isCalibrating and t is not None and np.linalg.norm(t-[5,80,320]) < 100:
 			response = (True, (R, t, center, point, normal, [x,y,z], circle))
 			if progressCallback is not None:
 				progressCallback(100)

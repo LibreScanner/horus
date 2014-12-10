@@ -257,6 +257,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
 		self.pointCloudTimer.Stop()
+		self.scanning=False
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
