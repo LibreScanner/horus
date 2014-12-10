@@ -75,30 +75,20 @@ class ScanningPage(WizardPage):
 												style=wx.CB_READONLY)
 
 		value = profile.getProfileSetting('use_laser')
-		if value ==_("Use Left Laser"):
-			self.driver.board.setLeftLaserOn()
-			self.driver.board.setRightLaserOff()
-		elif value ==_("Use Right Laser"):
-			self.driver.board.setLeftLaserOff()
-			self.driver.board.setRightLaserOn()
-		elif value ==_("Use Both Laser"):
-			self.driver.board.setLeftLaserOn()
-			self.driver.board.setRightLaserOn()
 		self.laserLabel = wx.StaticText(self.panel, label=_("Laser"))
 		self.laserComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
 										value=value,
 										choices=[_("Use Left Laser"), _("Use Right Laser"), _("Use Both Laser")],
 										style=wx.CB_READONLY)
 
-		self.textureLabel = wx.StaticText(self.panel, label=_("Texture"))
-		self.textureComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
-											value=_("Yes"),
-											choices=[_("Yes"), _("No")],
+		self.scanTypeLabel = wx.StaticText(self.panel, label=_("Scan Type"))
+		value = profile.getProfileSetting('scan_type')
+		self.scanTypeComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
+											value=value,
+											choices=[_("Without Texture"), _("With Texture")],
 											style=wx.CB_READONLY)
 
 		self.skipButton.Hide()
-		self.textureLabel.Disable()
-		self.textureComboBox.Disable()
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -115,8 +105,8 @@ class ScanningPage(WizardPage):
 		hbox.Add(self.laserComboBox, 1, wx.ALL^wx.BOTTOM|wx.EXPAND, 12)
 		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 5)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.textureLabel, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 18)
-		hbox.Add(self.textureComboBox, 1, wx.ALL^wx.BOTTOM|wx.EXPAND, 12)
+		hbox.Add(self.scanTypeLabel, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 18)
+		hbox.Add(self.scanTypeComboBox, 1, wx.ALL^wx.BOTTOM|wx.EXPAND, 12)
 		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 5)
 		self.panel.SetSizer(vbox)
 		self.Layout()
@@ -124,6 +114,7 @@ class ScanningPage(WizardPage):
 		self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
 		self.resolutionComboBox.Bind(wx.EVT_COMBOBOX, self.onResolutionComboBoxChanged)
 		self.laserComboBox.Bind(wx.EVT_COMBOBOX, self.onLaserComboBoxChanged)
+		self.scanTypeComboBox.Bind(wx.EVT_COMBOBOX, self.onScanTypeComboBoxChanged)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 		self.videoView.setCallback(self.getFrame)
@@ -167,13 +158,17 @@ class ScanningPage(WizardPage):
 		if useLeft:
 			self.driver.board.setLeftLaserOn()
 		else:
-			self.driver.board.setRightLaserOff()
+			self.driver.board.setLeftLaserOff()
 
 		if useRight:
 			self.driver.board.setRightLaserOn()
 		else:
-			self.driver.board.setLeftLaserOff()
+			self.driver.board.setRightLaserOff()
 		self.pcg.setUseLaser(useLeft, useRight)
+
+	def onScanTypeComboBoxChanged(self, event):
+		value = event.GetEventObject().GetValue()
+		profile.putProfileSetting('scan_type', value)
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()
@@ -183,7 +178,16 @@ class ScanningPage(WizardPage):
 		if status:
 			profile.putPreference('workbench', 'scanning')
 			self.GetParent().parent.workbenchUpdate(False)
-			self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
 			self.videoView.play()
+			value = profile.getProfileSetting('use_laser')
+			if value ==_("Use Left Laser"):
+				self.driver.board.setLeftLaserOn()
+				self.driver.board.setRightLaserOff()
+			elif value ==_("Use Right Laser"):
+				self.driver.board.setLeftLaserOff()
+				self.driver.board.setRightLaserOn()
+			elif value ==_("Use Both Laser"):
+				self.driver.board.setLeftLaserOn()
+				self.driver.board.setRightLaserOn()
 		else:
 			self.videoView.stop()

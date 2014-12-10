@@ -107,12 +107,13 @@ class Camera:
 			raise CameraNotConnected()
 		
 	def disconnect(self):
-		print ">>> Disconnecting camera {0}".format(self.cameraId)
-		if self.capture is not None:
-			if self.capture.isOpened():
-				self.capture.release()
+		if self.isConnected:
+			print ">>> Disconnecting camera {0}".format(self.cameraId)
+			if self.capture is not None:
+				if self.capture.isOpened():
+					self.capture.release()
 			self.isConnected = False
-		print ">>> Done"
+			print ">>> Done"
 
 	def checkCamera(self):
 		""" Checks correct camera """

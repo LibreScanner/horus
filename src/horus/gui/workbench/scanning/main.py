@@ -185,6 +185,14 @@ class ScanningWorkbench(WorkbenchConnection):
 				result = dlg.ShowModal() == wx.ID_YES
 				dlg.Destroy()
 			if result:
+				value = profile.getProfileSetting('scan_type')
+				print value
+				if value == _("Without Texture"):
+					self.currentScan = self.simpleScan
+					self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+				elif value == _("With Texture"):
+					self.currentScan = self.textureScan
+					self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 				self.currentScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
 				self.currentScan.start()
 
@@ -238,6 +246,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
 		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
+		self.scanning = False
 		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)

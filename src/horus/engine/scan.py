@@ -453,25 +453,21 @@ class TextureScan(Scan):
 						self.driver.board.setRightLaserOff()
 
 					#-- Capture images
-					if os.name == 'nt':
-						#TODO
-						pass
+					imgRaw = self.driver.camera.captureImage(flush=True, flushValue=1)
+
+					if self.pcg.useLeftLaser:
+						self.driver.board.setLeftLaserOn()
+						self.driver.board.setRightLaserOff()
+						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=1)
 					else:
-						imgRaw = self.driver.camera.captureImage(flush=True, flushValue=1)
+						imgLaserLeft = None
 
-						if self.pcg.useLeftLaser:
-							self.driver.board.setLeftLaserOn()
-							self.driver.board.setRightLaserOff()
-							imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=1)
-						else:
-							imgLaserLeft = None
-
-						if self.pcg.useRightLaser:
-							self.driver.board.setRightLaserOn()
-							self.driver.board.setLeftLaserOff()
-							imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
-						else:
-							imgLaserRight = None
+					if self.pcg.useRightLaser:
+						self.driver.board.setRightLaserOn()
+						self.driver.board.setLeftLaserOff()
+						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
+					else:
+						imgLaserRight = None
 
 				if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
 					self.imagesQueue.put(('left',imgRaw,imgLaserLeft))

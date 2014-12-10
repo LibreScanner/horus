@@ -208,6 +208,9 @@ class MainWindow(wx.Frame):
         self.Show()
 
     def onLaunchWizard(self, event):
+        self.controlWorkbench.videoView.stop()
+        self.calibrationWorkbench.videoView.stop()
+        self.scanningWorkbench.videoView.stop()
         wizard = Wizard(self)
 
     def onLoadModel(self, event):
@@ -438,6 +441,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def _onDeviceUnplugged(self, title="", description=""):
         self.simpleScan.stop()
         self.textureScan.stop()
+        self.scanningWorkbench.onScanFinished()
         self.controlWorkbench.updateStatus(False)
         self.calibrationWorkbench.updateStatus(False)
         self.scanningWorkbench.updateStatus(False)

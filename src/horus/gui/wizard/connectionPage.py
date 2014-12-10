@@ -86,7 +86,7 @@ class ConnectionPage(WizardPage):
 
 		self.videoView.setMilliseconds(20)
 		self.videoView.setCallback(self.getDetectChessboardFrame)
-		#self.updateStatus(self.driver.isConnected)
+		self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -113,6 +113,7 @@ class ConnectionPage(WizardPage):
 	def beforeConnect(self):
 		self.connectButton.Disable()
 		self.prevButton.Disable()
+		self.videoView.stop()
 		self.driver.board.setUnplugCallback(None)
 		self.driver.camera.setUnplugCallback(None)
 		self.waitCursor = wx.BusyCursor()
@@ -149,15 +150,11 @@ class ConnectionPage(WizardPage):
 				dlg.Destroy()
 
 		if self.driver.isConnected:
-			self.updateStatus(True)
+			self.GetParent().parent.workbenchUpdate(False)
 			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onCameraUnplugged))
-			self.patternLabel.Enable()
-			self.imageView.Enable()
-			self.skipButton.Enable()
-			self.enableNext = True
 
-		self.connectButton.Enable()
+		self.updateStatus(self.driver.isConnected)
 		self.prevButton.Enable()
 		del self.waitCursor
 
@@ -228,6 +225,10 @@ class ConnectionPage(WizardPage):
 			self.videoView.play()
 			self.connectButton.Disable()
 			self.autoCheckButton.Enable()
+			self.patternLabel.Enable()
+			self.imageView.Enable()
+			self.skipButton.Enable()
+			self.enableNext = True
 		else:
 			self.videoView.stop()
 			self.connectButton.Enable()
