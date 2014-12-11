@@ -253,15 +253,8 @@ setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
 
 setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
-setting('laser_angle_left', -30.0, float, 'advanced', _('Laser Angle Left'))
-setting('laser_angle_right', 30.0, float, 'advanced', _('Laser Angle Right'))
-
 setting('camera_matrix', ([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
 setting('distortion_vector',([0.0,0.0,0.0,0.0,0.0]),numpy.ndarray,'advanced',_('Distortion Vector'))
-
-setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
-setting('laser_origin', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Origin'))
-setting('laser_normal', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Normal'))
 
 setting('distance_left', 0.0, float, 'advanced', _('Distance'))
 setting('normal_left', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
@@ -276,6 +269,10 @@ setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))
 setting('pattern_distance', 18.8, float, 'advanced', _('Pattern Distance'))
 setting('extrinsics_step', -5.0, float, 'advanced', _('Extrinsics Step'), False)
+
+setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
+setting('laser_origin', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Origin'))
+setting('laser_normal', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Normal'))
 
 setting('left_button', '', str, 'basic', _('Left'), False)
 setting('right_button', '', str, 'basic', _('Right'), False)
