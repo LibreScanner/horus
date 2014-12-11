@@ -64,6 +64,7 @@ class MainWindow(wx.Frame):
         self.textureScan = scan.TextureScan.Instance()
         self.pcg = scan.PointCloudGenerator.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
@@ -615,6 +616,14 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                                    profile.getProfileSettingInteger('square_width'),
                                                    profile.getProfileSettingFloat('pattern_distance'))
         self.cameraIntrinsics.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+
+        self.simpleLaserTriangulation.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
+                                                    profile.getProfileSettingNumpy('distortion_vector'))
+        self.simpleLaserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
+                                                           profile.getProfileSettingInteger('pattern_columns'),
+                                                           profile.getProfileSettingInteger('square_width'),
+                                                           profile.getProfileSettingFloat('pattern_distance'))
+        self.simpleLaserTriangulation.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
 
         self.laserTriangulation.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
                                               profile.getProfileSettingNumpy('distortion_vector'))

@@ -225,7 +225,7 @@ class LaserTriangulation(Calibration):
 				ret = self.getPatternPlane(imageRaw)
 
 				if ret is not None:
-					step = 5 #2
+					step = 3 #2
 
 					d, n, corners = ret
 			
@@ -336,7 +336,7 @@ class LaserTriangulation(Calibration):
 		M = X - Xm
 		begin = datetime.datetime.now()
 		U = linalg.svd(M, overwrite_a=True, check_finite=False)[0]
-		print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
+		#print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
 		n = np.array(U.T[2])
 		d = np.dot(n,np.array(Xm))
 		return d[0], n, np.array(U.T)
@@ -452,24 +452,13 @@ class SimpleLaserTriangulation(Calibration):
 				time.sleep(0.1)
 
 				#-- Get images
-				if os.name == 'nt':
-					imgRaw = camera.captureImage(flush=False)
-					board.setLeftLaserOn()
-					time.sleep(0.2)
-					imgLasL = camera.captureImage(flush=False)
-					board.setLeftLaserOff()
-					board.setRightLaserOn()
-					time.sleep(0.2)
-					imgLasR = camera.captureImage(flush=False)
-					board.setRightLaserOff()
-				else:
-					imgRaw = camera.captureImage(flush=True, flushValue=2)
-					board.setLeftLaserOn()
-					imgLasL = camera.captureImage(flush=True, flushValue=2)
-					board.setLeftLaserOff()
-					board.setRightLaserOn()
-					imgLasR = camera.captureImage(flush=True, flushValue=2)
-					board.setRightLaserOff()
+				imgRaw = camera.captureImage(flush=True, flushValue=1)
+				board.setLeftLaserOn()
+				imgLasL = camera.captureImage(flush=True, flushValue=1)
+				board.setLeftLaserOff()
+				board.setRightLaserOn()
+				imgLasR = camera.captureImage(flush=True, flushValue=1)
+				board.setRightLaserOff()
 
 				##-- Corners ROI mask
 				imgLasL = self.cornersMask(imgLasL, corners)
@@ -498,10 +487,10 @@ class SimpleLaserTriangulation(Calibration):
 			afterCallback(response)
 
 	def getPatternDepth(self, board, camera, progressCallback):
-		epsilon = 0.0002
+		epsilon = 0.05
 		distance = np.inf
 		distanceAnt = np.inf
-		angle = 20
+		angle = 30
 		t = None
 		n = None
 		corners = None
@@ -513,7 +502,7 @@ class SimpleLaserTriangulation(Calibration):
 			progressCallback(0)
 
 		while self.isCalibrating and distance > epsilon and tries > 0:
-			image = camera.captureImage(flush=True, flushValue=2)
+			image = camera.captureImage(flush=True, flushValue=1)
 			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 			if ret is not None:
 				if ret[0]:
@@ -527,7 +516,7 @@ class SimpleLaserTriangulation(Calibration):
 						board.moveMotor()
 						break
 					distanceAnt = distance
-					angle = np.max(((distance-epsilon) * 15, 0.1))
+					angle = np.max(((distance-epsilon) * 30, 5))
 			else:
 				tries -= 1
 			board.setRelativePosition(angle)
@@ -537,7 +526,7 @@ class SimpleLaserTriangulation(Calibration):
 				if distance < np.inf:
 					progressCallback(min(80,max(0,80-100*abs(distance-epsilon))))
 
-		image = camera.captureImage(flush=True, flushValue=2)
+		image = camera.captureImage(flush=True, flushValue=1)
 		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 		if ret is not None:
 			R = ret[1]
@@ -545,7 +534,7 @@ class SimpleLaserTriangulation(Calibration):
 			n = R.T[2]
 			corners = ret[3]
 			distance = np.linalg.norm((0,0,1)-n)
-			angle = np.max(((distance-epsilon) * 15, 0.1))
+			angle = np.max(((distance-epsilon) * 30, 5))
 
 			if progressCallback is not None:
 				progressCallback(90)

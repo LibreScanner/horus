@@ -335,7 +335,7 @@ class LaserTriangulationMainPage(Page):
 
 		#-- Image View
 		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 
 		#-- Video View
 		self.videoView = VideoView(self._panel, self.getFrame, 50)
@@ -384,7 +384,6 @@ class LaserTriangulationMainPage(Page):
 		self.waitCursor = wx.BusyCursor()
 
 	def progressCalibration(self, progress):
-		print progress
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
