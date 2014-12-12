@@ -64,6 +64,7 @@ class MainWindow(wx.Frame):
         self.textureScan = scan.TextureScan.Instance()
         self.pcg = scan.PointCloudGenerator.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
@@ -544,13 +545,12 @@ Suite 330, Boston, MA  02111-1307  USA""")
             useLaser = profile.getProfileSetting('use_laser')
             self.pcg.setUseLaser(useLaser==_("Use Left Laser") or useLaser==_("Use Both Laser"),
                                  useLaser==_("Use Right Laser") or useLaser==_("Use Both Laser"))
-            self.pcg.setLaserAngles(profile.getProfileSettingFloat('laser_angle_left'),
-                                    profile.getProfileSettingFloat('laser_angle_right'))
             self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
                                          profile.getProfileSettingNumpy('distortion_vector'))
-            self.pcg.setLaserTriangulation(profile.getProfileSettingNumpy('laser_coordinates'),
-                                           profile.getProfileSettingNumpy('laser_origin'),
-                                           profile.getProfileSettingNumpy('laser_normal'))
+            self.pcg.setLaserTriangulation(profile.getProfileSettingNumpy('distance_left'),
+                                           profile.getProfileSettingNumpy('normal_left'),
+                                           profile.getProfileSettingNumpy('distance_right'),
+                                           profile.getProfileSettingNumpy('normal_right'))
             self.pcg.setPlatformExtrinsics(profile.getProfileSettingNumpy('rotation_matrix'),
                                            profile.getProfileSettingNumpy('translation_vector'))
 
@@ -590,6 +590,14 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                                    profile.getProfileSettingInteger('square_width'),
                                                    profile.getProfileSettingFloat('pattern_distance'))
         self.cameraIntrinsics.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+
+        self.simpleLaserTriangulation.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
+                                                    profile.getProfileSettingNumpy('distortion_vector'))
+        self.simpleLaserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
+                                                           profile.getProfileSettingInteger('pattern_columns'),
+                                                           profile.getProfileSettingInteger('square_width'),
+                                                           profile.getProfileSettingFloat('pattern_distance'))
+        self.simpleLaserTriangulation.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
 
         self.laserTriangulation.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
                                               profile.getProfileSettingNumpy('distortion_vector'))

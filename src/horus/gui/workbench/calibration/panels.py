@@ -390,41 +390,40 @@ class LaserTriangulationPanel(CalibrationPanel):
     def setParameters(self, params):
         self.distanceLeftValue = params[0]
         self.normalLeftValues = params[1]
-        self.distanceLeftValue = params[2]
+        self.distanceRightValue = params[2]
         self.normalRightValues = params[3]
         self.updateAllControls()
 
     def getProfileSettings(self):
         self.distanceLeftValue = profile.getProfileSettingFloat('distance_left')
         self.normalLeftValues = profile.getProfileSettingNumpy('normal_left')
-        self.distanceLeftValue = profile.getProfileSettingFloat('distance_right')
+        self.distanceRightValue = profile.getProfileSettingFloat('distance_right')
         self.normalRightValues = profile.getProfileSettingNumpy('normal_right')
 
     def putProfileSettings(self):
         profile.putProfileSettingNumpy('distance_left', self.distanceLeftValue)
         profile.putProfileSettingNumpy('normal_left', self.normalLeftValues)
-        profile.putProfileSettingNumpy('distance_right', self.distanceLeftValue)
+        profile.putProfileSettingNumpy('distance_right', self.distanceRightValue)
         profile.putProfileSettingNumpy('normal_right', self.normalRightValues)
 
     def updateAllControls(self):
-        self.distanceLeftValue = round(self.distanceLeftValue, 4)
+        self.distanceLeftValue = round(self.distanceLeftValue, 6)
         self.distanceLeftText.SetValue(str(self.distanceLeftValue))
 
         for i in range(3):
-            self.normalLeftValues[i] = round(self.normalLeftValues[i], 4)
+            self.normalLeftValues[i] = round(self.normalLeftValues[i], 6)
             self.normalLeftTexts[i].SetValue(str(self.normalLeftValues[i]))
 
-        self.distanceRightValue = round(self.distanceRightValue, 4)
+        self.distanceRightValue = round(self.distanceRightValue, 6)
         self.distanceRightText.SetValue(str(self.distanceRightValue))
 
         for i in range(3):
-            self.normalRightValues[i] = round(self.normalRightValues[i], 4)
+            self.normalRightValues[i] = round(self.normalRightValues[i], 6)
             self.normalRightTexts[i].SetValue(str(self.normalRightValues[i]))
 
     def updateEngine(self):
         if hasattr(self, 'pcg'):
-            pass # TODO
-            #self.pcg.setLaserTriangulation(self.coordinatesValues, self.originValues, self.normalValues)
+            pass
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -446,7 +445,8 @@ class LaserTriangulationPanel(CalibrationPanel):
 class SimpleLaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation"), buttonStartCallback=buttonStartCallback,
+
+        CalibrationPanel.__init__(self, parent, titleText=_("Laser Simple Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
                                   description=_("Determines the depth of the intersection camera-laser considering the inclination of the lasers."))
 
         self.pcg = scan.PointCloudGenerator.Instance()

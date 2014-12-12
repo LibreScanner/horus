@@ -115,11 +115,12 @@ class SceneView(openglGui.glGuiPanel):
 		#self._object._postProcessAfterLoad()
 
 	def appendPointCloud(self, point, color):
+		#TODO: optimize
 		if self._object is not None:
 			mesh = self._object._mesh
 			if mesh is not None:
-				for i in range(len(point)):
-					mesh._addVertex(point[i][0], point[i][1], point[i][2], color[i][0], color[i][1], color[i][2])
+				for i in range(point.shape[1]):
+					mesh._addVertex(point[0][i], point[1][i], point[2][i], color[0][i], color[1][i], color[2][i])
 			self.QueueRefresh()
 
 	def loadFile(self, filename):
