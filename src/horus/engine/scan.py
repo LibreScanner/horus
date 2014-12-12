@@ -340,24 +340,15 @@ class SimpleScan(Scan):
 		if self.thresholdEnable:
 			image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_TOZERO)[1]
 
-		#-- Detect peaks in rows
-		s = image.sum(1)
-		v = np.where((s > 0))[0]
-		u = np.argmax(image, axis=1)[v]
-
-		#-- Segment line
-		"""#-- Line generation
-		s = imageBin.sum(1)
-		v = np.where((s > 2))[0]
-		if self.useCompact:
-			i = imageBin.argmax(1)
-			u = ((i + (s/255.-1) / 2.)[v]).T.astype(int)
-		else:
-			w = (self.W * imageBin).sum(1)
-			u = (w[v] / s[v].T).astype(int)"""
+		#-- Peak detection: center of mass
+		h, w = image.shape
+		W = np.array((np.matrix(np.linspace(0,w-1,w)).T*np.matrix(np.ones(h))).T)
+		s = image.sum(axis=1)
+		v = np.where(s > 0)[0]
+		u = (W*image).sum(axis=1)[v] / s[v]
 		
 		tempLine = np.zeros_like(self.imgLaser)
-		tempLine[v,u] = 255
+		tempLine[v,u.astype(int)] = 255
 		self.imgLine = tempLine
 		self.imgGray = cv2.merge((image, image, image))
 
@@ -559,28 +550,19 @@ class TextureScan(Scan):
 		if self.thresholdEnable:
 			image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_TOZERO)[1]
 
-		#-- Detect peaks in rows
-		s = image.sum(1)
-		v = np.where((s > 0))[0]
-		u = np.argmax(image, axis=1)[v]
-
-		#-- Segment line
-		"""#-- Line generation
-		s = imageBin.sum(1)
-		v = np.where((s > 2))[0]
-		if self.useCompact:
-			i = imageBin.argmax(1)
-			u = ((i + (s/255.-1) / 2.)[v]).T.astype(int)
-		else:
-			w = (self.W * imageBin).sum(1)
-			u = (w[v] / s[v].T).astype(int)"""
+		#-- Peak detection: center of mass
+		h, w = image.shape
+		W = np.array((np.matrix(np.linspace(0,w-1,w)).T*np.matrix(np.ones(h))).T)
+		s = image.sum(axis=1)
+		v = np.where(s > 0)[0]
+		u = (W*image).sum(axis=1)[v] / s[v]
 
 		tempLine = np.zeros_like(imageLaser)
-		tempLine[v,u] = 255.0
+		tempLine[v,u.astype(int)] = 255.0
 		self.imgLine = tempLine
 		self.imgGray = cv2.merge((image, image, image))
 
-		colors = imageColor[v,u].T
+		colors = imageColor[v,u.astype(int)].T
 
 		return (u, v), colors
 
