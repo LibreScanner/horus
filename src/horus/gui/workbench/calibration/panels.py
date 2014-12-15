@@ -228,7 +228,6 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.distortionTexts[i].SetValue(str(self.distortionValues[i]))
 
     def updateEngine(self):
-        #print 'updateEngine calibration\panels'
         if hasattr(self, 'driver'):
             self.driver.camera.setIntrinsics(self.cameraValues, self.distortionValues)
         if hasattr(self, 'cameraIntrinsics'):
@@ -241,7 +240,6 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.pcg.setCameraIntrinsics(self.cameraValues, self.distortionValues)
 
     def updateProfile(self):
-        #print 'updateProfile'
         self.getProfileSettings()
         self.updateAllControls()
         self.updateEngine()
@@ -423,7 +421,7 @@ class LaserTriangulationPanel(CalibrationPanel):
 
     def updateEngine(self):
         if hasattr(self, 'pcg'):
-            pass
+            self.pcg.setLaserTriangulation(self.distanceLeftValue, self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -596,7 +594,7 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
 
     def updateEngine(self):
         if hasattr(self, 'pcg'):
-            self.pcg.setLaserTriangulation(self.coordinatesValues, self.originValues, self.normalValues)
+            pass
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -709,7 +707,6 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         return self.rotationValues, self.translationValues
 
     def setParameters(self, params):
-        print 'setParameters --> Workbench\calibration'
         self.rotationValues = params[0]
         self.translationValues = params[1]
         self.updateAllControls()

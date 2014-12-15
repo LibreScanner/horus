@@ -150,7 +150,6 @@ class ConnectionPage(WizardPage):
 				dlg.Destroy()
 
 		if self.driver.isConnected:
-			self.GetParent().parent.workbenchUpdate(False)
 			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onCameraUnplugged))
 
@@ -160,9 +159,6 @@ class ConnectionPage(WizardPage):
 
 	def onAutoCheckButtonClicked(self, event):
 		self.beforeAutoCheck()
-
-		#-- Move motor
-		self.videoView.setCallback(self.getDetectChessboardFrame)
 
 		#-- Perform auto check
 		self.autoCheck.setCallbacks(None,
@@ -221,9 +217,10 @@ class ConnectionPage(WizardPage):
 
 	def updateStatus(self, status):
 		if status:
-			if profile.getPreference('workbench') != 'calibration':
-				profile.putPreference('workbench', 'calibration')
-				self.GetParent().parent.workbenchUpdate(False)
+			#if profile.getPreference('workbench') != 'calibration':
+			profile.putPreference('workbench', 'calibration')
+			self.GetParent().parent.workbenchUpdate(False)
+			self.videoView.stop()
 			self.videoView.play()
 			self.connectButton.Disable()
 			self.autoCheckButton.Enable()

@@ -398,10 +398,13 @@ class MainWindow(wx.Frame):
 
     def onComboBoxWorkbenchSelected(self, event):
         """ """
+        currentWorkbench = profile.getPreference('workbench')
         for key in self.workbenchList:
             if self.workbenchList[key] == str(event.GetEventObject().GetValue()):
                 if key is not None:
                     profile.putPreference('workbench', key)
+                    if key != currentWorkbench:
+                        profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
                 self.workbenchUpdate()
 
     def onAbout(self, event):

@@ -82,6 +82,7 @@ class ControlWorkbench(WorkbenchConnection):
 
 	def initialize(self):
 		self.controls.initialize()
+		self.Layout()
 
 	def onShow(self, event):
 		if event.GetShow():

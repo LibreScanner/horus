@@ -105,7 +105,7 @@ class CalibrationPage(WizardPage):
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 		self.videoView.setMilliseconds(50)
-		self.videoView.setCallback(self.getFrame)
+		self.videoView.setCallback(self.getDetectChessboardFrame)
 		#self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
@@ -119,7 +119,7 @@ class CalibrationPage(WizardPage):
 			except:
 				pass
 
-	def getFrame(self):
+	def getDetectChessboardFrame(self):
 		frame = self.driver.camera.captureImage()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
@@ -169,9 +169,10 @@ class CalibrationPage(WizardPage):
 		ret, result = response
 
 		if ret:
-			profile.putProfileSettingNumpy('laser_coordinates', result[1])
-			profile.putProfileSettingNumpy('laser_origin', result[0][0])
-			profile.putProfileSettingNumpy('laser_normal', result[0][1])
+			profile.putProfileSetting('distance_left', result[0][0])
+			profile.putProfileSettingNumpy('normal_left', result[0][1])
+			profile.putProfileSetting('distance_right', result[1][0])
+			profile.putProfileSettingNumpy('normal_right', result[1][1])
 			self.platformExtrinsics.setCallbacks(None,
 												 lambda p: wx.CallAfter(self.progressPlatformCalibration,p),
 												 lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
@@ -204,6 +205,7 @@ class CalibrationPage(WizardPage):
 		if ret:
 			self.skipButton.Disable()
 			self.nextButton.Enable()
+			self.resultLabel.SetLabel("All OK. Please press next to continue")
 		else:
 			self.skipButton.Enable()
 			self.nextButton.Disable()

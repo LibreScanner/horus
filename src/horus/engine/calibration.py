@@ -272,6 +272,10 @@ class LaserTriangulation(Calibration):
 			dL, nL, RL = self.computePlane(XL)
 			dR, nR, RR = self.computePlane(XR)
 
+		##-- Switch off lasers
+		board.setLeftLaserOff()
+		board.setRightLaserOff()
+
 		#-- Disable motor
 		board.disableMotor()
 

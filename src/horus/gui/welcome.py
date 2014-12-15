@@ -120,7 +120,16 @@ class CreateNew(wx.Panel):
 
     def onWizard(self, event):
         self.GetParent().GetParent().Hide()
+        self.GetParent().GetParent().parent.controlWorkbench.videoView.stop()
+        self.GetParent().GetParent().parent.calibrationWorkbench.videoView.stop()
+        self.GetParent().GetParent().parent.scanningWorkbench.videoView.stop()
+        self.GetParent().GetParent().parent.controlWorkbench.Disable()
+        self.GetParent().GetParent().parent.calibrationWorkbench.Disable()
+        self.GetParent().GetParent().parent.scanningWorkbench.Disable()
         wizard = Wizard(self.GetParent().GetParent().parent)
+        self.GetParent().GetParent().parent.controlWorkbench.Enable()
+        self.GetParent().GetParent().parent.calibrationWorkbench.Enable()
+        self.GetParent().GetParent().parent.scanningWorkbench.Enable()
         self.GetParent().GetParent().Close()
 
     def onScan(self, event):

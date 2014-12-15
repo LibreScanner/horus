@@ -264,7 +264,6 @@ class SimpleScan(Scan):
 				begin = datetime.datetime.now()
 
 				if abs(self.theta * 180.0 / np.pi) < 360.0:
-					#print 'self.theta', self.theta * 180.0 / np.pi
 
 					#-- Left laser
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
@@ -300,8 +299,7 @@ class SimpleScan(Scan):
 				
 				if self.generatePointCloud:
 					#-- Check stop condition
-					if abs(self.pcg.theta * 180.0 / np.pi) >= 360.0:
-						#print 'self.pcg.theta', self.pcg.theta * 180.0 / np.pi
+					if abs(self.pcg.theta * 180.0 / np.pi) > 360.0:
 						ret=True
 						self.stop()
 						self.resetTheta()
@@ -310,7 +308,7 @@ class SimpleScan(Scan):
 				print "----- Theta capture: {0}".format(self.theta * 180.0 / np.pi)
 				print "----- Theta process: {0}".format(self.pcg.theta * 180.0 / np.pi)
 				
-				if abs(self.theta * 180.0 / np.pi) >= 360.0:
+				if abs(self.theta * 180.0 / np.pi) > 360.0:
 					#-- Disable board
 					self.driver.board.setLeftLaserOff()
 					self.driver.board.setRightLaserOff()
@@ -397,7 +395,6 @@ class TextureScan(Scan):
 		while self.run:
 			if not self.inactive:
 				if abs(self.theta * 180.0 / np.pi) < 360.0:
-					#print 'self.theta', self.theta * 180.0 / np.pi
 					begin = datetime.datetime.now()
 
 					if self.fastScan: #-- FAST METHOD
@@ -503,7 +500,7 @@ class TextureScan(Scan):
 					else:
 						time.sleep(0.05)
 
-					if abs(self.theta * 180.0 / np.pi) >= 360.0:
+					if abs(self.theta * 180.0 / np.pi) > 360.0:
 						#-- Disable board
 						self.driver.board.setLeftLaserOff()
 						self.driver.board.setRightLaserOff()
@@ -511,7 +508,7 @@ class TextureScan(Scan):
 						
 				if self.generatePointCloud:
 					#-- Check stop condition
-					if abs(self.theta * 180.0 / np.pi) >= 360.0:
+					if abs(self.theta * 180.0 / np.pi) > 360.0:
 						ret = True
 						self.stop()
 						self.resetTheta()
