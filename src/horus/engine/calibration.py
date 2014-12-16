@@ -37,7 +37,7 @@ import time
 import struct
 import threading
 import numpy as np
-from scipy import linalg
+from scipy.sparse import linalg
 from scipy import optimize
 
 import datetime
@@ -206,6 +206,7 @@ class LaserTriangulation(Calibration):
 			board.setSpeedMotor(1)
 			board.enableMotor()
 			board.setSpeedMotor(150)
+			board.setAccelerationMotor(200)
 			time.sleep(0.2)
 
 			if progressCallback is not None:
@@ -214,7 +215,7 @@ class LaserTriangulation(Calibration):
 			while self.isCalibrating and abs(angle) < 180:
 
 				if progressCallback is not None:
-					progressCallback(0.9*abs(angle/2.))
+					progressCallback(1.11*abs(angle/2.))
 
 				angle += step
 
@@ -269,8 +270,8 @@ class LaserTriangulation(Calibration):
 			self.saveScene('XR.ply', XR)
 
 			#-- Compute planes
-			dL, nL, RL = self.computePlane(XL)
-			dR, nR, RR = self.computePlane(XR)
+			dL, nL = self.computePlane(XL)
+			dR, nR = self.computePlane(XR)
 
 		##-- Switch off lasers
 		board.setLeftLaserOff()
@@ -280,7 +281,7 @@ class LaserTriangulation(Calibration):
 		board.disableMotor()
 
 		if self.isCalibrating:
-			response = (True, ((dL, nL, RL), (dR, nR, RR)))
+			response = (True, ((dL, nL), (dR, nR)))
 			if progressCallback is not None:
 				progressCallback(100)
 		else:
@@ -309,7 +310,7 @@ class LaserTriangulation(Calibration):
 		r,g,b = cv2.split(sub)
 
 		#-- Threshold
-		r = cv2.threshold(r, 80., 255.0, cv2.THRESH_TOZERO)[1]
+		r = cv2.threshold(r, 85., 255.0, cv2.THRESH_TOZERO)[1]
 
 		h, w = r.shape
 
@@ -334,16 +335,22 @@ class LaserTriangulation(Calibration):
 		return X.T
 
 	def computePlane(self, X):
-		X = np.matrix(X).T
-		n = X.shape[1]
-		Xm = X.sum(axis=1)/n
-		M = X - Xm
-		begin = datetime.datetime.now()
-		U = linalg.svd(M, overwrite_a=True, check_finite=False)[0]
-		#print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
-		n = np.array(U.T[2])
-		d = np.dot(n,np.array(Xm))
-		return d[0], n, np.array(U.T)
+		if X is not None:
+			X = np.matrix(X).T
+			n = X.shape[1]
+			Xm = X.sum(axis=1)/n
+			M = np.array(X-Xm)
+			#begin = datetime.datetime.now()
+			U = linalg.svds(M, k=2)[0]
+			#print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
+			s, t = U.T
+			n = np.cross(s, t)
+			if n[2] < 0:
+				n *= -1
+			d = np.dot(n,np.array(Xm))[0]
+			return d, n
+		else:
+			return None, None
 
 	def cornersMask(self, frame, corners):
 		p1 = corners[0][0]
@@ -364,9 +371,10 @@ class LaserTriangulation(Calibration):
 		return frame
 
 	def saveScene(self, filename, pointCloud):
-		f = open(filename, 'wb')
-		self.saveSceneStream(f, pointCloud)
-		f.close()
+		if pointCloud is not None:
+			f = open(filename, 'wb')
+			self.saveSceneStream(f, pointCloud)
+			f.close()
 
 	def saveSceneStream(self, stream, pointCloud):
 		frame  = "ply\n"

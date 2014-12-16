@@ -438,7 +438,7 @@ class LaserTriangulationResultPage(Page):
 			nR = result[1][1]
 			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((dL, nL, dR, nR))
 			self.plotPanel.clear()
-			self.plotPanel.add(result)
+			self.plotPanel.add((dL, nL, dR, nR))
 			self.plotPanel.Show()
 			self.Layout()
 		else:
@@ -470,8 +470,15 @@ class LaserTriangulation3DPlot(wx.Panel):
 		self.Layout()
 
 	def add(self, args):
-		dL, nL, RL = args[0]
-		dR, nR, RR = args[1]
+		dL, nL, dR, nR = args
+
+		rL = np.cross(np.array([0,0,1]), nL)
+		sL = np.cross(rL, nL)
+		RL = np.array([rL, sL, nL])
+
+		rR = np.cross(np.array([0,0,1]), nR)
+		sR = np.cross(rR, nR)
+		RR = np.array([rR, sR, nR])
 
 		self.addPlane(RL, dL*nL)
 		self.addPlane(RR, dR*nR)
