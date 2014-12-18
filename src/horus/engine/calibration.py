@@ -166,6 +166,7 @@ class LaserTriangulation(Calibration):
 	def __init__(self):
 		Calibration.__init__(self)
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+		self.image=self.driver.camera.captureImage(flush=True, flushValue=1)
 
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
@@ -189,6 +190,9 @@ class LaserTriangulation(Calibration):
 		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
 		objp = np.multiply(objp, squareWidth)
 		return objp
+
+	def getImage(self):
+		return self.image
 
 	def _start(self, progressCallback, afterCallback):
 		XL = None
@@ -229,6 +233,7 @@ class LaserTriangulation(Calibration):
 
 				#-- Image acquisition
 				imageRaw = camera.captureImage(flush=True, flushValue=1)
+				# self.image=imageRaw
 
 				#-- Pattern detection
 				ret = self.getPatternPlane(imageRaw)
@@ -240,10 +245,15 @@ class LaserTriangulation(Calibration):
 			
 					#-- Image laser acquisition
 					board.setLeftLaserOn()
+
 					imageLeft = camera.captureImage(flush=True, flushValue=flush)
+					self.image=imageLeft
+
 					board.setLeftLaserOff()
 					board.setRightLaserOn()
 					imageRight = camera.captureImage(flush=True, flushValue=flush)
+					self.image=imageRight
+
 					board.setRightLaserOff()
 
 					#-- Pattern ROI mask
@@ -270,6 +280,7 @@ class LaserTriangulation(Calibration):
 							XR = np.concatenate((XR,xR))
 				else:
 					step = 5
+					self.image=camera.captureImage(flush=True, flushValue=1)
 
 				board.setRelativePosition(step)
 				board.moveMotor()
@@ -279,8 +290,8 @@ class LaserTriangulation(Calibration):
 			self.saveScene('XR.ply', XR)
 
 			#-- Compute planes
-			dL, nL = self.computePlane(XL)
-			dR, nR = self.computePlane(XR)
+			dL, nL, stdL = self.computePlane(XL)
+			dR, nR, stdR = self.computePlane(XR)
 
 		##-- Switch off lasers
 		board.setLeftLaserOff()
@@ -290,7 +301,7 @@ class LaserTriangulation(Calibration):
 		board.disableMotor()
 
 		if self.isCalibrating and nL is not None and nR is not None:
-			response = (True, ((dL, nL), (dR, nR)))
+			response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
 			if progressCallback is not None:
 				progressCallback(100)
 		else:
@@ -349,6 +360,7 @@ class LaserTriangulation(Calibration):
 			n = X.shape[1]
 			if n > 3:
 				Xm = X.sum(axis=1)/n
+				# print 'Xm=',Xm
 				M = np.array(X-Xm)
 				print M.shape
 				#begin = datetime.datetime.now()
@@ -359,7 +371,9 @@ class LaserTriangulation(Calibration):
 				if n[2] < 0:
 					n *= -1
 				d = np.dot(n,np.array(Xm))[0]
-				return d, n
+				std=X.std()/X.mean()
+
+				return d, n, std
 			else:
 				return None, None
 		else:

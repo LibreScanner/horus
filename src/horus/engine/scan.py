@@ -107,6 +107,8 @@ class Scan:
 	def stop(self):
 		self.run = False
 		self.inactive = False
+		self.driver.board.setLeftLaserOff()
+		self.driver.board.setRightLaserOff()
 
 	def pause(self):
 		self.inactive = True

@@ -135,6 +135,7 @@ class Camera:
 			if flush:
 				for i in range(0, flushValue):
 					self.capture.read() #grab()
+
 			ret, image = self.capture.read()
 			if ret:
 				if self.useDistortion and \

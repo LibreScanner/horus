@@ -356,7 +356,7 @@ class LaserTriangulationMainPage(Page):
 
 	def onShow(self, event):
 		if event.GetShow():
-			#self.videoView.play()
+			self.videoView.play()
 			self.GetParent().Layout()
 			self.Layout()
 		else:
@@ -367,9 +367,9 @@ class LaserTriangulationMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
-		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		frame = self.laserTriangulation.getImage()#self.driver.camera.captureImage()
+		# if frame is not None:
+			# retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onCalibrate(self):
@@ -434,11 +434,14 @@ class LaserTriangulationResultPage(Page):
 		if ret:
 			dL = result[0][0]
 			nL = result[0][1]
+			stdL = result[0][2]
 			dR = result[1][0]
 			nR = result[1][1]
+			stdR = result[1][2]
+
 			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((dL, nL, dR, nR))
 			self.plotPanel.clear()
-			self.plotPanel.add((dL, nL, dR, nR))
+			self.plotPanel.add((dL, nL,stdL, dR, nR,stdR))
 			self.plotPanel.Show()
 			self.Layout()
 		else:
@@ -470,7 +473,7 @@ class LaserTriangulation3DPlot(wx.Panel):
 		self.Layout()
 
 	def add(self, args):
-		dL, nL, dR, nR = args
+		dL, nL, stdL, dR, nR, stdR = args
 
 		rL = np.cross(np.array([0,0,1]), nL)
 		sL = np.cross(rL, nL)
@@ -490,6 +493,9 @@ class LaserTriangulation3DPlot(wx.Panel):
 		self.ax.set_xlabel('X')
 		self.ax.set_ylabel('Z')
 		self.ax.set_zlabel('Y')
+
+		self.ax.text(-100,0,0, str(stdL), fontsize=15)
+		self.ax.text(100,0,0, str(stdR), fontsize=15)
 
 		self.ax.set_xlim(-150, 150)
 		self.ax.set_ylim(0, 400)
