@@ -70,7 +70,7 @@ class CalibrationPage(WizardPage):
 
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Calibrate\""))
 		self.imageView = ImageView(self.panel)
-		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
+		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 		self.calibrateButton = wx.Button(self.panel, label=_("Calibrate"))
 		self.cancelButton = wx.Button(self.panel, label=_("Cancel"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
@@ -105,7 +105,7 @@ class CalibrationPage(WizardPage):
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 		self.videoView.setMilliseconds(50)
-		self.videoView.setCallback(self.getFrame)
+		self.videoView.setCallback(self.getDetectChessboardFrame)
 		#self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
@@ -119,7 +119,7 @@ class CalibrationPage(WizardPage):
 			except:
 				pass
 
-	def getFrame(self):
+	def getDetectChessboardFrame(self):
 		frame = self.driver.camera.captureImage()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
@@ -137,10 +137,10 @@ class CalibrationPage(WizardPage):
 		self.driver.camera.setExposure(value)
 
 	def onCalibrationButtonClicked(self, event):
-		self.platformExtrinsics.setCallbacks(self.beforePlatformCalibration,
-											 lambda p: wx.CallAfter(self.progressPlatformCalibration,p),
-											 lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
-		self.platformExtrinsics.start()
+		self.laserTriangulation.setCallbacks(self.beforeCalibration,
+											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
+											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
+		self.laserTriangulation.start()
 
 	def onCancelButtonClicked(self, event):
 		self.resultLabel.SetLabel("Calibration canceled. To try again press \"Calibrate\"")
@@ -149,7 +149,7 @@ class CalibrationPage(WizardPage):
 		self.skipButton.Enable()
 		self.onFinishCalibration()
 
-	def beforePlatformCalibration(self):
+	def beforeCalibration(self):
 		self.calibrateButton.Disable()
 		self.cancelButton.Enable()
 		self.prevButton.Disable()
@@ -162,49 +162,50 @@ class CalibrationPage(WizardPage):
 		self.Layout()
 		self.waitCursor = wx.BusyCursor()
 
-	def progressPlatformCalibration(self, progress):
-		self.gauge.SetValue(progress*0.7)
-
-	def afterPlatformCalibration(self, response):
-		ret, result = response
-
-		if ret:
-			profile.putProfileSettingNumpy('rotation_matrix', result[0])
-			profile.putProfileSettingNumpy('translation_vector', result[1])
-			self.laserTriangulation.setCallbacks(None,
-											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
-											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
-			self.laserTriangulation.start()
-		else:
-			if result == Error.CalibrationError:
-				self.resultLabel.SetLabel("Error in pattern: please check the pattern and try again")
-				dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.skipButton.Enable()
-				self.onFinishCalibration()
-
 	def progressLaserCalibration(self, progress):
-		self.gauge.SetValue(70 + progress*0.3)
+		self.gauge.SetValue(progress*0.7)
 
 	def afterLaserCalibration(self, response):
 		ret, result = response
-		
+
 		if ret:
-			self.resultLabel.SetLabel("All OK. Please press next to continue")
-			profile.putProfileSettingNumpy('laser_coordinates', result[1])
-			profile.putProfileSettingNumpy('laser_origin', result[0][0])
-			profile.putProfileSettingNumpy('laser_normal', result[0][1])
+			profile.putProfileSetting('distance_left', result[0][0])
+			profile.putProfileSettingNumpy('normal_left', result[0][1])
+			profile.putProfileSetting('distance_right', result[1][0])
+			profile.putProfileSettingNumpy('normal_right', result[1][1])
+			self.platformExtrinsics.setCallbacks(None,
+												 lambda p: wx.CallAfter(self.progressPlatformCalibration,p),
+												 lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
+			self.platformExtrinsics.start()
 		else:
 			if result == Error.CalibrationError:
 				self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again")
 				dlg = wx.MessageDialog(self, _("Laser Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
+				self.skipButton.Enable()
+				self.onFinishCalibration()
+
+	def progressPlatformCalibration(self, progress):
+		self.gauge.SetValue(70 + progress*0.3)	
+
+	def afterPlatformCalibration(self, response):
+		ret, result = response
+		
+		if ret:
+			profile.putProfileSettingNumpy('rotation_matrix', result[0])
+			profile.putProfileSettingNumpy('translation_vector', result[1])
+		else:
+			if result == Error.CalibrationError:
+				self.resultLabel.SetLabel("Error in pattern: please check the pattern and try again")
+				dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg.ShowModal()
+				dlg.Destroy()
 
 		if ret:
 			self.skipButton.Disable()
 			self.nextButton.Enable()
+			self.resultLabel.SetLabel("All OK. Please press next to continue")
 		else:
 			self.skipButton.Enable()
 			self.nextButton.Disable()

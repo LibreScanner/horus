@@ -335,7 +335,7 @@ class LaserTriangulationMainPage(Page):
 
 		#-- Image View
 		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
+		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 
 		#-- Video View
 		self.videoView = VideoView(self._panel, self.getFrame, 50)
@@ -352,6 +352,7 @@ class LaserTriangulationMainPage(Page):
 
 	def initialize(self):
 		self.gauge.SetValue(0)
+		self._rightButton.Enable()
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -366,9 +367,9 @@ class LaserTriangulationMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
-		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		frame = self.laserTriangulation.getImage()#self.driver.camera.captureImage()
+		# if frame is not None:
+			# retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onCalibrate(self):
@@ -433,11 +434,14 @@ class LaserTriangulationResultPage(Page):
 		if ret:
 			dL = result[0][0]
 			nL = result[0][1]
+			stdL = result[0][2]
 			dR = result[1][0]
 			nR = result[1][1]
+			stdR = result[1][2]
+
 			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((dL, nL, dR, nR))
 			self.plotPanel.clear()
-			self.plotPanel.add(result)
+			self.plotPanel.add((dL, nL,stdL, dR, nR,stdR))
 			self.plotPanel.Show()
 			self.Layout()
 		else:
@@ -469,8 +473,15 @@ class LaserTriangulation3DPlot(wx.Panel):
 		self.Layout()
 
 	def add(self, args):
-		dL, nL, RL = args[0]
-		dR, nR, RR = args[1]
+		dL, nL, stdL, dR, nR, stdR = args
+
+		rL = np.cross(np.array([0,0,1]), nL)
+		sL = np.cross(rL, nL)
+		RL = np.array([rL, sL, nL])
+
+		rR = np.cross(np.array([0,0,1]), nR)
+		sR = np.cross(rR, nR)
+		RR = np.array([rR, sR, nR])
 
 		self.addPlane(RL, dL*nL)
 		self.addPlane(RR, dR*nR)
@@ -482,6 +493,9 @@ class LaserTriangulation3DPlot(wx.Panel):
 		self.ax.set_xlabel('X')
 		self.ax.set_ylabel('Z')
 		self.ax.set_zlabel('Y')
+
+		self.ax.text(-100,0,0, str(stdL), fontsize=15)
+		self.ax.text(100,0,0, str(stdR), fontsize=15)
 
 		self.ax.set_xlim(-150, 150)
 		self.ax.set_ylim(0, 400)
@@ -495,14 +509,16 @@ class LaserTriangulation3DPlot(wx.Panel):
 		self.Layout()
 
 	def addPlane(self, R, t):
-		w = 300
+		w = 200
 		h = 300
 
-		p = np.array([[0,0,0],[w,0,0],[w,h,0],[0,h,0],[0,0,0]])
+		p = np.array([[-w/2,-h/2,0],[-w/2,h/2,0],[w/2,h/2,0],[w/2,-h/2,0],[-w/2,-h/2,0]])
 		n = np.array([[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]])
 
-		points = np.dot(R, p.T) + np.array([t,t,t,t,t]).T
-		normals = np.dot(R, n.T)
+		self.ax.plot([0,t[0]], [0,t[2]], [0,t[1]], linewidth=2.0, color='yellow')
+
+		points = np.dot(R.T, p.T) + np.array([t,t,t,t,t]).T 
+		normals = np.dot(R.T, n.T)
 
 		X = np.array([points[0], normals[0]])
 		Y = np.array([points[1], normals[1]])
@@ -555,6 +571,7 @@ class SimpleLaserTriangulationMainPage(Page):
 
 	def initialize(self):
 		self.gauge.SetValue(0)
+		self._rightButton.Enable()
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -731,6 +748,7 @@ class PlatformExtrinsicsMainPage(Page):
 
 	def initialize(self):
 		self.gauge.SetValue(0)
+		self._rightButton.Enable()
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -855,8 +873,8 @@ class PlatformExtrinsics3DPlot(wx.Panel):
 
 		d = profile.getProfileSettingFloat('pattern_distance')
 
-		self.ax.plot([t[0],t[0]+100*R[0][0]], [t[2],t[2]+100*R[2][0]], [t[1],t[1]+100*R[1][0]], linewidth=2.0, color='red')
-		self.ax.plot([t[0],t[0]+100*R[0][1]], [t[2],t[2]+100*R[2][1]], [t[1],t[1]+100*R[1][1]], linewidth=2.0, color='green')
+		self.ax.plot([t[0],t[0]+50*R[0][0]], [t[2],t[2]+50*R[2][0]], [t[1],t[1]+50*R[1][0]], linewidth=2.0, color='red')
+		self.ax.plot([t[0],t[0]+50*R[0][1]], [t[2],t[2]+50*R[2][1]], [t[1],t[1]+50*R[1][1]], linewidth=2.0, color='green')
 		self.ax.plot([t[0],t[0]+d*R[0][2]], [t[2],t[2]+d*R[2][2]], [t[1],t[1]+d*R[1][2]], linewidth=2.0, color='blue')
 
 		self.ax.plot([0,50], [0,0], [0,0], linewidth=2.0, color='red')

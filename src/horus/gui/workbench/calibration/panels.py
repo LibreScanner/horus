@@ -31,7 +31,7 @@ import wx._core
 import numpy as np
 
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
-                                        CheckBox, Button
+                                        CheckBox, ToggleButton, Button
 
 from horus.util import profile
 
@@ -51,7 +51,7 @@ class CameraSettingsPanel(ExpandablePanel):
 
     def initialize(self):
         self.clearSections()
-        section = self.createSection('camera_calibration')
+        section = self.createSection('camera_settings')
         section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness)
         section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast)
         section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation)
@@ -64,6 +64,23 @@ class CameraSettingsPanel(ExpandablePanel):
         if self.main.IsShown():
             self.main.videoView.play()
 
+
+class LaserSettingsPanel(ExpandablePanel):
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Laser Settings"))
+
+        self.driver = Driver.Instance()
+        self.laserTriangulation = calibration.LaserTriangulation.Instance()
+
+        self.initialize()
+
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('laser_settings')
+        section.addItem(Slider, 'laser_threshold_value', self.laserTriangulation.setThreshold)
+        section.addItem(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
+        section.addItem(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
 
 ## TODO: Use TextBoxArray
 
@@ -228,7 +245,6 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.distortionTexts[i].SetValue(str(self.distortionValues[i]))
 
     def updateEngine(self):
-        #print 'updateEngine calibration\panels'
         if hasattr(self, 'driver'):
             self.driver.camera.setIntrinsics(self.cameraValues, self.distortionValues)
         if hasattr(self, 'cameraIntrinsics'):
@@ -241,7 +257,6 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.pcg.setCameraIntrinsics(self.cameraValues, self.distortionValues)
 
     def updateProfile(self):
-        #print 'updateProfile'
         self.getProfileSettings()
         self.updateAllControls()
         self.updateEngine()
@@ -390,41 +405,40 @@ class LaserTriangulationPanel(CalibrationPanel):
     def setParameters(self, params):
         self.distanceLeftValue = params[0]
         self.normalLeftValues = params[1]
-        self.distanceLeftValue = params[2]
+        self.distanceRightValue = params[2]
         self.normalRightValues = params[3]
         self.updateAllControls()
 
     def getProfileSettings(self):
         self.distanceLeftValue = profile.getProfileSettingFloat('distance_left')
         self.normalLeftValues = profile.getProfileSettingNumpy('normal_left')
-        self.distanceLeftValue = profile.getProfileSettingFloat('distance_right')
+        self.distanceRightValue = profile.getProfileSettingFloat('distance_right')
         self.normalRightValues = profile.getProfileSettingNumpy('normal_right')
 
     def putProfileSettings(self):
         profile.putProfileSettingNumpy('distance_left', self.distanceLeftValue)
         profile.putProfileSettingNumpy('normal_left', self.normalLeftValues)
-        profile.putProfileSettingNumpy('distance_right', self.distanceLeftValue)
+        profile.putProfileSettingNumpy('distance_right', self.distanceRightValue)
         profile.putProfileSettingNumpy('normal_right', self.normalRightValues)
 
     def updateAllControls(self):
-        self.distanceLeftValue = round(self.distanceLeftValue, 4)
+        self.distanceLeftValue = round(self.distanceLeftValue, 6)
         self.distanceLeftText.SetValue(str(self.distanceLeftValue))
 
         for i in range(3):
-            self.normalLeftValues[i] = round(self.normalLeftValues[i], 4)
+            self.normalLeftValues[i] = round(self.normalLeftValues[i], 6)
             self.normalLeftTexts[i].SetValue(str(self.normalLeftValues[i]))
 
-        self.distanceRightValue = round(self.distanceRightValue, 4)
+        self.distanceRightValue = round(self.distanceRightValue, 6)
         self.distanceRightText.SetValue(str(self.distanceRightValue))
 
         for i in range(3):
-            self.normalRightValues[i] = round(self.normalRightValues[i], 4)
+            self.normalRightValues[i] = round(self.normalRightValues[i], 6)
             self.normalRightTexts[i].SetValue(str(self.normalRightValues[i]))
 
     def updateEngine(self):
         if hasattr(self, 'pcg'):
-            pass # TODO
-            #self.pcg.setLaserTriangulation(self.coordinatesValues, self.originValues, self.normalValues)
+            self.pcg.setLaserTriangulation(self.distanceLeftValue, self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -446,7 +460,8 @@ class LaserTriangulationPanel(CalibrationPanel):
 class SimpleLaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation"), buttonStartCallback=buttonStartCallback,
+
+        CalibrationPanel.__init__(self, parent, titleText=_("Laser Simple Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
                                   description=_("Determines the depth of the intersection camera-laser considering the inclination of the lasers."))
 
         self.pcg = scan.PointCloudGenerator.Instance()
@@ -596,7 +611,7 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
 
     def updateEngine(self):
         if hasattr(self, 'pcg'):
-            self.pcg.setLaserTriangulation(self.coordinatesValues, self.originValues, self.normalValues)
+            pass
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -709,7 +724,6 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         return self.rotationValues, self.translationValues
 
     def setParameters(self, params):
-        print 'setParameters --> Workbench\calibration'
         self.rotationValues = params[0]
         self.translationValues = params[1]
         self.updateAllControls()

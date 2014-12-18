@@ -124,6 +124,8 @@ class Wizard(wx.Dialog):
             self.calibrationPage.videoView.stop()
             self.scanningPage.videoView.stop()
             profile.putPreference('workbench', 'scanning')
+            self.parent.updatePCGProfile()
+            self.parent.updateCalibrationProfile()
             self.parent.workbenchUpdate()
             self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
             self.Destroy()

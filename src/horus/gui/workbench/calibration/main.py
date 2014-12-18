@@ -35,10 +35,10 @@ from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.calibration.panels import CameraSettingsPanel, CameraIntrinsicsPanel, \
-                                                   SimpleLaserTriangulationPanel, PlatformExtrinsicsPanel
+from horus.gui.workbench.calibration.panels import CameraSettingsPanel, LaserSettingsPanel, CameraIntrinsicsPanel, \
+                                                   LaserTriangulationPanel, PlatformExtrinsicsPanel
 from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, CameraIntrinsicsResultPage, \
-                                                  SimpleLaserTriangulationMainPage, SimpleLaserTriangulationResultPage, \
+                                                  LaserTriangulationMainPage, LaserTriangulationResultPage, \
                                                   PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
 from horus.engine.driver import Driver
@@ -70,8 +70,9 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         #-- Add Scroll Panels
         self.controls.addPanel('camera_settings', CameraSettingsPanel(self.controls))
+        self.controls.addPanel('laser_settings', LaserSettingsPanel(self.controls))
         self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
-        self.controls.addPanel('laser_triangulation_panel', SimpleLaserTriangulationPanel(self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
+        self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
         self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
 
         #-- Add Calibration Pages
@@ -83,11 +84,11 @@ class CalibrationWorkbench(WorkbenchConnection):
                                                                      buttonRejectCallback=self.onCancelCallback,
                                                                      buttonAcceptCallback=self.onCameraIntrinsicsAcceptCallback)
 
-        self.laserTriangulationMainPage = SimpleLaserTriangulationMainPage(self._panel,
+        self.laserTriangulationMainPage = LaserTriangulationMainPage(self._panel,
                                                                      afterCancelCallback=self.onCancelCallback,
                                                                      afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
 
-        self.laserTriangulationResultPage = SimpleLaserTriangulationResultPage(self._panel,
+        self.laserTriangulationResultPage = LaserTriangulationResultPage(self._panel,
                                                                          buttonRejectCallback=self.onCancelCallback,
                                                                          buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
 

@@ -117,6 +117,7 @@ class ScanningPage(WizardPage):
 		self.scanTypeComboBox.Bind(wx.EVT_COMBOBOX, self.onScanTypeComboBoxChanged)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
+		self.videoView.setMilliseconds(20)
 		self.videoView.setCallback(self.getFrame)
 
 	def onShow(self, event):

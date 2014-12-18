@@ -32,7 +32,6 @@ import cv2
 import time
 import Queue
 import threading
-import datetime
 import numpy as np
 
 from horus.engine.driver import Driver
@@ -81,7 +80,6 @@ class Scan:
 		self.afterCallback = None
 
 		self.imagesQueue = Queue.Queue(1000)
-		# self.points2DQueue = Queue.Queue(1000)
 		self.points3DQueue = Queue.Queue(10000)
 
 	def resetTheta(self):
@@ -98,14 +96,24 @@ class Scan:
 
 		self.initializeScan()
 		
-		self.run = True
+		self.runCapture = True
+		self.runProcess = True
 		self.inactive = False
 
-		threading.Thread(target=self._captureThread, args=(self.progressCallback,self.afterCallback)).start()
-		threading.Thread(target=self._processThread).start()
+		threading.Thread(target=self._captureThread).start()
+		threading.Thread(target=self._processThread, args=(self.progressCallback,self.afterCallback)).start()
 		
 	def stop(self):
-		self.run = False
+		self.runCapture = False
+		self.runProcess = False
+		self.inactive = False
+
+	def _stopCapture(self):
+		self.runCapture = False
+		self.inactive = False
+
+	def _stopProcess(self):
+		self.runProcess = False
 		self.inactive = False
 
 	def pause(self):
@@ -152,10 +160,8 @@ class Scan:
 		self.pcg.resetTheta()
 		self.resetTheta()
 
-		# self.points2DQueue.queue.clear()
 		self.points3DQueue.queue.clear()
 		self.imagesQueue.queue.clear()
-
 
 		#-- Setup board
 		if self.moveMotor:
@@ -178,53 +184,68 @@ class Scan:
 		""""""
 		pass
 
-	def _processThread(self):
+	def _processThread(self, progressCallback, afterCallback):
 		""""""
-
-		while self.run:
+		ret = False
+		while self.runProcess:
 			if not self.inactive:
-				if not self.imagesQueue.empty():
-					imagesQueueItem=self.imagesQueue.get(timeout=0.1)
-					self.imagesQueue.task_done();
+				if abs(self.pcg.theta * 180.0 / np.pi) <= 360.0:
+					if not self.imagesQueue.empty():
+						imagesQueueItem = self.imagesQueue.get(timeout=0.1)
+						self.imagesQueue.task_done();
 
-					# laser=False
-					updateTheta=True
-					#-- Compute 2D points from images
-					points2D, colors = self.compute2DPoints(imagesQueueItem)
-					#-- Put 2D points into the queue
-					if imagesQueueItem[0]=='right':
-						laser=False
-					elif imagesQueueItem[0]=='left':
-						laser=True
-					elif imagesQueueItem[0]=='both_right':
-						updateTheta=False
-						laser=False
+						begin = time.time()
 
-					elif imagesQueueItem[0]=='both_left':
 						updateTheta=True
-						laser=True
+						#-- Compute 2D points from images
+						points2D, colors = self.compute2DPoints(imagesQueueItem)
+						#-- Put 2D points into the queue
+						if imagesQueueItem[0]=='right':
+							laser=False
+						elif imagesQueueItem[0]=='left':
+							laser=True
+						elif imagesQueueItem[0]=='both_right':
+							updateTheta=False
+							laser=False
+						elif imagesQueueItem[0]=='both_left':
+							updateTheta=True
+							laser=True
 
-					begin = datetime.datetime.now()
+						#-- Compute 3D points
+						points3D, colors = self.pcg.compute3DPoints(points2D, colors, laser, updateTheta)
 
-					#-- Compute 3D points
-					points3D = self.pcg.compute3DPoints(points2D, laser, updateTheta)
+						if points3D is not None and colors is not None:
+							if self.points == None and self.colors == None:
+								self.points = points3D
+								self.colors = colors
+							else:
+								self.points = np.append(self.points, points3D, axis=1)
+								self.colors = np.append(self.points, points3D, axis=1)
 
-					if points3D is not None and colors is not None:
-						if self.points == None and self.colors == None:
-							self.points = points3D
-							self.colors = colors
-						else:
-							self.points = np.concatenate((self.points, points3D))
-							self.colors = np.concatenate((self.colors, colors))
+							if self.generatePointCloud:
+								#-- Put point cloud into the queue
+								self.points3DQueue.put((points3D, colors))
 
-						if self.generatePointCloud:
-							#-- Put point cloud into the queue
-							self.points3DQueue.put((points3D, colors))
+						end = time.time()
 
-					end = datetime.datetime.now()
-					print "Process end: {0}".format(end - begin)
+						print "Process end: {0}".format(int((end-begin)*1000))
+				else:
+					if self.generatePointCloud:
+						ret = True
+						self._stopProcess()
 			else:
 				time.sleep(0.1)
+
+		if progressCallback is not None:
+			progressCallback(100)
+
+		if ret:
+			response = (True, None)
+		else:
+			response = (False, Error.ScanError)
+
+		if afterCallback is not None:
+			afterCallback(response)
 
 	def getPointCloudIncrement(self):
 		""" """
@@ -246,10 +267,16 @@ class SimpleScan(Scan):
 			- Red line laser detection
 	"""
 
-	def _captureThread(self, progressCallback, afterCallback):
+	def _captureThread(self):
 		""""""
-		ret = False
+		if os.name == 'nt':
+			flush_both = 3
+			flush_single = 1
+		else:
+			flush_both = 1
+			flush_single = 0
 
+		#-- Switch off the lasers
 		self.driver.board.setLeftLaserOff()
 		self.driver.board.setRightLaserOff()
 
@@ -259,36 +286,35 @@ class SimpleScan(Scan):
 		if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
 			self.driver.board.setRightLaserOn()
 
-		while self.run:
+		while self.runCapture:
 			if not self.inactive:
-				begin = datetime.datetime.now()
-
-				if abs(self.theta * 180.0 / np.pi) < 360.0:
-					#print 'self.theta', self.theta * 180.0 / np.pi
+				if abs(self.theta * 180.0 / np.pi) <= 360.0:
+					begin = time.time()
 
 					#-- Left laser
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						image = self.driver.camera.captureImage()
+						image = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
 						self.imagesQueue.put(('left',image))
 
 					#-- Right laser
 					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						image = self.driver.camera.captureImage()
+						image = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
 						self.imagesQueue.put(('right',image))
 
 					##-- Both laser
 					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
 						self.driver.board.setLeftLaserOn()
 						self.driver.board.setRightLaserOff()
-						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=1)
+						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
 
 						self.driver.board.setRightLaserOn()
 						self.driver.board.setLeftLaserOff()
-						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
+						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
 
 						self.imagesQueue.put(('both_left',imgLaserLeft))
 						self.imagesQueue.put(('both_right',imgLaserRight))
 
+					print "-- Theta capture: {0}".format(self.theta * 180.0 / np.pi)
 					self.theta -= self.pcg.degrees * self.pcg.rad
 
 					#-- Move motor
@@ -297,42 +323,22 @@ class SimpleScan(Scan):
 						self.driver.board.moveMotor()
 					else:
 						time.sleep(0.05)
+
+					end = time.time()
+					print "Capture end: {0}".format(int((end-begin)*1000))
 				
-				if self.generatePointCloud:
-					#-- Check stop condition
-					if abs(self.pcg.theta * 180.0 / np.pi) >= 360.0:
-						#print 'self.pcg.theta', self.pcg.theta * 180.0 / np.pi
-						ret=True
-						self.stop()
-						self.resetTheta()
-				
-				end = datetime.datetime.now()
-				print "----- Theta capture: {0}".format(self.theta * 180.0 / np.pi)
-				print "----- Theta process: {0}".format(self.pcg.theta * 180.0 / np.pi)
-				
-				if abs(self.theta * 180.0 / np.pi) >= 360.0:
+				else:
+					if self.generatePointCloud:
+						self._stopCapture()
+
 					#-- Disable board
 					self.driver.board.setLeftLaserOff()
 					self.driver.board.setRightLaserOff()
 					self.driver.board.disableMotor()
 
-				print "Capture end: {0}".format(end - begin)
-
+					break
 			else:
 				time.sleep(0.1)
-
-
-
-		if progressCallback is not None:
-			progressCallback(100)
-
-		if ret:
-			response = (True, None)
-		else:
-			response = (False, Error.ScanError)
-
-		if afterCallback is not None:
-			afterCallback(response)
 
 	def setColor(self, value):
 		self.color = value
@@ -365,28 +371,19 @@ class SimpleScan(Scan):
 		if self.thresholdEnable:
 			image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_TOZERO)[1]
 
-		#-- Detect peaks in rows
-		s = image.sum(1)
-		v = np.where((s > 0))[0]
-		u = np.argmax(image, axis=1)[v]
-
-		#-- Segment line
-		"""#-- Line generation
-		s = imageBin.sum(1)
-		v = np.where((s > 2))[0]
-		if self.useCompact:
-			i = imageBin.argmax(1)
-			u = ((i + (s/255.-1) / 2.)[v]).T.astype(int)
-		else:
-			w = (self.W * imageBin).sum(1)
-			u = (w[v] / s[v].T).astype(int)"""
+		#-- Peak detection: center of mass
+		h, w = image.shape
+		W = np.array((np.matrix(np.linspace(0,w-1,w)).T*np.matrix(np.ones(h))).T)
+		s = image.sum(axis=1)
+		v = np.where(s > 0)[0]
+		u = (W*image).sum(axis=1)[v] / s[v]
 		
 		tempLine = np.zeros_like(self.imgLaser)
-		tempLine[v,u] = 255
+		tempLine[v,u.astype(int)] = 255
 		self.imgLine = tempLine
 		self.imgGray = cv2.merge((image, image, image))
 
-		colors = np.array(np.matrix(np.ones(len(u))).T*np.matrix(self.color))
+		colors = np.array(np.matrix(np.ones(len(u))).T*np.matrix(self.color)).T
 
 		return (u, v), colors
 
@@ -397,19 +394,27 @@ class TextureScan(Scan):
 		Capture geometry and texture
 	"""
 
-	def _captureThread(self, progressCallback, afterCallback):
+	def _captureThread(self):
 		""""""
-		ret = False
 		imgRaw = None
 		imgLaserLeft = None
 		imgLaserRight = None
-		while self.run:
-			if not self.inactive:
-				if abs(self.theta * 180.0 / np.pi) < 360.0:
-					#print 'self.theta', self.theta * 180.0 / np.pi
-					begin = datetime.datetime.now()
 
-					if self.fastScan: #-- FAST METHOD
+		#-- Switch off the lasers
+		self.driver.board.setLeftLaserOff()
+		self.driver.board.setRightLaserOff()
+
+		if os.name == 'nt':
+			flush = 3
+		else:
+			flush = 1
+
+		while self.runCapture:
+			if not self.inactive:
+				if abs(self.theta * 180.0 / np.pi) <= 360.0:
+					begin = time.time()
+
+					if self.fastScan: #-- FAST METHOD (only for linux)
 
 						#-- Left laser
 						if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
@@ -477,19 +482,19 @@ class TextureScan(Scan):
 							self.driver.board.setRightLaserOff()
 
 						#-- Capture images
-						imgRaw = self.driver.camera.captureImage(flush=True, flushValue=1)
+						imgRaw = self.driver.camera.captureImage(flush=True, flushValue=flush)
 
 						if self.pcg.useLeftLaser:
 							self.driver.board.setLeftLaserOn()
 							self.driver.board.setRightLaserOff()
-							imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=1)
+							imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush)
 						else:
 							imgLaserLeft = None
 
 						if self.pcg.useRightLaser:
 							self.driver.board.setRightLaserOn()
 							self.driver.board.setLeftLaserOff()
-							imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=1)
+							imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush)
 						else:
 							imgLaserRight = None
 
@@ -503,6 +508,7 @@ class TextureScan(Scan):
 						self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
 						self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
 
+					print "-- Theta: {0}".format(self.theta * 180.0 / np.pi)
 					self.theta -= self.pcg.degrees * self.pcg.rad
 
 					#-- Move motor
@@ -512,37 +518,20 @@ class TextureScan(Scan):
 					else:
 						time.sleep(0.05)
 
-					if abs(self.theta * 180.0 / np.pi) >= 360.0:
-						#-- Disable board
-						self.driver.board.setLeftLaserOff()
-						self.driver.board.setRightLaserOff()
-						self.driver.board.disableMotor()
-						
-				if self.generatePointCloud:
-					#-- Check stop condition
-					if abs(self.theta * 180.0 / np.pi) >= 360.0:
-						ret = True
-						self.stop()
-						self.resetTheta()
-				
-				end = datetime.datetime.now()
-				print "----- Theta capture: {0}".format(self.theta * 180.0 / np.pi)
-				print "----- Theta process: {0}".format(self.theta * 180.0 / np.pi)
+					end = time.time()
+					print "Capture end: {0}".format(int((end-begin)*1000))
+				else:
+					if self.generatePointCloud:
+						self._stopCapture()
 
-				print "Capture end: {0}".format(end - begin)
+					#-- Disable board
+					self.driver.board.setLeftLaserOff()
+					self.driver.board.setRightLaserOff()
+					self.driver.board.disableMotor()
+
+					break
 			else:
 				time.sleep(0.1)
-
-		if progressCallback is not None:
-			progressCallback(100)
-
-		if ret:
-			response = (True, None)
-		else:
-			response = (False, Error.ScanError)
-
-		if afterCallback is not None:
-			afterCallback(response)
 
 	def setUseOpen(self, enable):
 		self.openEnable = enable
@@ -556,7 +545,6 @@ class TextureScan(Scan):
 	def setThresholdValue(self, value):
 		self.thresholdValue = value
 
-	# def compute2DPoints(self, imageColor, imageLaser):
 	def compute2DPoints(self, images):
 		imageColor=images[1]
 		imageLaser=images[2]
@@ -587,28 +575,19 @@ class TextureScan(Scan):
 		if self.thresholdEnable:
 			image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_TOZERO)[1]
 
-		#-- Detect peaks in rows
-		s = image.sum(1)
-		v = np.where((s > 0))[0]
-		u = np.argmax(image, axis=1)[v]
-
-		#-- Segment line
-		"""#-- Line generation
-		s = imageBin.sum(1)
-		v = np.where((s > 2))[0]
-		if self.useCompact:
-			i = imageBin.argmax(1)
-			u = ((i + (s/255.-1) / 2.)[v]).T.astype(int)
-		else:
-			w = (self.W * imageBin).sum(1)
-			u = (w[v] / s[v].T).astype(int)"""
+		#-- Peak detection: center of mass
+		h, w = image.shape
+		W = np.array((np.matrix(np.linspace(0,w-1,w)).T*np.matrix(np.ones(h))).T)
+		s = image.sum(axis=1)
+		v = np.where(s > 0)[0]
+		u = (W*image).sum(axis=1)[v] / s[v]
 
 		tempLine = np.zeros_like(imageLaser)
-		tempLine[v,u] = 255.0
+		tempLine[v,u.astype(int)] = 255.0
 		self.imgLine = tempLine
 		self.imgGray = cv2.merge((image, image, image))
 
-		colors = imageColor[v,u]
+		colors = imageColor[v,u.astype(int)].T
 
 		return (u, v), colors
 
@@ -669,18 +648,11 @@ class PointCloudGenerator:
 		self.cx = cameraMatrix[0][2]
 		self.cy = cameraMatrix[1][2]
 
-	def setLaserTriangulation(self, laserCoordinates, laserOrigin, laserNormal):
-		if laserCoordinates is not None:
-			self.u1L = laserCoordinates[0][0]
-			self.u2L = laserCoordinates[0][1]
-			self.u1R = laserCoordinates[1][0]
-			self.u2R = laserCoordinates[1][1]
-
-		if laserOrigin is not None:
-			self.origin = laserOrigin
-
-		if laserNormal is not None:
-			self.normal = laserNormal
+	def setLaserTriangulation(self, dL, nL, dR, nR):
+		self.dL = dL
+		self.nL = nL
+		self.dR = dR
+		self.nR = nR
 
 	def setPlatformExtrinsics(self, rotationMatrix, translationVector):
 		self.rotationMatrix = rotationMatrix
@@ -726,81 +698,58 @@ class PointCloudGenerator:
 
 		#-- Obtaining point cloud in camera coordinates
 		if leftLaser:
-			self.u1 = self.u1L
-			self.u2 = self.u2L
-			self.alpha = self.alphaLeft
+			d = self.dL
+			n = self.nL
 		else:
-			self.u1 = self.u1R
-			self.u2 = self.u2R
-			self.alpha = self.alphaRight
+			d = self.dR
+			n = self.nR
 
-		a = (np.linspace(0,self.width-1,self.width) - self.cx) / self.fx
-		b = (np.linspace(0,self.height-1,self.height) - self.cy) / self.fy
+		x = np.concatenate(((u-self.cx)/self.fx, (v-self.cy)/self.fy, np.ones(len(u)))).reshape(3,len(u))
 
-		y0 = self.origin[1]
-		z0 = self.origin[2]
-
-		ny0 = self.normal[1]
-		nz0 = self.normal[2]
-
-		z = (ny0*y0 + nz0*z0) / (ny0*b + nz0)
-
-		zl = z * (1 + (self.u1 - self.cx + ((self.u2-self.u1)/self.height) * np.linspace(0,self.height-1,self.height)) / (self.fx * np.tan(self.alpha)))
-
-		##TODO: Optimize
-
-		Zc = ((np.ones((self.width,self.height)) * zl).T * (1. / (1 + a / np.tan(self.alpha)))).T
-		Xc = (a * Zc.T).T
-		Yc = b * Zc
+		Xc = d/np.dot(n,x)*x
 
 		#-- Move point cloud to world coordinates
-		R = np.matrix(self.rotationMatrix)
-		Rt = R.T
-		RT = R.T*np.matrix(self.translationVector).T
+		R = np.matrix(self.rotationMatrix).T
+		t = np.matrix(self.translationVector).T
 
-		self.Xw = (Rt[0,0] * Xc + Rt[0,1] * Yc + Rt[0,2] * Zc - RT[0]).T
-		self.Yw = (Rt[1,0] * Xc + Rt[1,1] * Yc + Rt[1,2] * Zc - RT[1]).T
-		self.Zw = (Rt[2,0] * Xc + Rt[2,1] * Yc + Rt[2,2] * Zc - RT[2]).T
+		Xwo = R*Xc - R*t
 
-		xw = self.Xw[v,u]
-		yw = self.Yw[v,u]
-		zw = self.Zw[v,u]
-
-		#-- Rotating point cloud
-		x = np.array(xw * np.cos(self.theta) - yw * np.sin(self.theta))
-		y = np.array(xw * np.sin(self.theta) + yw * np.cos(self.theta))
-		z = np.array(zw)
+		#-- Rotate point cloud
+		c = np.cos(self.theta)
+		s = np.sin(self.theta)
+		Rz = np.matrix([[c, -s, 0],[s, c, 0], [0, 0, 1]])
+		Xw = Rz * Xwo
 
 		#-- Return result
-		if z.size > 0:
-			points = np.concatenate((x,y,z)).reshape(3,z.size).T
-			rho = np.sqrt(x*x + y*y)
-			return points, rho, z
+		if Xw.size > 0:
+			return np.array(Xw)
 		else:
-			return None, None, None
+			return None
 
-	def pointCloudFilter(self, points, rho, z):
+	def pointCloudFilter(self, points, colors):
 		""" """
 		#-- Point Cloud Filter
+		rho = np.sqrt(points[0,:]**2 + points[1,:]**2)
+		z = points[2,:]
+
 		idx = np.where((z >= 0) &
 					   (z <= self.roiHeight) &
 					   (rho >= -self.roiRadius) &
-					   (rho <= self.roiRadius))[1]
+					   (rho <= self.roiRadius))[0]
 
-		return points[idx]
+		return points[:,idx], colors[:,idx]
 
-	def compute3DPoints(self, points2D, leftLaser, updateTheta):
+	def compute3DPoints(self, points2D, colors, leftLaser, updateTheta):
 		""" """
 		#-- Point Cloud Generation
-		points3D, rho, z = self.pointCloudGeneration(points2D, leftLaser)
+		points3D = self.pointCloudGeneration(points2D, leftLaser)
 
 		if points3D is not None:
 			#-- Point Cloud Filter
-			points3D = self.pointCloudFilter(points3D, rho, z)
+			points3D, colors = self.pointCloudFilter(points3D, colors)
 
 		if updateTheta: 
 			#-- Update Theta
 			self.theta -= self.degrees * self.rad
 
-
-		return points3D
+		return points3D, colors

@@ -50,12 +50,12 @@ class ConnectionPage(WizardPage):
 
 		self.driver = Driver.Instance()
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.laserTriangulation = calibration.LaserTriangulation.Instance()
+		self.autoCheck = calibration.SimpleLaserTriangulation.Instance()
 
 		self.connectButton = wx.Button(self.panel, label=_("Connect"))
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Auto check\""))
 		self.imageView = ImageView(self.panel)
-		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
+		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 		self.autoCheckButton = wx.Button(self.panel, label=_("Auto check"))
 		self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
 		self.resultLabel = wx.StaticText(self.panel, size=(-1, 30))
@@ -150,7 +150,6 @@ class ConnectionPage(WizardPage):
 				dlg.Destroy()
 
 		if self.driver.isConnected:
-			self.GetParent().parent.workbenchUpdate(False)
 			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onCameraUnplugged))
 
@@ -161,11 +160,11 @@ class ConnectionPage(WizardPage):
 	def onAutoCheckButtonClicked(self, event):
 		self.beforeAutoCheck()
 
-		#-- Move motor
-		self.driver.board.setSpeedMotor(200)
-		self.driver.board.setRelativePosition(-180)
-		self.driver.board.enableMotor()
-		self.driver.board.moveMotor(nonblocking=True, callback=(lambda r: wx.CallAfter(self.afterMoveMotor)))
+		#-- Perform auto check
+		self.autoCheck.setCallbacks(None,
+									lambda p: wx.CallAfter(self.progressAutoCheck,p),
+									lambda r: wx.CallAfter(self.afterAutoCheck,r))
+		self.autoCheck.start()
 
 	def beforeAutoCheck(self):
 		self.videoView.setCallback(self.getFrame)
@@ -180,19 +179,8 @@ class ConnectionPage(WizardPage):
 		self.waitCursor = wx.BusyCursor()
 		self.Layout()
 
-	def afterMoveMotor(self):
-		self.videoView.setCallback(self.getDetectChessboardFrame)
-		self.driver.board.disableMotor()
-		self.gauge.SetValue(30)
-
-		#-- Perform auto check
-		self.laserTriangulation.setCallbacks(None,
-											 lambda p: wx.CallAfter(self.progressAutoCheck,p),
-											 lambda r: wx.CallAfter(self.afterAutoCheck,r))
-		self.laserTriangulation.start()
-
 	def progressAutoCheck(self, progress):
-		self.gauge.SetValue(30 + 0.7*progress)
+		self.gauge.SetValue(0.9*progress)
 
 	def afterAutoCheck(self, response):
 		ret, result = response
@@ -209,11 +197,19 @@ class ConnectionPage(WizardPage):
 			self.skipButton.Enable()
 			self.nextButton.Disable()
 
+		self.driver.board.setSpeedMotor(150)
+		self.driver.board.setRelativePosition(-90)
+		self.driver.board.enableMotor()
+		self.driver.board.moveMotor(nonblocking=True, callback=(lambda r: wx.CallAfter(self.afterMoveMotor)))
+
+	def afterMoveMotor(self):
+		self.gauge.SetValue(100)
 		self.enableNext = True
-		self.gauge.Hide()
 		self.resultLabel.Show()
 		self.autoCheckButton.Enable()
 		self.prevButton.Enable()
+		self.driver.board.disableMotor()
+		self.gauge.Hide()
 		del self.waitCursor
 		self.panel.Fit()
 		self.panel.Layout()
@@ -221,9 +217,10 @@ class ConnectionPage(WizardPage):
 
 	def updateStatus(self, status):
 		if status:
-			if profile.getPreference('workbench') != 'calibration':
-				profile.putPreference('workbench', 'calibration')
-				self.GetParent().parent.workbenchUpdate(False)
+			#if profile.getPreference('workbench') != 'calibration':
+			profile.putPreference('workbench', 'calibration')
+			self.GetParent().parent.workbenchUpdate(False)
+			self.videoView.stop()
 			self.videoView.play()
 			self.connectButton.Disable()
 			self.autoCheckButton.Enable()
