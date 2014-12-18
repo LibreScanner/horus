@@ -212,9 +212,9 @@ setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRan
 setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
 setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRange(1, 1000)
 
-setting('brightness_calibration', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
+setting('brightness_calibration', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_calibration', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
-setting('saturation_calibration', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
+setting('saturation_calibration', 100, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_calibration', 8, int, 'basic', _('Exposure')).setRange(1, 512)
 setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
@@ -255,6 +255,8 @@ setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Co
 
 setting('camera_matrix', ([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
 setting('distortion_vector',([0.0,0.0,0.0,0.0,0.0]),numpy.ndarray,'advanced',_('Distortion Vector'))
+
+setting('laser_threshold_value', 85., int, 'advanced', _('Laser Threshold')).setRange(0, 255)
 
 setting('distance_left', 0.0, float, 'advanced', _('Distance'))
 setting('normal_left', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))

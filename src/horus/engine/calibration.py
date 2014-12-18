@@ -174,6 +174,9 @@ class LaserTriangulation(Calibration):
 	def setUseDistortion(self, useDistortion):
 		self.useDistortion = useDistortion
 
+	def setThreshold(self, threshold):
+		self.threshold = threshold
+
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
 		self.patternRows = rows
 		self.patternColumns = columns
@@ -191,6 +194,11 @@ class LaserTriangulation(Calibration):
 		XL = None
 		XR = None
 
+		if os.name=='nt':
+			flush = 2
+		else:
+			flush = 1
+
 		if self.driver.isConnected:
 
 			board = self.driver.board
@@ -206,7 +214,7 @@ class LaserTriangulation(Calibration):
 			board.setSpeedMotor(1)
 			board.enableMotor()
 			board.setSpeedMotor(150)
-			board.setAccelerationMotor(200)
+			board.setAccelerationMotor(150)
 			time.sleep(0.2)
 
 			if progressCallback is not None:
@@ -232,10 +240,10 @@ class LaserTriangulation(Calibration):
 			
 					#-- Image laser acquisition
 					board.setLeftLaserOn()
-					imageLeft = camera.captureImage(flush=True, flushValue=1)
+					imageLeft = camera.captureImage(flush=True, flushValue=flush)
 					board.setLeftLaserOff()
 					board.setRightLaserOn()
-					imageRight = camera.captureImage(flush=True, flushValue=1)
+					imageRight = camera.captureImage(flush=True, flushValue=flush)
 					board.setRightLaserOff()
 
 					#-- Pattern ROI mask
@@ -265,6 +273,7 @@ class LaserTriangulation(Calibration):
 
 				board.setRelativePosition(step)
 				board.moveMotor()
+				time.sleep(0.1)
 
 			self.saveScene('XL.ply', XL)
 			self.saveScene('XR.ply', XR)
@@ -280,7 +289,7 @@ class LaserTriangulation(Calibration):
 		#-- Disable motor
 		board.disableMotor()
 
-		if self.isCalibrating:
+		if self.isCalibrating and nL is not None and nR is not None:
 			response = (True, ((dL, nL), (dR, nR)))
 			if progressCallback is not None:
 				progressCallback(100)
@@ -310,7 +319,7 @@ class LaserTriangulation(Calibration):
 		r,g,b = cv2.split(sub)
 
 		#-- Threshold
-		r = cv2.threshold(r, 85., 255.0, cv2.THRESH_TOZERO)[1]
+		r = cv2.threshold(r, self.threshold, 255.0, cv2.THRESH_TOZERO)[1]
 
 		h, w = r.shape
 
@@ -338,17 +347,21 @@ class LaserTriangulation(Calibration):
 		if X is not None:
 			X = np.matrix(X).T
 			n = X.shape[1]
-			Xm = X.sum(axis=1)/n
-			M = np.array(X-Xm)
-			#begin = datetime.datetime.now()
-			U = linalg.svds(M, k=2)[0]
-			#print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
-			s, t = U.T
-			n = np.cross(s, t)
-			if n[2] < 0:
-				n *= -1
-			d = np.dot(n,np.array(Xm))[0]
-			return d, n
+			if n > 3:
+				Xm = X.sum(axis=1)/n
+				M = np.array(X-Xm)
+				print M.shape
+				#begin = datetime.datetime.now()
+				U = linalg.svds(M, k=2)[0]
+				#print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
+				s, t = U.T
+				n = np.cross(s, t)
+				if n[2] < 0:
+					n *= -1
+				d = np.dot(n,np.array(Xm))[0]
+				return d, n
+			else:
+				return None, None
 		else:
 			return None, None
 

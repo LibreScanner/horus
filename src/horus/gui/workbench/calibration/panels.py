@@ -31,7 +31,7 @@ import wx._core
 import numpy as np
 
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
-                                        CheckBox, Button
+                                        CheckBox, ToggleButton, Button
 
 from horus.util import profile
 
@@ -51,7 +51,7 @@ class CameraSettingsPanel(ExpandablePanel):
 
     def initialize(self):
         self.clearSections()
-        section = self.createSection('camera_calibration')
+        section = self.createSection('camera_settings')
         section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness)
         section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast)
         section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation)
@@ -64,6 +64,23 @@ class CameraSettingsPanel(ExpandablePanel):
         if self.main.IsShown():
             self.main.videoView.play()
 
+
+class LaserSettingsPanel(ExpandablePanel):
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Laser Settings"))
+
+        self.driver = Driver.Instance()
+        self.laserTriangulation = calibration.LaserTriangulation.Instance()
+
+        self.initialize()
+
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('laser_settings')
+        section.addItem(Slider, 'laser_threshold_value', self.laserTriangulation.setThreshold)
+        section.addItem(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
+        section.addItem(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
 
 ## TODO: Use TextBoxArray
 

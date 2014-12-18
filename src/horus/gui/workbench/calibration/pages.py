@@ -356,7 +356,7 @@ class LaserTriangulationMainPage(Page):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.videoView.play()
+			#self.videoView.play()
 			self.GetParent().Layout()
 			self.Layout()
 		else:

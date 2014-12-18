@@ -63,7 +63,6 @@ class ExpandableControl(wx.Panel):
 			if panel.hasRestore:
 				panel.restoreButton.Hide()
 		self.Layout()
-		#self.GetParent().Layout()
 
 	def setExpandable(self, value):
 		self.isExpandable = value
@@ -91,6 +90,9 @@ class ExpandableControl(wx.Panel):
 	def initialize(self):
 		for panel in self.panels.values():
 			panel.initialize()
+		self.Layout()
+		self.GetParent().Layout()
+		self.GetParent().GetParent().Layout()
 
 	def enableContent(self):
 		for panel in self.panels.values():

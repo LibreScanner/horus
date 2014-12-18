@@ -35,7 +35,7 @@ from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.calibration.panels import CameraSettingsPanel, CameraIntrinsicsPanel, \
+from horus.gui.workbench.calibration.panels import CameraSettingsPanel, LaserSettingsPanel, CameraIntrinsicsPanel, \
                                                    LaserTriangulationPanel, PlatformExtrinsicsPanel
 from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, CameraIntrinsicsResultPage, \
                                                   LaserTriangulationMainPage, LaserTriangulationResultPage, \
@@ -70,6 +70,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         #-- Add Scroll Panels
         self.controls.addPanel('camera_settings', CameraSettingsPanel(self.controls))
+        self.controls.addPanel('laser_settings', LaserSettingsPanel(self.controls))
         self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
         self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
         self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
@@ -126,7 +127,6 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def initialize(self):
         self.controls.initialize()
-        self.Layout()
 
     def onShow(self, event):
         if event.GetShow():
