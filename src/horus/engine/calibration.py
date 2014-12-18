@@ -232,8 +232,7 @@ class LaserTriangulation(Calibration):
 				angle += step
 
 				#-- Image acquisition
-				imageRaw = camera.captureImage(flush=True, flushValue=1)
-				# self.image=imageRaw
+				imageRaw = camera.captureImage(flush=True, flushValue=flush)
 
 				#-- Pattern detection
 				ret = self.getPatternPlane(imageRaw)
@@ -360,9 +359,7 @@ class LaserTriangulation(Calibration):
 			n = X.shape[1]
 			if n > 3:
 				Xm = X.sum(axis=1)/n
-				# print 'Xm=',Xm
 				M = np.array(X-Xm)
-				print M.shape
 				#begin = datetime.datetime.now()
 				U = linalg.svds(M, k=2)[0]
 				#print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)

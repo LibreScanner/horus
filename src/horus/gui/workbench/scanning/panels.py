@@ -28,6 +28,7 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
 
+import os
 import wx._core
 
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
@@ -58,7 +59,8 @@ class ScanParameters(ExpandablePanel):
         section = self.createSection('scan_parameters')
         section.addItem(ComboBox, 'scan_type', self.setCurrentScan)
         section.addItem(ComboBox, 'use_laser', self.setUseLaser)
-        section.addItem(CheckBox, 'fast_scan', self.setFastScan)
+        if os.name != 'nt':
+            section.addItem(CheckBox, 'fast_scan', self.setFastScan)
 
     def setFastScan(self, value):
         self.simpleScan.setFastScan(bool(value))
