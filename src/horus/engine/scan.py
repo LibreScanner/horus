@@ -80,7 +80,6 @@ class Scan:
 		self.afterCallback = None
 
 		self.imagesQueue = Queue.Queue(1000)
-		# self.points2DQueue = Queue.Queue(1000)
 		self.points3DQueue = Queue.Queue(10000)
 
 	def resetTheta(self):
@@ -213,7 +212,7 @@ class Scan:
 							laser=True
 
 						#-- Compute 3D points
-						points3D = self.pcg.compute3DPoints(points2D, laser, updateTheta)
+						points3D, colors = self.pcg.compute3DPoints(points2D, colors, laser, updateTheta)
 
 						if points3D is not None and colors is not None:
 							if self.points == None and self.colors == None:
@@ -727,7 +726,7 @@ class PointCloudGenerator:
 		else:
 			return None
 
-	def pointCloudFilter(self, points):
+	def pointCloudFilter(self, points, colors):
 		""" """
 		#-- Point Cloud Filter
 		rho = np.sqrt(points[0,:]**2 + points[1,:]**2)
@@ -738,19 +737,19 @@ class PointCloudGenerator:
 					   (rho >= -self.roiRadius) &
 					   (rho <= self.roiRadius))[0]
 
-		return points[:,idx]
+		return points[:,idx], colors[:,idx]
 
-	def compute3DPoints(self, points2D, leftLaser, updateTheta):
+	def compute3DPoints(self, points2D, colors, leftLaser, updateTheta):
 		""" """
 		#-- Point Cloud Generation
 		points3D = self.pointCloudGeneration(points2D, leftLaser)
 
 		if points3D is not None:
 			#-- Point Cloud Filter
-			points3D = self.pointCloudFilter(points3D)
+			points3D, colors = self.pointCloudFilter(points3D, colors)
 
 		if updateTheta: 
 			#-- Update Theta
 			self.theta -= self.degrees * self.rad
 
-		return points3D
+		return points3D, colors
