@@ -648,6 +648,7 @@ class PlatformExtrinsics(Calibration):
 	def __init__(self):
 		Calibration.__init__(self)
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+		self.image=self.driver.camera.captureImage(flush=True, flushValue=1)
 
 	def setExtrinsicsStep(self, step):
 		self.extrinsicsStep = step
@@ -671,6 +672,9 @@ class PlatformExtrinsics(Calibration):
 		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
 		objp = np.multiply(objp, squareWidth)
 		return objp
+
+	def getImage(self):
+		return self.image
 
 	def _start(self, progressCallback, afterCallback):
 		t = None
@@ -750,6 +754,7 @@ class PlatformExtrinsics(Calibration):
 	def getPatternPosition(self, step, board, camera):
 		t = None
 		image = camera.captureImage(flush=True, flushValue=1)
+		self.image=image
 		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 		if ret is not None:
 			if ret[0]:

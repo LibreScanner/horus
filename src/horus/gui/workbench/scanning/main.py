@@ -162,7 +162,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		if self.scanning:
 			return self.currentScan.getImage()
 		else:
-			return self.driver.camera.captureImage()
+			return self.currentScan.getImage(self.driver.camera.captureImage())
 
 	def onPointCloudTimer(self, event):
 		pointCloud = self.currentScan.getPointCloudIncrement()

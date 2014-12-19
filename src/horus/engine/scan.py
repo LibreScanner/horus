@@ -134,13 +134,15 @@ class Scan:
 	def setImageType(self, imgType):
 		self.imgType = imgType
 
-	def getImage(self):
+	def getImage(self, source=None):
 		img = { 'color' : self.imgColor,
 				'laser' : self.imgLaser,
 				'gray' : self.imgGray,
 				'line' : self.imgLine
 			  }[self.imgType]
-
+		if source!=None:
+			img=source
+		
 		if img is not None:
 			if self.pcg.viewROI:
 				img = img.copy()
