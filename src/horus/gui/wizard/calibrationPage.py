@@ -53,21 +53,6 @@ class CalibrationPage(WizardPage):
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
-		#TODO: use dictionaries
-
-		value = profile.getProfileSettingInteger('exposure_calibration')
-		if value > 25:
-			value = _("High")
-		elif value > 12:
-			value = _("Medium")
-		else:
-			value = _("Low")
-		self.exposureLabel = wx.StaticText(self.panel, label=_("Luminosity"))
-		self.exposureComboBox = wx.ComboBox(self.panel,
-											value=value,
-											choices=[_("High"), _("Medium"), _("Low")],
-											style=wx.CB_READONLY)
-
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Calibrate\""))
 		self.imageView = ImageView(self.panel)
 		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
@@ -83,10 +68,6 @@ class CalibrationPage(WizardPage):
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.exposureLabel, 0, wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
-		hbox.Add(self.exposureComboBox, 1, wx.TOP|wx.RIGHT|wx.EXPAND, 6)
-		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
 		vbox.Add(self.patternLabel, 0, wx.ALL|wx.CENTER, 5)
 		vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
@@ -99,7 +80,6 @@ class CalibrationPage(WizardPage):
 
 		self.Layout()
 
-		self.exposureComboBox.Bind(wx.EVT_COMBOBOX, self.onExposureComboBoxChanged)
 		self.calibrateButton.Bind(wx.EVT_BUTTON, self.onCalibrationButtonClicked)
 		self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
@@ -124,17 +104,6 @@ class CalibrationPage(WizardPage):
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
-
-	def onExposureComboBoxChanged(self, event):
-		value = event.GetEventObject().GetValue()
-		if value ==_("High"):
-			value = 32
-		elif value ==_("Medium"):
-			value = 16
-		elif value ==_("Low"):
-			value = 8
-		profile.putProfileSetting('exposure_calibration', value)
-		self.driver.camera.setExposure(value)
 
 	def onCalibrationButtonClicked(self, event):
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
@@ -232,6 +201,8 @@ class CalibrationPage(WizardPage):
 				self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			self.calibrateButton.Enable()
+			self.driver.board.setLeftLaserOff()
+			self.driver.board.setRightLaserOff()
 		else:
 			self.videoView.stop()
 			self.calibrateButton.Disable()

@@ -53,6 +53,10 @@ class ConnectionPage(WizardPage):
 		self.autoCheck = calibration.SimpleLaserTriangulation.Instance()
 
 		self.connectButton = wx.Button(self.panel, label=_("Connect"))
+		self.luminosityComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
+											  value=profile.getProfileSetting('luminosity'),
+											  choices=profile.getProfileSettingObject('luminosity').getType(),
+											  style=wx.CB_READONLY)
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Auto check\""))
 		self.imageView = ImageView(self.panel)
 		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
@@ -70,7 +74,10 @@ class ConnectionPage(WizardPage):
 		self.enableNext = False
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		vbox.Add(self.connectButton, 0, wx.ALL|wx.EXPAND, 5)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.connectButton, 1, wx.ALL|wx.EXPAND, 5)
+		hbox.Add(self.luminosityComboBox, 0, wx.ALL|wx.EXPAND, 5)
+		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
 		vbox.Add(self.patternLabel, 0, wx.ALL|wx.CENTER, 5)
 		vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
 		vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
@@ -81,6 +88,7 @@ class ConnectionPage(WizardPage):
 		self.Layout()
 
 		self.connectButton.Bind(wx.EVT_BUTTON, self.onConnectButtonClicked)
+		self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
 		self.autoCheckButton.Bind(wx.EVT_BUTTON, self.onAutoCheckButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
@@ -105,6 +113,20 @@ class ConnectionPage(WizardPage):
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
+
+	def onLuminosityComboBoxChanged(self, event):
+		value = event.GetEventObject().GetValue()
+		profile.putProfileSetting('luminosity', value)
+		if value ==_("Low Luminosity"):
+			value = 32
+		elif value ==_("Medium Luminosity"):
+			value = 16
+		elif value ==_("High Luminosity"):
+			value = 8
+		profile.putProfileSetting('exposure_control', value)
+		profile.putProfileSetting('exposure_calibration', value)
+		profile.putProfileSetting('exposure_scanning', value)
+		self.driver.camera.setExposure(value)
 
 	def onConnectButtonClicked(self, event):
 		self.driver.setCallbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
@@ -228,6 +250,8 @@ class ConnectionPage(WizardPage):
 			self.imageView.Enable()
 			self.skipButton.Enable()
 			self.enableNext = True
+			self.driver.board.setLeftLaserOff()
+			self.driver.board.setRightLaserOff()
 		else:
 			self.videoView.stop()
 			self.connectButton.Enable()
