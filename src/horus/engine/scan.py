@@ -332,15 +332,14 @@ class SimpleScan(Scan):
 				else:
 					if self.generatePointCloud:
 						self._stopCapture()
-
-					#-- Disable board
-					self.driver.board.setLeftLaserOff()
-					self.driver.board.setRightLaserOff()
-					self.driver.board.disableMotor()
-
 					break
 			else:
 				time.sleep(0.1)
+
+		#-- Disable board
+		self.driver.board.setLeftLaserOff()
+		self.driver.board.setRightLaserOff()
+		self.driver.board.disableMotor()
 
 	def setColor(self, value):
 		self.color = value
@@ -418,62 +417,76 @@ class TextureScan(Scan):
 
 					if self.fastScan: #-- FAST METHOD (only for linux)
 
-						#-- Left laser
-						if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-							self.driver.board.setLeftLaserOff()
-							imgLaserLeft = self.driver.camera.capture.read()[1]
-							imgRaw = self.driver.camera.capture.read()[1]
-							self.driver.board.setLeftLaserOn()
+						if self.driver.camera.isConnected:
+							self.driver.camerareading = True
+							#-- Left laser
+							if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+								self.driver.board.setLeftLaserOff()
+								imgLaserLeft = self.driver.camera.capture.read()[1]
+								imgRaw = self.driver.camera.capture.read()[1]
+								self.driver.board.setLeftLaserOn()
+								self.driver.camerareading = False
 
-							imgRaw = cv2.transpose(imgRaw)
-							imgRaw = cv2.flip(imgRaw, 1)
-							imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+								if imgRaw is None or imgLaserLeft is None:
+									self.driver.camera._fail()
+								else:
+									imgRaw = cv2.transpose(imgRaw)
+									imgRaw = cv2.flip(imgRaw, 1)
+									imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-							imgLaserRight = None
+									imgLaserRight = None
 
-							imgLaserLeft = cv2.transpose(imgLaserLeft)
-							imgLaserLeft = cv2.flip(imgLaserLeft, 1)
-							imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
+									imgLaserLeft = cv2.transpose(imgLaserLeft)
+									imgLaserLeft = cv2.flip(imgLaserLeft, 1)
+									imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
 
-						#-- Right laser
-						if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-							self.driver.board.setRightLaserOff()
-							imgLaserRight = self.driver.camera.capture.read()[1]
-							imgRaw = self.driver.camera.capture.read()[1]
-							self.driver.board.setRightLaserOn()
+							#-- Right laser
+							if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+								self.driver.board.setRightLaserOff()
+								imgLaserRight = self.driver.camera.capture.read()[1]
+								imgRaw = self.driver.camera.capture.read()[1]
+								self.driver.board.setRightLaserOn()
+								self.driver.camerareading = False
 
-							imgRaw = cv2.transpose(imgRaw)
-							imgRaw = cv2.flip(imgRaw, 1)
-							imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+								if imgRaw is None or imgLaserRight is None:
+									self.driver.camera._fail()
+								else:
+									imgRaw = cv2.transpose(imgRaw)
+									imgRaw = cv2.flip(imgRaw, 1)
+									imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-							imgLaserLeft = None
+									imgLaserLeft = None
 
-							imgLaserRight = cv2.transpose(imgLaserRight)
-							imgLaserRight = cv2.flip(imgLaserRight, 1)
-							imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
+									imgLaserRight = cv2.transpose(imgLaserRight)
+									imgLaserRight = cv2.flip(imgLaserRight, 1)
+									imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
 
-						##-- Both laser
-						if self.pcg.useLeftLaser and self.pcg.useRightLaser:
-							imgRaw = self.driver.camera.capture.read()[1]
-							self.driver.board.setLeftLaserOn()
-							imgLaserLeft = self.driver.camera.capture.read()[1]
-							self.driver.board.setLeftLaserOff()
-							self.driver.board.setRightLaserOn()
-							imgLaserRight = self.driver.camera.capture.read()[1]
-							self.driver.board.setRightLaserOff()
-							imgRaw = self.driver.camera.capture.read()[1]
+							##-- Both laser
+							if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+								imgRaw = self.driver.camera.capture.read()[1]
+								self.driver.board.setLeftLaserOn()
+								imgLaserLeft = self.driver.camera.capture.read()[1]
+								self.driver.board.setLeftLaserOff()
+								self.driver.board.setRightLaserOn()
+								imgLaserRight = self.driver.camera.capture.read()[1]
+								self.driver.board.setRightLaserOff()
+								imgRaw = self.driver.camera.capture.read()[1]
+								self.driver.camerareading = False
 
-							imgRaw = cv2.transpose(imgRaw)
-							imgRaw = cv2.flip(imgRaw, 1)
-							imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+								if imgRaw is None or imgLaserLeft is None or imgLaserRight is None:
+									self.driver.camera._fail()
+								else:
+									imgRaw = cv2.transpose(imgRaw)
+									imgRaw = cv2.flip(imgRaw, 1)
+									imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-							imgLaserLeft = cv2.transpose(imgLaserLeft)
-							imgLaserLeft = cv2.flip(imgLaserLeft, 1)
-							imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
+									imgLaserLeft = cv2.transpose(imgLaserLeft)
+									imgLaserLeft = cv2.flip(imgLaserLeft, 1)
+									imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
 
-							imgLaserRight = cv2.transpose(imgLaserRight)
-							imgLaserRight = cv2.flip(imgLaserRight, 1)
-							imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
+									imgLaserRight = cv2.transpose(imgLaserRight)
+									imgLaserRight = cv2.flip(imgLaserRight, 1)
+									imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
 
 					else: #-- SLOW METHOD
 
@@ -501,14 +514,17 @@ class TextureScan(Scan):
 							imgLaserRight = None
 
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
+						if imgRaw is not None and imgLaserLeft is not None:
+							self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
 
 					elif self.pcg.useRightLaser and not self.pcg.useLeftLaser:
-						self.imagesQueue.put(('right',imgRaw,imgLaserRight))
+						if imgRaw is not None and imgLaserRight is not None:
+							self.imagesQueue.put(('right',imgRaw,imgLaserRight))
 
 					elif self.pcg.useRightLaser and self.pcg.useLeftLaser:
-						self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
-						self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
+						if imgRaw is not None and imgLaserLeft is not None and imgLaserRight is not None:
+							self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
+							self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
 
 					print "-- Theta: {0}".format(self.theta * 180.0 / np.pi)
 					self.theta -= self.pcg.degrees * self.pcg.rad
@@ -525,15 +541,14 @@ class TextureScan(Scan):
 				else:
 					if self.generatePointCloud:
 						self._stopCapture()
-
-					#-- Disable board
-					self.driver.board.setLeftLaserOff()
-					self.driver.board.setRightLaserOff()
-					self.driver.board.disableMotor()
-
 					break
 			else:
 				time.sleep(0.1)
+
+		#-- Disable board
+		self.driver.board.setLeftLaserOff()
+		self.driver.board.setRightLaserOff()
+		self.driver.board.disableMotor()
 
 	def setUseOpen(self, enable):
 		self.openEnable = enable

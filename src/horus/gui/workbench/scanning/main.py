@@ -91,7 +91,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 
-		self.videoView = VideoView(self.splitterWindow, self.getFrame, 5)
+		self.videoView = VideoView(self.splitterWindow, self.getFrame, 10)
 		self.sceneView = SceneView(self.splitterWindow)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
@@ -221,6 +221,7 @@ class ScanningWorkbench(WorkbenchConnection):
 			dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK|wx.ICON_INFORMATION)
 			dlg.ShowModal()
 			dlg.Destroy()
+			self.scanning = False
 			self.onScanFinished()
 
 	def onStopToolClicked(self, event):
@@ -246,7 +247,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
 		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
-		self.scanning = False
 		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
@@ -257,7 +257,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
 		self.pointCloudTimer.Stop()
-		self.scanning=False
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)
@@ -281,10 +280,5 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
-		self.videoView.pause()
 		self.controls.updateProfile()
 		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
-		if self.IsEnabled():
-			self.videoView.play()
-		else:
-			self.videoView.stop()

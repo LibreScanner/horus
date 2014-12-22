@@ -587,7 +587,8 @@ class CallbackButton(SectionItem):
 
 	def onFinishCallback(self, ret):
 		wx.CallAfter(self.control.Enable)
-		del self.waitCursor
+		if hasattr(self,'waitCursor'):
+			del self.waitCursor
 
 	def updateProfile(self):
 		if hasattr(self,'control'):

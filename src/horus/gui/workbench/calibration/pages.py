@@ -163,23 +163,26 @@ class CameraIntrinsicsMainPage(Page):
 		self.videoView.pause()
 		self._rightButton.Disable()
 		self.gauge.SetValue(95)
-		self.waitCursor = wx.BusyCursor()
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
 
 	def progressCalibration(self, progress):
 		self.gauge.SetValue(max(95, progress))
 
 	def afterCalibration(self, result):
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
+		self._rightButton.Enable()
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
-
-	def onCancel(self):
 		if hasattr(self, 'waitCursor'):
 			del self.waitCursor
+
+	def onCancel(self):
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
 		self.cameraIntrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		del self.waitCursor
 
 
 class CameraIntrinsicsResultPage(Page):
@@ -387,18 +390,21 @@ class LaserTriangulationMainPage(Page):
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
+		self.onCalibrationFinished(result)
+
+	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 	def onCancel(self):
 		self.laserTriangulation.cancel()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 
 class LaserTriangulationResultPage(Page):
@@ -600,7 +606,8 @@ class SimpleLaserTriangulationMainPage(Page):
 	def beforeCalibration(self):
 		self._rightButton.Disable()
 		self.gauge.SetValue(0)
-		self.waitCursor = wx.BusyCursor()
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
 
 	def progressCalibration(self, progress):
 		self.gauge.SetValue(progress)
@@ -613,11 +620,11 @@ class SimpleLaserTriangulationMainPage(Page):
 			self.afterCalibrationCallback(result)
 
 	def onCancel(self):
+		self.waitCursor = wx.BusyCursor()
 		self.laserTriangulation.cancel()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		del self.waitCursor
 
 
 class SimpleLaserTriangulationResultPage(Page):
@@ -783,18 +790,21 @@ class PlatformExtrinsicsMainPage(Page):
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
+		self.onCalibrationFinished(result)
+
+	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 	def onCancel(self):
 		self.platformExtrinsics.cancel()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 
 class PlatformExtrinsicsResultPage(Page):
