@@ -763,7 +763,7 @@ class PlatformExtrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()#self.platformExtrinsics.getImage()#
+		frame = self.platformExtrinsics.getImage()#self.driver.camera.captureImage()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
