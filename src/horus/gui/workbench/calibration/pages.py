@@ -368,8 +368,8 @@ class LaserTriangulationMainPage(Page):
 
 	def getFrame(self):
 		frame = self.laserTriangulation.getImage()#self.driver.camera.captureImage()
-		# if frame is not None:
-			# retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onCalibrate(self):
@@ -763,7 +763,7 @@ class PlatformExtrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
+		frame = self.platformExtrinsics.getImage()#self.driver.camera.captureImage()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
