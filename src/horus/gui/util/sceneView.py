@@ -641,6 +641,15 @@ class SceneView(openglGui.glGuiPanel):
 				glVertex3f(p[0], p[1], height)
 			glEnd()
 
+
+		if profile.getProfileSettingBool('view_center'):
+			center=self.getObjectCenterPos()
+			quadric=gluNewQuadric();
+			gluQuadricNormals(quadric, GLU_SMOOTH);
+			gluQuadricTexture(quadric, GL_TRUE);
+			glColor4ub(255, 0, 0, 150)
+			gluCylinder(quadric,2,2,50,32,16);
+
 		polys = profile.getMachineSizePolygons()
 		
 		#-- Draw checkerboard
