@@ -92,6 +92,6 @@ class Driver:
 				callback(response)
 		
 	def disconnect(self):
+		self.isConnected = False
 		self.camera.disconnect()
 		self.board.disconnect()
-		self.isConnected = False

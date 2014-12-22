@@ -449,7 +449,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def _onDeviceUnplugged(self, title="", description=""):
         self.simpleScan.stop()
         self.textureScan.stop()
-        self.scanningWorkbench.onScanFinished()
         self.laserTriangulation.cancel()
         self.platformExtrinsics.cancel()
         self.controlWorkbench.updateStatus(False)

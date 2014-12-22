@@ -221,6 +221,7 @@ class ScanningWorkbench(WorkbenchConnection):
 			dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK|wx.ICON_INFORMATION)
 			dlg.ShowModal()
 			dlg.Destroy()
+			self.scanning = False
 			self.onScanFinished()
 
 	def onStopToolClicked(self, event):
@@ -231,6 +232,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		dlg.Destroy()
 
 		if result:
+			self.scanning = False
 			self.currentScan.stop()
 			self.onScanFinished()
 		else:
@@ -245,7 +247,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
 		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
-		self.scanning = False
 		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)

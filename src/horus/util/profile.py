@@ -222,7 +222,7 @@ setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion
 
 setting('scan_type', _("With Texture"), [_("Without Texture"), _("With Texture")], 'basic', _('Scan Type'))
 setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right Laser"), _("Use Both Laser")], 'basic', _('Use Laser'))
-setting('fast_scan', False, bool, 'advanced', _('Fast Scan'))
+setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
 
 setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
 setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
