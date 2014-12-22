@@ -59,7 +59,8 @@ class Board:
 		M71 Tn  : switch on laser n
 
 	"""
-	def __init__(self, serialName='/dev/ttyUSB0', baudRate=115200):
+	def __init__(self, parent=None, serialName='/dev/ttyUSB0', baudRate=115200):
+		self.parent = parent
 		self.serialName = serialName
 		self.baudRate = baudRate
 		self.serialPort = None
@@ -197,8 +198,11 @@ class Board:
 
 	def _fail(self):
 		self._n += 1
-		if self._n == 1:
-			if self.unplugCallback is not None:
+		if self._n >= 1:
+			self._n = 0
+			if self.unplugCallback is not None and \
+			   self.parent is not None and not self.parent.unplugged:
+				self.parent.unplugged = True
 				self.unplugCallback()
 
 	def _checkAcknowledge(self, ack):

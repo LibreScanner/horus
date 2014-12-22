@@ -284,7 +284,7 @@ class LaserTriangulation(Calibration):
 							XR = np.concatenate((XR,xR))
 				else:
 					step = 5
-					self.image = camera.captureImage(flush=True, flushValue=1)
+					self.image = imageRaw
 
 				board.setRelativePosition(step)
 				board.moveMotor()
@@ -756,12 +756,13 @@ class PlatformExtrinsics(Calibration):
 	def getPatternPosition(self, step, board, camera):
 		t = None
 		image = camera.captureImage(flush=True, flushValue=1)
-		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
-		if ret is not None:
-			if ret[0]:
-				t = ret[2]
-		board.setRelativePosition(step)
-		board.moveMotor()
+		if image is not None:
+			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+			if ret is not None:
+				if ret[0]:
+					t = ret[2]
+			board.setRelativePosition(step)
+			board.moveMotor()
 		return t
 
 	def solvePnp(self, image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):

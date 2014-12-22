@@ -36,7 +36,6 @@ import platform
 class Error(Exception):
 	def __init__(self, msg):
 		self.msg = msg
-		print msg
 	def __str__(self):
 		return repr(self.msg)
 
@@ -55,11 +54,14 @@ class InvalidVideo(Error):
 
 class Camera:
 	""" """
-	def __init__(self, cameraId=0):
+	def __init__(self, parent=None, cameraId=0):
+		self.parent = parent
 		self.cameraId = cameraId
 
 		self.capture = None
 		self.isConnected = False
+
+		self.reading = False
 
 		self.width = 800
 		self.height = 600
@@ -111,9 +113,12 @@ class Camera:
 			print ">>> Disconnecting camera {0}".format(self.cameraId)
 			if self.capture is not None:
 				if self.capture.isOpened():
-					self.capture.release()
-			self.isConnected = False
-			print ">>> Done"
+					while True:
+						if not self.reading:
+							self.capture.release()
+							self.isConnected = False
+							print ">>> Done"
+							break
 
 	def checkCamera(self):
 		""" Checks correct camera """
@@ -132,11 +137,13 @@ class Camera:
 		""" If mirror is set to True, the image will be displayed as a mirror,
 		otherwise it will be displayed as the camera sees it """
 		if self.isConnected:
+			self.reading = True
 			if flush:
 				for i in range(0, flushValue):
 					self.capture.read() #grab()
 
 			ret, image = self.capture.read()
+			self.reading = False
 			if ret:
 				if self.useDistortion and \
 				   self.cameraMatrix is not None and \
@@ -163,8 +170,11 @@ class Camera:
 
 	def _fail(self):
 		self._n += 1
-		if self._n == 1:
-			if self.unplugCallback is not None:
+		if self._n >= 2:
+			self._n = 0
+			if self.unplugCallback is not None and \
+			   self.parent is not None and not self.parent.unplugged:
+				self.parent.unplugged = True
 				self.unplugCallback()
 
 	def getResolution(self):

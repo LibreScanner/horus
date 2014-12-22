@@ -391,6 +391,9 @@ class LaserTriangulationMainPage(Page):
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
+		self.onCalibrationFinished(result)
+
+	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
@@ -399,10 +402,8 @@ class LaserTriangulationMainPage(Page):
 
 	def onCancel(self):
 		self.laserTriangulation.cancel()
-		print "cancel"
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
-		print "callback"
 		if hasattr(self, 'waitCursor'):
 			del self.waitCursor
 
@@ -790,18 +791,21 @@ class PlatformExtrinsicsMainPage(Page):
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
+		self.onCalibrationFinished(result)
+
+	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 	def onCancel(self):
 		self.platformExtrinsics.cancel()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 
 class PlatformExtrinsicsResultPage(Page):

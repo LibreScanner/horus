@@ -91,7 +91,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 
-		self.videoView = VideoView(self.splitterWindow, self.getFrame, 5)
+		self.videoView = VideoView(self.splitterWindow, self.getFrame, 10)
 		self.sceneView = SceneView(self.splitterWindow)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 		self.sceneView.SetBackgroundColour(wx.BLACK)
@@ -231,7 +231,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		dlg.Destroy()
 
 		if result:
-			self.scanning = False
 			self.currentScan.stop()
 			self.onScanFinished()
 		else:
@@ -257,7 +256,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
 		self.pointCloudTimer.Stop()
-		self.scanning=False
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)

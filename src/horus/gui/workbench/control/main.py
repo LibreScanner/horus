@@ -64,7 +64,7 @@ class ControlWorkbench(WorkbenchConnection):
 		self.controls.addPanel('motor_control', MotorControl(self.controls))
 		self.controls.addPanel('gcode_control', GcodeControl(self.controls))
 
-		self.videoView = VideoView(self._panel, self.getFrame, 5)
+		self.videoView = VideoView(self._panel, self.getFrame, 10)
 		self.videoView.SetBackgroundColour(wx.BLACK)
 
 		#-- Layout
