@@ -95,7 +95,7 @@ class CameraIntrinsicsMainPage(Page):
 		self.Layout()
 
 	def initialize(self):
-		self._rightButton.Disable()
+		self._rightButton.Hide()
 		self.subTitleText.SetLabel(_("Press space bar to perform capures"))
 		self.currentGrid = 0
 		self.gauge.SetValue(0)
@@ -150,7 +150,8 @@ class CameraIntrinsicsMainPage(Page):
 
 		if self.currentGrid is (self.columns*self.rows):
 			self.subTitleText.SetLabel(_("Press Calibrate to continue"))
-			self._rightButton.Enable()
+			self.buttonRightCallback()
+			# self._rightButton.Enable()
 
 	def onCalibrate(self):
 		self.cameraIntrinsics.setCallbacks(self.beforeCalibration,
@@ -168,7 +169,6 @@ class CameraIntrinsicsMainPage(Page):
 		self.gauge.SetValue(max(95, progress))
 
 	def afterCalibration(self, result):
-		self._rightButton.Enable()
 		if hasattr(self, 'waitCursor'):
 			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
