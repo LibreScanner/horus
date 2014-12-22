@@ -147,7 +147,10 @@ class Scan:
 			if self.pcg.viewROI:
 				img = img.copy()
 				cv2.rectangle(img, (self.pcg.umin, self.pcg.vmin), (self.pcg.umax, self.pcg.vmax), (0, 0, 255), 3)
-			
+			if self.pcg.viewCenter:
+				img=img.copy()
+				cv2.line(img, ((self.pcg.umax-self.pcg.umin)/2 + self.pcg.umin, self.pcg.c_vmax-200), ((self.pcg.umax-self.pcg.umin)/2 + self.pcg.umin, self.pcg.c_vmax), (255, 0, 0), 3)
+
 		return img
 
 	def applyROIMask(self, image):
@@ -635,6 +638,9 @@ class PointCloudGenerator:
 	def setViewROI(self, value):
 		self.viewROI = value
 
+	def setViewCenter(self, value):
+		self.viewCenter = value
+
 	def setROIDiameter(self, value):
 		self.roiRadius = value / 2.0
 		self.calculateROI()
@@ -674,6 +680,7 @@ class PointCloudGenerator:
 	def setPlatformExtrinsics(self, rotationMatrix, translationVector):
 		self.rotationMatrix = rotationMatrix
 		self.translationVector = translationVector
+		self.c_umin,self.c_umax,self.c_vmin,self.c_vmax=self.calculateCenter()
 
 	def resetTheta(self):
 		self.theta = 0
@@ -708,6 +715,26 @@ class PointCloudGenerator:
 			self.umax = min(umax, self.width)
 			self.vmin = max(vmin, 0)
 			self.vmax = min(vmax, self.height)
+
+	def calculateCenter(self):
+		#-- Platform system
+		bottom = np.matrix(0* self.circleArray)
+		top = bottom + np.matrix([0,0,self.roiHeight]).T
+		data = np.concatenate((bottom, top), axis=1)
+
+		#-- Camera system
+		data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
+
+		#-- Video system
+		u = self.fx * data[0] / data[2] + self.cx
+		v = self.fy * data[1] / data[2] + self.cy
+
+		umin = int(round(np.min(u)))
+		umax = int(round(np.max(u)))
+		vmin = int(round(np.min(v)))
+		vmax = int(round(np.max(v)))
+
+		return umin,umax,vmin,vmax
 
 	def pointCloudGeneration(self, points2D, leftLaser=True):
 		""" """
