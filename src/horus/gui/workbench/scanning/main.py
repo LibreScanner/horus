@@ -281,10 +281,5 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
-		self.videoView.pause()
 		self.controls.updateProfile()
 		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
-		if self.IsEnabled():
-			self.videoView.play()
-		else:
-			self.videoView.stop()

@@ -49,8 +49,6 @@ class ControlWorkbench(WorkbenchConnection):
 
 		self.load()
 
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
 	def load(self):
 		#-- Toolbar Configuration
 		self.toolbar.Realize()
@@ -83,15 +81,6 @@ class ControlWorkbench(WorkbenchConnection):
 	def initialize(self):
 		self.controls.initialize()
 
-	def onShow(self, event):
-		if event.GetShow():
-			self.updateStatus(self.driver.isConnected)
-		else:
-			try:
-				self.videoView.stop()
-			except:
-				pass
-
 	def getFrame(self):
 		return self.driver.camera.captureImage()
 
@@ -105,9 +94,4 @@ class ControlWorkbench(WorkbenchConnection):
 			self.controls.disableContent()
 
 	def updateProfileToAllControls(self):
-		self.videoView.pause()
 		self.controls.updateProfile()
-		if self.IsEnabled():
-			self.videoView.play()
-		else:
-			self.videoView.stop()

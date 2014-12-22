@@ -104,9 +104,8 @@ class CalibrationPage(WizardPage):
 		self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
-		self.videoView.setMilliseconds(50)
+		self.videoView.setMilliseconds(20)
 		self.videoView.setCallback(self.getDetectChessboardFrame)
-		#self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
 		if event.GetShow():

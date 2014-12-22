@@ -152,9 +152,9 @@ class ImageAcquisition(ExpandablePanel):
         #section.addItem(Slider, 'exposure_scanning', self.driver.camera.setExposure)
         section.addItem(Slider, 'laser_exposure_scanning', self.setLaserExposure)
         section.addItem(Slider, 'color_exposure_scanning', self.setColorExposure)
-        section.addItem(ComboBox, 'framerate_scanning', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        section.addItem(ComboBox, 'framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)))
         section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        #section.addItem(CheckBox, 'use_distortion_scanning', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
+        #section.addItem(CheckBox, 'use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v)))
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:
@@ -163,10 +163,6 @@ class ImageAcquisition(ExpandablePanel):
     def setColorExposure(self, value):
         if self.main.currentScan is self.textureScan:
             self.driver.camera.setExposure(value)
-
-    def reloadVideo(self):
-        if self.main.IsShown():
-            self.main.videoView.play()
 
 
 class ImageSegmentation(ExpandablePanel):

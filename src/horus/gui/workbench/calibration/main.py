@@ -53,8 +53,6 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.load()
 
-        self.Bind(wx.EVT_SHOW, self.onShow)
-
     def load(self):
         #-- Toolbar Configuration
         self.toolbar.Realize()
@@ -128,20 +126,10 @@ class CalibrationWorkbench(WorkbenchConnection):
     def initialize(self):
         self.controls.initialize()
 
-    def onShow(self, event):
-        if event.GetShow():
-            self.updateStatus(self.driver.isConnected)
-        else:
-            try:
-                self.videoView.stop()
-            except:
-                pass
-
     def getFrame(self):
         frame = Driver.Instance().camera.captureImage()
         if frame is not None:
             retval, frame = CameraIntrinsics.Instance().detectChessboard(frame)
-        #print frame
         return frame
 
     def onCameraIntrinsicsStartCallback(self):
@@ -179,7 +167,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onCancelCallback(self):
-        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -194,6 +181,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationResultPage.Hide()
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
+        self.videoView.play()
         self.videoView.Show()
         self.Layout()
 
@@ -286,9 +274,4 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.videoView.Show()
 
     def updateProfileToAllControls(self):
-        self.videoView.pause()
         self.controls.updateProfile()
-        if self.IsEnabled():
-            self.videoView.play()
-        else:
-            self.videoView.stop()

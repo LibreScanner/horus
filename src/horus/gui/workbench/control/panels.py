@@ -55,13 +55,9 @@ class CameraControl(ExpandablePanel):
         section.addItem(Slider, 'contrast_control', self.driver.camera.setContrast)
         section.addItem(Slider, 'saturation_control', self.driver.camera.setSaturation)
         section.addItem(Slider, 'exposure_control', self.driver.camera.setExposure)
-        section.addItem(ComboBox, 'framerate_control', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        section.addItem(ComboBox, 'framerate_control', lambda v: self.driver.camera.setFrameRate(int(v)))
         section.addItem(ComboBox, 'resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        section.addItem(CheckBox, 'use_distortion_control', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
-
-    def reloadVideo(self):
-        if self.main.IsShown():
-            self.main.videoView.play()
+        section.addItem(CheckBox, 'use_distortion_control', self.driver.camera.setUseDistortion)
 
 
 class LaserControl(ExpandablePanel):
@@ -161,8 +157,10 @@ class GcodeSection(SectionItem):
 
     def onFinishCallback(self, ret):
         wx.CallAfter(self.control.Enable)
-        wx.CallAfter(lambda: self.response.SetValue(ret))
-        del self.waitCursor
+        if ret is not None:
+            wx.CallAfter(lambda: self.response.SetValue(ret))
+        if hasattr(self,'waitCursor'):
+            del self.waitCursor
 
     def updateProfile(self):
         if hasattr(self,'control'):
