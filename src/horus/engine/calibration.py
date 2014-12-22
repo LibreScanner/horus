@@ -166,7 +166,7 @@ class LaserTriangulation(Calibration):
 	def __init__(self):
 		Calibration.__init__(self)
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
-		self.image=self.driver.camera.captureImage(flush=True, flushValue=1)
+		self.image = None
 
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
@@ -246,12 +246,17 @@ class LaserTriangulation(Calibration):
 					board.setLeftLaserOn()
 
 					imageLeft = camera.captureImage(flush=True, flushValue=flush)
-					self.image=imageLeft
+					self.image = imageLeft
+					if imageLeft is None:
+						break
 
 					board.setLeftLaserOff()
 					board.setRightLaserOn()
+
 					imageRight = camera.captureImage(flush=True, flushValue=flush)
-					self.image=imageRight
+					self.image = imageRight
+					if imageRight is None:
+						break
 
 					board.setRightLaserOff()
 
@@ -279,7 +284,7 @@ class LaserTriangulation(Calibration):
 							XR = np.concatenate((XR,xR))
 				else:
 					step = 5
-					self.image=camera.captureImage(flush=True, flushValue=1)
+					self.image = imageRaw
 
 				board.setRelativePosition(step)
 				board.moveMotor()
@@ -313,15 +318,16 @@ class LaserTriangulation(Calibration):
 			afterCallback(response)
 
 	def getPatternPlane(self, image):
-		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
-		if ret is not None:
-			if ret[0]:
-				R = ret[1]
-				t = ret[2].T[0]
-				n = R.T[2]
-				c = ret[3]
-				d = -np.dot(n,t)
-				return (d, n, c)
+		if image is not None:
+			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+			if ret is not None:
+				if ret[0]:
+					R = ret[1]
+					t = ret[2].T[0]
+					n = R.T[2]
+					c = ret[3]
+					d = -np.dot(n,t)
+					return (d, n, c)
 
 	def getLaserLine(self, imageLaser, imageRaw):
 		#-- Image segmentation
@@ -372,9 +378,9 @@ class LaserTriangulation(Calibration):
 
 				return d, n, std
 			else:
-				return None, None
+				return None, None, None
 		else:
-			return None, None
+			return None, None, None
 
 	def cornersMask(self, frame, corners):
 		p1 = corners[0][0]
@@ -648,6 +654,7 @@ class PlatformExtrinsics(Calibration):
 	def __init__(self):
 		Calibration.__init__(self)
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+		self.image=self.driver.camera.captureImage(flush=True, flushValue=1)
 
 	def setExtrinsicsStep(self, step):
 		self.extrinsicsStep = step
@@ -671,6 +678,9 @@ class PlatformExtrinsics(Calibration):
 		objp[:,:2] = np.mgrid[0:patternColumns,0:patternRows].T.reshape(-1,2)
 		objp = np.multiply(objp, squareWidth)
 		return objp
+
+	def getImage(self):
+		return self.image
 
 	def _start(self, progressCallback, afterCallback):
 		t = None
@@ -750,12 +760,14 @@ class PlatformExtrinsics(Calibration):
 	def getPatternPosition(self, step, board, camera):
 		t = None
 		image = camera.captureImage(flush=True, flushValue=1)
-		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
-		if ret is not None:
-			if ret[0]:
-				t = ret[2]
-		board.setRelativePosition(step)
-		board.moveMotor()
+		if image is not None:
+			self.image = image
+			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+			if ret is not None:
+				if ret[0]:
+					t = ret[2]
+			board.setRelativePosition(step)
+			board.moveMotor()
 		return t
 
 	def solvePnp(self, image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):

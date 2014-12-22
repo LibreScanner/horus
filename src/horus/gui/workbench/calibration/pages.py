@@ -95,7 +95,7 @@ class CameraIntrinsicsMainPage(Page):
 		self.Layout()
 
 	def initialize(self):
-		self._rightButton.Disable()
+		self._rightButton.Hide()
 		self.subTitleText.SetLabel(_("Press space bar to perform capures"))
 		self.currentGrid = 0
 		self.gauge.SetValue(0)
@@ -150,7 +150,8 @@ class CameraIntrinsicsMainPage(Page):
 
 		if self.currentGrid is (self.columns*self.rows):
 			self.subTitleText.SetLabel(_("Press Calibrate to continue"))
-			self._rightButton.Enable()
+			self.buttonRightCallback()
+			# self._rightButton.Enable()
 
 	def onCalibrate(self):
 		self.cameraIntrinsics.setCallbacks(self.beforeCalibration,
@@ -162,24 +163,26 @@ class CameraIntrinsicsMainPage(Page):
 		self.videoView.pause()
 		self._rightButton.Disable()
 		self.gauge.SetValue(95)
-		self.waitCursor = wx.BusyCursor()
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
 
 	def progressCalibration(self, progress):
 		self.gauge.SetValue(max(95, progress))
 
 	def afterCalibration(self, result):
 		self._rightButton.Enable()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
-
-	def onCancel(self):
 		if hasattr(self, 'waitCursor'):
 			del self.waitCursor
+
+	def onCancel(self):
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
 		self.cameraIntrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		del self.waitCursor
 
 
 class CameraIntrinsicsResultPage(Page):
@@ -368,8 +371,8 @@ class LaserTriangulationMainPage(Page):
 
 	def getFrame(self):
 		frame = self.laserTriangulation.getImage()#self.driver.camera.captureImage()
-		# if frame is not None:
-			# retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onCalibrate(self):
@@ -387,18 +390,21 @@ class LaserTriangulationMainPage(Page):
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
+		self.onCalibrationFinished(result)
+
+	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 	def onCancel(self):
 		self.laserTriangulation.cancel()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 
 class LaserTriangulationResultPage(Page):
@@ -600,7 +606,8 @@ class SimpleLaserTriangulationMainPage(Page):
 	def beforeCalibration(self):
 		self._rightButton.Disable()
 		self.gauge.SetValue(0)
-		self.waitCursor = wx.BusyCursor()
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
 
 	def progressCalibration(self, progress):
 		self.gauge.SetValue(progress)
@@ -613,11 +620,11 @@ class SimpleLaserTriangulationMainPage(Page):
 			self.afterCalibrationCallback(result)
 
 	def onCancel(self):
+		self.waitCursor = wx.BusyCursor()
 		self.laserTriangulation.cancel()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		del self.waitCursor
 
 
 class SimpleLaserTriangulationResultPage(Page):
@@ -763,7 +770,7 @@ class PlatformExtrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
+		frame = self.platformExtrinsics.getImage()#self.driver.camera.captureImage()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
@@ -783,18 +790,21 @@ class PlatformExtrinsicsMainPage(Page):
 		self.gauge.SetValue(progress)
 
 	def afterCalibration(self, result):
+		self.onCalibrationFinished(result)
+
+	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCalibrationCallback is not None:
 			self.afterCalibrationCallback(result)
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 	def onCancel(self):
 		self.platformExtrinsics.cancel()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 
 
 class PlatformExtrinsicsResultPage(Page):

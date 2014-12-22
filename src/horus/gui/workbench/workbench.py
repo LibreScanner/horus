@@ -89,11 +89,19 @@ class WorkbenchConnection(Workbench):
 
 		self.Layout()
 
+		self.videoView = None
+
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateStatus(self.driver.isConnected)
+		else:
+			try:
+				if self.videoView is not None:
+					self.videoView.stop()
+			except:
+				pass
 
 	def onConnectToolClicked(self, event):
 		self.driver.setCallbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
@@ -108,6 +116,8 @@ class WorkbenchConnection(Workbench):
 	def beforeConnect(self):
 		self.enableLabelTool(self.connectTool, False)
 		self.combo.Disable()
+		for i in range(self.GetParent().menuBar.GetMenuCount()):
+			self.GetParent().menuBar.EnableTop(i, False)
 		self.driver.board.setUnplugCallback(None)
 		self.driver.camera.setUnplugCallback(None)
 		self.waitCursor = wx.BusyCursor()
@@ -144,25 +154,27 @@ class WorkbenchConnection(Workbench):
 				dlg.Destroy()
 
 		if self.driver.isConnected:
-			self.GetParent().workbenchUpdate()
+			self.GetParent().workbenchUpdate(False)
 			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
 		
 		self.updateStatus(self.driver.isConnected)
 		self.combo.Enable()
+		for i in range(self.GetParent().menuBar.GetMenuCount()):
+			self.GetParent().menuBar.EnableTop(i, True)
 		del self.waitCursor
 
 	def enableLabelTool(self, item, enable):
 		self.toolbar.EnableTool(item.GetId(), enable)
 
 	def updateStatus(self, status):
+		self.updateToolbarStatus(status)
 		if status:
 			self.enableLabelTool(self.connectTool   , False)
 			self.enableLabelTool(self.disconnectTool, True)
 		else:
 			self.enableLabelTool(self.connectTool   , True)
 			self.enableLabelTool(self.disconnectTool, False)
-		self.updateToolbarStatus(status)
 
 	def updateToolbarStatus(self, status):
 		pass

@@ -56,14 +56,9 @@ class CameraSettingsPanel(ExpandablePanel):
         section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast)
         section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation)
         section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure)
-        section.addItem(ComboBox, 'framerate_calibration', lambda v: (self.driver.camera.setFrameRate(int(v)), self.reloadVideo()))
+        section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)))
         section.addItem(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        section.addItem(CheckBox, 'use_distortion_calibration', lambda v: (self.driver.camera.setUseDistortion(v), self.reloadVideo()))
-
-    def reloadVideo(self):
-        if self.main.IsShown():
-            self.main.videoView.play()
-
+        section.addItem(CheckBox, 'use_distortion_calibration', self.driver.camera.setUseDistortion)
 
 class LaserSettingsPanel(ExpandablePanel):
     def __init__(self, parent):

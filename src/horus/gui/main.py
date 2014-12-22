@@ -100,7 +100,7 @@ class MainWindow(wx.Frame):
         #self.CreateStatusBar()
 
         ##-- Menu Bar
-        menuBar = wx.MenuBar()
+        self.menuBar = wx.MenuBar()
 
         #--  Menu File        
         self.menuFile = wx.Menu()
@@ -115,7 +115,7 @@ class MainWindow(wx.Frame):
         self.menuResetProfile = self.menuFile.Append(wx.NewId(), _("Reset Profile"))
         self.menuFile.AppendSeparator()
         menuExit = self.menuFile.Append(wx.ID_EXIT, _("Exit"))
-        menuBar.Append(self.menuFile, _("File"))
+        self.menuBar.Append(self.menuFile, _("File"))
 
         #-- Menu Edit
         self.menuEdit = wx.Menu()
@@ -123,7 +123,7 @@ class MainWindow(wx.Frame):
         self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
         self.menuEdit.AppendSeparator()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
-        menuBar.Append(self.menuEdit, _("Edit"))
+        self.menuBar.Append(self.menuEdit, _("Edit"))
 
         #-- Menu View
         menuView = wx.Menu()
@@ -140,15 +140,15 @@ class MainWindow(wx.Frame):
         self.menuScanningVideo = self.menuScanning.AppendCheckItem(wx.NewId(), _("Video"))
         self.menuScanningScene = self.menuScanning.AppendCheckItem(wx.NewId(), _("Scene"))
         menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
-        menuBar.Append(menuView, _("View"))
+        self.menuBar.Append(menuView, _("View"))
 
         #-- Menu Help
         menuHelp = wx.Menu()
         menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         menuWelcome = menuHelp.Append(wx.ID_ANY, _("Welcome"))
-        menuBar.Append(menuHelp, _("Help"))
+        self.menuBar.Append(menuHelp, _("Help"))
 
-        self.SetMenuBar(menuBar)
+        self.SetMenuBar(self.menuBar)
 
         ##-- Create Workbenchs
         self.controlWorkbench = ControlWorkbench(self)
@@ -449,7 +449,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def _onDeviceUnplugged(self, title="", description=""):
         self.simpleScan.stop()
         self.textureScan.stop()
-        self.scanningWorkbench.onScanFinished()
+        self.laserTriangulation.cancel()
+        self.platformExtrinsics.cancel()
         self.controlWorkbench.updateStatus(False)
         self.calibrationWorkbench.updateStatus(False)
         self.scanningWorkbench.updateStatus(False)
@@ -636,6 +637,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
             if wb[key] is not None:
                 if key == currentWorkbench:
                     wb[key].updateProfileToAllControls()
+                    wb[key].combo.SetValue(str(self.workbenchList[key]))
 
         if layout:
             for key in wb:
@@ -643,7 +645,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
                     if key == currentWorkbench:
                         wb[key].Hide()
                         wb[key].Show()
-                        wb[key].combo.SetValue(str(self.workbenchList[key]))
                     else:
                         wb[key].Hide()
 

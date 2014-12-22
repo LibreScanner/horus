@@ -66,6 +66,8 @@ class CalibrationPage(WizardPage):
 		self.skipButton.Enable()
 		self.nextButton.Disable()
 
+		self.platformCalibration=False
+
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		vbox.Add(self.patternLabel, 0, wx.ALL|wx.CENTER, 5)
@@ -84,9 +86,8 @@ class CalibrationPage(WizardPage):
 		self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
-		self.videoView.setMilliseconds(50)
+		self.videoView.setMilliseconds(20)
 		self.videoView.setCallback(self.getDetectChessboardFrame)
-		#self.updateStatus(self.driver.isConnected)
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -100,12 +101,20 @@ class CalibrationPage(WizardPage):
 				pass
 
 	def getDetectChessboardFrame(self):
-		frame = self.driver.camera.captureImage()
+		if (self.laserTriangulation.getImage() != None and self.platformCalibration==False):
+			frame=self.laserTriangulation.getImage()
+		elif (self.platformExtrinsics.getImage()!= None and self.platformCalibration==True):
+			frame=self.platformExtrinsics.getImage()
+		else:
+			frame=self.driver.camera.captureImage()
+		
+
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onCalibrationButtonClicked(self, event):
+		self.platformCalibration=False
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
 											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
@@ -117,6 +126,7 @@ class CalibrationPage(WizardPage):
 		self.laserTriangulation.cancel()
 		self.skipButton.Enable()
 		self.onFinishCalibration()
+		self.platformCalibration=False
 
 	def beforeCalibration(self):
 		self.calibrateButton.Disable()
@@ -135,6 +145,7 @@ class CalibrationPage(WizardPage):
 		self.gauge.SetValue(progress*0.7)
 
 	def afterLaserCalibration(self, response):
+		self.platformCalibration=True
 		ret, result = response
 
 		if ret:
@@ -159,6 +170,7 @@ class CalibrationPage(WizardPage):
 		self.gauge.SetValue(70 + progress*0.3)	
 
 	def afterPlatformCalibration(self, response):
+		self.platformCalibration=False
 		ret, result = response
 		
 		if ret:

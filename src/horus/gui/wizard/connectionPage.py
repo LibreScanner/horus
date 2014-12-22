@@ -242,7 +242,6 @@ class ConnectionPage(WizardPage):
 			#if profile.getPreference('workbench') != 'calibration':
 			profile.putPreference('workbench', 'calibration')
 			self.GetParent().parent.workbenchUpdate(False)
-			self.videoView.stop()
 			self.videoView.play()
 			self.connectButton.Disable()
 			self.autoCheckButton.Enable()

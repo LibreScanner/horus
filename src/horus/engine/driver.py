@@ -49,8 +49,10 @@ class Driver:
 		self.beforeCallback = None
 		self.afterCallback = None
 
-		self.board = Board()
-		self.camera = Camera()
+		self.unplugged = False
+
+		self.board = Board(self)
+		self.camera = Camera(self)
 
 	def setCallbacks(self, before, after):
 		self.beforeCallback = before
@@ -81,6 +83,7 @@ class Driver:
 			self.isConnected = True
 		finally:
 			if error is None:
+				self.unplugged = False
 				response = (True, self.isConnected)
 			else:
 				response = (False, error)
@@ -89,6 +92,6 @@ class Driver:
 				callback(response)
 		
 	def disconnect(self):
+		self.isConnected = False
 		self.camera.disconnect()
 		self.board.disconnect()
-		self.isConnected = False

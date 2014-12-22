@@ -109,14 +109,17 @@ class VideoView(ImageView):
 		self.callback = callback
 		self.milliseconds = milliseconds
 
+		self.playing = False
+
 		self.timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
 
 	def onTimer(self, event):
-		self.stop()
-		if self.callback is not None:
-			self.setFrame(self.callback())
-		self._start()
+		self.pause()
+		if self.playing:
+			if self.callback is not None:
+				self.setFrame(self.callback())
+			self._start()
 
 	def setMilliseconds(self, milliseconds):
 		self.milliseconds = milliseconds
@@ -125,7 +128,7 @@ class VideoView(ImageView):
 		self.callback = callback
 
 	def play(self):
-		self.pause()
+		self.playing = True
 		self._start()
 
 	def _start(self):
@@ -135,5 +138,6 @@ class VideoView(ImageView):
 		self.timer.Stop()
 
 	def stop(self):
+		self.playing = False
 		self.timer.Stop()
 		self.setDefaultImage()
