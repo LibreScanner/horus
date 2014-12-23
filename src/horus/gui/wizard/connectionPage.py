@@ -92,7 +92,7 @@ class ConnectionPage(WizardPage):
 		self.autoCheckButton.Bind(wx.EVT_BUTTON, self.onAutoCheckButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
-		self.videoView.setMilliseconds(50)
+		self.videoView.setMilliseconds(10)
 		self.videoView.setCallback(self.getDetectChessboardFrame)
 		self.updateStatus(self.driver.isConnected)
 
@@ -171,13 +171,23 @@ class ConnectionPage(WizardPage):
 				dlg.ShowModal()
 				dlg.Destroy()
 
-		if self.driver.isConnected:
-			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onBoardUnplugged))
-			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().parent.onCameraUnplugged))
-
 		self.updateStatus(self.driver.isConnected)
 		self.prevButton.Enable()
 		del self.waitCursor
+
+	def onBoardUnplugged(self):
+		self.videoView.stop()
+		self.autoCheck.cancel()
+		self.GetParent().parent.onBoardUnplugged()
+		self.afterMoveMotor()
+		self.updateStatus(False)
+
+	def onCameraUnplugged(self):
+		self.videoView.stop()
+		self.autoCheck.cancel()
+		self.GetParent().parent.onCameraUnplugged()
+		self.afterMoveMotor()
+		self.updateStatus(False)
 
 	def onAutoCheckButtonClicked(self, event):
 		if profile.getProfileSettingBool('adjust_laser'):
@@ -198,13 +208,11 @@ class ConnectionPage(WizardPage):
 			self.autoCheck.start()
 
 	def beforeAutoCheck(self):
-		self.videoView.setCallback(self.getFrame)
 		self.autoCheckButton.Disable()
 		self.prevButton.Disable()
 		self.skipButton.Disable()
 		self.nextButton.Disable()
 		self.enableNext = False
-		self.videoView.setMilliseconds(50)
 		self.gauge.SetValue(0)
 		self.resultLabel.Hide()
 		self.gauge.Show()
@@ -229,7 +237,7 @@ class ConnectionPage(WizardPage):
 			self.skipButton.Enable()
 			self.nextButton.Disable()
 
-		self.videoView.setMilliseconds(20)
+		self.videoView.setCallback(self.getFrame)
 
 		self.driver.board.setSpeedMotor(150)
 		self.driver.board.setRelativePosition(-90)
@@ -237,6 +245,7 @@ class ConnectionPage(WizardPage):
 		self.driver.board.moveMotor(nonblocking=True, callback=(lambda r: wx.CallAfter(self.afterMoveMotor)))
 
 	def afterMoveMotor(self):
+		self.videoView.setCallback(self.getDetectChessboardFrame)
 		self.gauge.SetValue(100)
 		self.enableNext = True
 		self.resultLabel.Show()
@@ -244,13 +253,16 @@ class ConnectionPage(WizardPage):
 		self.prevButton.Enable()
 		self.driver.board.disableMotor()
 		self.gauge.Hide()
-		del self.waitCursor
+		if hasattr(self, 'waitCursor'):
+			del self.waitCursor
 		self.panel.Fit()
 		self.panel.Layout()
 		self.Layout()
 
 	def updateStatus(self, status):
 		if status:
+			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.onBoardUnplugged))
+			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.onCameraUnplugged))
 			#if profile.getPreference('workbench') != 'calibration':
 			profile.putPreference('workbench', 'calibration')
 			self.GetParent().parent.workbenchUpdate(False)
@@ -266,5 +278,7 @@ class ConnectionPage(WizardPage):
 		else:
 			self.videoView.stop()
 			self.connectButton.Enable()
+			self.skipButton.Disable()
+			self.nextButton.Disable()
 			self.autoCheckButton.Disable()
 		self.Layout()

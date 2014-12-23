@@ -502,15 +502,16 @@ class SimpleLaserTriangulation(Calibration):
 				imgLasR = camera.captureImage(flush=True, flushValue=1)
 				board.setRightLaserOff()
 
-				##-- Corners ROI mask
-				imgLasL = self.cornersMask(imgLasL, corners)
-				imgLasR = self.cornersMask(imgLasR, corners)
+				if imgRaw is not None and imgLasL is not None and imgLasR is not None:
+					##-- Corners ROI mask
+					imgLasL = self.cornersMask(imgLasL, corners)
+					imgLasR = self.cornersMask(imgLasR, corners)
 
-				##-- Obtain Left Laser Line
-				retL = self.obtainLine(imgRaw, imgLasL)
+					##-- Obtain Left Laser Line
+					retL = self.obtainLine(imgRaw, imgLasL)
 
-				##-- Obtain Right Laser Line
-				retR = self.obtainLine(imgRaw, imgLasR)
+					##-- Obtain Right Laser Line
+					retR = self.obtainLine(imgRaw, imgLasR)
 
 			#-- Disable motor
 			board.disableMotor()
@@ -545,41 +546,48 @@ class SimpleLaserTriangulation(Calibration):
 
 		while self.isCalibrating and distance > epsilon and tries > 0:
 			image = camera.captureImage(flush=True, flushValue=1)
-			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
-			if ret is not None:
-				if ret[0]:
-					R = ret[1]
-					t = ret[2].T[0]
-					n = R.T[2]
-					corners = ret[3]
-					distance = np.linalg.norm((0,0,1)-n)
-					if distance < epsilon or distanceAnt < distance:
-						board.setRelativePosition(-angle)
-						board.moveMotor()
-						break
-					distanceAnt = distance
-					angle = np.max(((distance-epsilon) * 30, 5))
+			if image is not None:
+				ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+				if ret is not None:
+					if ret[0]:
+						R = ret[1]
+						t = ret[2].T[0]
+						n = R.T[2]
+						corners = ret[3]
+						distance = np.linalg.norm((0,0,1)-n)
+						if distance < epsilon or distanceAnt < distance:
+							if self.isCalibrating:
+								board.setRelativePosition(-angle)
+								board.moveMotor()
+							break
+						distanceAnt = distance
+						angle = np.max(((distance-epsilon) * 30, 5))
+				else:
+					tries -= 1
 			else:
 				tries -= 1
-			board.setRelativePosition(angle)
-			board.moveMotor()
+			if self.isCalibrating:
+				board.setRelativePosition(angle)
+				board.moveMotor()
 
 			if progressCallback is not None:
 				if distance < np.inf:
 					progressCallback(min(80,max(0,80-100*abs(distance-epsilon))))
 
-		image = camera.captureImage(flush=True, flushValue=1)
-		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
-		if ret is not None:
-			R = ret[1]
-			t = ret[2].T[0]
-			n = R.T[2]
-			corners = ret[3]
-			distance = np.linalg.norm((0,0,1)-n)
-			angle = np.max(((distance-epsilon) * 30, 5))
+		if self.isCalibrating:
+			image = camera.captureImage(flush=True, flushValue=1)
+			if image is not None:
+				ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+				if ret is not None:
+					R = ret[1]
+					t = ret[2].T[0]
+					n = R.T[2]
+					corners = ret[3]
+					distance = np.linalg.norm((0,0,1)-n)
+					angle = np.max(((distance-epsilon) * 30, 5))
 
-			if progressCallback is not None:
-				progressCallback(90)
+					if progressCallback is not None:
+						progressCallback(90)
 
 		#print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
