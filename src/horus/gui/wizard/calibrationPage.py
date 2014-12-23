@@ -107,7 +107,6 @@ class CalibrationPage(WizardPage):
 			frame=self.platformExtrinsics.getImage()
 		else:
 			frame=self.driver.camera.captureImage()
-		
 
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)

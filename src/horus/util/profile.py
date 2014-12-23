@@ -255,6 +255,8 @@ setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
 
 setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
+setting('adjust_laser', True, bool, 'advanced', _('Adjust Laser'))
+
 setting('camera_matrix', ([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
 setting('distortion_vector',([0.0,0.0,0.0,0.0,0.0]),numpy.ndarray,'advanced',_('Distortion Vector'))
 

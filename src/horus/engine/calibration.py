@@ -538,7 +538,7 @@ class SimpleLaserTriangulation(Calibration):
 		corners = None
 		tries = 5
 		board.setRelativePosition(angle)
-		board.setSpeedMotor(40)
+		board.setSpeedMotor(80)
 
 		if progressCallback is not None:
 			progressCallback(0)
@@ -654,7 +654,7 @@ class PlatformExtrinsics(Calibration):
 	def __init__(self):
 		Calibration.__init__(self)
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
-		self.image=self.driver.camera.captureImage(flush=True, flushValue=1)
+		self.image = None
 
 	def setExtrinsicsStep(self, step):
 		self.extrinsicsStep = step

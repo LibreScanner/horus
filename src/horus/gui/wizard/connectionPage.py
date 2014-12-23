@@ -92,7 +92,7 @@ class ConnectionPage(WizardPage):
 		self.autoCheckButton.Bind(wx.EVT_BUTTON, self.onAutoCheckButtonClicked)
 		self.Bind(wx.EVT_SHOW, self.onShow)
 
-		self.videoView.setMilliseconds(20)
+		self.videoView.setMilliseconds(50)
 		self.videoView.setCallback(self.getDetectChessboardFrame)
 		self.updateStatus(self.driver.isConnected)
 
@@ -180,13 +180,22 @@ class ConnectionPage(WizardPage):
 		del self.waitCursor
 
 	def onAutoCheckButtonClicked(self, event):
-		self.beforeAutoCheck()
+		if profile.getProfileSettingBool('adjust_laser'):
+			profile.putProfileSetting('adjust_laser', False)
+			dlg = wx.MessageDialog(self, _("It is recomended to adjust line lasers vertically.\nYou need to use the allen wrench.\nDo you want to adjust it now?"), _("Manual laser adjustment"), wx.YES_NO | wx.ICON_QUESTION)
+			result = dlg.ShowModal() == wx.ID_YES
+			dlg.Destroy()
+			if result:
+				self.driver.board.setLeftLaserOn()
+				self.driver.board.setRightLaserOn()
+		else:
+			self.beforeAutoCheck()
 
-		#-- Perform auto check
-		self.autoCheck.setCallbacks(None,
-									lambda p: wx.CallAfter(self.progressAutoCheck,p),
-									lambda r: wx.CallAfter(self.afterAutoCheck,r))
-		self.autoCheck.start()
+			#-- Perform auto check
+			self.autoCheck.setCallbacks(None,
+										lambda p: wx.CallAfter(self.progressAutoCheck,p),
+										lambda r: wx.CallAfter(self.afterAutoCheck,r))
+			self.autoCheck.start()
 
 	def beforeAutoCheck(self):
 		self.videoView.setCallback(self.getFrame)
@@ -195,6 +204,7 @@ class ConnectionPage(WizardPage):
 		self.skipButton.Disable()
 		self.nextButton.Disable()
 		self.enableNext = False
+		self.videoView.setMilliseconds(50)
 		self.gauge.SetValue(0)
 		self.resultLabel.Hide()
 		self.gauge.Show()
@@ -218,6 +228,8 @@ class ConnectionPage(WizardPage):
 		else:
 			self.skipButton.Enable()
 			self.nextButton.Disable()
+
+		self.videoView.setMilliseconds(20)
 
 		self.driver.board.setSpeedMotor(150)
 		self.driver.board.setRelativePosition(-90)
