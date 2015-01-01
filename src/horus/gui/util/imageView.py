@@ -28,6 +28,7 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
 import wx._core
+import threading
 
 from horus.util.resources import *
 
@@ -129,7 +130,7 @@ class VideoView(ImageView):
 
 	def play(self):
 		self.playing = True
-		self._start()
+		threading.Thread(target=self._start).start()
 
 	def _start(self):
 		self.timer.Start(milliseconds=self.milliseconds)
