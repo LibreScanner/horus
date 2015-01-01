@@ -63,6 +63,9 @@ class Wizard(wx.Dialog):
         self.calibrationPage.Hide()
         self.scanningPage.Hide()
 
+        self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.onBoardUnplugged))
+        self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.onCameraUnplugged))
+
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.connectionPage, 1, wx.ALL|wx.EXPAND, 0)
         hbox.Add(self.calibrationPage, 1, wx.ALL|wx.EXPAND, 0)
@@ -74,6 +77,29 @@ class Wizard(wx.Dialog):
 
         self.Centre()
         self.ShowModal()
+
+    def onBoardUnplugged(self):
+        self.onUnplugged()
+        self.parent.onBoardUnplugged()
+        self.connectionPage.updateStatus(False)
+        self.calibrationPage.updateStatus(False)
+
+    def onCameraUnplugged(self):
+        self.onUnplugged()
+        self.parent.onCameraUnplugged()
+        self.connectionPage.updateStatus(False)
+        self.calibrationPage.updateStatus(False)
+
+    def onUnplugged(self):
+        if hasattr(self.connectionPage, 'waitCursor'):
+            del self.connectionPage.waitCursor
+        if hasattr(self.calibrationPage, 'waitCursor'):
+            del self.calibrationPage.waitCursor
+        self.connectionPage.onUnplugged()
+        self.calibrationPage.onUnplugged()
+        self.connectionPage.Show()
+        self.calibrationPage.Hide()
+        self.scanningPage.Hide()
 
     def onExit(self):
         self.driver.board.setLeftLaserOff()
