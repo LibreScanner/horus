@@ -370,9 +370,9 @@ class LaserTriangulationMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.laserTriangulation.getImage()#self.driver.camera.captureImage()
-		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		frame = self.laserTriangulation.getImage()
+		#if frame is not None:
+		#	retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onCalibrate(self):

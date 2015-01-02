@@ -109,14 +109,16 @@ class Camera:
 			raise CameraNotConnected()
 		
 	def disconnect(self):
+		tries = 0
 		if self.isConnected:
 			print ">>> Disconnecting camera {0}".format(self.cameraId)
 			if self.capture is not None:
 				if self.capture.isOpened():
-					while True:
+					self.isConnected = False
+					while tries < 10:
+						tries += 1
 						if not self.reading:
 							self.capture.release()
-							self.isConnected = False
 							print ">>> Done"
 							break
 
@@ -170,7 +172,7 @@ class Camera:
 
 	def _fail(self):
 		self._n += 1
-		if self._n >= 2:
+		if self._n >= 1:
 			self._n = 0
 			if self.unplugCallback is not None and \
 			   self.parent is not None and not self.parent.unplugged:

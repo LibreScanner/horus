@@ -200,6 +200,8 @@ setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic'
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
 
+setting('luminosity', _("Medium Luminosity"), [_("High Luminosity"), _("Medium Luminosity"), _("Low Luminosity")], 'basic', _('Luminosity'))
+
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_control', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
@@ -215,7 +217,7 @@ setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRang
 setting('brightness_calibration', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_calibration', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_calibration', 100, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_calibration', 8, int, 'basic', _('Exposure')).setRange(1, 512)
+setting('exposure_calibration', 16, int, 'basic', _('Exposure')).setRange(1, 512)
 setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
@@ -226,7 +228,7 @@ setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
 
 setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
 setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
-setting('acceleration_scanning', 500, int, 'advanced', _('Acceleration')).setRange(1, 1000)
+setting('acceleration_scanning', 300, int, 'advanced', _('Acceleration')).setRange(1, 1000)
 
 setting('brightness_scanning', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_scanning', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
@@ -255,10 +257,12 @@ setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
 
 setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
+setting('adjust_laser', True, bool, 'advanced', _('Adjust Laser'))
+
 setting('camera_matrix', ([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
 setting('distortion_vector',([0.0,0.0,0.0,0.0,0.0]),numpy.ndarray,'advanced',_('Distortion Vector'))
 
-setting('laser_threshold_value', 85., int, 'advanced', _('Laser Threshold')).setRange(0, 255)
+setting('laser_threshold_value', 120., int, 'advanced', _('Laser Threshold')).setRange(0, 255)
 
 setting('distance_left', 0.0, float, 'advanced', _('Distance'))
 setting('normal_left', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
@@ -271,7 +275,7 @@ setting('translation_vector', ([5.0,80.0,320.0]), numpy.ndarray, 'advanced', _('
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))
-setting('pattern_distance', 18.8, float, 'advanced', _('Pattern Distance'))
+setting('pattern_distance', 19.8, float, 'advanced', _('Pattern Distance'))
 setting('extrinsics_step', -5.0, float, 'advanced', _('Extrinsics Step'), False)
 
 setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))

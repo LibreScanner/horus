@@ -47,6 +47,9 @@ from horus.engine.driver import Driver
 import horus.util.error as Error
 from horus.util.singleton import Singleton
 
+#TODO: refactor
+from horus.util import profile
+
 
 class Calibration:
 	""" 
@@ -98,7 +101,7 @@ class CameraIntrinsics(Calibration):
 		Calibration.__init__(self)
 		self.objPointsStack = []
 		self.imagePointsStack = []
-		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
@@ -165,7 +168,7 @@ class LaserTriangulation(Calibration):
 	"""
 	def __init__(self):
 		Calibration.__init__(self)
-		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 		self.image = None
 
 	def setIntrinsics(self, cameraMatrix, distortionVector):
@@ -231,6 +234,8 @@ class LaserTriangulation(Calibration):
 
 				angle += step
 
+				camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning'))
+
 				#-- Image acquisition
 				imageRaw = camera.captureImage(flush=True, flushValue=flush)
 
@@ -238,36 +243,39 @@ class LaserTriangulation(Calibration):
 				ret = self.getPatternPlane(imageRaw)
 
 				if ret is not None:
-					step = 3 #2
+					step = 4 #2
 
 					d, n, corners = ret
+
+					camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning')/2.)
 			
 					#-- Image laser acquisition
+					imageRawLeft = camera.captureImage(flush=True, flushValue=flush)
 					board.setLeftLaserOn()
-
 					imageLeft = camera.captureImage(flush=True, flushValue=flush)
+					board.setLeftLaserOff()
 					self.image = imageLeft
 					if imageLeft is None:
 						break
-
-					board.setLeftLaserOff()
+					
+					imageRawRight = camera.captureImage(flush=True, flushValue=flush)
 					board.setRightLaserOn()
-
 					imageRight = camera.captureImage(flush=True, flushValue=flush)
+					board.setRightLaserOff()
 					self.image = imageRight
 					if imageRight is None:
 						break
 
-					board.setRightLaserOff()
-
 					#-- Pattern ROI mask
 					imageRaw = self.cornersMask(imageRaw, corners)
 					imageLeft = self.cornersMask(imageLeft, corners)
+					imageRawLeft = self.cornersMask(imageRawLeft, corners)
 					imageRight = self.cornersMask(imageRight, corners)
+					imageRawRight = self.cornersMask(imageRawRight, corners)
 
 					#-- Line segmentation
-					uL, vL = self.getLaserLine(imageLeft, imageRaw)
-					uR, vR = self.getLaserLine(imageRight, imageRaw)
+					uL, vL = self.getLaserLine(imageLeft, imageRawLeft)
+					uR, vR = self.getLaserLine(imageRight, imageRawRight)
 
 					#-- Point Cloud generation
 					xL = self.getPointCloudLaser(uL, vL, d, n)
@@ -303,6 +311,9 @@ class LaserTriangulation(Calibration):
 
 		#-- Disable motor
 		board.disableMotor()
+
+		#-- Restore camera exposure
+		camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning'))
 
 		if self.isCalibrating and nL is not None and nR is not None:
 			response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
@@ -374,7 +385,7 @@ class LaserTriangulation(Calibration):
 				if n[2] < 0:
 					n *= -1
 				d = np.dot(n,np.array(Xm))[0]
-				std=X.std()/X.mean()
+				std = np.dot(n,M).std()
 
 				return d, n, std
 			else:
@@ -449,7 +460,7 @@ class SimpleLaserTriangulation(Calibration):
 	"""
 	def __init__(self):
 		Calibration.__init__(self)
-		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
@@ -502,15 +513,16 @@ class SimpleLaserTriangulation(Calibration):
 				imgLasR = camera.captureImage(flush=True, flushValue=1)
 				board.setRightLaserOff()
 
-				##-- Corners ROI mask
-				imgLasL = self.cornersMask(imgLasL, corners)
-				imgLasR = self.cornersMask(imgLasR, corners)
+				if imgRaw is not None and imgLasL is not None and imgLasR is not None:
+					##-- Corners ROI mask
+					imgLasL = self.cornersMask(imgLasL, corners)
+					imgLasR = self.cornersMask(imgLasR, corners)
 
-				##-- Obtain Left Laser Line
-				retL = self.obtainLine(imgRaw, imgLasL)
+					##-- Obtain Left Laser Line
+					retL = self.obtainLine(imgRaw, imgLasL)
 
-				##-- Obtain Right Laser Line
-				retR = self.obtainLine(imgRaw, imgLasR)
+					##-- Obtain Right Laser Line
+					retR = self.obtainLine(imgRaw, imgLasR)
 
 			#-- Disable motor
 			board.disableMotor()
@@ -538,48 +550,56 @@ class SimpleLaserTriangulation(Calibration):
 		corners = None
 		tries = 5
 		board.setRelativePosition(angle)
-		board.setSpeedMotor(40)
+		board.setSpeedMotor(150)
+		board.setAccelerationMotor(300)
 
 		if progressCallback is not None:
 			progressCallback(0)
 
 		while self.isCalibrating and distance > epsilon and tries > 0:
 			image = camera.captureImage(flush=True, flushValue=1)
-			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
-			if ret is not None:
-				if ret[0]:
-					R = ret[1]
-					t = ret[2].T[0]
-					n = R.T[2]
-					corners = ret[3]
-					distance = np.linalg.norm((0,0,1)-n)
-					if distance < epsilon or distanceAnt < distance:
-						board.setRelativePosition(-angle)
-						board.moveMotor()
-						break
-					distanceAnt = distance
-					angle = np.max(((distance-epsilon) * 30, 5))
+			if image is not None:
+				ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+				if ret is not None:
+					if ret[0]:
+						R = ret[1]
+						t = ret[2].T[0]
+						n = R.T[2]
+						corners = ret[3]
+						distance = np.linalg.norm((0,0,1)-n)
+						if distance < epsilon or distanceAnt < distance:
+							if self.isCalibrating:
+								board.setRelativePosition(-angle)
+								board.moveMotor()
+							break
+						distanceAnt = distance
+						angle = np.max(((distance-epsilon) * 30, 5))
+				else:
+					tries -= 1
 			else:
 				tries -= 1
-			board.setRelativePosition(angle)
-			board.moveMotor()
+			if self.isCalibrating:
+				board.setRelativePosition(angle)
+				board.moveMotor()
 
 			if progressCallback is not None:
 				if distance < np.inf:
 					progressCallback(min(80,max(0,80-100*abs(distance-epsilon))))
 
-		image = camera.captureImage(flush=True, flushValue=1)
-		ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
-		if ret is not None:
-			R = ret[1]
-			t = ret[2].T[0]
-			n = R.T[2]
-			corners = ret[3]
-			distance = np.linalg.norm((0,0,1)-n)
-			angle = np.max(((distance-epsilon) * 30, 5))
+		if self.isCalibrating:
+			image = camera.captureImage(flush=True, flushValue=1)
+			if image is not None:
+				ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
+				if ret is not None:
+					R = ret[1]
+					t = ret[2].T[0]
+					n = R.T[2]
+					corners = ret[3]
+					distance = np.linalg.norm((0,0,1)-n)
+					angle = np.max(((distance-epsilon) * 30, 5))
 
-			if progressCallback is not None:
-				progressCallback(90)
+					if progressCallback is not None:
+						progressCallback(90)
 
 		#print "Distance: {0} Angle: {1}".format(round(distance,3), round(angle,3))
 
@@ -653,8 +673,8 @@ class PlatformExtrinsics(Calibration):
 	"""
 	def __init__(self):
 		Calibration.__init__(self)
-		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
-		self.image=self.driver.camera.captureImage(flush=True, flushValue=1)
+		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+		self.image = None
 
 	def setExtrinsicsStep(self, step):
 		self.extrinsicsStep = step
@@ -704,6 +724,7 @@ class PlatformExtrinsics(Calibration):
 			board.setSpeedMotor(1)
 			board.enableMotor()
 			board.setSpeedMotor(150)
+			board.setAccelerationMotor(200)
 			time.sleep(0.2)
 
 			if progressCallback is not None:

@@ -46,21 +46,6 @@ class ScanningPage(WizardPage):
 		self.driver = Driver.Instance()
 		self.pcg = PointCloudGenerator.Instance()
 
-		#TODO: use dictionaries
-
-		value = profile.getProfileSettingInteger('exposure_scanning')
-		if value > 25:
-			value = _("High")
-		elif value > 12:
-			value = _("Medium")
-		else:
-			value = _("Low")
-		self.luminosityLabel = wx.StaticText(self.panel, label=_("Luminosity"))
-		self.luminosityComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
-											value=value,
-											choices=[_("High"), _("Medium"), _("Low")],
-											style=wx.CB_READONLY)
-
 		value = abs(float(profile.getProfileSetting('step_degrees_scanning')))
 		if value > 1.35:
 			value = _("Low")
@@ -74,28 +59,22 @@ class ScanningPage(WizardPage):
 												choices=[_("High"), _("Medium"), _("Low")],
 												style=wx.CB_READONLY)
 
-		value = profile.getProfileSetting('use_laser')
 		self.laserLabel = wx.StaticText(self.panel, label=_("Laser"))
 		self.laserComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
-										value=value,
-										choices=[_("Use Left Laser"), _("Use Right Laser"), _("Use Both Laser")],
+										value=profile.getProfileSetting('use_laser'),
+										choices=profile.getProfileSettingObject('use_laser').getType(),
 										style=wx.CB_READONLY)
 
 		self.scanTypeLabel = wx.StaticText(self.panel, label=_("Scan Type"))
-		value = profile.getProfileSetting('scan_type')
 		self.scanTypeComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
-											value=value,
-											choices=[_("Without Texture"), _("With Texture")],
+											value=profile.getProfileSetting('scan_type'),
+											choices=profile.getProfileSettingObject('scan_type').getType(),
 											style=wx.CB_READONLY)
 
 		self.skipButton.Hide()
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.luminosityLabel, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 18)
-		hbox.Add(self.luminosityComboBox, 1, wx.ALL^wx.BOTTOM|wx.EXPAND, 12)
-		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 5)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.resolutionLabel, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 18)
 		hbox.Add(self.resolutionComboBox, 1, wx.ALL^wx.BOTTOM|wx.EXPAND, 12)
@@ -111,7 +90,6 @@ class ScanningPage(WizardPage):
 		self.panel.SetSizer(vbox)
 		self.Layout()
 
-		self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
 		self.resolutionComboBox.Bind(wx.EVT_COMBOBOX, self.onResolutionComboBoxChanged)
 		self.laserComboBox.Bind(wx.EVT_COMBOBOX, self.onLaserComboBoxChanged)
 		self.scanTypeComboBox.Bind(wx.EVT_COMBOBOX, self.onScanTypeComboBoxChanged)
@@ -128,17 +106,6 @@ class ScanningPage(WizardPage):
 				self.videoView.stop()
 			except:
 				pass
-
-	def onLuminosityComboBoxChanged(self, event):
-		value = event.GetEventObject().GetValue()
-		if value ==_("High"):
-			value = 32
-		elif value ==_("Medium"):
-			value = 16
-		elif value ==_("Low"):
-			value = 8
-		profile.putProfileSetting('exposure_scanning', value)
-		self.driver.camera.setExposure(value)
 
 	def onResolutionComboBoxChanged(self, event):
 		value = event.GetEventObject().GetValue()

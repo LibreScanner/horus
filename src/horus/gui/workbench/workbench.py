@@ -155,8 +155,6 @@ class WorkbenchConnection(Workbench):
 
 		if self.driver.isConnected:
 			self.GetParent().workbenchUpdate(False)
-			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
-			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
 		
 		self.updateStatus(self.driver.isConnected)
 		self.combo.Enable()
@@ -172,6 +170,8 @@ class WorkbenchConnection(Workbench):
 		if status:
 			self.enableLabelTool(self.connectTool   , False)
 			self.enableLabelTool(self.disconnectTool, True)
+			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
+			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
 		else:
 			self.enableLabelTool(self.connectTool   , True)
 			self.enableLabelTool(self.disconnectTool, False)

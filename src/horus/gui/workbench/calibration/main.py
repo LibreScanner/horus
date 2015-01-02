@@ -63,7 +63,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.controls = ExpandableControl(self.scrollPanel)
 
-        self.videoView = VideoView(self._panel, self.getFrame, 5)
+        self.videoView = VideoView(self._panel, self.getFrame, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         #-- Add Scroll Panels
