@@ -18,7 +18,7 @@ MAKE_ARGS=${2}
 ##Do we need to create the final archive
 ARCHIVE_FOR_DISTRIBUTION=1
 ##Which version name are we appending to the final archive
-export BUILD_NAME=0.0.5
+export BUILD_NAME=0.0.6
 TARGET_DIR=Horus-${BUILD_NAME}-${BUILD_TARGET}
 
 BUILD_OPENCV=1
