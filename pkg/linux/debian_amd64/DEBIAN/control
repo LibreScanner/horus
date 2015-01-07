@@ -4,7 +4,7 @@ Section: misc
 Priority: optional
 Architecture: amd64
 Essential: no
-Depends: python-wxgtk2.8, python-opengl, python-serial, python-numpy, python-pyglet, python-matplotlib, python-scipy, python-opencv, libftdi1
+Depends: python-wxgtk2.8, python-opengl, python-serial, python-numpy, python-pyglet, python-matplotlib, python-scipy, python-opencv, libftdi1, v4l-utils
 Maintainer: Jesus Arroyo <jesus.arroyo@bq.com>
 Provides: horus
 Installed-Size: 10000
