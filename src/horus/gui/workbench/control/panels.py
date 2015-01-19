@@ -76,6 +76,22 @@ class LaserControl(ExpandablePanel):
         section.addItem(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
         section.addItem(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
 
+class LDRControl(ExpandablePanel):
+    """"""
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("LDR Value"), hasUndo=False, hasRestore=False)
+        
+        self.driver = Driver.Instance()
+
+        self.initialize()
+        
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('ldr_control')
+        section.addItem(LDRSection, 'ldr_value', lambda v, c: self.driver.board.sendRequest(v, nonblocking=True, callback=c, readLines=True))
+
+
 
 class MotorControl(ExpandablePanel):
     """"""
@@ -157,6 +173,63 @@ class GcodeSection(SectionItem):
 
     def onFinishCallback(self, ret):
         wx.CallAfter(self.control.Enable)
+        if ret is not None:
+            wx.CallAfter(lambda: self.response.SetValue(ret))
+        if hasattr(self,'waitCursor'):
+            del self.waitCursor
+
+    def updateProfile(self):
+        if hasattr(self,'control'):
+            self.update(None)
+
+    def update(self, value):
+        if self.isVisible():
+            self.Show()
+        else:
+            self.Hide()
+
+class LDRSection(SectionItem):
+    def __init__(self, parent, name, engineCallback=None):
+        """"""
+        SectionItem.__init__(self, parent, name, engineCallback)
+
+        #-- Elements
+        self.LDR0 = wx.Button(self, label='LDR 0')
+        self.LDR1 = wx.Button(self, label='LDR 1')
+
+        self.response = wx.TextCtrl(self, size=(10,250), style=wx.TE_MULTILINE)
+
+        #-- Layout
+        vbox =wx.BoxSizer(wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.LDR0, 0, wx.ALL|wx.EXPAND, 12)
+        hbox.Add(self.LDR1, 0, wx.ALL|wx.EXPAND, 12)
+        vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 0)
+        vbox.Add(self.response, 1, wx.ALL^wx.LEFT|wx.EXPAND, 12)
+        self.SetSizer(vbox)
+        self.Layout()
+
+        #-- Events
+        self.LDR0.Bind(wx.EVT_BUTTON, self.onButton0Clicked)
+        self.LDR1.Bind(wx.EVT_BUTTON, self.onButton1Clicked)
+
+
+    def onButton0Clicked(self, event):
+        self.LDR0.Disable()
+        self.waitCursor = wx.BusyCursor()
+        if self.engineCallback is not None:
+            ret = self.engineCallback('M50 T0', self.onFinishCallback)
+
+    def onButton1Clicked(self, event):
+        self.LDR1.Disable()
+        self.waitCursor = wx.BusyCursor()
+        if self.engineCallback is not None:
+            ret = self.engineCallback('M50 T1', self.onFinishCallback)
+
+    def onFinishCallback(self, ret):
+        wx.CallAfter(self.LDR0.Enable)
+        wx.CallAfter(self.LDR1.Enable)
+
         if ret is not None:
             wx.CallAfter(lambda: self.response.SetValue(ret))
         if hasattr(self,'waitCursor'):
