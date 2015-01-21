@@ -146,11 +146,10 @@ class Scan:
 		if img is not None:
 			if self.pcg.viewROI:
 				self.pcg.calculateCenter()
-
 				#params:
 				thickness=6
 				thickness_hiden=1
-				center_up_u=self.pcg.umin+(self.pcg.umax- self.pcg.umin)/2
+				center_up_u=self.pcg.no_trimmed_umin+(self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2
 				center_up_v=self.pcg.upper_lim[1]+(self.pcg.upper_lim[0]-self.pcg.upper_lim[1])/2
 				
 				# center_down_u=self.pcg.center_u
@@ -158,8 +157,8 @@ class Scan:
 
 				center_down_u=self.pcg.lower_umin+(self.pcg.lower_umax- self.pcg.lower_umin)/2
 				center_down_v= self.pcg.lower_vmax+(self.pcg.lower_vmin-self.pcg.lower_vmax)/2
-				axes_up=((self.pcg.umax- self.pcg.umin)/2, ((self.pcg.upper_lim[0]-self.pcg.upper_lim[1])/2))
-				axes_down=((self.pcg.umax- self.pcg.umin)/2, ((self.pcg.lower_vmin-self.pcg.lower_vmax)/2))
+				axes_up=((self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2, ((self.pcg.upper_lim[0]-self.pcg.upper_lim[1])/2))
+				axes_down=((self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2, ((self.pcg.lower_vmin-self.pcg.lower_vmax)/2))
 
 				img = img.copy()
 				#upper ellipse
@@ -175,8 +174,9 @@ class Scan:
 				cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 0, 180, (0,0,255), thickness)
 
 				#cylinder lines
-				cv2.line(img, (self.pcg.umin, center_up_v), (self.pcg.umin, center_down_v), (0,0,255),thickness)
-				cv2.line(img, (self.pcg.umax, center_up_v), (self.pcg.umax, center_down_v), (0,0,255),thickness)
+				
+				cv2.line(img, (self.pcg.no_trimmed_umin, center_up_v), (self.pcg.no_trimmed_umin, center_down_v), (0,0,255),thickness)
+				cv2.line(img, (self.pcg.no_trimmed_umax, center_up_v), (self.pcg.no_trimmed_umax, center_down_v), (0,0,255),thickness)
 
 				#view center
 				if axes_up[0]<=0 or axes_up[1] <=0:
@@ -767,6 +767,12 @@ class PointCloudGenerator:
 			self.lower_umax=umax
 			self.lower_lim=[int(round(np.max(a))), int(round(np.min(a)))]
 			self.upper_lim=[int(round(np.max(b))), int(round(np.min(b)))]
+
+			self.no_trimmed_umin=umin
+			self.no_trimmed_umax = int(round(np.max(u)))
+			self.no_trimmed_vmin = int(round(np.min(v)))
+			self.no_trimmed_vmax = int(round(np.max(v)))
+
 
 			self.umin = max(umin, 0)
 			self.umax = min(umax, self.width)
