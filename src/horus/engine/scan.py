@@ -145,6 +145,7 @@ class Scan:
 		
 		if img is not None:
 			thickness=6
+			thickness_hiden=1
 			center_up_u=self.pcg.umin+(self.pcg.umax- self.pcg.umin)/2
 			center_up_v=self.pcg.upper_lim[1]+(self.pcg.upper_lim[0]-self.pcg.upper_lim[1])/2
 			center_down_u=self.pcg.umin+(self.pcg.umax- self.pcg.umin)/2
@@ -155,13 +156,14 @@ class Scan:
 			if self.pcg.viewROI:
 				img = img.copy()
 
+				if (center_up_v<self.pcg.cy):
+					cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0,0,255), thickness)
+					cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0,0,255), thickness_hiden)
+				else:
+					cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0,0,255), thickness)
+					cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0,0,255), thickness)
 
-				cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0,0,255), thickness)
-				cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0,0,255), 1)
-
-
-
-				cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 180, 360, (0,0,255), 1)
+				cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 180, 360, (0,0,255), thickness_hiden)
 				cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 0, 180, (0,0,255), thickness)
 
 				cv2.line(img, (self.pcg.umin, center_up_v), (self.pcg.umin, center_down_v), (0,0,255),thickness)
