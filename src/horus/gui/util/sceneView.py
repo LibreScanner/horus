@@ -641,14 +641,20 @@ class SceneView(openglGui.glGuiPanel):
 				glVertex3f(p[0], p[1], height)
 			glEnd()
 
-
-		if profile.getProfileSettingBool('view_center'):
+			#view center: 
 			center=self.getObjectCenterPos()
 			quadric=gluNewQuadric();
 			gluQuadricNormals(quadric, GLU_SMOOTH);
 			gluQuadricTexture(quadric, GL_TRUE);
-			glColor4ub(255, 0, 0, 150)
-			gluCylinder(quadric,2,2,50,32,16);
+			glColor4ub(255, 0, 0, 255)
+			#lower center:
+			gluCylinder(quadric,6,6,1,32,16);
+			gluDisk(quadric, 0.0, 6, 32, 1); 
+
+			glTranslate(0,0,height-1)
+			gluDisk(quadric, 0.0, 6, 32, 1); 
+			gluCylinder(quadric,6,6,1,32,16);
+			glTranslate(0,0,-height+1)
 
 		polys = profile.getMachineSizePolygons()
 		

@@ -167,9 +167,7 @@ class Scan:
 				cv2.line(img, (self.pcg.umin, center_up_v), (self.pcg.umin, center_down_v), (0,0,255),thickness)
 				cv2.line(img, (self.pcg.umax, center_up_v), (self.pcg.umax, center_down_v), (0,0,255),thickness)
 
-
-			if self.pcg.viewCenter:
-				img=img.copy()
+				#view center
 				axes_up_center=(20,axes_up[1]*20/axes_up[0])
 				axes_down_center=(20,axes_down[1]*20/axes_down[0])
 
