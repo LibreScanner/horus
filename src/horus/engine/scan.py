@@ -144,12 +144,37 @@ class Scan:
 			img=source
 		
 		if img is not None:
+			thickness=6
+			center_up_u=self.pcg.umin+(self.pcg.umax- self.pcg.umin)/2
+			center_up_v=self.pcg.upper_lim[1]+(self.pcg.upper_lim[0]-self.pcg.upper_lim[1])/2
+			center_down_u=self.pcg.umin+(self.pcg.umax- self.pcg.umin)/2
+			center_down_v= self.pcg.lower_lim[1]+(self.pcg.lower_lim[0]-self.pcg.lower_lim[1])/2
+			axes_up=((self.pcg.umax- self.pcg.umin)/2, ((self.pcg.upper_lim[0]-self.pcg.upper_lim[1])/2))
+			axes_down=((self.pcg.umax- self.pcg.umin)/2, ((self.pcg.lower_lim[0]-self.pcg.lower_lim[1])/2))
+
 			if self.pcg.viewROI:
 				img = img.copy()
-				cv2.rectangle(img, (self.pcg.umin, self.pcg.vmin), (self.pcg.umax, self.pcg.vmax), (0, 0, 255), 3)
+
+
+				cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0,0,255), thickness)
+				cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0,0,255), 1)
+
+
+
+				cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 180, 360, (0,0,255), 1)
+				cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 0, 180, (0,0,255), thickness)
+
+				cv2.line(img, (self.pcg.umin, center_up_v), (self.pcg.umin, center_down_v), (0,0,255),thickness)
+				cv2.line(img, (self.pcg.umax, center_up_v), (self.pcg.umax, center_down_v), (0,0,255),thickness)
+
+
 			if self.pcg.viewCenter:
 				img=img.copy()
-				cv2.line(img, ((self.pcg.umax-self.pcg.umin)/2 + self.pcg.umin, self.pcg.c_vmax-200), ((self.pcg.umax-self.pcg.umin)/2 + self.pcg.umin, self.pcg.c_vmax), (255, 0, 0), 3)
+				axes_up_center=(20,axes_up[1]*20/axes_up[0])
+				axes_down_center=(20,axes_down[1]*20/axes_down[0])
+
+				cv2.ellipse(img, (center_up_u, center_up_v), axes_up_center, 0, 0, 360, (255,0,0), -1)
+				cv2.ellipse(img, (center_down_u, center_down_v), axes_down_center, 0, 0, 360, (255,0,0), -1)
 
 		return img
 
@@ -699,6 +724,7 @@ class PointCloudGenerator:
 			top = bottom + np.matrix([0,0,self.roiHeight]).T
 			data = np.concatenate((bottom, top), axis=1)
 
+
 			#-- Camera system
 			data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
 
@@ -706,15 +732,27 @@ class PointCloudGenerator:
 			u = self.fx * data[0] / data[2] + self.cx
 			v = self.fy * data[1] / data[2] + self.cy
 
+
+			#visualization : 
+			v_=np.array(v.T)
+			a=v_[:(len(v_)/2)]
+			b=v_[(len(v_)/2):]
+
+
 			umin = int(round(np.min(u)))
 			umax = int(round(np.max(u)))
 			vmin = int(round(np.min(v)))
 			vmax = int(round(np.max(v)))
 
+			self.lower_lim=[int(round(np.max(a))), int(round(np.min(a))), umax, vmax]
+			self.upper_lim=[int(round(np.max(b))), int(round(np.min(b))), umin, vmin]
+
 			self.umin = max(umin, 0)
 			self.umax = min(umax, self.width)
 			self.vmin = max(vmin, 0)
 			self.vmax = min(vmax, self.height)
+
+
 
 	def calculateCenter(self):
 		#-- Platform system
@@ -747,6 +785,8 @@ class PointCloudGenerator:
 		else:
 			d = self.dR
 			n = self.nR
+
+		# x = np.concatenate(((u-self.cx)/self.fx, (v-self.cy)/self.fy, np.ones(len(u)))).reshape(3,len(u))
 
 		x = np.concatenate(((u-self.cx)/self.fx, (v-self.cy)/self.fy, np.ones(len(u)))).reshape(3,len(u))
 
