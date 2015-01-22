@@ -156,7 +156,7 @@ class Scan:
 
 		center_up_u=self.pcg.no_trimmed_umin+(self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2
 		center_up_v=self.pcg.upper_vmin+(self.pcg.upper_vmax-self.pcg.upper_vmin)/2
-		center_down_u=self.pcg.lower_umin+(self.pcg.lower_umax- self.pcg.lower_umin)/2
+		center_down_u=self.pcg.no_trimmed_umin+(self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2
 		center_down_v= self.pcg.lower_vmax+(self.pcg.lower_vmin-self.pcg.lower_vmax)/2
 		axes_up=((self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2, ((self.pcg.upper_vmax-self.pcg.upper_vmin)/2))
 		axes_down=((self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2, ((self.pcg.lower_vmin-self.pcg.lower_vmax)/2))
@@ -749,29 +749,21 @@ class PointCloudGenerator:
 			u = self.fx * data[0] / data[2] + self.cx
 			v = self.fy * data[1] / data[2] + self.cy
 
-
-			#visualization : 
-			v_=np.array(v.T)
-			a=v_[:(len(v_)/2)]
-			b=v_[(len(v_)/2):]
-
-
 			umin = int(round(np.min(u)))
 			umax = int(round(np.max(u)))
 			vmin = int(round(np.min(v)))
 			vmax = int(round(np.max(v)))
 
+			#visualization : 
+			v_=np.array(v.T)
+			#lower cylinder base
+			a=v_[:(len(v_)/2)]
+			#upper cylinder base
+			b=v_[(len(v_)/2):]
 			self.lower_vmin=int(round(np.max(a)))
 			self.lower_vmax=int(round(np.min(a)))
-			self.lower_umin=umin
-			self.lower_umax=umax
-			self.lower_lim=[int(round(np.max(a))), int(round(np.min(a)))]
-
 			self.upper_vmin=int(round(np.min(b)))
 			self.upper_vmax=int(round(np.max(b)))
-			# self.upper_lim=[, ]
-
-
 
 			self.no_trimmed_umin=umin
 			self.no_trimmed_umax = int(round(np.max(u)))
