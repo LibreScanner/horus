@@ -207,7 +207,6 @@ class PointCloudGeneration(ExpandablePanel):
         self.clearSections()
         section = self.createSection('point_cloud_generation')
         section.addItem(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
-        section.addItem(CheckBox, 'view_center', lambda v: (self.pcg.setViewCenter(bool(v)), self.main.sceneView.QueueRefresh()))
 
         section.addItem(Slider, 'roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
         section.addItem(Slider, 'roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
