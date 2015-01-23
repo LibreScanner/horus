@@ -751,13 +751,13 @@ class PlatformExtrinsics(Calibration):
 
 				#-- Fitting a plane
 				point, normal = self.fitPlane(points)
-
+				if normal[1] > 0:
+					normal = -normal
 				#-- Fitting a circle inside the plane
 				center, R, circle = self.fitCircle(point, normal, points)
 
-				if normal[1] > 0:
-					normal = -normal
-					R.T[2] = -R.T[2]
+		
+
 
 				# Get real origin
 				t = center - self.patternDistance * np.array(normal)
