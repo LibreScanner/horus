@@ -302,8 +302,8 @@ class LaserTriangulation(Calibration):
 			self.saveScene('XR.ply', XR)
 
 			#-- Compute planes
-			dL, nL, stdL = self.computePlane(XL)
-			dR, nR, stdR = self.computePlane(XR)
+			dL, nL, stdL = self.computePlane(XL, 'l')
+			dR, nR, stdR = self.computePlane(XR, 'r')
 
 		##-- Switch off lasers
 		board.setLeftLaserOff()
@@ -370,22 +370,49 @@ class LaserTriangulation(Calibration):
 
 		return X.T
 
-	def computePlane(self, X):
+	def computePlane(self, X, side):
 		if X is not None:
 			X = np.matrix(X).T
 			n = X.shape[1]
+			std=0
 			if n > 3:
-				Xm = X.sum(axis=1)/n
-				M = np.array(X-Xm)
-				#begin = datetime.datetime.now()
-				U = linalg.svds(M, k=2)[0]
-				#print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
-				s, t = U.T
-				n = np.cross(s, t)
-				if n[2] < 0:
-					n *= -1
-				d = np.dot(n,np.array(Xm))[0]
-				std = np.dot(n,M).std()
+				final_points=[]
+
+				for trials in range(30):
+					X=np.matrix(X)
+					n=X.shape[1]
+
+					Xm = X.sum(axis=1)/n
+					M = np.array(X-Xm)
+					#begin = datetime.datetime.now()
+					U = linalg.svds(M, k=2)[0]
+					#print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
+					s, t = U.T
+					n = np.cross(s, t)
+					if n[2] < 0:
+						n *= -1
+					d = np.dot(n,np.array(Xm))[0]
+					distance_vector=np.dot(M.T,n)
+
+					#If last std is equal to current std, break loop
+					if std==distance_vector.std():
+						break
+
+					std = distance_vector.std()
+
+					final_points=np.where(abs(distance_vector)<abs(2*std) )[0]
+					print 'iteration ', trials, 'd,n,std, len(final_points)', d,n,std, len(final_points)
+
+					X=X[:, final_points]
+
+					#Save each iteration point cloud
+					if side == 'l':
+						self.saveScene('new_'+str(trials)+'_XL.ply', np.asarray(X.T))
+					else:
+						self.saveScene('new_'+str(trials)+'_XR.ply', np.asarray(X.T))
+
+					if std<0.1 or len(final_points)<1000:
+						break
 
 				return d, n, std
 			else:
@@ -751,13 +778,12 @@ class PlatformExtrinsics(Calibration):
 
 				#-- Fitting a plane
 				point, normal = self.fitPlane(points)
+
 				if normal[1] > 0:
 					normal = -normal
+
 				#-- Fitting a circle inside the plane
 				center, R, circle = self.fitCircle(point, normal, points)
-
-		
-
 
 				# Get real origin
 				t = center - self.patternDistance * np.array(normal)
