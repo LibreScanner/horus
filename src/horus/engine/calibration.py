@@ -138,6 +138,9 @@ class CameraIntrinsics(Calibration):
 			afterCallback(response)
 
 	def detectChessboard(self, frame, capture=False):
+		if self.patternRows < 2 or self.patternColumns < 2:
+			return False, frame
+
 		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 		self.shape = gray.shape
 		retval, corners = cv2.findChessboardCorners(gray, (self.patternColumns,self.patternRows), flags=cv2.CALIB_CB_FAST_CHECK)

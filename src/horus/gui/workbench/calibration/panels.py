@@ -43,6 +43,9 @@ class PatternSettingsPanel(ExpandablePanel):
         """"""
         ExpandablePanel.__init__(self, parent, _("Pattern Settings"))
 
+        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
+        self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
         self.initialize()
@@ -50,8 +53,30 @@ class PatternSettingsPanel(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('pattern_settings')
-        section.addItem(TextBox, 'pattern_distance', lambda v: self.platformExtrinsics.setPatternDistance(profile.getProfileSettingFloat('pattern_distance')))
+        section.addItem(TextBox, 'square_width', lambda v: self.updatePatternParameters())
+        section.addItem(TextBox, 'pattern_rows', lambda v: self.updatePatternParameters())
+        section.addItem(TextBox, 'pattern_columns', lambda v: self.updatePatternParameters())
+        section.addItem(TextBox, 'pattern_distance', lambda v: self.updatePatternParameters())
 
+    def updatePatternParameters(self):
+        self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
+                                                   profile.getProfileSettingInteger('pattern_columns'),
+                                                   profile.getProfileSettingInteger('square_width'),
+                                                   profile.getProfileSettingFloat('pattern_distance'))
+
+        self.simpleLaserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
+                                                           profile.getProfileSettingInteger('pattern_columns'),
+                                                           profile.getProfileSettingInteger('square_width'),
+                                                           profile.getProfileSettingFloat('pattern_distance'))
+
+        self.laserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
+                                                     profile.getProfileSettingInteger('pattern_columns'),
+                                                     profile.getProfileSettingInteger('square_width'),
+                                                     profile.getProfileSettingFloat('pattern_distance'))
+        self.platformExtrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
+                                                     profile.getProfileSettingInteger('pattern_columns'),
+                                                     profile.getProfileSettingInteger('square_width'),
+                                                     profile.getProfileSettingFloat('pattern_distance'))
 
 class CameraSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
