@@ -43,16 +43,14 @@ class PatternSettingsPanel(ExpandablePanel):
         """"""
         ExpandablePanel.__init__(self, parent, _("Pattern Settings"))
 
-        self.driver = Driver.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
+        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
         self.initialize()
 
     def initialize(self):
         self.clearSections()
         section = self.createSection('pattern_settings')
-        section.addItem(TextBox, 'pattern_distance', lambda v: profile.getProfileSettingFloat('pattern_distance'))
-
+        section.addItem(TextBox, 'pattern_distance', lambda v: self.platformExtrinsics.setPatternDistance(profile.getProfileSettingFloat('pattern_distance')))
 
 
 class CameraSettingsPanel(ExpandablePanel):
