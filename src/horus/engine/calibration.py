@@ -298,8 +298,8 @@ class LaserTriangulation(Calibration):
 				board.moveMotor()
 				time.sleep(0.1)
 
-			self.saveScene('XL.ply', XL)
-			self.saveScene('XR.ply', XR)
+			# self.saveScene('XL.ply', XL)
+			# self.saveScene('XR.ply', XR)
 
 			#-- Compute planes
 			dL, nL, stdL = self.computePlane(XL, 'l')
@@ -406,10 +406,10 @@ class LaserTriangulation(Calibration):
 					X=X[:, final_points]
 
 					#Save each iteration point cloud
-					if side == 'l':
-						self.saveScene('new_'+str(trials)+'_XL.ply', np.asarray(X.T))
-					else:
-						self.saveScene('new_'+str(trials)+'_XR.ply', np.asarray(X.T))
+					# if side == 'l':
+					# 	self.saveScene('new_'+str(trials)+'_XL.ply', np.asarray(X.T))
+					# else:
+					# 	self.saveScene('new_'+str(trials)+'_XR.ply', np.asarray(X.T))
 
 					if std<0.1 or len(final_points)<1000:
 						break
