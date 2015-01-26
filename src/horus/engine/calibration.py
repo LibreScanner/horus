@@ -713,6 +713,9 @@ class PlatformExtrinsics(Calibration):
 	def setUseDistortion(self, useDistortion):
 		self.useDistortion = useDistortion
 
+	def setPatternDistance(self, distance):
+		self.patternDistance=distance
+
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
 		self.patternRows = rows
 		self.patternColumns = columns
