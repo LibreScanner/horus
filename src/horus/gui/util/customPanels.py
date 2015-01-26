@@ -513,14 +513,15 @@ class TextBox(SectionItem):
 		self.control.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
 
 	def onTextBoxChanged(self, event):
-		#self.undoValues.append(profile.getProfileSetting(self.name))
+		self.undoValues.append(profile.getProfileSetting(self.name))
 		value = self.control.GetValue()
 		profile.putProfileSetting(self.name, value)
 		self._updateEngine(value)
-		#if self.appendUndoCallback is not None:
-		#	self.appendUndoCallback(self)
-		#if self.releaseUndoCallback is not None:
-		#	self.releaseUndoCallback()
+		if self.appendUndoCallback is not None:
+			self.appendUndoCallback(self)
+		if self.releaseUndoCallback is not None:
+			self.releaseUndoCallback()
+
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
