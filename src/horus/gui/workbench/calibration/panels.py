@@ -31,12 +31,28 @@ import wx._core
 import numpy as np
 
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
-                                        CheckBox, ToggleButton, Button
+                                        CheckBox, ToggleButton, Button, TextBox
 
 from horus.util import profile
 
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
+
+class PatternSettingsPanel(ExpandablePanel):
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Pattern Settings"))
+
+        self.driver = Driver.Instance()
+        self.laserTriangulation = calibration.LaserTriangulation.Instance()
+
+        self.initialize()
+
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('pattern_settings')
+        section.addItem(TextBox, 'pattern_distance', lambda v: profile.getProfileSettingFloat('pattern_distance'))
+
 
 
 class CameraSettingsPanel(ExpandablePanel):
