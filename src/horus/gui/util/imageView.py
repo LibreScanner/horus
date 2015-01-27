@@ -130,7 +130,10 @@ class VideoView(ImageView):
 
 	def play(self):
 		self.playing = True
-		threading.Thread(target=self._start).start()
+		if os.name == 'nt':
+			self._start()
+		else:
+			threading.Thread(target=self._start).start()
 
 	def _start(self):
 		self.timer.Start(milliseconds=self.milliseconds)
