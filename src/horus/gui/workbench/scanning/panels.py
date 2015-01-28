@@ -57,8 +57,8 @@ class ScanParameters(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('scan_parameters')
-        section.addItem(ComboBox, 'scan_type', self.setCurrentScan)
-        section.addItem(ComboBox, 'use_laser', self.setUseLaser)
+        section.addItem(ComboBox, 'scan_type', self.setCurrentScan, dropdown=True)
+        section.addItem(ComboBox, 'use_laser', self.setUseLaser, dropdown=True)
         if os.name != 'nt':
             section.addItem(CheckBox, 'fast_scan', self.setFastScan)
 
