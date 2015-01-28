@@ -54,9 +54,10 @@ class ConnectionPage(WizardPage):
 		self.autoCheck = calibration.SimpleLaserTriangulation.Instance()
 
 		self.connectButton = wx.Button(self.panel, label=_("Connect"))
+		luminosity=profile.getProfileSettingObject('luminosity').getType()
 		self.luminosityComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
 											  value=profile.getProfileSetting('luminosity'),
-											  choices=profile.getProfileSettingObject('luminosity').getType(),
+											  choices=[_(luminosity[0]), _(luminosity[1]), _(luminosity[2])],
 											  style=wx.CB_READONLY)
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Auto check\""))
 		self.imageView = ImageView(self.panel)

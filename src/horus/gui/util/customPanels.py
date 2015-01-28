@@ -226,8 +226,12 @@ class SectionPanel(wx.Panel):
 		self.SetSizer(self.vbox)
 		self.Layout()
 
-	def addItem(self, _type, _name, _callback):
-		item = _type(self, _name, _callback)
+	def addItem(self, _type, _name, _callback, dropdown=None):
+		if dropdown== None:
+			item = _type(self, _name, _callback)
+		else:
+			item = _type(self, _name, _callback,dropdown)
+
 		item.setUndoCallbacks(self.appendUndoCallback, self.releaseUndoCallback)
 		self.items.update({_name : item})
 		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 1)
@@ -387,15 +391,22 @@ class Slider(SectionItem):
 
 
 class ComboBox(SectionItem):
-	def __init__(self, parent, name, engineCallback=None):
+	def __init__(self, parent, name, engineCallback=None, dropdown= None):
 		""" """
 		SectionItem.__init__(self, parent, name, engineCallback)
+		_choices=self.setting.getType()
+		choices=[]
+		if dropdown != None:
+			for i in _choices:
+				choices.append(_(i))
+		else: 
+			choices = _choices
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
 		self.control = wx.ComboBox(self, wx.ID_ANY,
 								   value=profile.getProfileSetting(self.name),
-								   choices=self.setting.getType(),
+								   choices=choices,
 								   size=(150, -1),
 								   style=wx.CB_READONLY)
 
