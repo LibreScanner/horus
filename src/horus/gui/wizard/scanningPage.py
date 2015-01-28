@@ -60,15 +60,17 @@ class ScanningPage(WizardPage):
 												style=wx.CB_READONLY)
 
 		self.laserLabel = wx.StaticText(self.panel, label=_("Laser"))
+		use_laser=profile.getProfileSettingObject('use_laser').getType()
 		self.laserComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
 										value=profile.getProfileSetting('use_laser'),
-										choices=profile.getProfileSettingObject('use_laser').getType(),
+										choices=[_(use_laser[0]), _(use_laser[1]), _(use_laser[2])],
 										style=wx.CB_READONLY)
 
 		self.scanTypeLabel = wx.StaticText(self.panel, label=_("Scan Type"))
+		scan_type=profile.getProfileSettingObject('scan_type').getType()
 		self.scanTypeComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
 											value=profile.getProfileSetting('scan_type'),
-											choices=profile.getProfileSettingObject('scan_type').getType(),
+											choices=[_(scan_type[0]), _(scan_type[1])],
 											style=wx.CB_READONLY)
 
 		self.skipButton.Hide()
