@@ -4,9 +4,9 @@
 #                                                                       #
 # This file is part of the Horus Project                                #
 #                                                                       #
-# Copyright (C) 2014 Mundo Reader S.L.                                  #
+# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: September & November 2014                                       #
+# Date: September, November 2014                                        #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #

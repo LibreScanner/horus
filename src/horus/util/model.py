@@ -4,7 +4,7 @@
 #                                                                       #
 # This file is part of the Horus Project                                #
 #                                                                       #
-# Copyright (C) 2014 Mundo Reader S.L.                                  #
+# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 # Copyright (C) 2013 David Braam from Cura Project                      #
 #                                                                       #
 # Date: June 2014                                                       #
