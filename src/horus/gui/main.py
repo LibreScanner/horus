@@ -47,14 +47,14 @@ from horus.gui.wizard.main import *
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
-VERSION = "0.0.6"
+VERSION = "0.1"
 
 class MainWindow(wx.Frame):
 
     size = (640+300,480+130)
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus " + VERSION), size=self.size)
+        super(MainWindow, self).__init__(None, title=_("Horus " + VERSION + " - Beta"), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -414,8 +414,8 @@ class MainWindow(wx.Frame):
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(VERSION)
-        info.SetDescription(_('Horus is an open source 3D Scanner manager...'))
-        info.SetCopyright(u'(C) 2014 Mundo Reader S.L.')
+        info.SetDescription(_('Horus is an Open Source 3D Scanner manager'))
+        info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
         info.SetLicence("""Horus is free software; you can redistribute 
 it and/or modify it under the terms of the GNU General Public License as 
@@ -429,10 +429,10 @@ See the GNU General Public License for more details. You should have
 received a copy of the GNU General Public License along with File Hunter; 
 if not, write to the Free Software Foundation, Inc., 59 Temple Place, 
 Suite 330, Boston, MA  02111-1307  USA""")
-        info.AddDeveloper(u'Jesús Arroyo')
+        info.AddDeveloper(u'Jesús Arroyo, Irene Sanz')
         info.AddDocWriter(u'Jesús Arroyo')
-        info.AddArtist(u'Jesús Arroyo')
-        info.AddTranslator(u'Jesús Arroyo')
+        info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
+        info.AddTranslator(u'Jesús Arroyo, Irene Sanz')
 
         wx.AboutBox(info)
 
