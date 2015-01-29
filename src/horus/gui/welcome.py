@@ -83,7 +83,7 @@ class Header(wx.Panel):
         separator = wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(logo, 5, wx.ALL^wx.BOTTOM|wx.EXPAND, 30)
+        vbox.Add(logo, 10, wx.ALL^wx.BOTTOM|wx.EXPAND, 30)
         vbox.Add(titleText, 0, wx.TOP|wx.CENTER, 20)
         vbox.Add((0,0), 1, wx.ALL|wx.EXPAND, 0)
         vbox.Add(separator, 0, wx.ALL|wx.EXPAND, 10)

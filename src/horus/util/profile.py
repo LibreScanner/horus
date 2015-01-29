@@ -249,7 +249,7 @@ setting('threshold_value', 25, int, 'advanced', _('Threshold')).setRange(0, 255)
 setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'))
 setting('cr_threshold_value', 140, int, 'advanced', _('Threshold')).setRange(0, 255)
 
-setting('view_roi', True, bool, 'advanced', _('View ROI'))
+setting('view_roi', False, bool, 'advanced', _('View ROI'))
 
 setting('roi_diameter', 200, int, 'advanced', _('Diameter')).setRange(0, 250)
 setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
