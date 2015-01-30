@@ -368,11 +368,16 @@ class SceneView(openglGui.glGuiPanel):
 	def getMouseRay(self, x, y):
 		if self._viewport is None:
 			return numpy.array([0,0,0],numpy.float32), numpy.array([0,0,1],numpy.float32)
+
 		p0 = openglHelpers.unproject(x, self._viewport[1] + self._viewport[3] - y, 0, self._modelMatrix, self._projMatrix, self._viewport)
 		p1 = openglHelpers.unproject(x, self._viewport[1] + self._viewport[3] - y, 1, self._modelMatrix, self._projMatrix, self._viewport)
-		p0 -= self._viewTarget
-		p1 -= self._viewTarget
-		return p0, p1
+		if type(p0)!=type(None) and type(p1)!=type(None):
+			p0 -= self._viewTarget
+			p1 -= self._viewTarget
+			return p0, p1
+		else:
+			return numpy.array([0,0,0],numpy.float32), numpy.array([0,0,1],numpy.float32)
+
 
 	def _init3DView(self):
 		# set viewing projection
