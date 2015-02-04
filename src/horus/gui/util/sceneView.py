@@ -529,7 +529,7 @@ class SceneView(openglGui.glGuiPanel):
 
 		if self._object is not None:
 
-			if self._object.isPointCloud():
+			if self._object.isPointCloud() and openglHelpers.hasShaderSupport():
 				self._objectShaderNoLight.bind()
 			else:
 				self._objectShader.bind()
@@ -550,7 +550,7 @@ class SceneView(openglGui.glGuiPanel):
 			glEnable(GL_DEPTH_TEST)
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
 
-			if self._object.isPointCloud():
+			if self._object.isPointCloud() and openglHelpers.hasShaderSupport():
 				self._objectShaderNoLight.unbind()
 			else:
 				self._objectShader.unbind()
