@@ -200,7 +200,7 @@ setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic'
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
 
-setting('luminosity', _("Medium Luminosity"), [_("High Luminosity"), _("Medium Luminosity"), _("Low Luminosity")], 'basic', _('Luminosity'))
+setting('luminosity', _("Medium"), [_("High"), _("Medium"), _("Low")], 'basic', _('Luminosity'))
 
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
