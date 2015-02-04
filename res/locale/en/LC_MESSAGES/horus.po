@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-03-06 13:12+0100\n"
+"POT-Creation-Date: 2015-03-06 16:54+0100\n"
 "PO-Revision-Date: 2015-03-06 13:13+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
@@ -99,7 +99,7 @@ msgstr ""
 msgid "Please plug your camera and try to connect again"
 msgstr "Please plug your camera in and try to connect again"
 
-#: ../../src/horus/gui/workbench/workbench.py:146
+#: ../../src/horus/gui/workbench/workbench.py:148
 #: ../../src/horus/gui/wizard/connectionPage.py:160
 msgid ""
 "You probably have selected a wrong camera.\n"
@@ -108,7 +108,7 @@ msgstr ""
 "You probably have selected the wrong camera.\n"
 "Please select another Camera ID"
 
-#: ../../src/horus/gui/workbench/workbench.py:152
+#: ../../src/horus/gui/workbench/workbench.py:154
 msgid "Unplug and plug your camera USB cable and try to connect again"
 msgstr "Unplug and plug your camera USB cable and try to connect again"
 
@@ -125,7 +125,7 @@ msgid "Pause"
 msgstr "Pause"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:187
-#: ../../src/horus/gui/main.py:258 ../../src/horus/gui/util/sceneView.py:317
+#: ../../src/horus/gui/main.py:258 ../../src/horus/gui/util/sceneView.py:324
 msgid ""
 "Your current model will be erased.\n"
 "Do you really want to do it?"
@@ -134,7 +134,7 @@ msgstr ""
 "Are you sure you want to delete it?"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:187
-#: ../../src/horus/gui/main.py:258 ../../src/horus/gui/util/sceneView.py:317
+#: ../../src/horus/gui/main.py:258 ../../src/horus/gui/util/sceneView.py:324
 msgid "Clear Point Cloud"
 msgstr "Clear point cloud"
 
@@ -800,7 +800,7 @@ msgstr ""
 msgid "Pattern distance (mm)"
 msgstr "Pattern distance (mm)"
 
-#: ../../src/horus/gui/util/sceneView.py:309
+#: ../../src/horus/gui/util/sceneView.py:316
 msgid "Delete object"
 msgstr "Delete object"
 
