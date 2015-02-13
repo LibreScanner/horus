@@ -276,7 +276,7 @@ class ConnectionPage(WizardPage):
 class PreferencesWindow(wx.Dialog):
 
     def __init__(self, parent):
-        super(PreferencesWindow, self).__init__(parent, size=(280,120), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
+        super(PreferencesWindow, self).__init__(parent, size=(280,200), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         self.parent = parent
         self.driver = Driver.Instance()
@@ -288,6 +288,7 @@ class PreferencesWindow(wx.Dialog):
         #-- Elements
         self.text = wx.StaticText(self, label=_('Pattern distance'))
         self.textbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
+        self.okButton = wx.Button(self, label=_("OK"))
 
 
         luminosity=profile.getProfileSettingObject('luminosity').getType()
@@ -308,12 +309,17 @@ class PreferencesWindow(wx.Dialog):
         hbox2.Add(self.text, 0, wx.ALL|wx.EXPAND, 12)
         hbox2.Add(self.textbox, 0, wx.ALL|wx.EXPAND, 12)
         vbox.Add(hbox2, 0, wx.ALL|wx.EXPAND,5)
+        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox3.Add(self.okButton, 0, wx.ALL|wx.EXPAND, 12)
+        vbox.Add(hbox3, 0, wx.ALIGN_CENTER_HORIZONTAL,5)
         self.SetSizer(vbox)
+
 
 
         self.textbox.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
         self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
         self.Bind(wx.EVT_CLOSE, self.onClose)
+        self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
 
         self.Centre()
         self.ShowModal()
