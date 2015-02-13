@@ -31,6 +31,7 @@ import wx._core
 import time
 
 from horus.gui.util.imageView import ImageView
+from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 
 from horus.gui.wizard.wizardPage import WizardPage
 
@@ -124,7 +125,10 @@ class CalibrationPage(WizardPage):
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
 											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
-		self.laserTriangulation.start()
+		if profile.getProfileSettingFloat('pattern_distance') == 0:
+			a=PatternDistanceWindow(self)
+		else:
+			self.laserTriangulation.start()
 
 	def onCancelButtonClicked(self, event):
 		self.resultLabel.SetLabel("Calibration canceled. To try again press \"Calibrate\"")
