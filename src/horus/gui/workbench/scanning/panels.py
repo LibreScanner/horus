@@ -154,7 +154,7 @@ class ImageAcquisition(ExpandablePanel):
         section.addItem(Slider, 'color_exposure_scanning', self.setColorExposure)
         section.addItem(ComboBox, 'framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)))
         section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        #section.addItem(CheckBox, 'use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v)))
+        section.addItem(CheckBox, 'use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v))
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:
