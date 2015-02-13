@@ -274,7 +274,7 @@ setting('translation_vector', ([5.0,80.0,320.0]), numpy.ndarray, 'advanced', _('
 setting('pattern_rows', 11, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 6, int, 'advanced', _('Pattern Columns'))
 setting('square_width', 13, int, 'advanced', _('Square width'))
-setting('pattern_distance', 19.8, float, 'advanced', _('Pattern Distance'))
+setting('pattern_distance', 0, float, 'advanced', _('Pattern Distance'))
 setting('extrinsics_step', -5.0, float, 'advanced', _('Extrinsics Step'), False)
 
 setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
