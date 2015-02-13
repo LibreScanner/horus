@@ -226,14 +226,16 @@ class SectionPanel(wx.Panel):
 		self.SetSizer(self.vbox)
 		self.Layout()
 
-	def addItem(self, _type, _name, _callback, dropdown=None):
-		if dropdown== None:
+	def addItem(self, _type, _name, _callback, dropdown=None, tooltip=None):
+		if dropdown == None:
 			item = _type(self, _name, _callback)
 		else:
 			item = _type(self, _name, _callback,dropdown)
-
 		item.setUndoCallbacks(self.appendUndoCallback, self.releaseUndoCallback)
-		self.items.update({_name : item})
+		if tooltip == None:
+			self.items.update({_name : item})
+		else:
+			self.items.update({_name : (item, tooltip)})
 		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 1)
 		self.Layout()
 
@@ -243,7 +245,11 @@ class SectionPanel(wx.Panel):
 
 	def updateProfile(self):
 		for item in self.items.values():
-			item.updateProfile()
+			if isinstance(item, tuple):
+				item[0].updateProfile()
+				item[0].label.SetToolTip(wx.ToolTip(item[1]));
+			else:
+				item.updateProfile()
 
 	def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
 		self.appendUndoCallback = appendUndoCallback
@@ -470,6 +476,7 @@ class CheckBox(SectionItem):
 			value = profile.getProfileSettingBool(self.name)
 			self.update(value)
 
+
 class RadioButton(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
 		""" """
@@ -538,6 +545,7 @@ class TextBox(SectionItem):
 		if hasattr(self,'control'):
 			value = profile.getProfileSetting(self.name)
 			self.update(value)
+
 
 
 ##TODO: Create TextBoxArray
