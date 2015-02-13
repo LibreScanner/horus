@@ -52,6 +52,7 @@ class CalibrationPage(WizardPage):
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+		self.phase='laserTriangulation'
 
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Calibrate\""))
 		self.imageView = ImageView(self.panel)
@@ -89,6 +90,7 @@ class CalibrationPage(WizardPage):
 		self.videoView.setMilliseconds(20)
 		self.videoView.setCallback(self.getFrame)
 
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.skipButton.Enable()
@@ -101,15 +103,14 @@ class CalibrationPage(WizardPage):
 				pass
 
 	def getFrame(self):
-		if self.platformCalibration:
+		if self.phase =='laserTriangulation':
+			frame = self.laserTriangulation.getImage()
+		elif self.phase =='platformExtrinsics':
 			frame = self.platformExtrinsics.getImage()
 		else:
-			frame = self.laserTriangulation.getImage()
-
-		if frame is None:
 			frame = self.driver.camera.captureImage()
-			if frame is not None:
-				retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+		if frame is not None:
+			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onUnplugged(self):
@@ -150,6 +151,7 @@ class CalibrationPage(WizardPage):
 		self.gauge.SetValue(progress*0.7)
 
 	def afterLaserCalibration(self, response):
+		self.phase='platformCalibration'
 		self.platformCalibration = True
 		ret, result = response
 
@@ -175,6 +177,7 @@ class CalibrationPage(WizardPage):
 		self.gauge.SetValue(70 + progress*0.3)	
 
 	def afterPlatformCalibration(self, response):
+		self.phase='finished_calibration'
 		self.platformCalibration = False
 		ret, result = response
 		
