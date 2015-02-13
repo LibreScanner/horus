@@ -56,7 +56,7 @@ class PatternSettingsPanel(ExpandablePanel):
         section.addItem(TextBox, 'square_width', lambda v: self.updatePatternParameters())
         section.addItem(TextBox, 'pattern_rows', lambda v: self.updatePatternParameters())
         section.addItem(TextBox, 'pattern_columns', lambda v: self.updatePatternParameters())
-        section.addItem(TextBox, 'pattern_distance', lambda v: self.updatePatternParameters())
+        section.addItem(TextBox, 'pattern_distance', lambda v: self.updatePatternParameters(), tooltip=_('Distance between the upper edge of the chess row closer to the platform and the platform.'))
 
     def updatePatternParameters(self):
         self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),

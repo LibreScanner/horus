@@ -56,6 +56,7 @@ class ConnectionPage(WizardPage):
         self.connectButton = wx.Button(self.panel, label=_("Connect"))
         self.settingsButton = wx.Button(self.panel, label=_("Edit preferences"))
 
+
         self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Auto check\""))
         self.imageView = ImageView(self.panel)
         self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
@@ -289,7 +290,7 @@ class PreferencesWindow(wx.Dialog):
         self.text = wx.StaticText(self, label=_('Pattern distance'))
         self.textbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
         self.okButton = wx.Button(self, label=_("OK"))
-
+        self.text.SetToolTip(wx.ToolTip(_('Distance between the upper edge of the chess row closer to the platform and the platform.')))
 
         luminosity=profile.getProfileSettingObject('luminosity').getType()
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
