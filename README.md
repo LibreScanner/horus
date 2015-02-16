@@ -21,10 +21,11 @@ sudo apt-get update
 sudo apt-get dist-upgrade
 ```
 
-To install Horus execute .deb file. This package installs all dependencies
+To install Horus execute .deb file manually with double-click or by using the console:
 
 ```bash
-sudo dpkg -i horus_0.1-*.deb
+sudo dpkg -i horus_0.1*.deb
+sudo apt-get -f install
 ```
 
 If user has no access to serial port, execute:
@@ -140,12 +141,12 @@ The "package.sh" script generates a final release package. You should not need i
 
 ### GNU/Linux Ubuntu
 ```bash
-sudo ./package.sh debian_amd64 -j3 # or debian_i386
+bash package.sh debian
 ```
 
 ### Windows
 ```bash
-sudo ./package.sh win32
+bash package.sh win32
 ```
 
 ### GNU/Linux Fedora
