@@ -53,7 +53,7 @@ class CalibrationPage(WizardPage):
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
-		self.phase='laserTriangulation'
+		self.phase='other'
 
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Calibrate\""))
 		self.imageView = ImageView(self.panel)
@@ -104,15 +104,16 @@ class CalibrationPage(WizardPage):
 				pass
 
 	def getFrame(self):
-		if self.phase =='laserTriangulation':
-			frame = self.laserTriangulation.getImage()
-		elif self.phase =='platformExtrinsics':
-			frame = self.platformExtrinsics.getImage()
+		if self.platformCalibration:
+			frame=self.platformExtrinsics.getImage()
 		else:
+			frame=self.laserTriangulation.getImage()
+		if frame is None or self.phase == 'other':
 			frame = self.driver.camera.captureImage()
-		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+			if frame is not None:
+				retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
+
 
 	def onUnplugged(self):
 		self.videoView.stop()
@@ -121,6 +122,7 @@ class CalibrationPage(WizardPage):
 		self.enableNext = True
 
 	def onCalibrationButtonClicked(self, event):
+		self.phase='laserTriangulation'
 		self.platformCalibration = False
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
@@ -131,6 +133,7 @@ class CalibrationPage(WizardPage):
 			self.laserTriangulation.start()
 
 	def onCancelButtonClicked(self, event):
+		self.phase='other'
 		self.resultLabel.SetLabel("Calibration canceled. To try again press \"Calibrate\"")
 		self.platformExtrinsics.cancel()
 		self.laserTriangulation.cancel()
@@ -181,7 +184,7 @@ class CalibrationPage(WizardPage):
 		self.gauge.SetValue(70 + progress*0.3)	
 
 	def afterPlatformCalibration(self, response):
-		self.phase='finished_calibration'
+		self.phase='other'
 		self.platformCalibration = False
 		ret, result = response
 		
