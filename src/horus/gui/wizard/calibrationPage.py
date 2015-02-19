@@ -134,7 +134,7 @@ class CalibrationPage(WizardPage):
 
 	def onCancelButtonClicked(self, event):
 		self.phase='other'
-		self.resultLabel.SetLabel("Calibration canceled. To try again press \"Calibrate\"")
+		self.resultLabel.SetLabel(_("Calibration canceled. To try again press \"Calibrate\""))
 		self.platformExtrinsics.cancel()
 		self.laserTriangulation.cancel()
 		self.skipButton.Enable()
@@ -173,7 +173,7 @@ class CalibrationPage(WizardPage):
 			self.platformExtrinsics.start()
 		else:
 			if result == Error.CalibrationError:
-				self.resultLabel.SetLabel("Error in lasers: please connect the lasers and try again")
+				self.resultLabel.SetLabel(_("Error in lasers: please connect the lasers and try again"))
 				dlg = wx.MessageDialog(self, _("Laser Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
@@ -193,7 +193,7 @@ class CalibrationPage(WizardPage):
 			profile.putProfileSettingNumpy('translation_vector', result[1])
 		else:
 			if result == Error.CalibrationError:
-				self.resultLabel.SetLabel("Error in pattern: please check the pattern and try again")
+				self.resultLabel.SetLabel(_("Error in pattern: please check the pattern and try again"))
 				dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
@@ -201,7 +201,7 @@ class CalibrationPage(WizardPage):
 		if ret:
 			self.skipButton.Disable()
 			self.nextButton.Enable()
-			self.resultLabel.SetLabel("All OK. Please press next to continue")
+			self.resultLabel.SetLabel(_("All OK. Please press next to continue"))
 		else:
 			self.skipButton.Enable()
 			self.nextButton.Disable()

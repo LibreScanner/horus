@@ -208,9 +208,9 @@ class ConnectionPage(WizardPage):
         ret, result = response
 
         if ret:
-            self.resultLabel.SetLabel("All OK. Please press next to continue")
+            self.resultLabel.SetLabel(_("All OK. Please press next to continue"))
         else:
-            self.resultLabel.SetLabel("Error in Auto check. Please try again")
+            self.resultLabel.SetLabel(_("Error in Auto check. Please try again"))
 
         if ret:
             self.skipButton.Disable()
