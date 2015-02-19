@@ -294,7 +294,7 @@ class PreferencesWindow(wx.Dialog):
 
         luminosity=profile.getProfileSettingObject('luminosity').getType()
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
-
+        self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until coloured lines appear over the chess pattern in the video.')))
         self.luminosityComboBox = wx.ComboBox(self, wx.ID_ANY,
                                             value=profile.getProfileSetting('luminosity'),
                                             choices=[_(luminosity[0]), _(luminosity[1]), _(luminosity[2])],

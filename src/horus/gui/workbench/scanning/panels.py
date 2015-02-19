@@ -57,7 +57,7 @@ class ScanParameters(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('scan_parameters')
-        section.addItem(ComboBox, 'scan_type', self.setCurrentScan, dropdown=True)
+        section.addItem(ComboBox, 'scan_type', self.setCurrentScan, dropdown=True, tooltip="It is possible to scan with texture (the color of the object is extracted, together with it's geometry) or without texture (only the geometry is extracted).")
         section.addItem(ComboBox, 'use_laser', self.setUseLaser, dropdown=True)
         if os.name != 'nt':
             section.addItem(CheckBox, 'fast_scan', self.setFastScan)
@@ -154,7 +154,7 @@ class ImageAcquisition(ExpandablePanel):
         section.addItem(Slider, 'color_exposure_scanning', self.setColorExposure)
         section.addItem(ComboBox, 'framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)))
         section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        section.addItem(CheckBox, 'use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v))
+        section.addItem(CheckBox, 'use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v), tooltip="Use the distortion vector to remove the distortion caused by the camera from the image. This process slows the video feed from the camera.")
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:
@@ -205,7 +205,7 @@ class PointCloudGeneration(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('point_cloud_generation')
-        section.addItem(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
+        section.addItem(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()), tooltip="View the Region Of Interest (ROI). This region is the one being scanned. All information outside it will not be taken into account in the scanning process.")
 
         section.addItem(Slider, 'roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
         section.addItem(Slider, 'roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
