@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-02-19 17:51+0100\n"
-"PO-Revision-Date: 2015-02-19 17:55+0100\n"
+"PO-Revision-Date: 2015-02-20 16:12+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: Python\n"
@@ -673,15 +673,15 @@ msgstr "Horus"
 
 #: ../../src/horus/gui/main.py:85
 msgid "Control workbench"
-msgstr "Control workbench"
+msgstr "Control"
 
 #: ../../src/horus/gui/main.py:86
 msgid "Calibration workbench"
-msgstr "Calibration workbench"
+msgstr "Calibración"
 
 #: ../../src/horus/gui/main.py:87
 msgid "Scanning workbench"
-msgstr "Scanning workbench"
+msgstr "Escaneo"
 
 #: ../../src/horus/gui/main.py:107
 msgid "Launch Wizard"
