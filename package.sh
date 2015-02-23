@@ -12,15 +12,11 @@ BUILD_TARGET=${1:-none}
 #BUILD_TARGET=win32
 #BUILD_TARGET=debian
 
-MAKE_ARGS=${2}
+EXTRA_ARGS=${2}
 
-##Do we need to create the final archive
-ARCHIVE_FOR_DISTRIBUTION=1
 ##Which version name are we appending to the final archive
 export BUILD_NAME=0.1
 TARGET_DIR=Horus-${BUILD_NAME}-${BUILD_TARGET}
-
-BUILD_OPENCV=1
 
 ##Which versions of external programs to use
 WIN_PORTABLE_PY_VERSION=2.7.2.1 #TODO: 2.7.6.1
@@ -85,30 +81,56 @@ if [ $BUILD_TARGET = "win32" ]; then
 	checkTool 7z "7zip: http://www.7-zip.org/"
 fi
 
+# Clean sources
+rm -rf deb_dist
+rm -rf win_dist
+
 #############################
 # Debian packaging
 #############################
 
 if [ $BUILD_TARGET = "debian" ]; then
+	# Generate Debian source package
 	python setup.py --command-packages=stdeb.command sdist_dsc \
-	--debian-version 1 \
-	--section 'misc' \
-	--package 'horus' \
-	--depends 'python,
-	           python-serial,
-	           python-wxgtk2.8,
-	           python-opengl,
-	           python-pyglet,
-	           python-numpy,
-	           python-scipy,
-	           python-matplotlib,
-	           python-opencv,
-	           avrdude,
-	           libftdi1,
-	           v4l-utils' \
-	--suite 'trusty' \
-	bdist_deb # Used to generate deb file
-	#sdist_dsc # Used to generate orig files
+	#--debian-version 1 \
+	#--suite 'trusty' \
+	#--section 'misc' \
+	#--package 'horus' \
+	#--depends 'python,
+	#           python-serial,
+	#           python-wxgtk2.8,
+	#           python-opengl,
+	#           python-pyglet,
+	#           python-numpy,
+	#           python-scipy,
+	#           python-matplotlib,
+	#           python-opencv,
+	#           avrdude,
+	#           libftdi1,
+	#           v4l-utils' \
+	#bdist_deb # Used to generate deb files
+
+	# Modify changelog and control files
+	cp -a pkg/linux/debian/changelog deb_dist/horus-${BUILD_NAME}/debian/changelog
+	cp -a pkg/linux/debian/control deb_dist/horus-${BUILD_NAME}/debian/control
+
+	cd deb_dist/horus-${BUILD_NAME}
+	if [ $EXTRA_ARGS = "-s" ]; then
+		# Build and sign Debian sources
+		debuild -S -sa
+	else
+		# Build and sign Debian package
+		dpkg-buildpackage
+	fi
+
+	if [ $EXTRA_ARGS = "-i" ]; then
+		sudo dpkg -i ../horus*.deb
+		sudo apt-get -f install
+	fi
+
+	# Clean directory
+	cd ../..
+	rm -rf "Horus.egg-info"
 fi
 
 #############################
@@ -120,12 +142,10 @@ fi
 #############################
 
 if [ $BUILD_TARGET = "win32" ]; then
-	mkdir -p WIN
-	cd WIN
-	#Get portable python for windows and extract it. (Linux and Mac need to install python themselfs)
+	mkdir -p win_dist
+	cd win_dist
+	# Get portable python for windows and extract it. (Linux and Mac need to install python themselfs)
 	downloadURL http://ftp.nluug.nl/languages/python/portablepython/v2.7/PortablePython_${WIN_PORTABLE_PY_VERSION}.exe
-	#downloadURL https://www.python.org/ftp/python/2.7.8/python-2.7.8.msi
-	#downloadURL http://sourceforge.net/projects/wxpython/files/wxPython/3.0.0.0/wxPython3.0-win32-3.0.0.0-py27.exe
 	downloadURL http://sourceforge.net/projects/pyserial/files/pyserial/2.7/pyserial-2.7.win32.exe
 	downloadURL http://sourceforge.net/projects/comtypes/files/comtypes/0.6.2/comtypes-0.6.2.win32.exe
 	downloadURL http://sourceforge.net/projects/pyopengl/files/PyOpenGL/3.0.1/PyOpenGL-3.0.1.win32.exe
@@ -149,12 +169,10 @@ if [ $BUILD_TARGET = "win32" ]; then
 
 	rm -f log.txt
 
-	#For windows extract portable python to include it.
+	# For windows extract portable python to include it.
 	extract PortablePython_${WIN_PORTABLE_PY_VERSION}.exe \$_OUTDIR/App
 	extract PortablePython_${WIN_PORTABLE_PY_VERSION}.exe \$_OUTDIR/Lib/site-packages
 	extract PortablePython_${WIN_PORTABLE_PY_VERSION}.exe \$_OUTDIR/dateutil
-	#extract python-2.7.8.msi 
-	#extract wxPython3.0-win32-3.0.0.0-py27.exe
 	extract pyserial-2.7.win32.exe PURELIB
 	extract comtypes-0.6.2.win32.exe PURELIB
 	extract PyOpenGL-3.0.1.win32.exe PURELIB
@@ -193,7 +211,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	rm -rf Win32
 	rm -rf pyglet
 
-	#Clean up portable python a bit, to keep the package size down.
+	# Clean up portable python a bit, to keep the package size down.
 	rm -rf ${TARGET_DIR}/python/PyScripter.*
 	rm -rf ${TARGET_DIR}/python/Doc
 	rm -rf ${TARGET_DIR}/python/locale
@@ -204,7 +222,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	#Remove the gle files because they require MSVCR71.dll, which is not included. We also don't need gle, so it's safe to remove it.
 	rm -rf ${TARGET_DIR}/python/Lib/OpenGL/DLLS/gle*
 
-	#add Horus
+	# Add Horus
 	mkdir -p ${TARGET_DIR}/doc ${TARGET_DIR}/res ${TARGET_DIR}/src
 	cp -a ../doc/* ${TARGET_DIR}/doc
 	cp -a ../res/* ${TARGET_DIR}/res
@@ -212,19 +230,15 @@ if [ $BUILD_TARGET = "win32" ]; then
 	#Add horus version file
 	echo $BUILD_NAME > ${TARGET_DIR}/version
 
-	#add script files
+	# Add script files
 	cp -a ../pkg/${BUILD_TARGET}/*.bat $TARGET_DIR/
 
-	#package the result
-	if (( ${ARCHIVE_FOR_DISTRIBUTION} )); then
-		rm -rf ../pkg/win32/dist
-		ln -sf `pwd`/${TARGET_DIR} ../pkg/win32/dist
-		makensis -DVERSION=${BUILD_NAME} ../pkg/win32/installer.nsi
-		if [ $? != 0 ]; then echo "Failed to package NSIS installer"; exit 1; fi
-		rm -rf ../pkg/win32/dist
-		#cd ../
-		#rm -rf WIN
-	else
-		echo "Installed into ${TARGET_DIR}"
-	fi
+	# Package the result
+	rm -rf ../pkg/win32/dist
+	ln -sf `pwd`/${TARGET_DIR} ../pkg/win32/dist
+	makensis -DVERSION=${BUILD_NAME} ../pkg/win32/installer.nsi
+	if [ $? != 0 ]; then echo "Failed to package NSIS installer"; exit 1; fi
+	rm -rf ../pkg/win32/dist
+	#cd ../
+	#rm -rf win_dist
 fi

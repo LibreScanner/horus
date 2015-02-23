@@ -28,6 +28,6 @@ setup(name='Horus',
       package_dir = {'horus': '.'},
       package_data = {'horus': package_data_dirs('.', ['doc', 'res', 'src'])},
       
-      scripts=['pkg/linux/debian/horus'],
-      data_files=[('/usr/share/applications', ['pkg/linux/debian/horus.desktop'])]
+      scripts=['pkg/linux/horus'],
+      data_files=[('/usr/share/applications', ['pkg/linux/horus.desktop'])]
      )
