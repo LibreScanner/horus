@@ -400,7 +400,10 @@ class MainWindow(wx.Frame):
         """ """
         currentWorkbench = profile.getPreference('workbench')
         for key in self.workbenchList:
-            if self.workbenchList[key] == str(event.GetEventObject().GetValue()):
+            # print self.workbenchList[key]
+            # print event.GetEventObject().GetValue().encode("utf-8")
+
+            if self.workbenchList[key].encode("utf-8") == event.GetEventObject().GetValue().encode("utf-8"):
                 if key is not None:
                     profile.putPreference('workbench', key)
                     if key != currentWorkbench:
@@ -637,7 +640,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
             if wb[key] is not None:
                 if key == currentWorkbench:
                     wb[key].updateProfileToAllControls()
-                    wb[key].combo.SetValue(str(self.workbenchList[key]))
+                    wb[key].combo.SetValue(str(self.workbenchList[key].encode("utf-8")))
 
         if layout:
             for key in wb:

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-02-19 15:59+0100\n"
+"POT-Creation-Date: 2015-02-20 16:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -168,6 +168,14 @@ msgstr ""
 msgid "Camera Control"
 msgstr ""
 
+#: ../../src/horus/gui/workbench/control/panels.py:60
+#: ../../src/horus/gui/workbench/calibration/panels.py:100
+#: ../../src/horus/gui/workbench/scanning/panels.py:157
+msgid ""
+"Use the distortion vector to remove the distortion caused by the camera from "
+"the image. This process slows the video feed from the camera."
+msgstr ""
+
 #: ../../src/horus/gui/workbench/control/panels.py:67
 msgid "Laser Control"
 msgstr ""
@@ -194,6 +202,13 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:105
 msgid "Laser Settings"
+msgstr ""
+
+#: ../../src/horus/gui/workbench/calibration/panels.py:115
+msgid ""
+"Value that determines wich pixels belong to the laser and which to the rest "
+"of the image. A low value may cause noise errors on the final scanned model, "
+"and a high value may reduce its accuracy."
 msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:133
@@ -404,6 +419,13 @@ msgstr ""
 msgid "Scan Parameters"
 msgstr ""
 
+#: ../../src/horus/gui/workbench/scanning/panels.py:60
+msgid ""
+"It is possible to scan with texture (the color of the object is extracted, "
+"together with it's geometry) or without texture (only the geometry is "
+"extracted)."
+msgstr ""
+
 #: ../../src/horus/gui/workbench/scanning/panels.py:70
 #: ../../src/horus/gui/main.py:550
 #: ../../src/horus/gui/wizard/scanningPage.py:126
@@ -476,6 +498,13 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:196
 msgid "Point Cloud Generation"
+msgstr ""
+
+#: ../../src/horus/gui/workbench/scanning/panels.py:208
+msgid ""
+"View the Region Of Interest (ROI). This region is the one being scanned. All "
+"information outside it will not be taken into account in the scanning "
+"process."
 msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/main.py:65
@@ -772,6 +801,15 @@ msgstr ""
 msgid "Manual laser adjustment"
 msgstr ""
 
+#: ../../src/horus/gui/wizard/connectionPage.py:211
+#: ../../src/horus/gui/wizard/calibrationPage.py:204
+msgid "All OK. Please press next to continue"
+msgstr ""
+
+#: ../../src/horus/gui/wizard/connectionPage.py:213
+msgid "Error in Auto check. Please try again"
+msgstr ""
+
 #: ../../src/horus/gui/wizard/connectionPage.py:296
 #: ../../src/horus/util/profile.py:203
 msgid "Luminosity"
@@ -852,8 +890,20 @@ msgstr ""
 msgid "Put the pattern on the platform and press \"Calibrate\""
 msgstr ""
 
+#: ../../src/horus/gui/wizard/calibrationPage.py:137
+msgid "Calibration canceled. To try again press \"Calibrate\""
+msgstr ""
+
+#: ../../src/horus/gui/wizard/calibrationPage.py:176
+msgid "Error in lasers: please connect the lasers and try again"
+msgstr ""
+
 #: ../../src/horus/gui/wizard/calibrationPage.py:177
 msgid "Laser Calibration failed. Please try again"
+msgstr ""
+
+#: ../../src/horus/gui/wizard/calibrationPage.py:196
+msgid "Error in pattern: please check the pattern and try again"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:197

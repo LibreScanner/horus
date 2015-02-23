@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-02-19 15:59+0100\n"
-"PO-Revision-Date: 2015-02-19 16:06+0100\n"
+"POT-Creation-Date: 2015-02-19 17:51+0100\n"
+"PO-Revision-Date: 2015-02-20 16:12+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: Python\n"
@@ -177,6 +177,16 @@ msgstr "Error de la ventana 3D"
 msgid "Camera Control"
 msgstr "Control de la cámara"
 
+#: ../../src/horus/gui/workbench/control/panels.py:60
+#: ../../src/horus/gui/workbench/calibration/panels.py:100
+#: ../../src/horus/gui/workbench/scanning/panels.py:157
+msgid ""
+"Use the distortion vector to remove the distortion caused by the camera from "
+"the image. This process slows the video feed from the camera."
+msgstr ""
+"El vector de distorsión se usa para eliminar la distorsión causada por la "
+"cámara. Es un proceso que ralentiza la llegada del vídeo de la cámara."
+
 #: ../../src/horus/gui/workbench/control/panels.py:67
 msgid "Laser Control"
 msgstr "Control de los lasers"
@@ -204,6 +214,16 @@ msgstr "Parámetros cámara"
 #: ../../src/horus/gui/workbench/calibration/panels.py:105
 msgid "Laser Settings"
 msgstr "Parámetros láser"
+
+#: ../../src/horus/gui/workbench/calibration/panels.py:115
+msgid ""
+"Value that determines wich pixels belong to the laser and which to the rest "
+"of the image. A low value may cause noise errors on the final scanned model, "
+"and a high value may reduce its accuracy."
+msgstr ""
+"Valor que determina qué pixeles de la imagen son del láser. Un valor bajo "
+"puede causar un ruido alto en el modelo final y un valor alto puede reducir "
+"la precisión de éste."
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:133
 #: ../../src/horus/gui/workbench/calibration/panels.py:247
@@ -442,6 +462,15 @@ msgstr ""
 msgid "Scan Parameters"
 msgstr "Parámetros escaneo"
 
+#: ../../src/horus/gui/workbench/scanning/panels.py:60
+msgid ""
+"It is possible to scan with texture (the color of the object is extracted, "
+"together with it's geometry) or without texture (only the geometry is "
+"extracted)."
+msgstr ""
+"Es posible escanear con textura (se extraen tanto el color como la geometría "
+"del objeto) o sin textura (sólo se obtiene la geometría)"
+
 #: ../../src/horus/gui/workbench/scanning/panels.py:70
 #: ../../src/horus/gui/main.py:550
 #: ../../src/horus/gui/wizard/scanningPage.py:126
@@ -523,6 +552,16 @@ msgid "Point Cloud Generation"
 msgstr ""
 "Generación de la\n"
 "nube de puntos"
+
+#: ../../src/horus/gui/workbench/scanning/panels.py:208
+msgid ""
+"View the Region Of Interest (ROI). This region is the one being scanned. All "
+"information outside it will not be taken into account in the scanning "
+"process."
+msgstr ""
+"Ver la Región de Interés (ROI en inglés). Ésta es la región que se va a "
+"escanear, toda la información fuera de ella no será tomada en cuenta para el "
+"proceso de escaneo."
 
 #: ../../src/horus/gui/workbench/scanning/main.py:65
 msgid "Play"
@@ -634,15 +673,15 @@ msgstr "Horus"
 
 #: ../../src/horus/gui/main.py:85
 msgid "Control workbench"
-msgstr "Control workbench"
+msgstr "Control"
 
 #: ../../src/horus/gui/main.py:86
 msgid "Calibration workbench"
-msgstr "Calibration workbench"
+msgstr "Calibración"
 
 #: ../../src/horus/gui/main.py:87
 msgid "Scanning workbench"
-msgstr "Scanning workbench"
+msgstr "Escaneo"
 
 #: ../../src/horus/gui/main.py:107
 msgid "Launch Wizard"
@@ -767,9 +806,8 @@ msgid "Profile reset"
 msgstr "Restaurar perfil"
 
 #: ../../src/horus/gui/main.py:417
-#, fuzzy
 msgid "Horus is an Open Source 3D Scanner manager"
-msgstr "Horus es un gestor de escáners 3D libre..."
+msgstr "Horus es un software para escáneres 3D de código libre"
 
 #: ../../src/horus/gui/main.py:444
 msgid "Board unplugged"
@@ -794,9 +832,8 @@ msgid "Connection"
 msgstr "Conexión"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:57
-#, fuzzy
 msgid "Edit preferences"
-msgstr "Preferencias"
+msgstr "Editar preferencias"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:60
 msgid "Put the pattern on the platform and press \"Auto check\""
@@ -843,6 +880,16 @@ msgstr ""
 #: ../../src/horus/gui/wizard/connectionPage.py:177
 msgid "Manual laser adjustment"
 msgstr "Ajuste manual del láser"
+
+#: ../../src/horus/gui/wizard/connectionPage.py:211
+#: ../../src/horus/gui/wizard/calibrationPage.py:204
+msgid "All OK. Please press next to continue"
+msgstr "Todo OK. Haz click en siguiente para continuar"
+
+#: ../../src/horus/gui/wizard/connectionPage.py:213
+msgid "Error in Auto check. Please try again"
+msgstr ""
+"Error en la comprobación automática. Por favor, vuelve a intentarlo de nuevo"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:296
 #: ../../src/horus/util/profile.py:203
@@ -928,9 +975,24 @@ msgstr "¡Listo para escanear!"
 msgid "Put the pattern on the platform and press \"Calibrate\""
 msgstr "Sitúa el patron en la plataforma y presiona \"Calibrar\""
 
+#: ../../src/horus/gui/wizard/calibrationPage.py:137
+msgid "Calibration canceled. To try again press \"Calibrate\""
+msgstr ""
+"Calibración cancelada. Para volver a intentarlo, haz click en \"Calibrar\""
+
+#: ../../src/horus/gui/wizard/calibrationPage.py:176
+msgid "Error in lasers: please connect the lasers and try again"
+msgstr "Error con los lásers: por favor, conecta los lásers y prueba de nuevo"
+
 #: ../../src/horus/gui/wizard/calibrationPage.py:177
 msgid "Laser Calibration failed. Please try again"
 msgstr "La calibración del láser ha fallado. Por favor, inténtalo de nuevo"
+
+#: ../../src/horus/gui/wizard/calibrationPage.py:196
+msgid "Error in pattern: please check the pattern and try again"
+msgstr ""
+"Error relacionado con el patrón: por favor, comprueba que esté correctamente "
+"y vuelve a intentar"
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:197
 msgid "Platform Calibration failed. Please try again"
