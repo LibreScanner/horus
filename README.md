@@ -42,7 +42,7 @@ sudo reboot
 
 ### Windows
 
-To install USB Camera drivers follow this instructions: http://support.logitech.com/en_us/product/hd-webcam-c270
+To install USB Camera drivers follow these instructions [Logitech Camera C270 Drivers](http://support.logitech.com/en_us/product/hd-webcam-c270)
 
 Execute .exe file. This package contains all dependencies
 
@@ -70,7 +70,7 @@ sudo apt-get install arduino arduino-core
 ```
 
 #### Stino plugin
-https://github.com/Robot-Will/Stino
+[Stino project on GitHub](https://github.com/Robot-Will/Stino)
 
 #### Git version control
 ```bash
@@ -83,14 +83,19 @@ Following dependencies are included in deb package, but if you want to install i
 
 #### Python
 ```bash
-sudo apt-get install python-wxgtk2.8
-sudo apt-get install python-opengl
-sudo apt-get install python-serial
-sudo apt-get install python-numpy
-sudo apt-get install python-pyglet
-sudo apt-get install python-matplotlib
-sudo apt-get install python-scipy
+sudo apt-get install python-serial python-wxgtk2.8 python-opengl python-pyglet python-numpy python-scipy python-matplotlib
+```
+
+#### OpenCV
+```bash
+sudo add-apt-repository ppa:bqopensource/opencv
+sudo apt-get update
 sudo apt-get install python-opencv
+```
+
+#### AVRDUDE
+```bash
+sudo apt-get install avrdude
 ```
 
 #### FTDI drivers
@@ -103,11 +108,11 @@ sudo apt-get install libftdi1
 sudo apt-get install v4l-utils
 ```
 
-In order to build OpenCV and generate Debian and Windows packages, some extra dependencies are needed
+In order to generate Debian and Windows packages, some extra dependencies are needed
 
 #### Packaging
 ```bash
-sudo apt-get install build-essential cmake pkg-config python-dev libv4l-dev libgtk2.0-dev libdc1394-22-dev libavcodec-dev libavformat-dev libswscale-dev  libjpeg-dev libpng-dev libtiff-dev libjasper-dev p7zip-full curl nsis
+sudo apt-get install build-essential cmake pkg-config python-dev python-stdeb p7zip-full curl nsis
 ```
 
 ## 2. Download source code
@@ -141,12 +146,14 @@ The "package.sh" script generates a final release package. You should not need i
 
 ### GNU/Linux Ubuntu
 ```bash
-bash package.sh debian
+bash package.sh debian     # Generate deb package
+bash package.sh debian -s  # Generate sources
+bash package.sh debian -i  # Install deb package
 ```
 
 ### Windows
 ```bash
-bash package.sh win32
+bash package.sh win32  # Generate exe package
 ```
 
 ### GNU/Linux Fedora

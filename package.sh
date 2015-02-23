@@ -123,9 +123,12 @@ if [ $BUILD_TARGET = "debian" ]; then
 		dpkg-buildpackage
 	fi
 
-	if [ $EXTRA_ARGS = "-i" ]; then
-		sudo dpkg -i ../horus*.deb
-		sudo apt-get -f install
+	if [ $EXTRA_ARGS ]; then
+		if [ $EXTRA_ARGS = "-i" ]; then
+			# Install Debian package
+			sudo dpkg -i ../horus*.deb
+			sudo apt-get -f install
+		fi
 	fi
 
 	# Clean directory
