@@ -1,31 +1,38 @@
 # Horus
 
-Horus is a general solution for 3D scanning. It provides some graphic user interfaces for connection, configuration, control, calibration and scanning. It is ready to use with Open Source [Ciclop 3D Scanner](http://diwo.bq.com/en/ciclop-released/)
+Horus is a general solution for 3D scanning. It provides graphic user interfaces for connection, configuration, control, calibration and scanning. It is ready to use with Open Source [Ciclop 3D Scanner](http://diwo.bq.com/en/ciclop-released/) [[es](http://diwo.bq.com/ciclop-released/)]
 
 This project has been developed in Python language and it is distributed under GPL v2 license.
 
 More interest links are shown below:
 
-* [Presentation](http://diwo.bq.com/en/presentacion-ciclop-horus/)
-* [Electronics](http://diwo.bq.com/en/zum-scan-released/) 
-* [Firmware](http://diwo.bq.com/en/horus-fw-released/)
+* [Presentation](http://diwo.bq.com/en/presentacion-ciclop-horus/) [[es](http://diwo.bq.com/presentacion-ciclop-horus/)]
+* [Electronics](http://diwo.bq.com/en/zum-scan-released/) [[es](http://diwo.bq.com/zum-scan-released/)]
+* [Firmware](http://diwo.bq.com/en/horus-fw-released/) [[es](http://diwo.bq.com/horus-fw-released/)]
+* [Software](http://diwo.bq.com/horus-released/) [[es](http://diwo.bq.com/horus-released/)]
 
 # Installing
 
 ### GNU/Linux Ubuntu
 
-First of all upgrade your system
+Add our PPA keys
+
+```bash
+sudo add-apt-repository ppa:bqopensource/opencv
+sudo add-apt-repository ppa:bqopensource/horus
+```
+
+Upgrade your system
 
 ```bash
 sudo apt-get update
 sudo apt-get dist-upgrade
 ```
 
-To install Horus execute .deb file manually with double-click or by using the console:
+Install Horus
 
 ```bash
-sudo dpkg -i horus_0.1*.deb
-sudo apt-get -f install
+sudo apt-get install horus
 ```
 
 If user has no access to serial port, execute:
@@ -112,7 +119,7 @@ In order to generate Debian and Windows packages, some extra dependencies are ne
 
 #### Packaging
 ```bash
-sudo apt-get install build-essential cmake pkg-config python-dev python-stdeb p7zip-full curl nsis
+sudo apt-get install build-essential pkg-config python-dev python-stdeb p7zip-full curl nsis
 ```
 
 ## 2. Download source code
