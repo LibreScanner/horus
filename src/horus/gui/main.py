@@ -119,8 +119,8 @@ class MainWindow(wx.Frame):
 
         #-- Menu Edit
         self.menuEdit = wx.Menu()
-        self.menuBasicMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Basic Mode"))
-        self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
+        # self.menuBasicMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Basic Mode"))
+        # self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
         self.menuEdit.AppendSeparator()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
         self.menuBar.Append(self.menuEdit, _("Edit"))
@@ -177,8 +177,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onResetProfile, self.menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
 
-        self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
-        self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
+        # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
+        # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
 
         self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
@@ -318,7 +318,7 @@ class MainWindow(wx.Frame):
         profile.putPreference('last_files', self.lastFiles)
 
     def onModeChanged(self, event):
-        profile.putPreference('basic_mode', self.menuBasicMode.IsChecked())
+        # profile.putPreference('basic_mode', self.menuBasicMode.IsChecked())
         self.controlWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
@@ -464,10 +464,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateProfileToAllControls(self):
         """ """
-        if profile.getPreferenceBool('basic_mode'):
-            self.menuBasicMode.Check(True)
-        else:
-            self.menuAdvancedMode.Check(True)
+        # if profile.getPreferenceBool('basic_mode'):
+        #     self.menuBasicMode.Check(True)
+        # else:
+        #     self.menuAdvancedMode.Check(True)
 
         if profile.getPreferenceBool('view_control_panel'):
             self.controlWorkbench.scrollPanel.Show()
