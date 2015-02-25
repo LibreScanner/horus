@@ -223,7 +223,7 @@ setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x72
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
 
 setting('scan_type', _("With Texture"), [_("Without Texture"), _("With Texture")], 'basic', _('Scan Type'))
-setting('use_laser', _("Use Right Laser"), [_("Use Left Laser"), _("Use Right Laser"), _("Use Both Laser")], 'basic', _('Use Laser'))
+setting('use_laser', _("Right"), [_("Left"), _("Right"), _("Both")], 'basic', _('Use Laser'))
 setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
 
 setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)

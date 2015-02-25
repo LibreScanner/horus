@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-02-25 13:08+0100\n"
+"POT-Creation-Date: 2015-02-25 16:15+0100\n"
 "PO-Revision-Date: 2014-06-04 11:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
@@ -430,7 +430,6 @@ msgstr ""
 #: ../../src/horus/gui/main.py:553
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:153
-#: ../../src/horus/util/profile.py:226
 msgid "Use Left Laser"
 msgstr ""
 
@@ -440,7 +439,6 @@ msgstr ""
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:159
-#: ../../src/horus/util/profile.py:226
 msgid "Use Both Laser"
 msgstr ""
 
@@ -448,7 +446,6 @@ msgstr ""
 #: ../../src/horus/gui/main.py:554
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:156
-#: ../../src/horus/util/profile.py:226
 msgid "Use Right Laser"
 msgstr ""
 
@@ -655,14 +652,6 @@ msgstr ""
 
 #: ../../src/horus/gui/main.py:118
 msgid "File"
-msgstr ""
-
-#: ../../src/horus/gui/main.py:122
-msgid "Basic Mode"
-msgstr ""
-
-#: ../../src/horus/gui/main.py:123
-msgid "Advanced Mode"
 msgstr ""
 
 #: ../../src/horus/gui/main.py:131 ../../src/horus/gui/main.py:135
@@ -960,6 +949,18 @@ msgstr ""
 msgid "Acceleration"
 msgstr ""
 
+#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:285
+msgid "Right"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:284
+msgid "Left"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:226
+msgid "Both"
+msgstr ""
+
 #: ../../src/horus/util/profile.py:226
 msgid "Use Laser"
 msgstr ""
@@ -1070,14 +1071,6 @@ msgstr ""
 
 #: ../../src/horus/util/profile.py:282
 msgid "Laser Normal"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:284
-msgid "Left"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:285
-msgid "Right"
 msgstr ""
 
 #: ../../src/horus/util/profile.py:286
