@@ -174,6 +174,7 @@ class LaserTriangulation(Calibration):
 		Calibration.__init__(self)
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 		self.image = None
+		self.threshold = profile.getProfileSettingFloat('laser_threshold_value')
 
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
