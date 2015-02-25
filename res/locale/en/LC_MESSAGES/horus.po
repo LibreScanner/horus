@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-02-25 16:15+0100\n"
+"POT-Creation-Date: 2015-02-25 17:16+0100\n"
 "PO-Revision-Date: 2014-06-04 11:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
@@ -108,14 +108,14 @@ msgid ""
 msgstr ""
 
 #: ../../src/horus/gui/util/patternDistanceWindow.py:56
-#: ../../src/horus/gui/wizard/connectionPage.py:290
+#: ../../src/horus/gui/wizard/connectionPage.py:291
 msgid "Pattern distance (mm)"
 msgstr ""
 
 #: ../../src/horus/gui/util/patternDistanceWindow.py:57
 #: ../../src/horus/gui/util/patternDistanceWindow.py:61
 #: ../../src/horus/gui/workbench/calibration/panels.py:59
-#: ../../src/horus/gui/wizard/connectionPage.py:293
+#: ../../src/horus/gui/wizard/connectionPage.py:294
 msgid ""
 "Distance between the upper edge of the chess row closer to the platform and "
 "the platform."
@@ -126,7 +126,7 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/panels.py:422
 #: ../../src/horus/gui/workbench/calibration/panels.py:600
 #: ../../src/horus/gui/workbench/calibration/panels.py:745
-#: ../../src/horus/gui/wizard/connectionPage.py:292
+#: ../../src/horus/gui/wizard/connectionPage.py:293
 msgid "OK"
 msgstr ""
 
@@ -202,13 +202,6 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:105
 msgid "Laser Settings"
-msgstr ""
-
-#: ../../src/horus/gui/workbench/calibration/panels.py:115
-msgid ""
-"Value that determines wich pixels belong to the laser and which to the rest "
-"of the image. A low value may cause noise errors on the final scanned model, "
-"and a high value may reduce its accuracy."
 msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:133
@@ -399,7 +392,9 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/pages.py:324
 #: ../../src/horus/gui/workbench/calibration/pages.py:546
 #: ../../src/horus/gui/workbench/calibration/pages.py:724
-msgid "Put the pattern on the platform and press Calibrate to continue"
+msgid ""
+"Put the pattern on the platform as shown in the picture and press Calibrate "
+"to continue"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:455
@@ -430,7 +425,8 @@ msgstr ""
 #: ../../src/horus/gui/main.py:553
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:153
-msgid "Use Left Laser"
+#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:284
+msgid "Left"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:70
@@ -439,14 +435,16 @@ msgstr ""
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:159
-msgid "Use Both Laser"
+#: ../../src/horus/util/profile.py:226
+msgid "Both"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:71
 #: ../../src/horus/gui/main.py:554
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:156
-msgid "Use Right Laser"
+#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:285
+msgid "Right"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:75
@@ -583,12 +581,12 @@ msgid ""
 msgstr ""
 
 #: ../../src/horus/gui/workbench/workbench.py:142
-#: ../../src/horus/gui/wizard/connectionPage.py:156
+#: ../../src/horus/gui/wizard/connectionPage.py:157
 msgid "Please plug your camera and try to connect again"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/workbench.py:146
-#: ../../src/horus/gui/wizard/connectionPage.py:160
+#: ../../src/horus/gui/wizard/connectionPage.py:161
 msgid ""
 "You probably have selected a wrong camera.\n"
 "Please select other Camera Id"
@@ -754,63 +752,65 @@ msgid "Edit preferences"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/connectionPage.py:60
-msgid "Put the pattern on the platform and press \"Auto check\""
+msgid ""
+"Put the pattern on the platform as shown in the picture and press \"Auto "
+"check\""
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:63
+#: ../../src/horus/gui/wizard/connectionPage.py:64
 msgid "Auto check"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:144
+#: ../../src/horus/gui/wizard/connectionPage.py:145
 msgid ""
 "Board has a wrong firmware.\n"
 "Please select your Board\n"
 "and press Upload Firmware"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:150
+#: ../../src/horus/gui/wizard/connectionPage.py:151
 msgid ""
 "Board is not connected.\n"
 "Please connect your board\n"
 "and select a valid Serial Name"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:166
+#: ../../src/horus/gui/wizard/connectionPage.py:167
 msgid "Unplug and plug your camera USB cable and try to connect again."
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:177
+#: ../../src/horus/gui/wizard/connectionPage.py:178
 msgid ""
 "It is recomended to adjust line lasers vertically.\n"
 "You need to use the allen wrench.\n"
 "Do you want to adjust it now?"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:177
+#: ../../src/horus/gui/wizard/connectionPage.py:178
 msgid "Manual laser adjustment"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:211
+#: ../../src/horus/gui/wizard/connectionPage.py:212
 #: ../../src/horus/gui/wizard/calibrationPage.py:204
 msgid "All OK. Please press next to continue"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:213
+#: ../../src/horus/gui/wizard/connectionPage.py:214
 msgid "Error in Auto check. Please try again"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:296
+#: ../../src/horus/gui/wizard/connectionPage.py:297
 #: ../../src/horus/util/profile.py:203
 msgid "Luminosity"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:297
+#: ../../src/horus/gui/wizard/connectionPage.py:298
 msgid ""
 "Change the luminosity until coloured lines appear over the chess pattern in "
 "the video."
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:367
+#: ../../src/horus/gui/wizard/connectionPage.py:368
 #: ../../src/horus/gui/wizard/scanningPage.py:51
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:118
@@ -818,7 +818,7 @@ msgstr ""
 msgid "Low"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:369
+#: ../../src/horus/gui/wizard/connectionPage.py:370
 #: ../../src/horus/gui/wizard/scanningPage.py:53
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:116
@@ -826,7 +826,7 @@ msgstr ""
 msgid "Medium"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:371
+#: ../../src/horus/gui/wizard/connectionPage.py:372
 #: ../../src/horus/gui/wizard/scanningPage.py:55
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:114
@@ -876,7 +876,9 @@ msgid "Ready to scan!"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:58
-msgid "Put the pattern on the platform and press \"Calibrate\""
+msgid ""
+"Put the pattern on the platform as shown in the picture and press \"Calibrate"
+"\""
 msgstr ""
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:137
@@ -947,18 +949,6 @@ msgstr ""
 
 #: ../../src/horus/util/profile.py:215 ../../src/horus/util/profile.py:231
 msgid "Acceleration"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:285
-msgid "Right"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:284
-msgid "Left"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:226
-msgid "Both"
 msgstr ""
 
 #: ../../src/horus/util/profile.py:226

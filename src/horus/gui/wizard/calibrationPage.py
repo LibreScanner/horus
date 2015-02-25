@@ -55,7 +55,7 @@ class CalibrationPage(WizardPage):
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 		self.phase='other'
 
-		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform and press \"Calibrate\""))
+		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform as shown in the picture and press \"Calibrate\""))
 		self.imageView = ImageView(self.panel)
 		self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 		self.calibrateButton = wx.Button(self.panel, label=_("Calibrate"))

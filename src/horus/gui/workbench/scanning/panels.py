@@ -67,8 +67,8 @@ class ScanParameters(ExpandablePanel):
         self.textureScan.setFastScan(bool(value))
 
     def setUseLaser(self, value):
-        self.pcg.setUseLaser(value==_("Use Left Laser") or value==_("Use Both Laser"),
-                             value==_("Use Right Laser") or value==_("Use Both Laser"))
+        self.pcg.setUseLaser(value==_("Left") or value==_("Both"),
+                             value==_("Right") or value==_("Both"))
 
     def setCurrentScan(self, value):
         if not self.main.currentScan.run or self.main.currentScan.inactive:

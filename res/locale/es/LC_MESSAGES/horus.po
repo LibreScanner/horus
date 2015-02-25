@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-02-25 16:15+0100\n"
-"PO-Revision-Date: 2015-02-25 16:16+0100\n"
+"POT-Creation-Date: 2015-02-25 17:16+0100\n"
+"PO-Revision-Date: 2015-02-25 17:02+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: Python\n"
@@ -109,14 +109,14 @@ msgid ""
 msgstr "La distancia del patrón debe ser mayor que 0. Por favor, cambialo."
 
 #: ../../src/horus/gui/util/patternDistanceWindow.py:56
-#: ../../src/horus/gui/wizard/connectionPage.py:290
+#: ../../src/horus/gui/wizard/connectionPage.py:291
 msgid "Pattern distance (mm)"
 msgstr "Distancia del patrón (mm)"
 
 #: ../../src/horus/gui/util/patternDistanceWindow.py:57
 #: ../../src/horus/gui/util/patternDistanceWindow.py:61
 #: ../../src/horus/gui/workbench/calibration/panels.py:59
-#: ../../src/horus/gui/wizard/connectionPage.py:293
+#: ../../src/horus/gui/wizard/connectionPage.py:294
 msgid ""
 "Distance between the upper edge of the chess row closer to the platform and "
 "the platform."
@@ -129,7 +129,7 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/panels.py:422
 #: ../../src/horus/gui/workbench/calibration/panels.py:600
 #: ../../src/horus/gui/workbench/calibration/panels.py:745
-#: ../../src/horus/gui/wizard/connectionPage.py:292
+#: ../../src/horus/gui/wizard/connectionPage.py:293
 msgid "OK"
 msgstr "OK"
 
@@ -214,16 +214,6 @@ msgstr "Parámetros cámara"
 #: ../../src/horus/gui/workbench/calibration/panels.py:105
 msgid "Laser Settings"
 msgstr "Parámetros láser"
-
-#: ../../src/horus/gui/workbench/calibration/panels.py:115
-msgid ""
-"Value that determines wich pixels belong to the laser and which to the rest "
-"of the image. A low value may cause noise errors on the final scanned model, "
-"and a high value may reduce its accuracy."
-msgstr ""
-"Valor que determina qué pixeles de la imagen son del láser. Un valor bajo "
-"puede causar un ruido alto en el modelo final y un valor alto puede reducir "
-"la precisión de éste."
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:133
 #: ../../src/horus/gui/workbench/calibration/panels.py:247
@@ -438,8 +428,12 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/pages.py:324
 #: ../../src/horus/gui/workbench/calibration/pages.py:546
 #: ../../src/horus/gui/workbench/calibration/pages.py:724
-msgid "Put the pattern on the platform and press Calibrate to continue"
-msgstr "Sitúa el patrón en la plataforma y presiona Calibrar para continuar"
+msgid ""
+"Put the pattern on the platform as shown in the picture and press Calibrate "
+"to continue"
+msgstr ""
+"Sitúa el patrón en la plataforma como se muestra en la imagen y presiona "
+"Calibrar para continuar"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:455
 #: ../../src/horus/gui/workbench/calibration/pages.py:679
@@ -475,8 +469,9 @@ msgstr ""
 #: ../../src/horus/gui/main.py:553
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:153
-msgid "Use Left Laser"
-msgstr "Láser izquierdo"
+#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:284
+msgid "Left"
+msgstr "Izquierdo"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:70
 #: ../../src/horus/gui/workbench/scanning/panels.py:71
@@ -484,15 +479,17 @@ msgstr "Láser izquierdo"
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:159
-msgid "Use Both Laser"
-msgstr "Ambos láseres"
+#: ../../src/horus/util/profile.py:226
+msgid "Both"
+msgstr "Ambos"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:71
 #: ../../src/horus/gui/main.py:554
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:156
-msgid "Use Right Laser"
-msgstr "Láser derecho"
+#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:285
+msgid "Right"
+msgstr "Derecho"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:75
 #: ../../src/horus/gui/workbench/scanning/main.py:190
@@ -647,12 +644,12 @@ msgstr ""
 "Por favor, conecta la placa y selecciona un Nombre Serial válido"
 
 #: ../../src/horus/gui/workbench/workbench.py:142
-#: ../../src/horus/gui/wizard/connectionPage.py:156
+#: ../../src/horus/gui/wizard/connectionPage.py:157
 msgid "Please plug your camera and try to connect again"
 msgstr "Por favor, conecta tu cámara e intenta conectar de nuevo"
 
 #: ../../src/horus/gui/workbench/workbench.py:146
-#: ../../src/horus/gui/wizard/connectionPage.py:160
+#: ../../src/horus/gui/wizard/connectionPage.py:161
 msgid ""
 "You probably have selected a wrong camera.\n"
 "Please select other Camera Id"
@@ -825,15 +822,18 @@ msgid "Edit preferences"
 msgstr "Editar preferencias"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:60
-msgid "Put the pattern on the platform and press \"Auto check\""
+msgid ""
+"Put the pattern on the platform as shown in the picture and press \"Auto "
+"check\""
 msgstr ""
-"Sitúa el patrón en la plataforma y presiona \"Comprobación automática\""
+"Sitúa el patrón en la plataforma como se muestra en la imagen y presiona "
+"\"Comprobación automática\""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:63
+#: ../../src/horus/gui/wizard/connectionPage.py:64
 msgid "Auto check"
 msgstr "Comprobación automática"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:144
+#: ../../src/horus/gui/wizard/connectionPage.py:145
 msgid ""
 "Board has a wrong firmware.\n"
 "Please select your Board\n"
@@ -843,7 +843,7 @@ msgstr ""
 "Por favor, selecciona tu placa\n"
 "y haz click en Cargar Firmware"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:150
+#: ../../src/horus/gui/wizard/connectionPage.py:151
 msgid ""
 "Board is not connected.\n"
 "Please connect your board\n"
@@ -853,11 +853,11 @@ msgstr ""
 "Por favor, conecta tu placa\n"
 "y selecciona un nombre serial válido"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:166
+#: ../../src/horus/gui/wizard/connectionPage.py:167
 msgid "Unplug and plug your camera USB cable and try to connect again."
 msgstr "Desconecta y conecta tu cámara USB e intenta conectar de nuevo"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:177
+#: ../../src/horus/gui/wizard/connectionPage.py:178
 msgid ""
 "It is recomended to adjust line lasers vertically.\n"
 "You need to use the allen wrench.\n"
@@ -867,26 +867,26 @@ msgstr ""
 "Necesitas usar una llave allen.\n"
 "¿Quieres ajustarlo ahora?"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:177
+#: ../../src/horus/gui/wizard/connectionPage.py:178
 msgid "Manual laser adjustment"
 msgstr "Ajuste manual del láser"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:211
+#: ../../src/horus/gui/wizard/connectionPage.py:212
 #: ../../src/horus/gui/wizard/calibrationPage.py:204
 msgid "All OK. Please press next to continue"
 msgstr "Todo OK. Haz click en siguiente para continuar"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:213
+#: ../../src/horus/gui/wizard/connectionPage.py:214
 msgid "Error in Auto check. Please try again"
 msgstr ""
 "Error en la comprobación automática. Por favor, vuelve a intentarlo de nuevo"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:296
+#: ../../src/horus/gui/wizard/connectionPage.py:297
 #: ../../src/horus/util/profile.py:203
 msgid "Luminosity"
 msgstr "Luminosidad"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:297
+#: ../../src/horus/gui/wizard/connectionPage.py:298
 msgid ""
 "Change the luminosity until coloured lines appear over the chess pattern in "
 "the video."
@@ -894,7 +894,7 @@ msgstr ""
 "Cambia el valor de la luminosidad hasta que aparezcan lineas de colores "
 "encima del patrón de ajedrez en el vídeo."
 
-#: ../../src/horus/gui/wizard/connectionPage.py:367
+#: ../../src/horus/gui/wizard/connectionPage.py:368
 #: ../../src/horus/gui/wizard/scanningPage.py:51
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:118
@@ -902,7 +902,7 @@ msgstr ""
 msgid "Low"
 msgstr "Baja"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:369
+#: ../../src/horus/gui/wizard/connectionPage.py:370
 #: ../../src/horus/gui/wizard/scanningPage.py:53
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:116
@@ -910,7 +910,7 @@ msgstr "Baja"
 msgid "Medium"
 msgstr "Media"
 
-#: ../../src/horus/gui/wizard/connectionPage.py:371
+#: ../../src/horus/gui/wizard/connectionPage.py:372
 #: ../../src/horus/gui/wizard/scanningPage.py:55
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:114
@@ -962,8 +962,12 @@ msgid "Ready to scan!"
 msgstr "¡Listo para escanear!"
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:58
-msgid "Put the pattern on the platform and press \"Calibrate\""
-msgstr "Sitúa el patrón en la plataforma y presiona \"Calibrar\""
+msgid ""
+"Put the pattern on the platform as shown in the picture and press \"Calibrate"
+"\""
+msgstr ""
+"Sitúa el patrón en la plataforma como se muestra en la imagen y presiona "
+"\"Calibrar\""
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:137
 msgid "Calibration canceled. To try again press \"Calibrate\""
@@ -1038,18 +1042,6 @@ msgstr "Feed Rate"
 #: ../../src/horus/util/profile.py:215 ../../src/horus/util/profile.py:231
 msgid "Acceleration"
 msgstr "Aceleración"
-
-#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:285
-msgid "Right"
-msgstr "Derecho"
-
-#: ../../src/horus/util/profile.py:226 ../../src/horus/util/profile.py:284
-msgid "Left"
-msgstr "Izquierdo"
-
-#: ../../src/horus/util/profile.py:226
-msgid "Both"
-msgstr "Ambos"
 
 #: ../../src/horus/util/profile.py:226
 msgid "Use Laser"
@@ -1257,6 +1249,24 @@ msgstr "Calibración cancelada"
 #: ../../src/horus/util/error.py:52
 msgid "Scan Error"
 msgstr "Error en el escaneo"
+
+#~ msgid "Use Left Laser"
+#~ msgstr "Láser izquierdo"
+
+#~ msgid "Use Both Laser"
+#~ msgstr "Ambos láseres"
+
+#~ msgid "Use Right Laser"
+#~ msgstr "Láser derecho"
+
+#~ msgid ""
+#~ "Value that determines wich pixels belong to the laser and which to the "
+#~ "rest of the image. A low value may cause noise errors on the final "
+#~ "scanned model, and a high value may reduce its accuracy."
+#~ msgstr ""
+#~ "Valor que determina qué pixeles de la imagen son del láser. Un valor bajo "
+#~ "puede causar un ruido alto en el modelo final y un valor alto puede "
+#~ "reducir la precisión de éste."
 
 #~ msgid "Basic Mode"
 #~ msgstr "Modo básico"

@@ -112,7 +112,7 @@ class LaserSettingsPanel(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('laser_settings')
-        section.addItem(Slider, 'laser_threshold_value', self.laserTriangulation.setThreshold, tooltip=_("Value that determines wich pixels belong to the laser and which to the rest of the image. A low value may cause noise errors on the final scanned model, and a high value may reduce its accuracy."))
+        # section.addItem(Slider, 'laser_threshold_value', self.laserTriangulation.setThreshold, tooltip=_("Value that determines wich pixels belong to the laser and which to the rest of the image. A low value may cause noise errors on the final scanned model, and a high value may reduce its accuracy."))
         section.addItem(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
         section.addItem(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
 

@@ -550,8 +550,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             resolution = profile.getProfileSetting('resolution_scanning')
             self.pcg.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
             useLaser = profile.getProfileSetting('use_laser')
-            self.pcg.setUseLaser(useLaser==_("Use Left Laser") or useLaser==_("Use Both Laser"),
-                                 useLaser==_("Use Right Laser") or useLaser==_("Use Both Laser"))
+            self.pcg.setUseLaser(useLaser==_("Left") or useLaser==_("Both"),
+                                 useLaser==_("Right") or useLaser==_("Both"))
             self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
                                          profile.getProfileSettingNumpy('distortion_vector'))
             self.pcg.setLaserTriangulation(profile.getProfileSettingNumpy('distance_left'),
