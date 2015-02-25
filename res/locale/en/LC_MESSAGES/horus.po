@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-02-19 17:51+0100\n"
+"POT-Creation-Date: 2015-02-25 13:08+0100\n"
 "PO-Revision-Date: 2014-06-04 11:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
@@ -427,7 +427,7 @@ msgid ""
 msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:70
-#: ../../src/horus/gui/main.py:550
+#: ../../src/horus/gui/main.py:553
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:153
 #: ../../src/horus/util/profile.py:226
@@ -436,7 +436,7 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:70
 #: ../../src/horus/gui/workbench/scanning/panels.py:71
-#: ../../src/horus/gui/main.py:550 ../../src/horus/gui/main.py:551
+#: ../../src/horus/gui/main.py:553 ../../src/horus/gui/main.py:554
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:159
@@ -445,7 +445,7 @@ msgid "Use Both Laser"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:71
-#: ../../src/horus/gui/main.py:551
+#: ../../src/horus/gui/main.py:554
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:156
 #: ../../src/horus/util/profile.py:226
@@ -454,13 +454,13 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:75
 #: ../../src/horus/gui/workbench/scanning/main.py:190
-#: ../../src/horus/gui/main.py:562 ../../src/horus/util/profile.py:225
+#: ../../src/horus/gui/main.py:565 ../../src/horus/util/profile.py:225
 msgid "Without Texture"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:77
 #: ../../src/horus/gui/workbench/scanning/main.py:193
-#: ../../src/horus/gui/main.py:565 ../../src/horus/util/profile.py:225
+#: ../../src/horus/gui/main.py:568 ../../src/horus/util/profile.py:225
 msgid "With Texture"
 msgstr ""
 
@@ -736,23 +736,23 @@ msgstr ""
 msgid "Profile reset"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:417
+#: ../../src/horus/gui/main.py:420
 msgid "Horus is an Open Source 3D Scanner manager"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:444
+#: ../../src/horus/gui/main.py:447
 msgid "Board unplugged"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:444
+#: ../../src/horus/gui/main.py:447
 msgid "Board has been unplugged. Please, plug it and press connect"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:447
+#: ../../src/horus/gui/main.py:450
 msgid "Camera unplugged"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:447
+#: ../../src/horus/gui/main.py:450
 msgid "Camera has been unplugged. Please, plug it and press connect"
 msgstr ""
 

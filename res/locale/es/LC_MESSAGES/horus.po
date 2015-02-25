@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-02-19 17:51+0100\n"
-"PO-Revision-Date: 2015-02-20 16:12+0100\n"
+"POT-Creation-Date: 2015-02-25 13:08+0100\n"
+"PO-Revision-Date: 2015-02-25 13:11+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: Python\n"
@@ -189,7 +189,7 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/control/panels.py:67
 msgid "Laser Control"
-msgstr "Control de los lasers"
+msgstr "Control de los láseres"
 
 #: ../../src/horus/gui/workbench/control/panels.py:83
 msgid "LDR Value"
@@ -291,7 +291,7 @@ msgid ""
 "Determines the planes of both line lasers: minimum distance and normal "
 "vector."
 msgstr ""
-"Determina los planos de los dos lasers lineales: distancia mínima y vector "
+"Determina los planos de los dos láseres lineales: distancia mínima y vector "
 "normal."
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:325
@@ -439,7 +439,7 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/pages.py:546
 #: ../../src/horus/gui/workbench/calibration/pages.py:724
 msgid "Put the pattern on the platform and press Calibrate to continue"
-msgstr "Sitúa el patron en la plataforma y presiona Calibrar para continuar"
+msgstr "Sitúa el patrón en la plataforma y presiona Calibrar para continuar"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:455
 #: ../../src/horus/gui/workbench/calibration/pages.py:679
@@ -472,7 +472,7 @@ msgstr ""
 "del objeto) o sin textura (sólo se obtiene la geometría)"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:70
-#: ../../src/horus/gui/main.py:550
+#: ../../src/horus/gui/main.py:553
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:153
 #: ../../src/horus/util/profile.py:226
@@ -481,7 +481,7 @@ msgstr "Láser izquierdo"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:70
 #: ../../src/horus/gui/workbench/scanning/panels.py:71
-#: ../../src/horus/gui/main.py:550 ../../src/horus/gui/main.py:551
+#: ../../src/horus/gui/main.py:553 ../../src/horus/gui/main.py:554
 #: ../../src/horus/gui/wizard/scanningPage.py:126
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:159
@@ -490,7 +490,7 @@ msgid "Use Both Laser"
 msgstr "Ambos láseres"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:71
-#: ../../src/horus/gui/main.py:551
+#: ../../src/horus/gui/main.py:554
 #: ../../src/horus/gui/wizard/scanningPage.py:127
 #: ../../src/horus/gui/wizard/scanningPage.py:156
 #: ../../src/horus/util/profile.py:226
@@ -499,13 +499,13 @@ msgstr "Láser derecho"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:75
 #: ../../src/horus/gui/workbench/scanning/main.py:190
-#: ../../src/horus/gui/main.py:562 ../../src/horus/util/profile.py:225
+#: ../../src/horus/gui/main.py:565 ../../src/horus/util/profile.py:225
 msgid "Without Texture"
 msgstr "Sin textura"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:77
 #: ../../src/horus/gui/workbench/scanning/main.py:193
-#: ../../src/horus/gui/main.py:565 ../../src/horus/util/profile.py:225
+#: ../../src/horus/gui/main.py:568 ../../src/horus/util/profile.py:225
 msgid "With Texture"
 msgstr "Con textura"
 
@@ -805,24 +805,24 @@ msgstr ""
 msgid "Profile reset"
 msgstr "Restaurar perfil"
 
-#: ../../src/horus/gui/main.py:417
+#: ../../src/horus/gui/main.py:420
 msgid "Horus is an Open Source 3D Scanner manager"
 msgstr "Horus es un software para escáneres 3D de código libre"
 
-#: ../../src/horus/gui/main.py:444
+#: ../../src/horus/gui/main.py:447
 msgid "Board unplugged"
 msgstr "Placa desconectada"
 
-#: ../../src/horus/gui/main.py:444
+#: ../../src/horus/gui/main.py:447
 msgid "Board has been unplugged. Please, plug it and press connect"
 msgstr ""
 "La placa ha sido desconectada. Por favor, conéctala y haz click en conectar"
 
-#: ../../src/horus/gui/main.py:447
+#: ../../src/horus/gui/main.py:450
 msgid "Camera unplugged"
 msgstr "Cámara desconectada"
 
-#: ../../src/horus/gui/main.py:447
+#: ../../src/horus/gui/main.py:450
 msgid "Camera has been unplugged. Please, plug it and press connect"
 msgstr ""
 "La cámara ha sido desconectada. Por favor, conéctala y presiona conectar"
@@ -837,7 +837,8 @@ msgstr "Editar preferencias"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:60
 msgid "Put the pattern on the platform and press \"Auto check\""
-msgstr "Sitúa el patron en la plataforma y presiona \"Auto check\""
+msgstr ""
+"Sitúa el patrón en la plataforma y presiona \"Comprobación automática\""
 
 #: ../../src/horus/gui/wizard/connectionPage.py:63
 msgid "Auto check"
@@ -973,7 +974,7 @@ msgstr "¡Listo para escanear!"
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:58
 msgid "Put the pattern on the platform and press \"Calibrate\""
-msgstr "Sitúa el patron en la plataforma y presiona \"Calibrar\""
+msgstr "Sitúa el patrón en la plataforma y presiona \"Calibrar\""
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:137
 msgid "Calibration canceled. To try again press \"Calibrate\""
@@ -982,7 +983,7 @@ msgstr ""
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:176
 msgid "Error in lasers: please connect the lasers and try again"
-msgstr "Error con los lásers: por favor, conecta los lásers y prueba de nuevo"
+msgstr "Error con los láseres: por favor, conéctalos y prueba de nuevo"
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:177
 msgid "Laser Calibration failed. Please try again"
