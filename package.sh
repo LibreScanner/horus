@@ -15,8 +15,8 @@ BUILD_TARGET=${1:-none}
 EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
-export BUILD_NAME=0.1
-TARGET_DIR=Horus-${BUILD_NAME}-${BUILD_TARGET}
+VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | head -1`
+TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
 
 ##Which versions of external programs to use
 WIN_PORTABLE_PY_VERSION=2.7.2.1 #TODO: 2.7.6.1
@@ -111,30 +111,43 @@ if [ $BUILD_TARGET = "debian" ]; then
 	#bdist_deb # Used to generate deb files
 
 	# Modify changelog and control files
-	cp -a pkg/linux/debian/changelog deb_dist/horus-${BUILD_NAME}/debian/changelog
-	cp -a pkg/linux/debian/control deb_dist/horus-${BUILD_NAME}/debian/control
+	cp -a pkg/linux/debian/changelog deb_dist/horus-${VERSION}/debian/changelog
+	cp -a pkg/linux/debian/control deb_dist/horus-${VERSION}/debian/control
 
-	cd deb_dist/horus-${BUILD_NAME}
-	if [ $EXTRA_ARGS = "-s" ]; then
-		# Build and sign Debian sources
-		debuild -S -sa
-	else
-		# Build and sign Debian package
-		dpkg-buildpackage
-	fi
-
+	cd deb_dist/horus-${VERSION}
 	if [ $EXTRA_ARGS ]; then
-		if [ $EXTRA_ARGS = "-i" ]; then
+		if [ $EXTRA_ARGS = "-s" ]; then
+			# Build and sign Debian sources
+			debuild -S -sa
+		elif [ $EXTRA_ARGS = "-i" ]; then
 			# Install Debian package
 			sudo dpkg -i ../horus*.deb
 			sudo apt-get -f install
+		elif [ $EXTRA_ARGS = "-u" ]; then
+			# Upload to launchpad
+			debuild -S -sa
+			PPA=ppa:jesus-arroyo/horus
+			RELEASES="precise trusty utopic"
+			ORIG_RELEASE=`head -1 pkg/linux/debian/changelog | sed 's/.*) \(.*\);.*/\1/'`
+			for RELEASE in $RELEASES ;
+			do
+			  cp debian/changelog debian/changelog.backup
+			  sed -i "s/${ORIG_RELEASE}/${RELEASE}/;s/0ubuntu1/0ubuntu1~${RELEASE}1/" debian/changelog
+			  debuild -S -sa
+			  dput -f ${PPA} ../horus_${VERSION}-0ubuntu1~${RELEASE}1_source.changes
+			  mv debian/changelog.backup debian/changelog
+			done
 		fi
-	fi
+		else
+			# Build and sign Debian package
+			dpkg-buildpackage
+		fi
 
 	# Clean directory
 	cd ../..
 	rm -rf "Horus.egg-info"
 fi
+
 
 #############################
 # Rest
@@ -231,7 +244,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	cp -a ../res/* ${TARGET_DIR}/res
 	cp -a ../src/* ${TARGET_DIR}/src
 	#Add horus version file
-	echo $BUILD_NAME > ${TARGET_DIR}/version
+	echo $VERSION > ${TARGET_DIR}/version
 
 	# Add script files
 	cp -a ../pkg/${BUILD_TARGET}/*.bat $TARGET_DIR/
@@ -239,7 +252,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	# Package the result
 	rm -rf ../pkg/win32/dist
 	ln -sf `pwd`/${TARGET_DIR} ../pkg/win32/dist
-	makensis -DVERSION=${BUILD_NAME} ../pkg/win32/installer.nsi
+	makensis -DVERSION=${VERSION} ../pkg/win32/installer.nsi
 	if [ $? != 0 ]; then echo "Failed to package NSIS installer"; exit 1; fi
 	rm -rf ../pkg/win32/dist
 	#cd ../

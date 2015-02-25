@@ -156,6 +156,7 @@ The "package.sh" script generates a final release package. You should not need i
 bash package.sh debian     # Generate deb package
 bash package.sh debian -s  # Generate sources
 bash package.sh debian -i  # Install deb package
+bash package.sh debian -u  # Upload to launchpad
 ```
 
 ### Windows
