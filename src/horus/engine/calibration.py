@@ -111,8 +111,9 @@ class CameraIntrinsics(Calibration):
 		self.useDistortion = useDistortion
 
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
-		self.patternRows = rows
-		self.patternColumns = columns
+		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
+		self.patternRows = columns
+		self.patternColumns = rows
 		self.squareWidth = squareWidth
 		self.patternDistance = distance
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
@@ -185,8 +186,9 @@ class LaserTriangulation(Calibration):
 		self.threshold = threshold
 
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
-		self.patternRows = rows
-		self.patternColumns = columns
+		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
+		self.patternRows = columns
+		self.patternColumns = rows
 		self.squareWidth = squareWidth
 		self.patternDistance = distance
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
@@ -500,8 +502,9 @@ class SimpleLaserTriangulation(Calibration):
 		self.useDistortion = useDistortion
 
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
-		self.patternRows = rows
-		self.patternColumns = columns
+		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
+		self.patternRows = columns
+		self.patternColumns = rows
 		self.squareWidth = squareWidth
 		self.patternDistance = distance
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
@@ -720,8 +723,9 @@ class PlatformExtrinsics(Calibration):
 		self.patternDistance=distance
 
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
-		self.patternRows = rows
-		self.patternColumns = columns
+		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
+		self.patternRows = columns
+		self.patternColumns = rows
 		self.squareWidth = squareWidth
 		self.patternDistance = distance
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
