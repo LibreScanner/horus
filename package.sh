@@ -110,6 +110,10 @@ if [ $BUILD_TARGET = "debian" ]; then
 	#           v4l-utils' \
 	#bdist_deb # Used to generate deb files
 
+	# Copy postinst and postrm files
+	cp -a pkg/linux/debian/postinst deb_dist/horus-${VERSION}/debian/postinst
+	cp -a pkg/linux/debian/postrm deb_dist/horus-${VERSION}/debian/postrm
+
 	# Modify changelog and control files
 	cp -a pkg/linux/debian/changelog deb_dist/horus-${VERSION}/debian/changelog
 	cp -a pkg/linux/debian/control deb_dist/horus-${VERSION}/debian/control
@@ -121,6 +125,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 			debuild -S -sa
 		elif [ $EXTRA_ARGS = "-i" ]; then
 			# Install Debian package
+			dpkg-buildpackage
 			sudo dpkg -i ../horus*.deb
 			sudo apt-get -f install
 		elif [ $EXTRA_ARGS = "-u" ]; then
