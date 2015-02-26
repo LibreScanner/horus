@@ -127,14 +127,14 @@ if [ $BUILD_TARGET = "debian" ]; then
 			# Upload to launchpad
 			debuild -S -sa
 			PPA=ppa:jesus-arroyo/horus
-			RELEASES="precise trusty utopic"
+			RELEASES="trusty utopic"
 			ORIG_RELEASE=`head -1 pkg/linux/debian/changelog | sed 's/.*) \(.*\);.*/\1/'`
 			for RELEASE in $RELEASES ;
 			do
 			  cp debian/changelog debian/changelog.backup
-			  sed -i "s/${ORIG_RELEASE}/${RELEASE}/;s/0ubuntu1/0ubuntu1~${RELEASE}1/" debian/changelog
+			  sed -i "s/${ORIG_RELEASE}/${RELEASE}/;s/bq1/bq1~${RELEASE}1/" debian/changelog
 			  debuild -S -sa
-			  dput -f ${PPA} ../horus_${VERSION}-0ubuntu1~${RELEASE}1_source.changes
+			  dput -f ${PPA} ../horus_${VERSION}-bq1~${RELEASE}1_source.changes
 			  mv debian/changelog.backup debian/changelog
 			done
 		fi
@@ -254,7 +254,6 @@ if [ $BUILD_TARGET = "win32" ]; then
 	ln -sf `pwd`/${TARGET_DIR} ../pkg/win32/dist
 	makensis -DVERSION=${VERSION} ../pkg/win32/installer.nsi
 	if [ $? != 0 ]; then echo "Failed to package NSIS installer"; exit 1; fi
+	mv ../pkg/win32/Horus_${VERSION}.exe .
 	rm -rf ../pkg/win32/dist
-	#cd ../
-	#rm -rf win_dist
 fi
