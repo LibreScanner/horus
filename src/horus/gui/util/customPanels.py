@@ -151,8 +151,8 @@ class ExpandablePanel(wx.Panel):
 		#-- Undo
 		self.undoObjects = []
 
-	def createSection(self, name, title=None):
-		section = SectionPanel(self.content, title)
+	def createSection(self, name, title=None, tag=None):
+		section = SectionPanel(self.content, title, tag=tag)
 		if self.hasUndo:
 			section.setUndoCallbacks(self.appendUndo, self.releaseUndo)
 		self.sections.update({name : section})
@@ -208,8 +208,9 @@ class ExpandablePanel(wx.Panel):
 		return len(self.undoObjects) > 0
 
 class SectionPanel(wx.Panel):
-	def __init__(self, parent, title=None):
+	def __init__(self, parent, title=None, tag=None):
 		wx.Panel.__init__(self, parent)
+		self.tag = tag
 
 		#-- Elements
 		if title is not None:
@@ -238,12 +239,23 @@ class SectionPanel(wx.Panel):
 			self.items.update({_name : (item, tooltip)})
 		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 1)
 		self.Layout()
+		return self
 
 	def resetProfile(self):
 		for item in self.items.values():
-			item.resetProfile()
+			if isinstance(item, tuple):
+				item[0].resetProfile()
 
 	def updateProfile(self):
+		scan_type=profile.getProfileSetting('scan_type')
+		if self.tag != None:
+			if scan_type == self.tag:
+				self.Show()
+			else:
+				self.Hide()
+		else:
+			self.Show()
+
 		for item in self.items.values():
 			if isinstance(item, tuple):
 				item[0].updateProfile()
@@ -281,7 +293,14 @@ class SectionItem(wx.Panel):
 		if profile.getPreferenceBool('basic_mode'):
 			return self.setting.getCategory() is 'basic'
 		else:
-			return self.setting.getCategory() is 'basic' or self.setting.getCategory() is 'advanced'
+			scan_type=profile.getProfileSetting('scan_type')
+			if self.setting.getTag() != None:
+				if scan_type == _("Without Texture"):
+					return self.setting.getTag() == 'no_texture'
+				elif scan_type == _("With Texture"):
+					return self.setting.getTag() == 'texture'
+			else:
+				return True
 
 	def update(self, value):
 		if self.isVisible():
@@ -422,7 +441,6 @@ class ComboBox(SectionItem):
 		hbox.Add(self.control, 1, wx.TOP|wx.RIGHT|wx.EXPAND, 12)
 		self.SetSizer(hbox)
 		self.Layout()
-
 		#-- Events
 		self.control.Bind(wx.EVT_COMBOBOX, self.onComboBoxChanged)
 
