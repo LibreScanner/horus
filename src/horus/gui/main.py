@@ -325,6 +325,11 @@ class MainWindow(wx.Frame):
         self.Layout()
 
     def onPreferences(self, event):
+        #win:
+        self.driver.camera.setUnplugCallback(None)
+        self.driver.disconnect()
+
+
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
         wx.CallAfter(prefDialog.Show)
@@ -332,6 +337,9 @@ class MainWindow(wx.Frame):
         self.controlWorkbench.initialize()
         self.calibrationWorkbench.initialize()
         self.scanningWorkbench.initialize()
+
+        #win:
+        self.driver.connect()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.putPreference(key, checked)
