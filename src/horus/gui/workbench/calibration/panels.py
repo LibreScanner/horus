@@ -54,9 +54,9 @@ class PatternSettingsPanel(ExpandablePanel):
         self.clearSections()
         section = self.createSection('pattern_settings')
         section.addItem(TextBox, 'square_width', lambda v: self.updatePatternParameters())
-        section.addItem(TextBox, 'pattern_rows', lambda v: self.updatePatternParameters())
-        section.addItem(TextBox, 'pattern_columns', lambda v: self.updatePatternParameters())
-        section.addItem(TextBox, 'pattern_distance', lambda v: self.updatePatternParameters(), tooltip=_('Distance between the upper edge of the chess row closer to the platform and the platform.'))
+        section.addItem(TextBox, 'pattern_rows', lambda v: self.updatePatternParameters(), tooltip=_('Number of rows formed by the interior pattern vertex of the pattern.'))
+        section.addItem(TextBox, 'pattern_columns', lambda v: self.updatePatternParameters(), tooltip=_('Number of columns formed by the pattern vertex of the pattern.'))
+        section.addItem(TextBox, 'pattern_distance', lambda v: self.updatePatternParameters(), tooltip=_('Distance between the upper edge of the first square on the left of the closest to the rotatory platform and the rotatory platform.'))
 
     def updatePatternParameters(self):
         self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
@@ -91,13 +91,13 @@ class CameraSettingsPanel(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('camera_settings')
-        section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness)
-        section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast)
-        section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation)
-        section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure)
-        section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)))
-        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        section.addItem(CheckBox, 'use_distortion_calibration', self.driver.camera.setUseDistortion, tooltip=_("Use the distortion vector to remove the distortion caused by the camera from the image. This process slows the video feed from the camera."))
+        section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places.'))
+        section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark coloured objects. High values are better for very light coloured objects.'))
+        section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation, tooltip=_('Purity of colour. Low values will cause colours to disappear from the image. High values will show an image with very intense colours.'))
+        section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure, tooltip=_('Length of time a camera sensor is exposed when taking a picture. High values are recommended for poorly lit places.'))
+        section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames to be taken by the camera every second. The value closest to the maximum value of your camera frame rate is recommended.'))
+        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])), tooltip=_('Size of the image taken by the camera. Greatest resolution is recommended.'))
+        section.addItem(CheckBox, 'use_distortion_calibration', self.driver.camera.setUseDistortion, tooltip=_("This option allows the lens distortion to be fixed. This process slows the video feed from the camera."))
 
 class LaserSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
@@ -166,7 +166,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Camera Intrinsics"), buttonStartCallback=buttonStartCallback,
-                                  description=_("Determines the camera matrix and the distortion coefficients using Zhang2000 algorithm and pinhole camera model."))
+                                  description=_("This calibration acquire the camera internal parameters: Focal length, Optical centre and the Lens distortion."))
 
         self.driver = Driver.Instance()
         self.pcg = scan.PointCloudGenerator.Instance()
@@ -313,7 +313,7 @@ class LaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation"), buttonStartCallback=buttonStartCallback,
-                                  description=_("Determines the planes of both line lasers: minimum distance and normal vector."))
+                                  description=_("This calibration determines the lasers' planes relative to the camera's coordinate system."))
 
         self.pcg = scan.PointCloudGenerator.Instance()
 
@@ -670,7 +670,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Platform Extrinsics"), buttonStartCallback=buttonStartCallback,
-                                  description=_("Determines the transformation matrix between the camera and the platform using a circular interpolation method."))
+                                  description=_("This calibration determines the position and orientation of the rotating platform relative to the camera's coordinate system."))
 
         self.pcg = scan.PointCloudGenerator.Instance()
 

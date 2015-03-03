@@ -187,12 +187,12 @@ class ImageSegmentation(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('image_segmentation_simple',None, tag=_("Simple Scan"))
-        section.addItem(CheckBox, 'use_cr_threshold', lambda v: self.simpleScan.setUseThreshold(bool(v)), tooltip=_("The threshold is used to remove noise."))
+        section.addItem(CheckBox, 'use_cr_threshold', lambda v: self.simpleScan.setUseThreshold(bool(v)), tooltip=_("Threshold is an algorithm used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value."))
         section.addItem(Slider, 'cr_threshold_value', lambda v: self.simpleScan.setThresholdValue(int(v)))
         section = self.createSection('image_segmentation_texture', None, tag=_("Texture Scan"))
-        section.addItem(CheckBox, 'use_open', lambda v: self.textureScan.setUseOpen(bool(v)), tooltip=_("Open is an algorithm used to remove the noise when scanning. The higher its value, the lower the noise but also the lower the detail in the 3D model. The value of the Threshold parameter has influence in this algorithm."))
+        section.addItem(CheckBox, 'use_open', lambda v: self.textureScan.setUseOpen(bool(v)), tooltip=_("Open is an algorithm used to remove the noise when scanning. The higher its value, the lower the noise but also the lower the detail in the 3D model."))
         section.addItem(Slider, 'open_value', lambda v: self.textureScan.setOpenValue(int(v)))
-        section.addItem(CheckBox, 'use_threshold', lambda v: self.textureScan.setUseThreshold(bool(v)), tooltip=_("The threshold is used to remove noise."))
+        section.addItem(CheckBox, 'use_threshold', lambda v: self.textureScan.setUseThreshold(bool(v)), tooltip=_("Threshold is an algorithm used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value."))
         section.addItem(Slider, 'threshold_value', lambda v: self.textureScan.setThresholdValue(int(v)))
 
 class PointCloudGeneration(ExpandablePanel):
