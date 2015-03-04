@@ -328,11 +328,13 @@ class MainWindow(wx.Frame):
         if os.name == 'nt':
             self.driver.camera.setUnplugCallback(None)
             self.driver.disconnect()
-
+            waitCursor = wx.BusyCursor()
 
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
         wx.CallAfter(prefDialog.Show)
+        if os.name == 'nt':
+            del waitCursor
         self.updateDriverProfile()
         self.controlWorkbench.initialize()
         self.calibrationWorkbench.initialize()
