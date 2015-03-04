@@ -197,15 +197,15 @@ class LDRSection(SectionItem):
         self.LDR0 = wx.Button(self, label='LDR 0')
         self.LDR1 = wx.Button(self, label='LDR 1')
 
-        self.response = wx.TextCtrl(self, size=(10,250), style=wx.TE_MULTILINE)
+        self.response = wx.TextCtrl(self, size=(10,40), style=wx.TE_MULTILINE)
 
         #-- Layout
         vbox =wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.LDR0, 0, wx.ALL|wx.EXPAND, 12)
-        hbox.Add(self.LDR1, 0, wx.ALL|wx.EXPAND, 12)
+        hbox.Add(self.LDR0, -1, wx.ALIGN_CENTER, 12)
+        hbox.Add(self.LDR1, -1, wx.ALIGN_CENTER, 12)
         vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 0)
-        vbox.Add(self.response, 1, wx.ALL^wx.LEFT|wx.EXPAND, 12)
+        vbox.Add(self.response, 1, wx.EXPAND, 12)
         self.SetSizer(vbox)
         self.Layout()
 
