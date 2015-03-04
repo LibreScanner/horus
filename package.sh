@@ -50,12 +50,22 @@ function downloadURL
 
 function extract
 {
-	echo "Extracting $*"
-	echo "7z x -y $*" >> log.txt
-	7z x -y $* >> log.txt
-	if [ $? != 0 ]; then
-        echo "Failed to extract $*"
-        exit 1
+	if [ $1 != ${1%%.exe} ] || [ $1 != ${1%%.zip} ] || [ $1 != ${1%%.msi} ]; then
+		echo "Extracting $*"
+		echo "7z x -y $*" >> log.txt
+		7z x -y $* >> log.txt
+		if [ $? != 0 ]; then
+			echo "Failed to extract $*"
+			exit 1
+		fi
+	elif [ $1 != ${1%%.tar.gz} ]; then
+		echo "Extracting $*"
+		echo "tar -zxvf $*" >> log.txt
+		tar -zxvf $* >> log.txt
+		if [ $? != 0 ]; then
+			echo "Failed to extract $*"
+			exit 1
+		fi
 	fi
 }
 
@@ -170,11 +180,12 @@ if [ $BUILD_TARGET = "win32" ]; then
 	downloadURL http://sourceforge.net/projects/pyserial/files/pyserial/2.7/pyserial-2.7.win32.exe
 	downloadURL http://sourceforge.net/projects/comtypes/files/comtypes/0.6.2/comtypes-0.6.2.win32.exe
 	downloadURL http://sourceforge.net/projects/pyopengl/files/PyOpenGL/3.0.1/PyOpenGL-3.0.1.win32.exe
-	downloadURL https://pypi.python.org/packages/any/p/pyparsing/pyparsing-2.0.1.win32-py2.7.exe
+	downloadURL http://pypi.python.org/packages/any/p/pyparsing/pyparsing-2.0.1.win32-py2.7.exe
 	downloadURL http://sourceforge.net/projects/numpy/files/NumPy/1.8.1/numpy-1.8.1-win32-superpack-python2.7.exe
 	downloadURL http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.4.9/opencv-2.4.9.exe
-	downloadURL https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.0/matplotlib-1.3.0.win32-py2.7.exe
+	downloadURL http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.4.0/matplotlib-1.4.0.win32-py2.7.exe
 	downloadURL http://sourceforge.net/projects/scipy/files/scipy/0.14.0/scipy-0.14.0-win32-superpack-python2.7.exe
+	downloadURL https://pypi.python.org/packages/source/s/six/six-1.9.0.tar.gz
 	downloadURL http://videocapture.sourceforge.net/VideoCapture-0.9-5.zip
 	mkdir -p pyglet; cd pyglet;
 	downloadURL http://pyglet.googlecode.com/files/pyglet-1.1.4.msi; cd .. 
@@ -202,7 +213,8 @@ if [ $BUILD_TARGET = "win32" ]; then
 	extract numpy-1.8.1-sse2.exe PLATLIB
 	extract scipy-0.14.0-win32-superpack-python2.7.exe scipy-0.14.0-sse2.exe
 	extract scipy-0.14.0-sse2.exe PLATLIB
-	extract matplotlib-1.3.0.win32-py2.7.exe PLATLIB
+	extract matplotlib-1.4.0.win32-py2.7.exe PLATLIB
+	extract six-1.9.0.tar.gz six-1.9.0/six.py
 	extract opencv-2.4.9.exe opencv/build/python/2.7/x86/cv2.pyd
 	extract VideoCapture-0.9-5.zip VideoCapture-0.9-5/Python27/DLLs/vidcap.pyd
 	cd pyglet; extract pyglet-1.1.4.msi; cd ..
@@ -220,6 +232,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	mv PLATLIB/matplotlib ${TARGET_DIR}/python/Lib
 	touch PLATLIB/mpl_toolkits/__init__.py
 	mv PLATLIB/mpl_toolkits ${TARGET_DIR}/python/Lib
+	mv six-1.9.0/six.py ${TARGET_DIR}/python/Lib
 	mv opencv/build/python/2.7/x86/cv2.pyd ${TARGET_DIR}/python/DLLs
 	mv VideoCapture-0.9-5/Python27/DLLs/vidcap.pyd ${TARGET_DIR}/python/DLLs
 	mv pyglet ${TARGET_DIR}/python/Lib
@@ -228,6 +241,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	rm -rf opencv
 	rm -rf PURELIB
 	rm -rf PLATLIB
+	rm -rf six-1.9.0
 	rm -rf VideoCapture-0.9-5
 	rm -rf Win32
 	rm -rf pyglet
