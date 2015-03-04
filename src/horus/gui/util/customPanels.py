@@ -153,10 +153,7 @@ class ExpandablePanel(wx.Panel):
 
 	def createSection(self, name, title=None, tag=None):
 		section = SectionPanel(self.content, title, tag=tag)
-		if self.hasUndo:
-			section.setUndoCallbacks(self.appendUndo, self.releaseUndo)
-		else:
-			section.setUndoCallbacks(None, self.releaseRestore)
+		section.setUndoCallbacks(self.appendUndo, self.releaseUndo)
 		self.sections.update({name : section})
 		self.contentBox.Add(section, 0, wx.ALL|wx.EXPAND, 5)
 		self.Layout()
@@ -196,12 +193,12 @@ class ExpandablePanel(wx.Panel):
 				self.undoButton.Disable()
 
 	def appendUndo(self, _object):
-		self.undoObjects.append(_object)
+		if self.hasUndo:
+			self.undoObjects.append(_object)
 
 	def releaseUndo(self):
-		self.undoButton.Enable()
-
-	def releaseRestore(self):
+		if self.hasUndo:
+			self.undoButton.Enable()
 		if self.hasRestore:
 			self.restoreButton.Enable()
 
