@@ -78,7 +78,6 @@ class SceneView(openglGui.glGuiPanel):
 		self.viewMode = 'ply'
 
 		self._moveVertical = False
-		self._offset = 0
 
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
@@ -157,23 +156,28 @@ class SceneView(openglGui.glGuiPanel):
 			self._object = None
 			gc.collect()
 
-			self._offset = 0
 			newZoom = numpy.max(self._machineSize)
 			self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
 			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
 
 	def _selectObject(self, obj, zoom = True):
-		self._offset = 0
 		if obj != self._selectedObj:
 			self._selectedObj = obj
 			self.updateModelSettingsToControls()
-		if zoom and obj is not None:
-			newViewPos = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2])
-			self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
-			newZoom = obj.getBoundaryCircle() * 6
+
+		if zoom:
+			if self._selectedObj is None:
+				newViewPos = numpy.array([0,0,0], numpy.float32)
+				newZoom = 300
+			else:
+				newViewPos = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2])
+				newZoom = obj.getBoundaryCircle() * 6
+			
 			if newZoom > numpy.max(self._machineSize) * 3:
 				newZoom = numpy.max(self._machineSize) * 3
+
 			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
+			self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
 	def updateProfileToControls(self):
 		self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')])
@@ -203,7 +207,7 @@ class SceneView(openglGui.glGuiPanel):
 				if self._zoom > numpy.max(self._machineSize) * 3:
 					self._zoom = numpy.max(self._machineSize) * 3
 			elif wx.GetKeyState(wx.WXK_CONTROL):
-				self._offset += 5
+				self._viewTarget[2] += 5
 			else:
 				self._pitch -= 15
 			self.QueueRefresh()
@@ -213,7 +217,7 @@ class SceneView(openglGui.glGuiPanel):
 				if self._zoom < 1:
 					self._zoom = 1
 			elif wx.GetKeyState(wx.WXK_CONTROL):
-				self._offset -= 5
+				self._viewTarget[2] -= 5
 			else:
 				self._pitch += 15
 			self.QueueRefresh()
@@ -353,7 +357,7 @@ class SceneView(openglGui.glGuiPanel):
 		delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
 		delta = max(min(delta,4),-4)
 		if self._moveVertical:
-			self._offset -= 5 * delta
+			self._viewTarget[2] -= 5 * delta
 		else:
 			self._zoom *= 1.0 - delta / 10.0
 			if self._zoom < 1.0:
@@ -500,7 +504,7 @@ class SceneView(openglGui.glGuiPanel):
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
 		glRotate(self._yaw, 0,0,1)
-		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2]-self._offset)
+		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
 
 		self._viewport = glGetIntegerv(GL_VIEWPORT)
 		self._modelMatrix = glGetDoublev(GL_MODELVIEW_MATRIX)
@@ -522,7 +526,7 @@ class SceneView(openglGui.glGuiPanel):
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
 		glRotate(self._yaw, 0,0,1)
-		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2]-self._offset)
+		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
 
 		glStencilFunc(GL_ALWAYS, 1, 1)
 		glStencilOp(GL_INCR, GL_INCR, GL_INCR)
