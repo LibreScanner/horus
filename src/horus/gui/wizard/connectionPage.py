@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: October 2014                                                    #
+# Date: October 2014 - February 2015                                    #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -54,7 +54,7 @@ class ConnectionPage(WizardPage):
         self.autoCheck = calibration.SimpleLaserTriangulation.Instance()
 
         self.connectButton = wx.Button(self.panel, label=_("Connect"))
-        self.settingsButton = wx.Button(self.panel, label=_("Edit preferences"))
+        self.settingsButton = wx.Button(self.panel, label=_("Edit settings"))
 
 
         self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform as shown in the picture and press \"Auto check\""))
@@ -126,8 +126,7 @@ class ConnectionPage(WizardPage):
         self.driver.connect()
 
     def onSettingsButtonClicked(self, event):
-        sa = PreferencesWindow(self)
-
+        SettingsWindow(self)
 
     def beforeConnect(self):
         self.connectButton.Disable()
@@ -273,26 +272,18 @@ class ConnectionPage(WizardPage):
             self.autoCheckButton.Disable()
         self.Layout()
 
-
-
-class PreferencesWindow(wx.Dialog):
+class SettingsWindow(wx.Dialog):
 
     def __init__(self, parent):
-        super(PreferencesWindow, self).__init__(parent, size=(300,330), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
+        super(SettingsWindow, self).__init__(parent, title=_('Settings'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         self.parent = parent
-        self.driver = Driver.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
         self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
         #-- Elements
-        self.text = wx.StaticText(self, label=_('Pattern distance (mm)'))
-        self.textbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
-        self.okButton = wx.Button(self, label=_("OK"))
-        self.text.SetToolTip(wx.ToolTip(_('Distance between the upper edge of the chess row closer to the platform and the platform.')))
-
         luminosity=profile.getProfileSettingObject('luminosity').getType()
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
         self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until coloured lines appear over the chess pattern in the video.')))
@@ -300,67 +291,65 @@ class PreferencesWindow(wx.Dialog):
                                             value=profile.getProfileSetting('luminosity'),
                                             choices=[_(luminosity[0]), _(luminosity[1]), _(luminosity[2])],
                                             style=wx.CB_READONLY)
-
-        img = wx.Image(resources.getPathForImage("pattern_distance.jpg"), wx.BITMAP_TYPE_ANY)
-        img = img.Scale(280, 160, wx.IMAGE_QUALITY_HIGH)
-        self.pattern_image=wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(img))
-
+        tooltip = _('Distance between the upper edge of the chess row closer to the platform and the platform.')
+        self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
+        self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
+        self.patternImage.SetToolTip(wx.ToolTip(tooltip))
+        self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))
+        self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
+        self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
+        self.okButton = wx.Button(self, label=_('OK'))
+        self.okButton.Disable()
+        self.cancelButton = wx.Button(self, label=_('Cancel'))
+        
+        #-- Events
+        self.patternTextbox.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
+        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancel)
+        self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
 
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.luminosityText, 0, wx.ALL|wx.EXPAND, 12)
-        hbox.Add(self.luminosityComboBox, -1, wx.ALL|wx.EXPAND, 12)
-        vbox.Add(hbox, 0, wx.ALL|wx.EXPAND,-1)
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(self.pattern_image, 0, wx.ALL, 10)
-        vbox.Add(hbox1, 0, wx.ALL, -1)
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2.Add(self.text, 0, wx.ALL|wx.EXPAND, 12)
-        hbox2.Add(self.textbox, 0, wx.ALL|wx.EXPAND, 12)
-        vbox.Add(hbox2, 0, wx.ALL|wx.EXPAND,-1)
-        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox3.Add(self.okButton, 0, wx.ALL|wx.EXPAND, 12)
-        vbox.Add(hbox3, 0, wx.ALIGN_CENTER_HORIZONTAL,-1)
+        hbox.Add(self.luminosityText, 0, wx.ALL, 7)
+        hbox.Add(self.luminosityComboBox, 1, wx.ALL, 3)
+        vbox.Add(hbox, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 7)
+        vbox.Add(wx.StaticLine(self), 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 10)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.patternLabel, 0, wx.ALL, 7)
+        hbox.Add(self.patternTextbox, 1, wx.ALL, 3)
+        vbox.Add(hbox, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 10)
+        vbox.Add(self.patternImage, 0, wx.ALL|wx.CENTER, 10)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.cancelButton, 1, wx.ALL, 3)
+        hbox.Add(self.okButton, 1, wx.ALL, 3)
+        vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(vbox)
+        self.Center()
+        self.Fit()
 
-
-
-        self.textbox.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
-        self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
-        self.Bind(wx.EVT_CLOSE, self.onClose)
-        self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
-
-        self.Centre()
         self.ShowModal()
 
-
-
     def onTextBoxChanged(self, event):
-        profile.putProfileSetting('pattern_distance',self.textbox.GetValue())
+        try:
+            value = float(self.patternTextbox.GetValue())
+            if value > 0:
+                self.setPatternDistance(value)
+                self.okButton.Enable()
+        except:
+            self.okButton.Disable()
 
-        self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                   profile.getProfileSettingInteger('pattern_columns'),
-                                                   profile.getProfileSettingInteger('square_width'),
-                                                   profile.getProfileSettingFloat('pattern_distance'))
+    def setPatternDistance(self, patternDistance):
+        profile.putProfileSetting('pattern_distance', patternDistance)
 
-        self.simpleLaserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                           profile.getProfileSettingInteger('pattern_columns'),
-                                                           profile.getProfileSettingInteger('square_width'),
-                                                           profile.getProfileSettingFloat('pattern_distance'))
+        patternRows = profile.getProfileSettingInteger('pattern_rows')
+        patternColumns = profile.getProfileSettingInteger('pattern_columns')
+        squareWidth = profile.getProfileSettingInteger('pattern_columns')
 
-        self.laserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
-
-        self.platformExtrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
-
-    def onClose(self, event):
-        self.Destroy()
+        self.cameraIntrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
+        self.simpleLaserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
+        self.laserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
+        self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
 
     def onLuminosityComboBoxChanged(self, event):
         value = event.GetEventObject().GetValue()
@@ -375,3 +364,10 @@ class PreferencesWindow(wx.Dialog):
         profile.putProfileSetting('exposure_calibration', value)
         profile.putProfileSetting('exposure_scanning', value)
         self.driver.camera.setExposure(value)
+
+    def onCancel(self, event):
+        self.setPatternDistance(0)
+        self.Destroy()
+
+    def onClose(self, event):
+        self.Destroy()
