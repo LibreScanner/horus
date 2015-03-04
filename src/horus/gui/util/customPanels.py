@@ -155,6 +155,8 @@ class ExpandablePanel(wx.Panel):
 		section = SectionPanel(self.content, title, tag=tag)
 		if self.hasUndo:
 			section.setUndoCallbacks(self.appendUndo, self.releaseUndo)
+		else:
+			section.setUndoCallbacks(None, self.releaseRestore)
 		self.sections.update({name : section})
 		self.contentBox.Add(section, 0, wx.ALL|wx.EXPAND, 5)
 		self.Layout()
@@ -198,6 +200,8 @@ class ExpandablePanel(wx.Panel):
 
 	def releaseUndo(self):
 		self.undoButton.Enable()
+
+	def releaseRestore(self):
 		if self.hasRestore:
 			self.restoreButton.Enable()
 
@@ -245,6 +249,8 @@ class SectionPanel(wx.Panel):
 		for item in self.items.values():
 			if isinstance(item, tuple):
 				item[0].resetProfile()
+			else:
+				item.resetProfile()
 
 	def updateProfile(self):
 		scan_type=profile.getProfileSetting('scan_type')

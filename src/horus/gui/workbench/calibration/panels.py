@@ -41,7 +41,7 @@ from horus.engine import scan, calibration
 class PatternSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
-        ExpandablePanel.__init__(self, parent, _("Pattern Settings"))
+        ExpandablePanel.__init__(self, parent, _("Pattern Settings"), hasUndo=False)
 
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
         self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
@@ -102,7 +102,7 @@ class CameraSettingsPanel(ExpandablePanel):
 class LaserSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
-        ExpandablePanel.__init__(self, parent, _("Laser Settings"))
+        ExpandablePanel.__init__(self, parent, _("Laser Settings"), hasUndo=False, hasRestore=False)
 
         self.driver = Driver.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
