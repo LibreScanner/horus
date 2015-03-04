@@ -51,7 +51,7 @@ VERSION = "0.1"
 
 class MainWindow(wx.Frame):
 
-    size = (640+300,480+130)
+    size = (640+300,480+150)
 
     def __init__(self):
         super(MainWindow, self).__init__(None, title=_("Horus " + VERSION + " - Beta"), size=self.size)
