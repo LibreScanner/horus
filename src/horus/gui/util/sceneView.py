@@ -577,13 +577,13 @@ class SceneView(openglGui.glGuiPanel):
 			if obj._mesh is not None:
 				if obj._mesh.vbo is not None:
 					obj._mesh.vbo.release()
-				obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes, colorArray=obj._mesh.colors)
+				obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes[:obj._mesh.vertexCount], colorArray=obj._mesh.colors[:obj._mesh.vertexCount])
 				obj._mesh.vbo.render()
 		else:
 			if obj._mesh is not None:
 				if obj._mesh.vbo is not None:
 					obj._mesh.vbo.release()
-				obj._mesh.vbo = openglHelpers.GLVBO(GL_TRIANGLES, obj._mesh.vertexes, obj._mesh.normal)
+				obj._mesh.vbo = openglHelpers.GLVBO(GL_TRIANGLES, obj._mesh.vertexes[:obj._mesh.vertexCount], obj._mesh.normal[:obj._mesh.vertexCount])
 				if brightness != 0:
 					glColor4fv(map(lambda idx: idx * brightness, self._objColor))
 				obj._mesh.vbo.render()
