@@ -285,12 +285,16 @@ class SettingsWindow(wx.Dialog):
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
         #-- Elements
-        luminosity=profile.getProfileSettingObject('luminosity').getType()
+        _choices = []
+        choices = profile.getProfileSettingObject('luminosity').getType()
+        for i in choices:
+            _choices.append(_(i))
+        self.luminosityDict = dict(zip(_choices, choices))
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
         self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until coloured lines appear over the chess pattern in the video.')))
         self.luminosityComboBox = wx.ComboBox(self, wx.ID_ANY,
-                                            value=profile.getProfileSetting('luminosity'),
-                                            choices=[_(luminosity[0]), _(luminosity[1]), _(luminosity[2])],
+                                            value=_(profile.getProfileSetting('luminosity')),
+                                            choices=_choices,
                                             style=wx.CB_READONLY)
         tooltip = _('Distance between the upper edge of the chess row closer to the platform and the platform.')
         self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
@@ -354,13 +358,13 @@ class SettingsWindow(wx.Dialog):
         self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
 
     def onLuminosityComboBoxChanged(self, event):
-        value = event.GetEventObject().GetValue()
+        value = self.luminosityDict[event.GetEventObject().GetValue()]
         profile.putProfileSetting('luminosity', value)
-        if value ==_("Low"):
+        if value =='Low':
             value = 32
-        elif value ==_("Medium"):
+        elif value =='Medium':
             value = 16
-        elif value ==_("High"):
+        elif value =='High':
             value = 8
         profile.putProfileSetting('exposure_control', value)
         profile.putProfileSetting('exposure_calibration', value)
