@@ -35,6 +35,7 @@ from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
                                         CheckBox, Button, TextBox
 
 from horus.util import profile
+from horus.gui.util.resolutionWindow import ResolutionWindow
 
 from horus.engine.driver import Driver
 from horus.engine.scan import SimpleScan, TextureScan, PointCloudGenerator
@@ -108,6 +109,8 @@ class RotativePlatform(ExpandablePanel):
         section.addItem(TextBox, 'acceleration_scanning', self.setAcceleration)
 
     def setDegrees(self, value):
+        if value != profile.getProfileSetting('step_degrees_scanning'):
+            a=ResolutionWindow(self)
         self.driver.board.setRelativePosition(self.getValueFloat(value))
         self.pcg.setDegrees(self.getValueFloat(value))
 
@@ -147,6 +150,7 @@ class ImageAcquisition(ExpandablePanel):
         self.textureScan = TextureScan.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
 
+        self.last_resolution=profile.getProfileSetting('resolution_scanning')
         self.initialize()
         
     def initialize(self):
@@ -159,8 +163,14 @@ class ImageAcquisition(ExpandablePanel):
         section.addItem(Slider, 'laser_exposure_scanning', self.setLaserExposure, tooltip=_('Length of time a camera sensor is exposed when taking a picture. High values are recommended for poorly lit places.'))
         section.addItem(Slider, 'color_exposure_scanning', self.setColorExposure, tooltip=_('Length of time a camera sensor is exposed when taking a picture. High values are recommended for poorly lit places.'))
         section.addItem(ComboBox, 'framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames to be taken by the camera every second. The value closest to the maximum value of your camera frame rate is recommended.'))
-        section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])), tooltip=_('Size of the image taken by the camera. Greatest resolution is recommended.'))
+        section.addItem(ComboBox, 'resolution_scanning', lambda v: self.setResolution(v), tooltip=_('Size of the image taken by the camera. Greatest resolution is recommended.'))
         section.addItem(CheckBox, 'use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v), tooltip=_("This option allows the lens distortion to be fixed. This process slows the video feed from the camera."))
+
+    def setResolution(self, value):
+        if value !=self.last_resolution:
+            a=ResolutionWindow(self)
+        self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
+        self.last_resolution=profile.getProfileSetting('resolution_scanning')
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:
