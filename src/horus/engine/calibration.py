@@ -203,6 +203,9 @@ class LaserTriangulation(Calibration):
 	def getImage(self):
 		return self.image
 
+	def setImage(self, image):
+		self.image=image
+
 	def _start(self, progressCallback, afterCallback):
 		XL = None
 		XR = None
@@ -722,6 +725,9 @@ class PlatformExtrinsics(Calibration):
 
 	def setPatternDistance(self, distance):
 		self.patternDistance=distance
+
+	def setImage(self, image):
+		self.image=image
 
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
 		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
