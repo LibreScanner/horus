@@ -51,13 +51,13 @@ class CameraControl(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('camera_control')
-        section.addItem(Slider, 'brightness_control', self.driver.camera.setBrightness)
-        section.addItem(Slider, 'contrast_control', self.driver.camera.setContrast)
-        section.addItem(Slider, 'saturation_control', self.driver.camera.setSaturation)
-        section.addItem(Slider, 'exposure_control', self.driver.camera.setExposure)
-        section.addItem(ComboBox, 'framerate_control', lambda v: self.driver.camera.setFrameRate(int(v)))
-        section.addItem(ComboBox, 'resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        section.addItem(CheckBox, 'use_distortion_control', self.driver.camera.setUseDistortion, tooltip=_("Use the distortion vector to remove the distortion caused by the camera from the image. This process slows the video feed from the camera."))
+        section.addItem(Slider, 'brightness_control', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places.'))
+        section.addItem(Slider, 'contrast_control', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark coloured objects. High values are better for very light coloured objects.'))
+        section.addItem(Slider, 'saturation_control', self.driver.camera.setSaturation, tooltip=_('Purity of colour. Low values will cause colours to disappear from the image. High values will show an image with very intense colours.'))
+        section.addItem(Slider, 'exposure_control', self.driver.camera.setExposure, tooltip=_('Length of time a camera sensor is exposed when taking a picture. High values are recommended for poorly lit places.'))
+        section.addItem(ComboBox, 'framerate_control', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames to be taken by the camera every second. The value closest to the maximum value of your camera frame rate is recommended.'))
+        section.addItem(ComboBox, 'resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])), tooltip=_('Size of the image taken by the camera. Greatest resolution is recommended.'))
+        section.addItem(CheckBox, 'use_distortion_control', self.driver.camera.setUseDistortion, tooltip=_("This option allows the lens distortion to be fixed. This process slows the video feed from the camera."))
 
 
 class LaserControl(ExpandablePanel):
