@@ -250,9 +250,9 @@ class SectionPanel(wx.Panel):
 				item.resetProfile()
 
 	def updateProfile(self):
-		scan_type=profile.getProfileSetting('scan_type')
+		scanType = profile.getProfileSetting('scan_type')
 		if self.tag != None:
-			if scan_type == self.tag:
+			if scanType == self.tag:
 				self.Show()
 			else:
 				self.Hide()
@@ -296,11 +296,11 @@ class SectionItem(wx.Panel):
 		if profile.getPreferenceBool('basic_mode'):
 			return self.setting.getCategory() is 'basic'
 		else:
-			scan_type=profile.getProfileSetting('scan_type')
+			scanType = profile.getProfileSetting('scan_type')
 			if self.setting.getTag() != None:
-				if scan_type == _("Without Texture"):
-					return self.setting.getTag() == 'no_texture'
-				elif scan_type == _("With Texture"):
+				if scanType == _("Simple Scan"):
+					return self.setting.getTag() == 'simple'
+				elif scanType == _("Texture Scan"):
 					return self.setting.getTag() == 'texture'
 			else:
 				return True

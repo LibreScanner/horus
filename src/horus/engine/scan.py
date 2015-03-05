@@ -232,9 +232,16 @@ class Scan:
 	def _processThread(self, progressCallback, afterCallback):
 		""""""
 		ret = False
+
+		if progressCallback is not None:
+			progressCallback(0)
+
 		while self.runProcess:
 			if not self.inactive:
-				if abs(self.pcg.theta * 180.0 / np.pi) <= 360.0:
+				angle = abs(self.pcg.theta * 180.0 / np.pi)
+				if progressCallback is not None and self.pcg.degrees > 0:
+					progressCallback(angle/self.pcg.degrees, 360.0/self.pcg.degrees)
+				if angle <= 360.0:
 					if not self.imagesQueue.empty():
 						imagesQueueItem = self.imagesQueue.get(timeout=0.1)
 						self.imagesQueue.task_done();
@@ -273,16 +280,13 @@ class Scan:
 
 						end = time.time()
 
-						print "Process end: {0}".format(int((end-begin)*1000))
+						print "Process: {0} ms".format(int((end-begin)*1000))
 				else:
 					if self.generatePointCloud:
 						ret = True
 						self._stopProcess()
 			else:
 				time.sleep(0.1)
-
-		if progressCallback is not None:
-			progressCallback(100)
 
 		if ret:
 			response = (True, None)
@@ -338,13 +342,11 @@ class SimpleScan(Scan):
 
 					#-- Left laser
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						image = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
-						self.imagesQueue.put(('left',image))
+						imageLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
 
 					#-- Right laser
 					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						image = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
-						self.imagesQueue.put(('right',image))
+						imageLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
 
 					##-- Both laser
 					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
@@ -356,10 +358,7 @@ class SimpleScan(Scan):
 						self.driver.board.setLeftLaserOff()
 						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
 
-						self.imagesQueue.put(('both_left',imgLaserLeft))
-						self.imagesQueue.put(('both_right',imgLaserRight))
-
-					print "-- Theta capture: {0}".format(self.theta * 180.0 / np.pi)
+					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
 					self.theta -= self.pcg.degrees * self.pcg.rad
 
 					#-- Move motor
@@ -370,8 +369,17 @@ class SimpleScan(Scan):
 						time.sleep(0.05)
 
 					end = time.time()
-					print "Capture end: {0}".format(int((end-begin)*1000))
-				
+					print "Capture: {0} ms".format(int((end-begin)*1000))
+
+					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+						self.imagesQueue.put(('left',imageLaserLeft))
+
+					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+						self.imagesQueue.put(('right',imageLaserRight))
+
+					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+						self.imagesQueue.put(('both_left',imgLaserLeft))
+						self.imagesQueue.put(('both_right',imgLaserRight))
 				else:
 					if self.generatePointCloud:
 						self._stopCapture()
@@ -556,6 +564,19 @@ class TextureScan(Scan):
 						else:
 							imgLaserRight = None
 
+					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
+					self.theta -= self.pcg.degrees * self.pcg.rad
+
+					#-- Move motor
+					if self.moveMotor:
+						self.driver.board.setRelativePosition(self.pcg.degrees)
+						self.driver.board.moveMotor()
+					else:
+						time.sleep(0.05)
+
+					end = time.time()
+					print "Capture: {0} ms".format(int((end-begin)*1000))
+
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
 						if imgRaw is not None and imgLaserLeft is not None:
 							self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
@@ -568,19 +589,6 @@ class TextureScan(Scan):
 						if imgRaw is not None and imgLaserLeft is not None and imgLaserRight is not None:
 							self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
 							self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
-
-					print "-- Theta: {0}".format(self.theta * 180.0 / np.pi)
-					self.theta -= self.pcg.degrees * self.pcg.rad
-
-					#-- Move motor
-					if self.moveMotor:
-						self.driver.board.setRelativePosition(self.pcg.degrees)
-						self.driver.board.moveMotor()
-					else:
-						time.sleep(0.05)
-
-					end = time.time()
-					print "Capture end: {0}".format(int((end-begin)*1000))
 				else:
 					if self.generatePointCloud:
 						self._stopCapture()
