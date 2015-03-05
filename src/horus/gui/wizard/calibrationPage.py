@@ -224,8 +224,8 @@ class CalibrationPage(WizardPage):
 
 	def updateStatus(self, status):
 		if status:
-			if profile.getPreference('workbench') != 'calibration':
-				profile.putPreference('workbench', 'calibration')
+			if profile.getPreference('workbench') != 'Calibration workbench':
+				profile.putPreference('workbench', 'Calibration workbench')
 				self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			self.calibrateButton.Enable()

@@ -247,8 +247,8 @@ class ConnectionPage(WizardPage):
         if status:
             self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.parent.onBoardUnplugged))
             self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.parent.onCameraUnplugged))
-            #if profile.getPreference('workbench') != 'calibration':
-            profile.putPreference('workbench', 'calibration')
+            #if profile.getPreference('workbench') != 'Calibration workbench':
+            profile.putPreference('workbench', 'Calibration workbench')
             self.GetParent().parent.workbenchUpdate(False)
             self.videoView.play()
             self.connectButton.Disable()

@@ -82,10 +82,6 @@ class MainWindow(wx.Frame):
             if currentVideoId not in videoList:
                 profile.putProfileSetting('camera_id', videoList[0])
 
-        self.workbenchList = {'control'     : _("Control workbench"),
-                              'calibration' : _("Calibration workbench"),
-                              'scanning'    : _("Scanning workbench")}
-
         self.lastFiles = eval(profile.getPreference('last_files'))
 
         print ">>> Horus " + VERSION + " <<<"
@@ -155,11 +151,16 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench = ScanningWorkbench(self)
         self.calibrationWorkbench = CalibrationWorkbench(self)
 
+        _choices = []
+        choices = profile.getProfileSettingObject('workbench').getType()
+        for i in choices:
+            _choices.append(_(i))
+        self.workbenchDict = dict(zip(_choices, choices))
+
         for workbench in [self.controlWorkbench, self.calibrationWorkbench, self.scanningWorkbench]:
             workbench.combo.Clear()
-            workbench.combo.Append(self.workbenchList['control'])
-            workbench.combo.Append(self.workbenchList['calibration'])
-            workbench.combo.Append(self.workbenchList['scanning'])
+            for i in choices:
+                workbench.combo.Append(_(i))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.controlWorkbench, 1, wx.ALL|wx.EXPAND)
@@ -408,17 +409,10 @@ class MainWindow(wx.Frame):
 
     def onComboBoxWorkbenchSelected(self, event):
         """ """
-        currentWorkbench = profile.getPreference('workbench')
-        for key in self.workbenchList:
-            # print self.workbenchList[key]
-            # print event.GetEventObject().GetValue().encode("utf-8")
-
-            if self.workbenchList[key].encode("utf-8") == event.GetEventObject().GetValue().encode("utf-8"):
-                if key is not None:
-                    profile.putPreference('workbench', key)
-                    if key != currentWorkbench:
-                        profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
-                self.workbenchUpdate()
+        if _(profile.getPreference('workbench')) != event.GetEventObject().GetValue():
+            profile.putPreference('workbench', self.workbenchDict[event.GetEventObject().GetValue()])
+            profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
+            self.workbenchUpdate()
 
     def onAbout(self, event):
         """ """
@@ -636,21 +630,18 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.getPreference('workbench')
 
-        wb = {'control'     : self.controlWorkbench,
-              'calibration' : self.calibrationWorkbench,
-              'scanning'    : self.scanningWorkbench}
+        wb = {'Control workbench'     : self.controlWorkbench,
+              'Calibration workbench' : self.calibrationWorkbench,
+              'Scanning workbench'    : self.scanningWorkbench}
 
         waitCursor = wx.BusyCursor()
 
-        self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
-        self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
-        self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
+        self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'Scanning workbench')
+        self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'Scanning workbench')
+        self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'Scanning workbench')
 
-        for key in wb:
-            if wb[key] is not None:
-                if key == currentWorkbench:
-                    wb[key].updateProfileToAllControls()
-                    wb[key].combo.SetValue(str(self.workbenchList[key].encode("utf-8")))
+        wb[currentWorkbench].updateProfileToAllControls()
+        wb[currentWorkbench].combo.SetValue(_(currentWorkbench))
 
         if layout:
             for key in wb:
