@@ -92,11 +92,19 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.splitterWindow = wx.SplitterWindow(self._panel)
 
 		self.videoView = VideoView(self.splitterWindow, self.getFrame, 10)
-		self.sceneView = SceneView(self.splitterWindow)
 		self.videoView.SetBackgroundColour(wx.BLACK)
-		self.sceneView.SetBackgroundColour(wx.BLACK)
 
-		self.splitterWindow.SplitVertically(self.videoView, self.sceneView)
+		self.scenePanel = wx.Panel(self.splitterWindow)
+		self.sceneView = SceneView(self.scenePanel)
+		self.gauge = wx.Gauge(self.scenePanel, size=(-1, 30))
+		self.gauge.Hide()
+
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		vbox.Add(self.sceneView, 1, wx.ALL|wx.EXPAND, 0)
+		vbox.Add(self.gauge, 0, wx.ALL|wx.EXPAND, 0)
+		self.scenePanel.SetSizer(vbox)
+
+		self.splitterWindow.SplitVertically(self.videoView, self.scenePanel)
 		self.splitterWindow.SetMinimumPaneSize(200)
 
 		#-- Layout
@@ -193,7 +201,10 @@ class ScanningWorkbench(WorkbenchConnection):
 				elif value == _("With Texture"):
 					self.currentScan = self.textureScan
 					self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
-				self.currentScan.setCallbacks(self.beforeScan, None, lambda r: wx.CallAfter(self.afterScan,r))
+				self.gauge.SetValue(0)
+				self.gauge.Show()
+				self.Layout()
+				self.currentScan.setCallbacks(self.beforeScan, self.progressScan, lambda r: wx.CallAfter(self.afterScan,r))
 				self.currentScan.start()
 
 	def beforeScan(self):
@@ -214,6 +225,10 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), False)
 		self.pointCloudTimer.Start(milliseconds=50)
+
+	def progressScan(self, progress, range=100):
+		self.gauge.SetRange(range)
+		self.gauge.SetValue(progress)
 
 	def afterScan(self, response):
 		ret, result = response
@@ -257,6 +272,8 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
 		self.pointCloudTimer.Stop()
+		self.gauge.Hide()
+		self.Layout()
 
 	def onPauseToolClicked(self, event):
 		self.enableLabelTool(self.pauseTool , False)

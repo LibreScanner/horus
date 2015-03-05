@@ -386,20 +386,20 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench.splitterWindow.Unsplit()
         if checkedVideo:
             self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.sceneView)
+            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
             if checkedScene:
-                self.scanningWorkbench.sceneView.Show()
+                self.scanningWorkbench.scenePanel.Show()
             else:
-                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.scenePanel.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
         else:
             self.scanningWorkbench.videoView.Hide()
             if checkedScene:
-                self.scanningWorkbench.sceneView.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.sceneView, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.scenePanel.Show()
+                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
                 self.scanningWorkbench.splitterWindow.Unsplit()
             else:
-                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.scenePanel.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
 
         self.scanningWorkbench.splitterWindow.Layout()
@@ -523,20 +523,20 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.scanningWorkbench.splitterWindow.Unsplit()
         if checkedVideo:
             self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.sceneView)
+            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
             if checkedScene:
-                self.scanningWorkbench.sceneView.Show()
+                self.scanningWorkbench.scenePanel.Show()
             else:
-                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.scenePanel.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
         else:
             self.scanningWorkbench.videoView.Hide()
             if checkedScene:
-                self.scanningWorkbench.sceneView.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.sceneView, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.scenePanel.Show()
+                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
                 self.scanningWorkbench.splitterWindow.Unsplit()
             else:
-                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.scenePanel.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
 
         self.updateDriverProfile()
