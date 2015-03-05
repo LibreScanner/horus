@@ -726,6 +726,9 @@ class PlatformExtrinsics(Calibration):
 	def setPatternDistance(self, distance):
 		self.patternDistance=distance
 
+	def setImage(self, image):
+		self.image=image
+
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
 		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
 		self.patternRows = columns

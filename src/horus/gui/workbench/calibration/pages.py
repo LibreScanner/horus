@@ -745,6 +745,8 @@ class PlatformExtrinsicsMainPage(Page):
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
+		self.onCalibration=False
+
 		self.afterCancelCallback = afterCancelCallback
 		self.afterCalibrationCallback = afterCalibrationCallback
 
@@ -782,12 +784,20 @@ class PlatformExtrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.platformExtrinsics.getImage()#self.driver.camera.captureImage()
+
+		if self.onCalibration:
+			frame = self.platformExtrinsics.getImage()
+		else:
+			frame = self.driver.camera.captureImage()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+
 		return frame
 
 	def onCalibrate(self):
+		self.onCalibration=True
+		self.platformExtrinsics.setImage(self.driver.camera.captureImage())
+
 		self.platformExtrinsics.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressCalibration,p),
 											 lambda r: wx.CallAfter(self.afterCalibration,r))
@@ -803,6 +813,7 @@ class PlatformExtrinsicsMainPage(Page):
 
 	def afterCalibration(self, result):
 		self.onCalibrationFinished(result)
+		self.onCalibration=False
 
 	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
@@ -812,6 +823,7 @@ class PlatformExtrinsicsMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
+		self.onCalibration=False
 		self.platformExtrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
