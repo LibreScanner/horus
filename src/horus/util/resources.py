@@ -74,6 +74,6 @@ def setupLocalization(selectedLanguage = None):
 
 def getLanguageOptions():
 	return [
-		['en', 'English'],
-		['es', 'Spanish']
+		['en', u'English'],
+		['es', u'Español']
 	]

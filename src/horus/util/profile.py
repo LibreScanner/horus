@@ -204,7 +204,7 @@ setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic'
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
 
-setting('luminosity', _("Medium"), [_("High"), _("Medium"), _("Low")], 'basic', _('Luminosity'))
+setting('luminosity', 'Medium', ['High', 'Medium', 'Low'], 'basic', _('Luminosity'))
 
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
@@ -226,8 +226,8 @@ setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), st
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
 
-setting('scan_type', _("Texture Scan"), [_("Simple Scan"), _("Texture Scan")], 'basic', _('Scan Type'))
-setting('use_laser', _("Right"), [_("Left"), _("Right"), _("Both")], 'basic', _('Use Laser'))
+setting('scan_type', 'Texture Scan', ['Simple Scan', 'Texture Scan'], 'basic', _('Scan Type'))
+setting('use_laser', 'Right', ['Left', 'Right', 'Both'], 'basic', _('Use Laser'))
 setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
 
 setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
@@ -244,7 +244,7 @@ setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('
 setting('resolution_scanning', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
 
-setting('img_type', 'laser', ['laser', 'gray', 'line', 'color'], 'advanced', _('Image Type'))
+setting('img_type', 'Laser', ['Laser', 'Gray', 'Line', 'Color'], 'advanced', _('Image Type'))
 
 setting('use_open', True, bool, 'advanced', _('Use Open'), tag='texture')
 setting('open_value', 2, int, 'advanced', _('Open'), tag='texture').setRange(1, 10)

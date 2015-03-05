@@ -572,10 +572,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                            profile.getProfileSettingNumpy('translation_vector'))
 
             scanType = profile.getProfileSetting('scan_type')
-            if scanType == _("Simple Scan"):
+            if scanType == 'Simple Scan':
                 self.scanningWorkbench.currentScan = self.simpleScan
                 self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
-            elif scanType == _("Texture Scan"):
+            elif scanType == 'Texture Scan':
                 self.scanningWorkbench.currentScan = self.textureScan
                 self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 

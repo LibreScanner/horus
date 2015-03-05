@@ -135,10 +135,10 @@ class Scan:
 		self.imgType = imgType
 
 	def getImage(self, source=None):
-		img = { 'color' : self.imgColor,
-				'laser' : self.imgLaser,
-				'gray' : self.imgGray,
-				'line' : self.imgLine
+		img = { 'Laser' : self.imgLaser,
+				'Gray' : self.imgGray,
+				'Line' : self.imgLine,
+				'Color' : self.imgColor
 			  }[self.imgType]
 		if source!=None:
 			img=source
