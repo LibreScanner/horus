@@ -195,10 +195,10 @@ class ScanningWorkbench(WorkbenchConnection):
 			if result:
 				value = profile.getProfileSetting('scan_type')
 				print value
-				if value == _("Without Texture"):
+				if value == _("Simple Scan"):
 					self.currentScan = self.simpleScan
 					self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
-				elif value == _("With Texture"):
+				elif value == _("Texture Scan"):
 					self.currentScan = self.textureScan
 					self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 				self.gauge.SetValue(0)

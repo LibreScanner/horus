@@ -226,7 +226,7 @@ setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), st
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
 
-setting('scan_type', _("With Texture"), [_("Without Texture"), _("With Texture")], 'basic', _('Scan Type'))
+setting('scan_type', _("Texture Scan"), [_("Simple Scan"), _("Texture Scan")], 'basic', _('Scan Type'))
 setting('use_laser', _("Right"), [_("Left"), _("Right"), _("Both")], 'basic', _('Use Laser'))
 setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
 
@@ -238,7 +238,7 @@ setting('brightness_scanning', 100, int, 'advanced', _('Brightness')).setRange(0
 setting('contrast_scanning', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_scanning', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_scanning', 16, int, 'basic', _('Exposure')).setRange(1, 512)
-setting('laser_exposure_scanning', 6, int, 'basic', _('Exposure'), tag='no_texture').setRange(1, 512)
+setting('laser_exposure_scanning', 6, int, 'basic', _('Exposure'), tag='simple').setRange(1, 512)
 setting('color_exposure_scanning', 10, int, 'basic', _('Exposure'), tag='texture').setRange(1, 512)
 setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
 setting('resolution_scanning', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
@@ -250,8 +250,8 @@ setting('use_open', True, bool, 'advanced', _('Use Open'), tag='texture')
 setting('open_value', 2, int, 'advanced', _('Open'), tag='texture').setRange(1, 10)
 setting('use_threshold', True, bool, 'advanced', _('Use Threshold'), tag='texture')
 setting('threshold_value', 25, int, 'advanced', _('Threshold'), tag='texture').setRange(0, 255)
-setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'), tag='no_texture')
-setting('cr_threshold_value', 140, int, 'advanced', _('Threshold'), tag='no_texture').setRange(0, 255)
+setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'), tag='simple')
+setting('cr_threshold_value', 140, int, 'advanced', _('Threshold'), tag='simple').setRange(0, 255)
 
 setting('view_roi', False, bool, 'advanced', _('View ROI'))
 

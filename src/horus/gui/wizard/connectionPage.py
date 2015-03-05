@@ -278,6 +278,7 @@ class SettingsWindow(wx.Dialog):
         super(SettingsWindow, self).__init__(parent, title=_('Settings'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         self.parent = parent
+        self.driver = Driver.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
         self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
@@ -303,6 +304,7 @@ class SettingsWindow(wx.Dialog):
         self.cancelButton = wx.Button(self, label=_('Cancel'))
         
         #-- Events
+        self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
         self.patternTextbox.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancel)
         self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
