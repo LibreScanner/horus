@@ -203,6 +203,9 @@ class LaserTriangulation(Calibration):
 	def getImage(self):
 		return self.image
 
+	def setImage(self, image):
+		self.image=image
+
 	def _start(self, progressCallback, afterCallback):
 		XL = None
 		XR = None

@@ -333,6 +333,9 @@ class LaserTriangulationMainPage(Page):
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 
+
+		self.onCalibration=False
+
 		self.afterCancelCallback = afterCancelCallback
 		self.afterCalibrationCallback = afterCalibrationCallback
 
@@ -370,12 +373,19 @@ class LaserTriangulationMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.laserTriangulation.getImage()
+		if self.onCalibration:
+			frame = self.laserTriangulation.getImage()
+		else:
+			frame = self.driver.camera.captureImage()
+
 		#if frame is not None:
 		#	retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onCalibrate(self):
+		self.onCalibration=True
+		self.laserTriangulation.setImage(self.driver.camera.captureImage())
+
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressCalibration,p),
 											 lambda r: wx.CallAfter(self.afterCalibration,r))
@@ -391,6 +401,7 @@ class LaserTriangulationMainPage(Page):
 
 	def afterCalibration(self, result):
 		self.onCalibrationFinished(result)
+		self.onCalibration=False
 
 	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
@@ -400,6 +411,7 @@ class LaserTriangulationMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
+		self.onCalibration=False
 		self.laserTriangulation.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
