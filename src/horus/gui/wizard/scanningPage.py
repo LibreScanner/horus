@@ -117,6 +117,7 @@ class ScanningPage(WizardPage):
 			value = -0.9
 		elif value ==_("Low"):
 			value = -1.8
+
 		profile.putProfileSetting('step_degrees_scanning', value)
 		self.pcg.setDegrees(value)
 

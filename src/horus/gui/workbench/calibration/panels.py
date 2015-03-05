@@ -32,6 +32,7 @@ import numpy as np
 
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
                                         CheckBox, ToggleButton, Button, TextBox
+from horus.gui.util.resolutionWindow import ResolutionWindow
 
 from horus.util import profile
 
@@ -85,6 +86,7 @@ class CameraSettingsPanel(ExpandablePanel):
 
         self.driver = Driver.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
+        self.last_resolution=profile.getProfileSetting('resolution_calibration')
 
         self.initialize()
 
@@ -96,8 +98,14 @@ class CameraSettingsPanel(ExpandablePanel):
         section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation, tooltip=_('Purity of colour. Low values will cause colours to disappear from the image. High values will show an image with very intense colours.'))
         section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure, tooltip=_('Length of time a camera sensor is exposed when taking a picture. High values are recommended for poorly lit places.'))
         section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames to be taken by the camera every second. The value closest to the maximum value of your camera frame rate is recommended.'))
-        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])), tooltip=_('Size of the image taken by the camera. Greatest resolution is recommended.'))
+        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.setResolution(v), tooltip=_('Size of the image taken by the camera. Greatest resolution is recommended.'))
         section.addItem(CheckBox, 'use_distortion_calibration', self.driver.camera.setUseDistortion, tooltip=_("This option allows the lens distortion to be fixed. This process slows the video feed from the camera."))
+
+    def setResolution(self, value):
+        if value !=self.last_resolution:
+            a=ResolutionWindow(self)
+        self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
+        self.last_resolution=profile.getProfileSetting('resolution_calibration')
 
 class LaserSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
