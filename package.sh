@@ -16,6 +16,7 @@ EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
 VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | head -1`
+VEXT=${VEXT:=""}
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
 
 ##Which versions of external programs to use
@@ -141,15 +142,18 @@ if [ $BUILD_TARGET = "debian" ]; then
 		elif [ $EXTRA_ARGS = "-u" ]; then
 			# Upload to launchpad
 			debuild -S -sa
-			PPA=ppa:jesus-arroyo/horus
+			PPA=${PPA:="ppa:jesus-arroyo/horus"}
 			RELEASES="trusty utopic"
 			ORIG_RELEASE=`head -1 pkg/linux/debian/changelog | sed 's/.*) \(.*\);.*/\1/'`
+			cd .. ; mv horus-${VERSION} horus-${VERSION}${VEXT}
+			mv horus_${VERSION}.orig.tar.gz horus_${VERSION}${VEXT}.orig.tar.gz
+			cd horus-${VERSION}${VEXT}
 			for RELEASE in $RELEASES ;
 			do
 			  cp debian/changelog debian/changelog.backup
-			  sed -i "s/${ORIG_RELEASE}/${RELEASE}/;s/bq1/bq1~${RELEASE}1/" debian/changelog
+			  sed -i "s/${ORIG_RELEASE}/${RELEASE}/;s/${VERSION}/${VERSION}${VEXT}/;s/bq1/bq1~${RELEASE}1/" debian/changelog
 			  debuild -S -sa
-			  dput -f ${PPA} ../horus_${VERSION}-bq1~${RELEASE}1_source.changes
+			  dput -f ${PPA} ../horus_${VERSION}${VEXT}-bq1~${RELEASE}1_source.changes
 			  mv debian/changelog.backup debian/changelog
 			done
 		fi
