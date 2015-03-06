@@ -225,7 +225,7 @@ class CameraIntrinsicsResultPage(Page):
 			self.Layout()
 		else:
 			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 
@@ -464,7 +464,7 @@ class LaserTriangulationResultPage(Page):
 			self.Layout()
 		else:
 			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 
@@ -688,7 +688,7 @@ class SimpleLaserTriangulationResultPage(Page):
 			self.Layout()
 		else:
 			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 
@@ -871,7 +871,7 @@ class PlatformExtrinsicsResultPage(Page):
 			self.Layout()
 		else:
 			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 

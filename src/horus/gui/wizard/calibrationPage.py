@@ -175,7 +175,7 @@ class CalibrationPage(WizardPage):
 		else:
 			if result == Error.CalibrationError:
 				self.resultLabel.SetLabel(_("Error in lasers: please connect the lasers and try again"))
-				dlg = wx.MessageDialog(self, _("Laser Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Laser Calibration failed. Please try again"), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 				self.skipButton.Enable()
@@ -195,7 +195,7 @@ class CalibrationPage(WizardPage):
 		else:
 			if result == Error.CalibrationError:
 				self.resultLabel.SetLabel(_("Error in pattern: please check the pattern and try again"))
-				dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Platform Calibration failed. Please try again"), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 
