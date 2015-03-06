@@ -164,20 +164,20 @@ class Scan:
 		img = img.copy()
 		#upper ellipse
 		if (center_up_v<self.pcg.cy):
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0,0,255), thickness)
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0,0,255), thickness_hiden)
+			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0, 100, 200), thickness)
+			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0, 100, 200), thickness_hiden)
 		else:
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0,0,255), thickness)
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0,0,255), thickness)
+			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0, 100, 200), thickness)
+			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0, 100, 200), thickness)
 
 		#lower ellipse
-		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 180, 360, (0,0,255), thickness_hiden)
-		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 0, 180, (0,0,255), thickness)
+		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 180, 360, (0, 100, 200), thickness_hiden)
+		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 0, 180, (0, 100, 200), thickness)
 
 		#cylinder lines
 
-		cv2.line(img, (self.pcg.no_trimmed_umin, center_up_v), (self.pcg.no_trimmed_umin, center_down_v), (0,0,255),thickness)
-		cv2.line(img, (self.pcg.no_trimmed_umax, center_up_v), (self.pcg.no_trimmed_umax, center_down_v), (0,0,255),thickness)
+		cv2.line(img, (self.pcg.no_trimmed_umin, center_up_v), (self.pcg.no_trimmed_umin, center_down_v), (0, 100, 200),thickness)
+		cv2.line(img, (self.pcg.no_trimmed_umax, center_up_v), (self.pcg.no_trimmed_umax, center_down_v), (0, 100, 200),thickness)
 
 		#view center
 		if axes_up[0]<=0 or axes_up[1] <=0:
@@ -187,9 +187,9 @@ class Scan:
 			axes_up_center=(20,axes_up[1]*20/axes_up[0])
 			axes_down_center=(20,axes_down[1]*20/axes_down[0])
 		#upper center
-		cv2.ellipse(img, (self.pcg.center_u, min(center_up_v, self.pcg.center_v) ), axes_up_center, 0, 0, 360, (255,0,0), -1)
+		cv2.ellipse(img, (self.pcg.center_u, min(center_up_v, self.pcg.center_v) ), axes_up_center, 0, 0, 360, (0, 70, 120), -1)
 		#lower center
-		cv2.ellipse(img, (self.pcg.center_u, self.pcg.center_v), axes_down_center, 0, 0, 360, (255,0,0), -1)
+		cv2.ellipse(img, (self.pcg.center_u, self.pcg.center_v), axes_down_center, 0, 0, 360, (0, 70, 120), -1)
 
 		return img
 
@@ -749,7 +749,6 @@ class PointCloudGenerator:
 			top = bottom + np.matrix([0,0,self.roiHeight]).T
 			data = np.concatenate((bottom, top), axis=1)
 
-
 			#-- Camera system
 			data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
 
@@ -778,13 +777,10 @@ class PointCloudGenerator:
 			self.no_trimmed_vmin = int(round(np.min(v)))
 			self.no_trimmed_vmax = int(round(np.max(v)))
 
-
 			self.umin = max(umin, 0)
 			self.umax = min(umax, self.width)
 			self.vmin = max(vmin, 0)
 			self.vmax = min(vmax, self.height)
-
-
 
 	def calculateCenter(self):
 		#-- Platform system

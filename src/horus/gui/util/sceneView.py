@@ -64,6 +64,7 @@ class SceneView(openglGui.glGuiPanel):
 		self._mouseX = -1
 		self._mouseY = -1
 		self._mouseState = None
+		self._mouse3Dpos = numpy.array([0,0,0], numpy.float32)
 		self._viewTarget = numpy.array([0,0,0], numpy.float32)
 		self._animView = None
 		self._animZoom = None
@@ -91,6 +92,12 @@ class SceneView(openglGui.glGuiPanel):
 			self.Layout()
 
 	def __del__(self):
+		if self._objectShader is not None:
+			self._objectShader.release()
+		if self._objectShaderNoLight is not None:
+			self._objectShaderNoLight.release()
+		if self._objectLoadShader is not None:
+			self._objectLoadShader.release()
 		if self._object is not None:
 			if self._object._mesh is not None:
 				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
@@ -655,7 +662,7 @@ class SceneView(openglGui.glGuiPanel):
 			quadric=gluNewQuadric();
 			gluQuadricNormals(quadric, GLU_SMOOTH);
 			gluQuadricTexture(quadric, GL_TRUE);
-			glColor4ub(255, 0, 0, 255)
+			glColor4ub(0, 100, 200, 150)
 			#lower center:
 			gluCylinder(quadric,6,6,1,32,16);
 			gluDisk(quadric, 0.0, 6, 32, 1); 
