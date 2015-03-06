@@ -230,6 +230,5 @@ class PreferencesDialog(wx.Dialog):
 	def onLanguageComboChanged(self, event):
 		if profile.getPreference('language') is not self.languageCombo.GetValue():
 			profile.putPreference('language', self.languageCombo.GetValue())
-			resources.setupLocalization(profile.getPreference('language'))
 			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
 

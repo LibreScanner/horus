@@ -181,7 +181,7 @@ class SceneView(openglGui.glGuiPanel):
 
 	def updateProfileToControls(self):
 		self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')])
-		self._objColor = profile.getPreferenceColour('model_colour')
+		self._objColor = profile.getPreferenceColor('model_color')
 		self.updateModelSettingsToControls()
 
 	def updateModelSettingsToControls(self):

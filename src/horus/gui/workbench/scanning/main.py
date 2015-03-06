@@ -117,18 +117,17 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.addToPanel(self.splitterWindow, 1)
 
 		#- Video View Selector
+		_choices = []
+		choices = profile.getProfileSettingObject('img_type').getType()
+		for i in choices:
+			_choices.append(_(i))
+		self.videoViewsDict = dict(zip(_choices, choices))
+
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
-		self.comboVideoViews = wx.ComboBox(self.videoView, choices=[_("Laser"), _("Gray"), _("Line"), _("Color")], style=wx.CB_READONLY, pos=(60,10))
+		self.comboVideoViews = wx.ComboBox(self.videoView, value=_(profile.getProfileSetting('img_type')), choices=_choices, style=wx.CB_READONLY, pos=(60,10))
 
 		self.buttonShowVideoViews.Hide()
 		self.comboVideoViews.Hide()
-
-		selectedView = {'laser' : _("Laser"),
-						'gray'  : _("Gray"),
-						'line'  : _("Line"),
-						'color' : _("Color")}
-
-		self.comboVideoViews.SetValue(selectedView[profile.getProfileSetting('img_type')])
 
 		self.buttonShowVideoViews.Bind(wx.EVT_BUTTON, self.onShowVideoViews)
 		self.comboVideoViews.Bind(wx.EVT_COMBOBOX, self.onComboBoVideoViewsSelect)
@@ -158,13 +157,9 @@ class ScanningWorkbench(WorkbenchConnection):
 			self.comboVideoViews.Hide()
 
 	def onComboBoVideoViewsSelect(self, event):
-		selectedView = {_("Laser") : 'laser',
-						_("Gray")  : 'gray',
-						_("Line")  : 'line',
-						_("Color") : 'color'}.get(self.comboVideoViews.GetValue())
-
-		self.currentScan.setImageType(selectedView)
-		profile.putProfileSetting('img_type', selectedView)
+		value = self.videoViewsDict[self.comboVideoViews.GetValue()]
+		self.currentScan.setImageType(value)
+		profile.putProfileSetting('img_type', value)
 
 	def getFrame(self):
 		if self.scanning:
@@ -195,12 +190,10 @@ class ScanningWorkbench(WorkbenchConnection):
 			if result:
 				value = profile.getProfileSetting('scan_type')
 				print value
-				if value == _("Simple Scan"):
+				if value == 'Simple Scan':
 					self.currentScan = self.simpleScan
-					self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
-				elif value == _("Texture Scan"):
+				elif value == 'Texture Scan':
 					self.currentScan = self.textureScan
-					self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 				self.gauge.SetValue(0)
 				self.gauge.Show()
 				self.Layout()
@@ -261,7 +254,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
-		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
 		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
@@ -298,4 +290,3 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def updateProfileToAllControls(self):
 		self.controls.updateProfile()
-		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))

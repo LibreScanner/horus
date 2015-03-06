@@ -28,21 +28,12 @@ __author__ = "Irene Sanz Nieto <irene.sanz@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
 import wx._core
-from horus.util import profile, resources
-
-from horus.engine import calibration
 
 
 class ResolutionWindow(wx.Dialog):
 
     def __init__(self, parent):
-        super(ResolutionWindow, self).__init__(parent, title=_('Pattern distance'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
-
-        self.parent = parent
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
-        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+        super(ResolutionWindow, self).__init__(parent, title=_('Resolution updated'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         #-- Elements
         self.description = wx.StaticText(self, label=_('WARNING: if you change the resolution, you need to calibrate again!'))

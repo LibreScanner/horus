@@ -298,9 +298,9 @@ class SectionItem(wx.Panel):
 		else:
 			scanType = profile.getProfileSetting('scan_type')
 			if self.setting.getTag() != None:
-				if scanType == _("Simple Scan"):
+				if scanType == 'Simple Scan':
 					return self.setting.getTag() == 'simple'
-				elif scanType == _("Texture Scan"):
+				elif scanType == 'Texture Scan':
 					return self.setting.getTag() == 'texture'
 			else:
 				return True
@@ -419,22 +419,24 @@ class Slider(SectionItem):
 
 
 class ComboBox(SectionItem):
-	def __init__(self, parent, name, engineCallback=None, dropdown= None):
+	def __init__(self, parent, name, engineCallback=None, dropdown=None):
 		""" """
 		SectionItem.__init__(self, parent, name, engineCallback)
-		_choices=self.setting.getType()
-		choices=[]
+
+		_choices = []
+		choices = self.setting.getType()
 		if dropdown != None:
-			for i in _choices:
-				choices.append(_(i))
+			for i in choices:
+				_choices.append(_(i))
 		else: 
-			choices = _choices
+			_choices = choices
+		self.keyDict = dict(zip(_choices, choices))
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
 		self.control = wx.ComboBox(self, wx.ID_ANY,
-								   value=profile.getProfileSetting(self.name),
-								   choices=choices,
+								   value=_(profile.getProfileSetting(self.name)),
+								   choices=_choices,
 								   size=(150, -1),
 								   style=wx.CB_READONLY)
 
@@ -449,7 +451,7 @@ class ComboBox(SectionItem):
 
 	def onComboBoxChanged(self, event):
 		self.undoValues.append(profile.getProfileSetting(self.name))
-		value = self.control.GetValue()
+		value = self.keyDict[self.control.GetValue()]
 		profile.putProfileSetting(self.name, value)
 		self._updateEngine(value)
 		if self.appendUndoCallback is not None:
@@ -459,7 +461,7 @@ class ComboBox(SectionItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = profile.getProfileSetting(self.name)
+			value = _(profile.getProfileSetting(self.name))
 			self.update(value)
 
 

@@ -39,6 +39,29 @@ from horus.util import profile
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
+
+class CameraSettingsPanel(ExpandablePanel):
+    def __init__(self, parent):
+        """"""
+        ExpandablePanel.__init__(self, parent, _("Camera Settings"))
+
+        self.driver = Driver.Instance()
+        self.main = self.GetParent().GetParent().GetParent().GetParent()
+
+        self.initialize()
+
+    def initialize(self):
+        self.clearSections()
+        section = self.createSection('camera_settings')
+        section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+        section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+        section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation, tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
+        section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure, tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+        section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
+        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])), tooltip=_('Size of the video. Maximum resolution is recommended'))
+        section.addItem(CheckBox, 'use_distortion_calibration', lambda v: self.driver.camera.setUseDistortion(v), tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
+
+
 class PatternSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
@@ -55,9 +78,9 @@ class PatternSettingsPanel(ExpandablePanel):
         self.clearSections()
         section = self.createSection('pattern_settings')
         section.addItem(TextBox, 'square_width', lambda v: self.updatePatternParameters())
-        section.addItem(TextBox, 'pattern_rows', lambda v: self.updatePatternParameters(), tooltip=_('Number of rows formed by the interior pattern vertex of the pattern.'))
-        section.addItem(TextBox, 'pattern_columns', lambda v: self.updatePatternParameters(), tooltip=_('Number of columns formed by the pattern vertex of the pattern.'))
-        section.addItem(TextBox, 'pattern_distance', lambda v: self.updatePatternParameters(), tooltip=_('Distance between the upper edge of the first square on the left of the closest to the rotatory platform and the rotatory platform.'))
+        section.addItem(TextBox, 'pattern_rows', lambda v: self.updatePatternParameters(), tooltip=_('Number of corner rows in the pattern'))
+        section.addItem(TextBox, 'pattern_columns', lambda v: self.updatePatternParameters(), tooltip=_('Number of corner columns in the pattern'))
+        section.addItem(TextBox, 'pattern_distance', lambda v: self.updatePatternParameters(), tooltip=_("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface"))
 
     def updatePatternParameters(self):
         self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
@@ -79,6 +102,7 @@ class PatternSettingsPanel(ExpandablePanel):
                                                      profile.getProfileSettingInteger('square_width'),
                                                      profile.getProfileSettingFloat('pattern_distance'))
 
+
 class CameraSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
@@ -86,26 +110,27 @@ class CameraSettingsPanel(ExpandablePanel):
 
         self.driver = Driver.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
-        self.last_resolution=profile.getProfileSetting('resolution_calibration')
+        self.last_resolution = profile.getProfileSetting('resolution_calibration')
 
         self.initialize()
 
     def initialize(self):
         self.clearSections()
         section = self.createSection('camera_settings')
-        section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places.'))
-        section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark coloured objects. High values are better for very light coloured objects.'))
-        section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation, tooltip=_('Purity of colour. Low values will cause colours to disappear from the image. High values will show an image with very intense colours.'))
-        section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure, tooltip=_('Length of time a camera sensor is exposed when taking a picture. High values are recommended for poorly lit places.'))
-        section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames to be taken by the camera every second. The value closest to the maximum value of your camera frame rate is recommended.'))
-        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.setResolution(v), tooltip=_('Size of the image taken by the camera. Greatest resolution is recommended.'))
-        section.addItem(CheckBox, 'use_distortion_calibration', self.driver.camera.setUseDistortion, tooltip=_("This option allows the lens distortion to be fixed. This process slows the video feed from the camera."))
+        section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+        section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+        section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation, tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
+        section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure, tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+        section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
+        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.setResolution(v), tooltip=_('Size of the video. Maximum resolution is recommended'))
+        section.addItem(CheckBox, 'use_distortion_calibration', lambda v: self.driver.camera.setUseDistortion(v), tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
 
     def setResolution(self, value):
-        if value !=self.last_resolution:
-            a=ResolutionWindow(self)
+        if value != self.last_resolution:
+            ResolutionWindow(self)
         self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
-        self.last_resolution=profile.getProfileSetting('resolution_calibration')
+        self.last_resolution = profile.getProfileSetting('resolution_calibration')
+
 
 class LaserSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
@@ -120,7 +145,7 @@ class LaserSettingsPanel(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('laser_settings')
-        # section.addItem(Slider, 'laser_threshold_value', self.laserTriangulation.setThreshold, tooltip=_("Value that determines wich pixels belong to the laser and which to the rest of the image. A low value may cause noise errors on the final scanned model, and a high value may reduce its accuracy."))
+        # section.addItem(Slider, 'laser_threshold_value', self.laserTriangulation.setThreshold)
         section.addItem(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
         section.addItem(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
 
@@ -136,7 +161,6 @@ class CalibrationPanel(ExpandablePanel):
         self.parametersBox = wx.BoxSizer(wx.VERTICAL)
         self.buttonsPanel = wx.Panel(self.content)
         self.SetToolTip(wx.ToolTip(description))
-
 
         self.buttonEdit = wx.ToggleButton(self.buttonsPanel, wx.NewId(), label=_("Edit"))
         self.buttonEdit.SetMinSize((0,-1))
@@ -174,7 +198,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Camera Intrinsics"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration acquire the camera internal parameters: Focal length, Optical centre and the Lens distortion."))
+                                  description=_("This calibration acquires the camera intrinsic parameters (focal lenghts and optical centers) and the lens distortion"))
 
         self.driver = Driver.Instance()
         self.pcg = scan.PointCloudGenerator.Instance()
@@ -321,7 +345,7 @@ class LaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration determines the lasers' planes relative to the camera's coordinate system."))
+                                  description=_("This calibration determines the lasers' planes relative to the camera's coordinate system"))
 
         self.pcg = scan.PointCloudGenerator.Instance()
 
@@ -506,7 +530,7 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
     def __init__(self, parent, buttonStartCallback):
 
         CalibrationPanel.__init__(self, parent, titleText=_("Laser Simple Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
-                                  description=_("Determines the depth of the intersection camera-laser considering the inclination of the lasers."))
+                                  description=_("This calibration determines the depth of the intersection camera-laser considering the inclination of the lasers"))
 
         self.pcg = scan.PointCloudGenerator.Instance()
 
@@ -678,7 +702,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Platform Extrinsics"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration determines the position and orientation of the rotating platform relative to the camera's coordinate system."))
+                                  description=_("This calibration determines the position and orientation of the rotating platform relative to the camera's coordinate system"))
 
         self.pcg = scan.PointCloudGenerator.Instance()
 
