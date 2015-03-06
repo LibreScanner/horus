@@ -204,6 +204,10 @@ setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic'
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
 
+# Hack to translate combo boxes:
+_('High')
+_('Medium')
+_('Low')
 setting('luminosity', 'Medium', ['High', 'Medium', 'Low'], 'basic', _('Luminosity'))
 
 setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
@@ -226,7 +230,14 @@ setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), st
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
 
+# Hack to translate combo boxes:
+_('Simple Scan')
+_('Texture Scan')
 setting('scan_type', 'Texture Scan', ['Simple Scan', 'Texture Scan'], 'basic', _('Scan Type'))
+# Hack to translate combo boxes:
+_('Left')
+_('Right')
+_('Both')
 setting('use_laser', 'Right', ['Left', 'Right', 'Both'], 'basic', _('Use Laser'))
 setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
 
@@ -244,6 +255,11 @@ setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('
 setting('resolution_scanning', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
 
+# Hack to translate combo boxes:
+_('Laser')
+_('Gray')
+_('Line')
+_('Color')
 setting('img_type', 'Laser', ['Laser', 'Gray', 'Line', 'Color'], 'advanced', _('Image Type'))
 
 setting('use_open', True, bool, 'advanced', _('Use Open'), tag='texture')
@@ -304,6 +320,10 @@ setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden')
 ##-- Preferences
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
+# Hack to translate combo boxes:
+_('Control workbench')
+_('Calibration workbench')
+_('Scanning workbench')
 setting('workbench', 'Scanning workbench', ['Control workbench', 'Calibration workbench', 'Scanning workbench'], 'preference', 'hidden')
 setting('show_welcome', True, bool, 'preference', 'hidden')
 setting('basic_mode', False, bool, 'preference', 'hidden')
