@@ -240,7 +240,7 @@ class LaserTriangulation(Calibration):
 
 				angle += step
 
-				camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning'))
+				camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration'))
 
 				#-- Image acquisition
 				imageRaw = camera.captureImage(flush=True, flushValue=flush)
@@ -253,7 +253,7 @@ class LaserTriangulation(Calibration):
 
 					d, n, corners = ret
 
-					camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning')/2.)
+					camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration')/2.)
 			
 					#-- Image laser acquisition
 					imageRawLeft = camera.captureImage(flush=True, flushValue=flush)
@@ -319,7 +319,7 @@ class LaserTriangulation(Calibration):
 		board.disableMotor()
 
 		#-- Restore camera exposure
-		camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning'))
+		camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration'))
 
 		if self.isCalibrating and nL is not None and nR is not None:
 			response = (True, ((dL, nL, stdL), (dR, nR, stdR)))

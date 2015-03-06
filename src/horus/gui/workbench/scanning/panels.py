@@ -80,8 +80,10 @@ class ScanParameters(ExpandablePanel):
         if not self.main.currentScan.run or self.main.currentScan.inactive:
             if value == 'Simple Scan':
                 self.main.currentScan = self.simpleScan
+                self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
             elif value == 'Texture Scan':
                 self.main.currentScan = self.textureScan
+                self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
         else:
             print "Error: Can not change Scan Type"
 
@@ -155,7 +157,6 @@ class ImageAcquisition(ExpandablePanel):
         section.addItem(Slider, 'brightness_scanning', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
         section.addItem(Slider, 'contrast_scanning', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
         section.addItem(Slider, 'saturation_scanning', self.driver.camera.setSaturation, tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
-        #section.addItem(Slider, 'exposure_scanning', self.driver.camera.setExposure)
         section.addItem(Slider, 'laser_exposure_scanning', self.setLaserExposure, tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
         section.addItem(Slider, 'color_exposure_scanning', self.setColorExposure, tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
         section.addItem(ComboBox, 'framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))

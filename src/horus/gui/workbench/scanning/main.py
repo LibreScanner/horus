@@ -192,10 +192,8 @@ class ScanningWorkbench(WorkbenchConnection):
 				print value
 				if value == 'Simple Scan':
 					self.currentScan = self.simpleScan
-					self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
 				elif value == 'Texture Scan':
 					self.currentScan = self.textureScan
-					self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 				self.gauge.SetValue(0)
 				self.gauge.Show()
 				self.Layout()
@@ -256,7 +254,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
-		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
 		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
@@ -293,4 +290,3 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def updateProfileToAllControls(self):
 		self.controls.updateProfile()
-		self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))

@@ -76,7 +76,7 @@ class ScanningPage(WizardPage):
 		for i in choices:
 			_choices.append(_(i))
 		self.scanTypeDict = dict(zip(_choices, choices))
-		self.scanTypeLabel = wx.StaticText(self.panel, label=_("Scan Type"))
+		self.scanTypeLabel = wx.StaticText(self.panel, label=_('Scan'))
 		scanType = profile.getProfileSettingObject('scan_type').getType()
 		self.scanTypeComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
 											value=_(profile.getProfileSetting('scan_type')),
@@ -149,6 +149,10 @@ class ScanningPage(WizardPage):
 	def onScanTypeComboBoxChanged(self, event):
 		value = self.scanTypeDict[event.GetEventObject().GetValue()]
 		profile.putProfileSetting('scan_type', value)
+		if value == 'Simple Scan':
+			self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+		elif value == 'Texture Scan':
+			self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()

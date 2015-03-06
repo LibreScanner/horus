@@ -153,5 +153,4 @@ class Wizard(wx.Dialog):
             self.parent.updatePCGProfile()
             self.parent.updateCalibrationProfile()
             self.parent.workbenchUpdate()
-            self.driver.camera.setExposure(profile.getProfileSettingInteger('exposure_scanning'))
             self.Destroy()

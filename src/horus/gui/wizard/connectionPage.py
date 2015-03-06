@@ -368,7 +368,6 @@ class SettingsWindow(wx.Dialog):
             value = 8
         profile.putProfileSetting('exposure_control', value)
         profile.putProfileSetting('exposure_calibration', value)
-        profile.putProfileSetting('exposure_scanning', value)
         self.driver.camera.setExposure(value)
 
     def onCancel(self, event):

@@ -233,7 +233,7 @@ setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion
 # Hack to translate combo boxes:
 _('Simple Scan')
 _('Texture Scan')
-setting('scan_type', 'Texture Scan', ['Simple Scan', 'Texture Scan'], 'basic', _('Scan Type'))
+setting('scan_type', 'Texture Scan', ['Simple Scan', 'Texture Scan'], 'basic', _('Scan'))
 # Hack to translate combo boxes:
 _('Left')
 _('Right')
@@ -248,7 +248,6 @@ setting('acceleration_scanning', 300, int, 'advanced', _('Acceleration')).setRan
 setting('brightness_scanning', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_scanning', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_scanning', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_scanning', 16, int, 'basic', _('Exposure')).setRange(1, 512)
 setting('laser_exposure_scanning', 6, int, 'basic', _('Exposure'), tag='simple').setRange(1, 512)
 setting('color_exposure_scanning', 10, int, 'basic', _('Exposure'), tag='texture').setRange(1, 512)
 setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
