@@ -59,7 +59,7 @@ class ScanParameters(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('scan_parameters')
-        section.addItem(ComboBox, 'scan_type', self.setCurrentScan, dropdown=True, tooltip=_("It is possible to scan with texture (the color of the object is extracted, together with it's geometry) or without texture (only the geometry is extracted)."))
+        section.addItem(ComboBox, 'scan_type', self.setCurrentScan, dropdown=True, tooltip=_("Simple Scan algorithm captures only the geometry using one image. Texture Scan algorithm captures also the texture using two images"))
         section.addItem(ComboBox, 'use_laser', self.setUseLaser, dropdown=True)
         if os.name != 'nt':
             section.addItem(CheckBox, 'fast_scan', self.setFastScan)
@@ -151,16 +151,16 @@ class ImageAcquisition(ExpandablePanel):
         
     def initialize(self):
         self.clearSections()
-        section = self.createSection('camera_scanning') #, _("Camera"))
-        section.addItem(Slider, 'brightness_scanning', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places.'))
-        section.addItem(Slider, 'contrast_scanning', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark coloured objects. High values are better for very light coloured objects.'))
-        section.addItem(Slider, 'saturation_scanning', self.driver.camera.setSaturation, tooltip=_('Purity of colour. Low values will cause colours to disappear from the image. High values will show an image with very intense colours.'))
+        section = self.createSection('camera_scanning')
+        section.addItem(Slider, 'brightness_scanning', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+        section.addItem(Slider, 'contrast_scanning', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+        section.addItem(Slider, 'saturation_scanning', self.driver.camera.setSaturation, tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
         #section.addItem(Slider, 'exposure_scanning', self.driver.camera.setExposure)
-        section.addItem(Slider, 'laser_exposure_scanning', self.setLaserExposure, tooltip=_('Length of time a camera sensor is exposed when taking a picture. High values are recommended for poorly lit places.'))
-        section.addItem(Slider, 'color_exposure_scanning', self.setColorExposure, tooltip=_('Length of time a camera sensor is exposed when taking a picture. High values are recommended for poorly lit places.'))
-        section.addItem(ComboBox, 'framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames to be taken by the camera every second. The value closest to the maximum value of your camera frame rate is recommended.'))
-        section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])), tooltip=_('Size of the image taken by the camera. Greatest resolution is recommended.'))
-        section.addItem(CheckBox, 'use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v), tooltip=_("This option allows the lens distortion to be fixed. This process slows the video feed from the camera."))
+        section.addItem(Slider, 'laser_exposure_scanning', self.setLaserExposure, tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+        section.addItem(Slider, 'color_exposure_scanning', self.setColorExposure, tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+        section.addItem(ComboBox, 'framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
+        section.addItem(ComboBox, 'resolution_scanning', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])), tooltip=_('Size of the video. Maximum resolution is recommended'))
+        section.addItem(CheckBox, 'use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v), tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:
@@ -187,12 +187,12 @@ class ImageSegmentation(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('image_segmentation_simple',None, tag='Simple Scan')
-        section.addItem(CheckBox, 'use_cr_threshold', lambda v: self.simpleScan.setUseThreshold(bool(v)), tooltip=_("Threshold is an algorithm used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value."))
+        section.addItem(CheckBox, 'use_cr_threshold', lambda v: self.simpleScan.setUseThreshold(bool(v)), tooltip=_("Threshold is a function used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value"))
         section.addItem(Slider, 'cr_threshold_value', lambda v: self.simpleScan.setThresholdValue(int(v)))
         section = self.createSection('image_segmentation_texture', None, tag='Texture Scan')
-        section.addItem(CheckBox, 'use_open', lambda v: self.textureScan.setUseOpen(bool(v)), tooltip=_("Open is an algorithm used to remove the noise when scanning. The higher its value, the lower the noise but also the lower the detail in the 3D model."))
+        section.addItem(CheckBox, 'use_open', lambda v: self.textureScan.setUseOpen(bool(v)), tooltip=_("Open is an operation used to remove the noise when scanning. The higher its value, the lower the noise but also the lower the detail in the image"))
         section.addItem(Slider, 'open_value', lambda v: self.textureScan.setOpenValue(int(v)))
-        section.addItem(CheckBox, 'use_threshold', lambda v: self.textureScan.setUseThreshold(bool(v)), tooltip=_("Threshold is an algorithm used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value."))
+        section.addItem(CheckBox, 'use_threshold', lambda v: self.textureScan.setUseThreshold(bool(v)), tooltip=_("Threshold is a function used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value"))
         section.addItem(Slider, 'threshold_value', lambda v: self.textureScan.setThresholdValue(int(v)))
 
 class PointCloudGeneration(ExpandablePanel):
@@ -211,13 +211,13 @@ class PointCloudGeneration(ExpandablePanel):
     def initialize(self):
         self.clearSections()
         section = self.createSection('point_cloud_generation')
-        section.addItem(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()), tooltip=_("View the Region Of Interest (ROI). This region is the one being scanned. All information outside it will not be taken into account in the scanning process."))
+        section.addItem(CheckBox, 'view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()), tooltip=_("View the Region Of Interest (ROI). This cylindrical region is the one being scanned. All information outside won't be taken into account during the scanning process"))
 
         section.addItem(Slider, 'roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
         section.addItem(Slider, 'roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
-        section.addItem(Button, 'point_cloud_color', self.onColourPicker)
+        section.addItem(Button, 'point_cloud_color', self.onColorPicker)
 
-    def onColourPicker(self):
+    def onColorPicker(self):
         data = wx.ColourData()
         data.SetColour(self.simpleScan.color)
         dialog = wx.ColourDialog(self, data)

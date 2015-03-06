@@ -53,7 +53,7 @@ class CalibrationPage(WizardPage):
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
-		self.phase='other'
+		self.phase = 'other'
 
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform as shown in the picture and press \"Calibrate\""))
 		self.patternLabel.Wrap(400)
@@ -123,18 +123,18 @@ class CalibrationPage(WizardPage):
 		self.enableNext = True
 
 	def onCalibrationButtonClicked(self, event):
-		self.phase='laserTriangulation'
+		self.phase = 'laserTriangulation'
 		self.platformCalibration = False
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
 											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
 		if profile.getProfileSettingFloat('pattern_distance') == 0:
-			a=PatternDistanceWindow(self)
+			PatternDistanceWindow(self)
 		else:
 			self.laserTriangulation.start()
 
 	def onCancelButtonClicked(self, event):
-		self.phase='other'
+		self.phase = 'other'
 		self.resultLabel.SetLabel(_("Calibration canceled. To try again press \"Calibrate\""))
 		self.platformExtrinsics.cancel()
 		self.laserTriangulation.cancel()
@@ -185,7 +185,7 @@ class CalibrationPage(WizardPage):
 		self.gauge.SetValue(70 + progress*0.3)	
 
 	def afterPlatformCalibration(self, response):
-		self.phase='other'
+		self.phase = 'other'
 		self.platformCalibration = False
 		ret, result = response
 		

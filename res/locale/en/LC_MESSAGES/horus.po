@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-03-05 18:07+0100\n"
-"PO-Revision-Date: 2015-03-04 14:53+0100\n"
+"POT-Creation-Date: 2015-03-06 11:38+0100\n"
+"PO-Revision-Date: 2015-03-06 11:38+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.10\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: ../../src/horus/gui/preferences.py:40 ../../src/horus/gui/main.py:121
 msgid "Preferences"
@@ -168,12 +168,11 @@ msgstr "Scan parameters"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:62
 msgid ""
-"It is possible to scan with texture (the color of the object is extracted, "
-"together with it's geometry) or without texture (only the geometry is "
-"extracted)."
+"Simple Scan algorithm captures only the geometry using one image. Texture "
+"Scan algorithm captures also the texture using two images"
 msgstr ""
-"It is possible to scan with texture (the colour of the object is extracted "
-"with the geometry) or without texture (only the geometry is extracted)."
+"Simple Scan algorithm captures only the geometry using one image. Texture "
+"Scan algorithm captures also the texture using two images"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:72
 #: ../../src/horus/gui/main.py:557 ../../src/horus/util/profile.py:288
@@ -201,63 +200,74 @@ msgstr "Image acquisition"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:155
 #: ../../src/horus/gui/workbench/control/panels.py:54
-#: ../../src/horus/gui/workbench/calibration/panels.py:94
+#: ../../src/horus/gui/workbench/calibration/panels.py:55
 msgid ""
 "Image luminosity. Low values are better for environments with high ambient "
-"light conditions. High values are recommended for poorly lit places."
+"light conditions. High values are recommended for poorly lit places"
 msgstr ""
+"Image luminosity. Low values are better for environments with high ambient "
+"light conditions. High values are recommended for poorly lit places"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:156
 #: ../../src/horus/gui/workbench/control/panels.py:55
-#: ../../src/horus/gui/workbench/calibration/panels.py:95
+#: ../../src/horus/gui/workbench/calibration/panels.py:56
 msgid ""
 "Relative difference in intensity between an image point and its "
-"surroundings. Low values are recommended for black or very dark coloured "
-"objects. High values are better for very light coloured objects."
+"surroundings. Low values are recommended for black or very dark colored "
+"objects. High values are better for very light colored objects"
 msgstr ""
+"Relative difference in intensity between an image point and its "
+"surroundings. Low values are recommended for black or very dark colored "
+"objects. High values are better for very light colored objects"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:157
 #: ../../src/horus/gui/workbench/control/panels.py:56
-#: ../../src/horus/gui/workbench/calibration/panels.py:96
+#: ../../src/horus/gui/workbench/calibration/panels.py:57
 msgid ""
-"Purity of colour. Low values will cause colours to disappear from the image. "
-"High values will show an image with very intense colours."
+"Purity of color. Low values will cause colors to disappear from the image. "
+"High values will show an image with very intense colors"
 msgstr ""
+"Purity of color. Low values will cause colors to disappear from the image. "
+"High values will show an image with very intense colors"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:159
 #: ../../src/horus/gui/workbench/scanning/panels.py:160
 #: ../../src/horus/gui/workbench/control/panels.py:57
-#: ../../src/horus/gui/workbench/calibration/panels.py:97
+#: ../../src/horus/gui/workbench/calibration/panels.py:58
 msgid ""
-"Length of time a camera sensor is exposed when taking a picture. High values "
-"are recommended for poorly lit places."
+"Amount of light per unit area. It is controlled by the time the camera "
+"sensor is exposed during a frame capture. High values are recommended for "
+"poorly lit places"
 msgstr ""
+"Amount of light per unit area. It is controlled by the time the camera "
+"sensor is exposed during a frame capture. High values are recommended for "
+"poorly lit places"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:161
 #: ../../src/horus/gui/workbench/control/panels.py:58
-#: ../../src/horus/gui/workbench/calibration/panels.py:98
+#: ../../src/horus/gui/workbench/calibration/panels.py:59
 msgid ""
-"Number of frames to be taken by the camera every second. The value closest "
-"to the maximum value of your camera frame rate is recommended."
+"Number of frames captured by the camera every second. Maximum frame rate is "
+"recommended"
 msgstr ""
+"Number of frames captured by the camera every second. Maximum frame rate is "
+"recommended"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:162
 #: ../../src/horus/gui/workbench/control/panels.py:59
-#: ../../src/horus/gui/workbench/calibration/panels.py:99
-msgid ""
-"Size of the image taken by the camera. Greatest resolution is recommended."
-msgstr ""
+#: ../../src/horus/gui/workbench/calibration/panels.py:60
+msgid "Size of the video. Maximum resolution is recommended"
+msgstr "Size of the video. Maximum resolution is recommended"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:163
 #: ../../src/horus/gui/workbench/control/panels.py:60
-#: ../../src/horus/gui/workbench/calibration/panels.py:100
-#, fuzzy
+#: ../../src/horus/gui/workbench/calibration/panels.py:61
 msgid ""
-"This option allows the lens distortion to be fixed. This process slows the "
-"video feed from the camera."
+"This option applies lens distortion correction to the video. This process "
+"slows the video feed from the camera"
 msgstr ""
-"Use the distortion vector to remove the image distortion caused by the "
-"camera. This process slows down the video feed from the camera."
+"This option applies lens distortion correction to the video. This process "
+"slows the video feed from the camera"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:178
 msgid "Image Segmentation"
@@ -266,19 +276,19 @@ msgstr "Image segmentation"
 #: ../../src/horus/gui/workbench/scanning/panels.py:190
 #: ../../src/horus/gui/workbench/scanning/panels.py:195
 msgid ""
-"Threshold is an algorithm used to remove the noise when scanning. It removes "
-"a pixel if its intensity is less than the threshold value."
+"Threshold is a function used to remove the noise when scanning. It removes a "
+"pixel if its intensity is less than the threshold value"
 msgstr ""
+"Threshold is a function used to remove the noise when scanning. It removes a "
+"pixel if its intensity is less than the threshold value"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:193
-#, fuzzy
 msgid ""
-"Open is an algorithm used to remove the noise when scanning. The higher its "
-"value, the lower the noise but also the lower the detail in the 3D model."
+"Open is an operation used to remove the noise when scanning. The higher its "
+"value, the lower the noise but also the lower the detail in the image"
 msgstr ""
-"Open is an algorithm used to remove the noise when scanning. The higher its "
-"value, the lower the noise but also the lower the detail in the 3D model. "
-"The value of the Threshold parameter has influence on this algorithm."
+"Open is an operation used to remove the noise when scanning. The higher its "
+"value, the lower the noise but also the lower the detail in the image"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:202
 msgid "Point Cloud Generation"
@@ -286,13 +296,13 @@ msgstr "Point cloud generation"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:214
 msgid ""
-"View the Region Of Interest (ROI). This region is the one being scanned. All "
-"information outside it will not be taken into account in the scanning "
-"process."
+"View the Region Of Interest (ROI). This cylindrical region is the one being "
+"scanned. All information outside won't be taken into account during the "
+"scanning process"
 msgstr ""
-"View the Region Of Interest (ROI). This is the area being scanned. Any "
-"information outside of it will not be taken into account in the scanning "
-"process."
+"View the Region Of Interest (ROI). This cylindrical region is the one being "
+"scanned. All information outside won't be taken into account during the "
+"scanning process"
 
 #: ../../src/horus/gui/workbench/control/panels.py:44
 msgid "Camera Control"
@@ -316,7 +326,7 @@ msgstr "Gcode control"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:53
 #: ../../src/horus/gui/workbench/calibration/pages.py:192
-#: ../../src/horus/gui/workbench/calibration/panels.py:168
+#: ../../src/horus/gui/workbench/calibration/panels.py:170
 msgid "Camera Intrinsics"
 msgstr "Camera intrinsics"
 
@@ -368,7 +378,7 @@ msgstr "Camera intrinsics calibration has failed. Please try again."
 #: ../../src/horus/gui/workbench/calibration/pages.py:323
 #: ../../src/horus/gui/workbench/calibration/pages.py:414
 #: ../../src/horus/gui/workbench/calibration/pages.py:634
-#: ../../src/horus/gui/workbench/calibration/panels.py:315
+#: ../../src/horus/gui/workbench/calibration/panels.py:317
 msgid "Laser Triangulation"
 msgstr "Laser triangulation"
 
@@ -393,7 +403,7 @@ msgstr "Simple laser triangulation"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:723
 #: ../../src/horus/gui/workbench/calibration/pages.py:814
-#: ../../src/horus/gui/workbench/calibration/panels.py:672
+#: ../../src/horus/gui/workbench/calibration/panels.py:674
 msgid "Platform Extrinsics"
 msgstr "Platform extrinsics"
 
@@ -401,76 +411,79 @@ msgstr "Platform extrinsics"
 msgid "Platform Extrinsics Calibration has failed. Please try again."
 msgstr "Platform extrinsics calibration has failed. Please try again."
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:44
-msgid "Pattern Settings"
-msgstr "Pattern settings"
-
-#: ../../src/horus/gui/workbench/calibration/panels.py:57
-msgid "Number of rows formed by the interior pattern vertex of the pattern."
-msgstr ""
-
-#: ../../src/horus/gui/workbench/calibration/panels.py:58
-msgid "Number of columns formed by the pattern vertex of the pattern."
-msgstr ""
-
-#: ../../src/horus/gui/workbench/calibration/panels.py:59
-#, fuzzy
-msgid ""
-"Distance between the upper edge of the first square on the left of the "
-"closest to the rotatory platform and the rotatory platform."
-msgstr ""
-"Distance between the upper edge of the chess row closer to the platform and "
-"the platform."
-
-#: ../../src/horus/gui/workbench/calibration/panels.py:84
+#: ../../src/horus/gui/workbench/calibration/panels.py:45
 msgid "Camera Settings"
 msgstr "Camera settings"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:105
+#: ../../src/horus/gui/workbench/calibration/panels.py:67
+msgid "Pattern Settings"
+msgstr "Pattern settings"
+
+#: ../../src/horus/gui/workbench/calibration/panels.py:80
+msgid "Number of corner rows in the pattern"
+msgstr "Number of corner rows in the pattern"
+
+#: ../../src/horus/gui/workbench/calibration/panels.py:81
+msgid "Number of corner columns in the pattern"
+msgstr "Number of corner columns in the pattern"
+
+#: ../../src/horus/gui/workbench/calibration/panels.py:82
+#: ../../src/horus/gui/util/patternDistanceWindow.py:50
+#: ../../src/horus/gui/wizard/connectionPage.py:299
+msgid ""
+"Minimum distance between the origin of the pattern (bottom-left corner) and "
+"the pattern's base surface"
+msgstr ""
+"Minimum distance between the origin of the pattern (bottom-left corner) and "
+"the pattern's base surface"
+
+#: ../../src/horus/gui/workbench/calibration/panels.py:108
 msgid "Laser Settings"
 msgstr "Laser settings"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:133
-#: ../../src/horus/gui/workbench/calibration/panels.py:247
-#: ../../src/horus/gui/workbench/calibration/panels.py:424
-#: ../../src/horus/gui/workbench/calibration/panels.py:602
-#: ../../src/horus/gui/workbench/calibration/panels.py:747
+#: ../../src/horus/gui/workbench/calibration/panels.py:135
+#: ../../src/horus/gui/workbench/calibration/panels.py:249
+#: ../../src/horus/gui/workbench/calibration/panels.py:426
+#: ../../src/horus/gui/workbench/calibration/panels.py:604
+#: ../../src/horus/gui/workbench/calibration/panels.py:749
 #: ../../src/horus/gui/main.py:122
 msgid "Edit"
 msgstr "Edit"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:135
+#: ../../src/horus/gui/workbench/calibration/panels.py:137
 msgid "Default"
 msgstr "Default"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:137
+#: ../../src/horus/gui/workbench/calibration/panels.py:139
 msgid "Start"
 msgstr "Start"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:169
+#: ../../src/horus/gui/workbench/calibration/panels.py:171
 msgid ""
-"This calibration acquire the camera internal parameters: Focal length, "
-"Optical centre and the Lens distortion."
+"This calibration acquires the camera intrinsic parameters (focal lenghts and "
+"optical centers) and the lens distortion"
 msgstr ""
+"This calibration acquires the camera intrinsic parameters (focal lenghts and "
+"optical centers) and the lens distortion"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:180
+#: ../../src/horus/gui/workbench/calibration/panels.py:182
 msgid "Camera matrix"
 msgstr "Camera matrix"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:200
+#: ../../src/horus/gui/workbench/calibration/panels.py:202
 msgid "Distortion vector"
 msgstr "Distortion vector"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:245
-#: ../../src/horus/gui/workbench/calibration/panels.py:422
-#: ../../src/horus/gui/workbench/calibration/panels.py:600
-#: ../../src/horus/gui/workbench/calibration/panels.py:745
+#: ../../src/horus/gui/workbench/calibration/panels.py:247
+#: ../../src/horus/gui/workbench/calibration/panels.py:424
+#: ../../src/horus/gui/workbench/calibration/panels.py:602
+#: ../../src/horus/gui/workbench/calibration/panels.py:747
 #: ../../src/horus/gui/util/patternDistanceWindow.py:57
 #: ../../src/horus/gui/wizard/connectionPage.py:306
 msgid "OK"
 msgstr "OK"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:250
+#: ../../src/horus/gui/workbench/calibration/panels.py:252
 msgid ""
 "This will reset camera intrinsics profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost! Do "
@@ -480,25 +493,27 @@ msgstr ""
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:250
+#: ../../src/horus/gui/workbench/calibration/panels.py:252
 msgid "Camera Intrinsics reset"
 msgstr "Camera intrinsics reset"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:316
+#: ../../src/horus/gui/workbench/calibration/panels.py:318
 msgid ""
 "This calibration determines the lasers' planes relative to the camera's "
-"coordinate system."
+"coordinate system"
 msgstr ""
+"This calibration determines the lasers' planes relative to the camera's "
+"coordinate system"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:325
+#: ../../src/horus/gui/workbench/calibration/panels.py:327
 msgid "Left Laser Plane"
 msgstr "Left laser plane"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:352
+#: ../../src/horus/gui/workbench/calibration/panels.py:354
 msgid "Right Laser Plane"
 msgstr "Right laser plane"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:428
+#: ../../src/horus/gui/workbench/calibration/panels.py:430
 msgid ""
 "This will reset laser triangulation profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost! Do "
@@ -508,37 +523,37 @@ msgstr ""
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:428
-#: ../../src/horus/gui/workbench/calibration/panels.py:606
+#: ../../src/horus/gui/workbench/calibration/panels.py:430
+#: ../../src/horus/gui/workbench/calibration/panels.py:608
 msgid "Laser Triangulation reset"
 msgstr "Laser triangulation reset"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:500
+#: ../../src/horus/gui/workbench/calibration/panels.py:502
 msgid "Laser Simple Triangulation Calibration"
 msgstr "Laser simple triangulation calibration"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:501
+#: ../../src/horus/gui/workbench/calibration/panels.py:503
 msgid ""
-"Determines the depth of the intersection camera-laser considering the "
-"inclination of the lasers."
+"This calibration determines the depth of the intersection camera-laser "
+"considering the inclination of the lasers"
 msgstr ""
-"Determines the depth of the camera-laser intersection by considering the "
-"inclination of the lasers."
+"This calibration determines the depth of the intersection camera-laser "
+"considering the inclination of the lasers"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:509
+#: ../../src/horus/gui/workbench/calibration/panels.py:511
 msgid "Coordinates"
 msgstr "Coordinates"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:529
+#: ../../src/horus/gui/workbench/calibration/panels.py:531
 msgid "Origin"
 msgstr "Origin"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:546
+#: ../../src/horus/gui/workbench/calibration/panels.py:548
 #: ../../src/horus/util/profile.py:271 ../../src/horus/util/profile.py:273
 msgid "Normal"
 msgstr "Normal"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:606
+#: ../../src/horus/gui/workbench/calibration/panels.py:608
 msgid ""
 "This will reset simple laser triangulation profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost! Do "
@@ -548,21 +563,23 @@ msgstr ""
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:673
+#: ../../src/horus/gui/workbench/calibration/panels.py:675
 msgid ""
 "This calibration determines the position and orientation of the rotating "
-"platform relative to the camera's coordinate system."
+"platform relative to the camera's coordinate system"
 msgstr ""
+"This calibration determines the position and orientation of the rotating "
+"platform relative to the camera's coordinate system"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:682
+#: ../../src/horus/gui/workbench/calibration/panels.py:684
 msgid "Rotation matrix"
 msgstr "Rotation matrix"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:702
+#: ../../src/horus/gui/workbench/calibration/panels.py:704
 msgid "Translation vector"
 msgstr "Translation vector"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:751
+#: ../../src/horus/gui/workbench/calibration/panels.py:753
 msgid ""
 "This will reset platform extrinsics profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost! Do "
@@ -572,7 +589,7 @@ msgstr ""
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:751
+#: ../../src/horus/gui/workbench/calibration/panels.py:753
 msgid "Platform Extrinsics reset"
 msgstr "Platform extrinsics reset"
 
@@ -755,7 +772,6 @@ msgid "3D window error"
 msgstr "3D window error"
 
 #: ../../src/horus/gui/util/patternDistanceWindow.py:39
-#, fuzzy
 msgid "Pattern distance"
 msgstr "Pattern distance"
 
@@ -766,15 +782,6 @@ msgid ""
 msgstr ""
 "The pattern distance value must be higher than 0. Please change it in the "
 "textbox below."
-
-#: ../../src/horus/gui/util/patternDistanceWindow.py:50
-#: ../../src/horus/gui/wizard/connectionPage.py:299
-msgid ""
-"Distance between the upper edge of the chess row closer to the platform and "
-"the platform."
-msgstr ""
-"Distance between the upper edge of the chess row closer to the platform and "
-"the platform."
 
 #: ../../src/horus/gui/util/patternDistanceWindow.py:54
 #: ../../src/horus/gui/wizard/connectionPage.py:303
@@ -888,9 +895,8 @@ msgid "Connection"
 msgstr "Connection"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:57
-#, fuzzy
 msgid "Edit settings"
-msgstr "Pattern settings"
+msgstr "Edit settings"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:60
 msgid ""
@@ -947,9 +953,8 @@ msgid "Error in Auto check. Please try again"
 msgstr "Auto check error. Please try again"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:278
-#, fuzzy
 msgid "Settings"
-msgstr "Laser settings"
+msgstr "Settings"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:293
 #: ../../src/horus/util/profile.py:207
@@ -958,11 +963,11 @@ msgstr "Luminosity"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:294
 msgid ""
-"Change the luminosity until coloured lines appear over the chess pattern in "
-"the video."
+"Change the luminosity until colored lines appear over the chess pattern in "
+"the video"
 msgstr ""
-"Change the luminosity until coloured lines appear over the chess pattern in "
-"the video."
+"Change the luminosity until colored lines appear over the chess pattern in "
+"the video"
 
 #: ../../src/horus/gui/wizard/wizardPage.py:49
 msgid "Prev"
@@ -1069,7 +1074,7 @@ msgstr "Height"
 
 #: ../../src/horus/util/profile.py:261
 msgid "Choose Point Cloud Color"
-msgstr "Choose point cloud colour"
+msgstr "Choose point cloud color"
 
 #: ../../src/horus/util/profile.py:263
 msgid "Adjust Laser"
@@ -1189,12 +1194,12 @@ msgstr ""
 "restart"
 
 #: ../../src/horus/util/profile.py:323
-msgid "Model colour"
-msgstr "Model colour"
+msgid "Model color"
+msgstr "Model color"
 
 #: ../../src/horus/util/profile.py:323
 msgid "Display color for first extruder"
-msgstr "Display colour for first extruder"
+msgstr "Display color for first extruder"
 
 #: ../../src/horus/util/error.py:45
 msgid "Wrong Firmware"
@@ -1227,6 +1232,33 @@ msgstr "Calibration cancelled"
 #: ../../src/horus/util/error.py:52
 msgid "Scan Error"
 msgstr "Scan error"
+
+#~ msgid ""
+#~ "It is possible to scan with texture (the color of the object is "
+#~ "extracted, together with it's geometry) or without texture (only the "
+#~ "geometry is extracted)."
+#~ msgstr ""
+#~ "It is possible to scan with texture (the colour of the object is "
+#~ "extracted with the geometry) or without texture (only the geometry is "
+#~ "extracted)."
+
+#~ msgid "Number of rows formed by the interior pattern vertex of the pattern."
+#~ msgstr ""
+#~ "Number of rows formed by the interior pattern vertex of the pattern."
+
+#~ msgid ""
+#~ "Distance between the upper edge of the first square on the left of the "
+#~ "closest to the rotatory platform and the rotatory platform."
+#~ msgstr ""
+#~ "Distance between the upper edge of the first square on the left of the "
+#~ "closest to the rotatory platform and the rotatory platform."
+
+#~ msgid ""
+#~ "Distance between the upper edge of the chess row closer to the platform "
+#~ "and the platform."
+#~ msgstr ""
+#~ "Distance between the upper edge of the chess row closer to the platform "
+#~ "and the platform."
 
 #~ msgid ""
 #~ "Determines the camera matrix and the distortion coefficients using "

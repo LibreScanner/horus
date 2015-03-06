@@ -320,7 +320,7 @@ setting('last_files', [], str, 'preference', 'hidden')
 setting('last_file', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
 setting('last_profile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.ini')), str, 'preference', 'hidden')
 
-setting('model_colour', '#888899', str, 'preference', 'hidden').setLabel(_('Model colour'), _('Display color for first extruder'))
+setting('model_color', '#888899', str, 'preference', 'hidden').setLabel(_('Model color'), _('Display color for first extruder'))
 
 #Remove fake defined _() because later the localization will define a global _()
 del _
@@ -623,7 +623,7 @@ def getPreferenceBool(name):
 	except:
 		return False
 
-def getPreferenceColour(name):
+def getPreferenceColor(name):
 	"""
 	Get a preference setting value as a color array. The color is stored as #RRGGBB hex string in the setting.
 	"""

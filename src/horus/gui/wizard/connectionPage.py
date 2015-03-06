@@ -291,12 +291,12 @@ class SettingsWindow(wx.Dialog):
             _choices.append(_(i))
         self.luminosityDict = dict(zip(_choices, choices))
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
-        self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until coloured lines appear over the chess pattern in the video.')))
+        self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until colored lines appear over the chess pattern in the video')))
         self.luminosityComboBox = wx.ComboBox(self, wx.ID_ANY,
                                             value=_(profile.getProfileSetting('luminosity')),
                                             choices=_choices,
                                             style=wx.CB_READONLY)
-        tooltip = _('Distance between the upper edge of the chess row closer to the platform and the platform.')
+        tooltip = _("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
         self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
         self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))

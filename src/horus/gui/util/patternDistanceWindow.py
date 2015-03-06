@@ -47,7 +47,7 @@ class PatternDistanceWindow(wx.Dialog):
         #-- Elements
         self.description = wx.StaticText(self, label=_('Pattern distance value must be a number higher than 0. Please, change it in the textbox below.'))
         self.description.Wrap(400)
-        tooltip = _('Distance between the upper edge of the chess row closer to the platform and the platform.')
+        tooltip = _("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
         self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
         self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))
