@@ -266,8 +266,6 @@ if [ $BUILD_TARGET = "win32" ]; then
 	cp -a ../doc/* ${TARGET_DIR}/doc
 	cp -a ../res/* ${TARGET_DIR}/res
 	cp -a ../src/* ${TARGET_DIR}/src
-	#Add horus version file
-	echo $VERSION > ${TARGET_DIR}/version
 
 	# Add script files
 	cp -a ../pkg/${BUILD_TARGET}/*.bat $TARGET_DIR/
@@ -275,8 +273,8 @@ if [ $BUILD_TARGET = "win32" ]; then
 	# Package the result
 	rm -rf ../pkg/win32/dist
 	ln -sf `pwd`/${TARGET_DIR} ../pkg/win32/dist
-	makensis -DVERSION=${VERSION} ../pkg/win32/installer.nsi
+	makensis -DVERSION=${VERSION}${VEXT} ../pkg/win32/installer.nsi
 	if [ $? != 0 ]; then echo "Failed to package NSIS installer"; exit 1; fi
-	mv ../pkg/win32/Horus_${VERSION}.exe .
+	mv ../pkg/win32/Horus_${VERSION}${VEXT}.exe .
 	rm -rf ../pkg/win32/dist
 fi
