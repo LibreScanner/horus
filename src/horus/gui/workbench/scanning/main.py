@@ -189,7 +189,6 @@ class ScanningWorkbench(WorkbenchConnection):
 				dlg.Destroy()
 			if result:
 				value = profile.getProfileSetting('scan_type')
-				print value
 				if value == 'Simple Scan':
 					self.currentScan = self.simpleScan
 				elif value == 'Texture Scan':
