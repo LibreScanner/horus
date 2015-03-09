@@ -105,6 +105,7 @@ class CameraIntrinsicsMainPage(Page):
 
 	def onShow(self, event):
 		if event.GetShow():
+			self.gauge.SetValue(0)
 			self.videoView.play()
 			calibration.CameraIntrinsics.Instance().clearImageStack()
 			self.GetParent().Layout()
@@ -274,8 +275,8 @@ class CameraIntrinsics3DPlot(wx.Panel):
 		self.ax.invert_zaxis()
 
 	def add(self, rvecs, tvecs):
-		w = self.columns * self.squareWidth 
-		h = self.rows * self.squareWidth
+		h = self.columns * self.squareWidth 
+		w = self.rows * self.squareWidth
 
 		p = np.array([[0,0,0],[w,0,0],[w,h,0],[0,h,0],[0,0,0]])
 		n = np.array([[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]])
@@ -512,8 +513,8 @@ class LaserTriangulation3DPlot(wx.Panel):
 		self.ax.set_ylabel('Z')
 		self.ax.set_zlabel('Y')
 
-		self.ax.text(-100,0,0, str(stdL), fontsize=15)
-		self.ax.text(100,0,0, str(stdR), fontsize=15)
+		self.ax.text(-100,0,0, str(round(stdL, 5)), fontsize=15)
+		self.ax.text(100,0,0, str(round(stdR, 5)), fontsize=15)
 
 		self.ax.set_xlim(-150, 150)
 		self.ax.set_ylim(0, 400)

@@ -51,7 +51,7 @@ VERSION = '0.1'
 
 class MainWindow(wx.Frame):
 
-    size = (640+300,480+150)
+    size = (640+337,480+150)
 
     def __init__(self):
         super(MainWindow, self).__init__(None, title=_("Horus " + VERSION + " - Beta"), size=self.size)
@@ -212,6 +212,9 @@ class MainWindow(wx.Frame):
     def onLaunchWizard(self, event):
         self.controlWorkbench.videoView.stop()
         self.calibrationWorkbench.videoView.stop()
+        self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
+        self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
+        self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
         self.scanningWorkbench.videoView.stop()
         self.controlWorkbench.Disable()
         self.calibrationWorkbench.Disable()
@@ -303,6 +306,9 @@ class MainWindow(wx.Frame):
                 time.sleep(0.5)
             self.controlWorkbench.videoView.stop()
             self.calibrationWorkbench.videoView.stop()
+            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
+            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
+            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
             self.driver.disconnect()
         except:
@@ -333,6 +339,9 @@ class MainWindow(wx.Frame):
             self.platformExtrinsics.cancel()
             self.controlWorkbench.videoView.stop()
             self.calibrationWorkbench.videoView.stop()
+            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
+            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
+            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
             self.driver.board.setUnplugCallback(None)
             self.driver.camera.setUnplugCallback(None)

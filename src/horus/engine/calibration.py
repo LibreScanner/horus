@@ -410,7 +410,7 @@ class LaserTriangulation(Calibration):
 					std = distance_vector.std()
 
 					final_points=np.where(abs(distance_vector)<abs(2*std) )[0]
-					print 'iteration ', trials, 'd,n,std, len(final_points)', d,n,std, len(final_points)
+					#print 'iteration ', trials, 'd,n,std, len(final_points)', d,n,std, len(final_points)
 
 					X=X[:, final_points]
 
