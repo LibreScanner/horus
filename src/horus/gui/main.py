@@ -47,7 +47,7 @@ from horus.gui.wizard.main import *
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
-VERSION = "0.1"
+VERSION = '0.1'
 
 class MainWindow(wx.Frame):
 
@@ -421,7 +421,11 @@ class MainWindow(wx.Frame):
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(VERSION)
-        info.SetDescription(_('Horus is an Open Source 3D Scanner manager'))
+        commit = ''
+        if os.path.isfile(resources.getPathForVersion()):
+            with open(resources.getPathForVersion(), 'r') as f:
+              commit = '\nGit: ' + f.readline().replace('\n','')
+        info.SetDescription(_('Horus is an Open Source 3D Scanner manager') + commit)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
         info.SetLicence("""Horus is free software; you can redistribute 

@@ -40,6 +40,9 @@ def getPathForResource(dir, subdir, resource_name):
 	path = os.path.normpath(os.path.join(dir, subdir, resource_name))
 	return path
 
+def getPathForVersion(name='version'):
+	return getPathForResource(resourceBasePath, '.', name)
+
 def getPathForImage(name):
 	return getPathForResource(resourceBasePath, 'images', name)
 
