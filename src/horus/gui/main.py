@@ -688,23 +688,21 @@ Suite 330, Boston, MA  02111-1307  USA""")
         baselist=['9600', '14400', '19200', '38400', '57600', '115200']
         return baselist
 
+    def countCameras(self):
+        for i in range(5):
+            cap = cv2.VideoCapture(i)
+            res = not cap.isOpened()
+            cap.release()
+            if res:
+                return i
+        return 5
+
     def videoList(self):
         baselist=[]
-        caps=[]
-        if os.name=="nt":
-            i=0
-            while True:
-                cap = cv2.VideoCapture(i)
-                if not cap.isOpened():
-                    break
-                cap.release()
-                caps.append(id(cap))
-
-                if caps[0] == id(cap) and i!=0:
-                        break;
-
+        if os.name == 'nt':
+            count = self.countCameras()
+            for i in range(count):
                 baselist.append(str(i))
-                i+=1
         else:
             for device in ['/dev/video*']:
                 baselist = baselist + glob.glob(device)
