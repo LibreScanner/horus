@@ -47,19 +47,33 @@ class CameraSettingsPanel(ExpandablePanel):
 
         self.driver = Driver.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
+        self.last_resolution = profile.getProfileSetting('resolution_calibration')
 
-        self.initialize()
-
-    def initialize(self):
         self.clearSections()
-        section = self.createSection('camera_settings')
-        section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
-        section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
-        section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation, tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
-        section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure, tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
-        section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
-        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])), tooltip=_('Size of the video. Maximum resolution is recommended'))
-        section.addItem(CheckBox, 'use_distortion_calibration', lambda v: self.driver.camera.setUseDistortion(v), tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
+        section = self.createSection('camera_calibration')
+        section.addItem(Slider, 'brightness_calibration', tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+        section.addItem(Slider, 'contrast_calibration', tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+        section.addItem(Slider, 'saturation_calibration', tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
+        section.addItem(Slider, 'exposure_calibration', tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+        section.addItem(ComboBox, 'framerate_calibration', tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
+        section.addItem(ComboBox, 'resolution_calibration', tooltip=_('Size of the video. Maximum resolution is recommended'))
+        section.addItem(CheckBox, 'use_distortion_calibration', tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
+
+    def updateCallbacks(self):
+        section = self.sections['camera_calibration']
+        section.updateCallback('brightness_calibration', self.driver.camera.setBrightness)
+        section.updateCallback('contrast_calibration', self.driver.camera.setContrast)
+        section.updateCallback('saturation_calibration', self.driver.camera.setSaturation)
+        section.updateCallback('exposure_calibration', self.driver.camera.setExposure)
+        section.updateCallback('framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)))
+        section.updateCallback('resolution_calibration', lambda v: self.setResolution(v))
+        section.updateCallback('use_distortion_calibration', lambda v: self.driver.camera.setUseDistortion(v))
+
+    def setResolution(self, value):
+        if value != self.last_resolution:
+            ResolutionWindow(self)
+        self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
+        self.last_resolution = profile.getProfileSetting('resolution_calibration')
 
 
 class PatternSettingsPanel(ExpandablePanel):
@@ -72,15 +86,19 @@ class PatternSettingsPanel(ExpandablePanel):
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
-        self.initialize()
-
-    def initialize(self):
         self.clearSections()
         section = self.createSection('pattern_settings')
-        section.addItem(TextBox, 'square_width', lambda v: self.updatePatternParameters())
-        section.addItem(TextBox, 'pattern_rows', lambda v: self.updatePatternParameters(), tooltip=_('Number of corner rows in the pattern'))
-        section.addItem(TextBox, 'pattern_columns', lambda v: self.updatePatternParameters(), tooltip=_('Number of corner columns in the pattern'))
-        section.addItem(TextBox, 'pattern_distance', lambda v: self.updatePatternParameters(), tooltip=_("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface"))
+        section.addItem(TextBox, 'square_width')
+        section.addItem(TextBox, 'pattern_rows', tooltip=_('Number of corner rows in the pattern'))
+        section.addItem(TextBox, 'pattern_columns', tooltip=_('Number of corner columns in the pattern'))
+        section.addItem(TextBox, 'pattern_distance', tooltip=_("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface"))
+
+    def updateCallbacks(self):
+        section = self.sections['pattern_settings']
+        section.updateCallback('square_width', lambda v: self.updatePatternParameters())
+        section.updateCallback('pattern_rows', lambda v: self.updatePatternParameters())
+        section.updateCallback('pattern_columns', lambda v: self.updatePatternParameters())
+        section.updateCallback('pattern_distance', lambda v: self.updatePatternParameters())
 
     def updatePatternParameters(self):
         self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
@@ -103,35 +121,6 @@ class PatternSettingsPanel(ExpandablePanel):
                                                      profile.getProfileSettingFloat('pattern_distance'))
 
 
-class CameraSettingsPanel(ExpandablePanel):
-    def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Camera Settings"))
-
-        self.driver = Driver.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
-        self.last_resolution = profile.getProfileSetting('resolution_calibration')
-
-        self.initialize()
-
-    def initialize(self):
-        self.clearSections()
-        section = self.createSection('camera_settings')
-        section.addItem(Slider, 'brightness_calibration', self.driver.camera.setBrightness, tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
-        section.addItem(Slider, 'contrast_calibration', self.driver.camera.setContrast, tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
-        section.addItem(Slider, 'saturation_calibration', self.driver.camera.setSaturation, tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
-        section.addItem(Slider, 'exposure_calibration', self.driver.camera.setExposure, tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
-        section.addItem(ComboBox, 'framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)), tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
-        section.addItem(ComboBox, 'resolution_calibration', lambda v: self.setResolution(v), tooltip=_('Size of the video. Maximum resolution is recommended'))
-        section.addItem(CheckBox, 'use_distortion_calibration', lambda v: self.driver.camera.setUseDistortion(v), tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
-
-    def setResolution(self, value):
-        if value != self.last_resolution:
-            ResolutionWindow(self)
-        self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
-        self.last_resolution = profile.getProfileSetting('resolution_calibration')
-
-
 class LaserSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
@@ -140,14 +129,17 @@ class LaserSettingsPanel(ExpandablePanel):
         self.driver = Driver.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
 
-        self.initialize()
-
-    def initialize(self):
         self.clearSections()
         section = self.createSection('laser_settings')
         # section.addItem(Slider, 'laser_threshold_value', self.laserTriangulation.setThreshold)
-        section.addItem(ToggleButton, 'left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
-        section.addItem(ToggleButton, 'right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
+        section.addItem(ToggleButton, 'left_button')
+        section.addItem(ToggleButton, 'right_button')
+
+    def updateCallbacks(self):
+        section = self.sections['laser_settings']
+        section.updateCallback('left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
+        section.updateCallback('right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
+
 
 ## TODO: Use TextBoxArray
 

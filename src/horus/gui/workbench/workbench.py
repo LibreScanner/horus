@@ -143,8 +143,6 @@ class WorkbenchConnection(Workbench):
 				dlg.ShowModal()
 				dlg.Destroy()
 			elif result is Error.WrongCamera:
-				print result
-				print _(result)
 				dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), _(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
 				dlg.Destroy()

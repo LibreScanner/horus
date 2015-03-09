@@ -327,22 +327,29 @@ class MainWindow(wx.Frame):
 
     def onPreferences(self, event):
         if os.name == 'nt':
+            self.simpleScan.stop()
+            self.textureScan.stop()
+            self.laserTriangulation.cancel()
+            self.platformExtrinsics.cancel()
+            self.controlWorkbench.videoView.stop()
+            self.calibrationWorkbench.videoView.stop()
+            self.scanningWorkbench.videoView.stop()
+            self.driver.board.setUnplugCallback(None)
             self.driver.camera.setUnplugCallback(None)
+            self.controlWorkbench.updateStatus(False)
+            self.calibrationWorkbench.updateStatus(False)
+            self.scanningWorkbench.updateStatus(False)
             self.driver.disconnect()
             waitCursor = wx.BusyCursor()
 
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
         wx.CallAfter(prefDialog.Show)
-        if os.name == 'nt':
-            del waitCursor
-        self.updateDriverProfile()
-        self.controlWorkbench.initialize()
-        self.calibrationWorkbench.initialize()
-        self.scanningWorkbench.initialize()
 
-        if os.name == 'nt':
-            self.driver.connect()
+        self.updateDriverProfile()
+        self.controlWorkbench.updateCallbacks()
+        self.calibrationWorkbench.updateCallbacks()
+        self.scanningWorkbench.updateCallbacks()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.putPreference(key, checked)
@@ -688,23 +695,21 @@ Suite 330, Boston, MA  02111-1307  USA""")
         baselist=['9600', '14400', '19200', '38400', '57600', '115200']
         return baselist
 
+    def countCameras(self):
+        for i in range(5):
+            cap = cv2.VideoCapture(i)
+            res = not cap.isOpened()
+            cap.release()
+            if res:
+                return i
+        return 5
+
     def videoList(self):
         baselist=[]
-        caps=[]
-        if os.name=="nt":
-            i=0
-            while True:
-                cap = cv2.VideoCapture(i)
-                if not cap.isOpened():
-                    break
-                cap.release()
-                caps.append(id(cap))
-
-                if caps[0] == id(cap) and i!=0:
-                        break;
-
+        if os.name == 'nt':
+            count = self.countCameras()
+            for i in range(count):
                 baselist.append(str(i))
-                i+=1
         else:
             for device in ['/dev/video*']:
                 baselist = baselist + glob.glob(device)

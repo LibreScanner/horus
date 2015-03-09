@@ -132,10 +132,11 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.buttonShowVideoViews.Bind(wx.EVT_BUTTON, self.onShowVideoViews)
 		self.comboVideoViews.Bind(wx.EVT_COMBOBOX, self.onComboBoVideoViewsSelect)
 
+		self.updateCallbacks()
 		self.Layout()
 
-	def initialize(self):
-		self.controls.initialize()
+	def updateCallbacks(self):
+		self.controls.updateCallbacks()
 
 	def onShow(self, event):
 		if event.GetShow():
@@ -189,7 +190,6 @@ class ScanningWorkbench(WorkbenchConnection):
 				dlg.Destroy()
 			if result:
 				value = profile.getProfileSetting('scan_type')
-				print value
 				if value == 'Simple Scan':
 					self.currentScan = self.simpleScan
 				elif value == 'Texture Scan':

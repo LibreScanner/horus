@@ -124,10 +124,11 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.addToPanel(self.platformExtrinsicsMainPage, 1)
         self.addToPanel(self.platformExtrinsicsResultPage, 1)
 
+        self.updateCallbacks()
         self.Layout()
 
-    def initialize(self):
-        self.controls.initialize()
+    def updateCallbacks(self):
+        self.controls.updateCallbacks()
 
     def getFrame(self):
         frame = Driver.Instance().camera.captureImage()
