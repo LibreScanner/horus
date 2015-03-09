@@ -334,6 +334,8 @@ class MainWindow(wx.Frame):
             self.controlWorkbench.videoView.stop()
             self.calibrationWorkbench.videoView.stop()
             self.scanningWorkbench.videoView.stop()
+            self.driver.board.setUnplugCallback(None)
+            self.driver.camera.setUnplugCallback(None)
             self.controlWorkbench.updateStatus(False)
             self.calibrationWorkbench.updateStatus(False)
             self.scanningWorkbench.updateStatus(False)
@@ -345,9 +347,9 @@ class MainWindow(wx.Frame):
         wx.CallAfter(prefDialog.Show)
 
         self.updateDriverProfile()
-        self.controlWorkbench.initialize()
-        self.calibrationWorkbench.initialize()
-        self.scanningWorkbench.initialize()
+        self.controlWorkbench.updateCallbacks()
+        self.calibrationWorkbench.updateCallbacks()
+        self.scanningWorkbench.updateCallbacks()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.putPreference(key, checked)

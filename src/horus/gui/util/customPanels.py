@@ -87,12 +87,9 @@ class ExpandableControl(wx.Panel):
 			self.GetParent().Layout()
 			self.GetParent().GetParent().Layout()
 
-	def initialize(self):
+	def updateCallbacks(self):
 		for panel in self.panels.values():
-			panel.initialize()
-		self.Layout()
-		self.GetParent().Layout()
-		self.GetParent().GetParent().Layout()
+			panel.updateCallbacks()
 
 	def enableContent(self):
 		for panel in self.panels.values():
@@ -124,7 +121,6 @@ class ExpandablePanel(wx.Panel):
 
 		if self.hasUndo:
 			self.undoButton.Disable()
-		self.content.Disable()
 		self.content.Hide()
 
 		#-- Events
@@ -164,7 +160,7 @@ class ExpandablePanel(wx.Panel):
 		self.sections.clear()
 		self.contentBox.Clear()
 
-	def initialize(self):
+	def updateCallbacks(self):
 		pass
 
 	def resetProfile(self):
@@ -228,11 +224,11 @@ class SectionPanel(wx.Panel):
 		self.SetSizer(self.vbox)
 		self.Layout()
 
-	def addItem(self, _type, _name, _callback, dropdown=None, tooltip=None):
+	def addItem(self, _type, _name, dropdown=None, tooltip=None):
 		if dropdown == None:
-			item = _type(self, _name, _callback)
+			item = _type(self, _name)
 		else:
-			item = _type(self, _name, _callback,dropdown)
+			item = _type(self, _name, dropdown)
 		item.setUndoCallbacks(self.appendUndoCallback, self.releaseUndoCallback)
 		if tooltip == None:
 			self.items.update({_name : item})
@@ -241,6 +237,12 @@ class SectionPanel(wx.Panel):
 		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 1)
 		self.Layout()
 		return self
+
+	def updateCallback(self, _name, _callback):
+		if isinstance(self.items[_name], tuple):
+			self.items[_name][0].setEngineCallback(_callback)
+		else:
+			self.items[_name].setEngineCallback(_callback)
 
 	def resetProfile(self):
 		for item in self.items.values():
