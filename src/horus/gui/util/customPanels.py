@@ -369,6 +369,7 @@ class Slider(SectionItem):
 								 profile.getProfileSettingInteger(self.name),
 								 int(eval(self.setting.getMinValue(), {}, {})),
 								 int(eval(self.setting.getMaxValue(), {}, {})),
+								 size=(1, -1),
 								 style=wx.SL_LABELS)
 
 		#-- Layout
@@ -439,7 +440,7 @@ class ComboBox(SectionItem):
 		self.control = wx.ComboBox(self, wx.ID_ANY,
 								   value=_(profile.getProfileSetting(self.name)),
 								   choices=_choices,
-								   size=(150, -1),
+								   size=(1, -1),
 								   style=wx.CB_READONLY)
 
 		#-- Layout
@@ -474,7 +475,7 @@ class CheckBox(SectionItem):
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
-		self.control = wx.CheckBox(self, style=wx.ALIGN_RIGHT)
+		self.control = wx.CheckBox(self, size=(1, -1), style=wx.ALIGN_RIGHT)
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
