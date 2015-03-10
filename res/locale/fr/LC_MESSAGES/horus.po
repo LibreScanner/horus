@@ -9,14 +9,14 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-03-09 22:20+0100\n"
-"PO-Revision-Date: 2015-03-09 13:12+0100\n"
+"PO-Revision-Date: 2015-03-10 12:06+0100\n"
 "Last-Translator: Alexandre GALODE <deusyss@yahoo.fr>\n"
 "Language-Team: français <deusyss@yahoo.fr>\n"
 "Language: Python\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Gtranslator 2.91.6\n"
+"X-Generator: Poedit 1.5.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../../src/horus/util/profile.py:202 ../../src/horus/gui/preferences.py:46
@@ -200,7 +200,7 @@ msgstr "Hauteur"
 
 #: ../../src/horus/util/profile.py:276
 msgid "Choose Point Cloud Color"
-msgstr "Selectionner la couleur du nuage de point"
+msgstr "Selectionner la couleur"
 
 #: ../../src/horus/util/profile.py:278
 msgid "Adjust Laser"
@@ -434,7 +434,7 @@ msgid ""
 "Do you really want to reset?"
 msgstr ""
 "Cela rechargera les parametres de la section avec les valeurs par defaut.\n"
-"Sans sauvegarde de votre part, les parametres actifs seront perdus.\n"
+"Sans sauvegarde de votre part, les paramètres actifs seront perdus.\n"
 "Desirez vous continuer?"
 
 #: ../../src/horus/gui/util/sceneView.py:316
@@ -595,8 +595,8 @@ msgid ""
 "Unless you have saved your current profile, all settings will be lost!\n"
 "Do you really want to reset?"
 msgstr ""
-"Cela rechargera les parametres du profil avec les valeurs par défaut.\n"
-"Sans sauvegarde de votre part, les parametres actifs seront perdus.\n"
+"Cela rechargera les paramètres du profil avec les valeurs par défaut.\n"
+"Sans sauvegarde de votre part, les paramètres actifs seront perdus.\n"
 "Desirez vous continuer?"
 
 #: ../../src/horus/gui/main.py:288
@@ -645,7 +645,7 @@ msgstr "Mode assiste (pas à pas)"
 
 #: ../../src/horus/gui/welcome.py:102
 msgid "Scan using recent settings"
-msgstr "Numeriser en utilisant les parametres actifs."
+msgstr "Numeriser en utilisant les paramètres actifs."
 
 #: ../../src/horus/gui/welcome.py:103
 msgid "Advanced Control"
@@ -661,7 +661,7 @@ msgstr "Ouvrir un fichier recent"
 
 #: ../../src/horus/gui/preferences.py:45
 msgid "Connection Parameters"
-msgstr "Parametres de connexion"
+msgstr "Paramètres de connexion"
 
 #: ../../src/horus/gui/preferences.py:49
 msgid "Baud Rate"
@@ -878,7 +878,7 @@ msgstr "Arreter la numerisation"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:48
 msgid "Scan Parameters"
-msgstr "Parametres de numerisation"
+msgstr "Numerisation"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:63
 msgid ""
@@ -899,7 +899,7 @@ msgstr "Acquisition de l'image"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:189
 msgid "Image Segmentation"
-msgstr "Segmentation de l'image"
+msgstr "Segmentation"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:201
 #: ../../src/horus/gui/workbench/scanning/panels.py:206
@@ -922,7 +922,7 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:213
 msgid "Point Cloud Generation"
-msgstr "Generation du nuage de point"
+msgstr "Nuage de point"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:225
 msgid ""
@@ -938,7 +938,7 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/pages.py:192
 #: ../../src/horus/gui/workbench/calibration/panels.py:200
 msgid "Camera Intrinsics"
-msgstr "Parametres de la camera"
+msgstr "Parametrès de la camera"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:54
 #: ../../src/horus/gui/workbench/calibration/pages.py:99
@@ -1006,7 +1006,7 @@ msgstr "Triangulation laser simple"
 #: ../../src/horus/gui/workbench/calibration/pages.py:838
 #: ../../src/horus/gui/workbench/calibration/panels.py:704
 msgid "Platform Extrinsics"
-msgstr "Parametres de la plateforme"
+msgstr "Parametrès de la plateforme"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:874
 msgid "Platform Extrinsics Calibration has failed. Please try again."
@@ -1015,11 +1015,11 @@ msgstr "La calibration de la plateforme a echoue. Veuillez reessayer."
 #: ../../src/horus/gui/workbench/calibration/panels.py:46
 #: ../../src/horus/gui/workbench/calibration/panels.py:109
 msgid "Camera Settings"
-msgstr "Parametrage de la camera"
+msgstr "Paramétrage camera"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:68
 msgid "Pattern Settings"
-msgstr "Parametrage du damier de reference"
+msgstr "Paramétrage du pattern"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:81
 msgid "Number of corner rows in the pattern"
@@ -1031,7 +1031,7 @@ msgstr "Nombre de colonnes du damier."
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:138
 msgid "Laser Settings"
-msgstr "Parametrage des lasers"
+msgstr "Paramétrage des lasers"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:167
 msgid "Default"
@@ -1063,8 +1063,8 @@ msgid ""
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 msgstr ""
-"Cela rechargera les parametres de la caméra avec les valeurs par defaut.\n"
-"Sans sauvegarde de votre part, les parametres actifs seront perdus.\n"
+"Cela rechargera les paramètres de la caméra avec les valeurs par defaut.\n"
+"Sans sauvegarde de votre part, les paramètres actifs seront perdus.\n"
 "Desirez vous continuer?"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:282
@@ -1093,9 +1093,9 @@ msgid ""
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 msgstr ""
-"Cela rechargera les parametres de la triangulation laser avec les valeurs "
+"Cela rechargera les paramètres de la triangulation laser avec les valeurs "
 "par defaut.\n"
-"Sans sauvegarde de votre part, les parametres actifs seront perdus.\n"
+"Sans sauvegarde de votre part, les paramètres actifs seront perdus.\n"
 "Desirez vous continuer?"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:460
@@ -1129,9 +1129,9 @@ msgid ""
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 msgstr ""
-"Cela rechargera les parametres de la triangulation laser simple avec les "
+"Cela rechargera les paramètres de la triangulation laser simple avec les "
 "valeurs par defaut.\n"
-"Sans sauvegarde de votre part, les parametres actifs seront perdus.\n"
+"Sans sauvegarde de votre part, les paramètres actifs seront perdus.\n"
 "Desirez vous continuer?"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:705
@@ -1156,14 +1156,14 @@ msgid ""
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 msgstr ""
-"Cela rechargera les parametres de la plateforme avec les valeurs par "
+"Cela rechargera les paramètres de la plateforme avec les valeurs par "
 "defaut.\n"
-"Sans sauvegarde de votre part, les parametres actifs seront perdus.\n"
+"Sans sauvegarde de votre part, les paramètres actifs seront perdus.\n"
 "Desirez vous continuer?"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:783
 msgid "Platform Extrinsics reset"
-msgstr "Remise a zero des parametres de la plateforme"
+msgstr "Remise a zero des paramètres de la plateforme"
 
 #: ../../src/horus/gui/wizard/main.py:108
 msgid "Do you really want to exit?"
@@ -1236,7 +1236,7 @@ msgstr "Connexion"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:57
 msgid "Edit settings"
-msgstr "Editer les parametres"
+msgstr "Editer les paramètres"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:60
 msgid ""
@@ -1295,7 +1295,7 @@ msgstr "Erreur lors de la verification automatique. Veuillez reessayer."
 
 #: ../../src/horus/gui/wizard/connectionPage.py:278
 msgid "Settings"
-msgstr "Parametres"
+msgstr "Paramètres"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:294
 msgid ""
