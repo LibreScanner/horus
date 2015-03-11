@@ -239,8 +239,8 @@ class Scan:
 		while self.runProcess:
 			if not self.inactive:
 				angle = abs(self.pcg.theta * 180.0 / np.pi)
-				if progressCallback is not None and self.pcg.degrees > 0:
-					progressCallback(angle/self.pcg.degrees, 360.0/self.pcg.degrees)
+				if progressCallback is not None and abs(self.pcg.degrees) > 0:
+					progressCallback(abs(angle/self.pcg.degrees), abs(360.0/self.pcg.degrees))
 				if angle <= 360.0:
 					if not self.imagesQueue.empty():
 						imagesQueueItem = self.imagesQueue.get(timeout=0.1)

@@ -38,7 +38,7 @@ class PatternDistanceWindow(wx.Dialog):
     def __init__(self, parent):
         super(PatternDistanceWindow, self).__init__(parent, title=_('Pattern distance'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
-        self.parent = parent
+        self.value = float(profile.getProfileSetting('pattern_distance'))
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
         self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
@@ -55,13 +55,12 @@ class PatternDistanceWindow(wx.Dialog):
         self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
         self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
         self.okButton = wx.Button(self, label=_('OK'))
-        self.okButton.Disable()
         self.cancelButton = wx.Button(self, label=_('Cancel'))
         
         #-- Events
         self.patternTextbox.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
-        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancel)
-        self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelButton.Bind(wx.EVT_BUTTON, self.onClose)
+        self.okButton.Bind(wx.EVT_BUTTON, self.onOk)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         #-- Layout
@@ -83,11 +82,10 @@ class PatternDistanceWindow(wx.Dialog):
     def onTextBoxChanged(self, event):
         try:
             value = float(self.patternTextbox.GetValue())
-            if value > 0:
-                self.setPatternDistance(value)
-                self.okButton.Enable()
+            if value >= 0:
+                self.value = value
         except:
-            self.okButton.Disable()
+            pass
 
     def setPatternDistance(self, patternDistance):
         profile.putProfileSetting('pattern_distance', patternDistance)
@@ -101,8 +99,8 @@ class PatternDistanceWindow(wx.Dialog):
         self.laserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
         self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
 
-    def onCancel(self, event):
-        self.setPatternDistance(0)
+    def onOk(self, event):
+        self.setPatternDistance(self.value)
         self.Destroy()
 
     def onClose(self, event):

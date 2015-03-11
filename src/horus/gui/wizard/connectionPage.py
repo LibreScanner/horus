@@ -277,7 +277,7 @@ class SettingsWindow(wx.Dialog):
     def __init__(self, parent):
         super(SettingsWindow, self).__init__(parent, title=_('Settings'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
-        self.parent = parent
+        self.value = float(profile.getProfileSetting('pattern_distance'))
         self.driver = Driver.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
         self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
@@ -304,14 +304,14 @@ class SettingsWindow(wx.Dialog):
         self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
         self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
         self.okButton = wx.Button(self, label=_('OK'))
-        self.okButton.Disable()
+        #self.okButton.Disable()
         self.cancelButton = wx.Button(self, label=_('Cancel'))
         
         #-- Events
         self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
         self.patternTextbox.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
-        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancel)
-        self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelButton.Bind(wx.EVT_BUTTON, self.onClose)
+        self.okButton.Bind(wx.EVT_BUTTON, self.onOk)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         #-- Layout
@@ -339,11 +339,10 @@ class SettingsWindow(wx.Dialog):
     def onTextBoxChanged(self, event):
         try:
             value = float(self.patternTextbox.GetValue())
-            if value > 0:
-                self.setPatternDistance(value)
-                self.okButton.Enable()
+            if value >= 0:
+                self.value = value
         except:
-            self.okButton.Disable()
+            pass
 
     def setPatternDistance(self, patternDistance):
         profile.putProfileSetting('pattern_distance', patternDistance)
@@ -370,8 +369,8 @@ class SettingsWindow(wx.Dialog):
         profile.putProfileSetting('exposure_calibration', value)
         self.driver.camera.setExposure(value)
 
-    def onCancel(self, event):
-        self.setPatternDistance(0)
+    def onOk(self, event):
+        self.setPatternDistance(self.value)
         self.Destroy()
 
     def onClose(self, event):
