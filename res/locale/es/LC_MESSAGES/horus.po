@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-03-09 22:20+0100\n"
-"PO-Revision-Date: 2015-03-06 13:15+0100\n"
+"PO-Revision-Date: 2015-03-12 12:14+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: es\n"
@@ -812,7 +812,7 @@ msgid ""
 "Please connect your board and select a valid Serial Name"
 msgstr ""
 "La placa no está conectada.\n"
-"Por favor, conecta la placa y selecciona un Nombre Serial válido."
+"Por favor, conecta la placa y selecciona un puerto serie válido."
 
 #: ../../src/horus/gui/workbench/workbench.py:142
 #: ../../src/horus/gui/wizard/connectionPage.py:156
@@ -1273,7 +1273,7 @@ msgid ""
 msgstr ""
 "La placa no está conectada.\n"
 "Por favor, conecta tu placa\n"
-"y selecciona un Nombre Serial válido."
+"y selecciona un puerto serie válido."
 
 #: ../../src/horus/gui/wizard/connectionPage.py:166
 msgid "Unplug and plug your camera USB cable and try to connect again."
