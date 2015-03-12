@@ -349,7 +349,7 @@ class SettingsWindow(wx.Dialog):
 
         patternRows = profile.getProfileSettingInteger('pattern_rows')
         patternColumns = profile.getProfileSettingInteger('pattern_columns')
-        squareWidth = profile.getProfileSettingInteger('pattern_columns')
+        squareWidth = profile.getProfileSettingInteger('square_width')
 
         self.cameraIntrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
         self.simpleLaserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
