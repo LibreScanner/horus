@@ -217,6 +217,18 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), False)
+		panel = self.controls.panels['scan_parameters']
+		section = panel.sections['scan_parameters']
+		section.disable('scan_type')
+		section.disable('use_laser')
+		panel = self.controls.panels['rotative_platform']
+		section = panel.sections['motor_scanning']
+		section.disable('feed_rate_scanning')
+		section.disable('acceleration_scanning')
+		panel = self.controls.panels['image_acquisition']
+		section = panel.sections['camera_scanning']
+		section.disable('framerate_scanning')
+		section.disable('resolution_scanning')
 		self.pointCloudTimer.Start(milliseconds=50)
 
 	def progressScan(self, progress, range=100):
@@ -263,6 +275,18 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
+		panel = self.controls.panels['scan_parameters']
+		section = panel.sections['scan_parameters']
+		section.enable('scan_type')
+		section.enable('use_laser')
+		panel = self.controls.panels['rotative_platform']
+		section = panel.sections['motor_scanning']
+		section.enable('feed_rate_scanning')
+		section.enable('acceleration_scanning')
+		panel = self.controls.panels['image_acquisition']
+		section = panel.sections['camera_scanning']
+		section.enable('framerate_scanning')
+		section.enable('resolution_scanning')
 		self.pointCloudTimer.Stop()
 		self.gauge.Hide()
 		self.Layout()

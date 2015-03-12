@@ -140,12 +140,12 @@ class Scan:
 				'Line' : self.imgLine,
 				'Color' : self.imgColor
 			  }[self.imgType]
-		if source!=None:
-			img=source
+		if source != None:
+			img = source
 		
 		if img is not None:
 			if self.pcg.viewROI:
-				img=self.roi2DVisualization(img)
+				img = self.roi2DVisualization(img)
 		return img
 
 	def roi2DVisualization(self, img):
@@ -292,6 +292,11 @@ class Scan:
 			response = (True, None)
 		else:
 			response = (False, Error.ScanError)
+
+		self.imgLaser = None
+		self.imgGray = None
+		self.imgLine = None
+		self.imgColor = None
 
 		if afterCallback is not None:
 			afterCallback(response)
