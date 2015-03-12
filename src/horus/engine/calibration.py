@@ -204,7 +204,7 @@ class LaserTriangulation(Calibration):
 		return self.image
 
 	def setImage(self, image):
-		self.image=image
+		self.image = image
 
 	def _start(self, progressCallback, afterCallback):
 		XL = None
@@ -333,6 +333,8 @@ class LaserTriangulation(Calibration):
 				response = (False, Error.CalibrationError)
 			else:
 				response = (False, Error.CalibrationCanceled)
+
+		self.image = None
 
 		if afterCallback is not None:
 			afterCallback(response)
@@ -573,6 +575,8 @@ class SimpleLaserTriangulation(Calibration):
 				response = (False, Error.CalibrationError)
 			else:
 				response = (False, Error.CalibrationCanceled)
+
+		self.image = None
 
 		if afterCallback is not None:
 			afterCallback(response)
@@ -817,6 +821,8 @@ class PlatformExtrinsics(Calibration):
 				response = (False, Error.CalibrationError)
 			else:
 				response = (False, Error.CalibrationCanceled)
+
+		self.image = None
 
 		if afterCallback is not None:
 			afterCallback(response)

@@ -785,7 +785,6 @@ class PlatformExtrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-
 		if self.onCalibration:
 			frame = self.platformExtrinsics.getImage()
 		else:
