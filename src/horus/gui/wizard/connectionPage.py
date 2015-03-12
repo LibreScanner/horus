@@ -277,7 +277,6 @@ class SettingsWindow(wx.Dialog):
     def __init__(self, parent):
         super(SettingsWindow, self).__init__(parent, title=_('Settings'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
-        self.value = float(profile.getProfileSetting('pattern_distance'))
         self.driver = Driver.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
         self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
@@ -289,22 +288,24 @@ class SettingsWindow(wx.Dialog):
         choices = profile.getProfileSettingObject('luminosity').getType()
         for i in choices:
             _choices.append(_(i))
+        self.initLuminosity = profile.getProfileSetting('luminosity')
         self.luminosityDict = dict(zip(_choices, choices))
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
         self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until colored lines appear over the chess pattern in the video')))
         self.luminosityComboBox = wx.ComboBox(self, wx.ID_ANY,
-                                            value=_(profile.getProfileSetting('luminosity')),
+                                            value=_(self.initLuminosity),
                                             choices=_choices,
                                             style=wx.CB_READONLY)
         tooltip = _("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
         self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
+        
+        self.patternDistance = float(profile.getProfileSetting('pattern_distance'))
         self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))
         self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))
         self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
         self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
         self.okButton = wx.Button(self, label=_('OK'))
-        #self.okButton.Disable()
         self.cancelButton = wx.Button(self, label=_('Cancel'))
         
         #-- Events
@@ -340,7 +341,7 @@ class SettingsWindow(wx.Dialog):
         try:
             value = float(self.patternTextbox.GetValue())
             if value >= 0:
-                self.value = value
+                self.patternDistance = value
         except:
             pass
 
@@ -356,22 +357,28 @@ class SettingsWindow(wx.Dialog):
         self.laserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
         self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
 
+    def setLuminosity(self, luminosity):
+        profile.putProfileSetting('luminosity', luminosity)
+        
+        if luminosity =='Low':
+            luminosity = 32
+        elif luminosity =='Medium':
+            luminosity = 16
+        elif luminosity =='High':
+            luminosity = 8
+        profile.putProfileSetting('exposure_control', luminosity)
+        profile.putProfileSetting('exposure_calibration', luminosity)
+
+        self.driver.camera.setExposure(luminosity)
+
     def onLuminosityComboBoxChanged(self, event):
         value = self.luminosityDict[event.GetEventObject().GetValue()]
-        profile.putProfileSetting('luminosity', value)
-        if value =='Low':
-            value = 32
-        elif value =='Medium':
-            value = 16
-        elif value =='High':
-            value = 8
-        profile.putProfileSetting('exposure_control', value)
-        profile.putProfileSetting('exposure_calibration', value)
-        self.driver.camera.setExposure(value)
+        self.setLuminosity(value)
 
     def onOk(self, event):
-        self.setPatternDistance(self.value)
+        self.setPatternDistance(self.patternDistance)
         self.Destroy()
 
     def onClose(self, event):
+        self.setLuminosity(self.initLuminosity)
         self.Destroy()
