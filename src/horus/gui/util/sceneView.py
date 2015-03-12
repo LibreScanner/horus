@@ -79,6 +79,7 @@ class SceneView(openglGui.glGuiPanel):
 		self.viewMode = 'ply'
 
 		self._moveVertical = False
+		self._showDeleteMenu = True
 
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
@@ -311,6 +312,7 @@ class SceneView(openglGui.glGuiPanel):
 			if e.GetButton() == 1:
 				self._selectObject(self._object)
 			if e.GetButton() == 3:
+				if self._showDeleteMenu:
 					menu = wx.Menu()
 					if self._object is not None:
 						self.Bind(wx.EVT_MENU, self.onDeleteObject, menu.Append(-1, _("Delete object")))
@@ -318,6 +320,9 @@ class SceneView(openglGui.glGuiPanel):
 						self.PopupMenu(menu)
 					menu.Destroy()
 		self._mouseState = None
+
+	def setShowDeleteMenu(self, value=True):
+		self._showDeleteMenu = value
 
 	def onDeleteObject(self, event):
 		if self._object is not None:

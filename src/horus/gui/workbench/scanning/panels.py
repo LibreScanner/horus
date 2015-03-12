@@ -85,7 +85,6 @@ class ScanParameters(ExpandablePanel):
             print "Error: Can not change Scan Type"
 
     def setUseLaser(self, value):
-        print value
         self.pcg.setUseLaser(value == 'Left' or value == 'Both',
                              value == 'Right' or value == 'Both')
 
