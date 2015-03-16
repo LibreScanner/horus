@@ -34,6 +34,7 @@ import time
 import struct
 import platform
 import wx._core
+import webbrowser
 
 from horus.util import profile, resources, meshLoader
 
@@ -140,8 +141,16 @@ class MainWindow(wx.Frame):
 
         #-- Menu Help
         menuHelp = wx.Menu()
-        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         menuWelcome = menuHelp.Append(wx.ID_ANY, _("Welcome"))
+        menuWiki = menuHelp.Append(wx.ID_ANY, _("Wiki"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), menuWiki)
+        menuSources = menuHelp.Append(wx.ID_ANY, _("Sources"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), menuSources)
+        menuIssues = menuHelp.Append(wx.ID_ANY, _("Issues"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), menuIssues)
+        menuForum = menuHelp.Append(wx.ID_ANY, _("Forum"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), menuForum)
+        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         self.menuBar.Append(menuHelp, _("Help"))
 
         self.SetMenuBar(self.menuBar)
