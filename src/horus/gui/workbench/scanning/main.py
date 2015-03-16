@@ -196,6 +196,7 @@ class ScanningWorkbench(WorkbenchConnection):
 					self.currentScan = self.textureScan
 				self.gauge.SetValue(0)
 				self.gauge.Show()
+				self.scenePanel.Layout()
 				self.Layout()
 				self.currentScan.setCallbacks(self.beforeScan, self.progressScan, lambda r: wx.CallAfter(self.afterScan,r))
 				self.currentScan.start()
@@ -291,6 +292,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		section.enable('resolution_scanning')
 		self.pointCloudTimer.Stop()
 		self.gauge.Hide()
+		self.scenePanel.Layout()
 		self.Layout()
 
 	def onPauseToolClicked(self, event):

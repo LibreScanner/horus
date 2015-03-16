@@ -83,6 +83,7 @@ class ExpandableControl(wx.Panel):
 						panel.undoButton.Hide()
 					if panel.hasRestore:
 						panel.restoreButton.Hide()
+				panel.Layout()
 			self.Layout()
 			self.GetParent().Layout()
 			self.GetParent().GetParent().Layout()
@@ -330,6 +331,8 @@ class SectionItem(wx.Panel):
 			self._updateEngine(value)
 		else:
 			self.Hide()
+		self.Layout()
+		self.GetParent().Layout()
 
 	def _updateEngine(self, value):
 		if self.engineCallback is not None:
