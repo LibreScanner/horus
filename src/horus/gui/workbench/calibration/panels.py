@@ -149,10 +149,10 @@ class CalibrationPanel(ExpandablePanel):
         ExpandablePanel.__init__(self, parent, titleText, hasUndo=False, hasRestore=False)
 
         self.buttonStartCallback = buttonStartCallback
+        self.description = description
 
         self.parametersBox = wx.BoxSizer(wx.VERTICAL)
         self.buttonsPanel = wx.Panel(self.content)
-        self.SetToolTip(wx.ToolTip(description))
 
         self.buttonEdit = wx.ToggleButton(self.buttonsPanel, wx.NewId(), label=_("Edit"))
         self.buttonEdit.SetMinSize((0,-1))
@@ -160,6 +160,7 @@ class CalibrationPanel(ExpandablePanel):
         self.buttonDefault.SetMinSize((0,-1))
         self.buttonStart = wx.Button(self.buttonsPanel, wx.NewId(), label=_("Start"))
         self.buttonStart.SetMinSize((0,-1))
+        self.buttonStart.SetToolTip(wx.ToolTip(description))
 
         self.contentBox.Add(self.parametersBox, 1, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -242,6 +243,11 @@ class CameraIntrinsicsPanel(CalibrationPanel):
        	self.parametersBox.Add(cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
         self.parametersBox.Add(distortionText, 0, wx.ALL|wx.EXPAND, 8)
        	self.parametersBox.Add(distortionPanel, 0, wx.ALL|wx.EXPAND, 2)
+
+        cameraText.SetToolTip(wx.ToolTip(self.description))
+        cameraPanel.SetToolTip(wx.ToolTip(self.description))
+        distortionText.SetToolTip(wx.ToolTip(self.description))
+        distortionPanel.SetToolTip(wx.ToolTip(self.description))
 
         self.Layout()
 
@@ -406,6 +412,13 @@ class LaserTriangulationPanel(CalibrationPanel):
         self.parametersBox.Add(laserRightText, 0, wx.ALL|wx.EXPAND, 8)
         self.parametersBox.Add(distanceRightPanel, 1, wx.ALL|wx.EXPAND, 2)
         self.parametersBox.Add(normalRightPanel, 0, wx.ALL|wx.EXPAND, 2)
+
+        laserLeftText.SetToolTip(wx.ToolTip(self.description))
+        distanceLeftPanel.SetToolTip(wx.ToolTip(self.description))
+        normalLeftPanel.SetToolTip(wx.ToolTip(self.description))
+        laserRightText.SetToolTip(wx.ToolTip(self.description))
+        distanceRightPanel.SetToolTip(wx.ToolTip(self.description))
+        normalRightPanel.SetToolTip(wx.ToolTip(self.description))
 
         self.Layout()
 
@@ -591,6 +604,13 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
         self.parametersBox.Add(normalText, 0, wx.ALL|wx.EXPAND, 8)
         self.parametersBox.Add(normalPanel, 0, wx.ALL|wx.EXPAND, 2)
 
+        coordinatesText.SetToolTip(wx.ToolTip(self.description))
+        coordinatesPanel.SetToolTip(wx.ToolTip(self.description))
+        originText.SetToolTip(wx.ToolTip(self.description))
+        originPanel.SetToolTip(wx.ToolTip(self.description))
+        normalText.SetToolTip(wx.ToolTip(self.description))
+        normalPanel.SetToolTip(wx.ToolTip(self.description))
+
         self.Layout()
 
     def onButtonEditPressed(self, event):
@@ -744,6 +764,11 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         self.parametersBox.Add(rotationPanel, 0, wx.ALL|wx.EXPAND, 2)
         self.parametersBox.Add(translationText, 0, wx.ALL|wx.EXPAND, 8)
         self.parametersBox.Add(translationPanel, 0, wx.ALL|wx.EXPAND, 2)
+
+        rotationText.SetToolTip(wx.ToolTip(self.description))
+        rotationPanel.SetToolTip(wx.ToolTip(self.description))
+        translationText.SetToolTip(wx.ToolTip(self.description))
+        translationPanel.SetToolTip(wx.ToolTip(self.description))
 
         self.Layout
 

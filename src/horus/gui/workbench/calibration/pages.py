@@ -178,12 +178,19 @@ class CameraIntrinsicsMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
+		boardUnplugCallback = self.driver.board.unplugCallback
+		cameraUnplugCallback = self.driver.camera.unplugCallback
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
+		self.onCalibration = False
 		self.cameraIntrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
+		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
 class CameraIntrinsicsResultPage(Page):
@@ -412,12 +419,19 @@ class LaserTriangulationMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
-		self.onCalibration=False
+		boardUnplugCallback = self.driver.board.unplugCallback
+		cameraUnplugCallback = self.driver.camera.unplugCallback
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
+		self.onCalibration = False
 		self.laserTriangulation.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
+		del self.waitCursor
+		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
 class LaserTriangulationResultPage(Page):
@@ -633,11 +647,19 @@ class SimpleLaserTriangulationMainPage(Page):
 			self.afterCalibrationCallback(result)
 
 	def onCancel(self):
-		self.waitCursor = wx.BusyCursor()
+		boardUnplugCallback = self.driver.board.unplugCallback
+		cameraUnplugCallback = self.driver.camera.unplugCallback
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
+		self.onCalibration = False
 		self.laserTriangulation.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
+		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
 class SimpleLaserTriangulationResultPage(Page):
@@ -785,7 +807,6 @@ class PlatformExtrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-
 		if self.onCalibration:
 			frame = self.platformExtrinsics.getImage()
 		else:
@@ -824,12 +845,19 @@ class PlatformExtrinsicsMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
-		self.onCalibration=False
+		boardUnplugCallback = self.driver.board.unplugCallback
+		cameraUnplugCallback = self.driver.camera.unplugCallback
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
+		self.onCalibration = False
 		self.platformExtrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
+		del self.waitCursor
+		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
 class PlatformExtrinsicsResultPage(Page):

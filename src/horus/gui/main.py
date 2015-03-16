@@ -34,6 +34,7 @@ import time
 import struct
 import platform
 import wx._core
+import webbrowser
 
 from horus.util import profile, resources, meshLoader
 
@@ -47,7 +48,7 @@ from horus.gui.wizard.main import *
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
-VERSION = '0.1'
+VERSION = '0.1.1'
 
 class MainWindow(wx.Frame):
 
@@ -140,8 +141,16 @@ class MainWindow(wx.Frame):
 
         #-- Menu Help
         menuHelp = wx.Menu()
-        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         menuWelcome = menuHelp.Append(wx.ID_ANY, _("Welcome"))
+        menuWiki = menuHelp.Append(wx.ID_ANY, _("Wiki"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), menuWiki)
+        menuSources = menuHelp.Append(wx.ID_ANY, _("Sources"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), menuSources)
+        menuIssues = menuHelp.Append(wx.ID_ANY, _("Issues"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), menuIssues)
+        menuForum = menuHelp.Append(wx.ID_ANY, _("Forum"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), menuForum)
+        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         self.menuBar.Append(menuHelp, _("Help"))
 
         self.SetMenuBar(self.menuBar)
@@ -310,6 +319,8 @@ class MainWindow(wx.Frame):
             self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
             self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
+            self.driver.board.setUnplugCallback(None)
+            self.driver.camera.setUnplugCallback(None)
             self.driver.disconnect()
         except:
             pass
@@ -437,11 +448,11 @@ class MainWindow(wx.Frame):
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(VERSION)
-        commit = ''
+        techDescription = ''
         if os.path.isfile(resources.getPathForVersion()):
             with open(resources.getPathForVersion(), 'r') as f:
-              commit = '\nGit: ' + f.readline().replace('\n','')
-        info.SetDescription(_('Horus is an Open Source 3D Scanner manager') + commit)
+              techDescription = '\n' + f.read().replace('\n','')
+        info.SetDescription(_('Horus is an Open Source 3D Scanner manager') + techDescription)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
         info.SetLicence("""Horus is free software; you can redistribute
@@ -574,8 +585,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             resolution = profile.getProfileSetting('resolution_scanning')
             self.pcg.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
             useLaser = profile.getProfileSetting('use_laser')
-            self.pcg.setUseLaser(useLaser==_("Left") or useLaser==_("Both"),
-                                 useLaser==_("Right") or useLaser==_("Both"))
+            self.pcg.setUseLaser(useLaser == 'Left' or useLaser == 'Both',
+                                 useLaser == 'Right' or useLaser == 'Both')
             self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
                                          profile.getProfileSettingNumpy('distortion_vector'))
             self.pcg.setLaserTriangulation(profile.getProfileSettingNumpy('distance_left'),

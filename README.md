@@ -18,8 +18,8 @@ More interest links are shown below:
 Add our PPA keys
 
 ```bash
-sudo add-apt-repository ppa:jesus-arroyo/opencv
-sudo add-apt-repository ppa:jesus-arroyo/horus
+sudo add-apt-repository ppa:bqopensource/opencv
+sudo add-apt-repository ppa:bqopensource/horus
 ```
 
 Upgrade your system
@@ -146,7 +146,15 @@ or
 git clone git@github.com:bq/opencv.git
 ```
 
-## 3. Build packages
+## 3. Execute source code
+
+In the project directory, execute the command:
+
+```bash
+python src/horus.py
+```
+
+## 4. Build packages
 
 Horus development comes with a script "package.sh", this script has been designed to run under *nix OSes (Linux, MacOS). For Windows the package.sh script can be run from bash using git.
 The "package.sh" script generates a final release package. You should not need it during development, unless you are changing the release process. If you want to distribute your own version of Horus, then the package.sh script will allow you to do that.

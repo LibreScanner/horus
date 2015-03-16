@@ -238,7 +238,7 @@ setting('scan_type', 'Texture Scan', ['Simple Scan', 'Texture Scan'], 'basic', _
 _('Left')
 _('Right')
 _('Both')
-setting('use_laser', 'Right', ['Left', 'Right', 'Both'], 'basic', _('Use Laser'))
+setting('use_laser', 'Both', ['Left', 'Right', 'Both'], 'basic', _('Use Laser'))
 setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
 
 setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)

@@ -196,6 +196,7 @@ class ScanningWorkbench(WorkbenchConnection):
 					self.currentScan = self.textureScan
 				self.gauge.SetValue(0)
 				self.gauge.Show()
+				self.scenePanel.Layout()
 				self.Layout()
 				self.currentScan.setCallbacks(self.beforeScan, self.progressScan, lambda r: wx.CallAfter(self.afterScan,r))
 				self.currentScan.start()
@@ -208,6 +209,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.stopTool, True)
 		self.enableLabelTool(self.pauseTool , True)
 		self.sceneView.createDefaultObject()
+		self.sceneView.setShowDeleteMenu(False)
 		self.videoView.setMilliseconds(200)
 		self.combo.Disable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), False)
@@ -217,6 +219,18 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), False)
+		panel = self.controls.panels['scan_parameters']
+		section = panel.sections['scan_parameters']
+		section.disable('scan_type')
+		section.disable('use_laser')
+		panel = self.controls.panels['rotative_platform']
+		section = panel.sections['motor_scanning']
+		section.disable('feed_rate_scanning')
+		section.disable('acceleration_scanning')
+		panel = self.controls.panels['image_acquisition']
+		section = panel.sections['camera_scanning']
+		section.disable('framerate_scanning')
+		section.disable('resolution_scanning')
 		self.pointCloudTimer.Start(milliseconds=50)
 
 	def progressScan(self, progress, range=100):
@@ -254,6 +268,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.playTool, True)
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
+		self.sceneView.setShowDeleteMenu(True)
 		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
@@ -263,8 +278,21 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
+		panel = self.controls.panels['scan_parameters']
+		section = panel.sections['scan_parameters']
+		section.enable('scan_type')
+		section.enable('use_laser')
+		panel = self.controls.panels['rotative_platform']
+		section = panel.sections['motor_scanning']
+		section.enable('feed_rate_scanning')
+		section.enable('acceleration_scanning')
+		panel = self.controls.panels['image_acquisition']
+		section = panel.sections['camera_scanning']
+		section.enable('framerate_scanning')
+		section.enable('resolution_scanning')
 		self.pointCloudTimer.Stop()
 		self.gauge.Hide()
+		self.scenePanel.Layout()
 		self.Layout()
 
 	def onPauseToolClicked(self, event):

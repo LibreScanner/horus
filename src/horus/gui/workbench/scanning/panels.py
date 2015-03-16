@@ -57,8 +57,8 @@ class ScanParameters(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('scan_parameters')
-        section.addItem(ComboBox, 'scan_type', dropdown=True, tooltip=_("Simple Scan algorithm captures only the geometry using one image. Texture Scan algorithm captures also the texture using two images"))
-        section.addItem(ComboBox, 'use_laser', dropdown=True)
+        section.addItem(ComboBox, 'scan_type', tooltip=_("Simple Scan algorithm captures only the geometry using one image. Texture Scan algorithm captures also the texture using two images"))
+        section.addItem(ComboBox, 'use_laser')
         if os.name != 'nt':
             section.addItem(CheckBox, 'fast_scan')
 
@@ -85,8 +85,8 @@ class ScanParameters(ExpandablePanel):
             print "Error: Can not change Scan Type"
 
     def setUseLaser(self, value):
-        self.pcg.setUseLaser(value==_("Left") or value==_("Both"),
-                             value==_("Right") or value==_("Both"))
+        self.pcg.setUseLaser(value == 'Left' or value == 'Both',
+                             value == 'Right' or value == 'Both')
 
     def setFastScan(self, value):
         self.simpleScan.setFastScan(bool(value))
@@ -118,8 +118,6 @@ class RotativePlatform(ExpandablePanel):
         section.updateCallback('acceleration_scanning', self.setAcceleration)
 
     def setDegrees(self, value):
-        if value != profile.getProfileSetting('step_degrees_scanning'):
-            a=ResolutionWindow(self)
         self.driver.board.setRelativePosition(self.getValueFloat(value))
         self.pcg.setDegrees(self.getValueFloat(value))
 

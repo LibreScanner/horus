@@ -196,7 +196,7 @@ class PreferencesDialog(wx.Dialog):
 					if count >= 0:
 						self.gauge.SetValue(count)
 				except IOError:
-					pass
+					count += 10
 		wx.CallAfter(self.afterLoadFirmware)
 
 	def wrongBoardMessage(self):

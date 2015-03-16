@@ -36,7 +36,7 @@ class ResolutionWindow(wx.Dialog):
         super(ResolutionWindow, self).__init__(parent, title=_('Resolution updated'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         #-- Elements
-        self.description = wx.StaticText(self, label=_('WARNING: if you change the resolution, you need to calibrate again!'))
+        self.description = wx.StaticText(self, label=_('WARNING: if you change the resolution, you need to calibrate again with the same resolution!'))
         self.description.Wrap(400)
 
         self.okButton = wx.Button(self, label=_('OK'))

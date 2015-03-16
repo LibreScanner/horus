@@ -140,12 +140,12 @@ class Scan:
 				'Line' : self.imgLine,
 				'Color' : self.imgColor
 			  }[self.imgType]
-		if source!=None:
-			img=source
+		if source != None:
+			img = source
 		
 		if img is not None:
 			if self.pcg.viewROI:
-				img=self.roi2DVisualization(img)
+				img = self.roi2DVisualization(img)
 		return img
 
 	def roi2DVisualization(self, img):
@@ -239,8 +239,8 @@ class Scan:
 		while self.runProcess:
 			if not self.inactive:
 				angle = abs(self.pcg.theta * 180.0 / np.pi)
-				if progressCallback is not None and self.pcg.degrees > 0:
-					progressCallback(angle/self.pcg.degrees, 360.0/self.pcg.degrees)
+				if progressCallback is not None and abs(self.pcg.degrees) > 0:
+					progressCallback(abs(angle/self.pcg.degrees), abs(360.0/self.pcg.degrees))
 				if angle <= 360.0:
 					if not self.imagesQueue.empty():
 						imagesQueueItem = self.imagesQueue.get(timeout=0.1)
@@ -292,6 +292,11 @@ class Scan:
 			response = (True, None)
 		else:
 			response = (False, Error.ScanError)
+
+		self.imgLaser = None
+		self.imgGray = None
+		self.imgLine = None
+		self.imgColor = None
 
 		if afterCallback is not None:
 			afterCallback(response)

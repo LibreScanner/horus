@@ -83,6 +83,7 @@ class ExpandableControl(wx.Panel):
 						panel.undoButton.Hide()
 					if panel.hasRestore:
 						panel.restoreButton.Hide()
+				panel.Layout()
 			self.Layout()
 			self.GetParent().Layout()
 			self.GetParent().GetParent().Layout()
@@ -170,7 +171,7 @@ class ExpandablePanel(wx.Panel):
 	def updateProfile(self):
 		for section in self.sections.values():
 			section.updateProfile()
-			
+
 	def onUndoButtonClicked(self, event):
 		if self.undo():
 			self.undoButton.Enable()
@@ -224,11 +225,10 @@ class SectionPanel(wx.Panel):
 		self.SetSizer(self.vbox)
 		self.Layout()
 
-	def addItem(self, _type, _name, dropdown=None, tooltip=None):
-		if dropdown == None:
-			item = _type(self, _name)
-		else:
-			item = _type(self, _name, dropdown)
+	# TODO: improve tooltip implementation
+
+	def addItem(self, _type, _name, tooltip=None):
+		item = _type(self, _name)
 		item.setUndoCallbacks(self.appendUndoCallback, self.releaseUndoCallback)
 		if tooltip == None:
 			self.items.update({_name : item})
@@ -247,9 +247,23 @@ class SectionPanel(wx.Panel):
 	def resetProfile(self):
 		for item in self.items.values():
 			if isinstance(item, tuple):
-				item[0].resetProfile()
+				if item[0].IsEnabled():
+					item[0].resetProfile()
 			else:
-				item.resetProfile()
+				if item.IsEnabled():
+					item.resetProfile()
+
+	def enable(self, _name):
+		if isinstance(self.items[_name], tuple):
+			self.items[_name][0].Enable()
+		else:
+			self.items[_name].Enable()
+
+	def disable(self, _name):
+		if isinstance(self.items[_name], tuple):
+			self.items[_name][0].Disable()
+		else:
+			self.items[_name].Disable()
 
 	def updateProfile(self):
 		scanType = profile.getProfileSetting('scan_type')
@@ -307,13 +321,18 @@ class SectionItem(wx.Panel):
 			else:
 				return True
 
-	def update(self, value):
+	def update(self, value, trans=False):
 		if self.isVisible():
 			self.Show()
-			self.control.SetValue(value)
+			if trans:
+				self.control.SetValue(_(value))
+			else:
+				self.control.SetValue(value)
 			self._updateEngine(value)
 		else:
 			self.Hide()
+		self.Layout()
+		self.GetParent().Layout()
 
 	def _updateEngine(self, value):
 		if self.engineCallback is not None:
@@ -422,17 +441,14 @@ class Slider(SectionItem):
 
 
 class ComboBox(SectionItem):
-	def __init__(self, parent, name, engineCallback=None, dropdown=None):
+	def __init__(self, parent, name, engineCallback=None):
 		""" """
 		SectionItem.__init__(self, parent, name, engineCallback)
 
 		_choices = []
 		choices = self.setting.getType()
-		if dropdown != None:
-			for i in choices:
-				_choices.append(_(i))
-		else: 
-			_choices = choices
+		for i in choices:
+			_choices.append(_(i))
 		self.keyDict = dict(zip(_choices, choices))
 
 		#-- Elements
@@ -464,8 +480,8 @@ class ComboBox(SectionItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = _(profile.getProfileSetting(self.name))
-			self.update(value)
+			value = profile.getProfileSetting(self.name)
+			self.update(value, trans=True)
 
 
 class CheckBox(SectionItem):
