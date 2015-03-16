@@ -172,7 +172,7 @@ class Camera:
 
 	def _fail(self):
 		self._n += 1
-		if self._n >= 5:
+		if self._n >= 3:
 			self._n = 0
 			if self.unplugCallback is not None and \
 			   self.parent is not None and not self.parent.unplugged:
