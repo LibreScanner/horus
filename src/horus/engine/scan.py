@@ -135,17 +135,17 @@ class Scan:
 		self.imgType = imgType
 
 	def getImage(self, source=None):
-		img = { 'color' : self.imgColor,
-				'laser' : self.imgLaser,
-				'gray' : self.imgGray,
-				'line' : self.imgLine
+		img = { 'Laser' : self.imgLaser,
+				'Gray' : self.imgGray,
+				'Line' : self.imgLine,
+				'Color' : self.imgColor
 			  }[self.imgType]
-		if source!=None:
-			img=source
+		if source != None:
+			img = source
 		
 		if img is not None:
 			if self.pcg.viewROI:
-				img=self.roi2DVisualization(img)
+				img = self.roi2DVisualization(img)
 		return img
 
 	def roi2DVisualization(self, img):
@@ -164,20 +164,20 @@ class Scan:
 		img = img.copy()
 		#upper ellipse
 		if (center_up_v<self.pcg.cy):
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0,0,255), thickness)
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0,0,255), thickness_hiden)
+			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0, 100, 200), thickness)
+			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0, 100, 200), thickness_hiden)
 		else:
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0,0,255), thickness)
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0,0,255), thickness)
+			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0, 100, 200), thickness)
+			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0, 100, 200), thickness)
 
 		#lower ellipse
-		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 180, 360, (0,0,255), thickness_hiden)
-		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 0, 180, (0,0,255), thickness)
+		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 180, 360, (0, 100, 200), thickness_hiden)
+		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 0, 180, (0, 100, 200), thickness)
 
 		#cylinder lines
 
-		cv2.line(img, (self.pcg.no_trimmed_umin, center_up_v), (self.pcg.no_trimmed_umin, center_down_v), (0,0,255),thickness)
-		cv2.line(img, (self.pcg.no_trimmed_umax, center_up_v), (self.pcg.no_trimmed_umax, center_down_v), (0,0,255),thickness)
+		cv2.line(img, (self.pcg.no_trimmed_umin, center_up_v), (self.pcg.no_trimmed_umin, center_down_v), (0, 100, 200),thickness)
+		cv2.line(img, (self.pcg.no_trimmed_umax, center_up_v), (self.pcg.no_trimmed_umax, center_down_v), (0, 100, 200),thickness)
 
 		#view center
 		if axes_up[0]<=0 or axes_up[1] <=0:
@@ -187,9 +187,9 @@ class Scan:
 			axes_up_center=(20,axes_up[1]*20/axes_up[0])
 			axes_down_center=(20,axes_down[1]*20/axes_down[0])
 		#upper center
-		cv2.ellipse(img, (self.pcg.center_u, min(center_up_v, self.pcg.center_v) ), axes_up_center, 0, 0, 360, (255,0,0), -1)
+		cv2.ellipse(img, (self.pcg.center_u, min(center_up_v, self.pcg.center_v) ), axes_up_center, 0, 0, 360, (0, 70, 120), -1)
 		#lower center
-		cv2.ellipse(img, (self.pcg.center_u, self.pcg.center_v), axes_down_center, 0, 0, 360, (255,0,0), -1)
+		cv2.ellipse(img, (self.pcg.center_u, self.pcg.center_v), axes_down_center, 0, 0, 360, (0, 70, 120), -1)
 
 		return img
 
@@ -232,9 +232,16 @@ class Scan:
 	def _processThread(self, progressCallback, afterCallback):
 		""""""
 		ret = False
+
+		if progressCallback is not None:
+			progressCallback(0)
+
 		while self.runProcess:
 			if not self.inactive:
-				if abs(self.pcg.theta * 180.0 / np.pi) <= 360.0:
+				angle = abs(self.pcg.theta * 180.0 / np.pi)
+				if progressCallback is not None and abs(self.pcg.degrees) > 0:
+					progressCallback(abs(angle/self.pcg.degrees), abs(360.0/self.pcg.degrees))
+				if angle <= 360.0:
 					if not self.imagesQueue.empty():
 						imagesQueueItem = self.imagesQueue.get(timeout=0.1)
 						self.imagesQueue.task_done();
@@ -273,7 +280,7 @@ class Scan:
 
 						end = time.time()
 
-						print "Process end: {0}".format(int((end-begin)*1000))
+						print "Process: {0} ms".format(int((end-begin)*1000))
 				else:
 					if self.generatePointCloud:
 						ret = True
@@ -281,13 +288,15 @@ class Scan:
 			else:
 				time.sleep(0.1)
 
-		if progressCallback is not None:
-			progressCallback(100)
-
 		if ret:
 			response = (True, None)
 		else:
 			response = (False, Error.ScanError)
+
+		self.imgLaser = None
+		self.imgGray = None
+		self.imgLine = None
+		self.imgColor = None
 
 		if afterCallback is not None:
 			afterCallback(response)
@@ -338,13 +347,11 @@ class SimpleScan(Scan):
 
 					#-- Left laser
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						image = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
-						self.imagesQueue.put(('left',image))
+						imageLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
 
 					#-- Right laser
 					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						image = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
-						self.imagesQueue.put(('right',image))
+						imageLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
 
 					##-- Both laser
 					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
@@ -356,10 +363,7 @@ class SimpleScan(Scan):
 						self.driver.board.setLeftLaserOff()
 						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
 
-						self.imagesQueue.put(('both_left',imgLaserLeft))
-						self.imagesQueue.put(('both_right',imgLaserRight))
-
-					print "-- Theta capture: {0}".format(self.theta * 180.0 / np.pi)
+					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
 					self.theta -= self.pcg.degrees * self.pcg.rad
 
 					#-- Move motor
@@ -370,8 +374,17 @@ class SimpleScan(Scan):
 						time.sleep(0.05)
 
 					end = time.time()
-					print "Capture end: {0}".format(int((end-begin)*1000))
-				
+					print "Capture: {0} ms".format(int((end-begin)*1000))
+
+					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+						self.imagesQueue.put(('left',imageLaserLeft))
+
+					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+						self.imagesQueue.put(('right',imageLaserRight))
+
+					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+						self.imagesQueue.put(('both_left',imgLaserLeft))
+						self.imagesQueue.put(('both_right',imgLaserRight))
 				else:
 					if self.generatePointCloud:
 						self._stopCapture()
@@ -556,6 +569,19 @@ class TextureScan(Scan):
 						else:
 							imgLaserRight = None
 
+					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
+					self.theta -= self.pcg.degrees * self.pcg.rad
+
+					#-- Move motor
+					if self.moveMotor:
+						self.driver.board.setRelativePosition(self.pcg.degrees)
+						self.driver.board.moveMotor()
+					else:
+						time.sleep(0.05)
+
+					end = time.time()
+					print "Capture: {0} ms".format(int((end-begin)*1000))
+
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
 						if imgRaw is not None and imgLaserLeft is not None:
 							self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
@@ -568,19 +594,6 @@ class TextureScan(Scan):
 						if imgRaw is not None and imgLaserLeft is not None and imgLaserRight is not None:
 							self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
 							self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
-
-					print "-- Theta: {0}".format(self.theta * 180.0 / np.pi)
-					self.theta -= self.pcg.degrees * self.pcg.rad
-
-					#-- Move motor
-					if self.moveMotor:
-						self.driver.board.setRelativePosition(self.pcg.degrees)
-						self.driver.board.moveMotor()
-					else:
-						time.sleep(0.05)
-
-					end = time.time()
-					print "Capture end: {0}".format(int((end-begin)*1000))
 				else:
 					if self.generatePointCloud:
 						self._stopCapture()
@@ -741,7 +754,6 @@ class PointCloudGenerator:
 			top = bottom + np.matrix([0,0,self.roiHeight]).T
 			data = np.concatenate((bottom, top), axis=1)
 
-
 			#-- Camera system
 			data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
 
@@ -770,13 +782,10 @@ class PointCloudGenerator:
 			self.no_trimmed_vmin = int(round(np.min(v)))
 			self.no_trimmed_vmax = int(round(np.max(v)))
 
-
 			self.umin = max(umin, 0)
 			self.umax = min(umax, self.width)
 			self.vmin = max(vmin, 0)
 			self.vmax = min(vmax, self.height)
-
-
 
 	def calculateCenter(self):
 		#-- Platform system

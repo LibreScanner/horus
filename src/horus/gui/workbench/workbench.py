@@ -127,29 +127,29 @@ class WorkbenchConnection(Workbench):
 
 		if not ret:
 			if result is Error.WrongFirmware:
-				dlg = wx.MessageDialog(self, _("Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board and press Upload Firmware"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg = wx.MessageDialog(self, _("Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board and press Upload Firmware"), _(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
 				dlg.Destroy()
 				self.updateStatus(False)
 				self.GetParent().onPreferences(None)
 			elif result is Error.BoardNotConnected:
-				dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board and select a valid Serial Name"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board and select a valid Serial Name"), _(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
 				dlg.Destroy()
 				self.updateStatus(False)
 				self.GetParent().onPreferences(None)
 			elif result is Error.CameraNotConnected:
-				dlg = wx.MessageDialog(self, _("Please plug your camera and try to connect again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Please plug your camera and try to connect again"), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 			elif result is Error.WrongCamera:
-				dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), Error.str(result), wx.OK|wx.ICON_INFORMATION)
+				dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), _(result), wx.OK|wx.ICON_INFORMATION)
 				dlg.ShowModal()
 				dlg.Destroy()
 				self.updateStatus(False)
 				self.GetParent().onPreferences(None)
 			elif result is Error.InvalidVideo:
-				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable and try to connect again"), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable and try to connect again"), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 

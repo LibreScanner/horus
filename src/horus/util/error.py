@@ -28,35 +28,27 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
 
-WrongFirmware       = "wrong_firmware"
-BoardNotConnected   = "board_not_connected"
-CameraNotConnected  = "camera_not_connected"
-WrongCamera         = "wrong_camera"
-InvalidVideo        = "invalid_video"
-CalibrationError    = "calibration_error"
-CalibrationCanceled = "calibration_canceled"
-ScanError           = "scan_error"
+WrongFirmware       = "Wrong Firmware"
+BoardNotConnected   = "Board Not Connected"
+CameraNotConnected  = "Camera Not Connected"
+WrongCamera         = "Wrong Camera"
+InvalidVideo        = "Invalid Video"
+CalibrationError    = "Calibration Error"
+CalibrationCanceled = "Calibration Canceled"
+ScanError           = "Scan Error"
 
-#Define a fake _() function to fake the gettext tools in to generating strings for the error messages.
+
+#Define a fake _() function to fake the gettext tools in to generating strings for the profile settings.
 def _(n):
 	return n
 
-_dict = { 
-	WrongFirmware       : _("Wrong Firmware"),
-	BoardNotConnected   : _("Board Not Connected"),
-	CameraNotConnected  : _("Camera Not Connected"),
-	WrongCamera         : _("Wrong Camera"),
-	InvalidVideo        : _("Invalid Video"),
-	CalibrationError    : _("Calibration Error"),
-	CalibrationCanceled : _("Calibration Canceled"),
-	ScanError           : _("Scan Error")
-}
+_("Wrong Firmware")
+_("Board Not Connected")
+_("Camera Not Connected")
+_("Wrong Camera")
+_("Invalid Video")
+_("Calibration Error")
+_("Calibration Canceled")
+_("Scan Error")
 
 del _
-
-def contains(key):
-	return key in _dict
-
-def str(key):
-	if contains(key):
-		return _dict[key]

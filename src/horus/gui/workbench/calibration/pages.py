@@ -105,6 +105,7 @@ class CameraIntrinsicsMainPage(Page):
 
 	def onShow(self, event):
 		if event.GetShow():
+			self.gauge.SetValue(0)
 			self.videoView.play()
 			calibration.CameraIntrinsics.Instance().clearImageStack()
 			self.GetParent().Layout()
@@ -177,12 +178,19 @@ class CameraIntrinsicsMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
+		boardUnplugCallback = self.driver.board.unplugCallback
+		cameraUnplugCallback = self.driver.camera.unplugCallback
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
+		self.onCalibration = False
 		self.cameraIntrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
+		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
 class CameraIntrinsicsResultPage(Page):
@@ -225,7 +233,7 @@ class CameraIntrinsicsResultPage(Page):
 			self.Layout()
 		else:
 			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 
@@ -274,8 +282,8 @@ class CameraIntrinsics3DPlot(wx.Panel):
 		self.ax.invert_zaxis()
 
 	def add(self, rvecs, tvecs):
-		w = self.columns * self.squareWidth 
-		h = self.rows * self.squareWidth
+		h = self.columns * self.squareWidth 
+		w = self.rows * self.squareWidth
 
 		p = np.array([[0,0,0],[w,0,0],[w,h,0],[0,h,0],[0,0,0]])
 		n = np.array([[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]])
@@ -321,7 +329,7 @@ class LaserTriangulationMainPage(Page):
 	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Laser Triangulation"),
-							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
+							subTitle=_("Put the pattern on the platform as shown in the picture and press Calibrate to continue"),
 							left=_("Cancel"),
 							right=_("Calibrate"),
 							buttonLeftCallback=self.onCancel,
@@ -332,6 +340,9 @@ class LaserTriangulationMainPage(Page):
 		self.driver = Driver.Instance()
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.laserTriangulation = calibration.LaserTriangulation.Instance()
+
+
+		self.onCalibration=False
 
 		self.afterCancelCallback = afterCancelCallback
 		self.afterCalibrationCallback = afterCalibrationCallback
@@ -370,12 +381,19 @@ class LaserTriangulationMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.laserTriangulation.getImage()
+		if self.onCalibration:
+			frame = self.laserTriangulation.getImage()
+		else:
+			frame = self.driver.camera.captureImage()
+
 		#if frame is not None:
 		#	retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
 
 	def onCalibrate(self):
+		self.onCalibration=True
+		self.laserTriangulation.setImage(self.driver.camera.captureImage())
+
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressCalibration,p),
 											 lambda r: wx.CallAfter(self.afterCalibration,r))
@@ -391,6 +409,7 @@ class LaserTriangulationMainPage(Page):
 
 	def afterCalibration(self, result):
 		self.onCalibrationFinished(result)
+		self.onCalibration=False
 
 	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
@@ -400,11 +419,19 @@ class LaserTriangulationMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
+		boardUnplugCallback = self.driver.board.unplugCallback
+		cameraUnplugCallback = self.driver.camera.unplugCallback
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
+		self.onCalibration = False
 		self.laserTriangulation.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
+		del self.waitCursor
+		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
 class LaserTriangulationResultPage(Page):
@@ -452,7 +479,7 @@ class LaserTriangulationResultPage(Page):
 			self.Layout()
 		else:
 			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 
@@ -500,8 +527,8 @@ class LaserTriangulation3DPlot(wx.Panel):
 		self.ax.set_ylabel('Z')
 		self.ax.set_zlabel('Y')
 
-		self.ax.text(-100,0,0, str(stdL), fontsize=15)
-		self.ax.text(100,0,0, str(stdR), fontsize=15)
+		self.ax.text(-100,0,0, str(round(stdL, 5)), fontsize=15)
+		self.ax.text(100,0,0, str(round(stdR, 5)), fontsize=15)
 
 		self.ax.set_xlim(-150, 150)
 		self.ax.set_ylim(0, 400)
@@ -543,7 +570,7 @@ class SimpleLaserTriangulationMainPage(Page):
 	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Simple Laser Triangulation"),
-							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
+							subTitle=_("Put the pattern on the platform as shown in the picture and press Calibrate to continue"),
 							left=_("Cancel"),
 							right=_("Calibrate"),
 							buttonLeftCallback=self.onCancel,
@@ -620,11 +647,19 @@ class SimpleLaserTriangulationMainPage(Page):
 			self.afterCalibrationCallback(result)
 
 	def onCancel(self):
-		self.waitCursor = wx.BusyCursor()
+		boardUnplugCallback = self.driver.board.unplugCallback
+		cameraUnplugCallback = self.driver.camera.unplugCallback
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
+		self.onCalibration = False
 		self.laserTriangulation.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
+		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
 class SimpleLaserTriangulationResultPage(Page):
@@ -676,7 +711,7 @@ class SimpleLaserTriangulationResultPage(Page):
 			self.Layout()
 		else:
 			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 
@@ -721,7 +756,7 @@ class PlatformExtrinsicsMainPage(Page):
 	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
 		Page.__init__(self, parent,
 							title=_("Platform Extrinsics"),
-							subTitle=_("Put the pattern on the platform and press Calibrate to continue"),
+							subTitle=_("Put the pattern on the platform as shown in the picture and press Calibrate to continue"),
 							left=_("Cancel"),
 							right=_("Calibrate"),
 							buttonLeftCallback=self.onCancel,
@@ -732,6 +767,8 @@ class PlatformExtrinsicsMainPage(Page):
 		self.driver = Driver.Instance()
 		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+
+		self.onCalibration=False
 
 		self.afterCancelCallback = afterCancelCallback
 		self.afterCalibrationCallback = afterCalibrationCallback
@@ -770,12 +807,19 @@ class PlatformExtrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.platformExtrinsics.getImage()#self.driver.camera.captureImage()
+		if self.onCalibration:
+			frame = self.platformExtrinsics.getImage()
+		else:
+			frame = self.driver.camera.captureImage()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+
 		return frame
 
 	def onCalibrate(self):
+		self.onCalibration=True
+		self.platformExtrinsics.setImage(self.driver.camera.captureImage())
+
 		self.platformExtrinsics.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressCalibration,p),
 											 lambda r: wx.CallAfter(self.afterCalibration,r))
@@ -791,6 +835,7 @@ class PlatformExtrinsicsMainPage(Page):
 
 	def afterCalibration(self, result):
 		self.onCalibrationFinished(result)
+		self.onCalibration=False
 
 	def onCalibrationFinished(self, result):
 		self._rightButton.Enable()
@@ -800,11 +845,19 @@ class PlatformExtrinsicsMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
+		boardUnplugCallback = self.driver.board.unplugCallback
+		cameraUnplugCallback = self.driver.camera.unplugCallback
+		self.driver.board.setUnplugCallback(None)
+		self.driver.camera.setUnplugCallback(None)
+		if not hasattr(self, 'waitCursor'):
+			self.waitCursor = wx.BusyCursor()
+		self.onCalibration = False
 		self.platformExtrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
+		del self.waitCursor
+		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
 class PlatformExtrinsicsResultPage(Page):
@@ -847,7 +900,7 @@ class PlatformExtrinsicsResultPage(Page):
 			self.Layout()
 		else:
 			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), Error.str(result), wx.OK|wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
 				dlg.ShowModal()
 				dlg.Destroy()
 

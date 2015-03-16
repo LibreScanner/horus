@@ -29,8 +29,9 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import wx.lib.scrolledpanel
 
-from horus.util import resources
+from horus.util import resources, profile
 
+from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
 
@@ -123,10 +124,11 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.addToPanel(self.platformExtrinsicsMainPage, 1)
         self.addToPanel(self.platformExtrinsicsResultPage, 1)
 
+        self.updateCallbacks()
         self.Layout()
 
-    def initialize(self):
-        self.controls.initialize()
+    def updateCallbacks(self):
+        self.controls.updateCallbacks()
 
     def getFrame(self):
         frame = Driver.Instance().camera.captureImage()
@@ -159,15 +161,19 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onPlatformExtrinsicsStartCallback(self):
-        self.calibrating = True
-        self.enableLabelTool(self.disconnectTool, False)
-        self.controls.setExpandable(False)
-        self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
-        self.combo.Disable()
-        self.videoView.stop()
-        self.videoView.Hide()
-        self.platformExtrinsicsMainPage.Show()
-        self.Layout()
+        if profile.getProfileSettingFloat('pattern_distance') == 0:
+            PatternDistanceWindow(self)
+            self.updateProfileToAllControls()
+        else:
+            self.calibrating = True
+            self.enableLabelTool(self.disconnectTool, False)
+            self.controls.setExpandable(False)
+            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
+            self.combo.Disable()
+            self.videoView.stop()
+            self.videoView.Hide()
+            self.platformExtrinsicsMainPage.Show()
+            self.Layout()
 
     def onCancelCallback(self):
         self.calibrating = False

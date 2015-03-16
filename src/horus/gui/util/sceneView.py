@@ -64,6 +64,7 @@ class SceneView(openglGui.glGuiPanel):
 		self._mouseX = -1
 		self._mouseY = -1
 		self._mouseState = None
+		self._mouse3Dpos = numpy.array([0,0,0], numpy.float32)
 		self._viewTarget = numpy.array([0,0,0], numpy.float32)
 		self._animView = None
 		self._animZoom = None
@@ -78,7 +79,7 @@ class SceneView(openglGui.glGuiPanel):
 		self.viewMode = 'ply'
 
 		self._moveVertical = False
-		self._offset = 0
+		self._showDeleteMenu = True
 
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
@@ -92,6 +93,12 @@ class SceneView(openglGui.glGuiPanel):
 			self.Layout()
 
 	def __del__(self):
+		if self._objectShader is not None:
+			self._objectShader.release()
+		if self._objectShaderNoLight is not None:
+			self._objectShaderNoLight.release()
+		if self._objectLoadShader is not None:
+			self._objectLoadShader.release()
 		if self._object is not None:
 			if self._object._mesh is not None:
 				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
@@ -157,27 +164,32 @@ class SceneView(openglGui.glGuiPanel):
 			self._object = None
 			gc.collect()
 
-			self._offset = 0
 			newZoom = numpy.max(self._machineSize)
 			self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
 			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
 
 	def _selectObject(self, obj, zoom = True):
-		self._offset = 0
 		if obj != self._selectedObj:
 			self._selectedObj = obj
 			self.updateModelSettingsToControls()
-		if zoom and obj is not None:
-			newViewPos = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2])
-			self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
-			newZoom = obj.getBoundaryCircle() * 6
+
+		if zoom:
+			if self._selectedObj is None:
+				newViewPos = numpy.array([0,0,0], numpy.float32)
+				newZoom = 300
+			else:
+				newViewPos = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2])
+				newZoom = obj.getBoundaryCircle() * 6
+			
 			if newZoom > numpy.max(self._machineSize) * 3:
 				newZoom = numpy.max(self._machineSize) * 3
+
 			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
+			self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
 	def updateProfileToControls(self):
 		self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')])
-		self._objColor = profile.getPreferenceColour('model_colour')
+		self._objColor = profile.getPreferenceColor('model_color')
 		self.updateModelSettingsToControls()
 
 	def updateModelSettingsToControls(self):
@@ -203,7 +215,7 @@ class SceneView(openglGui.glGuiPanel):
 				if self._zoom > numpy.max(self._machineSize) * 3:
 					self._zoom = numpy.max(self._machineSize) * 3
 			elif wx.GetKeyState(wx.WXK_CONTROL):
-				self._offset += 5
+				self._viewTarget[2] += 5
 			else:
 				self._pitch -= 15
 			self.QueueRefresh()
@@ -213,7 +225,7 @@ class SceneView(openglGui.glGuiPanel):
 				if self._zoom < 1:
 					self._zoom = 1
 			elif wx.GetKeyState(wx.WXK_CONTROL):
-				self._offset -= 5
+				self._viewTarget[2] -= 5
 			else:
 				self._pitch += 15
 			self.QueueRefresh()
@@ -300,6 +312,7 @@ class SceneView(openglGui.glGuiPanel):
 			if e.GetButton() == 1:
 				self._selectObject(self._object)
 			if e.GetButton() == 3:
+				if self._showDeleteMenu:
 					menu = wx.Menu()
 					if self._object is not None:
 						self.Bind(wx.EVT_MENU, self.onDeleteObject, menu.Append(-1, _("Delete object")))
@@ -307,6 +320,9 @@ class SceneView(openglGui.glGuiPanel):
 						self.PopupMenu(menu)
 					menu.Destroy()
 		self._mouseState = None
+
+	def setShowDeleteMenu(self, value=True):
+		self._showDeleteMenu = value
 
 	def onDeleteObject(self, event):
 		if self._object is not None:
@@ -353,7 +369,7 @@ class SceneView(openglGui.glGuiPanel):
 		delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
 		delta = max(min(delta,4),-4)
 		if self._moveVertical:
-			self._offset -= 5 * delta
+			self._viewTarget[2] -= 5 * delta
 		else:
 			self._zoom *= 1.0 - delta / 10.0
 			if self._zoom < 1.0:
@@ -368,11 +384,16 @@ class SceneView(openglGui.glGuiPanel):
 	def getMouseRay(self, x, y):
 		if self._viewport is None:
 			return numpy.array([0,0,0],numpy.float32), numpy.array([0,0,1],numpy.float32)
+
 		p0 = openglHelpers.unproject(x, self._viewport[1] + self._viewport[3] - y, 0, self._modelMatrix, self._projMatrix, self._viewport)
 		p1 = openglHelpers.unproject(x, self._viewport[1] + self._viewport[3] - y, 1, self._modelMatrix, self._projMatrix, self._viewport)
-		p0 -= self._viewTarget
-		p1 -= self._viewTarget
-		return p0, p1
+		if type(p0)!=type(None) and type(p1)!=type(None):
+			p0 -= self._viewTarget
+			p1 -= self._viewTarget
+			return p0, p1
+		else:
+			return numpy.array([0,0,0],numpy.float32), numpy.array([0,0,1],numpy.float32)
+
 
 	def _init3DView(self):
 		# set viewing projection
@@ -495,7 +516,7 @@ class SceneView(openglGui.glGuiPanel):
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
 		glRotate(self._yaw, 0,0,1)
-		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2]-self._offset)
+		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
 
 		self._viewport = glGetIntegerv(GL_VIEWPORT)
 		self._modelMatrix = glGetDoublev(GL_MODELVIEW_MATRIX)
@@ -517,14 +538,14 @@ class SceneView(openglGui.glGuiPanel):
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
 		glRotate(self._yaw, 0,0,1)
-		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2]-self._offset)
+		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
 
 		glStencilFunc(GL_ALWAYS, 1, 1)
 		glStencilOp(GL_INCR, GL_INCR, GL_INCR)
 
 		if self._object is not None:
 
-			if self._object.isPointCloud():
+			if self._object.isPointCloud() and openglHelpers.hasShaderSupport():
 				self._objectShaderNoLight.bind()
 			else:
 				self._objectShader.bind()
@@ -545,7 +566,7 @@ class SceneView(openglGui.glGuiPanel):
 			glEnable(GL_DEPTH_TEST)
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
 
-			if self._object.isPointCloud():
+			if self._object.isPointCloud() and openglHelpers.hasShaderSupport():
 				self._objectShaderNoLight.unbind()
 			else:
 				self._objectShader.unbind()
@@ -568,13 +589,13 @@ class SceneView(openglGui.glGuiPanel):
 			if obj._mesh is not None:
 				if obj._mesh.vbo is not None:
 					obj._mesh.vbo.release()
-				obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes, colorArray=obj._mesh.colors)
+				obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes[:obj._mesh.vertexCount], colorArray=obj._mesh.colors[:obj._mesh.vertexCount])
 				obj._mesh.vbo.render()
 		else:
 			if obj._mesh is not None:
 				if obj._mesh.vbo is not None:
 					obj._mesh.vbo.release()
-				obj._mesh.vbo = openglHelpers.GLVBO(GL_TRIANGLES, obj._mesh.vertexes, obj._mesh.normal)
+				obj._mesh.vbo = openglHelpers.GLVBO(GL_TRIANGLES, obj._mesh.vertexes[:obj._mesh.vertexCount], obj._mesh.normal[:obj._mesh.vertexCount])
 				if brightness != 0:
 					glColor4fv(map(lambda idx: idx * brightness, self._objColor))
 				obj._mesh.vbo.render()
@@ -646,7 +667,7 @@ class SceneView(openglGui.glGuiPanel):
 			quadric=gluNewQuadric();
 			gluQuadricNormals(quadric, GLU_SMOOTH);
 			gluQuadricTexture(quadric, GL_TRUE);
-			glColor4ub(255, 0, 0, 255)
+			glColor4ub(0, 100, 200, 150)
 			#lower center:
 			gluCylinder(quadric,6,6,1,32,16);
 			gluDisk(quadric, 0.0, 6, 32, 1); 

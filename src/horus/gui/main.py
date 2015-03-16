@@ -34,6 +34,7 @@ import time
 import struct
 import platform
 import wx._core
+import webbrowser
 
 from horus.util import profile, resources, meshLoader
 
@@ -47,11 +48,11 @@ from horus.gui.wizard.main import *
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
-VERSION = "0.1"
+VERSION = '0.1.1'
 
 class MainWindow(wx.Frame):
 
-    size = (640+300,480+130)
+    size = (640+337,480+150)
 
     def __init__(self):
         super(MainWindow, self).__init__(None, title=_("Horus " + VERSION + " - Beta"), size=self.size)
@@ -82,10 +83,6 @@ class MainWindow(wx.Frame):
             if currentVideoId not in videoList:
                 profile.putProfileSetting('camera_id', videoList[0])
 
-        self.workbenchList = {'control'     : _("Control workbench"),
-                              'calibration' : _("Calibration workbench"),
-                              'scanning'    : _("Scanning workbench")}
-
         self.lastFiles = eval(profile.getPreference('last_files'))
 
         print ">>> Horus " + VERSION + " <<<"
@@ -102,7 +99,7 @@ class MainWindow(wx.Frame):
         ##-- Menu Bar
         self.menuBar = wx.MenuBar()
 
-        #--  Menu File        
+        #--  Menu File
         self.menuFile = wx.Menu()
         self.menuLaunchWizard = self.menuFile.Append(wx.NewId(), _("Launch Wizard"))
         self.menuFile.AppendSeparator()
@@ -119,9 +116,9 @@ class MainWindow(wx.Frame):
 
         #-- Menu Edit
         self.menuEdit = wx.Menu()
-        self.menuBasicMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Basic Mode"))
-        self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
-        self.menuEdit.AppendSeparator()
+        # self.menuBasicMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Basic Mode"))
+        # self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
+        # self.menuEdit.AppendSeparator()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
         self.menuBar.Append(self.menuEdit, _("Edit"))
 
@@ -144,8 +141,16 @@ class MainWindow(wx.Frame):
 
         #-- Menu Help
         menuHelp = wx.Menu()
-        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         menuWelcome = menuHelp.Append(wx.ID_ANY, _("Welcome"))
+        menuWiki = menuHelp.Append(wx.ID_ANY, _("Wiki"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), menuWiki)
+        menuSources = menuHelp.Append(wx.ID_ANY, _("Sources"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), menuSources)
+        menuIssues = menuHelp.Append(wx.ID_ANY, _("Issues"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), menuIssues)
+        menuForum = menuHelp.Append(wx.ID_ANY, _("Forum"))
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), menuForum)
+        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
         self.menuBar.Append(menuHelp, _("Help"))
 
         self.SetMenuBar(self.menuBar)
@@ -155,11 +160,16 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench = ScanningWorkbench(self)
         self.calibrationWorkbench = CalibrationWorkbench(self)
 
+        _choices = []
+        choices = profile.getProfileSettingObject('workbench').getType()
+        for i in choices:
+            _choices.append(_(i))
+        self.workbenchDict = dict(zip(_choices, choices))
+
         for workbench in [self.controlWorkbench, self.calibrationWorkbench, self.scanningWorkbench]:
             workbench.combo.Clear()
-            workbench.combo.Append(self.workbenchList['control'])
-            workbench.combo.Append(self.workbenchList['calibration'])
-            workbench.combo.Append(self.workbenchList['scanning'])
+            for i in choices:
+                workbench.combo.Append(_(i))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.controlWorkbench, 1, wx.ALL|wx.EXPAND)
@@ -177,8 +187,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onResetProfile, self.menuResetProfile)
         self.Bind(wx.EVT_MENU, self.onExit, menuExit)
 
-        self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
-        self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
+        # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
+        # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
 
         self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
@@ -211,6 +221,9 @@ class MainWindow(wx.Frame):
     def onLaunchWizard(self, event):
         self.controlWorkbench.videoView.stop()
         self.calibrationWorkbench.videoView.stop()
+        self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
+        self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
+        self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
         self.scanningWorkbench.videoView.stop()
         self.controlWorkbench.Disable()
         self.calibrationWorkbench.Disable()
@@ -302,7 +315,12 @@ class MainWindow(wx.Frame):
                 time.sleep(0.5)
             self.controlWorkbench.videoView.stop()
             self.calibrationWorkbench.videoView.stop()
+            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
+            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
+            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
+            self.driver.board.setUnplugCallback(None)
+            self.driver.camera.setUnplugCallback(None)
             self.driver.disconnect()
         except:
             pass
@@ -318,20 +336,40 @@ class MainWindow(wx.Frame):
         profile.putPreference('last_files', self.lastFiles)
 
     def onModeChanged(self, event):
-        profile.putPreference('basic_mode', self.menuBasicMode.IsChecked())
+        # profile.putPreference('basic_mode', self.menuBasicMode.IsChecked())
         self.controlWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
         self.Layout()
 
     def onPreferences(self, event):
+        if os.name == 'nt':
+            self.simpleScan.stop()
+            self.textureScan.stop()
+            self.laserTriangulation.cancel()
+            self.platformExtrinsics.cancel()
+            self.controlWorkbench.videoView.stop()
+            self.calibrationWorkbench.videoView.stop()
+            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
+            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
+            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
+            self.scanningWorkbench.videoView.stop()
+            self.driver.board.setUnplugCallback(None)
+            self.driver.camera.setUnplugCallback(None)
+            self.controlWorkbench.updateStatus(False)
+            self.calibrationWorkbench.updateStatus(False)
+            self.scanningWorkbench.updateStatus(False)
+            self.driver.disconnect()
+            waitCursor = wx.BusyCursor()
+
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
         wx.CallAfter(prefDialog.Show)
+
         self.updateDriverProfile()
-        self.controlWorkbench.initialize()
-        self.calibrationWorkbench.initialize()
-        self.scanningWorkbench.initialize()
+        self.controlWorkbench.updateCallbacks()
+        self.calibrationWorkbench.updateCallbacks()
+        self.scanningWorkbench.updateCallbacks()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.putPreference(key, checked)
@@ -376,20 +414,20 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench.splitterWindow.Unsplit()
         if checkedVideo:
             self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.sceneView)
+            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
             if checkedScene:
-                self.scanningWorkbench.sceneView.Show()
+                self.scanningWorkbench.scenePanel.Show()
             else:
-                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.scenePanel.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
         else:
             self.scanningWorkbench.videoView.Hide()
             if checkedScene:
-                self.scanningWorkbench.sceneView.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.sceneView, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.scenePanel.Show()
+                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
                 self.scanningWorkbench.splitterWindow.Unsplit()
             else:
-                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.scenePanel.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
 
         self.scanningWorkbench.splitterWindow.Layout()
@@ -398,14 +436,10 @@ class MainWindow(wx.Frame):
 
     def onComboBoxWorkbenchSelected(self, event):
         """ """
-        currentWorkbench = profile.getPreference('workbench')
-        for key in self.workbenchList:
-            if self.workbenchList[key] == str(event.GetEventObject().GetValue()):
-                if key is not None:
-                    profile.putPreference('workbench', key)
-                    if key != currentWorkbench:
-                        profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
-                self.workbenchUpdate()
+        if _(profile.getPreference('workbench')) != event.GetEventObject().GetValue():
+            profile.putPreference('workbench', self.workbenchDict[event.GetEventObject().GetValue()])
+            profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
+            self.workbenchUpdate()
 
     def onAbout(self, event):
         """ """
@@ -414,25 +448,29 @@ class MainWindow(wx.Frame):
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(VERSION)
-        info.SetDescription(_('Horus is an Open Source 3D Scanner manager'))
+        techDescription = ''
+        if os.path.isfile(resources.getPathForVersion()):
+            with open(resources.getPathForVersion(), 'r') as f:
+              techDescription = '\n' + f.read().replace('\n','')
+        info.SetDescription(_('Horus is an Open Source 3D Scanner manager') + techDescription)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
-        info.SetLicence("""Horus is free software; you can redistribute 
-it and/or modify it under the terms of the GNU General Public License as 
+        info.SetLicence("""Horus is free software; you can redistribute
+it and/or modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the License,
 or (at your option) any later version.
 
-Horus is distributed in the hope that it will be useful, 
-but WITHOUT ANY WARRANTY; without even the implied warranty of 
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-See the GNU General Public License for more details. You should have 
-received a copy of the GNU General Public License along with File Hunter; 
-if not, write to the Free Software Foundation, Inc., 59 Temple Place, 
+Horus is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details. You should have
+received a copy of the GNU General Public License along with File Hunter;
+if not, write to the Free Software Foundation, Inc., 59 Temple Place,
 Suite 330, Boston, MA  02111-1307  USA""")
         info.AddDeveloper(u'Jesús Arroyo, Irene Sanz')
         info.AddDocWriter(u'Jesús Arroyo')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
-        info.AddTranslator(u'Jesús Arroyo, Irene Sanz')
+        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode')
 
         wx.AboutBox(info)
 
@@ -461,10 +499,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateProfileToAllControls(self):
         """ """
-        if profile.getPreferenceBool('basic_mode'):
-            self.menuBasicMode.Check(True)
-        else:
-            self.menuAdvancedMode.Check(True)
+        # if profile.getPreferenceBool('basic_mode'):
+        #     self.menuBasicMode.Check(True)
+        # else:
+        #     self.menuAdvancedMode.Check(True)
 
         if profile.getPreferenceBool('view_control_panel'):
             self.controlWorkbench.scrollPanel.Show()
@@ -510,20 +548,20 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.scanningWorkbench.splitterWindow.Unsplit()
         if checkedVideo:
             self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.sceneView)
+            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
             if checkedScene:
-                self.scanningWorkbench.sceneView.Show()
+                self.scanningWorkbench.scenePanel.Show()
             else:
-                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.scenePanel.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
         else:
             self.scanningWorkbench.videoView.Hide()
             if checkedScene:
-                self.scanningWorkbench.sceneView.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.sceneView, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.scenePanel.Show()
+                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
                 self.scanningWorkbench.splitterWindow.Unsplit()
             else:
-                self.scanningWorkbench.sceneView.Hide()
+                self.scanningWorkbench.scenePanel.Hide()
                 self.scanningWorkbench.splitterWindow.Unsplit()
 
         self.updateDriverProfile()
@@ -547,8 +585,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             resolution = profile.getProfileSetting('resolution_scanning')
             self.pcg.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
             useLaser = profile.getProfileSetting('use_laser')
-            self.pcg.setUseLaser(useLaser==_("Use Left Laser") or useLaser==_("Use Both Laser"),
-                                 useLaser==_("Use Right Laser") or useLaser==_("Use Both Laser"))
+            self.pcg.setUseLaser(useLaser == 'Left' or useLaser == 'Both',
+                                 useLaser == 'Right' or useLaser == 'Both')
             self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
                                          profile.getProfileSettingNumpy('distortion_vector'))
             self.pcg.setLaserTriangulation(profile.getProfileSettingNumpy('distance_left'),
@@ -559,10 +597,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
                                            profile.getProfileSettingNumpy('translation_vector'))
 
             scanType = profile.getProfileSetting('scan_type')
-            if scanType == _("Without Texture"):
+            if scanType == 'Simple Scan':
                 self.scanningWorkbench.currentScan = self.simpleScan
                 self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
-            elif scanType == _("With Texture"):
+            elif scanType == 'Texture Scan':
                 self.scanningWorkbench.currentScan = self.textureScan
                 self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 
@@ -623,21 +661,18 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.getPreference('workbench')
 
-        wb = {'control'     : self.controlWorkbench,
-              'calibration' : self.calibrationWorkbench,
-              'scanning'    : self.scanningWorkbench}
+        wb = {'Control workbench'     : self.controlWorkbench,
+              'Calibration workbench' : self.calibrationWorkbench,
+              'Scanning workbench'    : self.scanningWorkbench}
 
         waitCursor = wx.BusyCursor()
 
-        self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'scanning')
-        self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'scanning')
-        self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'scanning')
+        self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'Scanning workbench')
+        self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'Scanning workbench')
+        self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'Scanning workbench')
 
-        for key in wb:
-            if wb[key] is not None:
-                if key == currentWorkbench:
-                    wb[key].updateProfileToAllControls()
-                    wb[key].combo.SetValue(str(self.workbenchList[key]))
+        wb[currentWorkbench].updateProfileToAllControls()
+        wb[currentWorkbench].combo.SetValue(_(currentWorkbench))
 
         if layout:
             for key in wb:
@@ -680,23 +715,21 @@ Suite 330, Boston, MA  02111-1307  USA""")
         baselist=['9600', '14400', '19200', '38400', '57600', '115200']
         return baselist
 
+    def countCameras(self):
+        for i in range(5):
+            cap = cv2.VideoCapture(i)
+            res = not cap.isOpened()
+            cap.release()
+            if res:
+                return i
+        return 5
+
     def videoList(self):
         baselist=[]
-        caps=[]
-        if os.name=="nt":
-            i=0
-            while True:
-                cap = cv2.VideoCapture(i)
-                if not cap.isOpened():
-                    break
-                cap.release()
-                caps.append(id(cap))
-
-                if caps[0] == id(cap) and i!=0:
-                        break;
-
+        if os.name == 'nt':
+            count = self.countCameras()
+            for i in range(count):
                 baselist.append(str(i))
-                i+=1
         else:
             for device in ['/dev/video*']:
                 baselist = baselist + glob.glob(device)

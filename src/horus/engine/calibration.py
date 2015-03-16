@@ -111,8 +111,9 @@ class CameraIntrinsics(Calibration):
 		self.useDistortion = useDistortion
 
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
-		self.patternRows = rows
-		self.patternColumns = columns
+		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
+		self.patternRows = columns
+		self.patternColumns = rows
 		self.squareWidth = squareWidth
 		self.patternDistance = distance
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
@@ -173,6 +174,7 @@ class LaserTriangulation(Calibration):
 		Calibration.__init__(self)
 		self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 		self.image = None
+		self.threshold = profile.getProfileSettingFloat('laser_threshold_value')
 
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
@@ -185,8 +187,9 @@ class LaserTriangulation(Calibration):
 		self.threshold = threshold
 
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
-		self.patternRows = rows
-		self.patternColumns = columns
+		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
+		self.patternRows = columns
+		self.patternColumns = rows
 		self.squareWidth = squareWidth
 		self.patternDistance = distance
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
@@ -199,6 +202,9 @@ class LaserTriangulation(Calibration):
 
 	def getImage(self):
 		return self.image
+
+	def setImage(self, image):
+		self.image = image
 
 	def _start(self, progressCallback, afterCallback):
 		XL = None
@@ -237,7 +243,7 @@ class LaserTriangulation(Calibration):
 
 				angle += step
 
-				camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning'))
+				camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration'))
 
 				#-- Image acquisition
 				imageRaw = camera.captureImage(flush=True, flushValue=flush)
@@ -250,7 +256,7 @@ class LaserTriangulation(Calibration):
 
 					d, n, corners = ret
 
-					camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning')/2.)
+					camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration')/2.)
 			
 					#-- Image laser acquisition
 					imageRawLeft = camera.captureImage(flush=True, flushValue=flush)
@@ -316,7 +322,7 @@ class LaserTriangulation(Calibration):
 		board.disableMotor()
 
 		#-- Restore camera exposure
-		camera.setExposure(profile.getProfileSettingNumpy('exposure_scanning'))
+		camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration'))
 
 		if self.isCalibrating and nL is not None and nR is not None:
 			response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
@@ -327,6 +333,8 @@ class LaserTriangulation(Calibration):
 				response = (False, Error.CalibrationError)
 			else:
 				response = (False, Error.CalibrationCanceled)
+
+		self.image = None
 
 		if afterCallback is not None:
 			afterCallback(response)
@@ -404,7 +412,7 @@ class LaserTriangulation(Calibration):
 					std = distance_vector.std()
 
 					final_points=np.where(abs(distance_vector)<abs(2*std) )[0]
-					print 'iteration ', trials, 'd,n,std, len(final_points)', d,n,std, len(final_points)
+					#print 'iteration ', trials, 'd,n,std, len(final_points)', d,n,std, len(final_points)
 
 					X=X[:, final_points]
 
@@ -500,8 +508,9 @@ class SimpleLaserTriangulation(Calibration):
 		self.useDistortion = useDistortion
 
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
-		self.patternRows = rows
-		self.patternColumns = columns
+		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
+		self.patternRows = columns
+		self.patternColumns = rows
 		self.squareWidth = squareWidth
 		self.patternDistance = distance
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
@@ -566,6 +575,8 @@ class SimpleLaserTriangulation(Calibration):
 				response = (False, Error.CalibrationError)
 			else:
 				response = (False, Error.CalibrationCanceled)
+
+		self.image = None
 
 		if afterCallback is not None:
 			afterCallback(response)
@@ -719,9 +730,13 @@ class PlatformExtrinsics(Calibration):
 	def setPatternDistance(self, distance):
 		self.patternDistance=distance
 
+	def setImage(self, image):
+		self.image=image
+
 	def setPatternParameters(self, rows, columns, squareWidth, distance):
-		self.patternRows = rows
-		self.patternColumns = columns
+		# Pattern rows and columns are flipped due to the fact that the pattern is in landscape orientation
+		self.patternRows = columns
+		self.patternColumns = rows
 		self.squareWidth = squareWidth
 		self.patternDistance = distance
 		self.objpoints = self.generateObjectPoints(self.patternColumns, self.patternRows, self.squareWidth)
@@ -806,6 +821,8 @@ class PlatformExtrinsics(Calibration):
 				response = (False, Error.CalibrationError)
 			else:
 				response = (False, Error.CalibrationCanceled)
+
+		self.image = None
 
 		if afterCallback is not None:
 			afterCallback(response)

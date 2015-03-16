@@ -16,8 +16,7 @@
 *.idea
 *.ply
 *.db
-pkg/linux/debian_*/usr/share/horus*
-pkg/linux/debian_*/usr/local/*
+*version
 pkg/win32/dist*
-LIN/*
-WIN/*
+deb_dist/*
+win_dist/*
