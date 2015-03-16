@@ -48,7 +48,7 @@ from horus.gui.wizard.main import *
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
-VERSION = '0.1'
+VERSION = '0.1.1'
 
 class MainWindow(wx.Frame):
 
