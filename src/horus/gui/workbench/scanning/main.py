@@ -219,6 +219,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), False)
+		self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), False)
+		self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), False)
+		self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), False)
 		panel = self.controls.panels['scan_parameters']
 		section = panel.sections['scan_parameters']
 		section.disable('scan_type')
@@ -278,6 +281,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
+		self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), True)
+		self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), True)
+		self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), True)
 		panel = self.controls.panels['scan_parameters']
 		section = panel.sections['scan_parameters']
 		section.enable('scan_type')
