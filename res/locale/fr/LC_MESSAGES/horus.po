@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-03-16 10:53+0100\n"
+"POT-Creation-Date: 2015-03-18 14:52+0100\n"
 "PO-Revision-Date: 2015-03-16 10:58+0100\n"
 "Last-Translator: Alexandre GALODE <deusyss@yahoo.fr>\n"
 "Language-Team: français <deusyss@yahoo.fr>\n"
@@ -134,7 +134,7 @@ msgid "Pause"
 msgstr "Pause"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:188
-#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:329
+#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:332
 msgid ""
 "Your current model will be erased.\n"
 "Do you really want to do it?"
@@ -143,11 +143,11 @@ msgstr ""
 "Désirez-vous continuer?"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:188
-#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:329
+#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:332
 msgid "Clear Point Cloud"
 msgstr "Effacer le nuage de points"
 
-#: ../../src/horus/gui/workbench/scanning/main.py:243
+#: ../../src/horus/gui/workbench/scanning/main.py:246
 msgid ""
 "Scanning has finished. If you want to save your point cloud go to File > "
 "Save Model"
@@ -155,11 +155,11 @@ msgstr ""
 "Numérisation terminée ! Si vous désirez enregistrer votre nuage de points, "
 "cliquez sur \"Fichier\" puis sur \"Enregistrer le modèle\""
 
-#: ../../src/horus/gui/workbench/scanning/main.py:243
+#: ../../src/horus/gui/workbench/scanning/main.py:246
 msgid "Scanning finished!"
 msgstr "Numérisation terminée !"
 
-#: ../../src/horus/gui/workbench/scanning/main.py:252
+#: ../../src/horus/gui/workbench/scanning/main.py:255
 msgid ""
 "Your current scanning will be stopped.\n"
 "Do you really want to do it?"
@@ -167,7 +167,7 @@ msgstr ""
 "La numérisation en cours va être arrêtée.\n"
 "Désirez-vous continuer ?"
 
-#: ../../src/horus/gui/workbench/scanning/main.py:252
+#: ../../src/horus/gui/workbench/scanning/main.py:255
 msgid "Stop Scanning"
 msgstr "Arrêter la numérisation"
 
@@ -332,7 +332,8 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:54
 #: ../../src/horus/gui/workbench/calibration/pages.py:99
-msgid "Press space bar to perform capures"
+#, fuzzy
+msgid "Press space bar to perform captures"
 msgstr "Pressez la barre d'espace pour démarrer la capture"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:55
@@ -720,23 +721,23 @@ msgstr "Bienvenue"
 msgid "Wiki"
 msgstr "Wiki"
 
-#: ../../src/horus/gui/main.py:147
+#: ../../src/horus/gui/main.py:146
 msgid "Sources"
 msgstr "Sources"
 
-#: ../../src/horus/gui/main.py:149
+#: ../../src/horus/gui/main.py:147
 msgid "Issues"
 msgstr "Issues"
 
-#: ../../src/horus/gui/main.py:151
+#: ../../src/horus/gui/main.py:148
 msgid "Forum"
 msgstr "Forum"
 
-#: ../../src/horus/gui/main.py:153
+#: ../../src/horus/gui/main.py:149
 msgid "About"
 msgstr "A propos de ..."
 
-#: ../../src/horus/gui/main.py:154
+#: ../../src/horus/gui/main.py:150
 msgid "Help"
 msgstr "Aide"
 
@@ -819,7 +820,7 @@ msgstr ""
 msgid "Pattern distance (mm)"
 msgstr "Distance patron (mm)"
 
-#: ../../src/horus/gui/util/sceneView.py:318
+#: ../../src/horus/gui/util/sceneView.py:321
 msgid "Delete object"
 msgstr "Supprimer l'objet"
 

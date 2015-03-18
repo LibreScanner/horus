@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-03-16 10:53+0100\n"
-"PO-Revision-Date: 2015-03-16 10:55+0100\n"
+"POT-Creation-Date: 2015-03-18 14:52+0100\n"
+"PO-Revision-Date: 2015-03-18 15:00+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: es\n"
@@ -126,7 +126,7 @@ msgid "Pause"
 msgstr "Parar"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:188
-#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:329
+#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:332
 msgid ""
 "Your current model will be erased.\n"
 "Do you really want to do it?"
@@ -135,11 +135,11 @@ msgstr ""
 "¿Realmente quieres hacerlo?"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:188
-#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:329
+#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:332
 msgid "Clear Point Cloud"
 msgstr "Borrar nube de puntos"
 
-#: ../../src/horus/gui/workbench/scanning/main.py:243
+#: ../../src/horus/gui/workbench/scanning/main.py:246
 msgid ""
 "Scanning has finished. If you want to save your point cloud go to File > "
 "Save Model"
@@ -147,11 +147,11 @@ msgstr ""
 "El escaneo ha terminado. Si quieres guardar la nube de puntos ve a Archivo > "
 "Guardar Modelo"
 
-#: ../../src/horus/gui/workbench/scanning/main.py:243
+#: ../../src/horus/gui/workbench/scanning/main.py:246
 msgid "Scanning finished!"
 msgstr "Escaneo finalizado"
 
-#: ../../src/horus/gui/workbench/scanning/main.py:252
+#: ../../src/horus/gui/workbench/scanning/main.py:255
 msgid ""
 "Your current scanning will be stopped.\n"
 "Do you really want to do it?"
@@ -159,7 +159,7 @@ msgstr ""
 "Tu escaneo se parará.\n"
 "¿Realmente quieres hacerlo?"
 
-#: ../../src/horus/gui/workbench/scanning/main.py:252
+#: ../../src/horus/gui/workbench/scanning/main.py:255
 msgid "Stop Scanning"
 msgstr "Para el escaneo"
 
@@ -325,7 +325,8 @@ msgstr "Valores intrínsecos"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:54
 #: ../../src/horus/gui/workbench/calibration/pages.py:99
-msgid "Press space bar to perform capures"
+#, fuzzy
+msgid "Press space bar to perform captures"
 msgstr "Presiona la barra espaciadora para realizar las capturas"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:55
@@ -713,23 +714,23 @@ msgstr "Bienvenido"
 msgid "Wiki"
 msgstr "Wiki"
 
-#: ../../src/horus/gui/main.py:147
+#: ../../src/horus/gui/main.py:146
 msgid "Sources"
 msgstr "Fuentes"
 
-#: ../../src/horus/gui/main.py:149
+#: ../../src/horus/gui/main.py:147
 msgid "Issues"
 msgstr "Issues"
 
-#: ../../src/horus/gui/main.py:151
+#: ../../src/horus/gui/main.py:148
 msgid "Forum"
 msgstr "Foro"
 
-#: ../../src/horus/gui/main.py:153
+#: ../../src/horus/gui/main.py:149
 msgid "About"
 msgstr "Información"
 
-#: ../../src/horus/gui/main.py:154
+#: ../../src/horus/gui/main.py:150
 msgid "Help"
 msgstr "Ayuda"
 
@@ -808,7 +809,7 @@ msgstr "La distancia del patrón debe ser mayor que 0. Por favor, cámbialo."
 msgid "Pattern distance (mm)"
 msgstr "Distancia del patrón (mm)"
 
-#: ../../src/horus/gui/util/sceneView.py:318
+#: ../../src/horus/gui/util/sceneView.py:321
 msgid "Delete object"
 msgstr "Eliminar objeto"
 
@@ -846,8 +847,7 @@ msgstr ""
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:138
 msgid "Calibration canceled. To try again press \"Calibrate\""
-msgstr ""
-"Calibración cancelada. Para volver a intentarlo, haz click en \"Calibrar\""
+msgstr "Calibración cancelada. Para comenzar, haz click en \"Calibrar\""
 
 #: ../../src/horus/gui/wizard/calibrationPage.py:177
 msgid "Error in lasers: please connect the lasers and try again"
@@ -990,8 +990,7 @@ msgstr "Ajuste manual del láser"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:213
 msgid "Error in Auto check. Please try again"
-msgstr ""
-"Error en la comprobación automática. Por favor, vuelve a intentarlo de nuevo."
+msgstr "Error en la comprobación automática. Inténtalo de nuevo."
 
 #: ../../src/horus/gui/wizard/connectionPage.py:278
 msgid "Settings"
