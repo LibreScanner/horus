@@ -267,7 +267,7 @@ class Scan:
 						points3D, colors = self.pcg.compute3DPoints(points2D, colors, laser, updateTheta)
 
 						if points3D is not None and colors is not None:
-							if self.points == None and self.colors == None:
+							if self.points is None and self.colors is None:
 								self.points = points3D
 								self.colors = colors
 							else:

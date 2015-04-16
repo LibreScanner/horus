@@ -119,7 +119,7 @@ class SceneView(openglGui.glGuiPanel):
 		self._clearScene()
 		self._object = model.Model(None, isPointCloud=True)
 		self._object._addMesh()
-		self._object._mesh._prepareVertexCount(5000000)
+		self._object._mesh._prepareVertexCount(4000000)
 
 	def appendPointCloud(self, point, color):
 		#TODO: optimize
@@ -585,9 +585,10 @@ class SceneView(openglGui.glGuiPanel):
 
 		if obj.isPointCloud():
 			if obj._mesh is not None:
-				if obj._mesh.vbo is not None:
-					obj._mesh.vbo.release()
-				obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes[:obj._mesh.vertexCount], colorArray=obj._mesh.colors[:obj._mesh.vertexCount])
+				if obj._mesh.vbo is None or obj._mesh.vertexCount > obj._mesh.vbo._size:
+					if obj._mesh.vbo is not None:
+						obj._mesh.vbo.release()
+					obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes[:obj._mesh.vertexCount], colorArray=obj._mesh.colors[:obj._mesh.vertexCount])
 				obj._mesh.vbo.render()
 		else:
 			if obj._mesh is not None:
