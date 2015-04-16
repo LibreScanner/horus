@@ -140,7 +140,7 @@ class Scan:
 				'Line' : self.imgLine,
 				'Color' : self.imgColor
 			  }[self.imgType]
-		if source != None:
+		if source is not None:
 			img = source
 		
 		if img is not None:

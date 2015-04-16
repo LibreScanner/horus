@@ -120,6 +120,7 @@ class Board:
 					self.setRightLaserOff()
 					self.disableMotor()
 					self.serialPort.close()
+					del self.serialPort
 			except serial.SerialException:
 				print "Error closing the port {0}\n".format(self.serialName)
 				print ">>> Error"

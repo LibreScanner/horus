@@ -109,9 +109,7 @@ class WorkbenchConnection(Workbench):
 
 	def onDisconnectToolClicked(self, event):
 		self.driver.disconnect()
-		self.driver.board.setUnplugCallback(None)
-		self.driver.camera.setUnplugCallback(None)
-		self.updateStatus(False)
+		self.updateStatus(self.driver.isConnected)
 
 	def beforeConnect(self):
 		self.enableLabelTool(self.connectTool, False)
@@ -175,6 +173,8 @@ class WorkbenchConnection(Workbench):
 		else:
 			self.enableLabelTool(self.connectTool   , True)
 			self.enableLabelTool(self.disconnectTool, False)
+			self.driver.board.setUnplugCallback(None)
+			self.driver.camera.setUnplugCallback(None)
 
 	def updateToolbarStatus(self, status):
 		pass
