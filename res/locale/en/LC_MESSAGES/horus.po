@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-03-18 14:52+0100\n"
-"PO-Revision-Date: 2015-03-18 15:02+0100\n"
+"POT-Creation-Date: 2015-04-16 15:38+0200\n"
+"PO-Revision-Date: 2015-04-16 15:41+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: en\n"
@@ -78,7 +78,7 @@ msgstr "Connect"
 msgid "Disconnect"
 msgstr "Disconnect"
 
-#: ../../src/horus/gui/workbench/workbench.py:130
+#: ../../src/horus/gui/workbench/workbench.py:128
 msgid ""
 "Board has a wrong firmware or an invalid Baud Rate.\n"
 "Please select your Board and press Upload Firmware"
@@ -86,7 +86,7 @@ msgstr ""
 "The board has the wrong firmware or an invalid Baud rate.\n"
 "Please select your Board and press Upload firmware"
 
-#: ../../src/horus/gui/workbench/workbench.py:136
+#: ../../src/horus/gui/workbench/workbench.py:134
 msgid ""
 "Board is not connected.\n"
 "Please connect your board and select a valid Serial Name"
@@ -94,12 +94,12 @@ msgstr ""
 "The board is not connected.\n"
 "Please connect your board and select a valid Serial Name"
 
-#: ../../src/horus/gui/workbench/workbench.py:142
+#: ../../src/horus/gui/workbench/workbench.py:140
 #: ../../src/horus/gui/wizard/connectionPage.py:156
 msgid "Please plug your camera and try to connect again"
 msgstr "Please plug your camera in and try to connect again"
 
-#: ../../src/horus/gui/workbench/workbench.py:146
+#: ../../src/horus/gui/workbench/workbench.py:144
 #: ../../src/horus/gui/wizard/connectionPage.py:160
 msgid ""
 "You probably have selected a wrong camera.\n"
@@ -108,7 +108,7 @@ msgstr ""
 "You probably have selected the wrong camera.\n"
 "Please select another Camera ID"
 
-#: ../../src/horus/gui/workbench/workbench.py:152
+#: ../../src/horus/gui/workbench/workbench.py:150
 msgid "Unplug and plug your camera USB cable and try to connect again"
 msgstr "Unplug and plug your camera USB cable and try to connect again"
 
@@ -753,7 +753,7 @@ msgid "Board unplugged"
 msgstr "Board unplugged"
 
 #: ../../src/horus/gui/main.py:482
-msgid "Board has been unplugged. Please, plug it and press connect"
+msgid "Board has been unplugged. Please, plug it in and press connect"
 msgstr "The board has been unplugged. Please plug it in and press connect."
 
 #: ../../src/horus/gui/main.py:485
@@ -761,8 +761,8 @@ msgid "Camera unplugged"
 msgstr "Camera unplugged"
 
 #: ../../src/horus/gui/main.py:485
-msgid "Camera has been unplugged. Please, plug it and press connect"
-msgstr "The camera has been unplugged. Please, plug it and press connect."
+msgid "Camera has been unplugged. Please, plug it in and press connect"
+msgstr "The camera has been unplugged. Please, plug it in and press connect."
 
 #: ../../src/horus/gui/util/openglGui.py:270
 msgid "An error has occurred during the 3D view drawing."
@@ -1078,7 +1078,7 @@ msgstr "Fast scan (experimental)"
 
 #: ../../src/horus/util/profile.py:259
 msgid "Gray"
-msgstr "Grey"
+msgstr "Gray"
 
 #: ../../src/horus/util/profile.py:260
 msgid "Line"
@@ -1086,7 +1086,7 @@ msgstr "Line"
 
 #: ../../src/horus/util/profile.py:261
 msgid "Color"
-msgstr "Colour"
+msgstr "Color"
 
 #: ../../src/horus/util/profile.py:262
 msgid "Image Type"

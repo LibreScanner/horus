@@ -272,7 +272,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
 		self.sceneView.setShowDeleteMenu(True)
-		self.videoView.setMilliseconds(5)
+		self.videoView.setMilliseconds(10)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), True)

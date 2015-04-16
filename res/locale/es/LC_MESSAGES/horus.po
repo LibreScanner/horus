@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-03-18 14:52+0100\n"
-"PO-Revision-Date: 2015-03-18 15:00+0100\n"
+"POT-Creation-Date: 2015-04-16 15:38+0200\n"
+"PO-Revision-Date: 2015-04-16 15:40+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: es\n"
@@ -79,7 +79,7 @@ msgstr "Conectar"
 msgid "Disconnect"
 msgstr "Desconectar"
 
-#: ../../src/horus/gui/workbench/workbench.py:130
+#: ../../src/horus/gui/workbench/workbench.py:128
 msgid ""
 "Board has a wrong firmware or an invalid Baud Rate.\n"
 "Please select your Board and press Upload Firmware"
@@ -87,7 +87,7 @@ msgstr ""
 "La placa tiene un firmware o un baud rate incorrectos.\n"
 "Por favor, selecciona tu placa y haz click en Cargar Firmware "
 
-#: ../../src/horus/gui/workbench/workbench.py:136
+#: ../../src/horus/gui/workbench/workbench.py:134
 msgid ""
 "Board is not connected.\n"
 "Please connect your board and select a valid Serial Name"
@@ -95,12 +95,12 @@ msgstr ""
 "La placa no está conectada.\n"
 "Por favor, conecta la placa y selecciona un puerto serie válido."
 
-#: ../../src/horus/gui/workbench/workbench.py:142
+#: ../../src/horus/gui/workbench/workbench.py:140
 #: ../../src/horus/gui/wizard/connectionPage.py:156
 msgid "Please plug your camera and try to connect again"
 msgstr "Por favor, conecta tu cámara e intenta conectar de nuevo."
 
-#: ../../src/horus/gui/workbench/workbench.py:146
+#: ../../src/horus/gui/workbench/workbench.py:144
 #: ../../src/horus/gui/wizard/connectionPage.py:160
 msgid ""
 "You probably have selected a wrong camera.\n"
@@ -109,7 +109,7 @@ msgstr ""
 "Probablemente has seleccionado una cámara incorrecta.\n"
 "Por favor, selecciona otro ID de cámara"
 
-#: ../../src/horus/gui/workbench/workbench.py:152
+#: ../../src/horus/gui/workbench/workbench.py:150
 msgid "Unplug and plug your camera USB cable and try to connect again"
 msgstr "Desconecta y conecta tu cámara USB y vuelve a intentar conectar"
 
@@ -325,7 +325,6 @@ msgstr "Valores intrínsecos"
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:54
 #: ../../src/horus/gui/workbench/calibration/pages.py:99
-#, fuzzy
 msgid "Press space bar to perform captures"
 msgstr "Presiona la barra espaciadora para realizar las capturas"
 
@@ -773,7 +772,7 @@ msgid "Board unplugged"
 msgstr "Placa desconectada"
 
 #: ../../src/horus/gui/main.py:482
-msgid "Board has been unplugged. Please, plug it and press connect"
+msgid "Board has been unplugged. Please, plug it in and press connect"
 msgstr ""
 "La placa se ha desconectado. Por favor, conéctala y haz click en Conectar."
 
@@ -782,7 +781,7 @@ msgid "Camera unplugged"
 msgstr "Cámara desconectada"
 
 #: ../../src/horus/gui/main.py:485
-msgid "Camera has been unplugged. Please, plug it and press connect"
+msgid "Camera has been unplugged. Please, plug it in and press connect"
 msgstr ""
 "La cámara se ha desconectado. Por favor, conéctala y presiona Conectar."
 

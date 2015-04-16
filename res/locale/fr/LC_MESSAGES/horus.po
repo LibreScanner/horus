@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-03-18 14:52+0100\n"
-"PO-Revision-Date: 2015-03-16 10:58+0100\n"
+"POT-Creation-Date: 2015-04-16 15:38+0200\n"
+"PO-Revision-Date: 2015-04-16 15:41+0100\n"
 "Last-Translator: Alexandre GALODE <deusyss@yahoo.fr>\n"
 "Language-Team: français <deusyss@yahoo.fr>\n"
 "Language: fr\n"
@@ -84,7 +84,7 @@ msgstr "Connecter"
 msgid "Disconnect"
 msgstr "Déconnecter"
 
-#: ../../src/horus/gui/workbench/workbench.py:130
+#: ../../src/horus/gui/workbench/workbench.py:128
 msgid ""
 "Board has a wrong firmware or an invalid Baud Rate.\n"
 "Please select your Board and press Upload Firmware"
@@ -93,7 +93,7 @@ msgstr ""
 "invalide.\n"
 "Veuillez sélectionner votre carte et cliquer sur \"Uploader le Firmware\""
 
-#: ../../src/horus/gui/workbench/workbench.py:136
+#: ../../src/horus/gui/workbench/workbench.py:134
 msgid ""
 "Board is not connected.\n"
 "Please connect your board and select a valid Serial Name"
@@ -101,12 +101,12 @@ msgstr ""
 "La carte n'est pas connectée.\n"
 "Veuillez connecter votre carte et sélectionner un port série valide"
 
-#: ../../src/horus/gui/workbench/workbench.py:142
+#: ../../src/horus/gui/workbench/workbench.py:140
 #: ../../src/horus/gui/wizard/connectionPage.py:156
 msgid "Please plug your camera and try to connect again"
 msgstr "Veuillez connecter votre caméra et réessayer de vous connecter."
 
-#: ../../src/horus/gui/workbench/workbench.py:146
+#: ../../src/horus/gui/workbench/workbench.py:144
 #: ../../src/horus/gui/wizard/connectionPage.py:160
 msgid ""
 "You probably have selected a wrong camera.\n"
@@ -115,7 +115,7 @@ msgstr ""
 "Vous avez probablement sélectionné une mauvaise caméra.\n"
 "Veuillez sélectionner une autre caméra"
 
-#: ../../src/horus/gui/workbench/workbench.py:152
+#: ../../src/horus/gui/workbench/workbench.py:150
 msgid "Unplug and plug your camera USB cable and try to connect again"
 msgstr ""
 "Déconnectez puis reconnectez le câble USB de votre caméra. Réessayez ensuite "
@@ -332,7 +332,6 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:54
 #: ../../src/horus/gui/workbench/calibration/pages.py:99
-#, fuzzy
 msgid "Press space bar to perform captures"
 msgstr "Pressez la barre d'espace pour démarrer la capture"
 
@@ -780,7 +779,7 @@ msgid "Board unplugged"
 msgstr "Carte déconnectée"
 
 #: ../../src/horus/gui/main.py:482
-msgid "Board has been unplugged. Please, plug it and press connect"
+msgid "Board has been unplugged. Please, plug it in and press connect"
 msgstr ""
 "La carte a été déconnectée. Veuillez la reconnecter et cliquer sur "
 "\"Connecter\""
@@ -790,7 +789,7 @@ msgid "Camera unplugged"
 msgstr "Caméra déconnectée"
 
 #: ../../src/horus/gui/main.py:485
-msgid "Camera has been unplugged. Please, plug it and press connect"
+msgid "Camera has been unplugged. Please, plug it in and press connect"
 msgstr ""
 "La caméra a été déconnectée. Veuillez la reconnecter et cliquer sur "
 "\"Connecter\""

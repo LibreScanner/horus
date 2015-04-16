@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-03-18 14:52+0100\n"
+"POT-Creation-Date: 2015-04-16 15:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,31 +78,31 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/workbench.py:130
+#: ../../src/horus/gui/workbench/workbench.py:128
 msgid ""
 "Board has a wrong firmware or an invalid Baud Rate.\n"
 "Please select your Board and press Upload Firmware"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/workbench.py:136
+#: ../../src/horus/gui/workbench/workbench.py:134
 msgid ""
 "Board is not connected.\n"
 "Please connect your board and select a valid Serial Name"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/workbench.py:142
+#: ../../src/horus/gui/workbench/workbench.py:140
 #: ../../src/horus/gui/wizard/connectionPage.py:156
 msgid "Please plug your camera and try to connect again"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/workbench.py:146
+#: ../../src/horus/gui/workbench/workbench.py:144
 #: ../../src/horus/gui/wizard/connectionPage.py:160
 msgid ""
 "You probably have selected a wrong camera.\n"
 "Please select other Camera Id"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/workbench.py:152
+#: ../../src/horus/gui/workbench/workbench.py:150
 msgid "Unplug and plug your camera USB cable and try to connect again"
 msgstr ""
 
@@ -691,7 +691,7 @@ msgid "Board unplugged"
 msgstr ""
 
 #: ../../src/horus/gui/main.py:482
-msgid "Board has been unplugged. Please, plug it and press connect"
+msgid "Board has been unplugged. Please, plug it in and press connect"
 msgstr ""
 
 #: ../../src/horus/gui/main.py:485
@@ -699,7 +699,7 @@ msgid "Camera unplugged"
 msgstr ""
 
 #: ../../src/horus/gui/main.py:485
-msgid "Camera has been unplugged. Please, plug it and press connect"
+msgid "Camera has been unplugged. Please, plug it in and press connect"
 msgstr ""
 
 #: ../../src/horus/gui/util/openglGui.py:270

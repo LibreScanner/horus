@@ -479,10 +479,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
         welcome = WelcomeWindow(self)
 
     def onBoardUnplugged(self):
-        self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it and press connect"))
+        self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it in and press connect"))
 
     def onCameraUnplugged(self):
-        self._onDeviceUnplugged(_("Camera unplugged"), _("Camera has been unplugged. Please, plug it and press connect"))
+        self._onDeviceUnplugged(_("Camera unplugged"), _("Camera has been unplugged. Please, plug it in and press connect"))
 
     def _onDeviceUnplugged(self, title="", description=""):
         self.simpleScan.stop()
