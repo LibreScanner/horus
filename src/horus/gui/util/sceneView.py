@@ -58,7 +58,6 @@ class SceneView(openglGui.glGuiPanel):
 		self._object = None
 		self._objectShader = None
 		self._objectLoadShader = None
-		self._focusObj = None
 		self._selectedObj = None
 		self._objColor = None
 		self._mouseX = -1
@@ -102,6 +101,7 @@ class SceneView(openglGui.glGuiPanel):
 		if self._object is not None:
 			if self._object._mesh is not None:
 				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
+					self.glReleaseList.append(self._object._mesh.vbo)
 					self._object._mesh.vbo.release()
 				del self._object._mesh
 			del self._object
@@ -109,6 +109,7 @@ class SceneView(openglGui.glGuiPanel):
 			for _object in self._platformMesh.values():
 				if _object._mesh is not None:
 					if _object._mesh.vbo is not None and _object._mesh.vbo.decRef():
+						self.glReleaseList.append(_object._mesh.vbo)
 						_object._mesh.vbo.release()
 					del _object._mesh
 				del _object
@@ -118,16 +119,14 @@ class SceneView(openglGui.glGuiPanel):
 		self._clearScene()
 		self._object = model.Model(None, isPointCloud=True)
 		self._object._addMesh()
-		self._object._mesh._prepareVertexCount(2000000)
-		#self._object._postProcessAfterLoad()
+		self._object._mesh._prepareVertexCount(5000000)
 
 	def appendPointCloud(self, point, color):
 		#TODO: optimize
 		if self._object is not None:
-			mesh = self._object._mesh
-			if mesh is not None:
+			if self._object._mesh is not None:
 				for i in range(point.shape[1]):
-					mesh._addVertex(point[0][i], point[1][i], point[2][i], color[0][i], color[1][i], color[2][i])
+					self._object._mesh._addVertex(point[0][i], point[1][i], point[2][i], color[0][i], color[1][i], color[2][i])
 			self.QueueRefresh()
 
 	def loadFile(self, filename):
@@ -141,10 +140,10 @@ class SceneView(openglGui.glGuiPanel):
 				self._selectObject(self._object)
 
 	def OnCenter(self, e):
-		if self._focusObj is None:
+		if self._object is None:
 			return
-		self._focusObj.setPosition(numpy.array([0.0, 0.0]))
-		newViewPos = numpy.array([self._focusObj.getPosition()[0], self._focusObj.getPosition()[1], self._focusObj.getSize()[2] / 2])
+		self._object.setPosition(numpy.array([0.0, 0.0]))
+		newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], self._object.getSize()[2] / 2])
 		self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
 	def loadScene(self, filename):
@@ -159,9 +158,12 @@ class SceneView(openglGui.glGuiPanel):
 			if self._object._mesh is not None:
 				if self._object._mesh.vbo is not None and self._object._mesh.vbo.decRef():
 					self.glReleaseList.append(self._object._mesh.vbo)
+					self._object._mesh.vbo.release()
 				del self._object._mesh
 			del self._object
+			del self._selectedObj
 			self._object = None
+			self._selectedObj = None
 			gc.collect()
 
 			newZoom = numpy.max(self._machineSize)
@@ -206,9 +208,10 @@ class SceneView(openglGui.glGuiPanel):
 
 	def OnKeyDown(self, keyCode):
 		if keyCode == wx.WXK_DELETE or keyCode == wx.WXK_NUMPAD_DELETE or (keyCode == wx.WXK_BACK and platform.system() == "Darwin"):
-			if self._selectedObj is not None:
-				#self._clearScene()
-				self.QueueRefresh()
+			if self._showDeleteMenu:
+				if self._selectedObj is not None:
+					self.onDeleteObject(None)
+					self.QueueRefresh()
 		if keyCode == wx.WXK_DOWN:
 			if wx.GetKeyState(wx.WXK_SHIFT):
 				self._zoom *= 1.2
@@ -291,7 +294,7 @@ class SceneView(openglGui.glGuiPanel):
 		self._mouseX = e.GetX()
 		self._mouseY = e.GetY()
 		self._mouseClick3DPos = self._mouse3Dpos
-		self._mouseClickFocus = self._focusObj
+		self._mouseClickFocus = self._object
 		if e.ButtonDClick():
 			self._mouseState = 'doubleClick'
 		else:
@@ -301,8 +304,8 @@ class SceneView(openglGui.glGuiPanel):
 		p1 -= self.getObjectCenterPos() - self._viewTarget
 		if self._mouseState == 'doubleClick':
 			if e.GetButton() == 1:
-				if self._focusObj is not None:
-					self._selectObject(self._focusObj, False)
+				if self._object is not None:
+					self._selectObject(self._object, False)
 					self.QueueRefresh()
 
 	def OnMouseUp(self, e):
@@ -528,7 +531,6 @@ class SceneView(openglGui.glGuiPanel):
 		if self._mouseX > -1: # mouse has not passed over the opengl window.
 			glFlush()
 			n = glReadPixels(self._mouseX, self.GetSize().GetHeight() - 1 - self._mouseY, 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0] >> 8
-			self._focusObj = self._object
 			f = glReadPixels(self._mouseX, self.GetSize().GetHeight() - 1 - self._mouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
 			#self.GetTopLevelParent().SetTitle(hex(n) + " " + str(f))
 			self._mouse3Dpos = openglHelpers.unproject(self._mouseX, self._viewport[1] + self._viewport[3] - self._mouseY, f, self._modelMatrix, self._projMatrix, self._viewport)
@@ -551,10 +553,6 @@ class SceneView(openglGui.glGuiPanel):
 				self._objectShader.bind()
 
 			brightness = 1.0
-			"""if self._focusObj == self._object:
-				brightness = 1.2
-			elif self._focusObj is not None or self._selectedObj is not None and self._object != self._selectedObj:
-				brightness = 0.8"""
 
 			if self._selectedObj == self._object or self._selectedObj is None:
 				glStencilOp(GL_INCR, GL_INCR, GL_INCR)

@@ -582,12 +582,10 @@ class TextBox(SectionItem):
 		if self.releaseUndoCallback is not None:
 			self.releaseUndoCallback()
 
-
 	def updateProfile(self):
 		if hasattr(self,'control'):
 			value = profile.getProfileSetting(self.name)
 			self.update(value)
-
 
 
 ##TODO: Create TextBoxArray
