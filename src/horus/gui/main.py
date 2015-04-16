@@ -575,6 +575,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.driver.camera.setCameraId(int(profile.getProfileSetting('camera_id')[-1:]))
         self.driver.board.setSerialName(profile.getProfileSetting('serial_name'))
         self.driver.board.setBaudRate(profile.getProfileSettingInteger('baud_rate'))
+        self.driver.board.setInvertMotor(profile.getProfileSettingBool('invert_motor'))
 
     def updatePCGProfile(self):
             self.pcg.resetTheta()
