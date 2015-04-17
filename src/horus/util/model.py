@@ -53,7 +53,7 @@ class Model(object):
 		self._transformedMin = None
 		self._transformedMax = None
 		self._transformedSize = np.array([0.0, 0.0, 0.0])
-		self._boundaryCircleSize = 20.0
+		self._boundaryCircleSize = 50.0
 		self._drawOffset = np.array([0.0, 0.0, 0.0])
 
 		self._isPointCloud = isPointCloud

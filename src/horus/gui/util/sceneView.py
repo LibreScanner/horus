@@ -80,6 +80,8 @@ class SceneView(openglGui.glGuiPanel):
 		self._moveVertical = False
 		self._showDeleteMenu = True
 
+		self._zOffset = 0
+
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
 		self.Bind(wx.EVT_SHOW, self.onShow)
@@ -127,6 +129,11 @@ class SceneView(openglGui.glGuiPanel):
 			if self._object._mesh is not None:
 				for i in range(point.shape[1]):
 					self._object._mesh._addVertex(point[0][i], point[1][i], point[2][i], color[0][i], color[1][i], color[2][i])
+			#-- Conpute Z center
+			zmax = max(point.T[2])
+			if zmax > self._object._transformedSize[2]:
+				self._object._transformedSize[2] = zmax
+				self.center()
 			self.QueueRefresh()
 
 	def loadFile(self, filename):
@@ -139,11 +146,10 @@ class SceneView(openglGui.glGuiPanel):
 				self.loadScene(modelFilename)
 				self._selectObject(self._object)
 
-	def OnCenter(self, e):
+	def center(self):
 		if self._object is None:
 			return
-		self._object.setPosition(numpy.array([0.0, 0.0]))
-		newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], self._object.getSize()[2] / 2])
+		newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], self._object.getSize()[2] / 2 - self._zOffset])
 		self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
 	def loadScene(self, filename):
@@ -161,14 +167,9 @@ class SceneView(openglGui.glGuiPanel):
 					self._object._mesh.vbo.release()
 				del self._object._mesh
 			del self._object
-			del self._selectedObj
 			self._object = None
-			self._selectedObj = None
+			self._selectObject(self._object)
 			gc.collect()
-
-			newZoom = numpy.max(self._machineSize)
-			self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
-			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
 
 	def _selectObject(self, obj, zoom = True):
 		if obj != self._selectedObj:
@@ -177,10 +178,10 @@ class SceneView(openglGui.glGuiPanel):
 
 		if zoom:
 			if self._selectedObj is None:
-				newViewPos = numpy.array([0,0,0], numpy.float32)
+				newViewPos = numpy.array([0,0,-self._zOffset], numpy.float32)
 				newZoom = 300
 			else:
-				newViewPos = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2])
+				newViewPos = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2 - self._zOffset])
 				newZoom = obj.getBoundaryCircle() * 6
 			
 			if newZoom > numpy.max(self._machineSize) * 3:
@@ -218,7 +219,7 @@ class SceneView(openglGui.glGuiPanel):
 				if self._zoom > numpy.max(self._machineSize) * 3:
 					self._zoom = numpy.max(self._machineSize) * 3
 			elif wx.GetKeyState(wx.WXK_CONTROL):
-				self._viewTarget[2] += 5
+				self._zOffset += 5
 			else:
 				self._pitch -= 15
 			self.QueueRefresh()
@@ -228,7 +229,7 @@ class SceneView(openglGui.glGuiPanel):
 				if self._zoom < 1:
 					self._zoom = 1
 			elif wx.GetKeyState(wx.WXK_CONTROL):
-				self._viewTarget[2] -= 5
+				self._zOffset -= 5
 			else:
 				self._pitch += 15
 			self.QueueRefresh()
@@ -299,9 +300,6 @@ class SceneView(openglGui.glGuiPanel):
 			self._mouseState = 'doubleClick'
 		else:
 			self._mouseState = 'dragOrClick'
-		p0, p1 = self.getMouseRay(self._mouseX, self._mouseY)
-		p0 -= self.getObjectCenterPos() - self._viewTarget
-		p1 -= self.getObjectCenterPos() - self._viewTarget
 		if self._mouseState == 'doubleClick':
 			if e.GetButton() == 1:
 				if self._object is not None:
@@ -336,10 +334,6 @@ class SceneView(openglGui.glGuiPanel):
 				self._clearScene()
 
 	def OnMouseMotion(self,e):
-		p0, p1 = self.getMouseRay(e.GetX(), e.GetY())
-		p0 -= self.getObjectCenterPos() - self._viewTarget
-		p1 -= self.getObjectCenterPos() - self._viewTarget
-
 		if e.Dragging() and self._mouseState is not None:
 			if e.LeftIsDown() and not e.RightIsDown():
 				self._mouseState = 'drag'
@@ -372,7 +366,7 @@ class SceneView(openglGui.glGuiPanel):
 		delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
 		delta = max(min(delta,4),-4)
 		if self._moveVertical:
-			self._viewTarget[2] -= 5 * delta
+			self._zOffset -= 5 * delta
 		else:
 			self._zoom *= 1.0 - delta / 10.0
 			if self._zoom < 1.0:
@@ -519,7 +513,7 @@ class SceneView(openglGui.glGuiPanel):
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
 		glRotate(self._yaw, 0,0,1)
-		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
+		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2]-self._zOffset)
 
 		self._viewport = glGetIntegerv(GL_VIEWPORT)
 		self._modelMatrix = glGetDoublev(GL_MODELVIEW_MATRIX)
@@ -535,12 +529,13 @@ class SceneView(openglGui.glGuiPanel):
 			#self.GetTopLevelParent().SetTitle(hex(n) + " " + str(f))
 			self._mouse3Dpos = openglHelpers.unproject(self._mouseX, self._viewport[1] + self._viewport[3] - self._mouseY, f, self._modelMatrix, self._projMatrix, self._viewport)
 			self._mouse3Dpos -= self._viewTarget
+			self._mouse3Dpos[2] -= self._zOffset
 
 		self._init3DView()
 		glTranslate(0,0,-self._zoom)
 		glRotate(-self._pitch, 1,0,0)
 		glRotate(self._yaw, 0,0,1)
-		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2])
+		glTranslate(-self._viewTarget[0],-self._viewTarget[1],-self._viewTarget[2]-self._zOffset)
 
 		glStencilFunc(GL_ALWAYS, 1, 1)
 		glStencilOp(GL_INCR, GL_INCR, GL_INCR)
