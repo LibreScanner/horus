@@ -468,7 +468,7 @@ received a copy of the GNU General Public License along with File Hunter;
 if not, write to the Free Software Foundation, Inc., 59 Temple Place,
 Suite 330, Boston, MA  02111-1307  USA""")
         info.AddDeveloper(u'Jesús Arroyo, Irene Sanz')
-        info.AddDocWriter(u'Jesús Arroyo')
+        info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
         info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva')
 
