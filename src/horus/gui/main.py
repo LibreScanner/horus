@@ -470,7 +470,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         info.AddDeveloper(u'Jesús Arroyo, Irene Sanz')
         info.AddDocWriter(u'Jesús Arroyo')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
-        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode')
+        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva')
 
         wx.AboutBox(info)
 
