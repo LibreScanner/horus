@@ -58,7 +58,6 @@ class SceneView(openglGui.glGuiPanel):
 		self._object = None
 		self._objectShader = None
 		self._objectLoadShader = None
-		self._selectedObj = None
 		self._objColor = None
 		self._mouseX = -1
 		self._mouseY = -1
@@ -81,6 +80,7 @@ class SceneView(openglGui.glGuiPanel):
 		self._showDeleteMenu = True
 
 		self._zOffset = 0
+		self._hOffset = 20
 
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
@@ -130,11 +130,12 @@ class SceneView(openglGui.glGuiPanel):
 				for i in range(point.shape[1]):
 					self._object._mesh._addVertex(point[0][i], point[1][i], point[2][i], color[0][i], color[1][i], color[2][i])
 			#-- Conpute Z center
-			zmax = max(point.T[2])
-			if zmax > self._object._transformedSize[2]:
-				self._object._transformedSize[2] = zmax
-				self.center()
-			self.QueueRefresh()
+			if point.shape[1] > 0:
+				zmax = max(point[2])
+				if zmax > self._object._transformedSize[2]:
+					self._object._transformedSize[2] = zmax
+					self.centerHeight()
+				self.QueueRefresh()
 
 	def loadFile(self, filename):
 		#-- Only one STL / PLY file can be active
@@ -144,12 +145,12 @@ class SceneView(openglGui.glGuiPanel):
 				modelFilename = filename
 			if modelFilename:
 				self.loadScene(modelFilename)
-				self._selectObject(self._object)
+				self.centerObject()
 
-	def center(self):
+	def centerHeight(self):
 		if self._object is None:
 			return
-		newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], self._object.getSize()[2] / 2 - self._zOffset])
+		newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], self._object.getSize()[2] / 2 - self._zOffset - self._hOffset])
 		self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
 	def loadScene(self, filename):
@@ -168,37 +169,26 @@ class SceneView(openglGui.glGuiPanel):
 				del self._object._mesh
 			del self._object
 			self._object = None
-			self._selectObject(self._object)
+			self.centerObject()
 			gc.collect()
 
-	def _selectObject(self, obj, zoom = True):
-		if obj != self._selectedObj:
-			self._selectedObj = obj
-			self.updateModelSettingsToControls()
+	def centerObject(self):
+		if self._object is None:
+			newViewPos = numpy.array([0,0,-self._zOffset], numpy.float32)
+			newZoom = 300
+		else:
+			newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], self._object.getSize()[2] / 2 - self._zOffset - self._hOffset])
+			newZoom = self._object.getBoundaryCircle() * 4
+		
+		if newZoom > numpy.max(self._machineSize) * 3:
+			newZoom = numpy.max(self._machineSize) * 3
 
-		if zoom:
-			if self._selectedObj is None:
-				newViewPos = numpy.array([0,0,-self._zOffset], numpy.float32)
-				newZoom = 300
-			else:
-				newViewPos = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2 - self._zOffset])
-				newZoom = obj.getBoundaryCircle() * 6
-			
-			if newZoom > numpy.max(self._machineSize) * 3:
-				newZoom = numpy.max(self._machineSize) * 3
-
-			self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
-			self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
+		self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
+		self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
 	def updateProfileToControls(self):
 		self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')])
 		self._objColor = profile.getPreferenceColor('model_color')
-		self.updateModelSettingsToControls()
-
-	def updateModelSettingsToControls(self):
-		if self._selectedObj is not None:
-			scale = self._selectedObj.getScale()
-			size = self._selectedObj.getSize()
 		
 	def ShaderUpdate(self, v, f):
 		s = openglHelpers.GLShader(v, f)
@@ -210,7 +200,7 @@ class SceneView(openglGui.glGuiPanel):
 	def OnKeyDown(self, keyCode):
 		if keyCode == wx.WXK_DELETE or keyCode == wx.WXK_NUMPAD_DELETE or (keyCode == wx.WXK_BACK and platform.system() == "Darwin"):
 			if self._showDeleteMenu:
-				if self._selectedObj is not None:
+				if self._object is not None:
 					self.onDeleteObject(None)
 					self.QueueRefresh()
 		if keyCode == wx.WXK_DOWN:
@@ -302,16 +292,13 @@ class SceneView(openglGui.glGuiPanel):
 			self._mouseState = 'dragOrClick'
 		if self._mouseState == 'doubleClick':
 			if e.GetButton() == 1:
-				if self._object is not None:
-					self._selectObject(self._object, False)
-					self.QueueRefresh()
+				self.centerObject()
+				self.QueueRefresh()
 
 	def OnMouseUp(self, e):
 		if e.LeftIsDown() or e.MiddleIsDown() or e.RightIsDown():
 			return
 		if self._mouseState == 'dragOrClick':
-			if e.GetButton() == 1:
-				self._selectObject(self._object)
 			if e.GetButton() == 3:
 				if self._showDeleteMenu:
 					menu = wx.Menu()
@@ -548,10 +535,8 @@ class SceneView(openglGui.glGuiPanel):
 				self._objectShader.bind()
 
 			brightness = 1.0
-
-			if self._selectedObj == self._object or self._selectedObj is None:
-				glStencilOp(GL_INCR, GL_INCR, GL_INCR)
-				glEnable(GL_STENCIL_TEST)
+			glStencilOp(GL_INCR, GL_INCR, GL_INCR)
+			glEnable(GL_STENCIL_TEST)
 			self._renderObject(self._object, brightness)
 
 			glDisable(GL_STENCIL_TEST)
@@ -570,7 +555,7 @@ class SceneView(openglGui.glGuiPanel):
 		glPushMatrix()
 		glTranslate(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2)
 
-		if self.tempMatrix is not None and obj == self._selectedObj:
+		if self.tempMatrix is not None:
 			glMultMatrixf(openglHelpers.convert3x3MatrixTo4x4(self.tempMatrix))
 
 		offset = obj.getDrawOffset()
@@ -655,13 +640,11 @@ class SceneView(openglGui.glGuiPanel):
 				glVertex3f(p[0], p[1], height)
 			glEnd()
 
-			#view center: 
-			center=self.getObjectCenterPos()
 			quadric=gluNewQuadric();
 			gluQuadricNormals(quadric, GLU_SMOOTH);
 			gluQuadricTexture(quadric, GL_TRUE);
 			glColor4ub(0, 100, 200, 150)
-			#lower center:
+			
 			gluCylinder(quadric,6,6,1,32,16);
 			gluDisk(quadric, 0.0, 6, 32, 1); 
 
@@ -689,28 +672,6 @@ class SceneView(openglGui.glGuiPanel):
 
 		glDepthMask(True)
 		glDisable(GL_BLEND)
-
-	def getObjectCenterPos(self):
-		if self._selectedObj is None:
-			return [0.0, 0.0, 0.0]
-		pos = self._selectedObj.getPosition()
-		size = self._selectedObj.getSize()
-		return [pos[0], pos[1], size[2]/2]
-
-	def getObjectBoundaryCircle(self):
-		if self._selectedObj is None:
-			return 0.0
-		return self._selectedObj.getBoundaryCircle()
-
-	def getObjectSize(self):
-		if self._selectedObj is None:
-			return [0.0, 0.0, 0.0]
-		return self._selectedObj.getSize()
-
-	def getObjectMatrix(self):
-		if self._selectedObj is None:
-			return numpy.matrix(numpy.identity(3))
-		return self._selectedObj.getMatrix()
 
 #TODO: Remove this or put it in a seperate file
 class shaderEditor(wx.Dialog):
