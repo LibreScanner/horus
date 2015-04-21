@@ -142,7 +142,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		if event.GetShow():
 			self.updateStatus(self.currentScan.driver.isConnected)
 			self.pointCloudTimer.Stop()
-			self.pointCloudTimer.Start(milliseconds=50)
 		else:
 			try:
 				self.pointCloudTimer.Stop()

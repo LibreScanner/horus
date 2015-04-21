@@ -136,6 +136,9 @@ class SceneView(openglGui.glGuiPanel):
 					self._object._transformedSize[2] = zmax
 					self.centerHeight()
 				self.QueueRefresh()
+		#-- Delete objects
+		del point
+		del color
 
 	def loadFile(self, filename):
 		#-- Only one STL / PLY file can be active
@@ -150,7 +153,10 @@ class SceneView(openglGui.glGuiPanel):
 	def centerHeight(self):
 		if self._object is None:
 			return
-		newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], self._object.getSize()[2] / 2 - self._zOffset - self._hOffset])
+		height = self._object.getSize()[2] / 2
+		if abs(height) > abs(self._hOffset):
+			height -= self._hOffset
+		newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], height-self._zOffset])
 		self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
 	def loadScene(self, filename):
@@ -177,7 +183,10 @@ class SceneView(openglGui.glGuiPanel):
 			newViewPos = numpy.array([0,0,-self._zOffset], numpy.float32)
 			newZoom = 300
 		else:
-			newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], self._object.getSize()[2] / 2 - self._zOffset - self._hOffset])
+			height = self._object.getSize()[2] / 2
+			if abs(height) > abs(self._hOffset):
+				height -= self._hOffset
+			newViewPos = numpy.array([self._object.getPosition()[0], self._object.getPosition()[1], height-self._zOffset])
 			newZoom = self._object.getBoundaryCircle() * 4
 		
 		if newZoom > numpy.max(self._machineSize) * 3:
