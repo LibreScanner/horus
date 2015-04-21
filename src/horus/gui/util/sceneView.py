@@ -127,7 +127,7 @@ class SceneView(openglGui.glGuiPanel):
 		#TODO: optimize
 		if self._object is not None:
 			if self._object._mesh is not None:
-				for i in range(point.shape[1]):
+				for i in xrange(point.shape[1]):
 					self._object._mesh._addVertex(point[0][i], point[1][i], point[2][i], color[0][i], color[1][i], color[2][i])
 			#-- Conpute Z center
 			if point.shape[1] > 0:

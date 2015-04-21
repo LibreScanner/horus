@@ -74,7 +74,7 @@ class CameraIntrinsicsMainPage(Page):
 		self.rows, self.columns = 2, 6
 		self.panelGrid = []
 		self.gridSizer = wx.GridSizer(self.rows, self.columns, 3, 3)
-		for panel in range(self.rows*self.columns):
+		for panel in xrange(self.rows*self.columns):
 			self.panelGrid.append(ImageView(self.imageGridPanel))
 			self.panelGrid[panel].Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
 			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
@@ -99,7 +99,7 @@ class CameraIntrinsicsMainPage(Page):
 		self.subTitleText.SetLabel(_("Press space bar to perform captures"))
 		self.currentGrid = 0
 		self.gauge.SetValue(0)
-		for panel in range(self.rows*self.columns):
+		for panel in xrange(self.rows*self.columns):
 			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
 			self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
 

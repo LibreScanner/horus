@@ -692,8 +692,8 @@ class PointCloudGenerator:
 		self.vmax = 1280
 
 		self.circleResolution = 30
-		self.circleArray = np.array([[np.cos(i*2*np.pi/self.circleResolution) for i in range(self.circleResolution)],
-									 [np.sin(i*2*np.pi/self.circleResolution) for i in range(self.circleResolution)],
+		self.circleArray = np.array([[np.cos(i*2*np.pi/self.circleResolution) for i in xrange(self.circleResolution)],
+									 [np.sin(i*2*np.pi/self.circleResolution) for i in xrange(self.circleResolution)],
 									 np.zeros(self.circleResolution)])
 
 

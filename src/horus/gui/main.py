@@ -720,7 +720,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         return baselist
 
     def countCameras(self):
-        for i in range(5):
+        for i in xrange(5):
             cap = cv2.VideoCapture(i)
             res = not cap.isOpened()
             cap.release()
@@ -732,7 +732,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         baselist=[]
         if os.name == 'nt':
             count = self.countCameras()
-            for i in range(count):
+            for i in xrange(count):
                 baselist.append(str(i))
         else:
             for device in ['/dev/video*']:

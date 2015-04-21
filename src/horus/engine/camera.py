@@ -142,7 +142,7 @@ class Camera:
 		if self.isConnected:
 			self.reading = True
 			if flush:
-				for i in range(0, flushValue):
+				for i in xrange(0, flushValue):
 					self.capture.read() #grab()
 
 			ret, image = self.capture.read()
