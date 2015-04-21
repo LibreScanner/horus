@@ -27,6 +27,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
+import gc
 import os
 import cv2
 import glob
@@ -687,6 +688,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.Layout()
 
         del waitCursor
+
+        gc.collect()
 
     ##-- TODO: move to util
 
