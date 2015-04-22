@@ -132,8 +132,8 @@ class SceneView(openglGui.glGuiPanel):
 			#-- Conpute Z center
 			if point.shape[1] > 0:
 				zmax = max(point[2])
-				if zmax > self._object._transformedSize[2]:
-					self._object._transformedSize[2] = zmax
+				if zmax > self._object._size[2]:
+					self._object._size[2] = zmax
 					self.centerHeight()
 				self.QueueRefresh()
 		#-- Delete objects
