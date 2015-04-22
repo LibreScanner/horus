@@ -7,7 +7,7 @@
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 # Copyright (C) 2013 David Braam from Cura Project                      #
 #                                                                       #
-# Date: June 2014                                                       #
+# Date: June, 2014 - April 2015                                         #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -63,32 +63,32 @@ class Model(object):
 		return self._mesh
 
 	def _postProcessAfterLoad(self):
-		if not self._isPointCloud:
-			self._mesh._calculateNormals()
-		self.processMatrix()
+		if len(self._mesh.vertexes) > 0:
+			if not self._isPointCloud:
+				self._mesh._calculateNormals()
 
-	def processMatrix(self):
-		self._min = np.array([np.inf,np.inf,np.inf], np.float64)
-		self._max = np.array([-np.inf,-np.inf,-np.inf], np.float64)
-		self._boundaryCircleSize = 0
+			self._min = np.array([np.inf,np.inf,np.inf], np.float64)
+			self._max = np.array([-np.inf,-np.inf,-np.inf], np.float64)
+			self._boundaryCircleSize = 0
 
-		vertexes = self._mesh.vertexes
-		vmin = vertexes.min(0)
-		vmax = vertexes.max(0)
-		for n in xrange(0, 3):
-			self._min[n] = min(vmin[n], self._min[n])
-			self._max[n] = max(vmax[n], self._max[n])
+			vertexes = self._mesh.vertexes
+			vmin = vertexes.min(0)
+			vmax = vertexes.max(0)
+			for n in xrange(0, 3):
+				self._min[n] = min(vmin[n], self._min[n])
+				self._max[n] = max(vmax[n], self._max[n])
 
-		#Calculate the boundary circle
-		center = vmin + (vmax - vmin) / 2.0
-		boundaryCircleSize = round(np.max(np.linalg.norm(vertexes-center, axis=1)), 3)
-		self._boundaryCircleSize = max(self._boundaryCircleSize, boundaryCircleSize)
+			#Calculate the boundary circle
+			center = vmin + (vmax - vmin) / 2.0
+			boundaryCircleSize = round(np.max(np.linalg.norm(vertexes-center, axis=1)), 3)
+			self._boundaryCircleSize = max(self._boundaryCircleSize, boundaryCircleSize)
 
-		self._size = self._max - self._min
-		self._drawOffset = (self._max + self._min) / 2
-		self._drawOffset[2] = self._min[2]
-		self._max -= self._drawOffset
-		self._min -= self._drawOffset
+			self._size = self._max - self._min
+			if not self._isPointCloud:
+				self._drawOffset = (self._max + self._min) / 2
+				self._drawOffset[2] = self._min[2]
+			self._max -= self._drawOffset
+			self._min -= self._drawOffset
 
 	def getName(self):
 		return self._name

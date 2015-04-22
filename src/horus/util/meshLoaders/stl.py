@@ -95,6 +95,5 @@ def loadScene(filename):
 			_loadAscii(m, f)
 		else:
 			_loadBinary(m, f)
-		f.close()
 		obj._postProcessAfterLoad()
 		return obj
