@@ -210,7 +210,7 @@ class ConnectionPage(WizardPage):
         if ret:
             self.resultLabel.SetLabel(_("All OK. Please press next to continue"))
         else:
-            self.resultLabel.SetLabel(_("Error in Auto check. Please try again"))
+            self.resultLabel.SetLabel(_("Please check motor direction and pattern position and try again"))
 
         if ret:
             self.skipButton.Disable()
@@ -296,6 +296,9 @@ class SettingsWindow(wx.Dialog):
                                             value=_(self.initLuminosity),
                                             choices=_choices,
                                             style=wx.CB_READONLY)
+        invert = profile.getProfileSettingBool('invert_motor')
+        self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
+        self.invertMotorCheckBox.SetValue(invert)
         tooltip = _("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
         self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
         
@@ -310,6 +313,7 @@ class SettingsWindow(wx.Dialog):
         
         #-- Events
         self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
+        self.invertMotorCheckBox.Bind(wx.EVT_CHECKBOX, self.onInvertMotor)
         self.patternTextbox.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.onClose)
         self.okButton.Bind(wx.EVT_BUTTON, self.onOk)
@@ -322,6 +326,10 @@ class SettingsWindow(wx.Dialog):
         hbox.Add(self.luminosityComboBox, 1, wx.ALL, 3)
         vbox.Add(hbox, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 7)
         vbox.Add(wx.StaticLine(self), 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 10)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.invertMotorCheckBox, 0, wx.ALL, 10)
+        vbox.Add(hbox)
+        vbox.Add(wx.StaticLine(self), 0, wx.ALL^wx.BOTTOM^wx.TOP|wx.EXPAND, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.patternLabel, 0, wx.ALL, 7)
         hbox.Add(self.patternTextbox, 1, wx.ALL, 3)
@@ -374,6 +382,11 @@ class SettingsWindow(wx.Dialog):
     def onLuminosityComboBoxChanged(self, event):
         value = self.luminosityDict[event.GetEventObject().GetValue()]
         self.setLuminosity(value)
+
+    def onInvertMotor(self, event):
+        invert = self.invertMotorCheckBox.GetValue()
+        profile.putProfileSetting('invert_motor', invert)
+        self.driver.board.setInvertMotor(invert)
 
     def onOk(self, event):
         self.setPatternDistance(self.patternDistance)

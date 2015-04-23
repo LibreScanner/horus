@@ -138,11 +138,13 @@ class ScanningWorkbench(WorkbenchConnection):
 	def updateCallbacks(self):
 		self.controls.updateCallbacks()
 
+	def enableRestore(self, value):
+		self.controls.enableRestore(value)
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateStatus(self.currentScan.driver.isConnected)
 			self.pointCloudTimer.Stop()
-			self.pointCloudTimer.Start(milliseconds=50)
 		else:
 			try:
 				self.pointCloudTimer.Stop()
@@ -219,6 +221,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), False)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), False)
+		self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), False)
+		self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), False)
+		self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), False)
 		panel = self.controls.panels['scan_parameters']
 		section = panel.sections['scan_parameters']
 		section.disable('scan_type')
@@ -231,6 +236,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		section = panel.sections['camera_scanning']
 		section.disable('framerate_scanning')
 		section.disable('resolution_scanning')
+		self.enableRestore(False)
 		self.pointCloudTimer.Start(milliseconds=50)
 
 	def progressScan(self, progress, range=100):
@@ -269,7 +275,6 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.enableLabelTool(self.stopTool, False)
 		self.enableLabelTool(self.pauseTool , False)
 		self.sceneView.setShowDeleteMenu(True)
-		self.videoView.setMilliseconds(5)
 		self.combo.Enable()
 		self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), True)
@@ -278,6 +283,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.GetParent().menuFile.Enable(self.GetParent().menuOpenProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuSaveProfile.GetId(), True)
 		self.GetParent().menuFile.Enable(self.GetParent().menuResetProfile.GetId(), True)
+		self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), True)
+		self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), True)
+		self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), True)
 		panel = self.controls.panels['scan_parameters']
 		section = panel.sections['scan_parameters']
 		section.enable('scan_type')
@@ -290,7 +298,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		section = panel.sections['camera_scanning']
 		section.enable('framerate_scanning')
 		section.enable('resolution_scanning')
+		self.enableRestore(True)
 		self.pointCloudTimer.Stop()
+		self.videoView.setMilliseconds(10)
 		self.gauge.Hide()
 		self.scenePanel.Layout()
 		self.Layout()

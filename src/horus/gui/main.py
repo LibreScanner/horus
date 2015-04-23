@@ -27,6 +27,7 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
+import gc
 import os
 import cv2
 import glob
@@ -111,7 +112,7 @@ class MainWindow(wx.Frame):
         self.menuSaveProfile = self.menuFile.Append(wx.NewId(), _("Save Profile"))
         self.menuResetProfile = self.menuFile.Append(wx.NewId(), _("Reset Profile"))
         self.menuFile.AppendSeparator()
-        menuExit = self.menuFile.Append(wx.ID_EXIT, _("Exit"))
+        self.menuExit = self.menuFile.Append(wx.ID_EXIT, _("Exit"))
         self.menuBar.Append(self.menuFile, _("File"))
 
         #-- Menu Edit
@@ -123,35 +124,31 @@ class MainWindow(wx.Frame):
         self.menuBar.Append(self.menuEdit, _("Edit"))
 
         #-- Menu View
-        menuView = wx.Menu()
+        self.menuView = wx.Menu()
         self.menuControl = wx.Menu()
         self.menuControlPanel = self.menuControl.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuControlVideo = self.menuControl.AppendCheckItem(wx.NewId(), _("Video"))
-        menuView.AppendMenu(wx.NewId(), _("Control"), self.menuControl)
+        self.menuView.AppendMenu(wx.NewId(), _("Control"), self.menuControl)
         self.menuCalibration = wx.Menu()
         self.menuCalibrationPanel = self.menuCalibration.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuCalibrationVideo = self.menuCalibration.AppendCheckItem(wx.NewId(), _("Video"))
-        menuView.AppendMenu(wx.NewId(), _("Calibration"), self.menuCalibration)
+        self.menuView.AppendMenu(wx.NewId(), _("Calibration"), self.menuCalibration)
         self.menuScanning = wx.Menu()
         self.menuScanningPanel = self.menuScanning.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuScanningVideo = self.menuScanning.AppendCheckItem(wx.NewId(), _("Video"))
         self.menuScanningScene = self.menuScanning.AppendCheckItem(wx.NewId(), _("Scene"))
-        menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
-        self.menuBar.Append(menuView, _("View"))
+        self.menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
+        self.menuBar.Append(self.menuView, _("View"))
 
         #-- Menu Help
-        menuHelp = wx.Menu()
-        menuWelcome = menuHelp.Append(wx.ID_ANY, _("Welcome"))
-        menuWiki = menuHelp.Append(wx.ID_ANY, _("Wiki"))
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), menuWiki)
-        menuSources = menuHelp.Append(wx.ID_ANY, _("Sources"))
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), menuSources)
-        menuIssues = menuHelp.Append(wx.ID_ANY, _("Issues"))
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), menuIssues)
-        menuForum = menuHelp.Append(wx.ID_ANY, _("Forum"))
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), menuForum)
-        menuAbout = menuHelp.Append(wx.ID_ABOUT, _("About"))
-        self.menuBar.Append(menuHelp, _("Help"))
+        self.menuHelp = wx.Menu()
+        self.menuWelcome = self.menuHelp.Append(wx.ID_ANY, _("Welcome"))
+        self.menuWiki = self.menuHelp.Append(wx.ID_ANY, _("Wiki"))
+        self.menuSources = self.menuHelp.Append(wx.ID_ANY, _("Sources"))
+        self.menuIssues = self.menuHelp.Append(wx.ID_ANY, _("Issues"))
+        self.menuForum = self.menuHelp.Append(wx.ID_ANY, _("Forum"))
+        self.menuAbout = self.menuHelp.Append(wx.ID_ABOUT, _("About"))
+        self.menuBar.Append(self.menuHelp, _("Help"))
 
         self.SetMenuBar(self.menuBar)
 
@@ -185,7 +182,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onOpenProfile, self.menuOpenProfile)
         self.Bind(wx.EVT_MENU, self.onSaveProfile, self.menuSaveProfile)
         self.Bind(wx.EVT_MENU, self.onResetProfile, self.menuResetProfile)
-        self.Bind(wx.EVT_MENU, self.onExit, menuExit)
+        self.Bind(wx.EVT_MENU, self.onExit, self.menuExit)
 
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
@@ -199,8 +196,12 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningVideo)
         self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningScene)
 
-        self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
-        self.Bind(wx.EVT_MENU, self.onWelcome, menuWelcome)
+        self.Bind(wx.EVT_MENU, self.onAbout, self.menuAbout)
+        self.Bind(wx.EVT_MENU, self.onWelcome, self.menuWelcome)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), self.menuWiki)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), self.menuSources)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), self.menuIssues)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menuForum)
 
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.controlWorkbench.combo)
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.calibrationWorkbench.combo)
@@ -468,9 +469,9 @@ received a copy of the GNU General Public License along with File Hunter;
 if not, write to the Free Software Foundation, Inc., 59 Temple Place,
 Suite 330, Boston, MA  02111-1307  USA""")
         info.AddDeveloper(u'Jesús Arroyo, Irene Sanz')
-        info.AddDocWriter(u'Jesús Arroyo')
+        info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
-        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode')
+        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva')
 
         wx.AboutBox(info)
 
@@ -479,10 +480,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
         welcome = WelcomeWindow(self)
 
     def onBoardUnplugged(self):
-        self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it and press connect"))
+        self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it in and press connect"))
 
     def onCameraUnplugged(self):
-        self._onDeviceUnplugged(_("Camera unplugged"), _("Camera has been unplugged. Please, plug it and press connect"))
+        self._onDeviceUnplugged(_("Camera unplugged"), _("Camera has been unplugged. Please, plug it in and press connect"))
 
     def _onDeviceUnplugged(self, title="", description=""):
         self.simpleScan.stop()
@@ -575,6 +576,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.driver.camera.setCameraId(int(profile.getProfileSetting('camera_id')[-1:]))
         self.driver.board.setSerialName(profile.getProfileSetting('serial_name'))
         self.driver.board.setBaudRate(profile.getProfileSettingInteger('baud_rate'))
+        self.driver.board.setInvertMotor(profile.getProfileSettingBool('invert_motor'))
 
     def updatePCGProfile(self):
             self.pcg.resetTheta()
@@ -687,6 +689,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
         del waitCursor
 
+        gc.collect()
+
     ##-- TODO: move to util
 
     def serialList(self):
@@ -716,7 +720,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         return baselist
 
     def countCameras(self):
-        for i in range(5):
+        for i in xrange(5):
             cap = cv2.VideoCapture(i)
             res = not cap.isOpened()
             cap.release()
@@ -728,7 +732,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         baselist=[]
         if os.name == 'nt':
             count = self.countCameras()
-            for i in range(count):
+            for i in xrange(count):
                 baselist.append(str(i))
         else:
             for device in ['/dev/video*']:

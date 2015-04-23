@@ -203,6 +203,7 @@ setting('serial_name', '/dev/ttyUSB0', str, 'basic', _('Serial Name'))
 setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic', _('Baud rate'))
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
+setting('invert_motor', False, bool, 'basic', _('Invert motor'))
 
 # Hack to translate combo boxes:
 _('High')

@@ -109,14 +109,12 @@ class WorkbenchConnection(Workbench):
 
 	def onDisconnectToolClicked(self, event):
 		self.driver.disconnect()
-		self.driver.board.setUnplugCallback(None)
-		self.driver.camera.setUnplugCallback(None)
-		self.updateStatus(False)
+		self.updateStatus(self.driver.isConnected)
 
 	def beforeConnect(self):
 		self.enableLabelTool(self.connectTool, False)
 		self.combo.Disable()
-		for i in range(self.GetParent().menuBar.GetMenuCount()):
+		for i in xrange(self.GetParent().menuBar.GetMenuCount()):
 			self.GetParent().menuBar.EnableTop(i, False)
 		self.driver.board.setUnplugCallback(None)
 		self.driver.camera.setUnplugCallback(None)
@@ -158,7 +156,7 @@ class WorkbenchConnection(Workbench):
 		
 		self.updateStatus(self.driver.isConnected)
 		self.combo.Enable()
-		for i in range(self.GetParent().menuBar.GetMenuCount()):
+		for i in xrange(self.GetParent().menuBar.GetMenuCount()):
 			self.GetParent().menuBar.EnableTop(i, True)
 		del self.waitCursor
 
@@ -175,6 +173,8 @@ class WorkbenchConnection(Workbench):
 		else:
 			self.enableLabelTool(self.connectTool   , True)
 			self.enableLabelTool(self.disconnectTool, False)
+			self.driver.board.setUnplugCallback(None)
+			self.driver.camera.setUnplugCallback(None)
 
 	def updateToolbarStatus(self, status):
 		pass
