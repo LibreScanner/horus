@@ -138,6 +138,9 @@ class ScanningWorkbench(WorkbenchConnection):
 	def updateCallbacks(self):
 		self.controls.updateCallbacks()
 
+	def enableRestore(self, value):
+		self.controls.enableRestore(value)
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.updateStatus(self.currentScan.driver.isConnected)
@@ -233,6 +236,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		section = panel.sections['camera_scanning']
 		section.disable('framerate_scanning')
 		section.disable('resolution_scanning')
+		self.enableRestore(False)
 		self.pointCloudTimer.Start(milliseconds=50)
 
 	def progressScan(self, progress, range=100):
@@ -294,6 +298,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		section = panel.sections['camera_scanning']
 		section.enable('framerate_scanning')
 		section.enable('resolution_scanning')
+		self.enableRestore(True)
 		self.pointCloudTimer.Stop()
 		self.videoView.setMilliseconds(10)
 		self.gauge.Hide()

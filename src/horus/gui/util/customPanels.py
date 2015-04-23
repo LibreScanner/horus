@@ -104,6 +104,10 @@ class ExpandableControl(wx.Panel):
 		for panel in self.panels.values():
 			panel.updateProfile()
 
+	def enableRestore(self, value):
+		for panel in self.panels.values():
+			panel.enableRestore(value)
+
 class ExpandablePanel(wx.Panel):
 	def __init__(self, parent, title="", hasUndo=True, hasRestore=True):
 		wx.Panel.__init__(self, parent, size=(275, -1))
@@ -204,6 +208,13 @@ class ExpandablePanel(wx.Panel):
 			objectToUndo = self.undoObjects.pop()
 			objectToUndo.undo()
 		return len(self.undoObjects) > 0
+
+	def enableRestore(self, value):
+		if hasattr(self, 'restoreButton'):
+			if value:
+				self.restoreButton.Enable()
+			else:
+				self.restoreButton.Disable()
 
 class SectionPanel(wx.Panel):
 	def __init__(self, parent, title=None, tag=None):
@@ -469,14 +480,9 @@ class ComboBox(SectionItem):
 		self.control.Bind(wx.EVT_COMBOBOX, self.onComboBoxChanged)
 
 	def onComboBoxChanged(self, event):
-		self.undoValues.append(profile.getProfileSetting(self.name))
 		value = self.keyDict[self.control.GetValue()]
 		profile.putProfileSetting(self.name, value)
 		self._updateEngine(value)
-		if self.appendUndoCallback is not None:
-			self.appendUndoCallback(self)
-		if self.releaseUndoCallback is not None:
-			self.releaseUndoCallback()
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
