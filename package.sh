@@ -16,6 +16,7 @@ EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
 VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | head -1`
+BQ_VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | tail -1`
 VEXT=${VEXT:=""}
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
 
@@ -151,9 +152,9 @@ if [ $BUILD_TARGET = "debian" ]; then
 			for RELEASE in $RELEASES ;
 			do
 			  cp debian/changelog debian/changelog.backup
-			  sed -i "s/${ORIG_RELEASE}/${RELEASE}/;s/${VERSION}/${VERSION}${VEXT}/;s/bq1/bq1~${RELEASE}1/" debian/changelog
+			  sed -i "s/${ORIG_RELEASE}/${RELEASE}/;s/${VERSION}/${VERSION}${VEXT}/;s/bq${BQ_VERSION}/bq${BQ_VERSION}~${RELEASE}1/" debian/changelog
 			  debuild -S -sa
-			  dput -f ${PPA} ../horus_${VERSION}${VEXT}-bq1~${RELEASE}1_source.changes
+			  dput -f ${PPA} ../horus_${VERSION}${VEXT}-bq${BQ_VERSION}~${RELEASE}1_source.changes
 			  mv debian/changelog.backup debian/changelog
 			done
 		fi

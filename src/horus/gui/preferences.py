@@ -67,6 +67,10 @@ class PreferencesDialog(wx.Dialog):
 		self.languages = [row[1] for row in resources.getLanguageOptions()]
 		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(177,-1), style=wx.CB_READONLY)
 
+		invert = profile.getProfileSettingBool('invert_motor')
+		self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
+		self.invertMotorCheckBox.SetValue(invert)
+
 		self.okButton = wx.Button(self, label=_("Ok"))
 
 		#-- Events
@@ -76,6 +80,7 @@ class PreferencesDialog(wx.Dialog):
 		self.boardsCombo.Bind(wx.EVT_COMBOBOX, self.onBoardsComboChanged)
 		self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
+		self.invertMotorCheckBox.Bind(wx.EVT_CHECKBOX, self.onInvertMotor)
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Destroy())
 		self.Bind(wx.EVT_CLOSE, lambda e: self.Destroy())
 
@@ -139,6 +144,12 @@ class PreferencesDialog(wx.Dialog):
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.languageLabel, 0, wx.ALL, 10)
 		hbox.Add(self.languageCombo, 0, wx.ALL, 5)
+		vbox.Add(hbox)
+
+		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
+
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.invertMotorCheckBox, 0, wx.ALL, 15)
 		vbox.Add(hbox)
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
@@ -232,3 +243,5 @@ class PreferencesDialog(wx.Dialog):
 			profile.putPreference('language', self.languageCombo.GetValue())
 			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
 
+	def onInvertMotor(self, event):
+		profile.putProfileSetting('invert_motor', self.invertMotorCheckBox.GetValue())

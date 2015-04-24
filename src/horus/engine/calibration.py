@@ -389,7 +389,7 @@ class LaserTriangulation(Calibration):
 			if n > 3:
 				final_points=[]
 
-				for trials in range(30):
+				for trials in xrange(30):
 					X=np.matrix(X)
 					n=X.shape[1]
 

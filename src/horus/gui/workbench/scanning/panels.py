@@ -45,7 +45,7 @@ class ScanParameters(ExpandablePanel):
     """"""
     def __init__(self, parent):
         """"""
-        ExpandablePanel.__init__(self, parent, _("Scan Parameters"))
+        ExpandablePanel.__init__(self, parent, _("Scan Parameters"), hasUndo=False, hasRestore=False)
         
         self.driver = Driver.Instance()
         self.simpleScan = SimpleScan.Instance()

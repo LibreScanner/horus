@@ -56,9 +56,6 @@ class Scan:
 		self.driver = Driver.Instance()
 		self.pcg = PointCloudGenerator.Instance()
 
-		self.points = None
-		self.colors = None
-
 		self.run = False
 		self.inactive = False
 		self.moveMotor = True
@@ -79,8 +76,8 @@ class Scan:
 		self.progressCallback = None
 		self.afterCallback = None
 
-		self.imagesQueue = Queue.Queue(1000)
-		self.points3DQueue = Queue.Queue(10000)
+		self.imagesQueue = Queue.Queue(100)
+		self.points3DQueue = Queue.Queue(1000)
 
 	def resetTheta(self):
 		self.theta = 0
@@ -140,7 +137,7 @@ class Scan:
 				'Line' : self.imgLine,
 				'Color' : self.imgColor
 			  }[self.imgType]
-		if source != None:
+		if source is not None:
 			img = source
 		
 		if img is not None:
@@ -267,13 +264,6 @@ class Scan:
 						points3D, colors = self.pcg.compute3DPoints(points2D, colors, laser, updateTheta)
 
 						if points3D is not None and colors is not None:
-							if self.points == None and self.colors == None:
-								self.points = points3D
-								self.colors = colors
-							else:
-								self.points = np.append(self.points, points3D, axis=1)
-								self.colors = np.append(self.points, points3D, axis=1)
-
 							if self.generatePointCloud:
 								#-- Put point cloud into the queue
 								self.points3DQueue.put((points3D, colors))
@@ -281,6 +271,12 @@ class Scan:
 						end = time.time()
 
 						print "Process: {0} ms".format(int((end-begin)*1000))
+
+						#-- Free objects
+						del imagesQueueItem
+						del colors
+						del points2D
+						del points3D
 				else:
 					if self.generatePointCloud:
 						ret = True
@@ -297,6 +293,9 @@ class Scan:
 		self.imgGray = None
 		self.imgLine = None
 		self.imgColor = None
+
+		self.points3DQueue.queue.clear()
+		self.imagesQueue.queue.clear()
 
 		if afterCallback is not None:
 			afterCallback(response)
@@ -362,7 +361,7 @@ class SimpleScan(Scan):
 						self.driver.board.setRightLaserOn()
 						self.driver.board.setLeftLaserOff()
 						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
-
+					
 					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
 					self.theta -= self.pcg.degrees * self.pcg.rad
 
@@ -375,16 +374,20 @@ class SimpleScan(Scan):
 
 					end = time.time()
 					print "Capture: {0} ms".format(int((end-begin)*1000))
-
+					
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
 						self.imagesQueue.put(('left',imageLaserLeft))
+						del imageLaserLeft
 
 					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
 						self.imagesQueue.put(('right',imageLaserRight))
+						del imageLaserRight
 
 					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
 						self.imagesQueue.put(('both_left',imgLaserLeft))
 						self.imagesQueue.put(('both_right',imgLaserRight))
+						del imgLaserLeft
+						del imgLaserRight
 				else:
 					if self.generatePointCloud:
 						self._stopCapture()
@@ -585,15 +588,20 @@ class TextureScan(Scan):
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
 						if imgRaw is not None and imgLaserLeft is not None:
 							self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
+							del imgLaserLeft
 
 					elif self.pcg.useRightLaser and not self.pcg.useLeftLaser:
 						if imgRaw is not None and imgLaserRight is not None:
 							self.imagesQueue.put(('right',imgRaw,imgLaserRight))
+							del imgLaserRight
 
 					elif self.pcg.useRightLaser and self.pcg.useLeftLaser:
 						if imgRaw is not None and imgLaserLeft is not None and imgLaserRight is not None:
 							self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
 							self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
+							del imgLaserLeft
+							del imgLaserRight
+					del imgRaw
 				else:
 					if self.generatePointCloud:
 						self._stopCapture()
@@ -684,8 +692,8 @@ class PointCloudGenerator:
 		self.vmax = 1280
 
 		self.circleResolution = 30
-		self.circleArray = np.array([[np.cos(i*2*np.pi/self.circleResolution) for i in range(self.circleResolution)],
-									 [np.sin(i*2*np.pi/self.circleResolution) for i in range(self.circleResolution)],
+		self.circleArray = np.array([[np.cos(i*2*np.pi/self.circleResolution) for i in xrange(self.circleResolution)],
+									 [np.sin(i*2*np.pi/self.circleResolution) for i in xrange(self.circleResolution)],
 									 np.zeros(self.circleResolution)])
 
 
