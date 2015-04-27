@@ -100,7 +100,7 @@ class LDRControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['ldr_control']
-        section.updateCallback('ldr_value', lambda v, c: self.driver.board.sendRequest(v, nonblocking=True, callback=c, readLines=True))
+        section.updateCallback('ldr_value', lambda id: self.driver.board.getLDRSensor(id))
 
 
 class MotorControl(ExpandablePanel):
@@ -155,7 +155,7 @@ class GcodeControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['gcode_control']
-        section.updateCallback('gcode_gui', lambda v, c: self.driver.board.sendRequest(v, nonblocking=True, callback=c, readLines=True))
+        section.updateCallback('gcode_gui', lambda v, c: self.driver.board.sendRequest(v, callback=c, readLines=True))
 
 
 class GcodeSection(SectionItem):
@@ -232,23 +232,19 @@ class LDRSection(SectionItem):
 
 
     def onButton0Clicked(self, event):
-        self.LDR0.Disable()
-        self.waitCursor = wx.BusyCursor()
-        if self.engineCallback is not None:
-            ret = self.engineCallback('M50 T0', self.onFinishCallback)
+        self.onLDRButtonClicked(self.LDR0, '0')
 
     def onButton1Clicked(self, event):
-        self.LDR1.Disable()
+        self.onLDRButtonClicked(self.LDR1, '1')
+
+    def onLDRButtonClicked(self, _object, _value):
         self.waitCursor = wx.BusyCursor()
+        _object.Disable()
         if self.engineCallback is not None:
-            ret = self.engineCallback('M50 T1', self.onFinishCallback)
-
-    def onFinishCallback(self, ret):
-        wx.CallAfter(self.LDR0.Enable)
-        wx.CallAfter(self.LDR1.Enable)
-
+            ret = self.engineCallback(_value)
+        wx.CallAfter(_object.Enable)
         if ret is not None:
-            wx.CallAfter(lambda: self.response.SetValue(ret))
+            wx.CallAfter(lambda: self.response.SetValue(str(ret)))
         if hasattr(self,'waitCursor'):
             del self.waitCursor
 
