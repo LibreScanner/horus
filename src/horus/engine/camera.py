@@ -32,7 +32,10 @@ import math
 import time
 import platform
 
-from ..hardware import uvc_capture as uvc
+_platform = platform.system()
+
+if _platform == "Darwin":
+	from horus.engine import uvc
 
 
 class Error(Exception):
@@ -74,7 +77,7 @@ class Camera:
 		self.distortionVector = None
 		self.distCameraMatrix = None
 
-		if platform.system() == 'Windows':
+		if _platform == 'Windows':
 			self.maxBrightness = 1.
 			self.maxContrast = 1.
 			self.maxSaturation = 1.
@@ -97,7 +100,7 @@ class Camera:
 		print ">>> Connecting camera {0}".format(self.cameraId)
 		self.isConnected = False
 		
-		if platform.system() == 'Darwin':
+		if _platform == 'Darwin':
 			if self.capture is not None:
 				self.capture.close()
 			self.capture = uvc.autoCreateCapture(self.cameraId,(self.width,self.height))
@@ -124,14 +127,12 @@ class Camera:
 			else:
 				raise CameraNotConnected()
 		
-	
-		
 	def disconnect(self):
 		tries = 0
 		if self.isConnected:
 			print ">>> Disconnecting camera {0}".format(self.cameraId)
 			if self.capture is not None:
-				if platform.system() == 'Darwin':
+				if _platform == 'Darwin':
 					self.capture.close();
 					self.isConnected = False
 				else:
@@ -141,13 +142,12 @@ class Camera:
 							tries += 1
 							if not self.reading:
 								self.capture.release()
-					
-				
 				print ">>> Done"
 
 	def checkCamera(self):
 		""" Checks correct camera """
-		self.capture.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1);
+		if _platform == 'Darwin':
+			self.capture.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1);
 		self.setExposure(2)
 		exposure = self.getExposure()
 		if exposure is not None:
@@ -165,25 +165,18 @@ class Camera:
 		if self.isConnected:
 			self.reading = True
 			if flush:
-				for i in range(0, flushValue):
+				for i in xrange(0, flushValue):
 					self.getImage()
-
 			(ret,image) = self.getImage()
-				
-				
 			self.reading = False
-			
 			if ret:
-				
 				if self.useDistortion and \
 				   self.cameraMatrix is not None and \
 				   self.distortionVector is not None and \
 				   self.distCameraMatrix is not None:
 					mapx, mapy = cv2.initUndistortRectifyMap(self.cameraMatrix, self.distortionVector, R=None, newCameraMatrix=self.distCameraMatrix, size=(self.width, self.height), m1type=5)
 					image = cv2.remap(image, mapx, mapy, cv2.INTER_LINEAR)
-				
 				image = cv2.transpose(image)
-					
 				if not mirror:
 					image = cv2.flip(image, 1)
 				self._success()
@@ -212,8 +205,8 @@ class Camera:
 
 	def setBrightness(self, value):
 		if self.isConnected:
-			if platform.system() == 'Darwin':
-				ctl=self.capture.controls['UVCC_REQ_BRIGHTNESS_ABS']
+			if _platform == 'Darwin':
+				ctl = self.capture.controls['UVCC_REQ_BRIGHTNESS_ABS']
 				ctl.set_val(int(uvc.map(value,0,self.maxBrightness,ctl.min, ctl.max)))
 				
 			else:
@@ -222,8 +215,8 @@ class Camera:
 
 	def setContrast(self, value):
 		if self.isConnected:
-			if platform.system() == 'Darwin':
-				ctl=self.capture.controls['UVCC_REQ_CONTRAST_ABS']
+			if _platform == 'Darwin':
+				ctl = self.capture.controls['UVCC_REQ_CONTRAST_ABS']
 				ctl.set_val(int(uvc.map(value,0,self.maxContrast,ctl.min, ctl.max)))
 			else:
 				value = int(value)/self.maxContrast
@@ -231,8 +224,8 @@ class Camera:
 
 	def setSaturation(self, value):
 		if self.isConnected:
-			if platform.system() == 'Darwin':
-				ctl=self.capture.controls['UVCC_REQ_SATURATION_ABS']
+			if _platform == 'Darwin':
+				ctl = self.capture.controls['UVCC_REQ_SATURATION_ABS']
 				ctl.set_val(int(uvc.map(value,0,self.maxSaturation,ctl.min, ctl.max)))
 			else:
 				value = int(value)/self.maxSaturation
@@ -240,10 +233,10 @@ class Camera:
 
 	def setExposure(self, value):
 		if self.isConnected:
-			if platform.system() == 'Darwin':
-				ctl=self.capture.controls['UVCC_REQ_EXPOSURE_ABS']
+			if _platform == 'Darwin':
+				ctl = self.capture.controls['UVCC_REQ_EXPOSURE_ABS']
 				ctl.set_val(int(uvc.map(value,0,self.maxExposure,ctl.min, ctl.max)))
-			elif platform.system() == 'Windows':
+			elif _platform == 'Windows':
 				value = int(round(-math.log(value)/math.log(2)))
 				self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 			else:
@@ -253,7 +246,7 @@ class Camera:
 
 	def setFrameRate(self, value):
 		if self.isConnected:
-			if platform.system() == 'Darwin':
+			if _platform == 'Darwin':
 				self.capture.set_fps(value)
 			else:
 				self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
@@ -268,18 +261,18 @@ class Camera:
 
 	def _updateResolution(self):
 		if self.isConnected:
-			if platform.system() == 'Darwin':
+			if _platform == 'Darwin':
 				(w,h)= self.capture.get_size()
 			else:
 				w = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
 				h = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 				
-			self.width=w
-			self.height=h
+			self.width = w
+			self.height = h
 
 	def setResolution(self, width, height):
 		if self.isConnected:
-			if platform.system() == 'Darwin':
+			if _platform == 'Darwin':
 				self.capture.set_size((width,height))
 			else:
 				self._setWidth(width)
@@ -296,10 +289,10 @@ class Camera:
 
 	def getExposure(self):
 		if self.isConnected:
-			if platform.system() == 'Darwin':
+			if _platform == 'Darwin':
 				ctl = self.capture.controls['UVCC_REQ_EXPOSURE_ABS']
-				value=int(uvc.map(ctl.get_val(),ctl.min, ctl.max, 0, self.maxExposure))
-			elif platform.system() == 'Windows':
+				value = int(uvc.map(ctl.get_val(),ctl.min, ctl.max, 0, self.maxExposure))
+			elif _platform == 'Windows':
 				value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
 				value = 2**-value
 			else:
@@ -308,13 +301,12 @@ class Camera:
 			return value
 		
 	def getImage(self):
-		if platform.system() == 'Darwin':
+		if _platform == 'Darwin':
 			ret = self.capture.get_frame();
-			if (ret is not None):
-				image=ret.img
+			if ret is not None:
+				image = ret.img
 		else:
 			ret, image  = self.capture.read()
-			
 			
 		return ret, image
 			

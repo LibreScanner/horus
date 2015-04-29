@@ -131,7 +131,7 @@ class VideoView(ImageView):
 
 	def play(self):
 		self.playing = True
-		if os.name == 'nt' or sys.platform=='darwin':
+		if os.name == 'nt' or sys.platform == 'darwin':
 			self._start()
 		else:
 			threading.Thread(target=self._start).start()

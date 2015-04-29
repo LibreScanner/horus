@@ -37,7 +37,8 @@ import platform
 import wx._core
 import webbrowser
 
-from ..hardware import uvc_capture as uvc
+if platform.system() == "Darwin":
+    from horus.engine import uvc
 
 from horus.util import profile, resources, meshLoader
 
@@ -470,7 +471,7 @@ See the GNU General Public License for more details. You should have
 received a copy of the GNU General Public License along with File Hunter;
 if not, write to the Free Software Foundation, Inc., 59 Temple Place,
 Suite 330, Boston, MA  02111-1307  USA""")
-        info.AddDeveloper(u'Jesús Arroyo, Irene Sanz')
+        info.AddDeveloper(u'Jesús Arroyo, Irene Sanz, Jorge Robles')
         info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
         info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva')
