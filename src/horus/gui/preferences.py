@@ -81,8 +81,8 @@ class PreferencesDialog(wx.Dialog):
 		self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
 		self.invertMotorCheckBox.Bind(wx.EVT_CHECKBOX, self.onInvertMotor)
-		self.okButton.Bind(wx.EVT_BUTTON, self.onClose())
-		self.Bind(wx.EVT_CLOSE, self.onClose())
+		self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
+		self.Bind(wx.EVT_CLOSE, self.onClose)
 
 		#-- Fill data
 		currentSerial = profile.getProfileSetting('serial_name')
