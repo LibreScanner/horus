@@ -50,6 +50,8 @@ from horus.util.singleton import Singleton
 #TODO: refactor
 from horus.util import profile
 
+import platform
+_platform = platform.system()
 
 class Calibration:
 	""" 
@@ -211,6 +213,8 @@ class LaserTriangulation(Calibration):
 		XR = None
 
 		if os.name=='nt':
+			flush = 2
+		elif _platform == 'Darwin':
 			flush = 2
 		else:
 			flush = 1
