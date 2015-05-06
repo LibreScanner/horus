@@ -15,7 +15,9 @@ More interest links are shown below:
 
 # Installing
 
-### GNU/Linux Ubuntu
+### GNU/Linux
+
+#### Supported versions: Ubuntu 14.04, Ubuntu 14.10
 
 Add our PPA keys
 
@@ -49,7 +51,25 @@ Reboot the computer to apply the changes
 sudo reboot
 ```
 
+##### Experimental versions: Debian 8
+
+For Debian 8 it is needed to install:
+
+```bash
+sudo apt-get install software-properties-common python-software-properties
+sudo add-apt-repository ppa:bqopensource/opencv
+sudo add-apt-repository ppa:bqopensource/horus-dev
+```
+
+Also before adding the PPA keys:
+
+```bash
+sudo sed -i 's/jessie/trusty/g' /etc/apt/sources.list.d/bqopensource-*.list
+```
+
 ### Windows
+
+#### Supported versions: Windows 7, 8, 8.1
 
 To install USB Camera drivers follow these instructions [Logitech Camera C270 Drivers](http://support.logitech.com/en_us/product/hd-webcam-c270)
 
