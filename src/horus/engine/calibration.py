@@ -212,9 +212,7 @@ class LaserTriangulation(Calibration):
 		XL = None
 		XR = None
 
-		if os.name=='nt':
-			flush = 2
-		elif _platform == 'Darwin':
+		if os.name == 'nt' or _platform == 'Darwin':
 			flush = 2
 		else:
 			flush = 1
@@ -833,7 +831,11 @@ class PlatformExtrinsics(Calibration):
 
 	def getPatternPosition(self, step, board, camera):
 		t = None
-		image = camera.captureImage(flush=True, flushValue=1)
+		if os.name == 'nt' or _platform == 'Darwin':
+			flush = 2
+		else:
+			flush = 1
+		image = camera.captureImage(flush=True, flushValue=flush)
 		if image is not None:
 			self.image = image
 			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)

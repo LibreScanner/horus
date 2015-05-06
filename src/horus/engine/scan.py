@@ -34,6 +34,9 @@ import Queue
 import threading
 import numpy as np
 
+import platform
+_platform = platform.system()
+
 from horus.engine.driver import Driver
 
 import horus.util.error as Error
@@ -322,7 +325,7 @@ class SimpleScan(Scan):
 
 	def _captureThread(self):
 		""""""
-		if os.name == 'nt':
+		if os.name == 'nt' or _platform == 'Darwin':
 			flush_both = 3
 			flush_single = 1
 		else:
@@ -464,7 +467,7 @@ class TextureScan(Scan):
 		self.driver.board.setLeftLaserOff()
 		self.driver.board.setRightLaserOff()
 
-		if os.name == 'nt':
+		if os.name == 'nt' or _platform == 'Darwin':
 			flush = 3
 		else:
 			flush = 1
