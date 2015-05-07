@@ -74,9 +74,10 @@ class PreferencesDialog(wx.Dialog):
 		self.okButton = wx.Button(self, label=_("Ok"))
 
 		#-- Events
-		self.serialNameCombo.Bind(wx.EVT_TEXT, self.onSerialNameTextChanged)
-		self.baudRateCombo.Bind(wx.EVT_TEXT, self.onBaudRateTextChanged)
-		self.cameraIdCombo.Bind(wx.EVT_TEXT, self.onCameraIdTextChanged)
+		self.serialNameCombo.Bind(wx.EVT_TEXT, self.onSerialNameComboChanged)
+		self.serialNameCombo.Bind(wx.EVT_COMBOBOX, self.onSerialNameComboChanged)
+		self.baudRateCombo.Bind(wx.EVT_COMBOBOX, self.onBaudRateComboChanged)
+		self.cameraIdCombo.Bind(wx.EVT_COMBOBOX, self.onCameraIdComboChanged)
 		self.boardsCombo.Bind(wx.EVT_COMBOBOX, self.onBoardsComboChanged)
 		self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
@@ -103,8 +104,8 @@ class PreferencesDialog(wx.Dialog):
 				self.cameraIdCombo.SetValue(currentVideoId)		
 
 		#-- Call Events
-		self.onSerialNameTextChanged(None)
-		self.onCameraIdTextChanged(None)
+		self.onSerialNameComboChanged(None)
+		self.onCameraIdComboChanged(None)
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -166,15 +167,18 @@ class PreferencesDialog(wx.Dialog):
 		self.Destroy()
 	
 
-	def onSerialNameTextChanged(self, event):
+	def onSerialNameComboChanged(self, event):
+		print self.serialNameCombo.GetValue()
 		if len(self.serialNameCombo.GetValue()):
 			profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
 
-	def onBaudRateTextChanged(self, event):
+	def onBaudRateComboChanged(self, event):
+		print self.baudRateCombo.GetValue()
 		if self.baudRateCombo.GetValue() in self.baudRates:
 			profile.putProfileSetting('baud_rate', int(self.baudRateCombo.GetValue()))
 
-	def onCameraIdTextChanged(self, event):
+	def onCameraIdComboChanged(self, event):
+		print self.cameraIdCombo.GetValue()
 		if len(self.cameraIdCombo.GetValue()):
 			profile.putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
 
