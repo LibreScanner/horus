@@ -234,7 +234,8 @@ class Camera:
 		if self.isConnected:
 			if sys.isDarwin():
 				ctl = self.capture.controls['UVCC_REQ_EXPOSURE_ABS']
-				ctl.set_val(int(uvc.map(value,0,self.maxExposure,ctl.min, ctl.max)))
+				if ctl.min is not None and ctl.max is not None:
+					ctl.set_val(int(uvc.map(value,0,self.maxExposure,ctl.min, ctl.max)))
 			elif sys.isWindows():
 				value = int(round(-math.log(value)/math.log(2)))
 				self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
@@ -290,7 +291,9 @@ class Camera:
 		if self.isConnected:
 			if sys.isDarwin():
 				ctl = self.capture.controls['UVCC_REQ_EXPOSURE_ABS']
-				value = int(uvc.map(ctl.get_val(),ctl.min, ctl.max, 0, self.maxExposure))
+				value = 0
+				if ctl.min is not None and ctl.max is not None:
+					value = int(uvc.map(ctl.get_val(),ctl.min, ctl.max, 0, self.maxExposure))
 			elif sys.isWindows():
 				value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
 				value = 2**-value
