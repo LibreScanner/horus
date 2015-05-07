@@ -31,7 +31,6 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
-import os
 import cv2
 import time
 import struct
@@ -48,10 +47,8 @@ import horus.util.error as Error
 from horus.util.singleton import Singleton
 
 #TODO: refactor
-from horus.util import profile
+from horus.util import profile, system as sys
 
-import platform
-_platform = platform.system()
 
 class Calibration:
 	""" 
@@ -212,7 +209,7 @@ class LaserTriangulation(Calibration):
 		XL = None
 		XR = None
 
-		if os.name == 'nt' or _platform == 'Darwin':
+		if sys.isWindows() or sys.isDarwin():
 			flush = 2
 		else:
 			flush = 1
@@ -831,7 +828,7 @@ class PlatformExtrinsics(Calibration):
 
 	def getPatternPosition(self, step, board, camera):
 		t = None
-		if os.name == 'nt' or _platform == 'Darwin':
+		if sys.isWindows() or sys.isDarwin():
 			flush = 2
 		else:
 			flush = 1

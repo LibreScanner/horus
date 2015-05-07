@@ -30,9 +30,9 @@
 ##                    ##
 
 import os
-if os.name != 'nt':
+import system as sys
+if not sys.isWindows():
     import fcntl
-import platform
 import resources
 from subprocess import Popen, PIPE, CalledProcessError
 
@@ -48,7 +48,7 @@ class AvrDude(SerialDevice):
         self.microcontroller = microcontroller
         self.baudRate = baudRate
 
-        if os.name == 'nt':
+        if sys.isWindows():
         	self.avrdude = path(resources.getPathForToolsWindows("avrdude.exe")).abspath()
         else:
             self.avrdude = 'avrdude'
@@ -57,7 +57,7 @@ class AvrDude(SerialDevice):
             raise FirmwareError('avrdude not installed')
 
         if confPath is None:
-            if os.name == 'nt':
+            if sys.isWindows():
                 self.avrconf = path(resources.getPathForToolsWindows("avrdude.conf")).abspath()
             else:
                 self.avrconf = path(resources.getPathForToolsLinux("avrdude-linux.conf")).abspath()
@@ -75,7 +75,7 @@ class AvrDude(SerialDevice):
         config = dict(avrdude=self.avrdude, avrconf=self.avrconf)
         cmd = ['%(avrdude)s'] + flags
         cmd = [v % config for v in cmd]
-        if os.name != 'nt':
+        if not sys.isWindows():
             p = Popen(cmd, stderr=PIPE, close_fds=True)
             fcntl.fcntl(p.stderr.fileno(), fcntl.F_SETFL, fcntl.fcntl(p.stderr.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK)
         else:

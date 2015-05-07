@@ -27,20 +27,17 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
-import os
 import cv2
 import time
 import Queue
 import threading
 import numpy as np
 
-import platform
-_platform = platform.system()
-
 from horus.engine.driver import Driver
 
 import horus.util.error as Error
 from horus.util.singleton import Singleton
+from horus.util import system as sys
 
 
 class Scan:
@@ -325,7 +322,7 @@ class SimpleScan(Scan):
 
 	def _captureThread(self):
 		""""""
-		if os.name == 'nt' or _platform == 'Darwin':
+		if sys.isWindows() or sys.isDarwin():
 			flush_both = 3
 			flush_single = 1
 		else:
@@ -467,7 +464,7 @@ class TextureScan(Scan):
 		self.driver.board.setLeftLaserOff()
 		self.driver.board.setRightLaserOff()
 
-		if os.name == 'nt' or _platform == 'Darwin':
+		if sys.isWindows() or sys.isDarwin():
 			flush = 3
 		else:
 			flush = 1

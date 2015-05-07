@@ -33,14 +33,13 @@ import cv2
 import glob
 import time
 import struct
-import platform
 import wx._core
 import webbrowser
 
-if platform.system() == "Darwin":
-    from horus.engine import uvc
+from horus.util import profile, resources, meshLoader, system as sys
 
-from horus.util import profile, resources, meshLoader
+if sys.isDarwin():
+    from horus.engine import uvc
 
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.scanning.main import ScanningWorkbench
@@ -263,7 +262,7 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if not filename.endswith('.ply'):
-                if platform.system() == 'Linux': #hack for linux, as for some reason the .ply is not appended.
+                if sys.isLinux(): #hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
             meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
             self.appendLastFile(filename)
@@ -294,7 +293,7 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
             if not profileFile.endswith('.ini'):
-                if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
+                if sys.isLinux(): #hack for linux, as for some reason the .ini is not appended.
                     profileFile += '.ini'
             profile.saveProfile(profileFile)
         dlg.Destroy()
@@ -347,7 +346,7 @@ class MainWindow(wx.Frame):
         self.Layout()
 
     def onPreferences(self, event):
-        if os.name == 'nt':
+        if sys.isWindows():
             self.simpleScan.stop()
             self.textureScan.stop()
             self.laserTriangulation.cancel()
@@ -698,7 +697,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def serialList(self):
         baselist=[]
-        if os.name=="nt":
+        if sys.isWindows():
             import _winreg
             try:
                 key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM")
@@ -733,11 +732,11 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def videoList(self):
         baselist=[]
-        if os.name == 'nt':
+        if sys.isWindows():
             count = self.countCameras()
             for i in xrange(count):
                 baselist.append(str(i))
-        elif os.sys.platform == 'darwin':
+        elif sys.isDarwin():
             for device in uvc.Camera_List():
                 baselist.append(str(device.src_id))
         else:

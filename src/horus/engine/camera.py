@@ -30,11 +30,10 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import cv2
 import math
 import time
-import platform
 
-_platform = platform.system()
+from horus.util import system as sys
 
-if _platform == "Darwin":
+if sys.isDarwin():
 	from horus.engine import uvc
 
 
@@ -77,7 +76,7 @@ class Camera:
 		self.distortionVector = None
 		self.distCameraMatrix = None
 
-		if _platform == 'Windows':
+		if sys.isWindows():
 			self.maxBrightness = 1.
 			self.maxContrast = 1.
 			self.maxSaturation = 1.
@@ -100,7 +99,7 @@ class Camera:
 		print ">>> Connecting camera {0}".format(self.cameraId)
 		self.isConnected = False
 		
-		if _platform == 'Darwin':
+		if sys.isDarwin():
 			if self.capture is not None:
 				self.capture.close()
 			self.capture = uvc.autoCreateCapture(self.cameraId,(self.width,self.height))
@@ -132,7 +131,7 @@ class Camera:
 		if self.isConnected:
 			print ">>> Disconnecting camera {0}".format(self.cameraId)
 			if self.capture is not None:
-				if _platform == 'Darwin':
+				if sys.isDarwin():
 					self.capture.close();
 					self.isConnected = False
 				else:
@@ -146,7 +145,7 @@ class Camera:
 
 	def checkCamera(self):
 		""" Checks correct camera """
-		if _platform == 'Darwin':
+		if sys.isDarwin():
 			self.capture.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1);
 		self.setExposure(2)
 		exposure = self.getExposure()
@@ -205,7 +204,7 @@ class Camera:
 
 	def setBrightness(self, value):
 		if self.isConnected:
-			if _platform == 'Darwin':
+			if sys.isDarwin():
 				ctl = self.capture.controls['UVCC_REQ_BRIGHTNESS_ABS']
 				ctl.set_val(int(uvc.map(value,0,self.maxBrightness,ctl.min, ctl.max)))
 				
@@ -215,7 +214,7 @@ class Camera:
 
 	def setContrast(self, value):
 		if self.isConnected:
-			if _platform == 'Darwin':
+			if sys.isDarwin():
 				ctl = self.capture.controls['UVCC_REQ_CONTRAST_ABS']
 				ctl.set_val(int(uvc.map(value,0,self.maxContrast,ctl.min, ctl.max)))
 			else:
@@ -224,7 +223,7 @@ class Camera:
 
 	def setSaturation(self, value):
 		if self.isConnected:
-			if _platform == 'Darwin':
+			if sys.isDarwin():
 				ctl = self.capture.controls['UVCC_REQ_SATURATION_ABS']
 				ctl.set_val(int(uvc.map(value,0,self.maxSaturation,ctl.min, ctl.max)))
 			else:
@@ -233,10 +232,10 @@ class Camera:
 
 	def setExposure(self, value):
 		if self.isConnected:
-			if _platform == 'Darwin':
+			if sys.isDarwin():
 				ctl = self.capture.controls['UVCC_REQ_EXPOSURE_ABS']
 				ctl.set_val(int(uvc.map(value,0,self.maxExposure,ctl.min, ctl.max)))
-			elif _platform == 'Windows':
+			elif sys.isWindows():
 				value = int(round(-math.log(value)/math.log(2)))
 				self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 			else:
@@ -246,7 +245,7 @@ class Camera:
 
 	def setFrameRate(self, value):
 		if self.isConnected:
-			if _platform == 'Darwin':
+			if sys.isDarwin():
 				self.capture.set_fps(value)
 			else:
 				self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
@@ -261,7 +260,7 @@ class Camera:
 
 	def _updateResolution(self):
 		if self.isConnected:
-			if _platform == 'Darwin':
+			if sys.isDarwin():
 				(w,h)= self.capture.get_size()
 			else:
 				w = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
@@ -272,7 +271,7 @@ class Camera:
 
 	def setResolution(self, width, height):
 		if self.isConnected:
-			if _platform == 'Darwin':
+			if sys.isDarwin():
 				self.capture.set_size((width,height))
 			else:
 				self._setWidth(width)
@@ -289,10 +288,10 @@ class Camera:
 
 	def getExposure(self):
 		if self.isConnected:
-			if _platform == 'Darwin':
+			if sys.isDarwin():
 				ctl = self.capture.controls['UVCC_REQ_EXPOSURE_ABS']
 				value = int(uvc.map(ctl.get_val(),ctl.min, ctl.max, 0, self.maxExposure))
-			elif _platform == 'Windows':
+			elif sys.isWindows():
 				value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
 				value = 2**-value
 			else:
@@ -301,7 +300,7 @@ class Camera:
 			return value
 		
 	def getImage(self):
-		if _platform == 'Darwin':
+		if sys.isDarwin():
 			ret = self.capture.get_frame();
 			if ret is not None:
 				image = ret.img

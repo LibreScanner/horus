@@ -27,11 +27,10 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
-import os
 import wx._core
 import threading
 
-from horus.util import profile, resources
+from horus.util import profile, resources, system as sys
 from horus.util.avrHelpers import AvrDude
 
 
@@ -168,17 +167,14 @@ class PreferencesDialog(wx.Dialog):
 	
 
 	def onSerialNameComboChanged(self, event):
-		print self.serialNameCombo.GetValue()
 		if len(self.serialNameCombo.GetValue()):
 			profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
 
 	def onBaudRateComboChanged(self, event):
-		print self.baudRateCombo.GetValue()
 		if self.baudRateCombo.GetValue() in self.baudRates:
 			profile.putProfileSetting('baud_rate', int(self.baudRateCombo.GetValue()))
 
 	def onCameraIdComboChanged(self, event):
-		print self.cameraIdCombo.GetValue()
 		if len(self.cameraIdCombo.GetValue()):
 			profile.putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
 
@@ -229,7 +225,7 @@ class PreferencesDialog(wx.Dialog):
 		self.clearCheckBox.Disable()
 		self.boardsCombo.Disable()
 		self.okButton.Disable()
-		if os.name != 'nt':
+		if not sys.isWindows() and not sys.isDarwin():
 			self.gauge.SetValue(0)
 			self.gauge.Show()
 		self.waitCursor = wx.BusyCursor()
@@ -241,7 +237,7 @@ class PreferencesDialog(wx.Dialog):
 		self.clearCheckBox.Enable()
 		self.boardsCombo.Enable()
 		self.okButton.Enable()
-		if os.name != 'nt':
+		if not sys.isWindows() and not sys.isDarwin():
 			self.gauge.Hide()
 		del self.waitCursor
 		self.Fit()

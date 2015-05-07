@@ -36,7 +36,6 @@ import re
 import zlib
 import base64
 import sys
-import platform
 import types
 
 if sys.version_info[0] < 3:
@@ -44,7 +43,7 @@ if sys.version_info[0] < 3:
 else:
 	import configparser as ConfigParser
 
-from horus.util import validators
+from horus.util import validators, system
 
 #The settings dictionary contains a key/value reference to all possible settings. With the setting name as key.
 settingsDictionary = {}
@@ -370,7 +369,7 @@ def getBasePath():
 	"""
 	:return: The path in which the current configuration files are stored. This depends on the used OS.
 	"""
-	if platform.system() == "Windows":
+	if system.isWindows():
 		basePath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 		#If we have a frozen python install, we need to step out of the library.zip
 		if hasattr(sys, 'frozen'):
