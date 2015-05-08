@@ -30,7 +30,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import wx._core
 
 import horus.util.error as Error
-from horus.util import resources, profile
+from horus.util import resources, profile, system as sys
 
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.sceneView import SceneView
@@ -234,8 +234,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		section.disable('acceleration_scanning')
 		panel = self.controls.panels['image_acquisition']
 		section = panel.sections['camera_scanning']
-		section.disable('framerate_scanning')
-		section.disable('resolution_scanning')
+		if not sys.isDarwin():
+			section.disable('framerate_scanning')
+			section.disable('resolution_scanning')
 		self.enableRestore(False)
 		self.pointCloudTimer.Start(milliseconds=50)
 
@@ -296,8 +297,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		section.enable('acceleration_scanning')
 		panel = self.controls.panels['image_acquisition']
 		section = panel.sections['camera_scanning']
-		section.enable('framerate_scanning')
-		section.enable('resolution_scanning')
+		if not sys.isDarwin():
+			section.enable('framerate_scanning')
+			section.enable('resolution_scanning')
 		self.enableRestore(True)
 		self.pointCloudTimer.Stop()
 		self.videoView.setMilliseconds(10)

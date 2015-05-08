@@ -168,6 +168,10 @@ class ImageAcquisition(ExpandablePanel):
         section.addItem(ComboBox, 'resolution_scanning', tooltip=_('Size of the video. Maximum resolution is recommended'))
         section.addItem(CheckBox, 'use_distortion_scanning', tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
 
+        if sys.isDarwin():
+            section = self.sections['camera_scanning'].disable('framerate_scanning')
+            section = self.sections['camera_scanning'].disable('resolution_scanning')
+
     def updateCallbacks(self):
         section = self.sections['camera_scanning']
         section.updateCallback('brightness_scanning', self.driver.camera.setBrightness)
