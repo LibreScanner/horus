@@ -35,7 +35,7 @@ import webbrowser
 from horus.util import resources
 
 def getVersion(_type='local'):
-    return str(_getVersionData(0, _type))
+    return _getVersionData(0, _type)
 
 def getBuild(_type='local'):
     return _getVersionData(1, _type)
@@ -57,9 +57,9 @@ def _getVersionData(index, _type='local'):
         data = content.split('\n')
         return data[index]
     except:
-        return None
+        return ''
 
-def checkForUpdate():
+def checkForUpdates():
     return getVersion('remote') >= getVersion('local') and \
            getBuild('remote') > getBuild('local')
 

@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: May 2015                                                        #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -27,43 +27,42 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
-import os
 import wx._core
 
-from horus.gui.main import MainWindow
-from horus.gui.splash import SplashScreen
-from horus.gui.welcome import WelcomeWindow
+from horus.util import version
 
-from horus.util import profile, resources, version
-from horus.gui.util.versionWindow import VersionWindow
 
-class HorusApp(wx.App):
-	def __init__(self):
-		super(HorusApp, self).__init__(redirect=False)
+class VersionWindow(wx.Dialog):
 
-		self.basePath = profile.getBasePath()
+    def __init__(self, parent):
+        super(VersionWindow, self).__init__(parent, title=_('New version released!'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
-		SplashScreen(self.afterSplashCallback)
+        #-- Elements
+        self.description = wx.StaticText(self, label=_('Horus ') + version.getVersion('remote') + _(' has been released.\nPress "Download" to install it.'))
+        self.downloadButton = wx.Button(self, label=_('Download'))
+        self.cancelButton = wx.Button(self, label=_('Cancel'))
 
-	def afterSplashCallback(self):
-		#-- Load Profile and Preferences
-		profile.loadPreferences(os.path.join(self.basePath, 'preferences.ini'))
-		profile.loadProfile(os.path.join(self.basePath, 'current-profile.ini'))
+        #-- Events
+        self.downloadButton.Bind(wx.EVT_BUTTON, self.onDownloadButton)
+        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
+        self.Bind(wx.EVT_CLOSE, self.Destroy)
 
-		#-- Load Language
-		resources.setupLocalization(profile.getPreference('language'))
+        #-- Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(self.description, 0, wx.ALL|wx.CENTER, 10)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.cancelButton, 0, wx.ALL, 3)
+        hbox.Add(self.downloadButton, 0, wx.ALL, 3)
+        vbox.Add(hbox, 0, wx.ALL|wx.CENTER, 10)
+        self.SetSizer(vbox)
+        self.Center()
+        self.Fit()
 
-		#-- Create Main Window
-		mainWindow = MainWindow()
+        self.ShowModal()
 
-		if profile.getPreferenceBool('check_for_updates') and version.checkForUpdates():
-			VersionWindow(mainWindow)
+    def onDownloadButton(self, event):
+        version.downloadLastestVersion()
+        self.Destroy()
 
-		if profile.getPreferenceBool('show_welcome'):
-			#-- Create Welcome Window
-			WelcomeWindow(mainWindow)
-
-	def __del__(self):
-		#-- Save Profile and Preferences
-		profile.savePreferences(os.path.join(self.basePath, 'preferences.ini'))
-		profile.saveProfile(os.path.join(self.basePath, 'current-profile.ini'))
+    def onCancelButton(self, event):
+        self.Destroy()

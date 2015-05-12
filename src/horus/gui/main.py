@@ -450,10 +450,10 @@ class MainWindow(wx.Frame):
         techDescription = _('Horus is an Open Source 3D Scanner manager')
         techDescription += '\n' + 'Version: ' + version.getVersion()
         build = version.getBuild()
-        if build is not None and build is not '':
+        if build is not '':
             techDescription += '\n' + 'Build: ' + version.getBuild()
         github = version.getGitHub()
-        if github is not None and github is not '':
+        if github is not '':
             techDescription += '\n' + 'GitHub: ' + version.getGitHub()
         info.SetDescription(techDescription)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
