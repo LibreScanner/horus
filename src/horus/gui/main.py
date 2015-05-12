@@ -45,6 +45,7 @@ from horus.gui.workbench.calibration.main import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
 from horus.gui.welcome import WelcomeWindow
 from horus.gui.wizard.main import *
+from horus.gui.util.versionWindow import VersionWindow
 
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
@@ -141,6 +142,8 @@ class MainWindow(wx.Frame):
         #-- Menu Help
         self.menuHelp = wx.Menu()
         self.menuWelcome = self.menuHelp.Append(wx.ID_ANY, _("Welcome"))
+        if profile.getPreferenceBool('check_for_updates'):
+            self.menuUpdates = self.menuHelp.Append(wx.ID_ANY, _("Updates"))
         self.menuWiki = self.menuHelp.Append(wx.ID_ANY, _("Wiki"))
         self.menuSources = self.menuHelp.Append(wx.ID_ANY, _("Sources"))
         self.menuIssues = self.menuHelp.Append(wx.ID_ANY, _("Issues"))
@@ -196,6 +199,8 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onAbout, self.menuAbout)
         self.Bind(wx.EVT_MENU, self.onWelcome, self.menuWelcome)
+        if profile.getPreferenceBool('check_for_updates'):
+            self.Bind(wx.EVT_MENU, self.onUpdates, self.menuUpdates)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), self.menuWiki)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), self.menuSources)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), self.menuIssues)
@@ -478,8 +483,16 @@ Suite 330, Boston, MA  02111-1307  USA""")
         wx.AboutBox(info)
 
     def onWelcome(self, event):
-        """ """
-        welcome = WelcomeWindow(self)
+        WelcomeWindow(self)
+
+    def onUpdates(self, event):
+        if profile.getPreferenceBool('check_for_updates'):
+            if version.checkForUpdates():
+                VersionWindow(self)
+            else:
+                dlg = wx.MessageDialog(self, _("You are running the latest version of Horus!"), _("Updated!"), wx.OK|wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
 
     def onBoardUnplugged(self):
         self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it in and press connect"))

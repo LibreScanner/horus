@@ -35,10 +35,10 @@ from horus.util import version
 class VersionWindow(wx.Dialog):
 
     def __init__(self, parent):
-        super(VersionWindow, self).__init__(parent, title=_('New version released!'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
+        super(VersionWindow, self).__init__(parent, title=_('New version available!'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         #-- Elements
-        self.description = wx.StaticText(self, label=_('Horus ') + version.getVersion('remote') + _(' has been released.\nPress "Download" to install it.'))
+        self.description = wx.StaticText(self, label= _('A new version of Horus is available, would you like to download?'))
         self.downloadButton = wx.Button(self, label=_('Download'))
         self.cancelButton = wx.Button(self, label=_('Cancel'))
 
@@ -61,7 +61,7 @@ class VersionWindow(wx.Dialog):
         self.ShowModal()
 
     def onDownloadButton(self, event):
-        version.downloadLastestVersion()
+        version.downloadLatestVersion()
         self.Destroy()
 
     def onCancelButton(self, event):

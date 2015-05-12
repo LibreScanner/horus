@@ -87,5 +87,5 @@ def _downloadVersion(version):
     if url is not None:
         webbrowser.open(url)
 
-def downloadLastestVersion():
+def downloadLatestVersion():
     _downloadVersion(getVersion('remote'))
