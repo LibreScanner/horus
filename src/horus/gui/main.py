@@ -37,7 +37,7 @@ import platform
 import wx._core
 import webbrowser
 
-from horus.util import profile, resources, meshLoader
+from horus.util import profile, resources, meshLoader, version
 
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.scanning.main import ScanningWorkbench
@@ -49,14 +49,12 @@ from horus.gui.wizard.main import *
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
 
-VERSION = '0.1.1'
-
 class MainWindow(wx.Frame):
 
     size = (640+337,480+150)
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus " + VERSION + " - Beta"), size=self.size)
+        super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion() + " - Beta"), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -86,7 +84,7 @@ class MainWindow(wx.Frame):
 
         self.lastFiles = eval(profile.getPreference('last_files'))
 
-        print ">>> Horus " + VERSION + " <<<"
+        print ">>> Horus " + version.getVersion() + " <<<"
 
         ###-- Initialize GUI
 
@@ -448,12 +446,16 @@ class MainWindow(wx.Frame):
         icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
-        info.SetVersion(VERSION)
-        techDescription = ''
-        if os.path.isfile(resources.getPathForVersion()):
-            with open(resources.getPathForVersion(), 'r') as f:
-              techDescription = '\n' + f.read().replace('\n','')
-        info.SetDescription(_('Horus is an Open Source 3D Scanner manager') + techDescription)
+        info.SetVersion(version.getVersion())
+        techDescription = _('Horus is an Open Source 3D Scanner manager')
+        techDescription += '\n' + 'Version: ' + version.getVersion()
+        build = version.getBuild()
+        if build is not None and build is not '':
+            techDescription += '\n' + 'Build: ' + version.getBuild()
+        github = version.getGitHub()
+        if github is not None and github is not '':
+            techDescription += '\n' + 'GitHub: ' + version.getGitHub()
+        info.SetDescription(techDescription)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
         info.SetLicence("""Horus is free software; you can redistribute
