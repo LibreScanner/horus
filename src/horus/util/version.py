@@ -51,8 +51,7 @@ def _getVersionData(index, _type='local'):
                 with open(resources.getPathForVersion(), 'r') as f:
                     content = f.read()
         elif _type is 'remote':
-            #f = urllib2.urlopen('storage.googleapis.com/bq-horus/releases/version')
-            f = urllib2.urlopen('http://127.0.0.1:3000/version')
+            f = urllib2.urlopen('http://storage.googleapis.com/bq-horus/releases/version')
             content = f.read()
         data = content.split('\n')
         return data[index]
@@ -61,6 +60,7 @@ def _getVersionData(index, _type='local'):
 
 def checkForUpdates():
     return getVersion('remote') >= getVersion('local') and \
+           getBuild('local') is not '' and \
            getBuild('remote') > getBuild('local')
 
 def _getExecutableUrl(version):
