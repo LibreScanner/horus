@@ -37,7 +37,7 @@ import platform
 import wx._core
 import webbrowser
 
-from horus.util import profile, resources, meshLoader
+from horus.util import profile, resources, meshLoader, version
 
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.scanning.main import ScanningWorkbench
@@ -45,18 +45,17 @@ from horus.gui.workbench.calibration.main import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
 from horus.gui.welcome import WelcomeWindow
 from horus.gui.wizard.main import *
+from horus.gui.util.versionWindow import VersionWindow
 
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
-
-VERSION = '0.1.1'
 
 class MainWindow(wx.Frame):
 
     size = (640+337,480+150)
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus " + VERSION + " - Beta"), size=self.size)
+        super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion() + " - Beta"), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -86,7 +85,7 @@ class MainWindow(wx.Frame):
 
         self.lastFiles = eval(profile.getPreference('last_files'))
 
-        print ">>> Horus " + VERSION + " <<<"
+        print ">>> Horus " + version.getVersion() + " <<<"
 
         ###-- Initialize GUI
 
@@ -143,6 +142,8 @@ class MainWindow(wx.Frame):
         #-- Menu Help
         self.menuHelp = wx.Menu()
         self.menuWelcome = self.menuHelp.Append(wx.ID_ANY, _("Welcome"))
+        if profile.getPreferenceBool('check_for_updates'):
+            self.menuUpdates = self.menuHelp.Append(wx.ID_ANY, _("Updates"))
         self.menuWiki = self.menuHelp.Append(wx.ID_ANY, _("Wiki"))
         self.menuSources = self.menuHelp.Append(wx.ID_ANY, _("Sources"))
         self.menuIssues = self.menuHelp.Append(wx.ID_ANY, _("Issues"))
@@ -198,6 +199,8 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onAbout, self.menuAbout)
         self.Bind(wx.EVT_MENU, self.onWelcome, self.menuWelcome)
+        if profile.getPreferenceBool('check_for_updates'):
+            self.Bind(wx.EVT_MENU, self.onUpdates, self.menuUpdates)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), self.menuWiki)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), self.menuSources)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), self.menuIssues)
@@ -448,12 +451,16 @@ class MainWindow(wx.Frame):
         icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
-        info.SetVersion(VERSION)
-        techDescription = ''
-        if os.path.isfile(resources.getPathForVersion()):
-            with open(resources.getPathForVersion(), 'r') as f:
-              techDescription = '\n' + f.read().replace('\n','')
-        info.SetDescription(_('Horus is an Open Source 3D Scanner manager') + techDescription)
+        info.SetVersion(version.getVersion())
+        techDescription = _('Horus is an Open Source 3D Scanner manager')
+        techDescription += '\n' + 'Version: ' + version.getVersion()
+        build = version.getBuild()
+        if build is not '':
+            techDescription += '\n' + 'Build: ' + version.getBuild()
+        github = version.getGitHub()
+        if github is not '':
+            techDescription += '\n' + 'GitHub: ' + version.getGitHub()
+        info.SetDescription(techDescription)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
         info.SetLicence("""Horus is free software; you can redistribute
@@ -476,8 +483,16 @@ Suite 330, Boston, MA  02111-1307  USA""")
         wx.AboutBox(info)
 
     def onWelcome(self, event):
-        """ """
-        welcome = WelcomeWindow(self)
+        WelcomeWindow(self)
+
+    def onUpdates(self, event):
+        if profile.getPreferenceBool('check_for_updates'):
+            if version.checkForUpdates():
+                VersionWindow(self)
+            else:
+                dlg = wx.MessageDialog(self, _("You are running the latest version of Horus!"), _("Updated!"), wx.OK|wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
 
     def onBoardUnplugged(self):
         self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it in and press connect"))
