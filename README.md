@@ -17,7 +17,7 @@ More interest links are shown below:
 
 ### GNU/Linux
 
-#### Ubuntu 14.04, Ubuntu 14.10
+##### Ubuntu 14.04, Ubuntu 14.10
 
 ```bash
 sudo add-apt-repository ppa:bqopensource/opencv
@@ -34,7 +34,7 @@ sudo sed -i 's/jessie/trusty/g' /etc/apt/sources.list.d/bqopensource-*.list
 
 Build and install our [custom OpenCV](https://github.com/bq/horus/wiki/Documentation#build-custom-opencv)
 
-#### All
+##### All
 
 Upgrade your system
 
@@ -63,7 +63,7 @@ sudo reboot
 
 ### Windows
 
-#### Supported versions: Windows 7, 8, 8.1
+##### Windows 7, 8, 8.1
 
 To install USB Camera drivers follow these instructions [Logitech Camera C270 Drivers](http://support.logitech.com/en_us/product/hd-webcam-c270)
 
