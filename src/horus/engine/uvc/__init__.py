@@ -16,7 +16,6 @@ it adds some fuctionalty like:
     - assosication by name patterns instead of id's (0,1,2..)
 it requires:
     - opencv 2.3+
-    - on Linux: v4l2-ctl (via apt-get install v4l2-util)
     - on MacOS: uvcc (binary is distributed with this module)
 """
 import os,sys
@@ -35,15 +34,8 @@ logger = logging.getLogger(__name__)
 
 
 ###OS specific imports and defs
-if os_name == "Linux":
-    from linux_video import Camera_Capture,Camera_List,CameraCaptureError
-elif os_name == "Darwin":
+if os_name == "Darwin":
     from mac_video import Camera_Capture,Camera_List,CameraCaptureError
-else:
-    from other_video import Camera_Capture,Camera_List,CameraCaptureError
-
-from fake_capture import FakeCapture
-from file_capture import File_Capture, FileCaptureError, EndofVideoFileError,FileSeekError
 
 
 def autoCreateCapture(src,size=(640,480),fps=30,timestamps=None,timebase = None):
@@ -61,7 +53,7 @@ def autoCreateCapture(src,size=(640,480),fps=30,timestamps=None,timebase = None)
             logger.warning('Found %s as devices that match the src string pattern Using the first one.'%[d.name for d in matching_devices] )
         if len(matching_devices) ==0:
             logger.error('No device found that matched %s'%src)
-            return FakeCapture(size,fps,timebase=timebase)
+            return None
 
 
         cap = Camera_Capture(matching_devices[0],filter_sizes(matching_devices[0],size),fps,timebase)
@@ -80,19 +72,6 @@ def autoCreateCapture(src,size=(640,480),fps=30,timestamps=None,timebase = None)
         cap = Camera_Capture(src,size,fps,timebase)
         logger.warning('No UVC support: Using camera with id: %s'%src)
         return cap
-
-
-    #looking for videofiles
-    elif src_type is str:
-        if not isfile(src):
-            logger.error('Could not locate VideoFile %s'%src)
-            raise FileCaptureError('Could not locate VideoFile %s'%src)
-        logger.info("Using %s as video source"%src)
-        return File_Capture(src,timestamps=timestamps)
-    else:
-        logger.error("autoCreateCapture: Could not create capture, wrong src_type")
-        return FakeCapture(size,fps,timebase=timebase)
-
 
 def filter_sizes(cam,size):
     #here we can force some defaulit formats
