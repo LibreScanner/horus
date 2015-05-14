@@ -225,7 +225,7 @@ class PreferencesDialog(wx.Dialog):
 		self.clearCheckBox.Disable()
 		self.boardsCombo.Disable()
 		self.okButton.Disable()
-		if not sys.isWindows() and not sys.isDarwin():
+		if not sys.isWindows():
 			self.gauge.SetValue(0)
 			self.gauge.Show()
 		self.waitCursor = wx.BusyCursor()
@@ -237,7 +237,7 @@ class PreferencesDialog(wx.Dialog):
 		self.clearCheckBox.Enable()
 		self.boardsCombo.Enable()
 		self.okButton.Enable()
-		if not sys.isWindows() and not sys.isDarwin():
+		if not sys.isWindows():
 			self.gauge.Hide()
 		del self.waitCursor
 		self.Fit()
