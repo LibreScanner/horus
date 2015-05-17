@@ -1,4 +1,10 @@
 '''
+ ----------------------------------------------
+ -  Horus Project
+ -  Jesus Arroyo Torrens <jesus.arroyo@bq.com>
+ -  May 2015 Mundo Readers S.L.
+ ----------------------------------------------
+
 (*)~----------------------------------------------------------------------------------
  Pupil - eye tracking platform
  Copyright (C) 2012-2014  Pupil Labs
@@ -16,25 +22,9 @@ import os,sys
 import logging
 logger = logging.getLogger(__name__)
 
+from horus.util import resources
 
-if getattr(sys, 'frozen', False):
-    # we are running in a |PyInstaller| bundle
-    dll_path = os.path.join(sys._MEIPASS,'uvcc.so')
-else:
-    ### Get location of  this file
-    source_loc = os.path.dirname(os.path.abspath(__file__))
-    ### Run Autocompiler
-    #  Binaries are not distributed instead a make file and source are in this folder
-    #  Make is invoked when this module is imported or run.
-
-    from subprocess import check_output
-    logger.debug("Compiling now.")
-    compiler_status = check_output(["make"],cwd=source_loc)
-    logger.debug('Compiler status: %s'%compiler_status)
-    del check_output
-    logger.debug("Compiling done.")
-    dll_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uvcc.so')
-
+dll_path = resources.getPathForTools('uvcc.so')
 
 ### defines and constants
 class uvccModelId(Structure):

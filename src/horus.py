@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: March 2014                                                      #
+# Date: March 2014, May 2015                                            #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -29,16 +29,20 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 
 try:
-    import serial
+    import os
     import wx
+    import cv2
     import OpenGL
+    import serial
     import numpy
     import scipy
     import matplotlib
-    import cv2
 except ImportError as e:
     print e.message
     exit(1)
+
+from horus.util import resources
+resources.setBasePath(os.path.join(os.path.dirname(__file__), "res"))
 
 from horus.gui import app
 

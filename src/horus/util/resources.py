@@ -35,7 +35,11 @@ import gettext
 
 from horus.util import system
 
-resourceBasePath = os.path.join(os.path.dirname(__file__), "../../../res")
+resourceBasePath = ''
+
+def setBasePath(path):
+    global resourceBasePath
+    resourceBasePath = path
 
 def getPathForResource(dir, subdir, resource_name):
     assert os.path.isdir(dir), "{p} is not a directory".format(p=dir)
