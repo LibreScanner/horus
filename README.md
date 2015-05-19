@@ -174,10 +174,8 @@ bash package.sh debian -u  # Upload to launchpad
 bash package.sh win32  # Generate exe package
 ```
 
-### GNU/Linux Fedora
-
-TODO
-
 ### Mac OS X
 
-TODO
+```bash
+bash package.sh darwin  # Generate dmg package
+```
