@@ -184,13 +184,13 @@ if [ $BUILD_TARGET = "darwin" ]; then
 	pkg/darwin/create-dmg/create-dmg \
 		--volname "Horus Installer" \
 		--volicon "res/horus.icns" \
-		--background "res/images/play.png" \
+		--background "res/images/installer_background.png" \
 		--window-pos 200 120 \
-		--window-size 800 400 \
+		--window-size 700 400 \
 		--icon-size 100 \
-		--icon Horus.app 200 190 \
+		--icon Horus.app 180 280 \
 		--hide-extension Horus.app \
-		--app-drop-link 600 185 \
+		--app-drop-link 530 275 \
 		dar_dist/Horus.dmg \
 		dar_dist/dist/Horus.app
 fi
