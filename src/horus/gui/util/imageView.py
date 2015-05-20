@@ -29,7 +29,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 
-from horus.util.resources import *
+from horus.util import resources, system as sys
 
 class ImageView(wx.Panel):
 
@@ -39,7 +39,7 @@ class ImageView(wx.Panel):
 		self.xOffset = 0
 		self.yOffset = 0
 
-		self.defaultImage = wx.Image(getPathForImage("bq.png"))
+		self.defaultImage = wx.Image(resources.getPathForImage("bq.png"))
 		self.image = self.defaultImage
 		self.bitmap = wx.BitmapFromImage(self.defaultImage)
 

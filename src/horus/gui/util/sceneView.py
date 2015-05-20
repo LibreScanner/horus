@@ -36,7 +36,6 @@ import gc
 import traceback
 import threading
 import math
-import platform
 import cStringIO as StringIO
 
 import OpenGL
@@ -44,9 +43,9 @@ OpenGL.ERROR_CHECKING = False
 from OpenGL.GLU import *
 from OpenGL.GL import *
 
-from horus.util import profile, resources, meshLoader, model
-from horus.gui.util import openglHelpers
-from horus.gui.util import openglGui
+from horus.util import profile, resources, meshLoader, model, system as sys
+from horus.gui.util import openglHelpers, openglGui
+
 
 class SceneView(openglGui.glGuiPanel):
 	def __init__(self, parent):
@@ -207,7 +206,7 @@ class SceneView(openglGui.glGuiPanel):
 			self.QueueRefresh()
 
 	def OnKeyDown(self, keyCode):
-		if keyCode == wx.WXK_DELETE or keyCode == wx.WXK_NUMPAD_DELETE or (keyCode == wx.WXK_BACK and platform.system() == "Darwin"):
+		if keyCode == wx.WXK_DELETE or keyCode == wx.WXK_NUMPAD_DELETE or (keyCode == wx.WXK_BACK and sys.isDarwin()):
 			if self._showDeleteMenu:
 				if self._object is not None:
 					self.onDeleteObject(None)

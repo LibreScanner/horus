@@ -28,13 +28,12 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
 
-import os
 import wx._core
 
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
                                         CheckBox, Button, TextBox
 
-from horus.util import profile
+from horus.util import profile, system as sys
 from horus.gui.util.resolutionWindow import ResolutionWindow
 
 from horus.engine.driver import Driver
@@ -59,14 +58,14 @@ class ScanParameters(ExpandablePanel):
         section = self.createSection('scan_parameters')
         section.addItem(ComboBox, 'scan_type', tooltip=_("Simple Scan algorithm captures only the geometry using one image. Texture Scan algorithm captures also the texture using two images"))
         section.addItem(ComboBox, 'use_laser')
-        if os.name != 'nt':
+        if not sys.isWindows() and not sys.isDarwin():
             section.addItem(CheckBox, 'fast_scan')
 
     def updateCallbacks(self):
         section = self.sections['scan_parameters']
         section.updateCallback('scan_type', self.setCurrentScan)
         section.updateCallback('use_laser', self.setUseLaser)
-        if os.name != 'nt':
+        if not sys.isWindows() and not sys.isDarwin():
             section.updateCallback('fast_scan', self.setFastScan)
 
     def setCurrentScan(self, value):
@@ -168,6 +167,10 @@ class ImageAcquisition(ExpandablePanel):
         section.addItem(ComboBox, 'framerate_scanning', tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
         section.addItem(ComboBox, 'resolution_scanning', tooltip=_('Size of the video. Maximum resolution is recommended'))
         section.addItem(CheckBox, 'use_distortion_scanning', tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
+
+        if sys.isDarwin():
+            section = self.sections['camera_scanning'].disable('framerate_scanning')
+            section = self.sections['camera_scanning'].disable('resolution_scanning')
 
     def updateCallbacks(self):
         section = self.sections['camera_scanning']

@@ -33,7 +33,13 @@ import sys
 import glob
 import gettext
 
-resourceBasePath = os.path.join(os.path.dirname(__file__), "../../../res")
+from horus.util import system
+
+resourceBasePath = ''
+
+def setBasePath(path):
+    global resourceBasePath
+    resourceBasePath = path
 
 def getPathForResource(dir, subdir, resource_name):
     assert os.path.isdir(dir), "{p} is not a directory".format(p=dir)
@@ -49,11 +55,14 @@ def getPathForImage(name):
 def getPathForFirmware(name):
     return getPathForResource(resourceBasePath, 'firmware', name)
 
-def getPathForToolsLinux(name):
-    return getPathForResource(resourceBasePath, 'tools/linux', name)
-
-def getPathForToolsWindows(name):
-    return getPathForResource(resourceBasePath, 'tools/windows', name)
+def getPathForTools(name):
+    if system.isWindows():
+        path = getPathForResource(resourceBasePath, 'tools/windows', name)
+    elif system.isDarwin():
+        path = getPathForResource(resourceBasePath, 'tools/darwin', name)
+    else:
+        path = getPathForResource(resourceBasePath, 'tools/linux', name)
+    return path
 
 def getPathForMesh(name):
     return getPathForResource(resourceBasePath, 'meshes', name)

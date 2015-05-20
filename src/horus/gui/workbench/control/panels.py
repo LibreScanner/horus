@@ -32,7 +32,7 @@ import wx._core
 from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
                                         CheckBox, Button, TextBox, ToggleButton, CallbackButton
 
-from horus.util import profile
+from horus.util import profile, system as sys
 
 from horus.engine.driver import Driver
 
@@ -55,6 +55,10 @@ class CameraControl(ExpandablePanel):
         section.addItem(ComboBox, 'framerate_control', tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
         section.addItem(ComboBox, 'resolution_control', tooltip=_('Size of the video. Maximum resolution is recommended'))
         section.addItem(CheckBox, 'use_distortion_control', tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
+
+        if sys.isDarwin():
+            section = self.sections['camera_control'].disable('framerate_control')
+            section = self.sections['camera_control'].disable('resolution_control')
 
     def updateCallbacks(self):
         section = self.sections['camera_control']

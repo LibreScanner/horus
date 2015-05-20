@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: March, Octobrer 2014                                            #
+# Date: March, Octobrer 2014, May 2015                                  #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -30,7 +30,11 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import cv2
 import math
 import time
-import platform
+
+from horus.util import system as sys
+
+if sys.isDarwin():
+	from horus.engine import uvc
 
 
 class Error(Exception):
@@ -72,10 +76,15 @@ class Camera:
 		self.distortionVector = None
 		self.distCameraMatrix = None
 
-		if platform.system() == 'Windows':
+		if sys.isWindows():
 			self.maxBrightness = 1.
 			self.maxContrast = 1.
 			self.maxSaturation = 1.
+		elif sys.isDarwin():
+			self.maxBrightness = 255.
+			self.maxContrast = 255.
+			self.maxSaturation = 255.
+			self.relExposure = 10.
 		else:
 			self.maxBrightness = 255.
 			self.maxContrast = 255.
@@ -94,6 +103,10 @@ class Camera:
 	def connect(self):
 		print ">>> Connecting camera {0}".format(self.cameraId)
 		self.isConnected = False
+		if sys.isDarwin():
+			for device in uvc.mac.Camera_List():
+				if device.src_id == self.cameraId:
+					self.controls = uvc.mac.Controls(device.uId)
 		if self.capture is not None:
 			self.capture.release()
 		self.capture = cv2.VideoCapture(self.cameraId)
@@ -120,11 +133,12 @@ class Camera:
 						tries += 1
 						if not self.reading:
 							self.capture.release()
-							print ">>> Done"
-							break
+				print ">>> Done"
 
 	def checkCamera(self):
 		""" Checks correct camera """
+		if sys.isDarwin():
+			self.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1);
 		self.setExposure(2)
 		exposure = self.getExposure()
 		if exposure is not None:
@@ -143,8 +157,7 @@ class Camera:
 			self.reading = True
 			if flush:
 				for i in xrange(0, flushValue):
-					self.capture.read() #grab()
-
+					self.capture.read()
 			ret, image = self.capture.read()
 			self.reading = False
 			if ret:
@@ -152,9 +165,7 @@ class Camera:
 				   self.cameraMatrix is not None and \
 				   self.distortionVector is not None and \
 				   self.distCameraMatrix is not None:
-					mapx, mapy = cv2.initUndistortRectifyMap(self.cameraMatrix, self.distortionVector,
-															 R=None, newCameraMatrix=self.distCameraMatrix,
-															 size=(self.width, self.height), m1type=5)
+					mapx, mapy = cv2.initUndistortRectifyMap(self.cameraMatrix, self.distortionVector, R=None, newCameraMatrix=self.distCameraMatrix, size=(self.width, self.height), m1type=5)
 					image = cv2.remap(image, mapx, mapy, cv2.INTER_LINEAR)
 				image = cv2.transpose(image)
 				if not mirror:
@@ -181,36 +192,53 @@ class Camera:
 				self.unplugCallback()
 
 	def getResolution(self):
-		return self.height, self.width #-- Inverted values because of transpose
+		return int(self.height), int(self.width) #-- Inverted values because of transpose
 
 	def setBrightness(self, value):
 		if self.isConnected:
-			value = int(value)/self.maxBrightness
-			self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
+			if sys.isDarwin():
+				ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
+				ctl.set_val(self.line(value,0,self.maxBrightness,ctl.min,ctl.max))
+				
+			else:
+				value = int(value)/self.maxBrightness
+				self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
 
 	def setContrast(self, value):
 		if self.isConnected:
-			value = int(value)/self.maxContrast
-			self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
+			if sys.isDarwin():
+				ctl = self.controls['UVCC_REQ_CONTRAST_ABS']
+				ctl.set_val(self.line(value,0,self.maxContrast,ctl.min,ctl.max))
+			else:
+				value = int(value)/self.maxContrast
+				self.capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
 
 	def setSaturation(self, value):
 		if self.isConnected:
-			value = int(value)/self.maxSaturation
-			self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
+			if sys.isDarwin():
+				ctl = self.controls['UVCC_REQ_SATURATION_ABS']
+				ctl.set_val(self.line(value,0,self.maxSaturation,ctl.min,ctl.max))
+			else:
+				value = int(value)/self.maxSaturation
+				self.capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
 
 	def setExposure(self, value):
 		if self.isConnected:
-			if platform.system() == 'Windows':
+			if sys.isDarwin():
+				ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
+				value = int(value * self.relExposure)
+				ctl.set_val(value)
+			elif sys.isWindows():
 				value = int(round(-math.log(value)/math.log(2)))
+				self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
 			else:
 				value = int(value) / self.maxExposure
-			self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
+				self.capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
+			
 
 	def setFrameRate(self, value):
 		if self.isConnected:
-			#-- If same FPS value is sent -> 16 Mb OpenCV Memory leak! --#
-			if value is not self.framerate: 
-				self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
+			self.capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
 
 	def _setWidth(self, value):
 		if self.isConnected:
@@ -226,9 +254,10 @@ class Camera:
 			self.height = int(self.capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
 	def setResolution(self, width, height):
-		self._setWidth(width)
-		self._setHeight(height)
-		self._updateResolution()
+		if self.isConnected:
+			self._setWidth(width)
+			self._setHeight(height)
+			self._updateResolution()
 
 	def setUseDistortion(self, value):
 		self.useDistortion = value
@@ -236,13 +265,25 @@ class Camera:
 	def setIntrinsics(self, cameraMatrix, distortionVector):
 		self.cameraMatrix = cameraMatrix
 		self.distortionVector = distortionVector
-		self.distCameraMatrix = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distortionVector, (self.width,self.height), alpha=1)[0]
+		self.distCameraMatrix = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distortionVector, (int(self.width),int(self.height)), alpha=1)[0]
 
 	def getExposure(self):
 		if self.isConnected:
-			value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
-			if platform.system() == 'Windows':
+			if sys.isDarwin():
+				ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
+				value = ctl.get_val()
+				value /= self.relExposure
+			elif sys.isWindows():
+				value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
 				value = 2**-value
 			else:
+				value = self.capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
 				value *= self.maxExposure
 			return value
+			
+	def line(self, value, imin, imax, omin, omax):
+		ret = 0
+		if omin is not None and omax is not None:
+			if (imax - imin) != 0:
+				ret = int((value - imin) * (omax - omin) / (imax - imin) + omin)
+		return ret
