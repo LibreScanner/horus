@@ -249,6 +249,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		if ret:
 			dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK|wx.ICON_INFORMATION)
 			dlg.ShowModal()
+			dlg.EndModal(wx.ID_OK)
 			dlg.Destroy()
 			self.scanning = False
 			self.onScanFinished()
@@ -258,6 +259,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.currentScan.pause()
 		dlg = wx.MessageDialog(self, _("Your current scanning will be stopped.\nDo you really want to do it?"), _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
 		result = dlg.ShowModal() == wx.ID_YES
+		dlg.EndModal(wx.ID_YES)
 		dlg.Destroy()
 
 		if result:
