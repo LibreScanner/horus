@@ -179,6 +179,9 @@ if [ $BUILD_TARGET = "darwin" ]; then
 
 	mkdir -p dar_dist
 
+	sed "s|\"../res\"|\"res\"|g" src/horus.py > tmp
+	mv tmp src/horus.py
+
 	python2 setup_mac.py py2app -b dar_dist/build -d dar_dist/dist
 
 	pkg/darwin/create-dmg/create-dmg \
@@ -193,6 +196,9 @@ if [ $BUILD_TARGET = "darwin" ]; then
 		--app-drop-link 530 275 \
 		dar_dist/Horus.dmg \
 		dar_dist/dist/Horus.app
+
+	sed "s|\"res\"|\"../res\"|g" src/horus.py > tmp
+	mv tmp src/horus.py
 fi
 
 #############################
