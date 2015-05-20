@@ -105,7 +105,7 @@ class Board:
 				if version == "Horus 0.1 ['$' for help]\r\n":
 					self.setSpeedMotor(1)
 					self.setAbsolutePosition(0)
-					#self.enableMotor()
+					self.serialPort.timeout = 0.05
 					print ">>> Done"
 					self.isConnected = True
 				else:
@@ -170,6 +170,13 @@ class Board:
 	 
 	def setLeftLaserOff(self):
 		return self._sendCommand("M70T1")
+
+	def getLDRSensor(self, pin):
+		value = self.sendRequest("M50T"+pin, readLines=True).split("\n")[0]
+		try:
+			return int(value)
+		except ValueError:
+			return 0
 
 	def sendRequest(self, req, nonblocking=False, callback=None, readLines=False):
 		if nonblocking:
