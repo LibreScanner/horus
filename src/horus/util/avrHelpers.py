@@ -80,7 +80,9 @@ class AvrDude(SerialDevice):
 
         return p
 
-    def flash(self, hexPath=resources.getPathForFirmware("horus-fw.hex"), extraFlags=None):
+    def flash(self, hexPath=None, extraFlags=None):
+        if hexPath is None:
+            hexPath = resources.getPathForFirmware("horus-fw.hex")
         hexPath = path(hexPath)
         flags = ['-c', self.protocol, '-b', str(self.baudRate), '-p',
                  self.microcontroller, '-P', '%s' % self.port, '-U',

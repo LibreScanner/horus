@@ -51,13 +51,15 @@ class PreferencesDialog(wx.Dialog):
 		self.baudRateCombo = wx.ComboBox(self, choices=self.baudRates, size=(172,-1), style=wx.CB_READONLY)
 		self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id"))
 		self.cameraIdNames = self.main.videoList()
-		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(173,-1), style=wx.CB_READONLY)
+		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(167,-1), style=wx.CB_READONLY)
 
 		self.firmwareStaticText = wx.StaticText(self, label=_("Burn Firmware"), style=wx.ALIGN_CENTRE)
 		self.boardLabel = wx.StaticText(self, label=_("AVR Board"))
 		self.boards = profile.getProfileSettingObject('board').getType()
 		board = profile.getProfileSetting('board')
-		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(170,-1), style=wx.CB_READONLY)
+		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(168,-1), style=wx.CB_READONLY)
+		self.hexLabel = wx.StaticText(self, label=_("Binary file"))
+		self.hexCombo = wx.ComboBox(self, choices=[_("Default"), _("External file...")], value=_("Default") , size=(172,-1), style=wx.CB_READONLY)
 		self.clearCheckBox = wx.CheckBox(self, label=_("Clear EEPROM"))
 		self.uploadFirmwareButton = wx.Button(self, label=_("Upload Firmware"))
 		self.gauge = wx.Gauge(self, range=100, size=(180, 30))
@@ -65,7 +67,7 @@ class PreferencesDialog(wx.Dialog):
 
 		self.languageLabel = wx.StaticText(self, label=_("Language"))
 		self.languages = [row[1] for row in resources.getLanguageOptions()]
-		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(177,-1), style=wx.CB_READONLY)
+		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(175,-1), style=wx.CB_READONLY)
 
 		invert = profile.getProfileSettingBool('invert_motor')
 		self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
@@ -79,6 +81,7 @@ class PreferencesDialog(wx.Dialog):
 		self.baudRateCombo.Bind(wx.EVT_COMBOBOX, self.onBaudRateComboChanged)
 		self.cameraIdCombo.Bind(wx.EVT_COMBOBOX, self.onCameraIdComboChanged)
 		self.boardsCombo.Bind(wx.EVT_COMBOBOX, self.onBoardsComboChanged)
+		self.hexCombo.Bind(wx.EVT_COMBOBOX, self.onHexComboChanged)
 		self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
 		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
 		self.invertMotorCheckBox.Bind(wx.EVT_CHECKBOX, self.onInvertMotor)
@@ -134,6 +137,11 @@ class PreferencesDialog(wx.Dialog):
 		vbox.Add(hbox)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.hexLabel, 0, wx.ALL, 10)
+		hbox.Add(self.hexCombo, 0, wx.ALL, 5)
+		vbox.Add(hbox)
+
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.uploadFirmwareButton, 0, wx.ALL, 10)
 		hbox.Add(self.clearCheckBox, 0, wx.ALL^wx.LEFT, 15)
 		vbox.Add(hbox)
@@ -156,6 +164,8 @@ class PreferencesDialog(wx.Dialog):
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
 		vbox.Add(self.okButton, 0, wx.ALL|wx.EXPAND, 10)
+
+		self.hexPath = None
 
 		self.SetSizer(vbox)
 		self.Centre()
@@ -182,6 +192,18 @@ class PreferencesDialog(wx.Dialog):
 	def onBoardsComboChanged(self, event):
 		profile.putProfileSetting('board', self.boardsCombo.GetValue())
 
+	def onHexComboChanged(self, event):
+		value = self.hexCombo.GetValue()
+		if value == _("Default"):
+			self.hexPath = None
+		elif value == _("External file..."):
+			dlg = wx.FileDialog(self, _("Select binary file to load"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+			dlg.SetWildcard("hex files (*.hex)|*.hex")
+			if dlg.ShowModal() == wx.ID_OK:
+				self.hexPath = dlg.GetPath()
+				self.hexCombo.SetValue(dlg.GetFilename())
+			dlg.Destroy()
+
 	def onUploadFirmware(self, event):
 		if self.serialNameCombo.GetValue() != '':
 			self.beforeLoadFirmware()
@@ -200,7 +222,7 @@ class PreferencesDialog(wx.Dialog):
 		extraFlags = []
 		if clearEEPROM:
 			extraFlags = ["-D"]
-		proc = avr_dude.flash(extraFlags=extraFlags) #TODO: fails if change board
+		proc = avr_dude.flash(extraFlags=extraFlags, hexPath=self.hexPath) #TODO: fails if change board
 		count = -50
 		while count < 100:
 			if proc:
@@ -231,6 +253,7 @@ class PreferencesDialog(wx.Dialog):
 			self.gauge.SetValue(0)
 			self.gauge.Show()
 		self.waitCursor = wx.BusyCursor()
+		self.Centre()
 		self.Fit()
 		self.Layout()
 
