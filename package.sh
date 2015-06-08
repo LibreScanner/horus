@@ -16,7 +16,7 @@ BUILD_TARGET=${1:-none}
 EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
-VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | head -1`
+export VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | head -1`
 BQ_VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | tail -1`
 VEXT=${VEXT:=""}
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}

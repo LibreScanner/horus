@@ -2,32 +2,39 @@
 # coding=utf-8
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
 
-def package_data_dirs(source, sub_folders):
-    dirs = []
+version = os.environ['VERSION']
 
-    for d in sub_folders:
-        for dirname, _, files in os.walk(os.path.join(source, d)):
-            dirname = os.path.relpath(dirname, source)
-            for f in files:
-                dirs.append(os.path.join(dirname, f))
-    return dirs
-
+APP = ['src/horus.py']
 DATA_FILES = ['doc','res']
 
-OPTIONS = {'argv_emulation': True,
-           'iconfile': 'res/horus.icns'}
+PLIST = {
+    u'CFBundleName': u'Horus',
+    u'CFBundleShortVersionString': version,
+    u'CFBundleVersion': version,
+    u'CFBundleIdentifier': u'com.bq.Horus-'+version,
+    u'LSMinimumSystemVersion': u'10.8',
+    u'LSApplicationCategoryType': u'public.app-category.graphics-design'
+  }
+
+OPTIONS = {
+    'argv_emulation': True,
+    'iconfile': 'res/horus.icns',
+    'resources': DATA_FILES,
+    'optimize': '2',
+    'plist': PLIST
+  }
 
 setup(name='Horus',
-      version='0.1.1.1',
+      version=version,
       author='Jesús Arroyo Torrens',
       author_email='jesus.arroyo@bq.com',
       description='Horus is a full software solution for 3D scanning',
       license='GPLv2',
       keywords="horus ciclop scanning 3d",
       url='https://www.diwo.bq.com/tag/ciclop',
+      app=APP,
+      data_files=DATA_FILES,
       options={'py2app': OPTIONS},
-      setup_requires=['py2app'],
-      app=['src/horus.py'],
-      data_files=DATA_FILES)
+      setup_requires=['py2app'])
