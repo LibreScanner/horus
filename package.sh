@@ -100,6 +100,9 @@ rm -rf deb_dist
 rm -rf win_dist
 rm -rf dar_dist
 
+# Set version
+echo ${VERSION} >> res/version
+
 #############################
 # Debian packaging
 #############################

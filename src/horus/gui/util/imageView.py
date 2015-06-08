@@ -39,7 +39,7 @@ class ImageView(wx.Panel):
 		self.xOffset = 0
 		self.yOffset = 0
 
-		self.defaultImage = wx.Image(resources.getPathForImage("bq.png"))
+		self.defaultImage = wx.Image(resources.getPathForImage("nusb.png"))
 		self.image = self.defaultImage
 		self.bitmap = wx.BitmapFromImage(self.defaultImage)
 
