@@ -179,17 +179,19 @@ class Board:
 
 	def _sendRequest(self, req, callback=None, readLines=False):
 		"""Sends the request and returns the response"""
-		ret = None
+		ret = ''
 		if self.isConnected:
 			if self.serialPort is not None and self.serialPort.isOpen():
 				try:
 					self.serialPort.flushInput()
 					self.serialPort.flushOutput()
 					self.serialPort.write(req+"\r\n")
-					if readLines:
-						ret = ''.join(self.serialPort.readlines())
-					else:
-						ret = ''.join(self.serialPort.readline())
+					while ret == '': # TODO: add timeout
+						if readLines:
+							ret = ''.join(self.serialPort.readlines())
+						else:
+							ret = ''.join(self.serialPort.readline())
+						time.sleep(0.01)
 					self._success()
 				except:
 					if callback is not None:

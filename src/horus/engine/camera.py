@@ -149,15 +149,13 @@ class Camera:
 		self.setExposure(2)
 		exposure = self.getExposure()
 		if exposure is not None:
-			if exposure == 2:
-				cExp = True
+			cExp = exposure >= 1
 
 		# Check brightness
 		self.setBrightness(2)
 		brightness = self.getBrightness()
 		if brightness is not None:
-			if brightness == 2:
-				cBri = True
+			cBri = brightness >= 1
 
 		if not cExp or not cBri:
 			raise WrongCamera()
