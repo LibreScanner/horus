@@ -171,6 +171,9 @@ class ScanningWorkbench(WorkbenchConnection):
 			return self.currentScan.getImage(self.driver.camera.captureImage())
 
 	def onPointCloudTimer(self, event):
+		p, r = self.currentScan.getProgress()
+		self.gauge.SetRange(r)
+		self.gauge.SetValue(p)
 		pointCloud = self.currentScan.getPointCloudIncrement()
 		if pointCloud is not None:
 			if pointCloud[0] is not None and pointCloud[1] is not None:
@@ -200,7 +203,7 @@ class ScanningWorkbench(WorkbenchConnection):
 				self.gauge.Show()
 				self.scenePanel.Layout()
 				self.Layout()
-				self.currentScan.setCallbacks(self.beforeScan, self.progressScan, lambda r: wx.CallAfter(self.afterScan,r))
+				self.currentScan.setCallbacks(self.beforeScan, lambda r: wx.CallAfter(self.afterScan,r))
 				self.currentScan.start()
 
 	def beforeScan(self):
@@ -239,10 +242,6 @@ class ScanningWorkbench(WorkbenchConnection):
 			section.disable('resolution_scanning')
 		self.enableRestore(False)
 		self.pointCloudTimer.Start(milliseconds=50)
-
-	def progressScan(self, progress, range=100):
-		self.gauge.SetRange(range)
-		self.gauge.SetValue(progress)
 
 	def afterScan(self, response):
 		ret, result = response
