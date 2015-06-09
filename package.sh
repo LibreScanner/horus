@@ -16,7 +16,7 @@ BUILD_TARGET=${1:-none}
 EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
-export VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | head -1`
+export VERSION=`head -1 res/version`
 BQ_VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | tail -1`
 VEXT=${VEXT:=""}
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
@@ -99,9 +99,6 @@ fi
 rm -rf deb_dist
 rm -rf win_dist
 rm -rf dar_dist
-
-# Set version
-echo ${VERSION} >> res/version
 
 #############################
 # Debian packaging
@@ -197,7 +194,7 @@ if [ $BUILD_TARGET = "darwin" ]; then
 		--icon Horus.app 180 280 \
 		--hide-extension Horus.app \
 		--app-drop-link 530 275 \
-		dar_dist/Horus.dmg \
+		dar_dist/Horus_${VERSION}${VEXT}.dmg \
 		dar_dist/dist/Horus.app
 
 	sed "s|\"res\"|\"../res\"|g" src/horus.py > tmp

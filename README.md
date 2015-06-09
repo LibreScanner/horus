@@ -72,6 +72,18 @@ Execute .exe file. This package contains all dependencies
 Reboot the computer to apply the changes
 
 
+### Mac OS X
+
+##### Mavericks, Yosemite
+
+To install USB FTDI drivers follow these instructions [FTDI Drivers](www.ftdichip.com/Drivers/VCP/MacOSX/FTDIUSBSerialDriver_v2_3.dmg)
+
+Execute .dmg file. This package contains all dependencies
+
+Reboot the computer to apply the changes
+
+
+
 # Development
 
 Horus has been developed in [Ubuntu Gnome](http://ubuntugnome.org/). If you are a developer and you want to modify the code, contribute, build packages, etc. you may follow this steps:
