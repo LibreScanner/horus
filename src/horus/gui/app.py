@@ -34,7 +34,7 @@ from horus.gui.main import MainWindow
 from horus.gui.splash import SplashScreen
 from horus.gui.welcome import WelcomeWindow
 
-from horus.util import profile, resources, version
+from horus.util import profile, resources, version, system as sys
 from horus.gui.util.versionWindow import VersionWindow
 
 class HorusApp(wx.App):
@@ -43,7 +43,10 @@ class HorusApp(wx.App):
 
 		self.basePath = profile.getBasePath()
 
-		SplashScreen(self.afterSplashCallback)
+		if sys.isDarwin():
+			self.afterSplashCallback()
+		else:
+			SplashScreen(self.afterSplashCallback)
 
 	def afterSplashCallback(self):
 		#-- Load Profile and Preferences
