@@ -140,13 +140,27 @@ class Camera:
 
 	def checkCamera(self):
 		""" Checks correct camera """
+		cExp = False
+		cBri = False
+
+		# Check exposure
 		if sys.isDarwin():
 			self.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1);
 		self.setExposure(2)
 		exposure = self.getExposure()
 		if exposure is not None:
-			if exposure != 2:
-				raise WrongCamera()
+			if exposure == 2:
+				cExp = True
+
+		# Check brightness
+		self.setBrightness(2)
+		brightness = self.getBrightness()
+		if brightness is not None:
+			if brightness == 2:
+				cBri = True
+
+		if not cExp or not cBri:
+			raise WrongCamera()
 
 	def checkVideo(self):
 		""" Checks correct video """
@@ -202,7 +216,6 @@ class Camera:
 			if sys.isDarwin():
 				ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
 				ctl.set_val(self.line(value,0,self.maxBrightness,ctl.min,ctl.max))
-				
 			else:
 				value = int(value)/self.maxBrightness
 				self.capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
@@ -269,6 +282,16 @@ class Camera:
 		self.cameraMatrix = cameraMatrix
 		self.distortionVector = distortionVector
 		self.distCameraMatrix = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distortionVector, (int(self.width),int(self.height)), alpha=1)[0]
+
+	def getBrightness(self):
+		if self.isConnected:
+			if sys.isDarwin():
+				ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
+				value = ctl.get_val()
+			else:
+				value = self.capture.get(cv2.cv.CV_CAP_PROP_BRIGHTNESS)
+				value *= self.maxBrightness
+			return value
 
 	def getExposure(self):
 		if self.isConnected:
