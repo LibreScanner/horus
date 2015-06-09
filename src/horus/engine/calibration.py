@@ -209,8 +209,10 @@ class LaserTriangulation(Calibration):
 		XL = None
 		XR = None
 
-		if sys.isWindows() or sys.isDarwin():
+		if sys.isWindows():
 			flush = 2
+		elif sys.isDarwin():
+			flush = 3
 		else:
 			flush = 1
 
@@ -782,7 +784,7 @@ class PlatformExtrinsics(Calibration):
 				t = self.getPatternPosition(step, board, camera)
 				if progressCallback is not None:
 					progressCallback(1.1*abs(angle/2.))
-				time.sleep(0.1)
+				time.sleep(0.2)
 				if t is not None:
 					x += [t[0][0]]
 					y += [t[1][0]]
@@ -828,8 +830,10 @@ class PlatformExtrinsics(Calibration):
 
 	def getPatternPosition(self, step, board, camera):
 		t = None
-		if sys.isWindows() or sys.isDarwin():
+		if sys.isWindows():
 			flush = 2
+		elif sys.isDarwin():
+			flush = 3
 		else:
 			flush = 1
 		image = camera.captureImage(flush=True, flushValue=flush)
