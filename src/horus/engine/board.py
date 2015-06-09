@@ -105,7 +105,7 @@ class Board:
 					raise WrongFirmware()
 			else:
 				raise BoardNotConnected()
-		except serial.SerialException:
+		except:
 			print "Error opening the port {0}\n".format(self.serialName)
 			self.serialPort = None
 			raise BoardNotConnected()

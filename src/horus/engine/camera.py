@@ -77,15 +77,18 @@ class Camera:
 		self.distCameraMatrix = None
 
 		if sys.isWindows():
+			self.numberFramesFail = 3
 			self.maxBrightness = 1.
 			self.maxContrast = 1.
 			self.maxSaturation = 1.
 		elif sys.isDarwin():
+			self.numberFramesFail = 1
 			self.maxBrightness = 255.
 			self.maxContrast = 255.
 			self.maxSaturation = 255.
 			self.relExposure = 10.
 		else:
+			self.numberFramesFail = 3
 			self.maxBrightness = 255.
 			self.maxContrast = 255.
 			self.maxSaturation = 255.
@@ -142,7 +145,7 @@ class Camera:
 		self.setExposure(2)
 		exposure = self.getExposure()
 		if exposure is not None:
-			if exposure < 1:
+			if exposure != 2:
 				raise WrongCamera()
 
 	def checkVideo(self):
@@ -184,7 +187,7 @@ class Camera:
 
 	def _fail(self):
 		self._n += 1
-		if self._n >= 3:
+		if self._n >= self.numberFramesFail:
 			self._n = 0
 			if self.unplugCallback is not None and \
 			   self.parent is not None and not self.parent.unplugged:

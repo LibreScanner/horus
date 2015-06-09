@@ -50,20 +50,25 @@ class ImageView(wx.Panel):
 		if resize:
 			self.Bind(wx.EVT_SIZE, self.onResize)
 
+		self.hide = True
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.GetParent().Layout()
 			self.Layout()
 
 	def onPaint(self, event):
-		dc = wx.PaintDC(self)
-		dc.DrawBitmap(self.bitmap, self.xOffset, self.yOffset)
+		if not self.hide:
+			dc = wx.PaintDC(self)
+			dc.DrawBitmap(self.bitmap, self.xOffset, self.yOffset)
 
 	def onResize(self, size):
 		self.refreshBitmap()
 
 	def setImage(self, image):
 		if image is not None:
+			if self.hide:
+				self.hide = False
 			self.image = image
 			self.refreshBitmap()
 
@@ -73,8 +78,7 @@ class ImageView(wx.Panel):
 	def setFrame(self, frame):
 		if frame is not None:
 			height, width = frame.shape[:2]
-			self.image = wx.ImageFromBuffer(width, height, frame)
-			self.refreshBitmap()
+			self.setImage(wx.ImageFromBuffer(width, height, frame))
 
 	def refreshBitmap(self):
 		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
@@ -129,6 +133,7 @@ class VideoView(ImageView):
 
 	def play(self):
 		self.playing = True
+		self.hide = True
 		self._start()
 
 	def _start(self):
@@ -138,6 +143,6 @@ class VideoView(ImageView):
 		self.timer.Stop()
 
 	def stop(self):
-		self.playing = False
+		self.playing = True
 		self.timer.Stop()
 		self.setDefaultImage()
