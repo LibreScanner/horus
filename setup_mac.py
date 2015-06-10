@@ -21,8 +21,6 @@ PLIST = {
 OPTIONS = {
     'argv_emulation': True,
     'iconfile': 'res/horus.icns',
-    'resources': DATA_FILES,
-    'optimize': '2',
     'plist': PLIST
   }
 
