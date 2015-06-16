@@ -62,7 +62,7 @@ class PreferencesDialog(wx.Dialog):
 		self.hexCombo = wx.ComboBox(self, choices=[_("Default"), _("External file...")], value=_("Default") , size=(172,-1), style=wx.CB_READONLY)
 		self.clearCheckBox = wx.CheckBox(self, label=_("Clear EEPROM"))
 		self.uploadFirmwareButton = wx.Button(self, label=_("Upload Firmware"))
-		self.gauge = wx.Gauge(self, range=100, size=(180, 30))
+		self.gauge = wx.Gauge(self, range=100, size=(180, -1))
 		self.gauge.Hide()
 
 		self.languageLabel = wx.StaticText(self, label=_("Language"))
@@ -202,6 +202,8 @@ class PreferencesDialog(wx.Dialog):
 			if dlg.ShowModal() == wx.ID_OK:
 				self.hexPath = dlg.GetPath()
 				self.hexCombo.SetValue(dlg.GetFilename())
+			else:
+				self.hexCombo.SetValue(_("Default"))
 			dlg.Destroy()
 
 	def onUploadFirmware(self, event):

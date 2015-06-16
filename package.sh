@@ -179,10 +179,11 @@ if [ $BUILD_TARGET = "darwin" ]; then
 
 	mkdir -p dar_dist
 
-	sed "s|\"../res\"|\"res\"|g" src/horus.py > tmp
-	mv tmp src/horus.py
+	sed -i '' 's|\"../res\"|\"res\"|g' src/horus.py
 
-	python2 setup_mac.py py2app -b dar_dist/build -d dar_dist/dist
+	python setup_mac.py py2app -b dar_dist/build -d dar_dist/dist
+
+	chmod 555 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/avrdude
 
 	pkg/darwin/create-dmg/create-dmg \
 		--volname "Horus Installer" \
@@ -197,8 +198,9 @@ if [ $BUILD_TARGET = "darwin" ]; then
 		dar_dist/Horus_${VERSION}${VEXT}.dmg \
 		dar_dist/dist/Horus.app
 
-	sed "s|\"res\"|\"../res\"|g" src/horus.py > tmp
-	mv tmp src/horus.py
+	sed -i '' 's|\"res\"|\"../res\"|g' src/horus.py
+
+	rm -rf .eggs
 fi
 
 #############################

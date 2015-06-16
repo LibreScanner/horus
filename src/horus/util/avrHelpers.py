@@ -50,6 +50,8 @@ class AvrDude(SerialDevice):
 
         if sys.isWindows():
         	self.avrdude = path(resources.getPathForTools("avrdude.exe")).abspath()
+        elif sys.isDarwin():
+            self.avrdude = path(resources.getPathForTools("avrdude")).abspath()
         else:
             self.avrdude = 'avrdude'
         
