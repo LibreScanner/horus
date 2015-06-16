@@ -4,7 +4,7 @@
 import os
 from setuptools import setup
 
-version = os.environ['VERSION']
+version = os.environ.get('VERSION')
 
 APP = ['src/horus.py']
 DATA_FILES = ['doc','res']
