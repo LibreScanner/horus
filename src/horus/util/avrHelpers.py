@@ -49,7 +49,7 @@ class AvrDude(SerialDevice):
         self.baudRate = baudRate
 
         if sys.isWindows():
-        	self.avrdude = path(resources.getPathForToolsWindows("avrdude.exe")).abspath()
+        	self.avrdude = path(resources.getPathForTools("avrdude.exe")).abspath()
         else:
             self.avrdude = 'avrdude'
         
