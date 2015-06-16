@@ -32,7 +32,7 @@ import os
 import urllib2
 import webbrowser
 
-from horus.util import resources
+from horus.util import resources, system as sys
 
 def getVersion(_type='local'):
     return _getVersionData(0, _type)
@@ -66,7 +66,7 @@ def checkForUpdates():
 def _getExecutableUrl(version):
     url = None
     import platform
-    if platform.system() == 'Linux':
+    if sys.isLinux():
         url = "https://launchpad.net/~bqopensource/+archive/ubuntu/horus/+files/"
         url += "horus_"
         url += version+"-bq1~"
@@ -75,10 +75,14 @@ def _getExecutableUrl(version):
             url += "amd64.deb"
         elif platform.architecture()[0] == '32bit':
             url += "i386.deb"
-    elif platform.system() == 'Windows':
+    elif sys.isWindows():
         url = "storage.googleapis.com/bq-horus/releases/"
         url += "Horus_"
         url += version+".exe"
+    elif sys.isDarwin():
+        url = "storage.googleapis.com/bq-horus/releases/"
+        url += "Horus_"
+        url += version+".dmg"
     del platform
     return url
 
