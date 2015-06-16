@@ -197,7 +197,8 @@ bash package.sh debian -u  # Upload to launchpad
 
 ### Windows
 ```bash
-bash package.sh win32  # Generate exe package
+bash package.sh win32        # Generate exe package
+bash package.sh win32 /path  # Generate exe using /path for deps
 ```
 
 ### Mac OS X
