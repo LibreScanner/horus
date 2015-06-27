@@ -34,6 +34,27 @@ More interest links are shown below:
 
 ## Development
 
+Horus is an Open Source Project. Anyone has the freedom to use, modify, share and distribute this software. If you want to:
+* run the source code
+* make your own modifications
+* contribute to the project
+* build packages
+
+follow the next instructions
+
+#### GNU/Linux
+
+Horus has been developed using Ubuntu, that is based on Debian, like Raspbian, Mint, etc. All instructions provided in this section probably work for most of these systems.
+
+* [Ubuntu development](doc/development/ubuntu.md)
+
+NOTE: *deb* and *exe* packages can be generated in *debian like* systems
+
+#### Mac OS X
+
+* [Darwin development](doc/development/darwin.md)
+
+NOTE: *dmg* packages only can be generated in Mac OS X
 
 
 [ubuntu-logo]: doc/images/ubuntu.png
