@@ -44,7 +44,7 @@ follow the next instructions
 
 #### GNU/Linux
 
-Horus has been developed using Ubuntu, that is based on Debian, like Raspbian, Mint, etc. All instructions provided in this section probably work for most of these systems.
+Horus has been developed using [Ubuntu Gnome](http://ubuntugnome.org/), that is based on [Debian](https://www.debian.org/), like [Raspbian](https://www.raspbian.org/), [Mint](http://linuxmint.com/), etc. All instructions provided in this section probably work for most of these systems.
 
 * [Ubuntu development](doc/development/ubuntu.md)
 
