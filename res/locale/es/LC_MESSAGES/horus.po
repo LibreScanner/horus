@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-06-16 13:45+0200\n"
-"PO-Revision-Date: 2015-04-16 16:46+0100\n"
+"PO-Revision-Date: 2015-07-01 15:53+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: es\n"
@@ -46,7 +46,6 @@ msgid "AVR Board"
 msgstr "Placa AVR"
 
 #: ../../src/horus/gui/preferences.py:61
-#, fuzzy
 msgid "Binary file"
 msgstr "Binario"
 
@@ -60,7 +59,7 @@ msgstr "Default"
 #: ../../src/horus/gui/preferences.py:62
 #: ../../src/horus/gui/preferences.py:199
 msgid "External file..."
-msgstr ""
+msgstr "Archivo externo ..."
 
 #: ../../src/horus/gui/preferences.py:63
 msgid "Clear EEPROM"
@@ -84,7 +83,6 @@ msgid "Ok"
 msgstr "Ok"
 
 #: ../../src/horus/gui/preferences.py:200
-#, fuzzy
 msgid "Select binary file to load"
 msgstr "Seleccionar perfil para cargar"
 
@@ -333,9 +331,8 @@ msgid "Laser Control"
 msgstr "Control de los láseres"
 
 #: ../../src/horus/gui/workbench/control/panels.py:97
-#, fuzzy
 msgid "LDR Control"
-msgstr "Control"
+msgstr "Control LDR"
 
 #: ../../src/horus/gui/workbench/control/panels.py:172
 msgid "Motor Control"
@@ -736,7 +733,7 @@ msgstr "Bienvenido"
 
 #: ../../src/horus/gui/main.py:148
 msgid "Updates"
-msgstr ""
+msgstr "Actualizaciones"
 
 #: ../../src/horus/gui/main.py:149
 msgid "Wiki"
@@ -798,11 +795,11 @@ msgstr "Horus es un software para escáneres 3D de código libre"
 
 #: ../../src/horus/gui/main.py:495
 msgid "You are running the latest version of Horus!"
-msgstr ""
+msgstr "¡Estás ejecutando la última versión de Horus!"
 
 #: ../../src/horus/gui/main.py:495
 msgid "Updated!"
-msgstr ""
+msgstr "¡Actualizado!"
 
 #: ../../src/horus/gui/main.py:500
 msgid "Board unplugged"
@@ -851,15 +848,15 @@ msgstr "Eliminar objeto"
 
 #: ../../src/horus/gui/util/versionWindow.py:38
 msgid "New version available!"
-msgstr ""
+msgstr "¡Nueva versión disponible!"
 
 #: ../../src/horus/gui/util/versionWindow.py:41
 msgid "A new version of Horus is available, would you like to download?"
-msgstr ""
+msgstr "Está disponible una nueva versión de Horus, ¿quieres descargarla?"
 
 #: ../../src/horus/gui/util/versionWindow.py:42
 msgid "Download"
-msgstr ""
+msgstr "Descarga"
 
 #: ../../src/horus/gui/util/resolutionWindow.py:36
 msgid "Resolution updated"

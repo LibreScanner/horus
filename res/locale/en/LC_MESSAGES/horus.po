@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-06-16 13:45+0200\n"
-"PO-Revision-Date: 2015-04-20 15:33+0100\n"
+"PO-Revision-Date: 2015-07-01 15:56+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: en\n"
@@ -47,7 +47,7 @@ msgstr "AVR board"
 
 #: ../../src/horus/gui/preferences.py:61
 msgid "Binary file"
-msgstr ""
+msgstr "Binary file"
 
 #: ../../src/horus/gui/preferences.py:62
 #: ../../src/horus/gui/preferences.py:197
@@ -59,7 +59,7 @@ msgstr "Default"
 #: ../../src/horus/gui/preferences.py:62
 #: ../../src/horus/gui/preferences.py:199
 msgid "External file..."
-msgstr ""
+msgstr "External file..."
 
 #: ../../src/horus/gui/preferences.py:63
 msgid "Clear EEPROM"
@@ -83,9 +83,8 @@ msgid "Ok"
 msgstr "OK"
 
 #: ../../src/horus/gui/preferences.py:200
-#, fuzzy
 msgid "Select binary file to load"
-msgstr "Select profile file to load"
+msgstr "Select binary file to load"
 
 #: ../../src/horus/gui/preferences.py:245
 msgid "Probably you have selected the wrong board. Select other Board"
@@ -323,9 +322,8 @@ msgid "Laser Control"
 msgstr "Laser control"
 
 #: ../../src/horus/gui/workbench/control/panels.py:97
-#, fuzzy
 msgid "LDR Control"
-msgstr "Control"
+msgstr "LDR Control"
 
 #: ../../src/horus/gui/workbench/control/panels.py:172
 msgid "Motor Control"
@@ -716,7 +714,7 @@ msgstr "Welcome"
 
 #: ../../src/horus/gui/main.py:148
 msgid "Updates"
-msgstr ""
+msgstr "Updates"
 
 #: ../../src/horus/gui/main.py:149
 msgid "Wiki"
@@ -778,11 +776,11 @@ msgstr "Horus is an open source 3D scanner manager"
 
 #: ../../src/horus/gui/main.py:495
 msgid "You are running the latest version of Horus!"
-msgstr ""
+msgstr "You are running the latest version of Horus!"
 
 #: ../../src/horus/gui/main.py:495
 msgid "Updated!"
-msgstr ""
+msgstr "Updated!"
 
 #: ../../src/horus/gui/main.py:500
 msgid "Board unplugged"
@@ -831,15 +829,15 @@ msgstr "Delete object"
 
 #: ../../src/horus/gui/util/versionWindow.py:38
 msgid "New version available!"
-msgstr ""
+msgstr "New version available!"
 
 #: ../../src/horus/gui/util/versionWindow.py:41
 msgid "A new version of Horus is available, would you like to download?"
-msgstr ""
+msgstr "A new version of Horus is available, would you like to download?"
 
 #: ../../src/horus/gui/util/versionWindow.py:42
 msgid "Download"
-msgstr ""
+msgstr "Download"
 
 #: ../../src/horus/gui/util/resolutionWindow.py:36
 msgid "Resolution updated"

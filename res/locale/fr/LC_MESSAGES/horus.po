@@ -9,14 +9,14 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-06-16 13:45+0200\n"
-"PO-Revision-Date: 2015-04-16 16:48+0100\n"
+"PO-Revision-Date: 2015-06-24 17:40+0100\n"
 "Last-Translator: Alexandre GALODE <deusyss@yahoo.fr>\n"
 "Language-Team: français <deusyss@yahoo.fr>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.7.4\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: ../../src/horus/gui/preferences.py:40 ../../src/horus/gui/main.py:124
@@ -49,7 +49,7 @@ msgstr "Carte AVR"
 
 #: ../../src/horus/gui/preferences.py:61
 msgid "Binary file"
-msgstr ""
+msgstr "Fichier binaire"
 
 #: ../../src/horus/gui/preferences.py:62
 #: ../../src/horus/gui/preferences.py:197
@@ -61,7 +61,7 @@ msgstr "Défaut"
 #: ../../src/horus/gui/preferences.py:62
 #: ../../src/horus/gui/preferences.py:199
 msgid "External file..."
-msgstr ""
+msgstr "Fichier externe..."
 
 #: ../../src/horus/gui/preferences.py:63
 msgid "Clear EEPROM"
@@ -85,9 +85,8 @@ msgid "Ok"
 msgstr "Ok"
 
 #: ../../src/horus/gui/preferences.py:200
-#, fuzzy
 msgid "Select binary file to load"
-msgstr "Sélectionner un profil à ouvrir"
+msgstr "Sélectionner un fichier binaire à ouvrir"
 
 #: ../../src/horus/gui/preferences.py:245
 msgid "Probably you have selected the wrong board. Select other Board"
@@ -337,9 +336,8 @@ msgid "Laser Control"
 msgstr "Contrôle des lasers"
 
 #: ../../src/horus/gui/workbench/control/panels.py:97
-#, fuzzy
 msgid "LDR Control"
-msgstr "Contrôle"
+msgstr "Contrôle de la LDR"
 
 #: ../../src/horus/gui/workbench/control/panels.py:172
 msgid "Motor Control"
@@ -742,7 +740,7 @@ msgstr "Bienvenue"
 
 #: ../../src/horus/gui/main.py:148
 msgid "Updates"
-msgstr ""
+msgstr "Mises à jour"
 
 #: ../../src/horus/gui/main.py:149
 msgid "Wiki"
@@ -804,11 +802,11 @@ msgstr "Horus est un logiciel Open Source de numérisation 3D"
 
 #: ../../src/horus/gui/main.py:495
 msgid "You are running the latest version of Horus!"
-msgstr ""
+msgstr "Vous utilisez la dernière version d'Horus !"
 
 #: ../../src/horus/gui/main.py:495
 msgid "Updated!"
-msgstr ""
+msgstr "Mise à jour effectuée !"
 
 #: ../../src/horus/gui/main.py:500
 msgid "Board unplugged"
@@ -861,15 +859,16 @@ msgstr "Supprimer l'objet"
 
 #: ../../src/horus/gui/util/versionWindow.py:38
 msgid "New version available!"
-msgstr ""
+msgstr "Nouvelle version disponible !"
 
 #: ../../src/horus/gui/util/versionWindow.py:41
 msgid "A new version of Horus is available, would you like to download?"
 msgstr ""
+"Une nouvelle version d'Horus est disponible, souhaitez-vous la télécharger ?"
 
 #: ../../src/horus/gui/util/versionWindow.py:42
 msgid "Download"
-msgstr ""
+msgstr "Télécharger"
 
 #: ../../src/horus/gui/util/resolutionWindow.py:36
 msgid "Resolution updated"
