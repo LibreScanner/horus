@@ -225,20 +225,21 @@ class PreferencesDialog(wx.Dialog):
 		if clearEEPROM:
 			extraFlags = ["-D"]
 		proc = avr_dude.flash(extraFlags=extraFlags, hexPath=self.hexPath) #TODO: fails if change board
-		count = -50
-		while count < 100:
-			if proc:
-				readx = select.select([proc.stderr.fileno()], [], [])[0]
-				if readx:
-					out = proc.stderr.read()
-					if 'not in sync' in out or 'Invalid' in out:
-						wx.CallAfter(self.wrongBoardMessage)
-						break
-					count += out.count('#')
-					if count >= 0:
-						self.gauge.SetValue(count)
-				else:
-					break
+		if not sys.isWindows():
+			count = -50
+			while count < 100:
+				if proc:
+						readx = select.select([proc.stderr.fileno()], [], [])[0]
+						if readx:
+							out = proc.stderr.read()
+							if 'not in sync' in out or 'Invalid' in out:
+								wx.CallAfter(self.wrongBoardMessage)
+								break
+							count += out.count('#')
+							if count >= 0:
+								self.gauge.SetValue(count)
+						else:
+							break
 		wx.CallAfter(self.afterLoadFirmware)
 
 	def wrongBoardMessage(self):
