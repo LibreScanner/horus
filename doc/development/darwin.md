@@ -50,6 +50,14 @@ brew install opencv
 brew install wxpython
 ```
 
+NOTE: in order to build Horus for other Mac OS X versions you must to install official dmg
+
+* [wxPython](http://downloads.sourceforge.net/wxpython/3.0.2.0/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg). Not with brew
+
+```bash
+sudo installer -pkg /path/to/pkg -target /
+```
+
 #### Python modules
 ```bash
 sudo -H pip install -U pyserial pyopengl pyopengl-accelerate numpy scipy matplotlib==1.4.0 pyobjc-framework-qtkit
