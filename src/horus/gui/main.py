@@ -722,7 +722,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
                         values = _winreg.EnumValue(key, i)
                     except:
                         return baselist
-                    if 'USBSER' in values[0] or 'VCP' in values[0]:
+                    if 'USBSER' in values[0] or 'VCP' in values[0] or '\Device\Serial' in values[0]:
                         baselist.append(values[1])
                     i+=1
             except:
