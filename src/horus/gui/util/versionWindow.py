@@ -62,7 +62,9 @@ class VersionWindow(wx.Dialog):
 
     def onDownloadButton(self, event):
         version.downloadLatestVersion()
+        self.EndModal(wx.ID_OK)
         self.Destroy()
 
     def onCancelButton(self, event):
+        self.EndModal(wx.ID_OK)
         self.Destroy()
