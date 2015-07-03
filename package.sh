@@ -183,7 +183,9 @@ if [ $BUILD_TARGET = "darwin" ]; then
 
 	python setup_mac.py py2app -b dar_dist/build -d dar_dist/dist
 
-	chmod 555 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/avrdude
+	chmod 755 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/avrdude
+	chmod 755 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/avrdude_bin
+	chmod 755 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/lib/
 
 	pkg/darwin/create-dmg/create-dmg \
 		--volname "Horus Installer" \
