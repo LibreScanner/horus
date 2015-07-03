@@ -175,7 +175,6 @@ class PreferencesDialog(wx.Dialog):
 	def onClose(self, event):
 		self.EndModal(wx.ID_OK)
 		self.Destroy()
-	
 
 	def onSerialNameComboChanged(self, event):
 		if len(self.serialNameCombo.GetValue()):

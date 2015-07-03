@@ -370,7 +370,6 @@ class MainWindow(wx.Frame):
 
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
-        wx.CallAfter(prefDialog.Show)
 
         self.updateDriverProfile()
         self.controlWorkbench.updateCallbacks()
