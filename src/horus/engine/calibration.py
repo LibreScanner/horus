@@ -31,7 +31,6 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
-import os
 import cv2
 import time
 import struct
@@ -48,7 +47,7 @@ import horus.util.error as Error
 from horus.util.singleton import Singleton
 
 #TODO: refactor
-from horus.util import profile
+from horus.util import profile, system as sys
 
 
 class Calibration:
@@ -210,7 +209,9 @@ class LaserTriangulation(Calibration):
 		XL = None
 		XR = None
 
-		if os.name=='nt':
+		if sys.isWindows():
+			flush = 2
+		elif sys.isDarwin():
 			flush = 2
 		else:
 			flush = 1
@@ -231,7 +232,7 @@ class LaserTriangulation(Calibration):
 			board.enableMotor()
 			board.setSpeedMotor(150)
 			board.setAccelerationMotor(150)
-			time.sleep(0.2)
+			time.sleep(0.1)
 
 			if progressCallback is not None:
 				progressCallback(0)
@@ -829,7 +830,13 @@ class PlatformExtrinsics(Calibration):
 
 	def getPatternPosition(self, step, board, camera):
 		t = None
-		image = camera.captureImage(flush=True, flushValue=1)
+		if sys.isWindows():
+			flush = 2
+		elif sys.isDarwin():
+			flush = 2
+		else:
+			flush = 1
+		image = camera.captureImage(flush=True, flushValue=flush)
 		if image is not None:
 			self.image = image
 			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)

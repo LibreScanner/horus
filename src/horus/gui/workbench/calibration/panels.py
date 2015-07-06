@@ -34,7 +34,7 @@ from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
                                         CheckBox, ToggleButton, Button, TextBox
 from horus.gui.util.resolutionWindow import ResolutionWindow
 
-from horus.util import profile
+from horus.util import profile, system as sys
 
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
@@ -59,6 +59,10 @@ class CameraSettingsPanel(ExpandablePanel):
         section.addItem(ComboBox, 'resolution_calibration', tooltip=_('Size of the video. Maximum resolution is recommended'))
         section.addItem(CheckBox, 'use_distortion_calibration', tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
 
+        if sys.isDarwin():
+            section = self.sections['camera_calibration'].disable('framerate_calibration')
+            section = self.sections['camera_calibration'].disable('resolution_calibration')
+        
     def updateCallbacks(self):
         section = self.sections['camera_calibration']
         section.updateCallback('brightness_calibration', self.driver.camera.setBrightness)

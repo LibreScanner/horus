@@ -7,7 +7,7 @@ Standards-Version: 3.9.5
 
 Package: horus
 Architecture: any
-Depends: ${misc:Depends}, ${python:Depends}, python, python-serial, python-wxgtk2.8, python-opengl, python-pyglet, python-numpy, python-scipy, python-matplotlib, python-opencv, avrdude, libftdi1, v4l-utils
+Depends: ${misc:Depends}, ${python:Depends}, python, python-serial, python-wxgtk2.8 | python-wxgtk3.0, python-opengl, python-pyglet, python-numpy, python-scipy, python-matplotlib, python-opencv, avrdude, libftdi1, v4l-utils
 Description: Horus is a full software solution for 3D scanning
 
 

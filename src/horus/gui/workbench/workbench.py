@@ -48,7 +48,7 @@ class Workbench(wx.Panel):
 		hbox.Add((0,0), 1, wx.ALL|wx.EXPAND, 1)
 		hbox.Add(self.combo, 0, wx.ALL, 10)
 		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 1)
-		vbox.Add(self._panel, 1, wx.ALL|wx.EXPAND, 1)
+		vbox.Add(self._panel, 1, wx.ALL|wx.EXPAND, 0)
 
 		self._panel.SetSizer(self.hbox)
 		self._panel.Layout()
@@ -59,7 +59,7 @@ class Workbench(wx.Panel):
 
 	def addToPanel(self, _object, _size):
 		if _object is not None:
-			self.hbox.Add(_object, _size, wx.ALL|wx.EXPAND, 3)
+			self.hbox.Add(_object, _size, wx.ALL|wx.EXPAND, 1)
 
 
 import horus.util.error as Error

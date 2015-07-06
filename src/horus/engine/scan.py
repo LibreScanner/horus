@@ -27,7 +27,6 @@
 __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
-import os
 import cv2
 import time
 import Queue
@@ -38,6 +37,7 @@ from horus.engine.driver import Driver
 
 import horus.util.error as Error
 from horus.util.singleton import Singleton
+from horus.util import system as sys
 
 
 class Scan:
@@ -73,8 +73,10 @@ class Scan:
 
 		#TODO: Callbacks to Observer pattern
 		self.beforeCallback = None
-		self.progressCallback = None
 		self.afterCallback = None
+
+		self.progress = 0
+		self.range = 0
 
 		self.imagesQueue = Queue.Queue(100)
 		self.points3DQueue = Queue.Queue(1000)
@@ -82,9 +84,8 @@ class Scan:
 	def resetTheta(self):
 		self.theta = 0
 
-	def setCallbacks(self, before, progress, after):
+	def setCallbacks(self, before, after):
 		self.beforeCallback = before
-		self.progressCallback = progress
 		self.afterCallback = after
 
 	def start(self):
@@ -98,7 +99,7 @@ class Scan:
 		self.inactive = False
 
 		threading.Thread(target=self._captureThread).start()
-		threading.Thread(target=self._processThread, args=(self.progressCallback,self.afterCallback)).start()
+		threading.Thread(target=self._processThread, args=(self.afterCallback,)).start()
 		
 	def stop(self):
 		self.runCapture = False
@@ -218,7 +219,7 @@ class Scan:
 		self.driver.board.setRightLaserOff()
 
 		#-- Setup camera
-		self.driver.camera.capture.read()
+		self.driver.camera.captureImage()
 
 	#-- Threads
 
@@ -226,18 +227,18 @@ class Scan:
 		""""""
 		pass
 
-	def _processThread(self, progressCallback, afterCallback):
+	def _processThread(self, afterCallback):
 		""""""
 		ret = False
 
-		if progressCallback is not None:
-			progressCallback(0)
+		self.progress = 0
 
 		while self.runProcess:
 			if not self.inactive:
 				angle = abs(self.pcg.theta * 180.0 / np.pi)
-				if progressCallback is not None and abs(self.pcg.degrees) > 0:
-					progressCallback(abs(angle/self.pcg.degrees), abs(360.0/self.pcg.degrees))
+				if abs(self.pcg.degrees) > 0:
+					self.progress = abs(angle/self.pcg.degrees)
+					self.range = abs(360.0/self.pcg.degrees)
 				if angle <= 360.0:
 					if not self.imagesQueue.empty():
 						imagesQueueItem = self.imagesQueue.get(timeout=0.1)
@@ -300,6 +301,9 @@ class Scan:
 		if afterCallback is not None:
 			afterCallback(response)
 
+	def getProgress(self):
+		return self.progress, self.range
+
 	def getPointCloudIncrement(self):
 		""" """
 		if not self.points3DQueue.empty():
@@ -322,7 +326,7 @@ class SimpleScan(Scan):
 
 	def _captureThread(self):
 		""""""
-		if os.name == 'nt':
+		if sys.isWindows() or sys.isDarwin():
 			flush_both = 3
 			flush_single = 1
 		else:
@@ -464,7 +468,7 @@ class TextureScan(Scan):
 		self.driver.board.setLeftLaserOff()
 		self.driver.board.setRightLaserOff()
 
-		if os.name == 'nt':
+		if sys.isWindows() or sys.isDarwin():
 			flush = 3
 		else:
 			flush = 1

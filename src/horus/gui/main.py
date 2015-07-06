@@ -33,11 +33,13 @@ import cv2
 import glob
 import time
 import struct
-import platform
 import wx._core
 import webbrowser
 
-from horus.util import profile, resources, meshLoader
+from horus.util import profile, resources, meshLoader, version, system as sys
+
+if sys.isDarwin():
+    from horus.engine.uvc.mac import Camera_List
 
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.scanning.main import ScanningWorkbench
@@ -45,18 +47,17 @@ from horus.gui.workbench.calibration.main import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
 from horus.gui.welcome import WelcomeWindow
 from horus.gui.wizard.main import *
+from horus.gui.util.versionWindow import VersionWindow
 
 from horus.engine.driver import Driver
 from horus.engine import scan, calibration
-
-VERSION = '0.1.1'
 
 class MainWindow(wx.Frame):
 
     size = (640+337,480+150)
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus " + VERSION + " - Beta"), size=self.size)
+        super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion()), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -86,7 +87,7 @@ class MainWindow(wx.Frame):
 
         self.lastFiles = eval(profile.getPreference('last_files'))
 
-        print ">>> Horus " + VERSION + " <<<"
+        print ">>> Horus " + version.getVersion() + " <<<"
 
         ###-- Initialize GUI
 
@@ -143,6 +144,8 @@ class MainWindow(wx.Frame):
         #-- Menu Help
         self.menuHelp = wx.Menu()
         self.menuWelcome = self.menuHelp.Append(wx.ID_ANY, _("Welcome"))
+        if profile.getPreferenceBool('check_for_updates'):
+            self.menuUpdates = self.menuHelp.Append(wx.ID_ANY, _("Updates"))
         self.menuWiki = self.menuHelp.Append(wx.ID_ANY, _("Wiki"))
         self.menuSources = self.menuHelp.Append(wx.ID_ANY, _("Sources"))
         self.menuIssues = self.menuHelp.Append(wx.ID_ANY, _("Issues"))
@@ -198,6 +201,8 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onAbout, self.menuAbout)
         self.Bind(wx.EVT_MENU, self.onWelcome, self.menuWelcome)
+        if profile.getPreferenceBool('check_for_updates'):
+            self.Bind(wx.EVT_MENU, self.onUpdates, self.menuUpdates)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), self.menuWiki)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), self.menuSources)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), self.menuIssues)
@@ -215,9 +220,6 @@ class MainWindow(wx.Frame):
         ws, hs = self.size
 
         self.SetPosition((x+(w-ws)/2., y+(h-hs)/2.))
-
-        #self.Center()
-        self.Show()
 
     def onLaunchWizard(self, event):
         self.controlWorkbench.videoView.stop()
@@ -260,7 +262,7 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if not filename.endswith('.ply'):
-                if platform.system() == 'Linux': #hack for linux, as for some reason the .ply is not appended.
+                if sys.isLinux(): #hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
             meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
             self.appendLastFile(filename)
@@ -291,7 +293,7 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
             if not profileFile.endswith('.ini'):
-                if platform.system() == 'Linux': #hack for linux, as for some reason the .ini is not appended.
+                if sys.isLinux(): #hack for linux, as for some reason the .ini is not appended.
                     profileFile += '.ini'
             profile.saveProfile(profileFile)
         dlg.Destroy()
@@ -344,7 +346,7 @@ class MainWindow(wx.Frame):
         self.Layout()
 
     def onPreferences(self, event):
-        if os.name == 'nt':
+        if sys.isWindows():
             self.simpleScan.stop()
             self.textureScan.stop()
             self.laserTriangulation.cancel()
@@ -365,7 +367,6 @@ class MainWindow(wx.Frame):
 
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
-        wx.CallAfter(prefDialog.Show)
 
         self.updateDriverProfile()
         self.controlWorkbench.updateCallbacks()
@@ -448,12 +449,16 @@ class MainWindow(wx.Frame):
         icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
-        info.SetVersion(VERSION)
-        techDescription = ''
-        if os.path.isfile(resources.getPathForVersion()):
-            with open(resources.getPathForVersion(), 'r') as f:
-              techDescription = '\n' + f.read().replace('\n','')
-        info.SetDescription(_('Horus is an Open Source 3D Scanner manager') + techDescription)
+        info.SetVersion(version.getVersion())
+        techDescription = _('Horus is an Open Source 3D Scanner manager')
+        techDescription += '\n' + 'Version: ' + version.getVersion()
+        build = version.getBuild()
+        if build is not '':
+            techDescription += '\n' + 'Build: ' + version.getBuild()
+        github = version.getGitHub()
+        if github is not '':
+            techDescription += '\n' + 'GitHub: ' + version.getGitHub()
+        info.SetDescription(techDescription)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
         info.SetLicence("""Horus is free software; you can redistribute
@@ -468,16 +473,24 @@ See the GNU General Public License for more details. You should have
 received a copy of the GNU General Public License along with File Hunter;
 if not, write to the Free Software Foundation, Inc., 59 Temple Place,
 Suite 330, Boston, MA  02111-1307  USA""")
-        info.AddDeveloper(u'Jesús Arroyo, Irene Sanz')
+        info.AddDeveloper(u'Jesús Arroyo, Irene Sanz, Jorge Robles')
         info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
-        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva')
+        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, Meike Schirmeister')
 
         wx.AboutBox(info)
 
     def onWelcome(self, event):
-        """ """
-        welcome = WelcomeWindow(self)
+        WelcomeWindow(self)
+
+    def onUpdates(self, event):
+        if profile.getPreferenceBool('check_for_updates'):
+            if version.checkForUpdates():
+                VersionWindow(self)
+            else:
+                dlg = wx.MessageDialog(self, _("You are running the latest version of Horus!"), _("Updated!"), wx.OK|wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
 
     def onBoardUnplugged(self):
         self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it in and press connect"))
@@ -695,7 +708,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def serialList(self):
         baselist=[]
-        if os.name=="nt":
+        if sys.isWindows():
             import _winreg
             try:
                 key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM")
@@ -705,13 +718,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
                         values = _winreg.EnumValue(key, i)
                     except:
                         return baselist
-                    if 'USBSER' in values[0] or 'VCP' in values[0]:
+                    if 'USBSER' in values[0] or 'VCP' in values[0] or '\Device\Serial' in values[0]:
                         baselist.append(values[1])
                     i+=1
             except:
                 return baselist
         else:
-            for device in ['/dev/ttyACM*', '/dev/ttyUSB*', "/dev/tty.usb*", "/dev/cu.*", "/dev/rfcomm*"]:
+            for device in ['/dev/ttyACM*', '/dev/ttyUSB*',  "/dev/tty.usb*", "/dev/tty.wchusb*", "/dev/cu.*", "/dev/rfcomm*"]:
                 baselist = baselist + glob.glob(device)
         return baselist
 
@@ -730,10 +743,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def videoList(self):
         baselist=[]
-        if os.name == 'nt':
+        if sys.isWindows():
             count = self.countCameras()
             for i in xrange(count):
                 baselist.append(str(i))
+        elif sys.isDarwin():
+            for device in Camera_List():
+                baselist.append(str(device.src_id))
         else:
             for device in ['/dev/video*']:
                 baselist = baselist + glob.glob(device)

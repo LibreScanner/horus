@@ -129,6 +129,8 @@ class ConnectionPage(WizardPage):
         SettingsWindow(self)
 
     def beforeConnect(self):
+        self.settingsButton.Disable()
+        self.breadcrumbs.Disable()
         self.connectButton.Disable()
         self.prevButton.Disable()
         self.videoView.stop()
@@ -168,6 +170,8 @@ class ConnectionPage(WizardPage):
                 dlg.Destroy()
 
         self.updateStatus(self.driver.isConnected)
+        self.settingsButton.Enable()
+        self.breadcrumbs.Enable()
         self.prevButton.Enable()
         del self.waitCursor
 
@@ -190,6 +194,8 @@ class ConnectionPage(WizardPage):
             self.autoCheck.start()
 
     def beforeAutoCheck(self):
+        self.settingsButton.Disable()
+        self.breadcrumbs.Disable()
         self.autoCheckButton.Disable()
         self.prevButton.Disable()
         self.skipButton.Disable()
@@ -230,6 +236,8 @@ class ConnectionPage(WizardPage):
     def afterMoveMotor(self):
         self.videoView.setMilliseconds(50)
         self.videoView.setCallback(self.getDetectChessboardFrame)
+        self.settingsButton.Enable()
+        self.breadcrumbs.Enable()
         self.gauge.SetValue(100)
         self.enableNext = True
         self.resultLabel.Show()
@@ -390,8 +398,10 @@ class SettingsWindow(wx.Dialog):
 
     def onOk(self, event):
         self.setPatternDistance(self.patternDistance)
+        self.EndModal(wx.ID_OK)
         self.Destroy()
 
     def onClose(self, event):
         self.setLuminosity(self.initLuminosity)
+        self.EndModal(wx.ID_OK)
         self.Destroy()

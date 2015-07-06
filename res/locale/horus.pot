@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2015-04-16 16:39+0200\n"
+"POT-Creation-Date: 2015-07-01 16:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../../src/horus/gui/preferences.py:40 ../../src/horus/gui/main.py:122
+#: ../../src/horus/gui/preferences.py:40 ../../src/horus/gui/main.py:124
 msgid "Preferences"
 msgstr ""
 
@@ -25,7 +25,7 @@ msgstr ""
 msgid "Connection Parameters"
 msgstr ""
 
-#: ../../src/horus/gui/preferences.py:46 ../../src/horus/util/profile.py:202
+#: ../../src/horus/gui/preferences.py:46 ../../src/horus/util/profile.py:201
 msgid "Serial Name"
 msgstr ""
 
@@ -33,7 +33,7 @@ msgstr ""
 msgid "Baud Rate"
 msgstr ""
 
-#: ../../src/horus/gui/preferences.py:52 ../../src/horus/util/profile.py:204
+#: ../../src/horus/gui/preferences.py:52 ../../src/horus/util/profile.py:203
 msgid "Camera Id"
 msgstr ""
 
@@ -46,31 +46,51 @@ msgid "AVR Board"
 msgstr ""
 
 #: ../../src/horus/gui/preferences.py:61
-msgid "Clear EEPROM"
+msgid "Binary file"
 msgstr ""
 
 #: ../../src/horus/gui/preferences.py:62
+#: ../../src/horus/gui/preferences.py:197
+#: ../../src/horus/gui/preferences.py:206
+#: ../../src/horus/gui/workbench/calibration/panels.py:163
+msgid "Default"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:62
+#: ../../src/horus/gui/preferences.py:199
+msgid "External file..."
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:63
+msgid "Clear EEPROM"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:64
 msgid "Upload Firmware"
 msgstr ""
 
-#: ../../src/horus/gui/preferences.py:66 ../../src/horus/util/profile.py:322
+#: ../../src/horus/gui/preferences.py:68 ../../src/horus/util/profile.py:321
 msgid "Language"
 msgstr ""
 
-#: ../../src/horus/gui/preferences.py:71
-#: ../../src/horus/gui/wizard/connectionPage.py:300
+#: ../../src/horus/gui/preferences.py:73
+#: ../../src/horus/gui/wizard/connectionPage.py:308
 msgid "Invert the motor direction"
 msgstr ""
 
-#: ../../src/horus/gui/preferences.py:74
+#: ../../src/horus/gui/preferences.py:76
 msgid "Ok"
 msgstr ""
 
-#: ../../src/horus/gui/preferences.py:214
+#: ../../src/horus/gui/preferences.py:200
+msgid "Select binary file to load"
+msgstr ""
+
+#: ../../src/horus/gui/preferences.py:245
 msgid "Probably you have selected the wrong board. Select other Board"
 msgstr ""
 
-#: ../../src/horus/gui/preferences.py:244
+#: ../../src/horus/gui/preferences.py:276
 msgid "You have to restart the application to make the changes effective."
 msgstr ""
 
@@ -96,12 +116,12 @@ msgid ""
 msgstr ""
 
 #: ../../src/horus/gui/workbench/workbench.py:140
-#: ../../src/horus/gui/wizard/connectionPage.py:156
+#: ../../src/horus/gui/wizard/connectionPage.py:158
 msgid "Please plug your camera and try to connect again"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/workbench.py:144
-#: ../../src/horus/gui/wizard/connectionPage.py:160
+#: ../../src/horus/gui/wizard/connectionPage.py:162
 msgid ""
 "You probably have selected a wrong camera.\n"
 "Please select other Camera Id"
@@ -123,57 +143,57 @@ msgstr ""
 msgid "Pause"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/main.py:188
-#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:332
+#: ../../src/horus/gui/workbench/scanning/main.py:193
+#: ../../src/horus/gui/main.py:276 ../../src/horus/gui/util/sceneView.py:325
 msgid ""
 "Your current model will be erased.\n"
 "Do you really want to do it?"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/main.py:188
-#: ../../src/horus/gui/main.py:270 ../../src/horus/gui/util/sceneView.py:332
+#: ../../src/horus/gui/workbench/scanning/main.py:193
+#: ../../src/horus/gui/main.py:276 ../../src/horus/gui/util/sceneView.py:325
 msgid "Clear Point Cloud"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/main.py:246
+#: ../../src/horus/gui/workbench/scanning/main.py:249
 msgid ""
 "Scanning has finished. If you want to save your point cloud go to File > "
 "Save Model"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/main.py:246
+#: ../../src/horus/gui/workbench/scanning/main.py:249
 msgid "Scanning finished!"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/main.py:255
+#: ../../src/horus/gui/workbench/scanning/main.py:259
 msgid ""
 "Your current scanning will be stopped.\n"
 "Do you really want to do it?"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/main.py:255
+#: ../../src/horus/gui/workbench/scanning/main.py:259
 msgid "Stop Scanning"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:48
+#: ../../src/horus/gui/workbench/scanning/panels.py:47
 msgid "Scan Parameters"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:60
+#: ../../src/horus/gui/workbench/scanning/panels.py:59
 msgid ""
 "Simple Scan algorithm captures only the geometry using one image. Texture "
 "Scan algorithm captures also the texture using two images"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:100
+#: ../../src/horus/gui/workbench/scanning/panels.py:99
 msgid "Rotative Platform"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:152
+#: ../../src/horus/gui/workbench/scanning/panels.py:151
 msgid "Image Acquisition"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:163
+#: ../../src/horus/gui/workbench/scanning/panels.py:162
 #: ../../src/horus/gui/workbench/control/panels.py:51
 #: ../../src/horus/gui/workbench/calibration/panels.py:54
 msgid ""
@@ -181,7 +201,7 @@ msgid ""
 "light conditions. High values are recommended for poorly lit places"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:164
+#: ../../src/horus/gui/workbench/scanning/panels.py:163
 #: ../../src/horus/gui/workbench/control/panels.py:52
 #: ../../src/horus/gui/workbench/calibration/panels.py:55
 msgid ""
@@ -190,7 +210,7 @@ msgid ""
 "objects. High values are better for very light colored objects"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:165
+#: ../../src/horus/gui/workbench/scanning/panels.py:164
 #: ../../src/horus/gui/workbench/control/panels.py:53
 #: ../../src/horus/gui/workbench/calibration/panels.py:56
 msgid ""
@@ -198,8 +218,8 @@ msgid ""
 "High values will show an image with very intense colors"
 msgstr ""
 
+#: ../../src/horus/gui/workbench/scanning/panels.py:165
 #: ../../src/horus/gui/workbench/scanning/panels.py:166
-#: ../../src/horus/gui/workbench/scanning/panels.py:167
 #: ../../src/horus/gui/workbench/control/panels.py:54
 #: ../../src/horus/gui/workbench/calibration/panels.py:57
 msgid ""
@@ -208,7 +228,7 @@ msgid ""
 "poorly lit places"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:168
+#: ../../src/horus/gui/workbench/scanning/panels.py:167
 #: ../../src/horus/gui/workbench/control/panels.py:55
 #: ../../src/horus/gui/workbench/calibration/panels.py:58
 msgid ""
@@ -216,13 +236,13 @@ msgid ""
 "recommended"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:169
+#: ../../src/horus/gui/workbench/scanning/panels.py:168
 #: ../../src/horus/gui/workbench/control/panels.py:56
 #: ../../src/horus/gui/workbench/calibration/panels.py:59
 msgid "Size of the video. Maximum resolution is recommended"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:170
+#: ../../src/horus/gui/workbench/scanning/panels.py:169
 #: ../../src/horus/gui/workbench/control/panels.py:57
 #: ../../src/horus/gui/workbench/calibration/panels.py:60
 msgid ""
@@ -230,28 +250,28 @@ msgid ""
 "slows the video feed from the camera"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:202
+#: ../../src/horus/gui/workbench/scanning/panels.py:205
 msgid "Image Segmentation"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:211
-#: ../../src/horus/gui/workbench/scanning/panels.py:216
+#: ../../src/horus/gui/workbench/scanning/panels.py:214
+#: ../../src/horus/gui/workbench/scanning/panels.py:219
 msgid ""
 "Threshold is a function used to remove the noise when scanning. It removes a "
 "pixel if its intensity is less than the threshold value"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:214
+#: ../../src/horus/gui/workbench/scanning/panels.py:217
 msgid ""
 "Open is an operation used to remove the noise when scanning. The higher its "
 "value, the lower the noise but also the lower the detail in the image"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:235
+#: ../../src/horus/gui/workbench/scanning/panels.py:238
 msgid "Point Cloud Generation"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/scanning/panels.py:244
+#: ../../src/horus/gui/workbench/scanning/panels.py:247
 msgid ""
 "View the Region Of Interest (ROI). This cylindrical region is the one being "
 "scanned. All information outside won't be taken into account during the "
@@ -262,25 +282,25 @@ msgstr ""
 msgid "Camera Control"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/control/panels.py:74
+#: ../../src/horus/gui/workbench/control/panels.py:78
 msgid "Laser Control"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/control/panels.py:93
-msgid "LDR Value"
+#: ../../src/horus/gui/workbench/control/panels.py:97
+msgid "LDR Control"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/control/panels.py:110
+#: ../../src/horus/gui/workbench/control/panels.py:172
 msgid "Motor Control"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/control/panels.py:148
+#: ../../src/horus/gui/workbench/control/panels.py:210
 msgid "Gcode Control"
 msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:53
 #: ../../src/horus/gui/workbench/calibration/pages.py:200
-#: ../../src/horus/gui/workbench/calibration/panels.py:193
+#: ../../src/horus/gui/workbench/calibration/panels.py:197
 msgid "Camera Intrinsics"
 msgstr ""
 
@@ -294,8 +314,9 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/pages.py:574
 #: ../../src/horus/gui/workbench/calibration/pages.py:760
 #: ../../src/horus/gui/util/patternDistanceWindow.py:58
+#: ../../src/horus/gui/util/versionWindow.py:43
 #: ../../src/horus/gui/wizard/calibrationPage.py:63
-#: ../../src/horus/gui/wizard/connectionPage.py:312
+#: ../../src/horus/gui/wizard/connectionPage.py:320
 msgid "Cancel"
 msgstr ""
 
@@ -332,7 +353,7 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/pages.py:331
 #: ../../src/horus/gui/workbench/calibration/pages.py:441
 #: ../../src/horus/gui/workbench/calibration/pages.py:669
-#: ../../src/horus/gui/workbench/calibration/panels.py:345
+#: ../../src/horus/gui/workbench/calibration/panels.py:349
 msgid "Laser Triangulation"
 msgstr ""
 
@@ -355,7 +376,7 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/calibration/pages.py:758
 #: ../../src/horus/gui/workbench/calibration/pages.py:867
-#: ../../src/horus/gui/workbench/calibration/panels.py:716
+#: ../../src/horus/gui/workbench/calibration/panels.py:720
 msgid "Platform Extrinsics"
 msgstr ""
 
@@ -367,160 +388,156 @@ msgstr ""
 msgid "Camera Settings"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:82
+#: ../../src/horus/gui/workbench/calibration/panels.py:86
 msgid "Pattern Settings"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:92
+#: ../../src/horus/gui/workbench/calibration/panels.py:96
 msgid "Number of corner rows in the pattern"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:93
+#: ../../src/horus/gui/workbench/calibration/panels.py:97
 msgid "Number of corner columns in the pattern"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:94
+#: ../../src/horus/gui/workbench/calibration/panels.py:98
 #: ../../src/horus/gui/util/patternDistanceWindow.py:50
-#: ../../src/horus/gui/wizard/connectionPage.py:302
+#: ../../src/horus/gui/wizard/connectionPage.py:310
 msgid ""
 "Minimum distance between the origin of the pattern (bottom-left corner) and "
 "the pattern's base surface"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:127
+#: ../../src/horus/gui/workbench/calibration/panels.py:131
 msgid "Laser Settings"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:157
-#: ../../src/horus/gui/workbench/calibration/panels.py:277
-#: ../../src/horus/gui/workbench/calibration/panels.py:461
-#: ../../src/horus/gui/workbench/calibration/panels.py:646
-#: ../../src/horus/gui/workbench/calibration/panels.py:796
-#: ../../src/horus/gui/main.py:123
+#: ../../src/horus/gui/workbench/calibration/panels.py:161
+#: ../../src/horus/gui/workbench/calibration/panels.py:281
+#: ../../src/horus/gui/workbench/calibration/panels.py:465
+#: ../../src/horus/gui/workbench/calibration/panels.py:650
+#: ../../src/horus/gui/workbench/calibration/panels.py:800
+#: ../../src/horus/gui/main.py:125
 msgid "Edit"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:159
-msgid "Default"
-msgstr ""
-
-#: ../../src/horus/gui/workbench/calibration/panels.py:161
+#: ../../src/horus/gui/workbench/calibration/panels.py:165
 msgid "Start"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:194
+#: ../../src/horus/gui/workbench/calibration/panels.py:198
 msgid ""
 "This calibration acquires the camera intrinsic parameters (focal lenghts and "
 "optical centers) and the lens distortion"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:205
+#: ../../src/horus/gui/workbench/calibration/panels.py:209
 msgid "Camera matrix"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:225
+#: ../../src/horus/gui/workbench/calibration/panels.py:229
 msgid "Distortion vector"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:275
-#: ../../src/horus/gui/workbench/calibration/panels.py:459
-#: ../../src/horus/gui/workbench/calibration/panels.py:644
-#: ../../src/horus/gui/workbench/calibration/panels.py:794
+#: ../../src/horus/gui/workbench/calibration/panels.py:279
+#: ../../src/horus/gui/workbench/calibration/panels.py:463
+#: ../../src/horus/gui/workbench/calibration/panels.py:648
+#: ../../src/horus/gui/workbench/calibration/panels.py:798
 #: ../../src/horus/gui/util/patternDistanceWindow.py:57
 #: ../../src/horus/gui/util/resolutionWindow.py:42
-#: ../../src/horus/gui/wizard/connectionPage.py:311
+#: ../../src/horus/gui/wizard/connectionPage.py:319
 msgid "OK"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:280
+#: ../../src/horus/gui/workbench/calibration/panels.py:284
 msgid ""
 "This will reset camera intrinsics profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:280
+#: ../../src/horus/gui/workbench/calibration/panels.py:284
 msgid "Camera Intrinsics reset"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:346
+#: ../../src/horus/gui/workbench/calibration/panels.py:350
 msgid ""
 "This calibration determines the lasers' planes relative to the camera's "
 "coordinate system"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:355
+#: ../../src/horus/gui/workbench/calibration/panels.py:359
 msgid "Left Laser Plane"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:382
+#: ../../src/horus/gui/workbench/calibration/panels.py:386
 msgid "Right Laser Plane"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:465
+#: ../../src/horus/gui/workbench/calibration/panels.py:469
 msgid ""
 "This will reset laser triangulation profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:465
-#: ../../src/horus/gui/workbench/calibration/panels.py:650
+#: ../../src/horus/gui/workbench/calibration/panels.py:469
+#: ../../src/horus/gui/workbench/calibration/panels.py:654
 msgid "Laser Triangulation reset"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:537
+#: ../../src/horus/gui/workbench/calibration/panels.py:541
 msgid "Laser Simple Triangulation Calibration"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:538
+#: ../../src/horus/gui/workbench/calibration/panels.py:542
 msgid ""
 "This calibration determines the depth of the intersection camera-laser "
 "considering the inclination of the lasers"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:546
+#: ../../src/horus/gui/workbench/calibration/panels.py:550
 msgid "Coordinates"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:566
+#: ../../src/horus/gui/workbench/calibration/panels.py:570
 msgid "Origin"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:583
-#: ../../src/horus/util/profile.py:287 ../../src/horus/util/profile.py:289
+#: ../../src/horus/gui/workbench/calibration/panels.py:587
+#: ../../src/horus/util/profile.py:286 ../../src/horus/util/profile.py:288
 msgid "Normal"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:650
+#: ../../src/horus/gui/workbench/calibration/panels.py:654
 msgid ""
 "This will reset simple laser triangulation profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:717
+#: ../../src/horus/gui/workbench/calibration/panels.py:721
 msgid ""
 "This calibration determines the position and orientation of the rotating "
 "platform relative to the camera's coordinate system"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:726
+#: ../../src/horus/gui/workbench/calibration/panels.py:730
 msgid "Rotation matrix"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:746
+#: ../../src/horus/gui/workbench/calibration/panels.py:750
 msgid "Translation vector"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:800
+#: ../../src/horus/gui/workbench/calibration/panels.py:804
 msgid ""
 "This will reset platform extrinsics profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost! Do "
 "you really want to reset?"
 msgstr ""
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:800
+#: ../../src/horus/gui/workbench/calibration/panels.py:804
 msgid "Platform Extrinsics reset"
 msgstr ""
 
@@ -528,182 +545,194 @@ msgstr ""
 msgid "Don't show this dialog again"
 msgstr ""
 
-#: ../../src/horus/gui/welcome.py:81
+#: ../../src/horus/gui/welcome.py:82
 msgid "3D Scanning for everyone"
 msgstr ""
 
-#: ../../src/horus/gui/welcome.py:98
+#: ../../src/horus/gui/welcome.py:99
 msgid "Create new"
 msgstr ""
 
-#: ../../src/horus/gui/welcome.py:101
+#: ../../src/horus/gui/welcome.py:102
 msgid "Wizard mode (step by step)"
 msgstr ""
 
-#: ../../src/horus/gui/welcome.py:102
+#: ../../src/horus/gui/welcome.py:103
 msgid "Scan using recent settings"
 msgstr ""
 
-#: ../../src/horus/gui/welcome.py:103
+#: ../../src/horus/gui/welcome.py:104
 msgid "Advanced Control"
 msgstr ""
 
-#: ../../src/horus/gui/welcome.py:104
+#: ../../src/horus/gui/welcome.py:105
 msgid "Advanced Calibration"
 msgstr ""
 
-#: ../../src/horus/gui/welcome.py:155
+#: ../../src/horus/gui/welcome.py:156
 msgid "Open recent file"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:58
+#: ../../src/horus/gui/main.py:60
 msgid "Horus "
 msgstr ""
 
-#: ../../src/horus/gui/main.py:104
+#: ../../src/horus/gui/main.py:106
 msgid "Launch Wizard"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:106
+#: ../../src/horus/gui/main.py:108
 msgid "Load Model"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:107
+#: ../../src/horus/gui/main.py:109
 msgid "Save Model"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:108
+#: ../../src/horus/gui/main.py:110
 msgid "Clear Model"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:110
+#: ../../src/horus/gui/main.py:112
 msgid "Open Profile"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:110
+#: ../../src/horus/gui/main.py:112
 msgid "Opens Profile .ini"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:111
+#: ../../src/horus/gui/main.py:113
 msgid "Save Profile"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:112
+#: ../../src/horus/gui/main.py:114
 msgid "Reset Profile"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:114
+#: ../../src/horus/gui/main.py:116
 msgid "Exit"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:115
+#: ../../src/horus/gui/main.py:117
 msgid "File"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:128 ../../src/horus/gui/main.py:132
-#: ../../src/horus/gui/main.py:136
+#: ../../src/horus/gui/main.py:130 ../../src/horus/gui/main.py:134
+#: ../../src/horus/gui/main.py:138
 msgid "Panel"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:129 ../../src/horus/gui/main.py:133
-#: ../../src/horus/gui/main.py:137
+#: ../../src/horus/gui/main.py:131 ../../src/horus/gui/main.py:135
+#: ../../src/horus/gui/main.py:139
 msgid "Video"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:130
+#: ../../src/horus/gui/main.py:132
 msgid "Control"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:134
+#: ../../src/horus/gui/main.py:136
 #: ../../src/horus/gui/wizard/calibrationPage.py:48
 msgid "Calibration"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:138
+#: ../../src/horus/gui/main.py:140
 msgid "Scene"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:139
+#: ../../src/horus/gui/main.py:141
 #: ../../src/horus/gui/wizard/scanningPage.py:42
 msgid "Scanning"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:140
+#: ../../src/horus/gui/main.py:142
 msgid "View"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:144
+#: ../../src/horus/gui/main.py:146
 msgid "Welcome"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:145
-msgid "Wiki"
-msgstr ""
-
-#: ../../src/horus/gui/main.py:146
-msgid "Sources"
-msgstr ""
-
-#: ../../src/horus/gui/main.py:147
-msgid "Issues"
-msgstr ""
-
 #: ../../src/horus/gui/main.py:148
-msgid "Forum"
+msgid "Updates"
 msgstr ""
 
 #: ../../src/horus/gui/main.py:149
-msgid "About"
+msgid "Wiki"
 msgstr ""
 
 #: ../../src/horus/gui/main.py:150
+msgid "Sources"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:151
+msgid "Issues"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:152
+msgid "Forum"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:153
+msgid "About"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:154
 msgid "Help"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:238
+#: ../../src/horus/gui/main.py:244
 msgid "Open 3D model"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:254
+#: ../../src/horus/gui/main.py:260
 msgid "Save 3D model"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:278
+#: ../../src/horus/gui/main.py:284
 msgid "Select profile file to load"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:288
+#: ../../src/horus/gui/main.py:294
 msgid "Select profile file to save"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:300
+#: ../../src/horus/gui/main.py:306
 msgid ""
 "This will reset all profile settings to defaults.\n"
 "Unless you have saved your current profile, all settings will be lost!\n"
 "Do you really want to reset?"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:300
+#: ../../src/horus/gui/main.py:306
 msgid "Profile reset"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:455
+#: ../../src/horus/gui/main.py:457
 msgid "Horus is an Open Source 3D Scanner manager"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:482
+#: ../../src/horus/gui/main.py:495
+msgid "You are running the latest version of Horus!"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:495
+msgid "Updated!"
+msgstr ""
+
+#: ../../src/horus/gui/main.py:500
 msgid "Board unplugged"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:482
+#: ../../src/horus/gui/main.py:500
 msgid "Board has been unplugged. Please, plug it in and press connect"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:485
+#: ../../src/horus/gui/main.py:503
 msgid "Camera unplugged"
 msgstr ""
 
-#: ../../src/horus/gui/main.py:485
+#: ../../src/horus/gui/main.py:503
 msgid "Camera has been unplugged. Please, plug it in and press connect"
 msgstr ""
 
@@ -726,12 +755,24 @@ msgid ""
 msgstr ""
 
 #: ../../src/horus/gui/util/patternDistanceWindow.py:54
-#: ../../src/horus/gui/wizard/connectionPage.py:308
+#: ../../src/horus/gui/wizard/connectionPage.py:316
 msgid "Pattern distance (mm)"
 msgstr ""
 
-#: ../../src/horus/gui/util/sceneView.py:321
+#: ../../src/horus/gui/util/sceneView.py:314
 msgid "Delete object"
+msgstr ""
+
+#: ../../src/horus/gui/util/versionWindow.py:38
+msgid "New version available!"
+msgstr ""
+
+#: ../../src/horus/gui/util/versionWindow.py:41
+msgid "A new version of Horus is available, would you like to download?"
+msgstr ""
+
+#: ../../src/horus/gui/util/versionWindow.py:42
+msgid "Download"
 msgstr ""
 
 #: ../../src/horus/gui/util/resolutionWindow.py:36
@@ -744,7 +785,7 @@ msgid ""
 "same resolution!"
 msgstr ""
 
-#: ../../src/horus/gui/util/customPanels.py:182
+#: ../../src/horus/gui/util/customPanels.py:186
 msgid ""
 "This will reset all section settings to defaults.\n"
 "Unless you have saved your current profile, all section settings will be "
@@ -762,61 +803,61 @@ msgstr ""
 msgid "Calibration canceled. To try again press \"Calibrate\""
 msgstr ""
 
-#: ../../src/horus/gui/wizard/calibrationPage.py:177
+#: ../../src/horus/gui/wizard/calibrationPage.py:178
 msgid "Error in lasers: please connect the lasers and try again"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/calibrationPage.py:178
+#: ../../src/horus/gui/wizard/calibrationPage.py:179
 msgid "Laser Calibration failed. Please try again"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/calibrationPage.py:196
+#: ../../src/horus/gui/wizard/calibrationPage.py:197
 msgid "Error in pattern: please check the pattern and try again"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/calibrationPage.py:197
+#: ../../src/horus/gui/wizard/calibrationPage.py:198
 msgid "Platform Calibration failed. Please try again"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/calibrationPage.py:204
-#: ../../src/horus/gui/wizard/connectionPage.py:211
+#: ../../src/horus/gui/wizard/calibrationPage.py:205
+#: ../../src/horus/gui/wizard/connectionPage.py:217
 msgid "All OK. Please press next to continue"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/scanningPage.py:51
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:128
-#: ../../src/horus/util/profile.py:211
+#: ../../src/horus/util/profile.py:210
 msgid "Low"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/scanningPage.py:53
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:126
-#: ../../src/horus/util/profile.py:210
+#: ../../src/horus/util/profile.py:209
 msgid "Medium"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/scanningPage.py:55
 #: ../../src/horus/gui/wizard/scanningPage.py:59
 #: ../../src/horus/gui/wizard/scanningPage.py:124
-#: ../../src/horus/util/profile.py:209
+#: ../../src/horus/util/profile.py:208
 msgid "High"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/scanningPage.py:56
-#: ../../src/horus/util/profile.py:219 ../../src/horus/util/profile.py:231
-#: ../../src/horus/util/profile.py:255
+#: ../../src/horus/util/profile.py:218 ../../src/horus/util/profile.py:230
+#: ../../src/horus/util/profile.py:254
 msgid "Resolution"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/scanningPage.py:67
-#: ../../src/horus/util/profile.py:259
+#: ../../src/horus/util/profile.py:258
 msgid "Laser"
 msgstr ""
 
 #: ../../src/horus/gui/wizard/scanningPage.py:79
-#: ../../src/horus/util/profile.py:237
+#: ../../src/horus/util/profile.py:236
 msgid "Scan"
 msgstr ""
 
@@ -828,13 +869,13 @@ msgstr ""
 msgid "Exit wizard"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/main.py:145
+#: ../../src/horus/gui/wizard/main.py:146
 msgid ""
 "You have finished the wizard.\n"
 "Press Play button to start scanning."
 msgstr ""
 
-#: ../../src/horus/gui/wizard/main.py:145
+#: ../../src/horus/gui/wizard/main.py:146
 msgid "Ready to scan!"
 msgstr ""
 
@@ -856,49 +897,49 @@ msgstr ""
 msgid "Auto check"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:144
+#: ../../src/horus/gui/wizard/connectionPage.py:146
 msgid ""
 "Board has a wrong firmware.\n"
 "Please select your Board\n"
 "and press Upload Firmware"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:150
+#: ../../src/horus/gui/wizard/connectionPage.py:152
 msgid ""
 "Board is not connected.\n"
 "Please connect your board\n"
 "and select a valid Serial Name"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:166
+#: ../../src/horus/gui/wizard/connectionPage.py:168
 msgid "Unplug and plug your camera USB cable and try to connect again."
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:177
+#: ../../src/horus/gui/wizard/connectionPage.py:181
 msgid ""
 "It is recomended to adjust line lasers vertically.\n"
 "You need to use the allen wrench.\n"
 "Do you want to adjust it now?"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:177
+#: ../../src/horus/gui/wizard/connectionPage.py:181
 msgid "Manual laser adjustment"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:213
+#: ../../src/horus/gui/wizard/connectionPage.py:219
 msgid "Please check motor direction and pattern position and try again"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:278
+#: ../../src/horus/gui/wizard/connectionPage.py:286
 msgid "Settings"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:293
-#: ../../src/horus/util/profile.py:212
+#: ../../src/horus/gui/wizard/connectionPage.py:301
+#: ../../src/horus/util/profile.py:211
 msgid "Luminosity"
 msgstr ""
 
-#: ../../src/horus/gui/wizard/connectionPage.py:294
+#: ../../src/horus/gui/wizard/connectionPage.py:302
 msgid ""
 "Change the luminosity until colored lines appear over the chess pattern in "
 "the video"
@@ -916,258 +957,258 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:203
+#: ../../src/horus/util/profile.py:202
 msgid "Baud rate"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:205
+#: ../../src/horus/util/profile.py:204
 msgid "Board"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:206
+#: ../../src/horus/util/profile.py:205
 msgid "Invert motor"
+msgstr ""
+
+#: ../../src/horus/util/profile.py:213 ../../src/horus/util/profile.py:225
+#: ../../src/horus/util/profile.py:248
+msgid "Brightness"
 msgstr ""
 
 #: ../../src/horus/util/profile.py:214 ../../src/horus/util/profile.py:226
 #: ../../src/horus/util/profile.py:249
-msgid "Brightness"
+msgid "Contrast"
 msgstr ""
 
 #: ../../src/horus/util/profile.py:215 ../../src/horus/util/profile.py:227
 #: ../../src/horus/util/profile.py:250
-msgid "Contrast"
-msgstr ""
-
-#: ../../src/horus/util/profile.py:216 ../../src/horus/util/profile.py:228
-#: ../../src/horus/util/profile.py:251
 msgid "Saturation"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:217 ../../src/horus/util/profile.py:229
-#: ../../src/horus/util/profile.py:252 ../../src/horus/util/profile.py:253
+#: ../../src/horus/util/profile.py:216 ../../src/horus/util/profile.py:228
+#: ../../src/horus/util/profile.py:251 ../../src/horus/util/profile.py:252
 msgid "Exposure"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:218 ../../src/horus/util/profile.py:230
-#: ../../src/horus/util/profile.py:254
+#: ../../src/horus/util/profile.py:217 ../../src/horus/util/profile.py:229
+#: ../../src/horus/util/profile.py:253
 msgid "Framerate"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:220 ../../src/horus/util/profile.py:232
-#: ../../src/horus/util/profile.py:256
+#: ../../src/horus/util/profile.py:219 ../../src/horus/util/profile.py:231
+#: ../../src/horus/util/profile.py:255
 msgid "Use Distortion"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:222 ../../src/horus/util/profile.py:245
+#: ../../src/horus/util/profile.py:221 ../../src/horus/util/profile.py:244
 msgid "Step Degrees"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:223 ../../src/horus/util/profile.py:246
+#: ../../src/horus/util/profile.py:222 ../../src/horus/util/profile.py:245
 msgid "Feed Rate"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:224 ../../src/horus/util/profile.py:247
+#: ../../src/horus/util/profile.py:223 ../../src/horus/util/profile.py:246
 msgid "Acceleration"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:235
+#: ../../src/horus/util/profile.py:234
 msgid "Simple Scan"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:236
+#: ../../src/horus/util/profile.py:235
 msgid "Texture Scan"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:239 ../../src/horus/util/profile.py:304
+#: ../../src/horus/util/profile.py:238 ../../src/horus/util/profile.py:303
 msgid "Left"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:240 ../../src/horus/util/profile.py:305
+#: ../../src/horus/util/profile.py:239 ../../src/horus/util/profile.py:304
 msgid "Right"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:241
+#: ../../src/horus/util/profile.py:240
 msgid "Both"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:242
+#: ../../src/horus/util/profile.py:241
 msgid "Use Laser"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:243
+#: ../../src/horus/util/profile.py:242
 msgid "Fast Scan (experimental)"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:260
+#: ../../src/horus/util/profile.py:259
 msgid "Gray"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:261
+#: ../../src/horus/util/profile.py:260
 msgid "Line"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:262
+#: ../../src/horus/util/profile.py:261
 msgid "Color"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:263
+#: ../../src/horus/util/profile.py:262
 msgid "Image Type"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:265
+#: ../../src/horus/util/profile.py:264
 msgid "Use Open"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:266
+#: ../../src/horus/util/profile.py:265
 msgid "Open"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:267 ../../src/horus/util/profile.py:269
+#: ../../src/horus/util/profile.py:266 ../../src/horus/util/profile.py:268
 msgid "Use Threshold"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:268 ../../src/horus/util/profile.py:270
+#: ../../src/horus/util/profile.py:267 ../../src/horus/util/profile.py:269
 msgid "Threshold"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:272
+#: ../../src/horus/util/profile.py:271
 msgid "View ROI"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:274
+#: ../../src/horus/util/profile.py:273
 msgid "Diameter"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:275
+#: ../../src/horus/util/profile.py:274
 msgid "Height"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:277
+#: ../../src/horus/util/profile.py:276
 msgid "Choose Point Cloud Color"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:279
+#: ../../src/horus/util/profile.py:278
 msgid "Adjust Laser"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:281
+#: ../../src/horus/util/profile.py:280
 msgid "Calibration Matrix"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:282
+#: ../../src/horus/util/profile.py:281
 msgid "Distortion Vector"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:284
+#: ../../src/horus/util/profile.py:283
 msgid "Laser Threshold"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:286 ../../src/horus/util/profile.py:288
+#: ../../src/horus/util/profile.py:285 ../../src/horus/util/profile.py:287
 msgid "Distance"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:291
+#: ../../src/horus/util/profile.py:290
 msgid "Rotation Matrix"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:292
+#: ../../src/horus/util/profile.py:291
 msgid "Translation Matrix"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:294
+#: ../../src/horus/util/profile.py:293
 msgid "Pattern Rows"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:295
+#: ../../src/horus/util/profile.py:294
 msgid "Pattern Columns"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:296
+#: ../../src/horus/util/profile.py:295
 msgid "Square width"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:297
+#: ../../src/horus/util/profile.py:296
 msgid "Pattern Distance"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:298
+#: ../../src/horus/util/profile.py:297
 msgid "Extrinsics Step"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:300
+#: ../../src/horus/util/profile.py:299
 msgid "Laser Coordinates"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:301
+#: ../../src/horus/util/profile.py:300
 msgid "Laser Origin"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:302
+#: ../../src/horus/util/profile.py:301
 msgid "Laser Normal"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:306
+#: ../../src/horus/util/profile.py:305
 msgid "Move"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:307
+#: ../../src/horus/util/profile.py:306
 msgid "Enable"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:308 ../../src/horus/util/profile.py:309
+#: ../../src/horus/util/profile.py:307 ../../src/horus/util/profile.py:308
 msgid "Send"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:313
+#: ../../src/horus/util/profile.py:312
 msgid "Maximum width (mm)"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:313 ../../src/horus/util/profile.py:314
-#: ../../src/horus/util/profile.py:315
+#: ../../src/horus/util/profile.py:312 ../../src/horus/util/profile.py:313
+#: ../../src/horus/util/profile.py:314
 msgid "Size of the machine in mm"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:314
+#: ../../src/horus/util/profile.py:313
 msgid "Maximum depth (mm)"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:315
+#: ../../src/horus/util/profile.py:314
 msgid "Maximum height (mm)"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:316
+#: ../../src/horus/util/profile.py:315
 msgid "Machine center 0,0"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:316
+#: ../../src/horus/util/profile.py:315
 msgid ""
 "Machines firmware defines the center of the bed as 0,0 instead of the front "
 "left corner."
 msgstr ""
 
-#: ../../src/horus/util/profile.py:317
+#: ../../src/horus/util/profile.py:316
 msgid "Build area shape"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:317
+#: ../../src/horus/util/profile.py:316
 msgid "The shape of machine build area."
 msgstr ""
 
-#: ../../src/horus/util/profile.py:322
+#: ../../src/horus/util/profile.py:321
 msgid ""
 "Change the language in which Horus runs. Switching language requires a "
 "restart of Horus"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:324
+#: ../../src/horus/util/profile.py:323
 msgid "Control workbench"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:325
+#: ../../src/horus/util/profile.py:324
 msgid "Calibration workbench"
 msgstr ""
 
-#: ../../src/horus/util/profile.py:326
+#: ../../src/horus/util/profile.py:325
 msgid "Scanning workbench"
 msgstr ""
 

@@ -30,7 +30,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import wx._core
 
 import horus.util.error as Error
-from horus.util import resources, profile
+from horus.util import resources, profile, system as sys
 
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.sceneView import SceneView
@@ -171,6 +171,9 @@ class ScanningWorkbench(WorkbenchConnection):
 			return self.currentScan.getImage(self.driver.camera.captureImage())
 
 	def onPointCloudTimer(self, event):
+		p, r = self.currentScan.getProgress()
+		self.gauge.SetRange(r)
+		self.gauge.SetValue(p)
 		pointCloud = self.currentScan.getPointCloudIncrement()
 		if pointCloud is not None:
 			if pointCloud[0] is not None and pointCloud[1] is not None:
@@ -200,7 +203,7 @@ class ScanningWorkbench(WorkbenchConnection):
 				self.gauge.Show()
 				self.scenePanel.Layout()
 				self.Layout()
-				self.currentScan.setCallbacks(self.beforeScan, self.progressScan, lambda r: wx.CallAfter(self.afterScan,r))
+				self.currentScan.setCallbacks(self.beforeScan, lambda r: wx.CallAfter(self.afterScan,r))
 				self.currentScan.start()
 
 	def beforeScan(self):
@@ -234,20 +237,18 @@ class ScanningWorkbench(WorkbenchConnection):
 		section.disable('acceleration_scanning')
 		panel = self.controls.panels['image_acquisition']
 		section = panel.sections['camera_scanning']
-		section.disable('framerate_scanning')
-		section.disable('resolution_scanning')
+		if not sys.isDarwin():
+			section.disable('framerate_scanning')
+			section.disable('resolution_scanning')
 		self.enableRestore(False)
 		self.pointCloudTimer.Start(milliseconds=50)
-
-	def progressScan(self, progress, range=100):
-		self.gauge.SetRange(range)
-		self.gauge.SetValue(progress)
 
 	def afterScan(self, response):
 		ret, result = response
 		if ret:
 			dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _("Scanning finished!"), wx.OK|wx.ICON_INFORMATION)
 			dlg.ShowModal()
+			dlg.EndModal(wx.ID_OK)
 			dlg.Destroy()
 			self.scanning = False
 			self.onScanFinished()
@@ -296,8 +297,9 @@ class ScanningWorkbench(WorkbenchConnection):
 		section.enable('acceleration_scanning')
 		panel = self.controls.panels['image_acquisition']
 		section = panel.sections['camera_scanning']
-		section.enable('framerate_scanning')
-		section.enable('resolution_scanning')
+		if not sys.isDarwin():
+			section.enable('framerate_scanning')
+			section.enable('resolution_scanning')
 		self.enableRestore(True)
 		self.pointCloudTimer.Stop()
 		self.videoView.setMilliseconds(10)

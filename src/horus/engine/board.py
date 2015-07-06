@@ -94,25 +94,18 @@ class Board:
 			if self.serialPort.isOpen():
 				#-- Force Reset and flush
 				self._reset()
-				tries = 3
-				#-- Check Handshake
-				while tries:
-					version = self.serialPort.readline()
-					if len(version) > 20:
-						break
-					tries -= 1
-					time.sleep(0.2)
+				version = self.serialPort.readline()
 				if version == "Horus 0.1 ['$' for help]\r\n":
 					self.setSpeedMotor(1)
 					self.setAbsolutePosition(0)
-					#self.enableMotor()
+					self.serialPort.timeout = 0.05
 					print ">>> Done"
 					self.isConnected = True
 				else:
 					raise WrongFirmware()
 			else:
 				raise BoardNotConnected()
-		except serial.SerialException:
+		except:
 			print "Error opening the port {0}\n".format(self.serialName)
 			self.serialPort = None
 			raise BoardNotConnected()
@@ -171,6 +164,13 @@ class Board:
 	def setLeftLaserOff(self):
 		return self._sendCommand("M70T1")
 
+	def getLDRSensor(self, pin):
+		value = self.sendRequest("M50T"+pin, readLines=True).split("\n")[0]
+		try:
+			return int(value)
+		except ValueError:
+			return 0
+
 	def sendRequest(self, req, nonblocking=False, callback=None, readLines=False):
 		if nonblocking:
 			threading.Thread(target=self._sendRequest, args=(req, callback, readLines)).start()
@@ -179,17 +179,19 @@ class Board:
 
 	def _sendRequest(self, req, callback=None, readLines=False):
 		"""Sends the request and returns the response"""
-		ret = None
+		ret = ''
 		if self.isConnected:
 			if self.serialPort is not None and self.serialPort.isOpen():
 				try:
 					self.serialPort.flushInput()
 					self.serialPort.flushOutput()
 					self.serialPort.write(req+"\r\n")
-					if readLines:
-						ret = ''.join(self.serialPort.readlines())
-					else:
-						ret = ''.join(self.serialPort.readline())
+					while ret == '': # TODO: add timeout
+						if readLines:
+							ret = ''.join(self.serialPort.readlines())
+						else:
+							ret = ''.join(self.serialPort.readline())
+						time.sleep(0.01)
 					self._success()
 				except:
 					if callback is not None:
@@ -226,8 +228,7 @@ class Board:
 			return self._checkAcknowledge(self._sendRequest(cmd))
 
 	def _reset(self):
-		self.serialPort.setDTR(False)
-		time.sleep(0.022)
 		self.serialPort.flushInput()
 		self.serialPort.flushOutput()
-		self.serialPort.setDTR(True)
+		self.serialPort.write("\x18\r\n") # Ctrl-x
+		self.serialPort.readline()

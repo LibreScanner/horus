@@ -51,11 +51,11 @@ class WizardPage(wx.Panel):
 		self.nextButton = wx.Button(self, label=_("Next"))
 
 	def intialize(self, pages):
-		breadcrumbs = Breadcrumbs(self, pages)
+		self.breadcrumbs = Breadcrumbs(self, pages)
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		vbox.Add(breadcrumbs, 0, wx.ALL^wx.TOP|wx.EXPAND, 10)
+		vbox.Add(self.breadcrumbs, 0, wx.ALL^wx.TOP|wx.EXPAND, 10)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.panel, 1, wx.RIGHT|wx.EXPAND, 10)
 		hbox.Add(self.videoView, 0, wx.ALL, 0)

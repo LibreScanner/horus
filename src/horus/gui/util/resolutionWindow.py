@@ -58,4 +58,5 @@ class ResolutionWindow(wx.Dialog):
         self.ShowModal()
 
     def onClose(self, event):
+        self.EndModal(wx.ID_OK)
         self.Destroy()

@@ -144,6 +144,7 @@ class CalibrationPage(WizardPage):
 		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 	def beforeCalibration(self):
+		self.breadcrumbs.Disable()
 		self.calibrateButton.Disable()
 		self.cancelButton.Enable()
 		self.prevButton.Disable()
@@ -209,6 +210,7 @@ class CalibrationPage(WizardPage):
 		self.onFinishCalibration()
 
 	def onFinishCalibration(self):
+		self.breadcrumbs.Enable()
 		self.enableNext = True
 		self.gauge.Hide()
 		self.resultLabel.Show()

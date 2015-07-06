@@ -28,9 +28,8 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
 import wx._core
-import threading
 
-from horus.util.resources import *
+from horus.util import resources, system as sys
 
 class ImageView(wx.Panel):
 
@@ -40,7 +39,7 @@ class ImageView(wx.Panel):
 		self.xOffset = 0
 		self.yOffset = 0
 
-		self.defaultImage = wx.Image(getPathForImage("bq.png"))
+		self.defaultImage = wx.Image(resources.getPathForImage("nusb.png"))
 		self.image = self.defaultImage
 		self.bitmap = wx.BitmapFromImage(self.defaultImage)
 
@@ -51,20 +50,25 @@ class ImageView(wx.Panel):
 		if resize:
 			self.Bind(wx.EVT_SIZE, self.onResize)
 
+		self.hide = True
+
 	def onShow(self, event):
 		if event.GetShow():
 			self.GetParent().Layout()
 			self.Layout()
 
 	def onPaint(self, event):
-		dc = wx.PaintDC(self)
-		dc.DrawBitmap(self.bitmap, self.xOffset, self.yOffset)
+		if not self.hide:
+			dc = wx.PaintDC(self)
+			dc.DrawBitmap(self.bitmap, self.xOffset, self.yOffset)
 
 	def onResize(self, size):
 		self.refreshBitmap()
 
 	def setImage(self, image):
 		if image is not None:
+			if self.hide:
+				self.hide = False
 			self.image = image
 			self.refreshBitmap()
 
@@ -74,8 +78,7 @@ class ImageView(wx.Panel):
 	def setFrame(self, frame):
 		if frame is not None:
 			height, width = frame.shape[:2]
-			self.image = wx.ImageFromBuffer(width, height, frame)
-			self.refreshBitmap()
+			self.setImage(wx.ImageFromBuffer(width, height, frame))
 
 	def refreshBitmap(self):
 		(w, h, self.xOffset, self.yOffset) = self.getBestSize()
@@ -130,10 +133,8 @@ class VideoView(ImageView):
 
 	def play(self):
 		self.playing = True
-		if os.name == 'nt':
-			self._start()
-		else:
-			threading.Thread(target=self._start).start()
+		self.hide = True
+		self._start()
 
 	def _start(self):
 		self.timer.Start(milliseconds=self.milliseconds)
@@ -142,6 +143,6 @@ class VideoView(ImageView):
 		self.timer.Stop()
 
 	def stop(self):
-		self.playing = False
+		self.playing = True
 		self.timer.Stop()
 		self.setDefaultImage()

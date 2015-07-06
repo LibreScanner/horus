@@ -4,6 +4,8 @@
 import os
 from setuptools import setup, find_packages
 
+version = os.environ.get('VERSION')
+
 def package_data_dirs(source, sub_folders):
 	dirs = []
 
@@ -15,7 +17,7 @@ def package_data_dirs(source, sub_folders):
 	return dirs
 
 setup(name='Horus',
-      version='0.1.1.1',
+      version=version,
       author='Jesús Arroyo Torrens',
       author_email='jesus.arroyo@bq.com',
       description='Horus is a full software solution for 3D scanning',
