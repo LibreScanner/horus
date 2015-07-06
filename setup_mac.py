@@ -1,10 +1,9 @@
-#!/usr/bin/python
 # coding=utf-8
 
 import os
 from setuptools import setup
 
-version = os.environ['VERSION']
+version = os.environ.get('VERSION')
 
 APP = ['src/horus.py']
 DATA_FILES = ['doc','res']
@@ -19,10 +18,8 @@ PLIST = {
   }
 
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
     'iconfile': 'res/horus.icns',
-    'resources': DATA_FILES,
-    'optimize': '2',
     'plist': PLIST
   }
 

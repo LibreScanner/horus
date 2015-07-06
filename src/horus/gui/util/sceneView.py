@@ -416,7 +416,7 @@ class SceneView(openglGui.glGuiPanel):
 		glLoadIdentity()
 
 		glBegin(GL_QUADS)
-		glColor3f(1,1,1)
+		glColor3f(0.6,0.6,0.6)
 		glVertex3f(-1,-1,-1)
 		glVertex3f(1,-1,-1)
 		glColor3f(0,0,0)
@@ -677,6 +677,7 @@ class SceneView(openglGui.glGuiPanel):
 			glTexCoord2f(p[0]/20, p[1]/20)
 			glVertex3f(p[0], p[1], 0)
 		glEnd()
+		glDisable(GL_TEXTURE_2D)
 
 		glDepthMask(True)
 		glDisable(GL_BLEND)

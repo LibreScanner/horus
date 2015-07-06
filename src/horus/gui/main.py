@@ -57,7 +57,7 @@ class MainWindow(wx.Frame):
     size = (640+337,480+150)
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion() + " - Beta"), size=self.size)
+        super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion()), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -221,9 +221,6 @@ class MainWindow(wx.Frame):
 
         self.SetPosition((x+(w-ws)/2., y+(h-hs)/2.))
 
-        #self.Center()
-        self.Show()
-
     def onLaunchWizard(self, event):
         self.controlWorkbench.videoView.stop()
         self.calibrationWorkbench.videoView.stop()
@@ -370,7 +367,6 @@ class MainWindow(wx.Frame):
 
         prefDialog = PreferencesDialog(self)
         prefDialog.ShowModal()
-        wx.CallAfter(prefDialog.Show)
 
         self.updateDriverProfile()
         self.controlWorkbench.updateCallbacks()
@@ -480,7 +476,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         info.AddDeveloper(u'Jesús Arroyo, Irene Sanz, Jorge Robles')
         info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
-        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva')
+        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, Meike Schirmeister')
 
         wx.AboutBox(info)
 
@@ -722,7 +718,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
                         values = _winreg.EnumValue(key, i)
                     except:
                         return baselist
-                    if 'USBSER' in values[0] or 'VCP' in values[0]:
+                    if 'USBSER' in values[0] or 'VCP' in values[0] or '\Device\Serial' in values[0]:
                         baselist.append(values[1])
                     i+=1
             except:

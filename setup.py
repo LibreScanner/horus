@@ -4,7 +4,7 @@
 import os
 from setuptools import setup, find_packages
 
-version = os.environ['VERSION']
+version = os.environ.get('VERSION')
 
 def package_data_dirs(source, sub_folders):
 	dirs = []

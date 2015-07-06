@@ -16,7 +16,7 @@ BUILD_TARGET=${1:-none}
 EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
-export VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | head -1`
+export VERSION=`head -1 res/version`
 BQ_VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | tail -1`
 VEXT=${VEXT:=""}
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
@@ -100,9 +100,6 @@ rm -rf deb_dist
 rm -rf win_dist
 rm -rf dar_dist
 
-# Set version
-echo ${VERSION} >> res/version
-
 #############################
 # Debian packaging
 #############################
@@ -182,10 +179,13 @@ if [ $BUILD_TARGET = "darwin" ]; then
 
 	mkdir -p dar_dist
 
-	sed "s|\"../res\"|\"res\"|g" src/horus.py > tmp
-	mv tmp src/horus.py
+	sed -i '' 's|\"../res\"|\"res\"|g' src/horus.py
 
-	python2 setup_mac.py py2app -b dar_dist/build -d dar_dist/dist
+	python setup_mac.py py2app -b dar_dist/build -d dar_dist/dist
+
+	chmod 755 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/avrdude
+	chmod 755 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/avrdude_bin
+	chmod 755 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/lib/
 
 	pkg/darwin/create-dmg/create-dmg \
 		--volname "Horus Installer" \
@@ -197,11 +197,12 @@ if [ $BUILD_TARGET = "darwin" ]; then
 		--icon Horus.app 180 280 \
 		--hide-extension Horus.app \
 		--app-drop-link 530 275 \
-		dar_dist/Horus.dmg \
+		dar_dist/Horus_${VERSION}${VEXT}.dmg \
 		dar_dist/dist/Horus.app
 
-	sed "s|\"res\"|\"../res\"|g" src/horus.py > tmp
-	mv tmp src/horus.py
+	sed -i '' 's|\"res\"|\"../res\"|g' src/horus.py
+
+	rm -rf .eggs
 fi
 
 #############################
@@ -209,12 +210,15 @@ fi
 #############################
 
 #############################
-# Download all needed files.
+# Download all needed files
 #############################
 
-if [ $BUILD_TARGET = "win32" ]; then
-	mkdir -p win_dist
-	cd win_dist
+function downloadDependencies
+{
+	DIR=`pwd`
+	mkdir -p $WIN_DEP
+	cd $WIN_DEP
+
 	# Get portable python for windows and extract it. (Linux and Mac need to install python themselfs)
 	downloadURL http://ftp.nluug.nl/languages/python/portablepython/v2.7/PortablePython_${WIN_PORTABLE_PY_VERSION}.exe
 	downloadURL http://sourceforge.net/projects/pyserial/files/pyserial/2.7/pyserial-2.7.win32.exe
@@ -228,18 +232,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	downloadURL https://pypi.python.org/packages/source/s/six/six-1.9.0.tar.gz
 	downloadURL http://videocapture.sourceforge.net/VideoCapture-0.9-5.zip
 	mkdir -p pyglet; cd pyglet;
-	downloadURL http://pyglet.googlecode.com/files/pyglet-1.1.4.msi; cd .. 
-fi
-
-#############################
-# Build the packages
-#############################
-
-if [ $BUILD_TARGET = "win32" ]; then
-	rm -rf ${TARGET_DIR}
-	mkdir -p ${TARGET_DIR}
-
-	rm -f log.txt
+	downloadURL http://pyglet.googlecode.com/files/pyglet-1.1.4.msi; cd ..
 
 	# For windows extract portable python to include it.
 	extract PortablePython_${WIN_PORTABLE_PY_VERSION}.exe \$_OUTDIR/App
@@ -257,34 +250,58 @@ if [ $BUILD_TARGET = "win32" ]; then
 	extract six-1.9.0.tar.gz six-1.9.0/six.py
 	extract opencv-2.4.9.exe opencv/build/python/2.7/x86/cv2.pyd
 	extract VideoCapture-0.9-5.zip VideoCapture-0.9-5/Python27/DLLs/vidcap.pyd
-	cd pyglet; extract pyglet-1.1.4.msi; cd ..
+	cd pyglet; extract pyglet-1.1.4.msi
+
+	# Remove tests directories
+	find . -name tests -type d -exec rm -rf {} \;
+
+	cd $DIR
+}
+
+if [ $BUILD_TARGET = "win32" ]; then
+	mkdir -p win_dist
+	cd win_dist
+	if [ ! $EXTRA_ARGS ]; then
+		WIN_DEP=/tmp/win_dep
+	else
+		WIN_DEP=$EXTRA_ARGS
+	fi
+	if [ ! -d $WIN_DEP ]; then
+		downloadDependencies
+	fi
+fi
+
+#############################
+# Build the packages
+#############################
+
+if [ $BUILD_TARGET = "win32" ]; then
+	rm -rf ${TARGET_DIR}
+	mkdir -p ${TARGET_DIR}
+	
+	rm -f log.txt
 
 	mkdir -p ${TARGET_DIR}/python
-	mv \$_OUTDIR/App/* ${TARGET_DIR}/python
-	mv \$_OUTDIR/Lib/site-packages/wx* ${TARGET_DIR}/python/Lib/site-packages
-	mv \$_OUTDIR/dateutil ${TARGET_DIR}/python/Lib
-	mv PURELIB/serial ${TARGET_DIR}/python/Lib
-	mv PURELIB/comtypes ${TARGET_DIR}/python/Lib
-	mv PURELIB/OpenGL ${TARGET_DIR}/python/Lib
-	mv PURELIB/pyparsing.py  ${TARGET_DIR}/python/Lib
-	mv PLATLIB/numpy ${TARGET_DIR}/python/Lib
-	mv PLATLIB/scipy ${TARGET_DIR}/python/Lib
-	mv PLATLIB/matplotlib ${TARGET_DIR}/python/Lib
-	touch PLATLIB/mpl_toolkits/__init__.py
-	mv PLATLIB/mpl_toolkits ${TARGET_DIR}/python/Lib
-	mv six-1.9.0/six.py ${TARGET_DIR}/python/Lib
-	mv opencv/build/python/2.7/x86/cv2.pyd ${TARGET_DIR}/python/DLLs
-	mv VideoCapture-0.9-5/Python27/DLLs/vidcap.pyd ${TARGET_DIR}/python/DLLs
-	mv pyglet ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/\$_OUTDIR/App/* ${TARGET_DIR}/python
+	cp -rf $WIN_DEP/\$_OUTDIR/Lib/site-packages/wx* ${TARGET_DIR}/python/Lib/site-packages
+	cp -rf $WIN_DEP/\$_OUTDIR/dateutil ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/PURELIB/serial ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/PURELIB/comtypes ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/PURELIB/OpenGL ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/PURELIB/pyparsing.py  ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/PLATLIB/numpy ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/PLATLIB/scipy ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/PLATLIB/matplotlib ${TARGET_DIR}/python/Lib
+	touch $WIN_DEP/PLATLIB/mpl_toolkits/__init__.py
+	cp -rf $WIN_DEP/PLATLIB/mpl_toolkits ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/six-1.9.0/six.py ${TARGET_DIR}/python/Lib
+	cp -rf $WIN_DEP/opencv/build/python/2.7/x86/cv2.pyd ${TARGET_DIR}/python/DLLs
+	cp -rf $WIN_DEP/VideoCapture-0.9-5/Python27/DLLs/vidcap.pyd ${TARGET_DIR}/python/DLLs
+	cp -rf $WIN_DEP/pyglet ${TARGET_DIR}/python/Lib
 	
-	rm -rf \$_OUTDIR
-	rm -rf opencv
-	rm -rf PURELIB
-	rm -rf PLATLIB
-	rm -rf six-1.9.0
-	rm -rf VideoCapture-0.9-5
-	rm -rf Win32
-	rm -rf pyglet
+	#if [ ! $EXTRA_ARGS ]; then
+	#	rm -rf $WIN_DEP
+	#fi
 
 	# Clean up portable python a bit, to keep the package size down.
 	rm -rf ${TARGET_DIR}/python/PyScripter.*

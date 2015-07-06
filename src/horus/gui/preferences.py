@@ -28,10 +28,9 @@ __author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
 import wx._core
-import select
 import threading
 
-from horus.util import profile, resources, system as sys
+from horus.util import profile, resources
 from horus.util.avrHelpers import AvrDude
 
 
@@ -62,7 +61,7 @@ class PreferencesDialog(wx.Dialog):
 		self.hexCombo = wx.ComboBox(self, choices=[_("Default"), _("External file...")], value=_("Default") , size=(172,-1), style=wx.CB_READONLY)
 		self.clearCheckBox = wx.CheckBox(self, label=_("Clear EEPROM"))
 		self.uploadFirmwareButton = wx.Button(self, label=_("Upload Firmware"))
-		self.gauge = wx.Gauge(self, range=100, size=(180, 30))
+		self.gauge = wx.Gauge(self, range=100, size=(180, -1))
 		self.gauge.Hide()
 
 		self.languageLabel = wx.StaticText(self, label=_("Language"))
@@ -168,14 +167,14 @@ class PreferencesDialog(wx.Dialog):
 		self.hexPath = None
 
 		self.SetSizer(vbox)
-		self.Centre()
 
+		self.Centre()
+		self.Layout()
 		self.Fit()
 
 	def onClose(self, event):
 		self.EndModal(wx.ID_OK)
 		self.Destroy()
-	
 
 	def onSerialNameComboChanged(self, event):
 		if len(self.serialNameCombo.GetValue()):
@@ -202,6 +201,8 @@ class PreferencesDialog(wx.Dialog):
 			if dlg.ShowModal() == wx.ID_OK:
 				self.hexPath = dlg.GetPath()
 				self.hexCombo.SetValue(dlg.GetFilename())
+			else:
+				self.hexCombo.SetValue(_("Default"))
 			dlg.Destroy()
 
 	def onUploadFirmware(self, event):
@@ -222,22 +223,16 @@ class PreferencesDialog(wx.Dialog):
 		extraFlags = []
 		if clearEEPROM:
 			extraFlags = ["-D"]
-		proc = avr_dude.flash(extraFlags=extraFlags, hexPath=self.hexPath) #TODO: fails if change board
-		count = -50
-		while count < 100:
-			if proc:
-				readx = select.select([proc.stderr.fileno()], [], [])[0]
-				if readx:
-					out = proc.stderr.read()
-					if 'not in sync' in out or 'Invalid' in out:
-						wx.CallAfter(self.wrongBoardMessage)
-						break
-					count += out.count('#')
-					if count >= 0:
-						self.gauge.SetValue(count)
-				else:
-					break
+		self.count = -50
+		out = avr_dude.flash(extraFlags=extraFlags, hexPath=self.hexPath, callback=self.incrementProgress)
+		if 'not in sync' in out or 'Invalid' in out:
+			wx.CallAfter(self.wrongBoardMessage)
 		wx.CallAfter(self.afterLoadFirmware)
+
+	def incrementProgress(self):
+		self.count += 1
+		if self.count >= 0:
+			wx.CallAfter(self.gauge.SetValue,self.count)
 
 	def wrongBoardMessage(self):
 		dlg = wx.MessageDialog(self, _("Probably you have selected the wrong board. Select other Board"), 'Wrong Board', wx.OK|wx.ICON_ERROR)
@@ -249,24 +244,21 @@ class PreferencesDialog(wx.Dialog):
 		self.clearCheckBox.Disable()
 		self.boardsCombo.Disable()
 		self.okButton.Disable()
-		if not sys.isWindows():
-			self.gauge.SetValue(0)
-			self.gauge.Show()
+		self.gauge.SetValue(0)
+		self.gauge.Show()
 		self.waitCursor = wx.BusyCursor()
-		self.Centre()
-		self.Fit()
 		self.Layout()
+		self.Fit()
 
 	def afterLoadFirmware(self):
 		self.uploadFirmwareButton.Enable()
 		self.clearCheckBox.Enable()
 		self.boardsCombo.Enable()
 		self.okButton.Enable()
-		if not sys.isWindows():
-			self.gauge.Hide()
+		self.gauge.Hide()
 		del self.waitCursor
-		self.Fit()
 		self.Layout()
+		self.Fit()
 
 	def onLanguageComboChanged(self, event):
 		if profile.getPreference('language') is not self.languageCombo.GetValue():

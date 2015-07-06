@@ -31,13 +31,11 @@
 
 import os
 import system as sys
-if not sys.isWindows():
-    import fcntl
 import resources
-from subprocess import Popen, PIPE, CalledProcessError
+from subprocess import Popen, PIPE, STDOUT
 
 from pathHelpers import path
-from serialDevice import SerialDevice, ConnectionError
+from serialDevice import SerialDevice
 
 class FirmwareError(Exception):
     pass
@@ -49,7 +47,9 @@ class AvrDude(SerialDevice):
         self.baudRate = baudRate
 
         if sys.isWindows():
-        	self.avrdude = path(resources.getPathForToolsWindows("avrdude.exe")).abspath()
+        	self.avrdude = path(resources.getPathForTools("avrdude.exe")).abspath()
+        elif sys.isDarwin():
+            self.avrdude = path(resources.getPathForTools("avrdude")).abspath()
         else:
             self.avrdude = 'avrdude'
         
@@ -63,24 +63,26 @@ class AvrDude(SerialDevice):
         
         if port:
             self.port = port
-            #print 'avrdude set to connect on port: %s' % self.port
         else:
             self.port = self.get_port(baudRate)
-	    #print 'avrdude successfully connected on port: %s' % self.port
 
-    def _runCommand(self, flags):
+    def _runCommand(self, flags, callback=None):
         config = dict(avrdude=self.avrdude, avrconf=self.avrconf)
         cmd = ['%(avrdude)s'] + flags
         cmd = [v % config for v in cmd]
-        if sys.isWindows():
-            p = Popen(cmd, stderr=PIPE)
-        else:
-            p = Popen(cmd, stderr=PIPE, close_fds=True)
-            fcntl.fcntl(p.stderr.fileno(), fcntl.F_SETFL, fcntl.fcntl(p.stderr.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK)
+        p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+        out = ''
+        while True:
+            char = p.stdout.read(1)
+            if not char:
+                break
+            out += char
+            if char == '#':
+                if callback is not None:
+                    callback()
+        return out
 
-        return p
-
-    def flash(self, hexPath=None, extraFlags=None):
+    def flash(self, hexPath=None, extraFlags=None, callback=None):
         if hexPath is None:
             hexPath = resources.getPathForFirmware("horus-fw.hex")
         hexPath = path(hexPath)
@@ -92,7 +94,7 @@ class AvrDude(SerialDevice):
         try:
             cwd = os.getcwd()
             os.chdir(hexPath.parent)
-            p = self._runCommand(flags)
+            out = self._runCommand(flags, callback)
         finally:
             os.chdir(cwd)
-        return p
+        return out
