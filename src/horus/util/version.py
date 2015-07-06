@@ -80,7 +80,7 @@ def _getExecutableUrl(version):
         url += "Horus_"
         url += version+".exe"
     elif sys.isDarwin():
-        url = "storage.googleapis.com/bq-horus/releases/"
+        url = "https://storage.googleapis.com/bq-horus/releases/"
         url += "Horus_"
         url += version+".dmg"
     del platform

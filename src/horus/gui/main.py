@@ -221,9 +221,6 @@ class MainWindow(wx.Frame):
 
         self.SetPosition((x+(w-ws)/2., y+(h-hs)/2.))
 
-        #self.Center()
-        self.Show()
-
     def onLaunchWizard(self, event):
         self.controlWorkbench.videoView.stop()
         self.calibrationWorkbench.videoView.stop()
