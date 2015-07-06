@@ -57,7 +57,7 @@ class MainWindow(wx.Frame):
     size = (640+337,480+150)
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion() + " - Beta"), size=self.size)
+        super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion()), size=self.size)
 
         self.SetMinSize((600, 450))
 
