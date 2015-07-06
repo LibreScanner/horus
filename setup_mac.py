@@ -18,7 +18,7 @@ PLIST = {
   }
 
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
     'iconfile': 'res/horus.icns',
     'plist': PLIST
   }
