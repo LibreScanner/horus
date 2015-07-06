@@ -78,12 +78,13 @@ class HorusApp(wx.App):
 		if sys.isDarwin():
 			wx.CallAfter(self.StupidMacOSWorkaround)
 
-		self.GetTopWindow().Raise()
-
 	def __del__(self):
 		#-- Save Profile and Preferences
 		profile.savePreferences(os.path.join(self.basePath, 'preferences.ini'))
 		profile.saveProfile(os.path.join(self.basePath, 'current-profile.ini'))
+
+	def MacReopenApp(self):
+		self.GetTopWindow().Raise()
 
 	def OnActivate(self, e):
 		if e.GetActive():
