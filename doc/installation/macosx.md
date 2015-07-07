@@ -3,7 +3,7 @@
 [return to Home](../../README.md)
 
 Download dmg file:
-* Horus installer
+* [Horus installer](http://storage.googleapis.com/bq-horus/releases/Horus_0.1.2.dmg)
 
 Execute the installer and drag Horus icon into *Applications*
 

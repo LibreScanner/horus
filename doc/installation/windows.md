@@ -6,7 +6,7 @@ First install USB Camera drivers:
 * [Logitech Camera C270 Drivers](http://support.logitech.com/en_us/product/hd-webcam-c270)
 
 Then, download executable file:
-* [Horus installer](http://storage.googleapis.com/bq-horus/releases/Horus_0.1.1.exe)
+* [Horus installer](http://storage.googleapis.com/bq-horus/releases/Horus_0.1.2.exe)
 
 Execute the installer and follow the wizard
 
