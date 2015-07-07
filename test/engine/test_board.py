@@ -16,3 +16,6 @@ class BoardTest(unittest.TestCase):
 
 	def test_serial_name(self):
 		self.assertEqual(self.board.serialName, '/dev/ttyUSB0')
+
+	def test_baud_rate(self):
+		self.assertEqual(self.board.baudRate, 115200)
