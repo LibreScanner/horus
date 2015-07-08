@@ -43,8 +43,6 @@ class HorusApp(wx.App):
 
 		self.basePath = profile.getBasePath()
 
-		self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
-
 		if sys.isDarwin():
 			self.afterSplashCallback()
 		else:
@@ -86,11 +84,6 @@ class HorusApp(wx.App):
 	def MacReopenApp(self):
 		self.GetTopWindow().Raise()
 
-	def OnActivate(self, e):
-		if e.GetActive():
-			self.GetTopWindow().Raise()
-		e.Skip()
-
 	def StupidMacOSWorkaround(self):
 		"""
 		On MacOS for some magical reason opening new frames does not work until you opened a new modal dialog and closed it.
@@ -124,8 +117,3 @@ if sys.isDarwin(): #Mac magic. Dragons live here. This sets full screen options.
 else:
 	def setFullScreenCapable(frame):
 		pass
-
-
-
-
-
