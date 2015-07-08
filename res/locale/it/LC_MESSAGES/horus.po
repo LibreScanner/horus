@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-06-16 13:46+0200\n"
-"PO-Revision-Date: 2015-07-08 17:36+0100\n"
+"PO-Revision-Date: 2015-07-08 18:05+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: it_IT\n"
@@ -287,7 +287,9 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:205
 msgid "Image Segmentation"
-msgstr "Segmentazione Immagine"
+msgstr ""
+"Segmentazione\n"
+"immagine"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:214
 #: ../../src/horus/gui/workbench/scanning/panels.py:219
@@ -310,7 +312,9 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:238
 msgid "Point Cloud Generation"
-msgstr "Generazione di nuvola di punti"
+msgstr ""
+"Generazione di nuvola\n"
+"di punti"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:247
 msgid ""
