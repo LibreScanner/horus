@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-06-16 13:46+0200\n"
-"PO-Revision-Date: 2015-06-23 00:05+0100\n"
+"PO-Revision-Date: 2015-07-08 18:05+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: it_IT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.1\n"
+"X-Generator: Poedit 1.5.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../../src/horus/gui/preferences.py:40 ../../src/horus/gui/main.py:124
@@ -287,7 +287,9 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:205
 msgid "Image Segmentation"
-msgstr "Segmentazione Immagine"
+msgstr ""
+"Segmentazione\n"
+"immagine"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:214
 #: ../../src/horus/gui/workbench/scanning/panels.py:219
@@ -310,7 +312,9 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:238
 msgid "Point Cloud Generation"
-msgstr "Generazione di nuvola di punti"
+msgstr ""
+"Generazione di nuvola\n"
+"di punti"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:247
 msgid ""
@@ -1030,8 +1034,7 @@ msgstr "Regolazione laser manuale"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:219
 msgid "Please check motor direction and pattern position and try again"
-msgstr ""
-"Controllare la direzione del motore e la posizione del modello e riprovare"
+msgstr "Controlla il verso del motore, la posizione del pattern e riprova"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:286
 msgid "Settings"

@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-06-16 13:53+0200\n"
-"PO-Revision-Date: 2015-07-01 16:05+0100\n"
+"PO-Revision-Date: 2015-07-08 18:07+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: en\n"
@@ -283,7 +283,9 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:205
 msgid "Image Segmentation"
-msgstr "Segmentação da imagem"
+msgstr ""
+"Segmentação\n"
+"da imagem"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:214
 #: ../../src/horus/gui/workbench/scanning/panels.py:219
@@ -305,7 +307,9 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:238
 msgid "Point Cloud Generation"
-msgstr "Geração da nuvem de pontos"
+msgstr ""
+"Geração da nuvem\n"
+"de pontos"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:247
 msgid ""
@@ -1022,7 +1026,7 @@ msgstr "Ajuste manual dos lasers"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:219
 msgid "Please check motor direction and pattern position and try again"
-msgstr "Verifique a direção do motor e a posição do padrão e tente novamente."
+msgstr "Verifique a direção do motor e a posição do padrão e tente de novo"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:286
 msgid "Settings"
