@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-06-16 13:53+0200\n"
-"PO-Revision-Date: 2015-07-01 16:05+0100\n"
+"PO-Revision-Date: 2015-07-08 17:59+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: en\n"
@@ -1022,7 +1022,7 @@ msgstr "Ajuste manual dos lasers"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:219
 msgid "Please check motor direction and pattern position and try again"
-msgstr "Verifique a direção do motor e a posição do padrão e tente novamente."
+msgstr "Verifique a direção do motor e a posição do padrão e tente de novo"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:286
 msgid "Settings"
