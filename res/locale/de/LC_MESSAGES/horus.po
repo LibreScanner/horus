@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
 "POT-Creation-Date: 2015-06-16 13:50+0200\n"
-"PO-Revision-Date: 2015-07-01 15:59+0100\n"
+"PO-Revision-Date: 2015-07-08 17:55+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
 "Language: en\n"
@@ -1038,9 +1038,7 @@ msgstr "Manuelle Lasereinstellung"
 
 #: ../../src/horus/gui/wizard/connectionPage.py:219
 msgid "Please check motor direction and pattern position and try again"
-msgstr ""
-"Bitte überprüfe die Drehrichtung des Motors und die Musterposition, und "
-"versuche es dann erneut."
+msgstr "Überprüfe die Motorrichtung und die Musterpos und versuche es erneut."
 
 #: ../../src/horus/gui/wizard/connectionPage.py:286
 msgid "Settings"
