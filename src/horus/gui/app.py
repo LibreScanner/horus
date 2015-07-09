@@ -56,14 +56,16 @@ class HorusApp(wx.App):
 		#-- Load Language
 		resources.setupLocalization(profile.getPreference('language'))
 
+		#-- Create Main Window
+		self.mainWindow = MainWindow()
+
 		#-- Check for updates
 		if profile.getPreferenceBool('check_for_updates') and version.checkForUpdates():
-			v = VersionWindow(None)
+			v = VersionWindow(self.mainWindow)
 			if v.download:
 				return
 
-		#-- Create Main Window
-		self.mainWindow = MainWindow()
+		#-- Show Main Window
 		self.SetTopWindow(self.mainWindow)
 		self.mainWindow.Show()
 		
