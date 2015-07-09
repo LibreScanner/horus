@@ -47,7 +47,7 @@ class VersionWindow(wx.Dialog):
         #-- Events
         self.downloadButton.Bind(wx.EVT_BUTTON, self.onDownloadButton)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
-        self.Bind(wx.EVT_CLOSE, self.Destroy)
+        self.Bind(wx.EVT_CLOSE, self.onCancelButton)
 
         #-- Layout
         vbox = wx.BoxSizer(wx.VERTICAL)

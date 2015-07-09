@@ -180,7 +180,7 @@ class Board:
 	def _sendRequest(self, req, callback=None, readLines=False):
 		"""Sends the request and returns the response"""
 		ret = ''
-		if self.isConnected:
+		if self.isConnected and req != '':
 			if self.serialPort is not None and self.serialPort.isOpen():
 				try:
 					self.serialPort.flushInput()

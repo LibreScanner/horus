@@ -21,4 +21,3 @@ pkg/win32/dist*
 deb_dist/*
 win_dist/*
 dar_dist/*
-test/*

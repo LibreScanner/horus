@@ -16,9 +16,10 @@ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/
 
 #### Sublime Text 3 IDE
 ```bash
-brew tap caskroom/versions
+brew tap caskroom/cask
 brew install brew-cask
 brew cask install sublime-text3
+brew update && brew upgrade brew-cask && brew cleanup
 ```
 
 #### Git version control

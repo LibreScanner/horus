@@ -1,0 +1,17 @@
+language: python
+
+python:
+  - "2.7"
+
+notifications:
+  email: false
+
+virtualenv:
+  system_site_packages: true
+
+before_script:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y python-serial python-wxgtk2.8 python-opengl python-pyglet python-numpy python-scipy python-matplotlib python-opencv avrdude v4l-utils
+
+script:
+  - nosetests test

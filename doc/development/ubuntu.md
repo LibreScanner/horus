@@ -88,6 +88,20 @@ In the project directory, execute the command:
 python src/horus.py
 ```
 
+### Unit testing
+
+To run the tests install nose:
+
+```bash
+sudo -H pip install -U nose
+```
+
+And execute:
+
+```bash
+nosetests test
+```
+
 ## 4. Build packages
 
 Horus development comes with a script *package.sh*. This script generates a final release package. You should not need it during development, unless you are changing the release process. If you want to distribute your own version of Horus, then the *package.sh* script will allow you to do that.
