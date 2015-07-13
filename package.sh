@@ -227,7 +227,7 @@ function downloadDependencies
 	downloadURL http://pypi.python.org/packages/any/p/pyparsing/pyparsing-2.0.1.win32-py2.7.exe
 	downloadURL http://sourceforge.net/projects/numpy/files/NumPy/1.8.1/numpy-1.8.1-win32-superpack-python2.7.exe
 	downloadURL http://sourceforge.net/projects/opencvlibrary/files/opencv-win/2.4.9/opencv-2.4.9.exe
-	downloadURL http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.4.0/matplotlib-1.4.0.win32-py2.7.exe
+	downloadURL http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.4.3/windows/matplotlib-1.4.3.win32-py2.7.exe
 	downloadURL http://sourceforge.net/projects/scipy/files/scipy/0.14.0/scipy-0.14.0-win32-superpack-python2.7.exe
 	downloadURL https://pypi.python.org/packages/source/s/six/six-1.9.0.tar.gz
 	downloadURL http://videocapture.sourceforge.net/VideoCapture-0.9-5.zip
@@ -246,7 +246,7 @@ function downloadDependencies
 	extract numpy-1.8.1-sse2.exe PLATLIB
 	extract scipy-0.14.0-win32-superpack-python2.7.exe scipy-0.14.0-sse2.exe
 	extract scipy-0.14.0-sse2.exe PLATLIB
-	extract matplotlib-1.4.0.win32-py2.7.exe PLATLIB
+	extract matplotlib-1.4.3.win32-py2.7.exe PLATLIB
 	extract six-1.9.0.tar.gz six-1.9.0/six.py
 	extract opencv-2.4.9.exe opencv/build/python/2.7/x86/cv2.pyd
 	extract VideoCapture-0.9-5.zip VideoCapture-0.9-5/Python27/DLLs/vidcap.pyd
