@@ -18,7 +18,7 @@ More interest links are shown below:
 
 ## Installation
 
-###### Last stable version: 0.1.2.2
+###### Last stable version: 0.1.2.3
 
 #### Supported versions
 
