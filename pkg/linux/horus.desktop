@@ -1,10 +1,9 @@
 [Desktop Entry]
 Type=Application
 Name=Horus
-Comment=Horus
-Icon=/usr/lib/python2.7/dist-packages/horus/res/horus.ico
-Exec=/usr/bin/python /usr/lib/python2.7/dist-packages/horus/src/horus.py
-Path=/usr/lib/python2.7/dist-packages/horus/
+Comment=3D Scanning Application
+Icon=/usr/share/horus/horus.ico
+Exec=horus
 StartupNotify=true
 Terminal=false
-Categories=GNOME;GTK;Utility;
+Categories=GNOME;GTK;Utility;Graphics;
