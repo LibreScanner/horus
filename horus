@@ -41,8 +41,20 @@ except ImportError as e:
     print e.message
     exit(1)
 
-from horus.util import resources
-resources.setBasePath(os.path.join(os.path.dirname(__file__), "/usr/share/horus"))
+try:
+    from horus.util import resources
+except ImportError:
+    # we are in the sources
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+    from horus.util import resources
+
+
+resdir = os.path.join(os.path.dirname(__file__), "res")
+if not os.path.exists(resdir):
+    resdir = "/usr/share/horus"
+
+resources.setBasePath(resdir)
 
 from horus.gui import app
 
