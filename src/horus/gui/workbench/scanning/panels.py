@@ -117,18 +117,18 @@ class RotativePlatform(ExpandablePanel):
         section.updateCallback('acceleration_scanning', self.setAcceleration)
 
     def setDegrees(self, value):
-        self.driver.board.setRelativePosition(self.getValueFloat(value))
+        self.driver.board.motor_relative(self.getValueFloat(value))
         self.pcg.setDegrees(self.getValueFloat(value))
 
     def setFeedRate(self, value):
-        self.driver.board.setSpeedMotor(self.getValueInteger(value))
-        self.simpleScan.setSpeedMotor(self.getValueInteger(value))
-        self.textureScan.setSpeedMotor(self.getValueInteger(value))
+        self.driver.board.motor_speed(self.getValueInteger(value))
+        self.simpleScan.motor_speed(self.getValueInteger(value))
+        self.textureScan.motor_speed(self.getValueInteger(value))
 
     def setAcceleration(self, value):
-        self.driver.board.setAccelerationMotor(self.getValueInteger(value))
-        self.simpleScan.setAccelerationMotor(self.getValueInteger(value))
-        self.textureScan.setAccelerationMotor(self.getValueInteger(value))
+        self.driver.board.motor_acceleration(self.getValueInteger(value))
+        self.simpleScan.motor_acceleration(self.getValueInteger(value))
+        self.textureScan.motor_acceleration(self.getValueInteger(value))
 
     #TODO: move
     def getValueInteger(self, value):

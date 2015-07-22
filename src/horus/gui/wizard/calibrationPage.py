@@ -132,7 +132,7 @@ class CalibrationPage(WizardPage):
 	def onCancelButtonClicked(self, event):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
+		self.driver.board.unplug_callback = None
 		self.driver.camera.setUnplugCallback(None)
 		self.phase = 'none'
 		self.resultLabel.SetLabel(_("Calibration canceled. To try again press \"Calibrate\""))
@@ -140,7 +140,7 @@ class CalibrationPage(WizardPage):
 		self.laserTriangulation.cancel()
 		self.skipButton.Enable()
 		self.onFinishCalibration()
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.board.unplug_callback= boardUnplugCallback
 		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 	def beforeCalibration(self):
@@ -231,8 +231,8 @@ class CalibrationPage(WizardPage):
 			self.videoView.play()
 			self.calibrateButton.Enable()
 			self.skipButton.Enable()
-			self.driver.board.setLeftLaserOff()
-			self.driver.board.setRightLaserOff()
+			self.driver.board.left_laser_off()
+			self.driver.board.right_laser_off()
 		else:
 			self.videoView.stop()
 			self.gauge.SetValue(0)

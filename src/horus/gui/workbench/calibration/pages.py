@@ -180,7 +180,7 @@ class CameraIntrinsicsMainPage(Page):
 	def onCancel(self):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
+		self.driver.board.unplug_callback = None
 		self.driver.camera.setUnplugCallback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
@@ -189,7 +189,7 @@ class CameraIntrinsicsMainPage(Page):
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.board.unplug_callback = boardUnplugCallback
 		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
@@ -421,7 +421,7 @@ class LaserTriangulationMainPage(Page):
 	def onCancel(self):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
+		self.driver.board.unplug_callback = None
 		self.driver.camera.setUnplugCallback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
@@ -430,7 +430,7 @@ class LaserTriangulationMainPage(Page):
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.board.unplug_callback = boardUnplugCallback
 		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
@@ -649,7 +649,7 @@ class SimpleLaserTriangulationMainPage(Page):
 	def onCancel(self):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
+		self.driver.board.unplug_callback = None
 		self.driver.camera.setUnplugCallback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
@@ -658,7 +658,7 @@ class SimpleLaserTriangulationMainPage(Page):
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.board.unplug_callback = boardUnplugCallback
 		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 
@@ -847,7 +847,7 @@ class PlatformExtrinsicsMainPage(Page):
 	def onCancel(self):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
+		self.driver.board.unplug_callback = None
 		self.driver.camera.setUnplugCallback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
@@ -856,7 +856,7 @@ class PlatformExtrinsicsMainPage(Page):
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
+		self.driver.board.unplug_callback = boardUnplugCallback
 		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
 
 

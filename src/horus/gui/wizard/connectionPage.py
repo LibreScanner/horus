@@ -134,7 +134,7 @@ class ConnectionPage(WizardPage):
         self.connectButton.Disable()
         self.prevButton.Disable()
         self.videoView.stop()
-        self.driver.board.setUnplugCallback(None)
+        self.driver.board.unplug_callback = None
         self.driver.camera.setUnplugCallback(None)
         self.waitCursor = wx.BusyCursor()
 
@@ -182,8 +182,8 @@ class ConnectionPage(WizardPage):
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
-                self.driver.board.setLeftLaserOn()
-                self.driver.board.setRightLaserOn()
+                self.driver.board.left_laser_on()
+                self.driver.board.right_laser_on()
         else:
             self.beforeAutoCheck()
 
@@ -228,10 +228,10 @@ class ConnectionPage(WizardPage):
         self.videoView.setMilliseconds(20)
         self.videoView.setCallback(self.getFrame)
 
-        self.driver.board.setSpeedMotor(150)
-        self.driver.board.setRelativePosition(-90)
-        self.driver.board.enableMotor()
-        self.driver.board.moveMotor(nonblocking=True, callback=(lambda r: wx.CallAfter(self.afterMoveMotor)))
+        self.driver.board.motor_speed(150)
+        self.driver.board.motor_relative(-90)
+        self.driver.board.motor_enable()
+        self.driver.board.motor_move(nonblocking=True, callback=(lambda r: wx.CallAfter(self.afterMoveMotor)))
 
     def afterMoveMotor(self):
         self.videoView.setMilliseconds(50)
@@ -243,7 +243,7 @@ class ConnectionPage(WizardPage):
         self.resultLabel.Show()
         self.autoCheckButton.Enable()
         self.prevButton.Enable()
-        self.driver.board.disableMotor()
+        self.driver.board.motor_disable()
         self.gauge.Hide()
         if hasattr(self, 'waitCursor'):
             del self.waitCursor
@@ -253,7 +253,7 @@ class ConnectionPage(WizardPage):
 
     def updateStatus(self, status):
         if status:
-            self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.parent.onBoardUnplugged))
+            self.driver.board.unplug_callback = (lambda: wx.CallAfter(self.parent.onBoardUnplugged))
             self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.parent.onCameraUnplugged))
             #if profile.getPreference('workbench') != 'Calibration workbench':
             profile.putPreference('workbench', 'Calibration workbench')
@@ -265,8 +265,8 @@ class ConnectionPage(WizardPage):
             self.imageView.Enable()
             self.skipButton.Enable()
             self.enableNext = True
-            self.driver.board.setLeftLaserOff()
-            self.driver.board.setRightLaserOff()
+            self.driver.board.left_laser_off()
+            self.driver.board.right_laser_off()
         else:
             self.videoView.stop()
             self.gauge.SetValue(0)

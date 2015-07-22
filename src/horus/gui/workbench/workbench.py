@@ -116,7 +116,7 @@ class WorkbenchConnection(Workbench):
 		self.combo.Disable()
 		for i in xrange(self.GetParent().menuBar.GetMenuCount()):
 			self.GetParent().menuBar.EnableTop(i, False)
-		self.driver.board.setUnplugCallback(None)
+		self.driver.board.unplug_callback = None
 		self.driver.camera.setUnplugCallback(None)
 		self.waitCursor = wx.BusyCursor()
 
@@ -168,12 +168,12 @@ class WorkbenchConnection(Workbench):
 		if status:
 			self.enableLabelTool(self.connectTool   , False)
 			self.enableLabelTool(self.disconnectTool, True)
-			self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
+			self.driver.board.unplug_callback = (lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
 			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
 		else:
 			self.enableLabelTool(self.connectTool   , True)
 			self.enableLabelTool(self.disconnectTool, False)
-			self.driver.board.setUnplugCallback(None)
+			self.driver.board.unplug_callback = None
 			self.driver.camera.setUnplugCallback(None)
 
 	def updateToolbarStatus(self, status):

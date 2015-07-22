@@ -123,10 +123,10 @@ class Scan:
 	def setFastScan(self, value):
 		self.fastScan = value
 
-	def setSpeedMotor(self, value):
+	def motor_speed(self, value):
 		self.speedMotor = value
 
-	def setAccelerationMotor(self, value):
+	def motor_acceleration(self, value):
 		self.accelerationMotor = value
 
 	def setImageType(self, imgType):
@@ -208,15 +208,15 @@ class Scan:
 
 		#-- Setup board
 		if self.moveMotor:
-			self.driver.board.enableMotor()
-			self.driver.board.setSpeedMotor(self.speedMotor)
-			self.driver.board.setAccelerationMotor(self.setAccelerationMotor)
+			self.driver.board.motor_enable()
+			self.driver.board.motor_speed(self.speedMotor)
+			self.driver.board.motor_acceleration(self.accelerationMotor)
 			time.sleep(0.2)
 		else:
-			self.driver.board.disableMotor()
+			self.driver.board.motor_disable()
 
-		self.driver.board.setLeftLaserOff()
-		self.driver.board.setRightLaserOff()
+		self.driver.board.left_laser_off()
+		self.driver.board.right_laser_off()
 
 		#-- Setup camera
 		self.driver.camera.captureImage()
@@ -334,14 +334,14 @@ class SimpleScan(Scan):
 			flush_single = 0
 
 		#-- Switch off the lasers
-		self.driver.board.setLeftLaserOff()
-		self.driver.board.setRightLaserOff()
+		self.driver.board.left_laser_off()
+		self.driver.board.right_laser_off()
 
 		if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-			self.driver.board.setLeftLaserOn()
+			self.driver.board.left_laser_on()
 
 		if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-			self.driver.board.setRightLaserOn()
+			self.driver.board.right_laser_on()
 
 		while self.runCapture:
 			if not self.inactive:
@@ -358,12 +358,12 @@ class SimpleScan(Scan):
 
 					##-- Both laser
 					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						self.driver.board.setLeftLaserOn()
-						self.driver.board.setRightLaserOff()
+						self.driver.board.left_laser_on()
+						self.driver.board.right_laser_off()
 						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
 
-						self.driver.board.setRightLaserOn()
-						self.driver.board.setLeftLaserOff()
+						self.driver.board.right_laser_on()
+						self.driver.board.left_laser_off()
 						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
 					
 					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
@@ -371,8 +371,8 @@ class SimpleScan(Scan):
 
 					#-- Move motor
 					if self.moveMotor:
-						self.driver.board.setRelativePosition(self.pcg.degrees)
-						self.driver.board.moveMotor()
+						self.driver.board.motor_relative(self.pcg.degrees)
+						self.driver.board.motor_move()
 					else:
 						time.sleep(0.05)
 
@@ -400,9 +400,9 @@ class SimpleScan(Scan):
 				time.sleep(0.1)
 
 		#-- Disable board
-		self.driver.board.setLeftLaserOff()
-		self.driver.board.setRightLaserOff()
-		self.driver.board.disableMotor()
+		self.driver.board.left_laser_off()
+		self.driver.board.right_laser_off()
+		self.driver.board.motor_disable()
 
 	def setColor(self, value):
 		self.color = value
@@ -465,8 +465,8 @@ class TextureScan(Scan):
 		imgLaserRight = None
 
 		#-- Switch off the lasers
-		self.driver.board.setLeftLaserOff()
-		self.driver.board.setRightLaserOff()
+		self.driver.board.left_laser_off()
+		self.driver.board.right_laser_off()
 
 		if sys.isWindows() or sys.isDarwin():
 			flush = 3
@@ -484,10 +484,10 @@ class TextureScan(Scan):
 							self.driver.camerareading = True
 							#-- Left laser
 							if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-								self.driver.board.setLeftLaserOff()
+								self.driver.board.left_laser_off()
 								imgLaserLeft = self.driver.camera.capture.read()[1]
 								imgRaw = self.driver.camera.capture.read()[1]
-								self.driver.board.setLeftLaserOn()
+								self.driver.board.left_laser_on()
 								self.driver.camerareading = False
 
 								if imgRaw is None or imgLaserLeft is None:
@@ -527,12 +527,12 @@ class TextureScan(Scan):
 							##-- Both laser
 							if self.pcg.useLeftLaser and self.pcg.useRightLaser:
 								imgRaw = self.driver.camera.capture.read()[1]
-								self.driver.board.setLeftLaserOn()
+								self.driver.board.left_laser_on()
 								imgLaserLeft = self.driver.camera.capture.read()[1]
-								self.driver.board.setLeftLaserOff()
-								self.driver.board.setRightLaserOn()
+								self.driver.board.left_laser_off()
+								self.driver.board.right_laser_on()
 								imgLaserRight = self.driver.camera.capture.read()[1]
-								self.driver.board.setRightLaserOff()
+								self.driver.board.right_laser_off()
 								imgRaw = self.driver.camera.capture.read()[1]
 								self.driver.camerareading = False
 
@@ -555,23 +555,23 @@ class TextureScan(Scan):
 
 						#-- Switch off laser
 						if self.pcg.useLeftLaser:
-							self.driver.board.setLeftLaserOff()
+							self.driver.board.left_laser_off()
 						if self.pcg.useRightLaser:
-							self.driver.board.setRightLaserOff()
+							self.driver.board.right_laser_off()
 
 						#-- Capture images
 						imgRaw = self.driver.camera.captureImage(flush=True, flushValue=flush)
 
 						if self.pcg.useLeftLaser:
-							self.driver.board.setLeftLaserOn()
-							self.driver.board.setRightLaserOff()
+							self.driver.board.left_laser_on()
+							self.driver.board.right_laser_off()
 							imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush)
 						else:
 							imgLaserLeft = None
 
 						if self.pcg.useRightLaser:
-							self.driver.board.setRightLaserOn()
-							self.driver.board.setLeftLaserOff()
+							self.driver.board.right_laser_on()
+							self.driver.board.left_laser_off()
 							imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush)
 						else:
 							imgLaserRight = None
@@ -581,8 +581,8 @@ class TextureScan(Scan):
 
 					#-- Move motor
 					if self.moveMotor:
-						self.driver.board.setRelativePosition(self.pcg.degrees)
-						self.driver.board.moveMotor()
+						self.driver.board.motor_relative(self.pcg.degrees)
+						self.driver.board.motor_move()
 					else:
 						time.sleep(0.05)
 
@@ -614,9 +614,9 @@ class TextureScan(Scan):
 				time.sleep(0.1)
 
 		#-- Disable board
-		self.driver.board.setLeftLaserOff()
-		self.driver.board.setRightLaserOff()
-		self.driver.board.disableMotor()
+		self.driver.board.left_laser_off()
+		self.driver.board.right_laser_off()
+		self.driver.board.motor_disable()
 
 	def setUseOpen(self, enable):
 		self.openEnable = enable

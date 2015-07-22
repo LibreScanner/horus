@@ -86,8 +86,8 @@ class LaserControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['laser_control']
-        section.updateCallback('left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
-        section.updateCallback('right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
+        section.updateCallback('left_button', (self.driver.board.left_laser_on, self.driver.board.left_laser_off))
+        section.updateCallback('right_button', (self.driver.board.right_laser_on, self.driver.board.right_laser_off))
 
 
 class LDRControl(ExpandablePanel):
@@ -104,7 +104,7 @@ class LDRControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['ldr_control']
-        section.updateCallback('ldr_value', lambda id: self.driver.board.getLDRSensor(id))
+        section.updateCallback('ldr_value', lambda id: self.driver.board.ldr_sensor(id))
 
 
 class LDRSection(SectionItem):
@@ -183,11 +183,11 @@ class MotorControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['motor_control']
-        section.updateCallback('step_degrees_control', lambda v: self.driver.board.setRelativePosition(self.getValueFloat(v)))
-        section.updateCallback('feed_rate_control', lambda v: self.driver.board.setSpeedMotor(self.getValueInteger(v)))
-        section.updateCallback('acceleration_control', lambda v: self.driver.board.setAccelerationMotor(self.getValueInteger(v)))
-        section.updateCallback('move_button', lambda c: self.driver.board.moveMotor(nonblocking=True, callback=c))
-        section.updateCallback('enable_button', (self.driver.board.enableMotor, self.driver.board.disableMotor))
+        section.updateCallback('step_degrees_control', lambda v: self.driver.board.motor_relative(self.getValueFloat(v)))
+        section.updateCallback('feed_rate_control', lambda v: self.driver.board.motor_speed(self.getValueInteger(v)))
+        section.updateCallback('acceleration_control', lambda v: self.driver.board.motor_acceleration(self.getValueInteger(v)))
+        section.updateCallback('move_button', lambda c: self.driver.board.motor_move(nonblocking=True, callback=c))
+        section.updateCallback('enable_button', (self.driver.board.motor_enable, self.driver.board.motor_disable))
 
     #TODO: move
     def getValueInteger(self, value):

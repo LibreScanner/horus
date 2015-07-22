@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: August, November 2014                                           #
+# Date: August,November 2014, July 2015                                 #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -33,202 +33,192 @@ import threading
 
 
 class Error(Exception):
-	def __init__(self, msg):
-		self.msg = msg
-	def __str__(self):
-		return repr(self.msg)
+
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return repr(self.msg)
+
 
 class WrongFirmware(Error):
-	def __init__(self, msg="WrongFirmware"):
-		super(Error, self).__init__(msg)
+
+    def __init__(self, msg="Wrong Firmware"):
+        super(Error, self).__init__(msg)
+
 
 class BoardNotConnected(Error):
-	def __init__(self, msg="BoardNotConnected"):
-		super(Error, self).__init__(msg)
+
+    def __init__(self, msg="Board Not Connected"):
+        super(Error, self).__init__(msg)
 
 
 class Board:
-	"""Board class. For accessing to the scanner board"""
-	"""
-	Gcode commands:
 
-		G1 Fnnn : feed rate
-		G1 Xnnn : move motor
+    """Board class. For accessing to the scanner board
 
-		M70 Tn  : switch off laser n
-		M71 Tn  : switch on laser n
+    Gcode commands:
 
-	"""
-	def __init__(self, parent=None, serialName='/dev/ttyUSB0', baudRate=115200):
-		self.parent = parent
-		self.serialName = serialName
-		self.baudRate = baudRate
-		self.serialPort = None
-		self.isConnected = False
-		self.unplugCallback = None
-		self._position = 0
-		self._direction = 1
-		self._n = 0 # Check if command fails
+        G1 Fnnn : feed rate
+        G1 Xnnn : move motor
 
-	def setSerialName(self, serialName):
-		self.serialName = serialName
+        M70 Tn  : switch off laser n
+        M71 Tn  : switch on laser n
 
-	def setBaudRate(self, baudRate):
-		self.baudRate = baudRate
+        M50 Tn  : read ldr sensor
 
-	def setInvertMotor(self, invertMotor):
-		if invertMotor:
-			self._direction = -1
-		else:
-			self._direction = +1
+    """
 
-	def setUnplugCallback(self, unplugCallback=None):
-		self.unplugCallback = unplugCallback
+    def __init__(self, parent=None, serial_name='/dev/ttyUSB0', baud_rate=115200):
+        self.parent = parent
+        self.serial_name = serial_name
+        self.baud_rate = baud_rate
+        self.unplug_callback = None
 
-	def connect(self):
-		""" Opens serial port and performs handshake"""
-		print ">>> Connecting board {0} {1}".format(self.serialName, self.baudRate)
-		self.isConnected = False
-		try:
-			self.serialPort = serial.Serial(self.serialName, self.baudRate, timeout=2)
-			if self.serialPort.isOpen():
-				#-- Force Reset and flush
-				self._reset()
-				version = self.serialPort.readline()
-				if version == "Horus 0.1 ['$' for help]\r\n":
-					self.setSpeedMotor(1)
-					self.setAbsolutePosition(0)
-					self.serialPort.timeout = 0.05
-					print ">>> Done"
-					self.isConnected = True
-				else:
-					raise WrongFirmware()
-			else:
-				raise BoardNotConnected()
-		except:
-			print "Error opening the port {0}\n".format(self.serialName)
-			self.serialPort = None
-			raise BoardNotConnected()
+        self._serial_port = None
+        self._is_connected = False
+        self._motor_position = 0
+        self._motor_speed = 0
+        self._motor_acceleration = 0
+        self._motor_direction = 1
+        self._tries = 0  # Check if command fails
 
-	def disconnect(self):
-		""" Closes serial port """
-		if self.isConnected:
-			print ">>> Disconnecting board {0}".format(self.serialName)
-			try:
-				if self.serialPort is not None:
-					self.setLeftLaserOff()
-					self.setRightLaserOff()
-					self.disableMotor()
-					self.serialPort.close()
-					del self.serialPort
-			except serial.SerialException:
-				print "Error closing the port {0}\n".format(self.serialName)
-				print ">>> Error"
-			self.isConnected = False
-			print ">>> Done"
+    def connect(self):
+        """Open serial port and perform handshake"""
+        print ">>> Connecting board {0} {1}".format(self.serial_name, self.baud_rate)
+        self._is_connected = False
+        try:
+            self._serial_port = serial.Serial(self.serial_name, self.baud_rate, timeout=2)
+            if self._serial_port.isOpen():
+                self._reset()  # Force Reset and flush
+                version = self._serial_port.readline()
+                if version == "Horus 0.1 ['$' for help]\r\n":
+                    self.motor_speed(1)
+                    self.motor_absolute(0)
+                    self._serial_port.timeout = 0.05
+                    self._is_connected = True
+                    print ">>> Done"
+                else:
+                    raise WrongFirmware()
+            else:
+                raise BoardNotConnected()
+        except:
+            print "Error opening the port {0}\n".format(self.serial_name)
+            self._serial_port = None
+            raise BoardNotConnected()
 
-	def enableMotor(self):
-		return self._sendCommand("M17")
+    def disconnect(self):
+        """Close serial port"""
+        if self._is_connected:
+            print ">>> Disconnecting board {0}".format(self.serial_name)
+            try:
+                if self._serial_port is not None:
+                    self.left_laser_off()
+                    self.right_laser_off()
+                    self.motor_enable()
+                    self._serial_port.close()
+                    del self._serial_port
+            except serial.SerialException:
+                print "Error closing the port {0}\n".format(self.serial_name)
+                print ">>> Error"
+            self._is_connected = False
+            print ">>> Done"
 
-	def disableMotor(self):
-		return self._sendCommand("M18")
+    def motor_invert(self, value):
+        if value:
+            self._direction = -1
+        else:
+            self._direction = +1
 
-	def setSpeedMotor(self, feedRate):
-		self.feedRate = feedRate
-		return self._sendCommand("G1F{0}".format(self.feedRate))
+    def motor_relative(self, value):
+        self._motor_position += value * self._direction
 
-	def setAccelerationMotor(self, acceleration):
-		self.acceleration = acceleration
-		return self._sendCommand("$120={0}".format(self.acceleration))
+    def motor_absolute(self, value):
+        self._motor_position = value
 
-	def setRelativePosition(self, pos):
-		self._posIncrement = pos
+    def motor_speed(self, value):
+        self._motor_speed = value
+        self._send_command("G1F{0}".format(value))
 
-	def setAbsolutePosition(self, pos):
-		self._posIncrement = 0
-		self._position = pos
+    def motor_acceleration(self, value):
+        self._motor_acceleration = value
+        self._send_command("$120={0}".format(value))
 
-	def moveMotor(self, nonblocking=False, callback=None):
-		self._position += self._posIncrement * self._direction
-		return self._sendCommand("G1X{0}".format(self._position), nonblocking, callback)
+    def motor_enable(self):
+        self._send_command("M17")
 
-	def setRightLaserOn(self):
-		return self._sendCommand("M71T2")
-	 
-	def setLeftLaserOn(self):
-		return self._sendCommand("M71T1")
-	
-	def setRightLaserOff(self):
-		return self._sendCommand("M70T2")
-	 
-	def setLeftLaserOff(self):
-		return self._sendCommand("M70T1")
+    def motor_disable(self):
+        self._send_command("M18")
 
-	def getLDRSensor(self, pin):
-		value = self.sendRequest("M50T"+pin, readLines=True).split("\n")[0]
-		try:
-			return int(value)
-		except ValueError:
-			return 0
+    def left_laser_on(self):
+        self._send_command("M71T1")
 
-	def sendRequest(self, req, nonblocking=False, callback=None, readLines=False):
-		if nonblocking:
-			threading.Thread(target=self._sendRequest, args=(req, callback, readLines)).start()
-		else:
-			return self._sendRequest(req, callback, readLines)
+    def left_laser_off(self):
+        self._send_command("M70T1")
 
-	def _sendRequest(self, req, callback=None, readLines=False):
-		"""Sends the request and returns the response"""
-		ret = ''
-		if self.isConnected and req != '':
-			if self.serialPort is not None and self.serialPort.isOpen():
-				try:
-					self.serialPort.flushInput()
-					self.serialPort.flushOutput()
-					self.serialPort.write(req+"\r\n")
-					while ret == '': # TODO: add timeout
-						if readLines:
-							ret = ''.join(self.serialPort.readlines())
-						else:
-							ret = ''.join(self.serialPort.readline())
-						time.sleep(0.01)
-					self._success()
-				except:
-					if callback is not None:
-						callback(ret)
-					self._fail()
-			else:
-				self._fail()
-		if callback is not None:
-			callback(ret)
-		return ret
+    def right_laser_on(self):
+        self._send_command("M71T2")
 
-	def _success(self):
-		self._n = 0
+    def right_laser_off(self):
+        self._send_command("M70T2")
 
-	def _fail(self):
-		self._n += 1
-		if self._n >= 1:
-			self._n = 0
-			if self.unplugCallback is not None and \
-			   self.parent is not None and not self.parent.unplugged:
-				self.parent.unplugged = True
-				self.unplugCallback()
+    def ldr_sensor(self, pin):
+        value = self._send_command("M50T" + pin, read_lines=True).split("\n")[0]
+        try:
+            return int(value)
+        except ValueError:
+            return 0
 
-	def _checkAcknowledge(self, ack):
-		if ack is not None:
-			return ack.endswith("ok\r\n")
-		else:
-			return False
+    def motor_move(self, nonblocking=False, callback=None):
+        self.send_command("G1X{0}".format(self._motor_position), nonblocking, callback)
 
-	def _sendCommand(self, cmd, nonblocking=False, callback=None):
-		if nonblocking:
-			self.sendRequest(cmd, nonblocking, callback)
-		else:
-			return self._checkAcknowledge(self._sendRequest(cmd))
+    def send_command(self, req, nonblocking=False, callback=None, read_lines=False):
+        if nonblocking:
+            threading.Thread(target=self._send_command, args=(req, callback, read_lines)).start()
+        else:
+            self._send_command(req, callback, read_lines)
 
-	def _reset(self):
-		self.serialPort.flushInput()
-		self.serialPort.flushOutput()
-		self.serialPort.write("\x18\r\n") # Ctrl-x
-		self.serialPort.readline()
+    def _send_command(self, req, callback=None, read_lines=False):
+        """Sends the request and returns the response"""
+        ret = ''
+        if self._is_connected and req != '':
+            if self._serial_port is not None and self._serial_port.isOpen():
+                try:
+                    self._serial_port.flushInput()
+                    self._serial_port.flushOutput()
+                    self._serial_port.write(req + "\r\n")
+                    while ret == '':  # TODO: add timeout
+                        if read_lines:
+                            ret = ''.join(self._serial_port.readlines())
+                        else:
+                            ret = ''.join(self._serial_port.readline())
+                        time.sleep(0.01)
+                    self._success()
+                except:
+                    if callback is not None:
+                        callback(ret)
+                    self._fail()
+            else:
+                self._fail()
+        if callback is not None:
+            callback(ret)
+        return ret
+
+    def _success(self):
+        self._tries = 0
+
+    def _fail(self):
+        self._tries += 1
+        if self._tries >= 1:
+            self._tries = 0
+            if self.unplug_callback is not None and \
+               self.parent is not None and \
+               not self.parent.unplugged:
+                self.parent.unplugged = True
+                self.unplug_callback()
+
+    def _reset(self):
+        self._serial_port.flushInput()
+        self._serial_port.flushOutput()
+        self._serial_port.write("\x18\r\n")  # Ctrl-x
+        self._serial_port.readline()

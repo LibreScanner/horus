@@ -222,16 +222,16 @@ class LaserTriangulation(Calibration):
 			camera = self.driver.camera
 
 			##-- Switch off lasers
-			board.setLeftLaserOff()
-			board.setRightLaserOff()
+			board.left_laser_off()
+			board.right_laser_off()
 
 			##-- Setup motor
 			step = 5
 			angle = 0
-			board.setSpeedMotor(1)
-			board.enableMotor()
-			board.setSpeedMotor(150)
-			board.setAccelerationMotor(150)
+			board.motor_speed(1)
+			board.motor_enable()
+			board.motor_speed(150)
+			board.motor_acceleration(150)
 			time.sleep(0.1)
 
 			if progressCallback is not None:
@@ -261,17 +261,17 @@ class LaserTriangulation(Calibration):
 			
 					#-- Image laser acquisition
 					imageRawLeft = camera.captureImage(flush=True, flushValue=flush)
-					board.setLeftLaserOn()
+					board.left_laser_on()
 					imageLeft = camera.captureImage(flush=True, flushValue=flush)
-					board.setLeftLaserOff()
+					board.left_laser_off()
 					self.image = imageLeft
 					if imageLeft is None:
 						break
 					
 					imageRawRight = camera.captureImage(flush=True, flushValue=flush)
-					board.setRightLaserOn()
+					board.right_laser_on()
 					imageRight = camera.captureImage(flush=True, flushValue=flush)
-					board.setRightLaserOff()
+					board.right_laser_off()
 					self.image = imageRight
 					if imageRight is None:
 						break
@@ -304,8 +304,8 @@ class LaserTriangulation(Calibration):
 					step = 5
 					self.image = imageRaw
 
-				board.setRelativePosition(step)
-				board.moveMotor()
+				board.motor_relative(step)
+				board.motor_move()
 				time.sleep(0.1)
 
 			# self.saveScene('XL.ply', XL)
@@ -316,11 +316,11 @@ class LaserTriangulation(Calibration):
 			dR, nR, stdR = self.computePlane(XR, 'r')
 
 		##-- Switch off lasers
-		board.setLeftLaserOff()
-		board.setRightLaserOff()
+		board.left_laser_off()
+		board.right_laser_off()
 
 		#-- Disable motor
-		board.disableMotor()
+		board.motor_disable()
 
 		#-- Restore camera exposure
 		camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration'))
@@ -531,12 +531,12 @@ class SimpleLaserTriangulation(Calibration):
 			camera = self.driver.camera
 
 			##-- Switch off lasers
-			board.setLeftLaserOff()
-			board.setRightLaserOff()
+			board.left_laser_off()
+			board.right_laser_off()
 
 			##-- Move pattern until ||(R-I)|| < e
-			board.setSpeedMotor(1)
-			board.enableMotor()
+			board.motor_speed(1)
+			board.motor_enable()
 			time.sleep(0.3)
 
 			t, n, corners = self.getPatternDepth(board, camera, progressCallback)
@@ -546,12 +546,12 @@ class SimpleLaserTriangulation(Calibration):
 
 				#-- Get images
 				imgRaw = camera.captureImage(flush=True, flushValue=1)
-				board.setLeftLaserOn()
+				board.left_laser_on()
 				imgLasL = camera.captureImage(flush=True, flushValue=1)
-				board.setLeftLaserOff()
-				board.setRightLaserOn()
+				board.left_laser_off()
+				board.right_laser_on()
 				imgLasR = camera.captureImage(flush=True, flushValue=1)
-				board.setRightLaserOff()
+				board.right_laser_off()
 
 				if imgRaw is not None and imgLasL is not None and imgLasR is not None:
 					##-- Corners ROI mask
@@ -591,9 +591,9 @@ class SimpleLaserTriangulation(Calibration):
 		n = None
 		corners = None
 		tries = 5
-		board.setRelativePosition(angle)
-		board.setSpeedMotor(150)
-		board.setAccelerationMotor(300)
+		board.motor_relative(angle)
+		board.motor_speed(150)
+		board.motor_acceleration(300)
 
 		if progressCallback is not None:
 			progressCallback(0)
@@ -611,8 +611,8 @@ class SimpleLaserTriangulation(Calibration):
 						distance = np.linalg.norm((0,0,1)-n)
 						if distance < epsilon or distanceAnt < distance:
 							if self.isCalibrating:
-								board.setRelativePosition(-angle)
-								board.moveMotor()
+								board.motor_relative(-angle)
+								board.motor_move()
 							break
 						distanceAnt = distance
 						angle = np.max(((distance-epsilon) * 30, 5))
@@ -621,8 +621,8 @@ class SimpleLaserTriangulation(Calibration):
 			else:
 				tries -= 1
 			if self.isCalibrating:
-				board.setRelativePosition(angle)
-				board.moveMotor()
+				board.motor_relative(angle)
+				board.motor_move()
 
 			if progressCallback is not None:
 				if distance < np.inf:
@@ -764,16 +764,16 @@ class PlatformExtrinsics(Calibration):
 			z = []
 
 			##-- Switch off lasers
-			board.setLeftLaserOff()
-			board.setRightLaserOff()
+			board.left_laser_off()
+			board.right_laser_off()
 
 			##-- Move pattern 180 degrees
 			step = self.extrinsicsStep # degrees
 			angle = 0
-			board.setSpeedMotor(1)
-			board.enableMotor()
-			board.setSpeedMotor(150)
-			board.setAccelerationMotor(200)
+			board.motor_speed(1)
+			board.motor_enable()
+			board.motor_speed(150)
+			board.motor_acceleration(200)
 			time.sleep(0.2)
 
 			if progressCallback is not None:
@@ -843,8 +843,8 @@ class PlatformExtrinsics(Calibration):
 			if ret is not None:
 				if ret[0]:
 					t = ret[2]
-			board.setRelativePosition(step)
-			board.moveMotor()
+			board.motor_relative(step)
+			board.motor_move()
 		return t
 
 	def solvePnp(self, image, objpoints, cameraMatrix, distortionVector, patternColumns, patternRows):
