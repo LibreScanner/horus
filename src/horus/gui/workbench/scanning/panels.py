@@ -76,10 +76,10 @@ class ScanParameters(ExpandablePanel):
         if not self.main.currentScan.run or self.main.currentScan.inactive:
             if value == 'Simple Scan':
                 self.main.currentScan = self.simpleScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+                self.driver.camera.set_exposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
             elif value == 'Texture Scan':
                 self.main.currentScan = self.textureScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
+                self.driver.camera.set_exposure(profile.getProfileSettingInteger('color_exposure_scanning'))
         else:
             print "Error: Can not change Scan Type"
 
@@ -174,28 +174,28 @@ class ImageAcquisition(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['camera_scanning']
-        section.updateCallback('brightness_scanning', self.driver.camera.setBrightness)
-        section.updateCallback('contrast_scanning', self.driver.camera.setContrast)
-        section.updateCallback('saturation_scanning', self.driver.camera.setSaturation)
+        section.updateCallback('brightness_scanning', self.driver.camera.set_brightness)
+        section.updateCallback('contrast_scanning', self.driver.camera.set_contrast)
+        section.updateCallback('saturation_scanning', self.driver.camera.set_saturation)
         section.updateCallback('laser_exposure_scanning', self.setLaserExposure)
         section.updateCallback('color_exposure_scanning', self.setColorExposure)
-        section.updateCallback('framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)))
+        section.updateCallback('framerate_scanning', lambda v: self.driver.camera.set_frame_rate(int(v)))
         section.updateCallback('resolution_scanning', lambda v: self.setResolution(v))
-        section.updateCallback('use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v))
+        section.updateCallback('use_distortion_scanning', lambda v: self.driver.camera.set_use_distortion(v))
 
     def setResolution(self, value):
         if value != self.last_resolution:
             ResolutionWindow(self)
-        self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
+        self.driver.camera.set_resolution(int(value.split('x')[0]), int(value.split('x')[1]))
         self.last_resolution = profile.getProfileSetting('resolution_scanning')
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:
-            self.driver.camera.setExposure(value)
+            self.driver.camera.set_exposure(value)
 
     def setColorExposure(self, value):
         if self.main.currentScan is self.textureScan:
-            self.driver.camera.setExposure(value)
+            self.driver.camera.set_exposure(value)
 
 
 class ImageSegmentation(ExpandablePanel):

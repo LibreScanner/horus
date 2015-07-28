@@ -118,7 +118,7 @@ class CameraIntrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage(mirror=True)
+		frame = self.driver.camera.capture_image(mirror=True)
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 			if retval:
@@ -129,9 +129,9 @@ class CameraIntrinsicsMainPage(Page):
 
 	def onKeyPress(self, event):
 		if event.GetKeyCode() == 32: #-- spacebar
-			if self.driver.isConnected:
+			if self.driver.is_connected:
 				self.videoView.pause()
-				frame = self.driver.camera.captureImage(mirror=False, flush=True)
+				frame = self.driver.camera.capture_image(mirror=False, flush=True)
 				if frame is not None:
 					retval, frame = self.cameraIntrinsics.detectChessboard(frame, capture=True)
 					frame = cv2.flip(frame, 1) #-- Mirror
@@ -180,8 +180,8 @@ class CameraIntrinsicsMainPage(Page):
 	def onCancel(self):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.unplug_callback = None
-		self.driver.camera.setUnplugCallback(None)
+		self.driver.board.set_unplug_callback(None)
+		self.driver.camera.set_unplug_callback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
 		self.onCalibration = False
@@ -189,8 +189,8 @@ class CameraIntrinsicsMainPage(Page):
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.unplug_callback = boardUnplugCallback
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
+		self.driver.board.set_unplug_callback(boardUnplugCallback)
+		self.driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class CameraIntrinsicsResultPage(Page):
@@ -384,7 +384,7 @@ class LaserTriangulationMainPage(Page):
 		if self.onCalibration:
 			frame = self.laserTriangulation.getImage()
 		else:
-			frame = self.driver.camera.captureImage()
+			frame = self.driver.camera.capture_image()
 
 		#if frame is not None:
 		#	retval, frame = self.cameraIntrinsics.detectChessboard(frame)
@@ -392,7 +392,7 @@ class LaserTriangulationMainPage(Page):
 
 	def onCalibrate(self):
 		self.onCalibration=True
-		self.laserTriangulation.setImage(self.driver.camera.captureImage())
+		self.laserTriangulation.setImage(self.driver.camera.capture_image())
 
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressCalibration,p),
@@ -421,8 +421,8 @@ class LaserTriangulationMainPage(Page):
 	def onCancel(self):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.unplug_callback = None
-		self.driver.camera.setUnplugCallback(None)
+		self.driver.board.set_unplug_callback(None)
+		self.driver.camera.set_unplug_callback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
 		self.onCalibration = False
@@ -430,8 +430,8 @@ class LaserTriangulationMainPage(Page):
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.unplug_callback = boardUnplugCallback
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
+		self.driver.board.set_unplug_callback(boardUnplugCallback)
+		self.driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class LaserTriangulationResultPage(Page):
@@ -619,7 +619,7 @@ class SimpleLaserTriangulationMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
+		frame = self.driver.camera.capture_image()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 		return frame
@@ -649,8 +649,8 @@ class SimpleLaserTriangulationMainPage(Page):
 	def onCancel(self):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.unplug_callback = None
-		self.driver.camera.setUnplugCallback(None)
+		self.driver.board.set_unplug_callback(None)
+		self.driver.camera.set_unplug_callback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
 		self.onCalibration = False
@@ -658,8 +658,8 @@ class SimpleLaserTriangulationMainPage(Page):
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.unplug_callback = boardUnplugCallback
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
+		self.driver.board.set_unplug_callback(boardUnplugCallback)
+		self.driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class SimpleLaserTriangulationResultPage(Page):
@@ -810,7 +810,7 @@ class PlatformExtrinsicsMainPage(Page):
 		if self.onCalibration:
 			frame = self.platformExtrinsics.getImage()
 		else:
-			frame = self.driver.camera.captureImage()
+			frame = self.driver.camera.capture_image()
 		if frame is not None:
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
 
@@ -818,7 +818,7 @@ class PlatformExtrinsicsMainPage(Page):
 
 	def onCalibrate(self):
 		self.onCalibration=True
-		self.platformExtrinsics.setImage(self.driver.camera.captureImage())
+		self.platformExtrinsics.setImage(self.driver.camera.capture_image())
 
 		self.platformExtrinsics.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressCalibration,p),
@@ -847,8 +847,8 @@ class PlatformExtrinsicsMainPage(Page):
 	def onCancel(self):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.unplug_callback = None
-		self.driver.camera.setUnplugCallback(None)
+		self.driver.board.set_unplug_callback(None)
+		self.driver.camera.set_unplug_callback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
 		self.onCalibration = False
@@ -856,8 +856,8 @@ class PlatformExtrinsicsMainPage(Page):
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.unplug_callback = boardUnplugCallback
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
+		self.driver.board.set_unplug_callback(boardUnplugCallback)
+		self.driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class PlatformExtrinsicsResultPage(Page):

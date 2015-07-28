@@ -83,7 +83,7 @@ class ControlWorkbench(WorkbenchConnection):
 		self.controls.updateCallbacks()
 
 	def getFrame(self):
-		return self.driver.camera.captureImage()
+		return self.driver.camera.capture_image()
 
 	def updateToolbarStatus(self, status):
 		if status:

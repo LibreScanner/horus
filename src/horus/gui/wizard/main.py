@@ -63,8 +63,8 @@ class Wizard(wx.Dialog):
         self.calibrationPage.Hide()
         self.scanningPage.Hide()
 
-        self.driver.board.unplug_callback = (lambda: wx.CallAfter(self.onBoardUnplugged))
-        self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.onCameraUnplugged))
+        self.driver.board.set_unplug_callback(lambda: wx.CallAfter(self.onBoardUnplugged))
+        self.driver.camera.set_unplug_callback(lambda: wx.CallAfter(self.onCameraUnplugged))
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.connectionPage, 1, wx.ALL|wx.EXPAND, 0)

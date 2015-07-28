@@ -93,7 +93,7 @@ class CalibrationPage(WizardPage):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.driver.isConnected)
+			self.updateStatus(self.driver.is_connected)
 		else:
 			try:
 				self.videoView.stop()
@@ -106,7 +106,7 @@ class CalibrationPage(WizardPage):
 		elif self.phase is 'laserTriangulation':
 			frame = self.laserTriangulation.getImage()
 		else: # 'none'
-			frame = self.driver.camera.captureImage()
+			frame = self.driver.camera.capture_image()
 
 		if frame is not None and self.phase is not 'laserTriangulation':
 			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
@@ -132,16 +132,16 @@ class CalibrationPage(WizardPage):
 	def onCancelButtonClicked(self, event):
 		boardUnplugCallback = self.driver.board.unplugCallback
 		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.unplug_callback = None
-		self.driver.camera.setUnplugCallback(None)
+		self.driver.board.set_unplug_callback(None)
+		self.driver.camera.set_unplug_callback(None)
 		self.phase = 'none'
 		self.resultLabel.SetLabel(_("Calibration canceled. To try again press \"Calibrate\""))
 		self.platformExtrinsics.cancel()
 		self.laserTriangulation.cancel()
 		self.skipButton.Enable()
 		self.onFinishCalibration()
-		self.driver.board.unplug_callback= boardUnplugCallback
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
+		self.driver.board.set_unplug_callback(boardUnplugCallback)
+		self.driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 	def beforeCalibration(self):
 		self.breadcrumbs.Disable()

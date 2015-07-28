@@ -95,7 +95,7 @@ class WorkbenchConnection(Workbench):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.driver.isConnected)
+			self.updateStatus(self.driver.is_connected)
 		else:
 			try:
 				if self.videoView is not None:
@@ -109,7 +109,7 @@ class WorkbenchConnection(Workbench):
 
 	def onDisconnectToolClicked(self, event):
 		self.driver.disconnect()
-		self.updateStatus(self.driver.isConnected)
+		self.updateStatus(self.driver.is_connected)
 
 	def beforeConnect(self):
 		self.enableLabelTool(self.connectTool, False)
@@ -117,7 +117,7 @@ class WorkbenchConnection(Workbench):
 		for i in xrange(self.GetParent().menuBar.GetMenuCount()):
 			self.GetParent().menuBar.EnableTop(i, False)
 		self.driver.board.unplug_callback = None
-		self.driver.camera.setUnplugCallback(None)
+		self.driver.camera.set_unplug_callback(None)
 		self.waitCursor = wx.BusyCursor()
 
 	def afterConnect(self, response):
@@ -151,10 +151,10 @@ class WorkbenchConnection(Workbench):
 				dlg.ShowModal()
 				dlg.Destroy()
 
-		if self.driver.isConnected:
+		if self.driver.is_connected:
 			self.GetParent().workbenchUpdate(False)
 		
-		self.updateStatus(self.driver.isConnected)
+		self.updateStatus(self.driver.is_connected)
 		self.combo.Enable()
 		for i in xrange(self.GetParent().menuBar.GetMenuCount()):
 			self.GetParent().menuBar.EnableTop(i, True)
@@ -168,13 +168,13 @@ class WorkbenchConnection(Workbench):
 		if status:
 			self.enableLabelTool(self.connectTool   , False)
 			self.enableLabelTool(self.disconnectTool, True)
-			self.driver.board.unplug_callback = (lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
-			self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
+			self.driver.board.set_unplug_callback(lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
+			self.driver.camera.set_unplug_callback(lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
 		else:
 			self.enableLabelTool(self.connectTool   , True)
 			self.enableLabelTool(self.disconnectTool, False)
-			self.driver.board.unplug_callback = None
-			self.driver.camera.setUnplugCallback(None)
+			self.driver.board.set_unplug_callback(None)
+			self.driver.camera.set_unplug_callback(None)
 
 	def updateToolbarStatus(self, status):
 		pass

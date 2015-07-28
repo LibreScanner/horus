@@ -112,7 +112,7 @@ class ScanningPage(WizardPage):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.driver.isConnected)
+			self.updateStatus(self.driver.is_connected)
 		else:
 			try:
 				self.videoView.stop()
@@ -151,12 +151,12 @@ class ScanningPage(WizardPage):
 		value = self.scanTypeDict[event.GetEventObject().GetValue()]
 		profile.putProfileSetting('scan_type', value)
 		if value == 'Simple Scan':
-			self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+			self.driver.camera.set_exposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
 		elif value == 'Texture Scan':
-			self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
+			self.driver.camera.set_exposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 
 	def getFrame(self):
-		frame = self.driver.camera.captureImage()
+		frame = self.driver.camera.capture_image()
 		return frame
 
 	def updateStatus(self, status):

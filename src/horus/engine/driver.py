@@ -43,7 +43,7 @@ from horus.util.singleton import Singleton
 class Driver:
 	"""Driver class. For managing scanner hw"""
 	def __init__(self):
-		self.isConnected = False
+		self.is_connected = False
 
 		#TODO: Callbacks to Observer pattern
 		self.beforeCallback = None
@@ -65,7 +65,7 @@ class Driver:
 
 	def _connect(self, callback):
 		error = None
-		self.isConnected = False
+		self.is_connected = False
 		try:
 			self.camera.connect()
 			self.board.connect()
@@ -80,11 +80,11 @@ class Driver:
 		except InvalidVideo:
 			error = Error.InvalidVideo
 		else:
-			self.isConnected = True
+			self.is_connected = True
 		finally:
 			if error is None:
 				self.unplugged = False
-				response = (True, self.isConnected)
+				response = (True, self.is_connected)
 			else:
 				response = (False, error)
 				self.disconnect()
@@ -92,6 +92,6 @@ class Driver:
 				callback(response)
 		
 	def disconnect(self):
-		self.isConnected = False
+		self.is_connected = False
 		self.camera.disconnect()
 		self.board.disconnect()

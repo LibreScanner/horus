@@ -62,13 +62,13 @@ class CameraControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['camera_control']
-        section.updateCallback('brightness_control', self.driver.camera.setBrightness)
-        section.updateCallback('contrast_control', self.driver.camera.setContrast)
-        section.updateCallback('saturation_control', self.driver.camera.setSaturation)
-        section.updateCallback('exposure_control', self.driver.camera.setExposure)
-        section.updateCallback('framerate_control', lambda v: self.driver.camera.setFrameRate(int(v)))
-        section.updateCallback('resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        section.updateCallback('use_distortion_control', lambda v: self.driver.camera.setUseDistortion(v))
+        section.updateCallback('brightness_control', self.driver.camera.set_brightness)
+        section.updateCallback('contrast_control', self.driver.camera.set_contrast)
+        section.updateCallback('saturation_control', self.driver.camera.set_saturation)
+        section.updateCallback('exposure_control', self.driver.camera.set_exposure)
+        section.updateCallback('framerate_control', lambda v: self.driver.camera.set_frame_rate(int(v)))
+        section.updateCallback('resolution_control', lambda v: self.driver.camera.set_resolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        section.updateCallback('use_distortion_control', lambda v: self.driver.camera.set_use_distortion(v))
 
 
 class LaserControl(ExpandablePanel):

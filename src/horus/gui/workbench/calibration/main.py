@@ -131,7 +131,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.controls.updateCallbacks()
 
     def getFrame(self):
-        frame = Driver.Instance().camera.captureImage()
+        frame = Driver.Instance().camera.capture_image()
         self.cameraIntrinsics = CameraIntrinsics.Instance()
         if frame is not None:
             retval, frame = self.cameraIntrinsics.detectChessboard(frame)

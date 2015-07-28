@@ -96,11 +96,11 @@ class ConnectionPage(WizardPage):
 
         self.videoView.setMilliseconds(50)
         self.videoView.setCallback(self.getDetectChessboardFrame)
-        self.updateStatus(self.driver.isConnected)
+        self.updateStatus(self.driver.is_connected)
 
     def onShow(self, event):
         if event.GetShow():
-            self.updateStatus(self.driver.isConnected)
+            self.updateStatus(self.driver.is_connected)
         else:
             try:
                 self.videoView.stop()
@@ -108,7 +108,7 @@ class ConnectionPage(WizardPage):
                 pass
 
     def getFrame(self):
-        return self.driver.camera.captureImage()
+        return self.driver.camera.capture_image()
 
     def getDetectChessboardFrame(self):
         frame = self.getFrame()
@@ -134,8 +134,8 @@ class ConnectionPage(WizardPage):
         self.connectButton.Disable()
         self.prevButton.Disable()
         self.videoView.stop()
-        self.driver.board.unplug_callback = None
-        self.driver.camera.setUnplugCallback(None)
+        self.driver.board.set_unplug_callback(None)
+        self.driver.camera.set_unplug_callback(None)
         self.waitCursor = wx.BusyCursor()
 
     def afterConnect(self, response):
@@ -169,7 +169,7 @@ class ConnectionPage(WizardPage):
                 dlg.ShowModal()
                 dlg.Destroy()
 
-        self.updateStatus(self.driver.isConnected)
+        self.updateStatus(self.driver.is_connected)
         self.settingsButton.Enable()
         self.breadcrumbs.Enable()
         self.prevButton.Enable()
@@ -253,8 +253,8 @@ class ConnectionPage(WizardPage):
 
     def updateStatus(self, status):
         if status:
-            self.driver.board.unplug_callback = (lambda: wx.CallAfter(self.parent.onBoardUnplugged))
-            self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.parent.onCameraUnplugged))
+            self.driver.board.set_unplug_callback(lambda: wx.CallAfter(self.parent.onBoardUnplugged))
+            self.driver.camera.set_unplug_callback(lambda: wx.CallAfter(self.parent.onCameraUnplugged))
             #if profile.getPreference('workbench') != 'Calibration workbench':
             profile.putPreference('workbench', 'Calibration workbench')
             self.GetParent().parent.workbenchUpdate(False)
@@ -385,7 +385,7 @@ class SettingsWindow(wx.Dialog):
         profile.putProfileSetting('exposure_control', luminosity)
         profile.putProfileSetting('exposure_calibration', luminosity)
 
-        self.driver.camera.setExposure(luminosity)
+        self.driver.camera.set_exposure(luminosity)
 
     def onLuminosityComboBoxChanged(self, event):
         value = self.luminosityDict[event.GetEventObject().GetValue()]

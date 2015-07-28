@@ -322,8 +322,8 @@ class MainWindow(wx.Frame):
             self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
             self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
-            self.driver.board.unplug_callback = None
-            self.driver.camera.setUnplugCallback(None)
+            self.driver.board.set_unplug_callback(None)
+            self.driver.camera.set_unplug_callback(None)
             self.driver.disconnect()
         except:
             pass
@@ -357,8 +357,8 @@ class MainWindow(wx.Frame):
             self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
             self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
-            self.driver.board.unplug_callback = None
-            self.driver.camera.setUnplugCallback(None)
+            self.driver.board.set_unplug_callback(None)
+            self.driver.camera.set_unplug_callback(None)
             self.controlWorkbench.updateStatus(False)
             self.calibrationWorkbench.updateStatus(False)
             self.scanningWorkbench.updateStatus(False)
@@ -586,7 +586,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.Layout()
 
     def updateDriverProfile(self):
-        self.driver.camera.setCameraId(int(profile.getProfileSetting('camera_id')[-1:]))
+        self.driver.camera.camera_id = int(profile.getProfileSetting('camera_id')[-1:])
         self.driver.board.serial_name = profile.getProfileSetting('serial_name')
         self.driver.board.baud_rate = profile.getProfileSettingInteger('baud_rate')
         self.driver.board.motor_invert(profile.getProfileSettingBool('invert_motor'))
@@ -614,10 +614,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
             scanType = profile.getProfileSetting('scan_type')
             if scanType == 'Simple Scan':
                 self.scanningWorkbench.currentScan = self.simpleScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+                self.driver.camera.set_exposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
             elif scanType == 'Texture Scan':
                 self.scanningWorkbench.currentScan = self.textureScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
+                self.driver.camera.set_exposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 
             self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
             self.simpleScan.motor_speed(profile.getProfileSettingInteger('feed_rate_scanning'))
@@ -637,8 +637,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.textureScan.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
 
     def updateCalibrationProfile(self):
-        self.driver.camera.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                         profile.getProfileSettingNumpy('distortion_vector'))
+        self.driver.camera.set_intrinsics(profile.getProfileSettingNumpy('camera_matrix'),
+                                          profile.getProfileSettingNumpy('distortion_vector'))
 
         self.cameraIntrinsics.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
                                             profile.getProfileSettingNumpy('distortion_vector'))

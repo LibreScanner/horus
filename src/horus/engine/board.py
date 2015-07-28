@@ -73,7 +73,6 @@ class Board:
         self.parent = parent
         self.serial_name = serial_name
         self.baud_rate = baud_rate
-        self.unplug_callback = None
 
         self._serial_port = None
         self._is_connected = False
@@ -81,6 +80,7 @@ class Board:
         self._motor_speed = 0
         self._motor_acceleration = 0
         self._motor_direction = 1
+        self._unplug_callback = None
         self._tries = 0  # Check if command fails
 
     def connect(self):
@@ -123,6 +123,9 @@ class Board:
                 print ">>> Error"
             self._is_connected = False
             print ">>> Done"
+
+    def set_unplug_callback(self, value):
+        self._unplug_callback = value
 
     def motor_invert(self, value):
         if value:
@@ -211,11 +214,11 @@ class Board:
         self._tries += 1
         if self._tries >= 1:
             self._tries = 0
-            if self.unplug_callback is not None and \
+            if self._unplug_callback is not None and \
                self.parent is not None and \
                not self.parent.unplugged:
                 self.parent.unplugged = True
-                self.unplug_callback()
+                self._unplug_callback()
 
     def _reset(self):
         self._serial_port.flushInput()

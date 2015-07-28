@@ -143,7 +143,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.currentScan.driver.isConnected)
+			self.updateStatus(self.currentScan.driver.is_connected)
 			self.pointCloudTimer.Stop()
 		else:
 			try:
@@ -168,7 +168,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		if self.scanning:
 			return self.currentScan.getImage()
 		else:
-			return self.currentScan.getImage(self.driver.camera.captureImage())
+			return self.currentScan.getImage(self.driver.camera.capture_image())
 
 	def onPointCloudTimer(self, event):
 		p, r = self.currentScan.getProgress()

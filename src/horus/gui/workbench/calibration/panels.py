@@ -65,18 +65,18 @@ class CameraSettingsPanel(ExpandablePanel):
         
     def updateCallbacks(self):
         section = self.sections['camera_calibration']
-        section.updateCallback('brightness_calibration', self.driver.camera.setBrightness)
-        section.updateCallback('contrast_calibration', self.driver.camera.setContrast)
-        section.updateCallback('saturation_calibration', self.driver.camera.setSaturation)
-        section.updateCallback('exposure_calibration', self.driver.camera.setExposure)
-        section.updateCallback('framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)))
+        section.updateCallback('brightness_calibration', self.driver.camera.set_brightness)
+        section.updateCallback('contrast_calibration', self.driver.camera.set_contrast)
+        section.updateCallback('saturation_calibration', self.driver.camera.set_saturation)
+        section.updateCallback('exposure_calibration', self.driver.camera.set_exposure)
+        section.updateCallback('framerate_calibration', lambda v: self.driver.camera.set_frame_rate(int(v)))
         section.updateCallback('resolution_calibration', lambda v: self.setResolution(v))
-        section.updateCallback('use_distortion_calibration', lambda v: self.driver.camera.setUseDistortion(v))
+        section.updateCallback('use_distortion_calibration', lambda v: self.driver.camera.set_use_distortion(v))
 
     def setResolution(self, value):
         if value != self.last_resolution:
             ResolutionWindow(self)
-        self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
+        self.driver.camera.set_resolution(int(value.split('x')[0]), int(value.split('x')[1]))
         self.last_resolution = profile.getProfileSetting('resolution_calibration')
 
 
@@ -316,7 +316,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
 
     def updateEngine(self):
         if hasattr(self, 'driver'):
-            self.driver.camera.setIntrinsics(self.cameraValues, self.distortionValues)
+            self.driver.camera.set_intrinsics(self.cameraValues, self.distortionValues)
         if hasattr(self, 'cameraIntrinsics'):
             self.cameraIntrinsics.setIntrinsics(self.cameraValues, self.distortionValues)
         if hasattr(self, 'laserTriangulation'):

@@ -216,7 +216,7 @@ class LaserTriangulation(Calibration):
 		else:
 			flush = 1
 
-		if self.driver.isConnected:
+		if self.driver.is_connected:
 
 			board = self.driver.board
 			camera = self.driver.camera
@@ -244,10 +244,10 @@ class LaserTriangulation(Calibration):
 
 				angle += step
 
-				camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration'))
+				camera.set_exposure(profile.getProfileSettingNumpy('exposure_calibration'))
 
 				#-- Image acquisition
-				imageRaw = camera.captureImage(flush=True, flushValue=flush)
+				imageRaw = camera.capture_image(flush=True, flush_value=flush)
 
 				#-- Pattern detection
 				ret = self.getPatternPlane(imageRaw)
@@ -257,20 +257,20 @@ class LaserTriangulation(Calibration):
 
 					d, n, corners = ret
 
-					camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration')/2.)
+					camera.set_exposure(profile.getProfileSettingNumpy('exposure_calibration')/2.)
 			
 					#-- Image laser acquisition
-					imageRawLeft = camera.captureImage(flush=True, flushValue=flush)
+					imageRawLeft = camera.capture_image(flush=True, flush_value=flush)
 					board.left_laser_on()
-					imageLeft = camera.captureImage(flush=True, flushValue=flush)
+					imageLeft = camera.capture_image(flush=True, flush_value=flush)
 					board.left_laser_off()
 					self.image = imageLeft
 					if imageLeft is None:
 						break
 					
-					imageRawRight = camera.captureImage(flush=True, flushValue=flush)
+					imageRawRight = camera.capture_image(flush=True, flush_value=flush)
 					board.right_laser_on()
-					imageRight = camera.captureImage(flush=True, flushValue=flush)
+					imageRight = camera.capture_image(flush=True, flush_value=flush)
 					board.right_laser_off()
 					self.image = imageRight
 					if imageRight is None:
@@ -323,7 +323,7 @@ class LaserTriangulation(Calibration):
 		board.motor_disable()
 
 		#-- Restore camera exposure
-		camera.setExposure(profile.getProfileSettingNumpy('exposure_calibration'))
+		camera.set_exposure(profile.getProfileSettingNumpy('exposure_calibration'))
 
 		if self.isCalibrating and nL is not None and nR is not None:
 			response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
@@ -525,7 +525,7 @@ class SimpleLaserTriangulation(Calibration):
 	def _start(self, progressCallback, afterCallback):
 		t = None
 
-		if self.driver.isConnected:
+		if self.driver.is_connected:
 
 			board = self.driver.board
 			camera = self.driver.camera
@@ -545,12 +545,12 @@ class SimpleLaserTriangulation(Calibration):
 				time.sleep(0.1)
 
 				#-- Get images
-				imgRaw = camera.captureImage(flush=True, flushValue=1)
+				imgRaw = camera.capture_image(flush=True, flush_value=1)
 				board.left_laser_on()
-				imgLasL = camera.captureImage(flush=True, flushValue=1)
+				imgLasL = camera.capture_image(flush=True, flush_value=1)
 				board.left_laser_off()
 				board.right_laser_on()
-				imgLasR = camera.captureImage(flush=True, flushValue=1)
+				imgLasR = camera.capture_image(flush=True, flush_value=1)
 				board.right_laser_off()
 
 				if imgRaw is not None and imgLasL is not None and imgLasR is not None:
@@ -599,7 +599,7 @@ class SimpleLaserTriangulation(Calibration):
 			progressCallback(0)
 
 		while self.isCalibrating and distance > epsilon and tries > 0:
-			image = camera.captureImage(flush=True, flushValue=1)
+			image = camera.capture_image(flush=True, flush_value=1)
 			if image is not None:
 				ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 				if ret is not None:
@@ -629,7 +629,7 @@ class SimpleLaserTriangulation(Calibration):
 					progressCallback(min(80,max(0,80-100*abs(distance-epsilon))))
 
 		if self.isCalibrating:
-			image = camera.captureImage(flush=True, flushValue=1)
+			image = camera.capture_image(flush=True, flush_value=1)
 			if image is not None:
 				ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)
 				if ret is not None:
@@ -754,7 +754,7 @@ class PlatformExtrinsics(Calibration):
 	def _start(self, progressCallback, afterCallback):
 		t = None
 
-		if self.driver.isConnected:
+		if self.driver.is_connected:
 
 			board = self.driver.board
 			camera = self.driver.camera
@@ -836,7 +836,7 @@ class PlatformExtrinsics(Calibration):
 			flush = 2
 		else:
 			flush = 1
-		image = camera.captureImage(flush=True, flushValue=flush)
+		image = camera.capture_image(flush=True, flush_value=flush)
 		if image is not None:
 			self.image = image
 			ret = self.solvePnp(image, self.objpoints, self.cameraMatrix, self.distortionVector, self.patternColumns, self.patternRows)

@@ -219,7 +219,7 @@ class Scan:
 		self.driver.board.right_laser_off()
 
 		#-- Setup camera
-		self.driver.camera.captureImage()
+		self.driver.camera.capture_image()
 
 	#-- Threads
 
@@ -350,21 +350,21 @@ class SimpleScan(Scan):
 
 					#-- Left laser
 					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						imageLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
+						imageLaserLeft = self.driver.camera.capture_image(flush=True, flush_value=flush_single)
 
 					#-- Right laser
 					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						imageLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_single)
+						imageLaserRight = self.driver.camera.capture_image(flush=True, flush_value=flush_single)
 
 					##-- Both laser
 					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
 						self.driver.board.left_laser_on()
 						self.driver.board.right_laser_off()
-						imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
+						imgLaserLeft = self.driver.camera.capture_image(flush=True, flush_value=flush_both)
 
 						self.driver.board.right_laser_on()
 						self.driver.board.left_laser_off()
-						imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush_both)
+						imgLaserRight = self.driver.camera.capture_image(flush=True, flush_value=flush_both)
 					
 					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
 					self.theta -= self.pcg.degrees * self.pcg.rad
@@ -480,7 +480,7 @@ class TextureScan(Scan):
 
 					if self.fastScan: #-- FAST METHOD (only for linux)
 
-						if self.driver.camera.isConnected:
+						if self.driver.camera.is_connected:
 							self.driver.camerareading = True
 							#-- Left laser
 							if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
@@ -560,19 +560,19 @@ class TextureScan(Scan):
 							self.driver.board.right_laser_off()
 
 						#-- Capture images
-						imgRaw = self.driver.camera.captureImage(flush=True, flushValue=flush)
+						imgRaw = self.driver.camera.capture_image(flush=True, flush_value=flush)
 
 						if self.pcg.useLeftLaser:
 							self.driver.board.left_laser_on()
 							self.driver.board.right_laser_off()
-							imgLaserLeft = self.driver.camera.captureImage(flush=True, flushValue=flush)
+							imgLaserLeft = self.driver.camera.capture_image(flush=True, flush_value=flush)
 						else:
 							imgLaserLeft = None
 
 						if self.pcg.useRightLaser:
 							self.driver.board.right_laser_on()
 							self.driver.board.left_laser_off()
-							imgLaserRight = self.driver.camera.captureImage(flush=True, flushValue=flush)
+							imgLaserRight = self.driver.camera.capture_image(flush=True, flush_value=flush)
 						else:
 							imgLaserRight = None
 
