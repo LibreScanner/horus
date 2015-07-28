@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: November 2014                                                   #
+# Date: November 2014, July 2015                                        #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -29,11 +29,8 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import threading
 
-from horus.engine.board import Board
-from horus.engine.camera import Camera
-
-from horus.engine.board import WrongFirmware, BoardNotConnected
-from horus.engine.camera import CameraNotConnected, WrongCamera, InvalidVideo
+from board import Board, WrongFirmware, BoardNotConnected
+from camera import Camera, CameraNotConnected, WrongCamera, InvalidVideo
 
 import horus.util.error as Error
 from horus.util.singleton import Singleton
@@ -41,57 +38,57 @@ from horus.util.singleton import Singleton
 
 @Singleton
 class Driver:
-	"""Driver class. For managing scanner hw"""
-	def __init__(self):
-		self.is_connected = False
 
-		#TODO: Callbacks to Observer pattern
-		self.beforeCallback = None
-		self.afterCallback = None
+    """Driver class. For managing scanner hw"""
 
-		self.unplugged = False
+    def __init__(self):
+        self.board = Board(self)
+        self.camera = Camera(self)
+        self.is_connected = False
+        self.unplugged = False
 
-		self.board = Board(self)
-		self.camera = Camera(self)
+        # TODO: Callbacks to Observer pattern
+        self._before_callback = None
+        self._after_callback = None
 
-	def setCallbacks(self, before, after):
-		self.beforeCallback = before
-		self.afterCallback = after
+    def connect(self):
+        if self._before_callback is not None:
+            self._before_callback()
+        threading.Thread(target=self._connect, args=(self._after_callback,)).start()
 
-	def connect(self):
-		if self.beforeCallback is not None:
-			self.beforeCallback()
-		threading.Thread(target=self._connect, args=(self.afterCallback,)).start()
+    def _connect(self, callback):
+        error = None
+        self.is_connected = False
+        try:
+            self.camera.connect()
+            self.board.connect()
+        except WrongFirmware:
+            error = Error.WrongFirmware
+        except BoardNotConnected:
+            error = Error.BoardNotConnected
+        except CameraNotConnected:
+            error = Error.CameraNotConnected
+        except WrongCamera:
+            error = Error.WrongCamera
+        except InvalidVideo:
+            error = Error.InvalidVideo
+        else:
+            self.is_connected = True
+        finally:
+            if error is None:
+                self.unplugged = False
+                response = (True, self.is_connected)
+            else:
+                response = (False, error)
+                self.disconnect()
+            if callback is not None:
+                callback(response)
 
-	def _connect(self, callback):
-		error = None
-		self.is_connected = False
-		try:
-			self.camera.connect()
-			self.board.connect()
-		except WrongFirmware:
-			error = Error.WrongFirmware
-		except BoardNotConnected:
-			error = Error.BoardNotConnected
-		except CameraNotConnected:
-			error = Error.CameraNotConnected
-		except WrongCamera:
-			error = Error.WrongCamera
-		except InvalidVideo:
-			error = Error.InvalidVideo
-		else:
-			self.is_connected = True
-		finally:
-			if error is None:
-				self.unplugged = False
-				response = (True, self.is_connected)
-			else:
-				response = (False, error)
-				self.disconnect()
-			if callback is not None:
-				callback(response)
-		
-	def disconnect(self):
-		self.is_connected = False
-		self.camera.disconnect()
-		self.board.disconnect()
+    def disconnect(self):
+        self.is_connected = False
+        self.camera.disconnect()
+        self.board.disconnect()
+
+    def set_callbacks(self, before, after):
+        self._before_callback = before
+        self._after_callback = after

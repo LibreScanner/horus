@@ -104,7 +104,7 @@ class WorkbenchConnection(Workbench):
 				pass
 
 	def onConnectToolClicked(self, event):
-		self.driver.setCallbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
+		self.driver.set_callbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
 		self.driver.connect()
 
 	def onDisconnectToolClicked(self, event):
