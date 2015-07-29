@@ -147,7 +147,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 			# Upload to launchpad
 			debuild -S -sa
 			PPA=${PPA:="ppa:jesus-arroyo/horus"}
-			RELEASES="trusty utopic"
+			RELEASES="trusty vivid"
 			ORIG_RELEASE=`head -1 pkg/linux/debian/changelog | sed 's/.*) \(.*\);.*/\1/'`
 			cd .. ; mv horus-${VERSION} horus-${VERSION}${VEXT}
 			mv horus_${VERSION}.orig.tar.gz horus_${VERSION}${VEXT}.orig.tar.gz
