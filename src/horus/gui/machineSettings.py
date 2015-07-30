@@ -24,7 +24,7 @@
 #                                                                       #
 #-----------------------------------------------------------------------#
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
+__author__ = "Nicanor Romero Venier <nicanor.romerovenier@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
 import wx._core
@@ -41,130 +41,76 @@ class MachineSettingsDialog(wx.Dialog):
 		self.main = parent
 
 		#-- Graphic elements
-		self.conParamsStaticText = wx.StaticText(self, label=_("Connection Parameters"), style=wx.ALIGN_CENTRE)
-		self.serialNameLabel = wx.StaticText(self, label=_("Serial Name"))
-		self.serialNames = self.main.serialList()
-		self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(170,-1))
-		self.baudRateLabel = wx.StaticText(self, label=_("Baud Rate"))
-		self.baudRates = self.main.baudRateList()
-		self.baudRateCombo = wx.ComboBox(self, choices=self.baudRates, size=(172,-1), style=wx.CB_READONLY)
-		self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id"))
-		self.cameraIdNames = self.main.videoList()
-		self.cameraIdCombo = wx.ComboBox(self, choices=self.cameraIdNames, size=(167,-1), style=wx.CB_READONLY)
+		self.platformShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
+		self.platformShapes = self.main.platformShapesList()
+		self.platformShapeCombo = wx.ComboBox(self, choices=self.platformShapes, size=(170,-1), style=wx.CB_READONLY)
 
-		self.firmwareStaticText = wx.StaticText(self, label=_("Burn Firmware"), style=wx.ALIGN_CENTRE)
-		self.boardLabel = wx.StaticText(self, label=_("AVR Board"))
-		self.boards = profile.getProfileSettingObject('board').getType()
-		board = profile.getProfileSetting('board')
-		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(168,-1), style=wx.CB_READONLY)
-		self.hexLabel = wx.StaticText(self, label=_("Binary file"))
-		self.hexCombo = wx.ComboBox(self, choices=[_("Default"), _("External file...")], value=_("Default") , size=(172,-1), style=wx.CB_READONLY)
-		self.clearCheckBox = wx.CheckBox(self, label=_("Clear EEPROM"))
-		self.uploadFirmwareButton = wx.Button(self, label=_("Upload Firmware"))
-		self.gauge = wx.Gauge(self, range=100, size=(180, -1))
-		self.gauge.Hide()
+		self.dimensionsStaticText = wx.StaticText(self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
+		self.diameterLabel = wx.StaticText(self, label=_("Diameter"))
+		self.diameterField = wx.TextCtrl(self, size=(170,-1))
+		self.heightLabel = wx.StaticText(self, label=_("Height"))
+		self.heightField = wx.TextCtrl(self, size=(170,-1))
+		self.widthLabel = wx.StaticText(self, label=_("Width"))
+		self.widthField = wx.TextCtrl(self, size=(170,-1))
+		self.depthLabel = wx.StaticText(self, label=_("Depth"))
+		self.depthField = wx.TextCtrl(self, size=(170,-1))
 
-		self.languageLabel = wx.StaticText(self, label=_("Language"))
-		self.languages = [row[1] for row in resources.getLanguageOptions()]
-		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(175,-1), style=wx.CB_READONLY)
-
-		invert = profile.getProfileSettingBool('invert_motor')
-		self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
-		self.invertMotorCheckBox.SetValue(invert)
+		self.platformModelLabel = wx.StaticText(self, label=_("Platform STL"))
 
 		self.okButton = wx.Button(self, label=_("Ok"))
 
 		#-- Events
-		self.serialNameCombo.Bind(wx.EVT_TEXT, self.onSerialNameComboChanged)
-		self.serialNameCombo.Bind(wx.EVT_COMBOBOX, self.onSerialNameComboChanged)
-		self.baudRateCombo.Bind(wx.EVT_COMBOBOX, self.onBaudRateComboChanged)
-		self.cameraIdCombo.Bind(wx.EVT_COMBOBOX, self.onCameraIdComboChanged)
-		self.boardsCombo.Bind(wx.EVT_COMBOBOX, self.onBoardsComboChanged)
-		self.hexCombo.Bind(wx.EVT_COMBOBOX, self.onHexComboChanged)
-		self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
-		self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)
-		self.invertMotorCheckBox.Bind(wx.EVT_CHECKBOX, self.onInvertMotor)
+		self.platformShapeCombo.Bind(wx.EVT_COMBOBOX, self.onPlatformShapeComboChanged)
 		self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
 		#-- Fill data
-		currentSerial = profile.getProfileSetting('serial_name')
-		if len(self.serialNames) > 0:
-			if currentSerial not in self.serialNames:
-				self.serialNameCombo.SetValue(self.serialNames[0])
-			else:
-				self.serialNameCombo.SetValue(currentSerial)
 
-		currentBaudRate = profile.getProfileSetting('baud_rate')
-		self.baudRateCombo.SetValue(currentBaudRate)
-
-		currentVideoId = profile.getProfileSetting('camera_id')
-		if len(self.cameraIdNames) > 0:
-			if currentVideoId not in self.cameraIdNames:
-				self.cameraIdCombo.SetValue(self.cameraIdNames[0])
-			else:
-				self.cameraIdCombo.SetValue(currentVideoId)		
-
-		#-- Call Events
-		self.onSerialNameComboChanged(None)
-		self.onCameraIdComboChanged(None)
+		#currentPlatformShape = profile.getProfileSetting('platfrom_shape')
+		#self.platformShapeCombo.SetValue(currentPlatformShape)
 
 		#-- Layout
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		    
-		vbox.Add(self.conParamsStaticText, 0, wx.ALL, 10)
+
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.serialNameLabel, 0, wx.ALL^wx.RIGHT, 10)
-		hbox.Add(self.serialNameCombo, 0, wx.ALL, 5)
+		hbox.Add(self.platformShapeLabel, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.Add(self.platformShapeCombo, 0, wx.ALL, 5)
 		vbox.Add(hbox)
+
+		vbox.Add(self.dimensionsStaticText, 0, wx.ALL, 10)
+		# Diameter
+		diam_hbox = wx.BoxSizer(wx.HORIZONTAL)
+		diam_hbox.Add(self.diameterLabel, 0, wx.ALL^wx.RIGHT, 10)
+		diam_hbox.AddStretchSpacer()
+		diam_hbox.Add(self.diameterField, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+		vbox.Add(diam_hbox, 0, wx.EXPAND)
+		# Width
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.baudRateLabel, 0, wx.ALL, 10)
-		hbox.Add(self.baudRateCombo, 0, wx.ALL, 5)
-		vbox.Add(hbox)
-		hbox = wx.BoxSizer(wx.HORIZONTAL)   
-		hbox.Add(self.cameraIdLabel, 0, wx.ALL, 10)
-		hbox.Add(self.cameraIdCombo, 0, wx.ALL, 5)
-		vbox.Add(hbox)
+		hbox.Add(self.widthLabel, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.widthField, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+		vbox.Add(hbox, 0, wx.EXPAND)
+		# Height
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.heightLabel, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.heightField, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+		vbox.Add(hbox, 0, wx.EXPAND)
+		# Depth
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.depthLabel, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.depthField, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+		vbox.Add(hbox, 0, wx.EXPAND)
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
-		vbox.Add(self.firmwareStaticText, 0, wx.ALL, 10)
+		vbox.Add(self.platformModelLabel, 0, wx.ALL, 10)
 
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.boardLabel, 0, wx.ALL, 10)
-		hbox.Add(self.boardsCombo, 0, wx.ALL, 5)
-		vbox.Add(hbox)
-
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.hexLabel, 0, wx.ALL, 10)
-		hbox.Add(self.hexCombo, 0, wx.ALL, 5)
-		vbox.Add(hbox)
-
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.uploadFirmwareButton, 0, wx.ALL, 10)
-		hbox.Add(self.clearCheckBox, 0, wx.ALL^wx.LEFT, 15)
-		vbox.Add(hbox)
-
-		vbox.Add(self.gauge, 0, wx.EXPAND|wx.ALL^wx.TOP, 10)
-
-		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL^wx.TOP, 5)
-
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.languageLabel, 0, wx.ALL, 10)
-		hbox.Add(self.languageCombo, 0, wx.ALL, 5)
-		vbox.Add(hbox)
-
-		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
-
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.invertMotorCheckBox, 0, wx.ALL, 15)
-		vbox.Add(hbox)
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
 		vbox.Add(self.okButton, 0, wx.ALL|wx.EXPAND, 10)
-
-		self.hexPath = None
 
 		self.SetSizer(vbox)
 
@@ -172,21 +118,16 @@ class MachineSettingsDialog(wx.Dialog):
 		self.Layout()
 		self.Fit()
 
+		#vbox.Hide(diam_hbox, recursive=True)
+		#vbox.Show(diam_hbox, recursive=True)
+
 	def onClose(self, event):
 		self.EndModal(wx.ID_OK)
 		self.Destroy()
 
-	def onSerialNameComboChanged(self, event):
-		if len(self.serialNameCombo.GetValue()):
-			profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
-
-	def onBaudRateComboChanged(self, event):
-		if self.baudRateCombo.GetValue() in self.baudRates:
-			profile.putProfileSetting('baud_rate', int(self.baudRateCombo.GetValue()))
-
-	def onCameraIdComboChanged(self, event):
-		if len(self.cameraIdCombo.GetValue()):
-			profile.putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
+	def onPlatformShapeComboChanged(self, event):
+		if len(self.platformShapeCombo.GetValue()):
+			profile.putProfileSetting('serial_name', self.platformShapeCombo.GetValue())
 
 	def onBoardsComboChanged(self, event):
 		profile.putProfileSetting('board', self.boardsCombo.GetValue())
@@ -206,7 +147,7 @@ class MachineSettingsDialog(wx.Dialog):
 			dlg.Destroy()
 
 	def onUploadFirmware(self, event):
-		if self.serialNameCombo.GetValue() != '':
+		if self.platformShapeCombo.GetValue() != '':
 			self.beforeLoadFirmware()
 			baudRate = self._getBaudRate(self.boardsCombo.GetValue())
 			clearEEPROM = self.clearCheckBox.GetValue()
