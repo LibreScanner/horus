@@ -123,8 +123,21 @@ class MachineSettingsDialog(wx.Dialog):
 
 		#-- Fill data
 
-		#currentPlatformShape = profile.getProfileSetting('platfrom_shape')
-		self.platformShapeCombo.SetValue(self.main.platformShapesList()[0])
+		currentPlatformShape = profile.getMachineSetting('machine_shape')
+		if currentPlatformShape in self.main.platformShapesList():
+			self.platformShapeCombo.SetValue(currentPlatformShape)
+		else:
+			self.platformShapeCombo.SetValue(self.main.platformShapesList()[0])
+
+		currentPlatformWidth = profile.getMachineSetting('machine_width')
+		self.widthField.SetValue(currentPlatformWidth)
+
+		currentPlatformHeight = profile.getMachineSetting('machine_height')
+		self.heightField.SetValue(currentPlatformHeight)
+
+		currentPlatformDepth = profile.getMachineSetting('machine_depth')
+		self.depthField.SetValue(currentPlatformDepth)
+
 		self.onPlatformShapeComboChanged(None)
 
 		self.SetSizer(self.vbox)
