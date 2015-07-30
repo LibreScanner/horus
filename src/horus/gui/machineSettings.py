@@ -152,9 +152,6 @@ class MachineSettingsDialog(wx.Dialog):
 			self.Layout()
 			self.Fit()
 
-	def onBoardsComboChanged(self, event):
-		profile.putProfileSetting('board', self.boardsCombo.GetValue())
-
 	def onMachineModelButton(self, event):
 		dlg = wx.FileDialog(self, message=_("Select binary file to load"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
 		dlg.SetWildcard("Model files (*.stl)|*.stl")
@@ -162,66 +159,3 @@ class MachineSettingsDialog(wx.Dialog):
 			self.machineModelPath = dlg.GetPath()
 			self.machineModelField.SetValue(dlg.GetFilename())
 		dlg.Destroy()
-
-	def onUploadFirmware(self, event):
-		if self.platformShapeCombo.GetValue() != '':
-			self.beforeLoadFirmware()
-			baudRate = self._getBaudRate(self.boardsCombo.GetValue())
-			clearEEPROM = self.clearCheckBox.GetValue()
-			threading.Thread(target=self.loadFirmware, args=(baudRate,clearEEPROM)).start()
-
-	def _getBaudRate(self, value):
-		if value == 'Arduino Uno':
-			return 115200
-		elif value == 'BT ATmega328':
-			return 19200
-
-	def loadFirmware(self, hexBaudRate, clearEEPROM):
-		avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'), baudRate=hexBaudRate)
-		extraFlags = []
-		if clearEEPROM:
-			extraFlags = ["-D"]
-		self.count = -50
-		out = avr_dude.flash(extraFlags=extraFlags, hexPath=self.hexPath, callback=self.incrementProgress)
-		if 'not in sync' in out or 'Invalid' in out:
-			wx.CallAfter(self.wrongBoardMessage)
-		wx.CallAfter(self.afterLoadFirmware)
-
-	def incrementProgress(self):
-		self.count += 1
-		if self.count >= 0:
-			wx.CallAfter(self.gauge.SetValue,self.count)
-
-	def wrongBoardMessage(self):
-		dlg = wx.MessageDialog(self, _("Probably you have selected the wrong board. Select other Board"), 'Wrong Board', wx.OK|wx.ICON_ERROR)
-		dlg.ShowModal()
-		dlg.Destroy()
-
-	def beforeLoadFirmware(self):
-		self.uploadFirmwareButton.Disable()
-		self.clearCheckBox.Disable()
-		self.boardsCombo.Disable()
-		self.saveButton.Disable()
-		self.gauge.SetValue(0)
-		self.gauge.Show()
-		self.waitCursor = wx.BusyCursor()
-		self.Layout()
-		self.Fit()
-
-	def afterLoadFirmware(self):
-		self.uploadFirmwareButton.Enable()
-		self.clearCheckBox.Enable()
-		self.boardsCombo.Enable()
-		self.saveButton.Enable()
-		self.gauge.Hide()
-		del self.waitCursor
-		self.Layout()
-		self.Fit()
-
-	def onLanguageComboChanged(self, event):
-		if profile.getPreference('language') is not self.languageCombo.GetValue():
-			profile.putPreference('language', self.languageCombo.GetValue())
-			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
-
-	def onInvertMotor(self, event):
-		profile.putProfileSetting('invert_motor', self.invertMotorCheckBox.GetValue())
