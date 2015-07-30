@@ -55,13 +55,18 @@ class MachineSettingsDialog(wx.Dialog):
 		self.depthLabel = wx.StaticText(self, label=_("Depth"))
 		self.depthField = wx.TextCtrl(self, size=(170,-1))
 
-		self.platformModelLabel = wx.StaticText(self, label=_("Platform STL"))
+		self.machineModelLabel = wx.StaticText(self, label=_("Machine STL"))
+		self.machineModelField = wx.TextCtrl(self, size=(200,-1))
+		self.machineModelButton = wx.Button(self, label=_("Browse"))
 
-		self.okButton = wx.Button(self, label=_("Ok"))
+		self.cancelButton = wx.Button(self, label=_("Cancel"))
+		self.saveButton = wx.Button(self, label=_("Save"))
+		self.defaultButton = wx.Button(self, label=_("Default"))
 
 		#-- Events
 		self.platformShapeCombo.Bind(wx.EVT_COMBOBOX, self.onPlatformShapeComboChanged)
-		self.okButton.Bind(wx.EVT_BUTTON, self.onClose)
+		self.machineModelButton.Bind(wx.EVT_BUTTON, self.onMachineModelButton)
+		self.saveButton.Bind(wx.EVT_BUTTON, self.onClose)
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
 		#-- Fill data
@@ -73,44 +78,53 @@ class MachineSettingsDialog(wx.Dialog):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.platformShapeLabel, 0, wx.ALL^wx.RIGHT, 10)
-		hbox.Add(self.platformShapeCombo, 0, wx.ALL, 5)
-		vbox.Add(hbox)
+		hbox.Add(self.platformShapeLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.platformShapeCombo, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
+		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
-		vbox.Add(self.dimensionsStaticText, 0, wx.ALL, 10)
+		vbox.Add(self.dimensionsStaticText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 10)
 		# Diameter
 		diam_hbox = wx.BoxSizer(wx.HORIZONTAL)
-		diam_hbox.Add(self.diameterLabel, 0, wx.ALL^wx.RIGHT, 10)
+		diam_hbox.Add(self.diameterLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		diam_hbox.AddStretchSpacer()
-		diam_hbox.Add(self.diameterField, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
-		vbox.Add(diam_hbox, 0, wx.EXPAND)
+		diam_hbox.Add(self.diameterField, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+		vbox.Add(diam_hbox, 0, wx.ALL|wx.EXPAND, 10)
 		# Width
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.widthLabel, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.Add(self.widthLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox.AddStretchSpacer()
-		hbox.Add(self.widthField, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
-		vbox.Add(hbox, 0, wx.EXPAND)
+		hbox.Add(self.widthField, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
 		# Height
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.heightLabel, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.Add(self.heightLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox.AddStretchSpacer()
-		hbox.Add(self.heightField, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
-		vbox.Add(hbox, 0, wx.EXPAND)
+		hbox.Add(self.heightField, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+		vbox.Add(hbox, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 		# Depth
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.depthLabel, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.Add(self.depthLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox.AddStretchSpacer()
-		hbox.Add(self.depthField, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
-		vbox.Add(hbox, 0, wx.EXPAND)
-
+		hbox.Add(self.depthField, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+		vbox.Add(hbox, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
-		vbox.Add(self.platformModelLabel, 0, wx.ALL, 10)
-
-
+		# Machine STL
+		vbox.Add(self.machineModelLabel, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 10)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.machineModelField, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.machineModelButton, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
-		vbox.Add(self.okButton, 0, wx.ALL|wx.EXPAND, 10)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.cancelButton, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.Add(self.saveButton, 0, wx.ALL^wx.RIGHT, 10)
+		hbox.Add(self.defaultButton, 0, wx.ALL, 10)
+		vbox.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
 		self.SetSizer(vbox)
 
@@ -132,19 +146,13 @@ class MachineSettingsDialog(wx.Dialog):
 	def onBoardsComboChanged(self, event):
 		profile.putProfileSetting('board', self.boardsCombo.GetValue())
 
-	def onHexComboChanged(self, event):
-		value = self.hexCombo.GetValue()
-		if value == _("Default"):
-			self.hexPath = None
-		elif value == _("External file..."):
-			dlg = wx.FileDialog(self, _("Select binary file to load"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
-			dlg.SetWildcard("hex files (*.hex)|*.hex")
-			if dlg.ShowModal() == wx.ID_OK:
-				self.hexPath = dlg.GetPath()
-				self.hexCombo.SetValue(dlg.GetFilename())
-			else:
-				self.hexCombo.SetValue(_("Default"))
-			dlg.Destroy()
+	def onMachineModelButton(self, event):
+		dlg = wx.FileDialog(self, message=_("Select binary file to load"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+		dlg.SetWildcard("Model files (*.stl)|*.stl")
+		if dlg.ShowModal() == wx.ID_OK:
+			self.machineModelPath = dlg.GetPath()
+			self.machineModelField.SetValue(dlg.GetFilename())
+		dlg.Destroy()
 
 	def onUploadFirmware(self, event):
 		if self.platformShapeCombo.GetValue() != '':
@@ -184,7 +192,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.uploadFirmwareButton.Disable()
 		self.clearCheckBox.Disable()
 		self.boardsCombo.Disable()
-		self.okButton.Disable()
+		self.saveButton.Disable()
 		self.gauge.SetValue(0)
 		self.gauge.Show()
 		self.waitCursor = wx.BusyCursor()
@@ -195,7 +203,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.uploadFirmwareButton.Enable()
 		self.clearCheckBox.Enable()
 		self.boardsCombo.Enable()
-		self.okButton.Enable()
+		self.saveButton.Enable()
 		self.gauge.Hide()
 		del self.waitCursor
 		self.Layout()
