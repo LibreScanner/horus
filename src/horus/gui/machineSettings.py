@@ -47,13 +47,13 @@ class MachineSettingsDialog(wx.Dialog):
 
 		self.dimensionsStaticText = wx.StaticText(self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
 		self.diameterLabel = wx.StaticText(self, label=_("Diameter"))
-		self.diameterField = wx.TextCtrl(self, size=(170,-1))
+		self.diameterField = wx.TextCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 		self.heightLabel = wx.StaticText(self, label=_("Height"))
-		self.heightField = wx.TextCtrl(self, size=(170,-1))
+		self.heightField = wx.TextCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 		self.widthLabel = wx.StaticText(self, label=_("Width"))
-		self.widthField = wx.TextCtrl(self, size=(170,-1))
+		self.widthField = wx.TextCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 		self.depthLabel = wx.StaticText(self, label=_("Depth"))
-		self.depthField = wx.TextCtrl(self, size=(170,-1))
+		self.depthField = wx.TextCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 
 		self.machineModelLabel = wx.StaticText(self, label=_("Machine Model"))
 		self.machineModelField = wx.TextCtrl(self, size=(200,-1))
