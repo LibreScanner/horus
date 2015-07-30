@@ -45,6 +45,7 @@ from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.scanning.main import ScanningWorkbench
 from horus.gui.workbench.calibration.main import CalibrationWorkbench
 from horus.gui.preferences import PreferencesDialog
+from horus.gui.machineSettings import MachineSettingsDialog
 from horus.gui.welcome import WelcomeWindow
 from horus.gui.wizard.main import *
 from horus.gui.util.versionWindow import VersionWindow
@@ -122,6 +123,7 @@ class MainWindow(wx.Frame):
         # self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
         # self.menuEdit.AppendSeparator()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
+        self.menuMachineSettings = self.menuEdit.Append(wx.NewId(), _("Machine Settings"))
         self.menuBar.Append(self.menuEdit, _("Edit"))
 
         #-- Menu View
@@ -190,6 +192,7 @@ class MainWindow(wx.Frame):
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
+        self.Bind(wx.EVT_MENU, self.onMachineSettings, self.menuMachineSettings)
 
         self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
         self.Bind(wx.EVT_MENU, self.onControlVideoClicked, self.menuControlVideo)
@@ -372,6 +375,34 @@ class MainWindow(wx.Frame):
         self.controlWorkbench.updateCallbacks()
         self.calibrationWorkbench.updateCallbacks()
         self.scanningWorkbench.updateCallbacks()
+
+    def onMachineSettings(self, event):
+        if sys.isWindows():
+            self.simpleScan.stop()
+            self.textureScan.stop()
+            self.laserTriangulation.cancel()
+            self.platformExtrinsics.cancel()
+            self.controlWorkbench.videoView.stop()
+            self.calibrationWorkbench.videoView.stop()
+            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
+            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
+            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
+            self.scanningWorkbench.videoView.stop()
+            self.driver.board.setUnplugCallback(None)
+            self.driver.camera.setUnplugCallback(None)
+            self.controlWorkbench.updateStatus(False)
+            self.calibrationWorkbench.updateStatus(False)
+            self.scanningWorkbench.updateStatus(False)
+            self.driver.disconnect()
+            waitCursor = wx.BusyCursor()
+
+        MachineDialog = MachineSettingsDialog(self)
+        MachineDialog.ShowModal()
+
+        #self.updateDriverProfile()
+        #self.controlWorkbench.updateCallbacks()
+        #self.calibrationWorkbench.updateCallbacks()
+        #self.scanningWorkbench.updateCallbacks()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.putPreference(key, checked)
