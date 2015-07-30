@@ -787,7 +787,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         return baselist
 
     def platformShapesList(self):
-        baselist=['Circle', 'Rectangle']
+        baselist=[_('Circular'), _('Rectangular')]
         return baselist
 
     ##-- END TODO
