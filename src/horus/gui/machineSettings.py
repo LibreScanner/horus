@@ -124,20 +124,23 @@ class MachineSettingsDialog(wx.Dialog):
 
 		#-- Fill data
 
-		currentPlatformShape = profile.getMachineSetting('machine_shape')
+		currentPlatformShape = profile.getProfileSetting('platform_shape')
 		if currentPlatformShape in self.main.platformShapesList():
 			self.platformShapeCombo.SetValue(currentPlatformShape)
 		else:
 			self.platformShapeCombo.SetValue(self.main.platformShapesList()[0])
 
-		currentPlatformWidth = int(profile.getMachineSetting('machine_width'))
-		self.widthField.SetValue(currentPlatformWidth)
+		currentPlatformWidth = profile.getProfileSettingInteger('platform_width')
+		if currentPlatformWidth:
+			self.widthField.SetValue(currentPlatformWidth)
 
-		currentPlatformHeight = int(profile.getMachineSetting('machine_height'))
-		self.heightField.SetValue(currentPlatformHeight)
+		currentPlatformHeight = profile.getProfileSettingInteger('platform_height')
+		if currentPlatformHeight:
+			self.heightField.SetValue(currentPlatformHeight)
 
-		currentPlatformDepth = int(profile.getMachineSetting('machine_depth'))
-		self.depthField.SetValue(currentPlatformDepth)
+		currentPlatformDepth = profile.getProfileSettingInteger('platform_depth')
+		if currentPlatformDepth:
+			self.depthField.SetValue(currentPlatformDepth)
 
 		self.onPlatformShapeComboChanged(None)
 
