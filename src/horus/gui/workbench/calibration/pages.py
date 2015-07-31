@@ -378,7 +378,7 @@ class LaserTriangulationMainPage(Page):
 
 	def getFrame(self):
 		if self.onCalibration:
-			frame = self.laserTriangulation.getImage()
+			frame = self.laserTriangulation.image
 		else:
 			frame = self.driver.camera.capture_image()
 
@@ -388,11 +388,14 @@ class LaserTriangulationMainPage(Page):
 
 	def onCalibrate(self):
 		self.onCalibration=True
-		self.laserTriangulation.setImage(self.driver.camera.capture_image())
+		self.laserTriangulation.image = self.driver.camera.capture_image()
+		self.laserTriangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
+		self.laserTriangulation.exposure_normal = profile.getProfileSettingNumpy('exposure_calibration')
+		self.laserTriangulation.exposure_laser = profile.getProfileSettingNumpy('exposure_calibration') / 2.
 
-		self.laserTriangulation.setCallbacks(self.beforeCalibration,
-											 lambda p: wx.CallAfter(self.progressCalibration,p),
-											 lambda r: wx.CallAfter(self.afterCalibration,r))
+		self.laserTriangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+											  lambda p: wx.CallAfter(self.progressCalibration,p),
+											  lambda r: wx.CallAfter(self.afterCalibration,r))
 		self.laserTriangulation.start()
 
 	def beforeCalibration(self):

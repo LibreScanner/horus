@@ -34,16 +34,16 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import cv2
 import time
 import struct
+import platform
 import threading
 import numpy as np
 from scipy import optimize
 from scipy.sparse import linalg
 
-from driver import Driver
+system = platform.system()
 
+from driver import Driver
 from horus.util.singleton import Singleton
-# TODO: refactor
-from horus.util import profile, system as sys
 
 """
     Calibrations:
@@ -176,7 +176,7 @@ class AutoCheck(Calibration):
             self.image = None
 
             # Setup scanner
-            board.laser_off()
+            board.lasers_off()
             board.motor_enable()
 
             # Perform auto check
@@ -188,7 +188,7 @@ class AutoCheck(Calibration):
             except Exception as e:
                 response = str(e)
             finally:
-                board.laser_off()
+                board.lasers_off()
                 board.motor_disable()
 
             self.image = None
@@ -299,7 +299,8 @@ class CameraIntrinsics(Calibration):
         self.distortion_vector = None
 
     def _start(self):
-        ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(object_points, image_points, self.shape)
+        ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(
+            object_points, image_points, self.shape)
 
         if self._progress_callback is not None:
             self._progress_callback(100)
@@ -331,142 +332,97 @@ class CameraIntrinsics(Calibration):
 @Singleton
 class LaserTriangulation(Calibration):
 
-    """Laser triangulation algorithms:
+    """Laser triangulation algorithm:
 
-                    - Laser coordinates matrix
-                    - Pattern's origin
-                    - Pattern's normal
+            - Laser coordinates matrix
+            - Pattern's origin
+            - Pattern's normal
     """
 
     def __init__(self):
         Calibration.__init__(self)
-        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
         self.image = None
-        self.threshold = profile.getProfileSettingFloat('laser_threshold_value')
+        self.threshold = 0
+        self.exposure_laser = 0
+        self.exposure_normal = 0
 
-    def set_intrinsics(self, _camera_matrix, _distortion_vector):
-        self._camera_matrix = _camera_matrix
-        self._distortion_vector = _distortion_vector
-
-    def set_use_distortion(self, use_distortion):
-        self.use_distortion = use_distortion
-
-    def setThreshold(self, threshold):
-        self.threshold = threshold
-
-    def setPatternParameters(self, rows, columns, squareWidth, distance):
-        # Pattern rows and columns are flipped due to the fact that the pattern is
-        # in landscape orientation
-        self.patternRows = columns
-        self.patternColumns = rows
-        self.squareWidth = squareWidth
-        self.patternDistance = distance
-        self.objpoints = self.generateObjectPoints(
-            self.patternColumns, self.patternRows, self.squareWidth)
-
-    def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
-        objp = np.zeros((patternRows * patternColumns, 3), np.float32)
-        objp[:, :2] = np.mgrid[0:patternColumns, 0:patternRows].T.reshape(-1, 2)
-        objp = np.multiply(objp, squareWidth)
-        return objp
-
-    def getImage(self):
-        return self.image
-
-    def setImage(self, image):
-        self.image = image
-
-    def _start(self, _progress_callback, _after_callback):
+    def _start(self):
         XL = None
         XR = None
+        step = 5
+        angle = 0
 
-        if sys.isWindows():
+        if system == 'Windows':
             flush = 2
-        elif sys.isDarwin():
+        elif system == 'Darwin':
             flush = 2
         else:
             flush = 1
 
-        if self.driver.is_connected:
-
-            board = self.driver.board
-            camera = self.driver.camera
-
-            # -- Switch off lasers
-            board.left_laser_off()
-            board.right_laser_off()
-
-            # -- Setup motor
-            step = 5
-            angle = 0
-            board.motor_speed(1)
+        if driver.is_connected:
+            # Setup scanner
+            board.lasers_off()
             board.motor_enable()
-            board.motor_speed(150)
-            board.motor_acceleration(150)
-            time.sleep(0.1)
+            board.motor_speed(200)
+            board.motor_acceleration(200)
 
-            if _progress_callback is not None:
-                _progress_callback(0)
+            if self._progress_callback is not None:
+                self._progress_callback(0)
 
             while self._is_calibrating and abs(angle) < 180:
 
-                if _progress_callback is not None:
-                    _progress_callback(1.11 * abs(angle / 2.))
+                if self._progress_callback is not None:
+                    self._progress_callback(1.11 * abs(angle / 2.))
 
                 angle += step
 
-                camera.set_exposure(profile.getProfileSettingNumpy('exposure_calibration'))
-
-                #-- Image acquisition
-                imageRaw = camera.capture_image(flush=True, flush_value=flush)
-
-                #-- Pattern detection
-                ret = self.getPatternPlane(imageRaw)
+                camera.set_exposure(self.exposure_normal)
+                img_raw = camera.capture_image(flush=flush)
+                self.image = img_raw
+                ret = self.detect_pattern_plane(img_raw)
 
                 if ret is not None:
                     step = 4  # 2
 
                     d, n, corners = ret
 
-                    camera.set_exposure(
-                        profile.getProfileSettingNumpy('exposure_calibration') / 2.)
+                    # Image laser acquisition
+                    camera.set_exposure(self.exposure_laser)
 
-                    #-- Image laser acquisition
-                    imageRawLeft = camera.capture_image(flush=True, flush_value=flush)
+                    img_raw_left = camera.capture_image(flush=flush)
                     board.left_laser_on()
-                    imageLeft = camera.capture_image(flush=True, flush_value=flush)
+                    img_las_left = camera.capture_image(flush=flush)
                     board.left_laser_off()
-                    self.image = imageLeft
-                    if imageLeft is None:
+                    self.image = img_las_left
+                    if img_las_left is None:
                         break
 
-                    imageRawRight = camera.capture_image(flush=True, flush_value=flush)
+                    img_raw_right = camera.capture_image(flush=flush)
                     board.right_laser_on()
-                    imageRight = camera.capture_image(flush=True, flush_value=flush)
+                    img_las_right = camera.capture_image(flush=flush)
                     board.right_laser_off()
-                    self.image = imageRight
-                    if imageRight is None:
+                    self.image = img_las_right
+                    if img_las_right is None:
                         break
 
-                    #-- Pattern ROI mask
-                    imageRaw = self.cornersMask(imageRaw, corners)
-                    imageLeft = self.cornersMask(imageLeft, corners)
-                    imageRawLeft = self.cornersMask(imageRawLeft, corners)
-                    imageRight = self.cornersMask(imageRight, corners)
-                    imageRawRight = self.cornersMask(imageRawRight, corners)
+                    # Pattern ROI mask
+                    img_las_left = corners_mask(img_las_left, corners)
+                    img_raw_left = corners_mask(img_raw_left, corners)
+                    img_las_right = corners_mask(img_las_right, corners)
+                    img_raw_right = corners_mask(img_raw_right, corners)
 
-                    #-- Line segmentation
-                    uL, vL = self.getLaserLine(imageLeft, imageRawLeft)
-                    uR, vR = self.getLaserLine(imageRight, imageRawRight)
+                    # Line segmentation
+                    uL, vL = self.compute_laser_line(img_las_left, img_raw_left)
+                    uR, vR = self.compute_laser_line(img_las_right, img_raw_right)
 
-                    #-- Point Cloud generation
-                    xL = self.getPointCloudLaser(uL, vL, d, n)
+                    # Point Cloud generation
+                    xL = self.compute_point_cloud(uL, vL, d, n)
                     if xL is not None:
                         if XL is None:
                             XL = xL
                         else:
                             XL = np.concatenate((XL, xL))
-                    xR = self.getPointCloudLaser(uR, vR, d, n)
+                    xR = self.compute_point_cloud(uR, vR, d, n)
                     if xR is not None:
                         if XR is None:
                             XR = xR
@@ -474,68 +430,63 @@ class LaserTriangulation(Calibration):
                             XR = np.concatenate((XR, xR))
                 else:
                     step = 5
-                    self.image = imageRaw
+                    self.image = img_raw
+
+                self.image = img_raw
 
                 board.motor_relative(step)
                 board.motor_move()
                 time.sleep(0.1)
 
-            # self.saveScene('XL.ply', XL)
-            # self.saveScene('XR.ply', XR)
+            # self.save_scene('XL.ply', XL)
+            # self.save_scene('XR.ply', XR)
 
-            #-- Compute planes
-            dL, nL, stdL = self.computePlane(XL, 'l')
-            dR, nR, stdR = self.computePlane(XR, 'r')
+            # Compute planes
+            dL, nL, stdL = self.compute_plane(XL, 'l')
+            dR, nR, stdR = self.compute_plane(XR, 'r')
 
-        # -- Switch off lasers
-        board.left_laser_off()
-        board.right_laser_off()
-
-        #-- Disable motor
+        board.lasers_off()
         board.motor_disable()
 
-        #-- Restore camera exposure
-        camera.set_exposure(profile.getProfileSettingNumpy('exposure_calibration'))
+        # Restore camera exposure
+        camera.set_exposure(self.exposure_normal)
 
         if self._is_calibrating and nL is not None and nR is not None:
             response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
-            if _progress_callback is not None:
-                _progress_callback(100)
+            if self._progress_callback is not None:
+                self._progress_callback(100)
         else:
             if self._is_calibrating:
-                response = (False, Error.CalibrationError)
+                response = (False, _("Calibration Error"))
             else:
-                response = (False, Error.CalibrationCanceled)
+                response = (False, _("Calibration Canceled"))
 
         self.image = None
 
-        if _after_callback is not None:
-            _after_callback(response)
+        if self._after_callback is not None:
+            self._after_callback(response)
 
-    def getPatternPlane(self, image):
+    def detect_pattern_plane(self, image):
         if image is not None:
-            ret = self.solvePnp(image, self.objpoints, self._camera_matrix,
-                                self._distortion_vector, self.patternColumns, self.patternRows)
+            ret = solve_pnp(image)
             if ret is not None:
-                if ret[0]:
-                    R = ret[1]
-                    t = ret[2].T[0]
-                    n = R.T[2]
-                    c = ret[3]
-                    d = -np.dot(n, t)
-                    return (d, n, c)
+                R = ret[0]
+                t = ret[1].T[0]
+                n = R.T[2]
+                c = ret[2]
+                d = -np.dot(n, t)
+                return (d, n, c)
 
-    def getLaserLine(self, imageLaser, imageRaw):
-        #-- Image segmentation
-        sub = cv2.subtract(imageLaser, imageRaw)
+    def compute_laser_line(self, img_las, img_raw):
+        # Image segmentation
+        sub = cv2.subtract(img_las, img_raw)
         r, g, b = cv2.split(sub)
-
-        #-- Threshold
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+        r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
         r = cv2.threshold(r, self.threshold, 255.0, cv2.THRESH_TOZERO)[1]
 
+        # Peak detection: center of mass
         h, w = r.shape
-
-        #-- Peak detection: center of mass
         W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
         s = r.sum(axis=1)
         v = np.where(s > 0)[0]
@@ -543,11 +494,11 @@ class LaserTriangulation(Calibration):
 
         return u, v
 
-    def getPointCloudLaser(self, u, v, d, n):
-        fx = self._camera_matrix[0][0]
-        fy = self._camera_matrix[1][1]
-        cx = self._camera_matrix[0][2]
-        cy = self._camera_matrix[1][2]
+    def compute_point_cloud(self, u, v, d, n):
+        fx = camera.camera_matrix[0][0]
+        fy = camera.camera_matrix[1][1]
+        cx = camera.camera_matrix[0][2]
+        cy = camera.camera_matrix[1][2]
 
         x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
 
@@ -555,7 +506,7 @@ class LaserTriangulation(Calibration):
 
         return X.T
 
-    def computePlane(self, X, side):
+    def compute_plane(self, X, side):
         if X is not None:
             X = np.matrix(X).T
             n = X.shape[1]
@@ -569,9 +520,7 @@ class LaserTriangulation(Calibration):
 
                     Xm = X.sum(axis=1) / n
                     M = np.array(X - Xm)
-                    #begin = datetime.datetime.now()
                     U = linalg.svds(M, k=2)[0]
-                    # print "nº {0}  time {1}".format(n, datetime.datetime.now()-begin)
                     s, t = U.T
                     n = np.cross(s, t)
                     if n[2] < 0:
@@ -586,16 +535,14 @@ class LaserTriangulation(Calibration):
                     std = distance_vector.std()
 
                     final_points = np.where(abs(distance_vector) < abs(2 * std))[0]
-                    # print 'iteration ', trials, 'd,n,std, len(final_points)', d,n,std,
-                    # len(final_points)
 
                     X = X[:, final_points]
 
                     # Save each iteration point cloud
                     # if side == 'l':
-                    # 	self.saveScene('new_'+str(trials)+'_XL.ply', np.asarray(X.T))
+                    # 	self.save_scene('new_'+str(trials)+'_XL.ply', np.asarray(X.T))
                     # else:
-                    # 	self.saveScene('new_'+str(trials)+'_XR.ply', np.asarray(X.T))
+                    # 	self.save_scene('new_'+str(trials)+'_XR.ply', np.asarray(X.T))
 
                     if std < 0.1 or len(final_points) < 1000:
                         break
@@ -606,35 +553,17 @@ class LaserTriangulation(Calibration):
         else:
             return None, None, None
 
-    def cornersMask(self, frame, corners):
-        p1 = corners[0][0]
-        p2 = corners[self.patternColumns - 1][0]
-        p3 = corners[self.patternColumns * (self.patternRows - 1) - 1][0]
-        p4 = corners[self.patternColumns * self.patternRows - 1][0]
-        p11 = min(p1[1], p2[1], p3[1], p4[1])
-        p12 = max(p1[1], p2[1], p3[1], p4[1])
-        p21 = min(p1[0], p2[0], p3[0], p4[0])
-        p22 = max(p1[0], p2[0], p3[0], p4[0])
-        d = max(corners[1][0][0] - corners[0][0][0],
-                corners[1][0][1] - corners[0][0][1],
-                corners[self.patternColumns][0][1] - corners[0][0][1],
-                corners[self.patternColumns][0][0] - corners[0][0][0])
-        mask = np.zeros(frame.shape[:2], np.uint8)
-        mask[p11 - d:p12 + d, p21 - d:p22 + d] = 255
-        frame = cv2.bitwise_and(frame, frame, mask=mask)
-        return frame
-
-    def saveScene(self, filename, pointCloud):
-        if pointCloud is not None:
+    def save_scene(self, filename, point_cloud):
+        if point_cloud is not None:
             f = open(filename, 'wb')
-            self.saveSceneStream(f, pointCloud)
+            self.save_scene_stream(f, point_cloud)
             f.close()
 
-    def saveSceneStream(self, stream, pointCloud):
+    def save_scene_stream(self, stream, point_cloud):
         frame = "ply\n"
         frame += "format binary_little_endian 1.0\n"
         frame += "comment Generated by Horus software\n"
-        frame += "element vertex {0}\n".format(len(pointCloud))
+        frame += "element vertex {0}\n".format(len(point_cloud))
         frame += "property float x\n"
         frame += "property float y\n"
         frame += "property float z\n"
@@ -644,26 +573,9 @@ class LaserTriangulation(Calibration):
         frame += "element face 0\n"
         frame += "property list uchar int vertex_indices\n"
         frame += "end_header\n"
-        for point in pointCloud:
+        for point in point_cloud:
             frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
         stream.write(frame)
-
-    def solvePnp(self, image, objpoints, _camera_matrix, _distortion_vector, patternColumns, patternRows):
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # the fast check flag reduces significantly the computation time if the
-        # pattern is out of sight
-        retval, corners = cv2.findChessboardCorners(
-            gray, (patternColumns, patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
-
-        if retval:
-            cv2.cornerSubPix(
-                gray, corners, winSize=(11, 11), zeroZone=(-1, -1), criteria=self.criteria)
-            if self.use_distortion:
-                ret, rvecs, tvecs = cv2.solvePnP(
-                    objpoints, corners, _camera_matrix, _distortion_vector)
-            else:
-                ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, _camera_matrix, None)
-            return (ret, cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
 
 @Singleton
@@ -794,9 +706,9 @@ class PlatformExtrinsics(Calibration):
 
     def getPatternPosition(self, step, board, camera):
         t = None
-        if sys.isWindows():
+        if system == 'Windows':
             flush = 2
-        elif sys.isDarwin():
+        elif system == 'Darwin':
             flush = 2
         else:
             flush = 1

@@ -104,7 +104,7 @@ class Board(object):
             print ">>> Disconnecting board {0}".format(self.serial_name)
             try:
                 if self._serial_port is not None:
-                    self.laser_off()
+                    self.lasers_off()
                     self.motor_disable()
                     self._serial_port.close()
                     del self._serial_port
@@ -159,11 +159,11 @@ class Board(object):
     def right_laser_off(self):
         self._send_command("M70T2")
 
-    def laser_off(self):
+    def lasers_off(self):
         self.left_laser_off()
         self.right_laser_off()
 
-    def laser_on(self):
+    def lasers_on(self):
         self.left_laser_on()
         self.right_laser_on()
 
