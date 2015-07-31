@@ -29,6 +29,7 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 
 import wx._core
 import threading
+import wx.lib.intctrl
 
 from horus.util import profile, resources
 from horus.util.avrHelpers import AvrDude
@@ -47,13 +48,13 @@ class MachineSettingsDialog(wx.Dialog):
 
 		self.dimensionsStaticText = wx.StaticText(self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
 		self.diameterLabel = wx.StaticText(self, label=_("Diameter"))
-		self.diameterField = wx.TextCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
+		self.diameterField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 		self.heightLabel = wx.StaticText(self, label=_("Height"))
-		self.heightField = wx.TextCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
+		self.heightField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 		self.widthLabel = wx.StaticText(self, label=_("Width"))
-		self.widthField = wx.TextCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
+		self.widthField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 		self.depthLabel = wx.StaticText(self, label=_("Depth"))
-		self.depthField = wx.TextCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
+		self.depthField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 
 		self.machineModelLabel = wx.StaticText(self, label=_("Machine Model"))
 		self.machineModelField = wx.TextCtrl(self, size=(200,-1))
@@ -119,7 +120,7 @@ class MachineSettingsDialog(wx.Dialog):
 		hbox.Add(self.cancelButton, 0, wx.ALL^wx.RIGHT, 10)
 		hbox.Add(self.saveButton, 0, wx.ALL^wx.RIGHT, 10)
 		hbox.Add(self.defaultButton, 0, wx.ALL, 10)
-		self.vbox.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL)
+		self.vbox.Add(hbox, 0, wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
 		#-- Fill data
 
@@ -129,13 +130,13 @@ class MachineSettingsDialog(wx.Dialog):
 		else:
 			self.platformShapeCombo.SetValue(self.main.platformShapesList()[0])
 
-		currentPlatformWidth = profile.getMachineSetting('machine_width')
+		currentPlatformWidth = int(profile.getMachineSetting('machine_width'))
 		self.widthField.SetValue(currentPlatformWidth)
 
-		currentPlatformHeight = profile.getMachineSetting('machine_height')
+		currentPlatformHeight = int(profile.getMachineSetting('machine_height'))
 		self.heightField.SetValue(currentPlatformHeight)
 
-		currentPlatformDepth = profile.getMachineSetting('machine_depth')
+		currentPlatformDepth = int(profile.getMachineSetting('machine_depth'))
 		self.depthField.SetValue(currentPlatformDepth)
 
 		self.onPlatformShapeComboChanged(None)
