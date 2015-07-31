@@ -102,14 +102,14 @@ class CalibrationPage(WizardPage):
 
 	def getFrame(self):
 		if self.phase is 'platformCalibration':
-			frame = self.platformExtrinsics.getImage()
+			frame = self.platformExtrinsics.image
 		elif self.phase is 'laserTriangulation':
-			frame = self.laserTriangulation.getImage()
+			frame = self.laserTriangulation.image
 		else: # 'none'
 			frame = self.driver.camera.capture_image()
 
 		if frame is not None and self.phase is not 'laserTriangulation':
-			retval, frame = detect_chessboard(frame)
+			retval, frame = calibration.detect_chessboard(frame)
 
 		return frame
 
@@ -121,17 +121,20 @@ class CalibrationPage(WizardPage):
 
 	def onCalibrationButtonClicked(self, event):
 		self.phase = 'laserTriangulation'
-		self.laserTriangulation.setCallbacks(self.beforeCalibration,
-											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
-											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
+		self.laserTriangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
+		self.laserTriangulation.exposure_normal = profile.getProfileSettingNumpy('exposure_calibration')
+		self.laserTriangulation.exposure_laser = profile.getProfileSettingNumpy('exposure_calibration') / 2.
+		self.laserTriangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+											  lambda p: wx.CallAfter(self.progressLaserCalibration,p),
+											  lambda r: wx.CallAfter(self.afterLaserCalibration,r))
 		if profile.getProfileSettingFloat('pattern_distance') == 0:
 			PatternDistanceWindow(self)
 		else:
 			self.laserTriangulation.start()
 
 	def onCancelButtonClicked(self, event):
-		boardUnplugCallback = self.driver.board.unplugCallback
-		cameraUnplugCallback = self.driver.camera.unplugCallback
+		boardUnplugCallback = self.driver.board.unplug_callback
+		cameraUnplugCallback = self.driver.camera.unplug_callback
 		self.driver.board.set_unplug_callback(None)
 		self.driver.camera.set_unplug_callback(None)
 		self.phase = 'none'
@@ -169,9 +172,9 @@ class CalibrationPage(WizardPage):
 			profile.putProfileSettingNumpy('normal_left', result[0][1])
 			profile.putProfileSetting('distance_right', result[1][0])
 			profile.putProfileSettingNumpy('normal_right', result[1][1])
-			self.platformExtrinsics.setCallbacks(None,
-												 lambda p: wx.CallAfter(self.progressPlatformCalibration,p),
-												 lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
+			self.platformExtrinsics.set_callbacks(None,
+												  lambda p: wx.CallAfter(self.progressPlatformCalibration,p),
+												  lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
 			self.platformExtrinsics.start()
 		else:
 			if result == Error.CalibrationError:

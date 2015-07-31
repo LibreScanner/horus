@@ -123,7 +123,7 @@ class ConnectionPage(WizardPage):
         self.afterAutoCheck()
 
     def onConnectButtonClicked(self, event):
-        self.driver.set_callbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
+        self.driver.set_callbacks(lambda: wx.CallAfter(self.beforeConnect), lambda r: wx.CallAfter(self.afterConnect,r))
         self.driver.connect()
 
     def onSettingsButtonClicked(self, event):
@@ -185,10 +185,10 @@ class ConnectionPage(WizardPage):
             if result:
                 self.driver.board.laser_on()
         else:
-            #-- Perform auto check
+            # Perform auto check
             self.autocheck.set_callbacks(lambda: wx.CallAfter(self.beforeAutoCheck),
-                                        lambda p: wx.CallAfter(self.progressAutoCheck,p),
-                                        lambda r: wx.CallAfter(self.afterAutoCheck,r))
+                                         lambda p: wx.CallAfter(self.progressAutoCheck,p),
+                                         lambda r: wx.CallAfter(self.afterAutoCheck,r))
             self.autocheck.start()
 
     def beforeAutoCheck(self):

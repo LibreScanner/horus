@@ -193,6 +193,8 @@ class AutoCheck(Calibration):
 
             self.image = None
 
+            self._is_calibrating = False
+
             if self._after_callback is not None:
                 self._after_callback(response)
 
@@ -312,6 +314,8 @@ class CameraIntrinsics(Calibration):
         else:
             response = (False, _("Calibration Error"))
 
+        self._is_calibrating = False
+
         if self._after_callback is not None:
             self._after_callback(response)
 
@@ -380,10 +384,10 @@ class LaserTriangulation(Calibration):
                 camera.set_exposure(self.exposure_normal)
                 img_raw = camera.capture_image(flush=flush)
                 self.image = img_raw
-                ret = self.detect_pattern_plane(img_raw)
+                ret = detect_pattern_plane(img_raw)
 
                 if ret is not None:
-                    step = 4  # 2
+                    step = 5  # 2
 
                     d, n, corners = ret
 
@@ -413,17 +417,17 @@ class LaserTriangulation(Calibration):
                     img_raw_right = corners_mask(img_raw_right, corners)
 
                     # Line segmentation
-                    uL, vL = self.compute_laser_line(img_las_left, img_raw_left)
-                    uR, vR = self.compute_laser_line(img_las_right, img_raw_right)
+                    uL, vL = compute_laser_line(img_las_left, img_raw_left, self.threshold)
+                    uR, vR = compute_laser_line(img_las_right, img_raw_right, self.threshold)
 
                     # Point Cloud generation
-                    xL = self.compute_point_cloud(uL, vL, d, n)
+                    xL = compute_point_cloud(uL, vL, d, n)
                     if xL is not None:
                         if XL is None:
                             XL = xL
                         else:
                             XL = np.concatenate((XL, xL))
-                    xR = self.compute_point_cloud(uR, vR, d, n)
+                    xR = compute_point_cloud(uR, vR, d, n)
                     if xR is not None:
                         if XR is None:
                             XR = xR
@@ -443,8 +447,8 @@ class LaserTriangulation(Calibration):
             # self.save_scene('XR.ply', XR)
 
             # Compute planes
-            dL, nL, stdL = self.compute_plane(XL, 'l')
-            dR, nR, stdR = self.compute_plane(XR, 'r')
+            dL, nL, stdL = compute_plane(XL, 'l')
+            dR, nR, stdR = compute_plane(XR, 'r')
 
         board.lasers_off()
         board.motor_disable()
@@ -452,131 +456,29 @@ class LaserTriangulation(Calibration):
         # Restore camera exposure
         camera.set_exposure(self.exposure_normal)
 
+        self.image = None
+
         if self._is_calibrating and nL is not None and nR is not None:
             response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
-            if self._progress_callback is not None:
-                self._progress_callback(100)
+            self.move_home()
         else:
             if self._is_calibrating:
                 response = (False, _("Calibration Error"))
             else:
                 response = (False, _("Calibration Canceled"))
 
-        self.image = None
+        self._is_calibrating = False
 
         if self._after_callback is not None:
             self._after_callback(response)
 
-    def detect_pattern_plane(self, image):
-        if image is not None:
-            ret = solve_pnp(image)
-            if ret is not None:
-                R = ret[0]
-                t = ret[1].T[0]
-                n = R.T[2]
-                c = ret[2]
-                d = -np.dot(n, t)
-                return (d, n, c)
+    def move_home(self):
+        # Restart pattern position
+        board.motor_relative(-180)
+        board.motor_move()
 
-    def compute_laser_line(self, img_las, img_raw):
-        # Image segmentation
-        sub = cv2.subtract(img_las, img_raw)
-        r, g, b = cv2.split(sub)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
-        r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
-        r = cv2.threshold(r, self.threshold, 255.0, cv2.THRESH_TOZERO)[1]
-
-        # Peak detection: center of mass
-        h, w = r.shape
-        W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
-        s = r.sum(axis=1)
-        v = np.where(s > 0)[0]
-        u = (W * r).sum(axis=1)[v] / s[v]
-
-        return u, v
-
-    def compute_point_cloud(self, u, v, d, n):
-        fx = camera.camera_matrix[0][0]
-        fy = camera.camera_matrix[1][1]
-        cx = camera.camera_matrix[0][2]
-        cy = camera.camera_matrix[1][2]
-
-        x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
-
-        X = -d / np.dot(n, x) * x
-
-        return X.T
-
-    def compute_plane(self, X, side):
-        if X is not None:
-            X = np.matrix(X).T
-            n = X.shape[1]
-            std = 0
-            if n > 3:
-                final_points = []
-
-                for trials in xrange(30):
-                    X = np.matrix(X)
-                    n = X.shape[1]
-
-                    Xm = X.sum(axis=1) / n
-                    M = np.array(X - Xm)
-                    U = linalg.svds(M, k=2)[0]
-                    s, t = U.T
-                    n = np.cross(s, t)
-                    if n[2] < 0:
-                        n *= -1
-                    d = np.dot(n, np.array(Xm))[0]
-                    distance_vector = np.dot(M.T, n)
-
-                    # If last std is equal to current std, break loop
-                    if std == distance_vector.std():
-                        break
-
-                    std = distance_vector.std()
-
-                    final_points = np.where(abs(distance_vector) < abs(2 * std))[0]
-
-                    X = X[:, final_points]
-
-                    # Save each iteration point cloud
-                    # if side == 'l':
-                    # 	self.save_scene('new_'+str(trials)+'_XL.ply', np.asarray(X.T))
-                    # else:
-                    # 	self.save_scene('new_'+str(trials)+'_XR.ply', np.asarray(X.T))
-
-                    if std < 0.1 or len(final_points) < 1000:
-                        break
-
-                return d, n, std
-            else:
-                return None, None, None
-        else:
-            return None, None, None
-
-    def save_scene(self, filename, point_cloud):
-        if point_cloud is not None:
-            f = open(filename, 'wb')
-            self.save_scene_stream(f, point_cloud)
-            f.close()
-
-    def save_scene_stream(self, stream, point_cloud):
-        frame = "ply\n"
-        frame += "format binary_little_endian 1.0\n"
-        frame += "comment Generated by Horus software\n"
-        frame += "element vertex {0}\n".format(len(point_cloud))
-        frame += "property float x\n"
-        frame += "property float y\n"
-        frame += "property float z\n"
-        frame += "property uchar red\n"
-        frame += "property uchar green\n"
-        frame += "property uchar blue\n"
-        frame += "element face 0\n"
-        frame += "property list uchar int vertex_indices\n"
-        frame += "end_header\n"
-        for point in point_cloud:
-            frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
-        stream.write(frame)
+        if self._progress_callback is not None:
+            self._progress_callback(100)
 
 
 @Singleton
@@ -595,7 +497,7 @@ class PlatformExtrinsics(Calibration):
     def _start(self):
         t = None
         angle = 0
-        step = -5
+        step = 5
 
         if driver.is_connected:
 
@@ -649,20 +551,29 @@ class PlatformExtrinsics(Calibration):
             board.lasers_off()
             board.motor_disable()
 
+        self.image = None
+
         if self._is_calibrating and t is not None and np.linalg.norm(t - [5, 80, 320]) < 100:
             response = (True, (R, t, center, point, normal, [x, y, z], circle))
-            if self._progress_callback is not None:
-                self._progress_callback(100)
+            self.move_home()
         else:
             if self._is_calibrating:
                 response = (False, _("Calibration Error"))
             else:
                 response = (False, _("Calibration Canceled"))
 
-        self.image = None
+        self._is_calibrating = False
 
         if self._after_callback is not None:
             self._after_callback(response)
+
+    def move_home(self):
+        # Restart pattern position
+        board.motor_relative(-180)
+        board.motor_move()
+
+        if self._progress_callback is not None:
+            self._progress_callback(100)
 
     def compute_pattern_position(self):
         t = None
@@ -838,3 +749,120 @@ def detect_line(img_raw, img_las):
         # WrongLaserPosition
     else:
         raise LaserNotDetected
+
+
+def save_scene(filename, point_cloud):
+    if point_cloud is not None:
+        f = open(filename, 'wb')
+        save_scene_stream(f, point_cloud)
+        f.close()
+
+
+def save_scene_stream(stream, point_cloud):
+    frame = "ply\n"
+    frame += "format binary_little_endian 1.0\n"
+    frame += "comment Generated by Horus software\n"
+    frame += "element vertex {0}\n".format(len(point_cloud))
+    frame += "property float x\n"
+    frame += "property float y\n"
+    frame += "property float z\n"
+    frame += "property uchar red\n"
+    frame += "property uchar green\n"
+    frame += "property uchar blue\n"
+    frame += "element face 0\n"
+    frame += "property list uchar int vertex_indices\n"
+    frame += "end_header\n"
+    for point in point_cloud:
+        frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
+    stream.write(frame)
+
+
+def detect_pattern_plane(image):
+    if image is not None:
+        ret = solve_pnp(image)
+        if ret is not None:
+            R = ret[0]
+            t = ret[1].T[0]
+            n = R.T[2]
+            c = ret[2]
+            d = -np.dot(n, t)
+            return (d, n, c)
+
+
+def compute_laser_line(img_las, img_raw, threshold):
+    # Image segmentation
+    sub = cv2.subtract(img_las, img_raw)
+    r, g, b = cv2.split(sub)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
+    r = cv2.threshold(r, threshold, 255.0, cv2.THRESH_TOZERO)[1]
+
+    # Peak detection: center of mass
+    h, w = r.shape
+    W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
+    s = r.sum(axis=1)
+    v = np.where(s > 0)[0]
+    u = (W * r).sum(axis=1)[v] / s[v]
+
+    return u, v
+
+
+def compute_point_cloud(u, v, d, n):
+    fx = camera.camera_matrix[0][0]
+    fy = camera.camera_matrix[1][1]
+    cx = camera.camera_matrix[0][2]
+    cy = camera.camera_matrix[1][2]
+
+    x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
+
+    X = -d / np.dot(n, x) * x
+
+    return X.T
+
+
+def compute_plane(X, side):
+    if X is not None:
+        X = np.matrix(X).T
+        n = X.shape[1]
+        std = 0
+        if n > 3:
+            final_points = []
+
+            for trials in xrange(30):
+                X = np.matrix(X)
+                n = X.shape[1]
+
+                Xm = X.sum(axis=1) / n
+                M = np.array(X - Xm)
+                U = linalg.svds(M, k=2)[0]
+                s, t = U.T
+                n = np.cross(s, t)
+                if n[2] < 0:
+                    n *= -1
+                d = np.dot(n, np.array(Xm))[0]
+                distance_vector = np.dot(M.T, n)
+
+                # If last std is equal to current std, break loop
+                if std == distance_vector.std():
+                    break
+
+                std = distance_vector.std()
+
+                final_points = np.where(abs(distance_vector) < abs(2 * std))[0]
+
+                X = X[:, final_points]
+
+                # Save each iteration point cloud
+                # if side == 'l':
+                #   save_scene('new_'+str(trials)+'_XL.ply', np.asarray(X.T))
+                # else:
+                #   save_scene('new_'+str(trials)+'_XR.ply', np.asarray(X.T))
+
+                if std < 0.1 or len(final_points) < 1000:
+                    break
+
+            return d, n, std
+        else:
+            return None, None, None
+    else:
+        return None, None, None
