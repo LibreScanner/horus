@@ -307,13 +307,10 @@ setting('enable_button', '', str, 'basic', _('Enable'), False)
 setting('gcode_gui', '', str, 'advanced', _('Send'), False)
 setting('ldr_value', '', str, 'advanced', _('Send'), False)
 
-setting('machine_name', 'my_ciclop', str, 'machine_setting', _('Machine Name'))
-setting('machine_type', 'ciclop', str, 'machine_setting', _('Machine Type'))
 setting('machine_diameter', 200.0, float, 'machine_setting', _('Machine Diameter'))
 setting('machine_width', 200.0, float, 'machine_setting', _('Machine Width'))
 setting('machine_height', 200.0, float, 'machine_setting', _('Machine Height'))
 setting('machine_depth', 200.0, float, 'machine_setting', _('Machine Depth'))
-setting('machine_center_is_zero', 'True', bool, 'machine_setting', _('Machine Center is Zero'))
 setting('machine_shape', 'Circular', ['Circular', 'Rectangular'], 'machine_setting', _('Machine Shape'))
 setting('machine_model_path', resources.getPathForMesh('ciclop_platform.stl'), str, 'machine_setting', _('Machine Model')) # TODO: Check if this path should be absolute
 
@@ -801,32 +798,29 @@ def isMachineSetting(name):
 		return True
 	return False
 
-def getMachineCenterCoords():
-	if getMachineSetting('machine_center_is_zero') == 'True':
-		return [0, 0]
-	return [getMachineSettingFloat('machine_width') / 2, getMachineSettingFloat('machine_depth') / 2]
-
 #Returns a list of convex polygons, first polygon is the allowed area of the machine,
 # the rest of the polygons are the dis-allowed areas of the machine.
-def getMachineSizePolygons():
-	size = numpy.array([getMachineSettingFloat('machine_width'), getMachineSettingFloat('machine_depth'), getMachineSettingFloat('machine_height')], numpy.float32)
-	return getSizePolygons(size)
+def getMachineSizePolygons(machine_shape):
+	if machine_shape == "Circular":
+		size = numpy.array([getMachineSettingFloat('machine_diameter'), getMachineSettingFloat('machine_diameter'), getMachineSettingFloat('machine_height')], numpy.float32)
+	elif machine_shape == "Rectangular":
+		size = numpy.array([getMachineSettingFloat('machine_width'), getMachineSettingFloat('machine_depth'), getMachineSettingFloat('machine_height')], numpy.float32)
+	return getSizePolygons(size, machine_shape)
 
-def getSizePolygons(size):
+def getSizePolygons(size, machine_shape):
 	ret = []
-	if getMachineSetting('machine_shape') == 'Circular':
+	if machine_shape == 'Circular':
 		circle = []
 		steps = 32
 		for n in xrange(0, steps):
 			circle.append([math.cos(float(n)/steps*2*math.pi) * size[0]/2, math.sin(float(n)/steps*2*math.pi) * size[1]/2])
 		ret.append(numpy.array(circle, numpy.float32))
 
-	if getMachineSetting('machine_type') == 'ciclop':
-		w = 20
-		h = 20
-		ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))
-		ret.append(numpy.array([[ size[0]/2-w-2,-size[1]/2],[ size[0]/2,-size[1]/2], [ size[0]/2,-size[1]/2+h],[ size[0]/2-w,-size[1]/2+h]], numpy.float32))
-		ret.append(numpy.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], numpy.float32))
-		ret.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
+	w = 20
+	h = 20
+	ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))
+	ret.append(numpy.array([[ size[0]/2-w-2,-size[1]/2],[ size[0]/2,-size[1]/2], [ size[0]/2,-size[1]/2+h],[ size[0]/2-w,-size[1]/2+h]], numpy.float32))
+	ret.append(numpy.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], numpy.float32))
+	ret.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
 	
 	return ret

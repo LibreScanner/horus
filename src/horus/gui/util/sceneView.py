@@ -589,24 +589,23 @@ class SceneView(openglGui.glGuiPanel):
 
 	def _drawMachine(self):
 		glEnable(GL_BLEND)
+		machine_model_path = profile.getMachineSetting('machine_model_path')
+		glEnable(GL_CULL_FACE)
+		#-- Draw Platform
+		if machine_model_path in self._platformMesh:
+			self._platformMesh[machine_model_path]._mesh.vbo.release()
 
-		machine = profile.getMachineSetting('machine_type')
-		if machine.startswith('ciclop'):
-
-			glEnable(GL_CULL_FACE)
-			#-- Draw Platform
-			if machine not in self._platformMesh:
-				mesh = meshLoader.loadMesh(resources.getPathForMesh(machine + '_platform.stl'))
-				if mesh is not None:
-					self._platformMesh[machine] = mesh
-				else:
-					self._platformMesh[machine] = None
-				self._platformMesh[machine]._drawOffset = numpy.array([0,0,8.05], numpy.float32)
-			glColor4f(0.6,0.6,0.6,0.5)
-			self._objectShader.bind()
-			self._renderObject(self._platformMesh[machine])
-			self._objectShader.unbind()
-			glDisable(GL_CULL_FACE)
+		mesh = meshLoader.loadMesh(machine_model_path)
+		if mesh is not None:
+			self._platformMesh[machine_model_path] = mesh
+		else:
+			self._platformMesh[machine_model_path] = None
+		self._platformMesh[machine_model_path]._drawOffset = numpy.array([0,0,8.05], numpy.float32)
+		glColor4f(0.6,0.6,0.6,0.5)
+		self._objectShader.bind()
+		self._renderObject(self._platformMesh[machine_model_path])
+		self._objectShader.unbind()
+		glDisable(GL_CULL_FACE)
 
 		glDepthMask(False)
 		
@@ -661,7 +660,7 @@ class SceneView(openglGui.glGuiPanel):
 			gluCylinder(quadric,6,6,1,32,16);
 			glTranslate(0,0,-height+1)
 
-		polys = profile.getMachineSizePolygons()
+		polys = profile.getMachineSizePolygons(profile.getMachineSetting("machine_shape"))
 		
 		#-- Draw checkerboard
 		if self._platformTexture is None:

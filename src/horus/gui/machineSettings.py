@@ -126,33 +126,13 @@ class MachineSettingsDialog(wx.Dialog):
 		self.vbox.Add(hbox, 0, wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
 		#-- Fill data from settings
-
-		currentPlatformShape = profile.getMachineSetting('machine_shape')
-		if currentPlatformShape in self.main.platformShapesList():
-			self.platformShapeCombo.SetValue(currentPlatformShape)
-		else:
-			self.platformShapeCombo.SetValue(self.main.platformShapesList()[0])
-
-		currentPlatformDiameter = profile.getMachineSettingInteger('machine_diameter')
-		if currentPlatformDiameter:
-			self.diameterField.SetValue(currentPlatformDiameter)
-
-		currentPlatformWidth = profile.getMachineSettingInteger('machine_width')
-		if currentPlatformWidth:
-			self.widthField.SetValue(currentPlatformWidth)
-
-		currentPlatformHeight = profile.getMachineSettingInteger('machine_height')
-		if currentPlatformHeight:
-			self.heightField.SetValue(currentPlatformHeight)
-
-		currentPlatformDepth = profile.getMachineSettingInteger('machine_depth')
-		if currentPlatformDepth:
-			self.depthField.SetValue(currentPlatformDepth)
-
-		currentMachineModelPath = profile.getMachineSetting('machine_model_path')
-		if currentMachineModelPath:
-			self.machineModelPath = currentMachineModelPath
-			self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
+		self.platformShapeCombo.SetValue(profile.getMachineSetting('machine_shape'))
+		self.diameterField.SetValue(profile.getMachineSettingInteger('machine_diameter'))
+		self.widthField.SetValue(profile.getMachineSettingInteger('machine_width'))
+		self.heightField.SetValue(profile.getMachineSettingInteger('machine_height'))
+		self.depthField.SetValue(profile.getMachineSettingInteger('machine_depth'))
+		self.machineModelPath = profile.getMachineSetting('machine_model_path')
+		self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
 
 		self.onPlatformShapeComboChanged(None)
 
