@@ -32,28 +32,19 @@ import serial
 import threading
 
 
-class Error(Exception):
+class WrongFirmware(Exception):
 
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return repr(self.msg)
+    def __init__(self):
+        Exception.__init__(self, _("Wrong Firmware"))
 
 
-class WrongFirmware(Error):
+class BoardNotConnected(Exception):
 
-    def __init__(self, msg="Wrong Firmware"):
-        super(Error, self).__init__(msg)
-
-
-class BoardNotConnected(Error):
-
-    def __init__(self, msg="Board Not Connected"):
-        super(Error, self).__init__(msg)
+    def __init__(self):
+        Exception.__init__(self, _("Board Not Connected"))
 
 
-class Board:
+class Board(object):
 
     """Board class. For accessing to the scanner board
 
@@ -113,9 +104,8 @@ class Board:
             print ">>> Disconnecting board {0}".format(self.serial_name)
             try:
                 if self._serial_port is not None:
-                    self.left_laser_off()
-                    self.right_laser_off()
-                    self.motor_enable()
+                    self.laser_off()
+                    self.motor_disable()
                     self._serial_port.close()
                     del self._serial_port
             except serial.SerialException:
@@ -148,7 +138,11 @@ class Board:
         self._send_command("$120={0}".format(value))
 
     def motor_enable(self):
+        speed = self._motor_speed
+        self.motor_speed(1)
         self._send_command("M17")
+        time.sleep(0.3)
+        self.motor_speed(speed)
 
     def motor_disable(self):
         self._send_command("M18")
@@ -164,6 +158,14 @@ class Board:
 
     def right_laser_off(self):
         self._send_command("M70T2")
+
+    def laser_off(self):
+        self.left_laser_off()
+        self.right_laser_off()
+
+    def laser_on(self):
+        self.left_laser_on()
+        self.right_laser_on()
 
     def ldr_sensor(self, pin):
         value = self._send_command("M50T" + pin, read_lines=True).split("\n")[0]

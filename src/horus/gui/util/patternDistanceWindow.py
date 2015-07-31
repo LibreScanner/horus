@@ -40,7 +40,7 @@ class PatternDistanceWindow(wx.Dialog):
 
         self.value = float(profile.getProfileSetting('pattern_distance'))
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
+        self.autoCheck = calibration.AutoCheck.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
@@ -95,7 +95,7 @@ class PatternDistanceWindow(wx.Dialog):
         squareWidth = profile.getProfileSettingInteger('square_width')
 
         self.cameraIntrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
-        self.simpleLaserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
+        self.autoCheck.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
         self.laserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
         self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
 

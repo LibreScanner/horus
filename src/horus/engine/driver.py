@@ -37,7 +37,7 @@ from horus.util.singleton import Singleton
 
 
 @Singleton
-class Driver:
+class Driver(object):
 
     """Driver class. For managing scanner hw"""
 

@@ -6,7 +6,7 @@
 #                                                                       #
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: March, December 2014                                            #
+# Date: March, December 2014, July 2015                                 #
 # Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
@@ -33,7 +33,7 @@ import Queue
 import threading
 import numpy as np
 
-from horus.engine.driver import Driver
+from driver import Driver
 
 import horus.util.error as Error
 from horus.util.singleton import Singleton
@@ -41,845 +41,864 @@ from horus.util import system as sys
 
 
 class Scan:
-	""" 
-		Performs scanning process:
 
-			- Multithread scanning:
-				- Capture Thread
-				- Process Thread: compute 3D point cloud from 2D points
-	"""
+    """Performs scanning process:
 
-	def __init__(self):
-		""" """
-		self.theta = 0
+            - Multithread scanning:
+                    - Capture Thread: capture raw images and manage motor and lasers
+                    - Process Thread: compute 3D point cloud from raw images
+    """
 
-		self.driver = Driver.Instance()
-		self.pcg = PointCloudGenerator.Instance()
+    def __init__(self):
+        self.theta = 0
 
-		self.run = False
-		self.inactive = False
-		self.moveMotor = True
-		self.generatePointCloud = True
+        self.driver = Driver.Instance()
+        self.pcg = PointCloudGenerator.Instance()
 
-		self.fastScan = False
-		self.speedMotor = 200
-		self.accelerationMotor = 400
+        self.run = False
+        self.inactive = False
+        self.moveMotor = True
+        self.generatePointCloud = True
 
-		self.imgType = 'laser'
-		self.imgColor  = None
-		self.imgLaser  = None
-		self.imgGray = None
-		self.imgLine = None
+        self.fastScan = False
+        self.speedMotor = 200
+        self.accelerationMotor = 400
 
-		#TODO: Callbacks to Observer pattern
-		self.beforeCallback = None
-		self.afterCallback = None
+        self.imgType = 'laser'
+        self.imgColor = None
+        self.imgLaser = None
+        self.imgGray = None
+        self.imgLine = None
 
-		self.progress = 0
-		self.range = 0
+        # TODO: Callbacks to Observer pattern
+        self.beforeCallback = None
+        self.afterCallback = None
 
-		self.imagesQueue = Queue.Queue(100)
-		self.points3DQueue = Queue.Queue(1000)
+        self.progress = 0
+        self.range = 0
 
-	def resetTheta(self):
-		self.theta = 0
+        self.imagesQueue = Queue.Queue(100)
+        self.points3DQueue = Queue.Queue(1000)
 
-	def setCallbacks(self, before, after):
-		self.beforeCallback = before
-		self.afterCallback = after
+    def resetTheta(self):
+        self.theta = 0
 
-	def start(self):
-		if self.beforeCallback is not None:
-			self.beforeCallback()
+    def setCallbacks(self, before, after):
+        self.beforeCallback = before
+        self.afterCallback = after
 
-		self.initializeScan()
-		
-		self.runCapture = True
-		self.runProcess = True
-		self.inactive = False
+    def start(self):
+        if self.beforeCallback is not None:
+            self.beforeCallback()
 
-		threading.Thread(target=self._captureThread).start()
-		threading.Thread(target=self._processThread, args=(self.afterCallback,)).start()
-		
-	def stop(self):
-		self.runCapture = False
-		self.runProcess = False
-		self.inactive = False
+        self.initializeScan()
 
-	def _stopCapture(self):
-		self.runCapture = False
-		self.inactive = False
+        self.runCapture = True
+        self.runProcess = True
+        self.inactive = False
 
-	def _stopProcess(self):
-		self.runProcess = False
-		self.inactive = False
+        threading.Thread(target=self._captureThread).start()
+        threading.Thread(target=self._processThread, args=(self.afterCallback,)).start()
 
-	def pause(self):
-		self.inactive = True
+    def stop(self):
+        self.runCapture = False
+        self.runProcess = False
+        self.inactive = False
 
-	def resume(self):
-		self.inactive = False
+    def _stopCapture(self):
+        self.runCapture = False
+        self.inactive = False
 
-	def setFastScan(self, value):
-		self.fastScan = value
+    def _stopProcess(self):
+        self.runProcess = False
+        self.inactive = False
 
-	def motor_speed(self, value):
-		self.speedMotor = value
+    def pause(self):
+        self.inactive = True
 
-	def motor_acceleration(self, value):
-		self.accelerationMotor = value
+    def resume(self):
+        self.inactive = False
 
-	def setImageType(self, imgType):
-		self.imgType = imgType
+    def setFastScan(self, value):
+        self.fastScan = value
 
-	def getImage(self, source=None):
-		img = { 'Laser' : self.imgLaser,
-				'Gray' : self.imgGray,
-				'Line' : self.imgLine,
-				'Color' : self.imgColor
-			  }[self.imgType]
-		if source is not None:
-			img = source
-		
-		if img is not None:
-			if self.pcg.viewROI:
-				img = self.roi2DVisualization(img)
-		return img
+    def motor_speed(self, value):
+        self.speedMotor = value
 
-	def roi2DVisualization(self, img):
-		self.pcg.calculateCenter()
-		#params:
-		thickness=6
-		thickness_hiden=1
+    def motor_acceleration(self, value):
+        self.accelerationMotor = value
 
-		center_up_u=self.pcg.no_trimmed_umin+(self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2
-		center_up_v=self.pcg.upper_vmin+(self.pcg.upper_vmax-self.pcg.upper_vmin)/2
-		center_down_u=self.pcg.no_trimmed_umin+(self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2
-		center_down_v= self.pcg.lower_vmax+(self.pcg.lower_vmin-self.pcg.lower_vmax)/2
-		axes_up=((self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2, ((self.pcg.upper_vmax-self.pcg.upper_vmin)/2))
-		axes_down=((self.pcg.no_trimmed_umax- self.pcg.no_trimmed_umin)/2, ((self.pcg.lower_vmin-self.pcg.lower_vmax)/2))
+    def setImageType(self, imgType):
+        self.imgType = imgType
 
-		img = img.copy()
-		#upper ellipse
-		if (center_up_v<self.pcg.cy):
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0, 100, 200), thickness)
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0, 100, 200), thickness_hiden)
-		else:
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 180, 360, (0, 100, 200), thickness)
-			cv2.ellipse(img, (center_up_u, center_up_v), axes_up, 0, 0, 180, (0, 100, 200), thickness)
+    def getImage(self, source=None):
+        img = {'Laser': self.imgLaser,
+               'Gray': self.imgGray,
+               'Line': self.imgLine,
+               'Color': self.imgColor
+               }[self.imgType]
+        if source is not None:
+            img = source
 
-		#lower ellipse
-		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 180, 360, (0, 100, 200), thickness_hiden)
-		cv2.ellipse(img, (center_down_u, center_down_v), axes_down, 0, 0, 180, (0, 100, 200), thickness)
+        if img is not None:
+            if self.pcg.viewROI:
+                img = self.roi2DVisualization(img)
+        return img
 
-		#cylinder lines
+    def roi2DVisualization(self, img):
+        self.pcg.calculateCenter()
+        # params:
+        thickness = 6
+        thickness_hiden = 1
 
-		cv2.line(img, (self.pcg.no_trimmed_umin, center_up_v), (self.pcg.no_trimmed_umin, center_down_v), (0, 100, 200),thickness)
-		cv2.line(img, (self.pcg.no_trimmed_umax, center_up_v), (self.pcg.no_trimmed_umax, center_down_v), (0, 100, 200),thickness)
+        center_up_u = self.pcg.no_trimmed_umin + \
+            (self.pcg.no_trimmed_umax - self.pcg.no_trimmed_umin) / 2
+        center_up_v = self.pcg.upper_vmin + (self.pcg.upper_vmax - self.pcg.upper_vmin) / 2
+        center_down_u = self.pcg.no_trimmed_umin + \
+            (self.pcg.no_trimmed_umax - self.pcg.no_trimmed_umin) / 2
+        center_down_v = self.pcg.lower_vmax + (self.pcg.lower_vmin - self.pcg.lower_vmax) / 2
+        axes_up = ((self.pcg.no_trimmed_umax - self.pcg.no_trimmed_umin) / 2,
+                   ((self.pcg.upper_vmax - self.pcg.upper_vmin) / 2))
+        axes_down = ((self.pcg.no_trimmed_umax - self.pcg.no_trimmed_umin) / 2,
+                     ((self.pcg.lower_vmin - self.pcg.lower_vmax) / 2))
 
-		#view center
-		if axes_up[0]<=0 or axes_up[1] <=0:
-			axes_up_center=(20,1)
-			axes_down_center=(20,1)
-		else:
-			axes_up_center=(20,axes_up[1]*20/axes_up[0])
-			axes_down_center=(20,axes_down[1]*20/axes_down[0])
-		#upper center
-		cv2.ellipse(img, (self.pcg.center_u, min(center_up_v, self.pcg.center_v) ), axes_up_center, 0, 0, 360, (0, 70, 120), -1)
-		#lower center
-		cv2.ellipse(img, (self.pcg.center_u, self.pcg.center_v), axes_down_center, 0, 0, 360, (0, 70, 120), -1)
+        img = img.copy()
+        # upper ellipse
+        if (center_up_v < self.pcg.cy):
+            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+                        0, 180, 360, (0, 100, 200), thickness)
+            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+                        0, 0, 180, (0, 100, 200), thickness_hiden)
+        else:
+            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+                        0, 180, 360, (0, 100, 200), thickness)
+            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+                        0, 0, 180, (0, 100, 200), thickness)
 
-		return img
+        # lower ellipse
+        cv2.ellipse(img, (center_down_u, center_down_v), axes_down,
+                    0, 180, 360, (0, 100, 200), thickness_hiden)
+        cv2.ellipse(img, (center_down_u, center_down_v),
+                    axes_down, 0, 0, 180, (0, 100, 200), thickness)
 
-	def applyROIMask(self, image):
-		mask = np.zeros(image.shape,np.uint8)
-		mask[self.pcg.vmin:self.pcg.vmax,
-			 self.pcg.umin:self.pcg.umax] = image[self.pcg.vmin:self.pcg.vmax,
-			 									  self.pcg.umin:self.pcg.umax]
+        # cylinder lines
 
-		return mask
+        cv2.line(img, (self.pcg.no_trimmed_umin, center_up_v),
+                 (self.pcg.no_trimmed_umin, center_down_v), (0, 100, 200), thickness)
+        cv2.line(img, (self.pcg.no_trimmed_umax, center_up_v),
+                 (self.pcg.no_trimmed_umax, center_down_v), (0, 100, 200), thickness)
 
-	def initializeScan(self):
-		self.pcg.resetTheta()
-		self.resetTheta()
+        # view center
+        if axes_up[0] <= 0 or axes_up[1] <= 0:
+            axes_up_center = (20, 1)
+            axes_down_center = (20, 1)
+        else:
+            axes_up_center = (20, axes_up[1] * 20 / axes_up[0])
+            axes_down_center = (20, axes_down[1] * 20 / axes_down[0])
+        # upper center
+        cv2.ellipse(img, (self.pcg.center_u, min(center_up_v, self.pcg.center_v)),
+                    axes_up_center, 0, 0, 360, (0, 70, 120), -1)
+        # lower center
+        cv2.ellipse(img, (self.pcg.center_u, self.pcg.center_v),
+                    axes_down_center, 0, 0, 360, (0, 70, 120), -1)
 
-		self.points3DQueue.queue.clear()
-		self.imagesQueue.queue.clear()
+        return img
 
-		#-- Setup board
-		if self.moveMotor:
-			self.driver.board.motor_enable()
-			self.driver.board.motor_speed(self.speedMotor)
-			self.driver.board.motor_acceleration(self.accelerationMotor)
-			time.sleep(0.2)
-		else:
-			self.driver.board.motor_disable()
+    def applyROIMask(self, image):
+        mask = np.zeros(image.shape, np.uint8)
+        mask[self.pcg.vmin:self.pcg.vmax,
+             self.pcg.umin:self.pcg.umax] = image[self.pcg.vmin:self.pcg.vmax,
+                                                  self.pcg.umin:self.pcg.umax]
 
-		self.driver.board.left_laser_off()
-		self.driver.board.right_laser_off()
+        return mask
 
-		#-- Setup camera
-		self.driver.camera.capture_image()
+    def initializeScan(self):
+        self.pcg.resetTheta()
+        self.resetTheta()
 
-	#-- Threads
+        self.points3DQueue.queue.clear()
+        self.imagesQueue.queue.clear()
 
-	def _captureThread(self):
-		""""""
-		pass
+        #-- Setup board
+        if self.moveMotor:
+            self.driver.board.motor_enable()
+            self.driver.board.motor_speed(self.speedMotor)
+            self.driver.board.motor_acceleration(self.accelerationMotor)
+            time.sleep(0.2)
+        else:
+            self.driver.board.motor_disable()
 
-	def _processThread(self, afterCallback):
-		""""""
-		ret = False
+        self.driver.board.left_laser_off()
+        self.driver.board.right_laser_off()
 
-		self.progress = 0
+        #-- Setup camera
+        self.driver.camera.capture_image()
 
-		while self.runProcess:
-			if not self.inactive:
-				angle = abs(self.pcg.theta * 180.0 / np.pi)
-				if abs(self.pcg.degrees) > 0:
-					self.progress = abs(angle/self.pcg.degrees)
-					self.range = abs(360.0/self.pcg.degrees)
-				if angle <= 360.0:
-					if not self.imagesQueue.empty():
-						imagesQueueItem = self.imagesQueue.get(timeout=0.1)
-						self.imagesQueue.task_done();
+    #-- Threads
 
-						begin = time.time()
+    def _captureThread(self):
+        """"""
+        pass
 
-						updateTheta=True
-						#-- Compute 2D points from images
-						points2D, colors = self.compute2DPoints(imagesQueueItem)
-						#-- Put 2D points into the queue
-						if imagesQueueItem[0]=='right':
-							laser=False
-						elif imagesQueueItem[0]=='left':
-							laser=True
-						elif imagesQueueItem[0]=='both_right':
-							updateTheta=False
-							laser=False
-						elif imagesQueueItem[0]=='both_left':
-							updateTheta=True
-							laser=True
+    def _processThread(self, afterCallback):
+        """"""
+        ret = False
 
-						#-- Compute 3D points
-						points3D, colors = self.pcg.compute3DPoints(points2D, colors, laser, updateTheta)
+        self.progress = 0
 
-						if points3D is not None and colors is not None:
-							if self.generatePointCloud:
-								#-- Put point cloud into the queue
-								self.points3DQueue.put((points3D, colors))
+        while self.runProcess:
+            if not self.inactive:
+                angle = abs(self.pcg.theta * 180.0 / np.pi)
+                if abs(self.pcg.degrees) > 0:
+                    self.progress = abs(angle / self.pcg.degrees)
+                    self.range = abs(360.0 / self.pcg.degrees)
+                if angle <= 360.0:
+                    if not self.imagesQueue.empty():
+                        imagesQueueItem = self.imagesQueue.get(timeout=0.1)
+                        self.imagesQueue.task_done()
 
-						end = time.time()
+                        begin = time.time()
 
-						print "Process: {0} ms".format(int((end-begin)*1000))
+                        updateTheta = True
+                        #-- Compute 2D points from images
+                        points2D, colors = self.compute2DPoints(imagesQueueItem)
+                        #-- Put 2D points into the queue
+                        if imagesQueueItem[0] == 'right':
+                            laser = False
+                        elif imagesQueueItem[0] == 'left':
+                            laser = True
+                        elif imagesQueueItem[0] == 'both_right':
+                            updateTheta = False
+                            laser = False
+                        elif imagesQueueItem[0] == 'both_left':
+                            updateTheta = True
+                            laser = True
 
-						#-- Free objects
-						del imagesQueueItem
-						del colors
-						del points2D
-						del points3D
-				else:
-					if self.generatePointCloud:
-						ret = True
-						self._stopProcess()
-			else:
-				time.sleep(0.1)
+                        #-- Compute 3D points
+                        points3D, colors = self.pcg.compute3DPoints(
+                            points2D, colors, laser, updateTheta)
 
-		if ret:
-			response = (True, None)
-		else:
-			response = (False, Error.ScanError)
+                        if points3D is not None and colors is not None:
+                            if self.generatePointCloud:
+                                #-- Put point cloud into the queue
+                                self.points3DQueue.put((points3D, colors))
 
-		self.imgLaser = None
-		self.imgGray = None
-		self.imgLine = None
-		self.imgColor = None
+                        end = time.time()
 
-		self.points3DQueue.queue.clear()
-		self.imagesQueue.queue.clear()
+                        print "Process: {0} ms".format(int((end - begin) * 1000))
 
-		if afterCallback is not None:
-			afterCallback(response)
+                        #-- Free objects
+                        del imagesQueueItem
+                        del colors
+                        del points2D
+                        del points3D
+                else:
+                    if self.generatePointCloud:
+                        ret = True
+                        self._stopProcess()
+            else:
+                time.sleep(0.1)
 
-	def getProgress(self):
-		return self.progress, self.range
+        if ret:
+            response = (True, None)
+        else:
+            response = (False, Error.ScanError)
 
-	def getPointCloudIncrement(self):
-		""" """
-		if not self.points3DQueue.empty():
-			pc = self.points3DQueue.get_nowait()
-			if pc is not None:
-				self.points3DQueue.task_done()
-			return pc
-		else:
-			return None
+        self.imgLaser = None
+        self.imgGray = None
+        self.imgLine = None
+        self.imgColor = None
+
+        self.points3DQueue.queue.clear()
+        self.imagesQueue.queue.clear()
+
+        if afterCallback is not None:
+            afterCallback(response)
+
+    def getProgress(self):
+        return self.progress, self.range
+
+    def getPointCloudIncrement(self):
+        """ """
+        if not self.points3DQueue.empty():
+            pc = self.points3DQueue.get_nowait()
+            if pc is not None:
+                self.points3DQueue.task_done()
+            return pc
+        else:
+            return None
 
 
 @Singleton
 class SimpleScan(Scan):
-	""" 
-		Capture geometry
 
-			- Image processing
-			- Red line laser detection
-	"""
+    """Capture geometry
 
-	def _captureThread(self):
-		""""""
-		if sys.isWindows() or sys.isDarwin():
-			flush_both = 3
-			flush_single = 1
-		else:
-			flush_both = 1
-			flush_single = 0
+                    - Image processing
+                    - Red line laser detection
+    """
 
-		#-- Switch off the lasers
-		self.driver.board.left_laser_off()
-		self.driver.board.right_laser_off()
+    def _captureThread(self):
+        """"""
+        if sys.isWindows() or sys.isDarwin():
+            flush_both = 3
+            flush_single = 1
+        else:
+            flush_both = 1
+            flush_single = 0
 
-		if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-			self.driver.board.left_laser_on()
+        #-- Switch off the lasers
+        self.driver.board.left_laser_off()
+        self.driver.board.right_laser_off()
 
-		if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-			self.driver.board.right_laser_on()
+        if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+            self.driver.board.left_laser_on()
 
-		while self.runCapture:
-			if not self.inactive:
-				if abs(self.theta * 180.0 / np.pi) <= 360.0:
-					begin = time.time()
+        if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+            self.driver.board.right_laser_on()
 
-					#-- Left laser
-					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						imageLaserLeft = self.driver.camera.capture_image(flush=True, flush_value=flush_single)
+        while self.runCapture:
+            if not self.inactive:
+                if abs(self.theta * 180.0 / np.pi) <= 360.0:
+                    begin = time.time()
 
-					#-- Right laser
-					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						imageLaserRight = self.driver.camera.capture_image(flush=True, flush_value=flush_single)
+                    #-- Left laser
+                    if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+                        imageLaserLeft = self.driver.camera.capture_image(
+                            flush=True, flush_value=flush_single)
 
-					##-- Both laser
-					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						self.driver.board.left_laser_on()
-						self.driver.board.right_laser_off()
-						imgLaserLeft = self.driver.camera.capture_image(flush=True, flush_value=flush_both)
+                    #-- Right laser
+                    if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+                        imageLaserRight = self.driver.camera.capture_image(
+                            flush=True, flush_value=flush_single)
 
-						self.driver.board.right_laser_on()
-						self.driver.board.left_laser_off()
-						imgLaserRight = self.driver.camera.capture_image(flush=True, flush_value=flush_both)
-					
-					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
-					self.theta -= self.pcg.degrees * self.pcg.rad
+                    # -- Both laser
+                    if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+                        self.driver.board.left_laser_on()
+                        self.driver.board.right_laser_off()
+                        imgLaserLeft = self.driver.camera.capture_image(
+                            flush=True, flush_value=flush_both)
 
-					#-- Move motor
-					if self.moveMotor:
-						self.driver.board.motor_relative(self.pcg.degrees)
-						self.driver.board.motor_move()
-					else:
-						time.sleep(0.05)
+                        self.driver.board.right_laser_on()
+                        self.driver.board.left_laser_off()
+                        imgLaserRight = self.driver.camera.capture_image(
+                            flush=True, flush_value=flush_both)
 
-					end = time.time()
-					print "Capture: {0} ms".format(int((end-begin)*1000))
-					
-					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						self.imagesQueue.put(('left',imageLaserLeft))
-						del imageLaserLeft
+                    print "> {0} deg <".format(self.theta * 180.0 / np.pi)
+                    self.theta -= self.pcg.degrees * self.pcg.rad
 
-					if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						self.imagesQueue.put(('right',imageLaserRight))
-						del imageLaserRight
+                    #-- Move motor
+                    if self.moveMotor:
+                        self.driver.board.motor_relative(self.pcg.degrees)
+                        self.driver.board.motor_move()
+                    else:
+                        time.sleep(0.05)
 
-					if self.pcg.useLeftLaser and self.pcg.useRightLaser:
-						self.imagesQueue.put(('both_left',imgLaserLeft))
-						self.imagesQueue.put(('both_right',imgLaserRight))
-						del imgLaserLeft
-						del imgLaserRight
-				else:
-					if self.generatePointCloud:
-						self._stopCapture()
-					break
-			else:
-				time.sleep(0.1)
+                    end = time.time()
+                    print "Capture: {0} ms".format(int((end - begin) * 1000))
 
-		#-- Disable board
-		self.driver.board.left_laser_off()
-		self.driver.board.right_laser_off()
-		self.driver.board.motor_disable()
+                    if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+                        self.imagesQueue.put(('left', imageLaserLeft))
+                        del imageLaserLeft
 
-	def setColor(self, value):
-		self.color = value
+                    if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+                        self.imagesQueue.put(('right', imageLaserRight))
+                        del imageLaserRight
 
-	def setUseThreshold(self, enable):
-		self.thresholdEnable = enable
+                    if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+                        self.imagesQueue.put(('both_left', imgLaserLeft))
+                        self.imagesQueue.put(('both_right', imgLaserRight))
+                        del imgLaserLeft
+                        del imgLaserRight
+                else:
+                    if self.generatePointCloud:
+                        self._stopCapture()
+                    break
+            else:
+                time.sleep(0.1)
 
-	def setThresholdValue(self, value):
-		self.thresholdValue = value
+        #-- Disable board
+        self.driver.board.left_laser_off()
+        self.driver.board.right_laser_off()
+        self.driver.board.motor_disable()
 
-	def compute2DPoints(self, image_info):
-		image=image_info[1]
-		self.imgLaser = image
-		tempColor = np.ones_like(image)
-		tempColor[:,:,0] *= self.color[0]
-		tempColor[:,:,1] *= self.color[1]
-		tempColor[:,:,2] *= self.color[2]
-		self.imgColor = tempColor
+    def setColor(self, value):
+        self.color = value
 
-		#-- Convert tp Y Cr Cb format
-		y,cr,cb = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))
+    def setUseThreshold(self, enable):
+        self.thresholdEnable = enable
 
-		#-- Get Cr
-		image = cr
+    def setThresholdValue(self, value):
+        self.thresholdValue = value
 
-		#-- Apply ROI mask
-		image = self.applyROIMask(image)
+    def compute2DPoints(self, image_info):
+        image = image_info[1]
+        self.imgLaser = image
+        tempColor = np.ones_like(image)
+        tempColor[:, :, 0] *= self.color[0]
+        tempColor[:, :, 1] *= self.color[1]
+        tempColor[:, :, 2] *= self.color[2]
+        self.imgColor = tempColor
 
-		#-- Threshold image
-		if self.thresholdEnable:
-			image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_TOZERO)[1]
+        #-- Convert tp Y Cr Cb format
+        y, cr, cb = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))
 
-		#-- Peak detection: center of mass
-		h, w = image.shape
-		W = np.array((np.matrix(np.linspace(0,w-1,w)).T*np.matrix(np.ones(h))).T)
-		s = image.sum(axis=1)
-		v = np.where(s > 0)[0]
-		u = (W*image).sum(axis=1)[v] / s[v]
-		
-		tempLine = np.zeros_like(self.imgLaser)
-		tempLine[v,u.astype(int)] = 255
-		self.imgLine = tempLine
-		self.imgGray = cv2.merge((image, image, image))
+        #-- Get Cr
+        image = cr
 
-		colors = np.array(np.matrix(np.ones(len(u))).T*np.matrix(self.color)).T
+        #-- Apply ROI mask
+        image = self.applyROIMask(image)
 
-		return (u, v), colors
+        #-- Threshold image
+        if self.thresholdEnable:
+            image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_TOZERO)[1]
+
+        #-- Peak detection: center of mass
+        h, w = image.shape
+        W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
+        s = image.sum(axis=1)
+        v = np.where(s > 0)[0]
+        u = (W * image).sum(axis=1)[v] / s[v]
+
+        tempLine = np.zeros_like(self.imgLaser)
+        tempLine[v, u.astype(int)] = 255
+        self.imgLine = tempLine
+        self.imgGray = cv2.merge((image, image, image))
+
+        colors = np.array(np.matrix(np.ones(len(u))).T * np.matrix(self.color)).T
+
+        return (u, v), colors
 
 
 @Singleton
 class TextureScan(Scan):
-	""" 
-		Capture geometry and texture
-	"""
 
-	def _captureThread(self):
-		""""""
-		imgRaw = None
-		imgLaserLeft = None
-		imgLaserRight = None
+    """Capture geometry and texture"""
 
-		#-- Switch off the lasers
-		self.driver.board.left_laser_off()
-		self.driver.board.right_laser_off()
+    def _captureThread(self):
+        """"""
+        imgRaw = None
+        imgLaserLeft = None
+        imgLaserRight = None
 
-		if sys.isWindows() or sys.isDarwin():
-			flush = 3
-		else:
-			flush = 1
+        #-- Switch off the lasers
+        self.driver.board.left_laser_off()
+        self.driver.board.right_laser_off()
 
-		while self.runCapture:
-			if not self.inactive:
-				if abs(self.theta * 180.0 / np.pi) <= 360.0:
-					begin = time.time()
+        if sys.isWindows() or sys.isDarwin():
+            flush = 3
+        else:
+            flush = 1
 
-					if self.fastScan: #-- FAST METHOD (only for linux)
+        while self.runCapture:
+            if not self.inactive:
+                if abs(self.theta * 180.0 / np.pi) <= 360.0:
+                    begin = time.time()
 
-						if self.driver.camera.is_connected:
-							self.driver.camerareading = True
-							#-- Left laser
-							if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-								self.driver.board.left_laser_off()
-								imgLaserLeft = self.driver.camera.capture.read()[1]
-								imgRaw = self.driver.camera.capture.read()[1]
-								self.driver.board.left_laser_on()
-								self.driver.camerareading = False
+                    if self.fastScan:  # -- FAST METHOD (only for linux)
 
-								if imgRaw is None or imgLaserLeft is None:
-									self.driver.camera._fail()
-								else:
-									imgRaw = cv2.transpose(imgRaw)
-									imgRaw = cv2.flip(imgRaw, 1)
-									imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+                        if self.driver.camera.is_connected:
+                            self.driver.camerareading = True
+                            #-- Left laser
+                            if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+                                self.driver.board.left_laser_off()
+                                imgLaserLeft = self.driver.camera.capture.read()[1]
+                                imgRaw = self.driver.camera.capture.read()[1]
+                                self.driver.board.left_laser_on()
+                                self.driver.camerareading = False
 
-									imgLaserRight = None
+                                if imgRaw is None or imgLaserLeft is None:
+                                    self.driver.camera._fail()
+                                else:
+                                    imgRaw = cv2.transpose(imgRaw)
+                                    imgRaw = cv2.flip(imgRaw, 1)
+                                    imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-									imgLaserLeft = cv2.transpose(imgLaserLeft)
-									imgLaserLeft = cv2.flip(imgLaserLeft, 1)
-									imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
+                                    imgLaserRight = None
 
-							#-- Right laser
-							if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
-								self.driver.board.setRightLaserOff()
-								imgLaserRight = self.driver.camera.capture.read()[1]
-								imgRaw = self.driver.camera.capture.read()[1]
-								self.driver.board.setRightLaserOn()
-								self.driver.camerareading = False
+                                    imgLaserLeft = cv2.transpose(imgLaserLeft)
+                                    imgLaserLeft = cv2.flip(imgLaserLeft, 1)
+                                    imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
 
-								if imgRaw is None or imgLaserRight is None:
-									self.driver.camera._fail()
-								else:
-									imgRaw = cv2.transpose(imgRaw)
-									imgRaw = cv2.flip(imgRaw, 1)
-									imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+                            #-- Right laser
+                            if not self.pcg.useLeftLaser and self.pcg.useRightLaser:
+                                self.driver.board.setRightLaserOff()
+                                imgLaserRight = self.driver.camera.capture.read()[1]
+                                imgRaw = self.driver.camera.capture.read()[1]
+                                self.driver.board.setRightLaserOn()
+                                self.driver.camerareading = False
 
-									imgLaserLeft = None
+                                if imgRaw is None or imgLaserRight is None:
+                                    self.driver.camera._fail()
+                                else:
+                                    imgRaw = cv2.transpose(imgRaw)
+                                    imgRaw = cv2.flip(imgRaw, 1)
+                                    imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-									imgLaserRight = cv2.transpose(imgLaserRight)
-									imgLaserRight = cv2.flip(imgLaserRight, 1)
-									imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
+                                    imgLaserLeft = None
 
-							##-- Both laser
-							if self.pcg.useLeftLaser and self.pcg.useRightLaser:
-								imgRaw = self.driver.camera.capture.read()[1]
-								self.driver.board.left_laser_on()
-								imgLaserLeft = self.driver.camera.capture.read()[1]
-								self.driver.board.left_laser_off()
-								self.driver.board.right_laser_on()
-								imgLaserRight = self.driver.camera.capture.read()[1]
-								self.driver.board.right_laser_off()
-								imgRaw = self.driver.camera.capture.read()[1]
-								self.driver.camerareading = False
+                                    imgLaserRight = cv2.transpose(imgLaserRight)
+                                    imgLaserRight = cv2.flip(imgLaserRight, 1)
+                                    imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
 
-								if imgRaw is None or imgLaserLeft is None or imgLaserRight is None:
-									self.driver.camera._fail()
-								else:
-									imgRaw = cv2.transpose(imgRaw)
-									imgRaw = cv2.flip(imgRaw, 1)
-									imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
+                            # -- Both laser
+                            if self.pcg.useLeftLaser and self.pcg.useRightLaser:
+                                imgRaw = self.driver.camera.capture.read()[1]
+                                self.driver.board.left_laser_on()
+                                imgLaserLeft = self.driver.camera.capture.read()[1]
+                                self.driver.board.left_laser_off()
+                                self.driver.board.right_laser_on()
+                                imgLaserRight = self.driver.camera.capture.read()[1]
+                                self.driver.board.right_laser_off()
+                                imgRaw = self.driver.camera.capture.read()[1]
+                                self.driver.camerareading = False
 
-									imgLaserLeft = cv2.transpose(imgLaserLeft)
-									imgLaserLeft = cv2.flip(imgLaserLeft, 1)
-									imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
+                                if imgRaw is None or imgLaserLeft is None or imgLaserRight is None:
+                                    self.driver.camera._fail()
+                                else:
+                                    imgRaw = cv2.transpose(imgRaw)
+                                    imgRaw = cv2.flip(imgRaw, 1)
+                                    imgRaw = cv2.cvtColor(imgRaw, cv2.COLOR_BGR2RGB)
 
-									imgLaserRight = cv2.transpose(imgLaserRight)
-									imgLaserRight = cv2.flip(imgLaserRight, 1)
-									imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
+                                    imgLaserLeft = cv2.transpose(imgLaserLeft)
+                                    imgLaserLeft = cv2.flip(imgLaserLeft, 1)
+                                    imgLaserLeft = cv2.cvtColor(imgLaserLeft, cv2.COLOR_BGR2RGB)
 
-					else: #-- SLOW METHOD
+                                    imgLaserRight = cv2.transpose(imgLaserRight)
+                                    imgLaserRight = cv2.flip(imgLaserRight, 1)
+                                    imgLaserRight = cv2.cvtColor(imgLaserRight, cv2.COLOR_BGR2RGB)
 
-						#-- Switch off laser
-						if self.pcg.useLeftLaser:
-							self.driver.board.left_laser_off()
-						if self.pcg.useRightLaser:
-							self.driver.board.right_laser_off()
+                    else:  # -- SLOW METHOD
 
-						#-- Capture images
-						imgRaw = self.driver.camera.capture_image(flush=True, flush_value=flush)
+                        #-- Switch off laser
+                        if self.pcg.useLeftLaser:
+                            self.driver.board.left_laser_off()
+                        if self.pcg.useRightLaser:
+                            self.driver.board.right_laser_off()
 
-						if self.pcg.useLeftLaser:
-							self.driver.board.left_laser_on()
-							self.driver.board.right_laser_off()
-							imgLaserLeft = self.driver.camera.capture_image(flush=True, flush_value=flush)
-						else:
-							imgLaserLeft = None
+                        #-- Capture images
+                        imgRaw = self.driver.camera.capture_image(flush=True, flush_value=flush)
 
-						if self.pcg.useRightLaser:
-							self.driver.board.right_laser_on()
-							self.driver.board.left_laser_off()
-							imgLaserRight = self.driver.camera.capture_image(flush=True, flush_value=flush)
-						else:
-							imgLaserRight = None
+                        if self.pcg.useLeftLaser:
+                            self.driver.board.left_laser_on()
+                            self.driver.board.right_laser_off()
+                            imgLaserLeft = self.driver.camera.capture_image(
+                                flush=True, flush_value=flush)
+                        else:
+                            imgLaserLeft = None
 
-					print "> {0} deg <".format(self.theta * 180.0 / np.pi)
-					self.theta -= self.pcg.degrees * self.pcg.rad
+                        if self.pcg.useRightLaser:
+                            self.driver.board.right_laser_on()
+                            self.driver.board.left_laser_off()
+                            imgLaserRight = self.driver.camera.capture_image(
+                                flush=True, flush_value=flush)
+                        else:
+                            imgLaserRight = None
 
-					#-- Move motor
-					if self.moveMotor:
-						self.driver.board.motor_relative(self.pcg.degrees)
-						self.driver.board.motor_move()
-					else:
-						time.sleep(0.05)
+                    print "> {0} deg <".format(self.theta * 180.0 / np.pi)
+                    self.theta -= self.pcg.degrees * self.pcg.rad
 
-					end = time.time()
-					print "Capture: {0} ms".format(int((end-begin)*1000))
+                    #-- Move motor
+                    if self.moveMotor:
+                        self.driver.board.motor_relative(self.pcg.degrees)
+                        self.driver.board.motor_move()
+                    else:
+                        time.sleep(0.05)
 
-					if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
-						if imgRaw is not None and imgLaserLeft is not None:
-							self.imagesQueue.put(('left',imgRaw,imgLaserLeft))
-							del imgLaserLeft
+                    end = time.time()
+                    print "Capture: {0} ms".format(int((end - begin) * 1000))
 
-					elif self.pcg.useRightLaser and not self.pcg.useLeftLaser:
-						if imgRaw is not None and imgLaserRight is not None:
-							self.imagesQueue.put(('right',imgRaw,imgLaserRight))
-							del imgLaserRight
+                    if self.pcg.useLeftLaser and not self.pcg.useRightLaser:
+                        if imgRaw is not None and imgLaserLeft is not None:
+                            self.imagesQueue.put(('left', imgRaw, imgLaserLeft))
+                            del imgLaserLeft
 
-					elif self.pcg.useRightLaser and self.pcg.useLeftLaser:
-						if imgRaw is not None and imgLaserLeft is not None and imgLaserRight is not None:
-							self.imagesQueue.put(('both_left',imgRaw,imgLaserLeft))
-							self.imagesQueue.put(('both_right',imgRaw,imgLaserRight))
-							del imgLaserLeft
-							del imgLaserRight
-					del imgRaw
-				else:
-					if self.generatePointCloud:
-						self._stopCapture()
-					break
-			else:
-				time.sleep(0.1)
+                    elif self.pcg.useRightLaser and not self.pcg.useLeftLaser:
+                        if imgRaw is not None and imgLaserRight is not None:
+                            self.imagesQueue.put(('right', imgRaw, imgLaserRight))
+                            del imgLaserRight
 
-		#-- Disable board
-		self.driver.board.left_laser_off()
-		self.driver.board.right_laser_off()
-		self.driver.board.motor_disable()
+                    elif self.pcg.useRightLaser and self.pcg.useLeftLaser:
+                        if imgRaw is not None and imgLaserLeft is not None and imgLaserRight is not None:
+                            self.imagesQueue.put(('both_left', imgRaw, imgLaserLeft))
+                            self.imagesQueue.put(('both_right', imgRaw, imgLaserRight))
+                            del imgLaserLeft
+                            del imgLaserRight
+                    del imgRaw
+                else:
+                    if self.generatePointCloud:
+                        self._stopCapture()
+                    break
+            else:
+                time.sleep(0.1)
 
-	def setUseOpen(self, enable):
-		self.openEnable = enable
+        #-- Disable board
+        self.driver.board.left_laser_off()
+        self.driver.board.right_laser_off()
+        self.driver.board.motor_disable()
 
-	def setOpenValue(self, value):
-		self.openValue = value
+    def setUseOpen(self, enable):
+        self.openEnable = enable
 
-	def setUseThreshold(self, enable):
-		self.thresholdEnable = enable
+    def setOpenValue(self, value):
+        self.openValue = value
 
-	def setThresholdValue(self, value):
-		self.thresholdValue = value
+    def setUseThreshold(self, enable):
+        self.thresholdEnable = enable
 
-	def compute2DPoints(self, images):
-		imageColor=images[1]
-		imageLaser=images[2]
-		self.imgLaser = imageLaser
-		self.imgColor = imageColor
+    def setThresholdValue(self, value):
+        self.thresholdValue = value
 
-		"""#-- Use R channel
-		r1,g1,b1 = cv2.split(imageColor)
-		r2,g1,b2 = cv2.split(imageLaser)
+    def compute2DPoints(self, images):
+        imageColor = images[1]
+        imageLaser = images[2]
+        self.imgLaser = imageLaser
+        self.imgColor = imageColor
 
-		image = cv2.subtract(r2, r1)"""
+        """#-- Use R channel
+        r1,g1,b1 = cv2.split(imageColor)
+        r2,g1,b2 = cv2.split(imageLaser)
 
-		#-- Use Cr channel
-		y1,cr1,cb1 = cv2.split(cv2.cvtColor(imageColor, cv2.COLOR_RGB2YCR_CB))
-		y2,cr2,cb2 = cv2.split(cv2.cvtColor(imageLaser, cv2.COLOR_RGB2YCR_CB))
-		
-		image = cv2.subtract(cr2, cr1)
+        image = cv2.subtract(r2, r1)"""
 
-		#-- Apply ROI mask
-		image = self.applyROIMask(image)
+        #-- Use Cr channel
+        y1, cr1, cb1 = cv2.split(cv2.cvtColor(imageColor, cv2.COLOR_RGB2YCR_CB))
+        y2, cr2, cb2 = cv2.split(cv2.cvtColor(imageLaser, cv2.COLOR_RGB2YCR_CB))
 
-		#-- Open image
-		if self.openEnable:
-			kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(self.openValue,self.openValue))
-			image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+        image = cv2.subtract(cr2, cr1)
 
-		#-- Threshold image
-		if self.thresholdEnable:
-			image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_TOZERO)[1]
+        #-- Apply ROI mask
+        image = self.applyROIMask(image)
 
-		#-- Peak detection: center of mass
-		h, w = image.shape
-		W = np.array((np.matrix(np.linspace(0,w-1,w)).T*np.matrix(np.ones(h))).T)
-		s = image.sum(axis=1)
-		v = np.where(s > 0)[0]
-		u = (W*image).sum(axis=1)[v] / s[v]
+        #-- Open image
+        if self.openEnable:
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (self.openValue, self.openValue))
+            image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
 
-		tempLine = np.zeros_like(imageLaser)
-		tempLine[v,u.astype(int)] = 255.0
-		self.imgLine = tempLine
-		self.imgGray = cv2.merge((image, image, image))
+        #-- Threshold image
+        if self.thresholdEnable:
+            image = cv2.threshold(image, self.thresholdValue, 255.0, cv2.THRESH_TOZERO)[1]
 
-		colors = imageColor[v,u.astype(int)].T
+        #-- Peak detection: center of mass
+        h, w = image.shape
+        W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
+        s = image.sum(axis=1)
+        v = np.where(s > 0)[0]
+        u = (W * image).sum(axis=1)[v] / s[v]
 
-		return (u, v), colors
+        tempLine = np.zeros_like(imageLaser)
+        tempLine[v, u.astype(int)] = 255.0
+        self.imgLine = tempLine
+        self.imgGray = cv2.merge((image, image, image))
+
+        colors = imageColor[v, u.astype(int)].T
+
+        return (u, v), colors
 
 
 @Singleton
 class PointCloudGenerator:
-	""" 
-		Contains all scanning algorithms:
 
-			- Point cloud generation and filtering
-	"""
-	def __init__(self):
-		self.theta = 0
-		self.driver = Driver.Instance()
+    """Contains all scanning algorithms:
 
-		self.rad = np.pi / 180.0
+                    - Point cloud generation and filtering
+    """
 
-		self.umin = 0
-		self.umax = 960
-		self.vmin = 0
-		self.vmax = 1280
+    def __init__(self):
+        self.theta = 0
+        self.driver = Driver.Instance()
 
-		self.circleResolution = 30
-		self.circleArray = np.array([[np.cos(i*2*np.pi/self.circleResolution) for i in xrange(self.circleResolution)],
-									 [np.sin(i*2*np.pi/self.circleResolution) for i in xrange(self.circleResolution)],
-									 np.zeros(self.circleResolution)])
+        self.rad = np.pi / 180.0
 
+        self.umin = 0
+        self.umax = 960
+        self.vmin = 0
+        self.vmax = 1280
 
+        self.circleResolution = 30
+        self.circleArray = np.array([[np.cos(i * 2 * np.pi / self.circleResolution) for i in xrange(self.circleResolution)],
+                                     [np.sin(i * 2 * np.pi / self.circleResolution)
+                                      for i in xrange(self.circleResolution)],
+                                     np.zeros(self.circleResolution)])
 
-	def setViewROI(self, value):
-		self.viewROI = value
+    def setViewROI(self, value):
+        self.viewROI = value
 
-	def setViewCenter(self, value):
-		self.viewCenter = value
+    def setViewCenter(self, value):
+        self.viewCenter = value
 
-	def setROIDiameter(self, value):
-		self.roiRadius = value / 2.0
-		self.calculateROI()
+    def setROIDiameter(self, value):
+        self.roiRadius = value / 2.0
+        self.calculateROI()
 
-	def setROIHeight(self, value):
-		self.roiHeight = value
-		self.calculateROI()
+    def setROIHeight(self, value):
+        self.roiHeight = value
+        self.calculateROI()
 
+    def setDegrees(self, degrees):
+        self.degrees = degrees
 
-	def setDegrees(self, degrees):
-		self.degrees = degrees
+    def setResolution(self, width, height):
+        self.width = width
+        self.height = height
+        self.W = np.ones((height, width)) * np.linspace(0, width - 1, width)
 
-	def setResolution(self, width, height):
-		self.width = width
-		self.height = height
-		self.W = np.ones((height,width))*np.linspace(0,width-1,width)
+    def setUseLaser(self, useLeft, useRight):
+        self.useLeftLaser = useLeft
+        self.useRightLaser = useRight
 
-	def setUseLaser(self, useLeft, useRight):
-		self.useLeftLaser = useLeft
-		self.useRightLaser = useRight
+    def setLaserAngles(self, angleLeft, angleRight):
+        self.alphaLeft = angleLeft * self.rad
+        self.alphaRight = angleRight * self.rad
 
-	def setLaserAngles(self, angleLeft, angleRight):
-		self.alphaLeft = angleLeft * self.rad
-		self.alphaRight = angleRight * self.rad
+    def setCameraIntrinsics(self, cameraMatrix, distortionVector):
+        self.fx = cameraMatrix[0][0]
+        self.fy = cameraMatrix[1][1]
+        self.cx = cameraMatrix[0][2]
+        self.cy = cameraMatrix[1][2]
 
-	def setCameraIntrinsics(self, cameraMatrix, distortionVector):
-		self.fx = cameraMatrix[0][0]
-		self.fy = cameraMatrix[1][1]
-		self.cx = cameraMatrix[0][2]
-		self.cy = cameraMatrix[1][2]
+    def setLaserTriangulation(self, dL, nL, dR, nR):
+        self.dL = dL
+        self.nL = nL
+        self.dR = dR
+        self.nR = nR
 
-	def setLaserTriangulation(self, dL, nL, dR, nR):
-		self.dL = dL
-		self.nL = nL
-		self.dR = dR
-		self.nR = nR
+    def setPlatformExtrinsics(self, rotationMatrix, translationVector):
+        self.rotationMatrix = rotationMatrix
+        self.translationVector = translationVector
 
-	def setPlatformExtrinsics(self, rotationMatrix, translationVector):
-		self.rotationMatrix = rotationMatrix
-		self.translationVector = translationVector
+    def resetTheta(self):
+        self.theta = 0
 
-	def resetTheta(self):
-		self.theta = 0
+    def calculateROI(self):
+        if hasattr(self, 'roiRadius') and \
+           hasattr(self, 'roiHeight') and \
+           hasattr(self, 'rotationMatrix') and \
+           hasattr(self, 'translationVector') and \
+           hasattr(self, 'fx') and hasattr(self, 'fy') and \
+           hasattr(self, 'cx') and hasattr(self, 'cy') and \
+           hasattr(self, 'width') and hasattr(self, 'height'):
 
-	def calculateROI(self):
-		if hasattr(self, 'roiRadius') and \
-		   hasattr(self, 'roiHeight') and \
-		   hasattr(self, 'rotationMatrix') and \
-		   hasattr(self, 'translationVector') and \
-		   hasattr(self, 'fx') and hasattr(self, 'fy') and \
-		   hasattr(self, 'cx') and hasattr(self, 'cy') and \
-		   hasattr(self, 'width') and hasattr(self, 'height'):
+            #-- Platform system
+            bottom = np.matrix(self.roiRadius * self.circleArray)
+            top = bottom + np.matrix([0, 0, self.roiHeight]).T
+            data = np.concatenate((bottom, top), axis=1)
 
-			#-- Platform system
-			bottom = np.matrix(self.roiRadius * self.circleArray)
-			top = bottom + np.matrix([0,0,self.roiHeight]).T
-			data = np.concatenate((bottom, top), axis=1)
+            #-- Camera system
+            data = self.rotationMatrix * data + np.matrix(self.translationVector).T
 
-			#-- Camera system
-			data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
+            #-- Video system
+            u = self.fx * data[0] / data[2] + self.cx
+            v = self.fy * data[1] / data[2] + self.cy
 
-			#-- Video system
-			u = self.fx * data[0] / data[2] + self.cx
-			v = self.fy * data[1] / data[2] + self.cy
+            umin = int(round(np.min(u)))
+            umax = int(round(np.max(u)))
+            vmin = int(round(np.min(v)))
+            vmax = int(round(np.max(v)))
 
-			umin = int(round(np.min(u)))
-			umax = int(round(np.max(u)))
-			vmin = int(round(np.min(v)))
-			vmax = int(round(np.max(v)))
+            # visualization :
+            v_ = np.array(v.T)
+            # lower cylinder base
+            a = v_[:(len(v_) / 2)]
+            # upper cylinder base
+            b = v_[(len(v_) / 2):]
+            self.lower_vmin = int(round(np.max(a)))
+            self.lower_vmax = int(round(np.min(a)))
+            self.upper_vmin = int(round(np.min(b)))
+            self.upper_vmax = int(round(np.max(b)))
 
-			#visualization : 
-			v_=np.array(v.T)
-			#lower cylinder base
-			a=v_[:(len(v_)/2)]
-			#upper cylinder base
-			b=v_[(len(v_)/2):]
-			self.lower_vmin=int(round(np.max(a)))
-			self.lower_vmax=int(round(np.min(a)))
-			self.upper_vmin=int(round(np.min(b)))
-			self.upper_vmax=int(round(np.max(b)))
+            self.no_trimmed_umin = umin
+            self.no_trimmed_umax = int(round(np.max(u)))
+            self.no_trimmed_vmin = int(round(np.min(v)))
+            self.no_trimmed_vmax = int(round(np.max(v)))
 
-			self.no_trimmed_umin=umin
-			self.no_trimmed_umax = int(round(np.max(u)))
-			self.no_trimmed_vmin = int(round(np.min(v)))
-			self.no_trimmed_vmax = int(round(np.max(v)))
+            self.umin = max(umin, 0)
+            self.umax = min(umax, self.width)
+            self.vmin = max(vmin, 0)
+            self.vmax = min(vmax, self.height)
 
-			self.umin = max(umin, 0)
-			self.umax = min(umax, self.width)
-			self.vmin = max(vmin, 0)
-			self.vmax = min(vmax, self.height)
+    def calculateCenter(self):
+        #-- Platform system
+        bottom = np.matrix(0 * self.circleArray)
+        top = bottom + np.matrix([0, 0, 0]).T
+        data = np.concatenate((bottom, top), axis=1)
 
-	def calculateCenter(self):
-		#-- Platform system
-		bottom = np.matrix(0* self.circleArray)
-		top = bottom + np.matrix([0,0,0]).T
-		data = np.concatenate((bottom, top), axis=1)
+        #-- Camera system
+        data = self.rotationMatrix * data + np.matrix(self.translationVector).T
 
-		#-- Camera system
-		data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
+        #-- Video system
+        u = self.fx * data[0] / data[2] + self.cx
+        v = self.fy * data[1] / data[2] + self.cy
 
-		#-- Video system
-		u = self.fx * data[0] / data[2] + self.cx
-		v = self.fy * data[1] / data[2] + self.cy
+        umin = int(round(np.min(u)))
+        umax = int(round(np.max(u)))
+        vmin = int(round(np.min(v)))
+        vmax = int(round(np.max(v)))
 
-		umin = int(round(np.min(u)))
-		umax = int(round(np.max(u)))
-		vmin = int(round(np.min(v)))
-		vmax = int(round(np.max(v)))
+        self.center_u = umin + (umax - umin) / 2
+        self.center_v = vmin + (vmax - vmin) / 2
 
-		self.center_u=umin+(umax-umin)/2
-		self.center_v=vmin+(vmax-vmin)/2
+    def pointCloudGeneration(self, points2D, leftLaser=True):
+        """ """
+        u, v = points2D
 
-	def pointCloudGeneration(self, points2D, leftLaser=True):
-		""" """
-		u, v = points2D
+        #-- Obtaining point cloud in camera coordinates
+        if leftLaser:
+            d = self.dL
+            n = self.nL
+        else:
+            d = self.dR
+            n = self.nR
 
-		#-- Obtaining point cloud in camera coordinates
-		if leftLaser:
-			d = self.dL
-			n = self.nL
-		else:
-			d = self.dR
-			n = self.nR
+        # x = np.concatenate(((u-self.cx)/self.fx, (v-self.cy)/self.fy, np.ones(len(u)))).reshape(3,len(u))
 
-		# x = np.concatenate(((u-self.cx)/self.fx, (v-self.cy)/self.fy, np.ones(len(u)))).reshape(3,len(u))
+        x = np.concatenate(
+            ((u - self.cx) / self.fx, (v - self.cy) / self.fy, np.ones(len(u)))).reshape(3, len(u))
 
-		x = np.concatenate(((u-self.cx)/self.fx, (v-self.cy)/self.fy, np.ones(len(u)))).reshape(3,len(u))
+        Xc = d / np.dot(n, x) * x
 
-		Xc = d/np.dot(n,x)*x
+        #-- Move point cloud to world coordinates
+        R = np.matrix(self.rotationMatrix).T
+        t = np.matrix(self.translationVector).T
 
-		#-- Move point cloud to world coordinates
-		R = np.matrix(self.rotationMatrix).T
-		t = np.matrix(self.translationVector).T
+        Xwo = R * Xc - R * t
 
-		Xwo = R*Xc - R*t
+        #-- Rotate point cloud
+        c = np.cos(self.theta)
+        s = np.sin(self.theta)
+        Rz = np.matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]])
+        Xw = Rz * Xwo
 
-		#-- Rotate point cloud
-		c = np.cos(self.theta)
-		s = np.sin(self.theta)
-		Rz = np.matrix([[c, -s, 0],[s, c, 0], [0, 0, 1]])
-		Xw = Rz * Xwo
+        #-- Return result
+        if Xw.size > 0:
+            return np.array(Xw)
+        else:
+            return None
 
-		#-- Return result
-		if Xw.size > 0:
-			return np.array(Xw)
-		else:
-			return None
+    def pointCloudFilter(self, points, colors):
+        """ """
+        #-- Point Cloud Filter
+        rho = np.sqrt(points[0, :] ** 2 + points[1, :] ** 2)
+        z = points[2, :]
 
-	def pointCloudFilter(self, points, colors):
-		""" """
-		#-- Point Cloud Filter
-		rho = np.sqrt(points[0,:]**2 + points[1,:]**2)
-		z = points[2,:]
+        idx = np.where((z >= 0) &
+                       (z <= self.roiHeight) &
+                       (rho >= -self.roiRadius) &
+                       (rho <= self.roiRadius))[0]
 
-		idx = np.where((z >= 0) &
-					   (z <= self.roiHeight) &
-					   (rho >= -self.roiRadius) &
-					   (rho <= self.roiRadius))[0]
+        return points[:, idx], colors[:, idx]
 
-		return points[:,idx], colors[:,idx]
+    def compute3DPoints(self, points2D, colors, leftLaser, updateTheta):
+        """ """
+        #-- Point Cloud Generation
+        points3D = self.pointCloudGeneration(points2D, leftLaser)
 
-	def compute3DPoints(self, points2D, colors, leftLaser, updateTheta):
-		""" """
-		#-- Point Cloud Generation
-		points3D = self.pointCloudGeneration(points2D, leftLaser)
+        if points3D is not None:
+            #-- Point Cloud Filter
+            points3D, colors = self.pointCloudFilter(points3D, colors)
 
-		if points3D is not None:
-			#-- Point Cloud Filter
-			points3D, colors = self.pointCloudFilter(points3D, colors)
+        if updateTheta:
+            #-- Update Theta
+            self.theta -= self.degrees * self.rad
 
-		if updateTheta: 
-			#-- Update Theta
-			self.theta -= self.degrees * self.rad
-
-		return points3D, colors
+        return points3D, colors

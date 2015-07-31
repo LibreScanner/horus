@@ -38,47 +38,38 @@ if system == 'Darwin':
     import uvc
 
 
-class Error(Exception):
+class CameraNotConnected(Exception):
 
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return repr(self.msg)
+    def __init__(self):
+        Exception.__init__(self, _("Camera Not Connected"))
 
 
-class CameraNotConnected(Error):
+class WrongCamera(Exception):
 
-    def __init__(self, msg="Camera Not Connected"):
-        super(CameraNotConnected, self).__init__(msg)
-
-
-class WrongCamera(Error):
-
-    def __init__(self, msg="Wrong Camera"):
-        super(WrongCamera, self).__init__(msg)
+    def __init__(self):
+        Exception.__init__(self, _("Wrong Camera"))
 
 
-class InvalidVideo(Error):
+class InvalidVideo(Exception):
 
-    def __init__(self, msg="Invalid Video"):
-        super(InvalidVideo, self).__init__(msg)
+    def __init__(self):
+        Exception.__init__(self, _("Invalid Video"))
 
 
-class Camera:
+class Camera(object):
 
     """Camera class. For accessing to the scanner camera"""
 
     def __init__(self, parent=None, camera_id=0):
         self.parent = parent
         self.camera_id = camera_id
+        self.use_distortion = False
 
         self._capture = None
         self._is_connected = False
         self._reading = False
         self._width = 800
         self._height = 600
-        self._use_distortion = False
         self._camera_matrix = None
         self._distortion_vector = None
         self._dist_camera_matrix = None
@@ -168,23 +159,23 @@ class Camera:
         if not c_exp or not c_bri:
             raise WrongCamera()
 
-    def capture_image(self, mirror=False, flush=False, flush_value=1):
+    def capture_image(self, flush=0, mirror=False):
         """Capture image from camera"""
         if self._is_connected:
             self._reading = True
-            if flush:
-                for i in xrange(0, flush_value):
+            if flush > 0:
+                for i in xrange(0, flush):
                     self._capture.read()
             ret, image = self._capture.read()
             self._reading = False
             if ret:
-                if self._use_distortion and \
+                if self.use_distortion and \
                    self._camera_matrix is not None and \
                    self._distortion_vector is not None and \
                    self._dist_camera_matrix is not None:
                     mapx, mapy = cv2.initUndistortRectifyMap(
                         self._camera_matrix, self._distortion_vector,
-                        R=None, new_camera_matrix=self._dist__camera_matrix,
+                        R=None, new_camera_matrix=self._dist_camera_matrix,
                         size=(self._width, self._height), m1type=5)
                     image = cv2.remap(image, mapx, mapy, cv2.INTER_LINEAR)
                 image = cv2.transpose(image)
@@ -263,14 +254,31 @@ class Camera:
             self._update_resolution()
 
     def set_use_distortion(self, value):
-        self._use_distortion = value
+        self.use_distortion = value
 
-    def set_intrinsics(self, camera_matrix, distortion_vector):
-        self._camera_matrix = camera_matrix
-        self._distortion_vector = distortion_vector
-        self._dist_camera_matrix = cv2.getOptimalNewCameraMatrix(
-            self._camera_matrix, self._distortion_vector,
-            (int(self._width), int(self._height)), alpha=1)[0]
+    @property
+    def camera_matrix(self):
+        return self._camera_matrix
+
+    @camera_matrix.setter
+    def camera_matrix(self, value):
+        self._camera_matrix = value
+        self._compute_dist_camera_matrix()
+
+    @property
+    def distortion_vector(self):
+        return self._distortion_vector
+
+    @distortion_vector.setter
+    def distortion_vector(self, value):
+        self._distortion_vector = value
+        self._compute_dist_camera_matrix()
+
+    def _compute_dist_camera_matrix(self):
+        if self._camera_matrix is not None and self._distortion_vector is not None:
+            self._dist_camera_matrix = cv2.getOptimalNewCameraMatrix(
+                self._camera_matrix, self._distortion_vector,
+                (int(self._width), int(self._height)), alpha=1)[0]
 
     def get_brightness(self):
         if self._is_connected:

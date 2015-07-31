@@ -85,8 +85,9 @@ class PatternSettingsPanel(ExpandablePanel):
         """"""
         ExpandablePanel.__init__(self, parent, _("Pattern Settings"), hasUndo=False)
 
+        self.pattern = calibration.Pattern.Instance()
+        self.autoCheck = calibration.AutoCheck.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
@@ -105,24 +106,10 @@ class PatternSettingsPanel(ExpandablePanel):
         section.updateCallback('pattern_distance', lambda v: self.updatePatternParameters())
 
     def updatePatternParameters(self):
-        self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                   profile.getProfileSettingInteger('pattern_columns'),
-                                                   profile.getProfileSettingInteger('square_width'),
-                                                   profile.getProfileSettingFloat('pattern_distance'))
-
-        self.simpleLaserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                           profile.getProfileSettingInteger('pattern_columns'),
-                                                           profile.getProfileSettingInteger('square_width'),
-                                                           profile.getProfileSettingFloat('pattern_distance'))
-
-        self.laserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
-        self.platformExtrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
+        self.pattern.rows = profile.getProfileSettingInteger('pattern_rows')
+        self.pattern.columns = profile.getProfileSettingInteger('pattern_columns')
+        self.pattern.square_width = profile.getProfileSettingInteger('square_width')
+        self.pattern.distance = profile.getProfileSettingInteger('pattern_distance')
 
 
 class LaserSettingsPanel(ExpandablePanel):
@@ -316,15 +303,8 @@ class CameraIntrinsicsPanel(CalibrationPanel):
 
     def updateEngine(self):
         if hasattr(self, 'driver'):
-            self.driver.camera.set_intrinsics(self.cameraValues, self.distortionValues)
-        if hasattr(self, 'cameraIntrinsics'):
-            self.cameraIntrinsics.setIntrinsics(self.cameraValues, self.distortionValues)
-        if hasattr(self, 'laserTriangulation'):
-            self.laserTriangulation.setIntrinsics(self.cameraValues, self.distortionValues)
-        if hasattr(self, 'platformExtrinsics'):
-            self.platformExtrinsics.setIntrinsics(self.cameraValues, self.distortionValues)
-        if hasattr(self, 'pcg'):
-            self.pcg.setCameraIntrinsics(self.cameraValues, self.distortionValues)
+            self.driver.camera.camera_matrix = self.cameraValues
+            self.driver.camera.distortion_values = self.distortionValues
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -516,186 +496,6 @@ class LaserTriangulationPanel(CalibrationPanel):
     def updateEngine(self):
         if hasattr(self, 'pcg'):
             self.pcg.setLaserTriangulation(self.distanceLeftValue, self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
-
-    def updateProfile(self):
-        self.getProfileSettings()
-        self.updateAllControls()
-        self.updateEngine()
-
-    def updateAllControlsToProfile(self):
-        self.putProfileSettings()
-        self.updateEngine()
-
-    #TODO: move
-    def getValueFloat(self, value): 
-        try:
-            return float(eval(value.replace(',', '.'), {}, {}))
-        except:
-            return 0.0
-
-
-class SimpleLaserTriangulationPanel(CalibrationPanel):
-
-    def __init__(self, parent, buttonStartCallback):
-
-        CalibrationPanel.__init__(self, parent, titleText=_("Laser Simple Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration determines the depth of the intersection camera-laser considering the inclination of the lasers"))
-
-        self.pcg = scan.PointCloudGenerator.Instance()
-
-        coordinatesPanel = wx.Panel(self.content)
-        originPanel = wx.Panel(self.content)
-        normalPanel = wx.Panel(self.content)
-
-        coordinatesText = wx.StaticText(self.content, label=_("Coordinates"))
-        coordinatesText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-
-        self.coordinatesTexts = [[0 for j in range(2)] for i in range(2)]
-        self.coordinatesValues = np.zeros((2,2))
-
-        coordinatesBox = wx.BoxSizer(wx.VERTICAL)
-        coordinatesPanel.SetSizer(coordinatesBox)
-        for i in range(2):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
-            for j in range(2):
-                jbox = wx.BoxSizer(wx.VERTICAL)
-                self.coordinatesTexts[i][j] = wx.TextCtrl(coordinatesPanel, wx.ID_ANY, "")
-                self.coordinatesTexts[i][j].SetMinSize((0,-1))
-                self.coordinatesTexts[i][j].SetEditable(False)
-                self.coordinatesTexts[i][j].Disable()
-                jbox.Add(self.coordinatesTexts[i][j], 1, wx.ALL|wx.EXPAND, 2)
-                ibox.Add(jbox, 1, wx.ALL|wx.EXPAND, 2)
-            coordinatesBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
-
-        originText = wx.StaticText(self.content, label=_("Origin"))
-        originText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-
-        self.originTexts = [0]*3
-        self.originValues = np.zeros(3)
-
-        originBox = wx.BoxSizer(wx.HORIZONTAL)
-        originPanel.SetSizer(originBox)
-        for i in range(3):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
-            self.originTexts[i] = wx.TextCtrl(originPanel, wx.ID_ANY, "")
-            self.originTexts[i].SetMinSize((0,-1))
-            self.originTexts[i].SetEditable(False)
-            self.originTexts[i].Disable()
-            ibox.Add(self.originTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            originBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
-
-        normalText = wx.StaticText(self.content, label=_("Normal"))
-        normalText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-
-        self.normalTexts = [0]*3
-        self.normalValues = np.zeros(3)
-
-        normalBox = wx.BoxSizer(wx.HORIZONTAL)
-        normalPanel.SetSizer(normalBox)
-        for i in range(3):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
-            self.normalTexts[i] = wx.TextCtrl(normalPanel, wx.ID_ANY, "")
-            self.normalTexts[i].SetMinSize((0,-1))
-            self.normalTexts[i].SetEditable(False)
-            self.normalTexts[i].Disable()
-            ibox.Add(self.normalTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            normalBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
-
-        self.parametersBox.Add(coordinatesText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(coordinatesPanel, 0, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(originText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(originPanel, 0, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(normalText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(normalPanel, 0, wx.ALL|wx.EXPAND, 2)
-
-        coordinatesText.SetToolTip(wx.ToolTip(self.description))
-        coordinatesPanel.SetToolTip(wx.ToolTip(self.description))
-        originText.SetToolTip(wx.ToolTip(self.description))
-        originPanel.SetToolTip(wx.ToolTip(self.description))
-        normalText.SetToolTip(wx.ToolTip(self.description))
-        normalPanel.SetToolTip(wx.ToolTip(self.description))
-
-        self.Layout()
-
-    def onButtonEditPressed(self, event):
-        enable = self.buttonEdit.GetValue()
-        for i in range(2):
-            for j in range(2):
-                self.coordinatesTexts[i][j].SetEditable(enable)
-                if enable:
-                    self.coordinatesTexts[i][j].Enable()
-                else:
-                    self.coordinatesTexts[i][j].Disable()
-                    self.coordinatesValues[i][j] = self.getValueFloat(self.coordinatesTexts[i][j].GetValue())
-
-        for i in range(3):
-            self.originTexts[i].SetEditable(enable)
-            if enable:
-                self.originTexts[i].Enable()
-            else:
-                self.originTexts[i].Disable()
-                self.originValues[i] = self.getValueFloat(self.originTexts[i].GetValue())
-
-        for i in range(3):
-            self.normalTexts[i].SetEditable(enable)
-            if enable:
-                self.normalTexts[i].Enable()
-            else:
-                self.normalTexts[i].Disable()
-                self.normalValues[i] = self.getValueFloat(self.normalTexts[i].GetValue())
-
-        if enable:
-            self.buttonEdit.SetLabel(_("OK"))
-        else:
-            self.buttonEdit.SetLabel(_("Edit"))
-            self.updateAllControlsToProfile()
-
-    def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset simple laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal() == wx.ID_YES
-        dlg.Destroy()
-        if result:
-            profile.resetProfileSetting('laser_coordinates')
-            profile.resetProfileSetting('laser_origin')
-            profile.resetProfileSetting('laser_normal')
-            self.updateProfile()
-
-    def getParameters(self):
-        return self.coordinatesValues, self.originValues, self.normalValues
-
-    def setParameters(self, params):
-        self.coordinatesValues = params[0]
-        self.originValues = params[1]
-        self.normalValues = params[2]
-        self.updateAllControls()
-
-    def getProfileSettings(self):
-        self.coordinatesValues = profile.getProfileSettingNumpy('laser_coordinates')
-        self.originValues = profile.getProfileSettingNumpy('laser_origin')
-        self.normalValues = profile.getProfileSettingNumpy('laser_normal')
-
-    def putProfileSettings(self):
-        profile.putProfileSettingNumpy('laser_coordinates', self.coordinatesValues)
-        profile.putProfileSettingNumpy('laser_origin', self.originValues)
-        profile.putProfileSettingNumpy('laser_normal', self.normalValues)
-
-    def updateAllControls(self):
-        for i in range(2):
-            for j in range(2):
-                self.coordinatesValues[i][j] = round(self.coordinatesValues[i][j], 3)
-                self.coordinatesTexts[i][j].SetValue(str(self.coordinatesValues[i][j]))
-
-        for i in range(3):
-            self.originValues[i] = round(self.originValues[i], 4)
-            self.originTexts[i].SetValue(str(self.originValues[i]))
-
-        for i in range(3):
-            self.normalValues[i] = round(self.normalValues[i], 6)
-            self.normalTexts[i].SetValue(str(self.normalValues[i]))
-
-    def updateEngine(self):
-        if hasattr(self, 'pcg'):
-            pass
 
     def updateProfile(self):
         self.getProfileSettings()

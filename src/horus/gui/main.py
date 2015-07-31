@@ -66,8 +66,9 @@ class MainWindow(wx.Frame):
         self.simpleScan = scan.SimpleScan.Instance()
         self.textureScan = scan.TextureScan.Instance()
         self.pcg = scan.PointCloudGenerator.Instance()
+        self.pattern = calibration.Pattern.Instance()
+        self.autoCheck = calibration.AutoCheck.Instance()
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()
         self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
@@ -637,41 +638,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.textureScan.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
 
     def updateCalibrationProfile(self):
-        self.driver.camera.set_intrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                          profile.getProfileSettingNumpy('distortion_vector'))
-
-        self.cameraIntrinsics.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                            profile.getProfileSettingNumpy('distortion_vector'))
-        self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                   profile.getProfileSettingInteger('pattern_columns'),
-                                                   profile.getProfileSettingInteger('square_width'),
-                                                   profile.getProfileSettingFloat('pattern_distance'))
-        self.cameraIntrinsics.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
-
-        self.simpleLaserTriangulation.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                                    profile.getProfileSettingNumpy('distortion_vector'))
-        self.simpleLaserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                           profile.getProfileSettingInteger('pattern_columns'),
-                                                           profile.getProfileSettingInteger('square_width'),
-                                                           profile.getProfileSettingFloat('pattern_distance'))
-        self.simpleLaserTriangulation.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
-
-        self.laserTriangulation.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                              profile.getProfileSettingNumpy('distortion_vector'))
-        self.laserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
-        self.laserTriangulation.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
-
-        self.platformExtrinsics.setExtrinsicsStep(profile.getProfileSettingFloat('extrinsics_step'))
-        self.platformExtrinsics.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                              profile.getProfileSettingNumpy('distortion_vector'))
-        self.platformExtrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
-        self.platformExtrinsics.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+        self.pattern.rows = profile.getProfileSettingInteger('pattern_rows')
+        self.pattern.columns = profile.getProfileSettingInteger('pattern_columns')
+        self.pattern.square_width = profile.getProfileSettingInteger('square_width')
+        self.pattern.distance = profile.getProfileSettingFloat('pattern_distance')
+        self.driver.camera.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
+        self.driver.camera.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
+        self.driver.camera.set_use_distortion(profile.getProfileSettingInteger('use_distortion_calibration'))
 
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.getPreference('workbench')

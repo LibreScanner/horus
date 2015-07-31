@@ -38,7 +38,7 @@ import horus.util.error as Error
 from horus.util import profile, resources
 
 from horus.engine.driver import Driver
-from horus.engine import calibration
+from horus.engine.calibration import AutoCheck, Pattern, detect_chessboard
 
 
 class ConnectionPage(WizardPage):
@@ -50,8 +50,7 @@ class ConnectionPage(WizardPage):
 
         self.parent = parent
         self.driver = Driver.Instance()
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.autoCheck = calibration.SimpleLaserTriangulation.Instance()
+        self.autocheck = AutoCheck.Instance()
 
         self.connectButton = wx.Button(self.panel, label=_("Connect"))
         self.settingsButton = wx.Button(self.panel, label=_("Edit settings"))
@@ -113,13 +112,13 @@ class ConnectionPage(WizardPage):
     def getDetectChessboardFrame(self):
         frame = self.getFrame()
         if frame is not None:
-            retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+            retval, frame = detect_chessboard(frame)
         return frame
 
     def onUnplugged(self):
         self.videoView.stop()
-        self.autoCheck.cancel()
-        self.afterMoveMotor()
+        self.autocheck.cancel()
+        self.afterAutoCheck()
 
     def onConnectButtonClicked(self, event):
         self.driver.set_callbacks(self.beforeConnect, lambda r: wx.CallAfter(self.afterConnect,r))
@@ -182,16 +181,13 @@ class ConnectionPage(WizardPage):
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
-                self.driver.board.left_laser_on()
-                self.driver.board.right_laser_on()
+                self.driver.board.laser_on()
         else:
-            self.beforeAutoCheck()
-
             #-- Perform auto check
-            self.autoCheck.setCallbacks(None,
+            self.autocheck.set_callbacks(lambda: wx.CallAfter(self.beforeAutoCheck),
                                         lambda p: wx.CallAfter(self.progressAutoCheck,p),
                                         lambda r: wx.CallAfter(self.afterAutoCheck,r))
-            self.autoCheck.start()
+            self.autocheck.start()
 
     def beforeAutoCheck(self):
         self.settingsButton.Disable()
@@ -208,34 +204,26 @@ class ConnectionPage(WizardPage):
         self.Layout()
 
     def progressAutoCheck(self, progress):
-        self.gauge.SetValue(0.9*progress)
+        self.gauge.SetValue(progress)
 
     def afterAutoCheck(self, response):
-        ret, result = response
-
-        if ret:
+        if response:
+            self.resultLabel.SetLabel(response)
+        else:
             self.resultLabel.SetLabel(_("All OK. Please press next to continue"))
-        else:
-            self.resultLabel.SetLabel(_("Please check motor direction and pattern position and try again"))
 
-        if ret:
-            self.skipButton.Disable()
-            self.nextButton.Enable()
-        else:
+        if response:
             self.skipButton.Enable()
             self.nextButton.Disable()
+        else:  
+            self.skipButton.Disable()
+            self.nextButton.Enable()
 
-        self.videoView.setMilliseconds(20)
-        self.videoView.setCallback(self.getFrame)
+        #self.videoView.setMilliseconds(20)
+        #self.videoView.setCallback(self.getFrame)
+        #self.videoView.setMilliseconds(50)
+        #self.videoView.setCallback(self.getDetectChessboardFrame)
 
-        self.driver.board.motor_speed(150)
-        self.driver.board.motor_relative(-90)
-        self.driver.board.motor_enable()
-        self.driver.board.motor_move(nonblocking=True, callback=(lambda r: wx.CallAfter(self.afterMoveMotor)))
-
-    def afterMoveMotor(self):
-        self.videoView.setMilliseconds(50)
-        self.videoView.setCallback(self.getDetectChessboardFrame)
         self.settingsButton.Enable()
         self.breadcrumbs.Enable()
         self.gauge.SetValue(100)
@@ -286,10 +274,7 @@ class SettingsWindow(wx.Dialog):
         super(SettingsWindow, self).__init__(parent, title=_('Settings'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         self.driver = Driver.Instance()
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
-        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+        self.pattern = Pattern.Instance()
 
         #-- Elements
         _choices = []
@@ -361,17 +346,9 @@ class SettingsWindow(wx.Dialog):
         except:
             pass
 
-    def setPatternDistance(self, patternDistance):
-        profile.putProfileSetting('pattern_distance', patternDistance)
-
-        patternRows = profile.getProfileSettingInteger('pattern_rows')
-        patternColumns = profile.getProfileSettingInteger('pattern_columns')
-        squareWidth = profile.getProfileSettingInteger('square_width')
-
-        self.cameraIntrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
-        self.simpleLaserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
-        self.laserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
-        self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
+    def setPatternDistance(self, distance):
+        profile.putProfileSetting('pattern_distance', distance)
+        self.pattern.distance = distance
 
     def setLuminosity(self, luminosity):
         profile.putProfileSetting('luminosity', luminosity)
@@ -394,7 +371,7 @@ class SettingsWindow(wx.Dialog):
     def onInvertMotor(self, event):
         invert = self.invertMotorCheckBox.GetValue()
         profile.putProfileSetting('invert_motor', invert)
-        self.driver.board.setInvertMotor(invert)
+        self.driver.board.motor_invert(invert)
 
     def onOk(self, event):
         self.setPatternDistance(self.patternDistance)
