@@ -49,10 +49,10 @@ class MachineSettingsDialog(wx.Dialog):
 		self.dimensionsStaticText = wx.StaticText(self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
 		self.diameterLabel = wx.StaticText(self, label=_("Diameter"))
 		self.diameterField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
-		self.heightLabel = wx.StaticText(self, label=_("Height"))
-		self.heightField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 		self.widthLabel = wx.StaticText(self, label=_("Width"))
 		self.widthField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
+		self.heightLabel = wx.StaticText(self, label=_("Height"))
+		self.heightField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 		self.depthLabel = wx.StaticText(self, label=_("Depth"))
 		self.depthField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 
@@ -67,7 +67,9 @@ class MachineSettingsDialog(wx.Dialog):
 		#-- Events
 		self.platformShapeCombo.Bind(wx.EVT_COMBOBOX, self.onPlatformShapeComboChanged)
 		self.machineModelButton.Bind(wx.EVT_BUTTON, self.onMachineModelButton)
-		self.saveButton.Bind(wx.EVT_BUTTON, self.onClose)
+		self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
+		self.saveButton.Bind(wx.EVT_BUTTON, self.onSaveButton)
+		self.defaultButton.Bind(wx.EVT_BUTTON, self.onDefaultButton)
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
 		#-- Layout
@@ -122,13 +124,17 @@ class MachineSettingsDialog(wx.Dialog):
 		hbox.Add(self.defaultButton, 0, wx.ALL, 10)
 		self.vbox.Add(hbox, 0, wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-		#-- Fill data
+		#-- Fill data from settings
 
 		currentPlatformShape = profile.getProfileSetting('platform_shape')
 		if currentPlatformShape in self.main.platformShapesList():
 			self.platformShapeCombo.SetValue(currentPlatformShape)
 		else:
 			self.platformShapeCombo.SetValue(self.main.platformShapesList()[0])
+
+		currentPlatformDiameter = profile.getProfileSettingInteger('platform_diameter')
+		if currentPlatformDiameter:
+			self.diameterField.SetValue(currentPlatformDiameter)
 
 		currentPlatformWidth = profile.getProfileSettingInteger('platform_width')
 		if currentPlatformWidth:
@@ -142,6 +148,11 @@ class MachineSettingsDialog(wx.Dialog):
 		if currentPlatformDepth:
 			self.depthField.SetValue(currentPlatformDepth)
 
+		currentMachineModelPath = profile.getProfileSetting('machine_model_path')
+		if currentMachineModelPath:
+			self.machineModelPath = currentMachineModelPath
+			self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
+
 		self.onPlatformShapeComboChanged(None)
 
 		self.SetSizer(self.vbox)
@@ -154,6 +165,31 @@ class MachineSettingsDialog(wx.Dialog):
 	def onClose(self, event):
 		self.EndModal(wx.ID_OK)
 		self.Destroy()
+
+	def onCancelButton(self, event):
+		self.onClose(None)
+
+	def onSaveButton(self, event):
+		profile.putProfileSetting('platform_shape', self.platformShapeCombo.GetValue())
+		profile.putProfileSetting('platform_diameter', self.diameterField.GetValue())
+		profile.putProfileSetting('platform_width', self.widthField.GetValue())
+		profile.putProfileSetting('platform_height', self.heightField.GetValue())
+		profile.putProfileSetting('platform_depth', self.depthField.GetValue())
+		profile.putProfileSetting('machine_model_path', self.machineModelPath)
+		profile.saveProfile(profile.getDefaultProfilePath())
+		self.onClose(None)
+		# TODO: Load new ViewModel
+
+
+	def onDefaultButton(self, event):
+		self.platformShapeCombo.SetValue(profile.getDefaultProfileSetting('platform_shape'))
+		self.onPlatformShapeComboChanged(None)
+		self.diameterField.SetValue(profile.getDefaultProfileSettingInteger('platform_diameter'))
+		self.widthField.SetValue(profile.getDefaultProfileSettingInteger('platform_width'))
+		self.heightField.SetValue(profile.getDefaultProfileSettingInteger('platform_height'))
+		self.depthField.SetValue(profile.getDefaultProfileSettingInteger('platform_depth'))
+		self.machineModelPath = profile.getDefaultProfileSetting('machine_model_path')
+		self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
 
 	def onPlatformShapeComboChanged(self, event):
 		if self.platformShapeCombo.GetValue() == self.main.platformShapesList()[0]:
@@ -176,3 +212,7 @@ class MachineSettingsDialog(wx.Dialog):
 			self.machineModelPath = dlg.GetPath()
 			self.machineModelField.SetValue(dlg.GetFilename())
 		dlg.Destroy()
+
+	def _getFileName(self, path):
+		import os
+		return os.path.basename(path)
