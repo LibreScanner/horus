@@ -204,6 +204,17 @@ setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
 setting('invert_motor', False, bool, 'basic', _('Invert motor'))
 
+#-- Machine Settings
+
+# name, default, type, category, subcategory, store=True, tag=None):
+
+setting('platform_shape', 'Circular', ['Circular', 'Square'], 'basic', _('Platform Shape'))
+setting('platform_diameter', 200, int, 'basic', _('Diameter'))
+setting('platform_width', 200, int, 'basic', _('Width'))
+setting('platform_height', 200, int, 'basic', _('Height'))
+setting('platform_depth', 200, int, 'basic', _('Depth'))
+setting('machine_model', '', str, 'basic', _('Machine Model')) # TODO: Put Ciclop STL path as default
+
 # Hack to translate combo boxes:
 _('High')
 _('Medium')
