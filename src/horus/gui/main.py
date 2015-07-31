@@ -400,9 +400,9 @@ class MainWindow(wx.Frame):
         MachineDialog.ShowModal()
 
         # Load scene
-        machineModelPath = profile.getProfileSetting('machine_model_path')
+        machineModelPath = profile.getMachineSetting('machine_model_path')
         if machineModelPath:
-            self.scanningWorkbench.sceneView.loadScene(machineModelPath)
+            self.scanningWorkbench.sceneView._drawMachine()
 
         self.controlWorkbench.updateCallbacks()
         self.calibrationWorkbench.updateCallbacks()

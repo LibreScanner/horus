@@ -129,7 +129,7 @@ class setting(object):
 		return self._category == 'preference'
 
 	def isMachineSetting(self):
-		return self._category == 'machine'
+		return self._category == 'machine_setting'
 
 	def isProfile(self):
 		return not self.isPreference() and not self.isMachineSetting()
@@ -203,15 +203,6 @@ setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic'
 setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
 setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
 setting('invert_motor', False, bool, 'basic', _('Invert motor'))
-
-#-- Machine Settings
-
-setting('platform_shape', 'Circular', ['Circular', 'Square'], 'basic', _('Platform Shape'))
-setting('platform_diameter', 200, int, 'basic', _('Diameter'))
-setting('platform_width', 200, int, 'basic', _('Width'))
-setting('platform_height', 200, int, 'basic', _('Height'))
-setting('platform_depth', 200, int, 'basic', _('Depth'))
-setting('machine_model_path', resources.getPathForMesh('ciclop_platform.stl'), str, 'basic', _('Machine Model')) # TODO: Check if this path should be absolute
 
 # Hack to translate combo boxes:
 _('High')
@@ -316,14 +307,15 @@ setting('enable_button', '', str, 'basic', _('Enable'), False)
 setting('gcode_gui', '', str, 'advanced', _('Send'), False)
 setting('ldr_value', '', str, 'advanced', _('Send'), False)
 
-setting('machine_name', '', str, 'machine', 'hidden')
-setting('machine_type', 'ciclop', str, 'machine', 'hidden')
-setting('machine_width', '200', float, 'machine', 'hidden').setLabel(_("Maximum width (mm)"), _("Size of the machine in mm"))
-setting('machine_depth', '200', float, 'machine', 'hidden').setLabel(_("Maximum depth (mm)"), _("Size of the machine in mm"))
-setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum height (mm)"), _("Size of the machine in mm"))
-setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_("Machine center 0,0"), _("Machines firmware defines the center of the bed as 0,0 instead of the front left corner."))
-setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden').setLabel(_("Build area shape"), _("The shape of machine build area."))
-
+setting('machine_name', 'my_ciclop', str, 'machine_setting', _('Machine Name'))
+setting('machine_type', 'ciclop', str, 'machine_setting', _('Machine Type'))
+setting('machine_diameter', 200.0, float, 'machine_setting', _('Machine Diameter'))
+setting('machine_width', 200.0, float, 'machine_setting', _('Machine Width'))
+setting('machine_height', 200.0, float, 'machine_setting', _('Machine Height'))
+setting('machine_depth', 200.0, float, 'machine_setting', _('Machine Depth'))
+setting('machine_center_is_zero', 'True', bool, 'machine_setting', _('Machine Center is Zero'))
+setting('machine_shape', 'Circular', ['Circular', 'Rectangular'], 'machine_setting', _('Machine Shape'))
+setting('machine_model_path', resources.getPathForMesh('ciclop_platform.stl'), str, 'machine_setting', _('Machine Model')) # TODO: Check if this path should be absolute
 
 ##-- Preferences
 
@@ -687,14 +679,6 @@ def loadPreferences(filename):
 			if profileParser.has_option('preference', set.getName()):
 				set.setValue(unicode(profileParser.get('preference', set.getName()), 'utf-8', 'replace'))
 
-	n = 0
-	while profileParser.has_section('machine_%d' % (n)):
-		for set in settingsList:
-			if set.isMachineSetting():
-				if profileParser.has_option('machine_%d' % (n), set.getName()):
-					set.setValue(unicode(profileParser.get('machine_%d' % (n), set.getName()), 'utf-8', 'replace'), n)
-		n += 1
-
 def savePreferences(filename):
 	global settingsList
 	#Save the current profile to an ini file
@@ -705,13 +689,6 @@ def savePreferences(filename):
 		if set.isPreference():
 			parser.set('preference', set.getName(), set.getValue().encode('utf-8'))
 
-	n = 0
-	while getMachineSetting('machine_name', n) != '':
-		parser.add_section('machine_%d' % (n))
-		for set in settingsList:
-			if set.isMachineSetting():
-				parser.set('machine_%d' % (n), set.getName(), set.getValue(n).encode('utf-8'))
-		n += 1
 	parser.write(open(filename, 'w'))
 
 def getPreference(name):
@@ -738,13 +715,7 @@ def isPreference(name):
 		return True
 	return False
 
-def getMachineSettingFloat(name, index = None):
-	try:
-		setting = getMachineSetting(name, index).replace(',', '.')
-		return float(eval(setting, {}, {}))
-	except:
-		return 0.0
-
+## Machine functions
 def loadMachineSettings(filename):
 	global settingsList
 	#Read a configuration file as global config
@@ -756,9 +727,20 @@ def loadMachineSettings(filename):
 
 	for set in settingsList:
 		if set.isMachineSetting():
-			if profileParser.has_option('machine', set.getName()):
-				set.setValue(unicode(profileParser.get('machine', set.getName()), 'utf-8', 'replace'))
-	checkAndUpdateMachineName()
+			if profileParser.has_option('machine_setting', set.getName()):
+				set.setValue(unicode(profileParser.get('machine_setting', set.getName()), 'utf-8', 'replace'))
+
+def saveMachineSettings(filename):
+	global settingsList
+	#Save the current profile to an ini file
+	parser = ConfigParser.ConfigParser()
+	parser.add_section('machine_setting')
+
+	for set in settingsList:
+		if set.isMachineSetting():
+			parser.set('machine_setting', set.getName(), set.getValue().encode('utf-8'))
+
+	parser.write(open(filename, 'w'))
 
 def getMachineSetting(name, index = None):
 	global settingsDictionary
@@ -768,12 +750,50 @@ def getMachineSetting(name, index = None):
 	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
 	return ''
 
+def getMachineSettingInteger(name):
+	try:
+		setting = getMachineSetting(name)
+		return int(eval(setting, {}, {}))
+	except:
+		return 0
+
+def getMachineSettingFloat(name, index = None):
+	try:
+		setting = getMachineSetting(name, index).replace(',', '.')
+		return float(eval(setting, {}, {}))
+	except:
+		return 0.0
+
+def getDefaultMachineSetting(name):
+	"""
+		Get the default value of a machine setting.
+	:param name: Name of the setting to retrieve.
+	:return:     Value of the current setting.
+	"""
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
+		return settingsDictionary[name].getDefault()
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
+	return ''
+
+def getDefaultMachineSettingInteger(name):
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
+		try:
+			setting = settingsDictionary[name].getDefault()
+			return int(eval(setting, {}, {}))
+		except:
+			return 0
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
+	return ''
+
 def putMachineSetting(name, value):
-	#Check if we have a configuration file loaded, else load the default.
+	""" Store a certain value in a profile setting. """
 	global settingsDictionary
 	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
 		settingsDictionary[name].setValue(value)
-	savePreferences(getPreferencePath())
 
 def isMachineSetting(name):
 	global settingsDictionary

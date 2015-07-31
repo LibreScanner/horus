@@ -52,6 +52,7 @@ class HorusApp(wx.App):
 		#-- Load Profile and Preferences
 		profile.loadPreferences(os.path.join(self.basePath, 'preferences.ini'))
 		profile.loadProfile(os.path.join(self.basePath, 'current-profile.ini'))
+		profile.loadMachineSettings(os.path.join(self.basePath, 'machine_settings.ini'))
 
 		#-- Load Language
 		resources.setupLocalization(profile.getPreference('language'))

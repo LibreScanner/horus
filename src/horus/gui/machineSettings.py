@@ -27,6 +27,7 @@
 __author__ = "Nicanor Romero Venier <nicanor.romerovenier@bq.com>"
 __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
 
+import os
 import wx._core
 import threading
 import wx.lib.intctrl
@@ -126,29 +127,29 @@ class MachineSettingsDialog(wx.Dialog):
 
 		#-- Fill data from settings
 
-		currentPlatformShape = profile.getProfileSetting('platform_shape')
+		currentPlatformShape = profile.getMachineSetting('machine_shape')
 		if currentPlatformShape in self.main.platformShapesList():
 			self.platformShapeCombo.SetValue(currentPlatformShape)
 		else:
 			self.platformShapeCombo.SetValue(self.main.platformShapesList()[0])
 
-		currentPlatformDiameter = profile.getProfileSettingInteger('platform_diameter')
+		currentPlatformDiameter = profile.getMachineSettingInteger('machine_diameter')
 		if currentPlatformDiameter:
 			self.diameterField.SetValue(currentPlatformDiameter)
 
-		currentPlatformWidth = profile.getProfileSettingInteger('platform_width')
+		currentPlatformWidth = profile.getMachineSettingInteger('machine_width')
 		if currentPlatformWidth:
 			self.widthField.SetValue(currentPlatformWidth)
 
-		currentPlatformHeight = profile.getProfileSettingInteger('platform_height')
+		currentPlatformHeight = profile.getMachineSettingInteger('machine_height')
 		if currentPlatformHeight:
 			self.heightField.SetValue(currentPlatformHeight)
 
-		currentPlatformDepth = profile.getProfileSettingInteger('platform_depth')
+		currentPlatformDepth = profile.getMachineSettingInteger('machine_depth')
 		if currentPlatformDepth:
 			self.depthField.SetValue(currentPlatformDepth)
 
-		currentMachineModelPath = profile.getProfileSetting('machine_model_path')
+		currentMachineModelPath = profile.getMachineSetting('machine_model_path')
 		if currentMachineModelPath:
 			self.machineModelPath = currentMachineModelPath
 			self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
@@ -170,23 +171,23 @@ class MachineSettingsDialog(wx.Dialog):
 		self.onClose(None)
 
 	def onSaveButton(self, event):
-		profile.putProfileSetting('platform_shape', self.platformShapeCombo.GetValue())
-		profile.putProfileSetting('platform_diameter', self.diameterField.GetValue())
-		profile.putProfileSetting('platform_width', self.widthField.GetValue())
-		profile.putProfileSetting('platform_height', self.heightField.GetValue())
-		profile.putProfileSetting('platform_depth', self.depthField.GetValue())
-		profile.putProfileSetting('machine_model_path', self.machineModelPath)
-		profile.saveProfile(profile.getDefaultProfilePath())
+		profile.putMachineSetting('machine_shape', self.platformShapeCombo.GetValue())
+		profile.putMachineSetting('machine_diameter', self.diameterField.GetValue())
+		profile.putMachineSetting('machine_width', self.widthField.GetValue())
+		profile.putMachineSetting('machine_height', self.heightField.GetValue())
+		profile.putMachineSetting('machine_depth', self.depthField.GetValue())
+		profile.putMachineSetting('machine_model_path', self.machineModelPath)
+		profile.saveMachineSettings(os.path.join(profile.getBasePath(), 'machine_settings.ini'))
 		self.onClose(None)
 
 	def onDefaultButton(self, event):
-		self.platformShapeCombo.SetValue(profile.getDefaultProfileSetting('platform_shape'))
+		self.platformShapeCombo.SetValue(profile.getDefaultMachineSetting('machine_shape'))
 		self.onPlatformShapeComboChanged(None)
-		self.diameterField.SetValue(profile.getDefaultProfileSettingInteger('platform_diameter'))
-		self.widthField.SetValue(profile.getDefaultProfileSettingInteger('platform_width'))
-		self.heightField.SetValue(profile.getDefaultProfileSettingInteger('platform_height'))
-		self.depthField.SetValue(profile.getDefaultProfileSettingInteger('platform_depth'))
-		self.machineModelPath = profile.getDefaultProfileSetting('machine_model_path')
+		self.diameterField.SetValue(profile.getDefaultMachineSettingInteger('machine_diameter'))
+		self.widthField.SetValue(profile.getDefaultMachineSettingInteger('machine_width'))
+		self.heightField.SetValue(profile.getDefaultMachineSettingInteger('machine_height'))
+		self.depthField.SetValue(profile.getDefaultMachineSettingInteger('machine_depth'))
+		self.machineModelPath = profile.getDefaultMachineSetting('machine_model_path')
 		self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
 
 	def onPlatformShapeComboChanged(self, event):
@@ -212,5 +213,4 @@ class MachineSettingsDialog(wx.Dialog):
 		dlg.Destroy()
 
 	def _getFileName(self, path):
-		import os
 		return os.path.basename(path)
