@@ -109,7 +109,7 @@ class CalibrationPage(WizardPage):
 			frame = self.driver.camera.capture_image()
 
 		if frame is not None and self.phase is not 'laserTriangulation':
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+			retval, frame = detect_chessboard(frame)
 
 		return frame
 

@@ -64,6 +64,7 @@ class Camera(object):
         self.parent = parent
         self.camera_id = camera_id
         self.use_distortion = False
+        self.unplug_callback = None
 
         self._capture = None
         self._is_connected = False
@@ -73,7 +74,6 @@ class Camera(object):
         self._camera_matrix = None
         self._distortion_vector = None
         self._dist_camera_matrix = None
-        self._unplug_callback = None
         self._tries = 0  # Check if command fails
 
         if system == 'Windows':
@@ -130,7 +130,7 @@ class Camera(object):
                 print ">>> Done"
 
     def set_unplug_callback(self, value):
-        self._unplug_callback = value
+        self.unplug_callback = value
 
     def _check_video(self):
         """Check correct video"""
@@ -314,11 +314,11 @@ class Camera(object):
         self._tries += 1
         if self._tries >= self._number_frames_fail:
             self._tries = 0
-            if self._unplug_callback is not None and \
+            if self.unplug_callback is not None and \
                self.parent is not None and \
                not self.parent.unplugged:
                 self.parent.unplugged = True
-                self._unplug_callback()
+                self.unplug_callback()
 
     def _line(self, value, imin, imax, omin, omax):
         ret = 0

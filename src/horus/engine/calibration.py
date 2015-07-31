@@ -365,6 +365,7 @@ class LaserTriangulation(Calibration):
             board.motor_enable()
             board.motor_speed(200)
             board.motor_acceleration(200)
+            time.sleep(0.1)
 
             if self._progress_callback is not None:
                 self._progress_callback(0)
@@ -581,85 +582,44 @@ class LaserTriangulation(Calibration):
 @Singleton
 class PlatformExtrinsics(Calibration):
 
-    """Platform extrinsics algorithms:
+    """Platform extrinsics algorithm:
 
-                    - Rotation matrix
-                    - Translation vector
+            - Rotation matrix
+            - Translation vector
     """
 
     def __init__(self):
         Calibration.__init__(self)
-        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
         self.image = None
 
-    def setExtrinsicsStep(self, step):
-        self.extrinsicsStep = step
-
-    def set_intrinsics(self, _camera_matrix, _distortion_vector):
-        self._camera_matrix = _camera_matrix
-        self._distortion_vector = _distortion_vector
-
-    def set_use_distortion(self, use_distortion):
-        self.use_distortion = use_distortion
-
-    def setPatternDistance(self, distance):
-        self.patternDistance = distance
-
-    def setImage(self, image):
-        self.image = image
-
-    def setPatternParameters(self, rows, columns, squareWidth, distance):
-        # Pattern rows and columns are flipped due to the fact that the pattern is
-        # in landscape orientation
-        self.patternRows = columns
-        self.patternColumns = rows
-        self.squareWidth = squareWidth
-        self.patternDistance = distance
-        self.objpoints = self.generateObjectPoints(
-            self.patternColumns, self.patternRows, self.squareWidth)
-
-    def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
-        objp = np.zeros((patternRows * patternColumns, 3), np.float32)
-        objp[:, :2] = np.mgrid[0:patternColumns, 0:patternRows].T.reshape(-1, 2)
-        objp = np.multiply(objp, squareWidth)
-        return objp
-
-    def getImage(self):
-        return self.image
-
-    def _start(self, _progress_callback, _after_callback):
+    def _start(self):
         t = None
+        angle = 0
+        step = -5
 
-        if self.driver.is_connected:
-
-            board = self.driver.board
-            camera = self.driver.camera
+        if driver.is_connected:
 
             x = []
             y = []
             z = []
 
-            # -- Switch off lasers
-            board.left_laser_off()
-            board.right_laser_off()
-
-            # -- Move pattern 180 degrees
-            step = self.extrinsicsStep  # degrees
-            angle = 0
-            board.motor_speed(1)
+            # Setup scanner
+            board.lasers_off()
             board.motor_enable()
-            board.motor_speed(150)
+            board.motor_speed(200)
             board.motor_acceleration(200)
-            time.sleep(0.2)
+            time.sleep(0.1)
 
-            if _progress_callback is not None:
-                _progress_callback(0)
+            if self._progress_callback is not None:
+                self._progress_callback(0)
 
             while self._is_calibrating and abs(angle) < 180:
                 angle += step
-                t = self.getPatternPosition(step, board, camera)
-                if _progress_callback is not None:
-                    _progress_callback(1.1 * abs(angle / 2.))
+                t = self.compute_pattern_position()
+                board.motor_relative(step)
+                board.motor_move()
+                if self._progress_callback is not None:
+                    self._progress_callback(1.1 * abs(angle / 2.))
                 time.sleep(0.1)
                 if t is not None:
                     x += [t[0][0]]
@@ -674,37 +634,37 @@ class PlatformExtrinsics(Calibration):
 
             if len(points) > 4:
 
-                #-- Fitting a plane
-                point, normal = self.fitPlane(points)
+                # Fitting a plane
+                point, normal = self.fit_plane(points)
 
                 if normal[1] > 0:
                     normal = -normal
 
-                #-- Fitting a circle inside the plane
-                center, R, circle = self.fitCircle(point, normal, points)
+                # Fitting a circle inside the plane
+                center, R, circle = self.fit_circle(point, normal, points)
 
                 # Get real origin
-                t = center - self.patternDistance * np.array(normal)
+                t = center - pattern.distance * np.array(normal)
 
-            #-- Disable motor
-            board.disableMotor()
+            board.lasers_off()
+            board.motor_disable()
 
         if self._is_calibrating and t is not None and np.linalg.norm(t - [5, 80, 320]) < 100:
             response = (True, (R, t, center, point, normal, [x, y, z], circle))
-            if _progress_callback is not None:
-                _progress_callback(100)
+            if self._progress_callback is not None:
+                self._progress_callback(100)
         else:
             if self._is_calibrating:
-                response = (False, Error.CalibrationError)
+                response = (False, _("Calibration Error"))
             else:
-                response = (False, Error.CalibrationCanceled)
+                response = (False, _("Calibration Canceled"))
 
         self.image = None
 
-        if _after_callback is not None:
-            _after_callback(response)
+        if self._after_callback is not None:
+            self._after_callback(response)
 
-    def getPatternPosition(self, step, board, camera):
+    def compute_pattern_position(self):
         t = None
         if system == 'Windows':
             flush = 2
@@ -712,52 +672,30 @@ class PlatformExtrinsics(Calibration):
             flush = 2
         else:
             flush = 1
-        image = camera.capture_image(flush=True, flush_value=flush)
+        image = camera.capture_image(flush=flush)
         if image is not None:
             self.image = image
-            ret = self.solvePnp(image, self.objpoints, self._camera_matrix,
-                                self._distortion_vector, self.patternColumns, self.patternRows)
+            ret = solve_pnp(image)
             if ret is not None:
-                if ret[0]:
-                    t = ret[2]
-            board.motor_relative(step)
-            board.motor_move()
+                t = ret[1]
         return t
 
-    def solvePnp(self, image, objpoints, _camera_matrix, _distortion_vector, patternColumns, patternRows):
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # the fast check flag reduces significantly the computation time if the
-        # pattern is out of sight
-        retval, corners = cv2.findChessboardCorners(
-            gray, (patternColumns, patternRows), flags=cv2.CALIB_CB_FAST_CHECK)
-
-        if retval:
-            cv2.cornerSubPix(
-                gray, corners, winSize=(11, 11), zeroZone=(-1, -1), criteria=self.criteria)
-            if self.use_distortion:
-                ret, rvecs, tvecs = cv2.solvePnP(
-                    objpoints, corners, _camera_matrix, _distortion_vector)
-            else:
-                ret, rvecs, tvecs = cv2.solvePnP(objpoints, corners, _camera_matrix, None)
-            return (ret, cv2.Rodrigues(rvecs)[0], tvecs, corners)
-
-    #-- Fitting a plane
-    def distanceToPlane(self, p0, n0, p):
+    def distance2plane(self, p0, n0, p):
         return np.dot(np.array(n0), np.array(p) - np.array(p0))
 
-    def residualsPlane(self, parameters, dataPoint):
+    def residuals_plane(self, parameters, data_point):
         px, py, pz, theta, phi = parameters
         nx, ny, nz = np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)
-        distances = [self.distanceToPlane(
-            [px, py, pz], [nx, ny, nz], [x, y, z]) for x, y, z in dataPoint]
+        distances = [self.distance2plane(
+            [px, py, pz], [nx, ny, nz], [x, y, z]) for x, y, z in data_point]
         return distances
 
-    def fitPlane(self, data):
+    def fit_plane(self, data):
         estimate = [0, 0, 0, 0, 0]  # px,py,pz and zeta, phi
         # you may automize this by using the center of mass data
         # note that the normal vector is given in polar coordinates
-        bestFitValues, ier = optimize.leastsq(self.residualsPlane, estimate, args=(data))
-        xF, yF, zF, tF, pF = bestFitValues
+        best_fit_values, ier = optimize.leastsq(self.residuals_plane, estimate, args=(data))
+        xF, yF, zF, tF, pF = best_fit_values
 
         #self.point  = [xF,yF,zF]
         self.point = data[0]
@@ -765,14 +703,14 @@ class PlatformExtrinsics(Calibration):
 
         return self.point, self.normal
 
-    def residualsCircle(self, parameters, dataPoint):
+    def residuals_circle(self, parameters, data_point):
         r, s, Ri = parameters
-        planePoint = s * self.s + r * self.r + np.array(self.point)
-        distance = [np.linalg.norm(planePoint - np.array([x, y, z])) for x, y, z in dataPoint]
+        plane_point = s * self.s + r * self.r + np.array(self.point)
+        distance = [np.linalg.norm(plane_point - np.array([x, y, z])) for x, y, z in data_point]
         res = [(Ri - dist) for dist in distance]
         return res
 
-    def fitCircle(self, point, normal, data):
+    def fit_circle(self, point, normal, data):
         # creating two inplane vectors
         # assuming that normal not parallel x!
         self.s = np.cross(np.array([1, 0, 0]), np.array(normal))
@@ -783,19 +721,19 @@ class PlatformExtrinsics(Calibration):
         # Define rotation
         R = np.array([self.s, self.r, normal]).T
 
-        estimateCircle = [0, 0, 0]  # px,py,pz and zeta, phi
-        bestCircleFitValues, ier = optimize.leastsq(
-            self.residualsCircle, estimateCircle, args=(data))
+        estimate_circle = [0, 0, 0]  # px,py,pz and zeta, phi
+        best_circle_fit_values, ier = optimize.leastsq(
+            self.residuals_circle, estimate_circle, args=(data))
 
-        rF, sF, RiF = bestCircleFitValues
+        rF, sF, RiF = best_circle_fit_values
 
         # Synthetic Data
-        centerPoint = sF * self.s + rF * self.r + np.array(self.point)
-        synthetic = [list(centerPoint + RiF * np.cos(phi) * self.r + RiF * np.sin(phi) * self.s)
+        center_point = sF * self.s + rF * self.r + np.array(self.point)
+        synthetic = [list(center_point + RiF * np.cos(phi) * self.r + RiF * np.sin(phi) * self.s)
                      for phi in np.linspace(0, 2 * np.pi, 50)]
         [cxTupel, cyTupel, czTupel] = [x for x in zip(*synthetic)]
 
-        return centerPoint, R, [cxTupel, cyTupel, czTupel]
+        return center_point, R, [cxTupel, cyTupel, czTupel]
 
 # Common
 
