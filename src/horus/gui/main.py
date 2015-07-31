@@ -399,10 +399,14 @@ class MainWindow(wx.Frame):
         MachineDialog = MachineSettingsDialog(self)
         MachineDialog.ShowModal()
 
-        #self.updateDriverProfile()
-        #self.controlWorkbench.updateCallbacks()
-        #self.calibrationWorkbench.updateCallbacks()
-        #self.scanningWorkbench.updateCallbacks()
+        # Load scene
+        machineModelPath = profile.getProfileSetting('machine_model_path')
+        if machineModelPath:
+            self.scanningWorkbench.sceneView.loadScene(machineModelPath)
+
+        self.controlWorkbench.updateCallbacks()
+        self.calibrationWorkbench.updateCallbacks()
+        self.scanningWorkbench.updateCallbacks()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.putPreference(key, checked)

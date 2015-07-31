@@ -178,8 +178,6 @@ class MachineSettingsDialog(wx.Dialog):
 		profile.putProfileSetting('machine_model_path', self.machineModelPath)
 		profile.saveProfile(profile.getDefaultProfilePath())
 		self.onClose(None)
-		# TODO: Load new ViewModel
-
 
 	def onDefaultButton(self, event):
 		self.platformShapeCombo.SetValue(profile.getDefaultProfileSetting('platform_shape'))
