@@ -44,7 +44,7 @@ from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, Came
                                                   PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
 from horus.engine.driver import Driver
-from horus.engine.calibration import CameraIntrinsics
+from horus.engine import calibration
 
 class CalibrationWorkbench(WorkbenchConnection):
 
@@ -132,9 +132,8 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def getFrame(self):
         frame = Driver.Instance().camera.capture_image()
-        self.cameraIntrinsics = CameraIntrinsics.Instance()
         if frame is not None:
-            retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+            retval, frame = calibration.detect_chessboard(frame)
         return frame
 
     def enableMenus(self, value):
@@ -225,6 +224,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.controls.setExpandable(True)
         self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
         self.controls.panels['camera_intrinsics_panel'].updateAllControlsToProfile()
+        calibration.CameraIntrinsics.Instance().accept()
         self.combo.Enable()
         self.enableMenus(True)
         self.cameraIntrinsicsResultPage.Hide()

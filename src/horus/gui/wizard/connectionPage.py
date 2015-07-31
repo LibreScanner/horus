@@ -93,7 +93,7 @@ class ConnectionPage(WizardPage):
         self.autoCheckButton.Bind(wx.EVT_BUTTON, self.onAutoCheckButtonClicked)
         self.Bind(wx.EVT_SHOW, self.onShow)
 
-        self.videoView.setMilliseconds(50)
+        self.videoView.setMilliseconds(20)
         self.videoView.setCallback(self.getDetectChessboardFrame)
         self.updateStatus(self.driver.is_connected)
 
@@ -110,7 +110,9 @@ class ConnectionPage(WizardPage):
         return self.driver.camera.capture_image()
 
     def getDetectChessboardFrame(self):
-        frame = self.getFrame()
+        frame = self.autocheck.image
+        if frame is None:
+            frame = self.getFrame()
         if frame is not None:
             retval, frame = detect_chessboard(frame)
         return frame

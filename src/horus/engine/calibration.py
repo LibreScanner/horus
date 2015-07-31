@@ -96,14 +96,15 @@ class Calibration(object):
         self._after_callback = after
 
     def start(self):
-        if self._before_callback is not None:
-            self._before_callback()
+        if not self._is_calibrating:
+            if self._before_callback is not None:
+                self._before_callback()
 
-        if self._progress_callback is not None:
-            self._progress_callback(0)
+            if self._progress_callback is not None:
+                self._progress_callback(0)
 
-        self._is_calibrating = True
-        threading.Thread(target=self._start).start()
+            self._is_calibrating = True
+            threading.Thread(target=self._start).start()
 
     def _start(self):
         pass
@@ -166,11 +167,13 @@ class AutoCheck(Calibration):
 
     def __init__(self):
         Calibration.__init__(self)
+        self.image = None
 
     def _start(self):
         if driver.is_connected:
 
             response = None
+            self.image = None
 
             # Setup scanner
             board.laser_off()
@@ -187,6 +190,8 @@ class AutoCheck(Calibration):
             finally:
                 board.laser_off()
                 board.motor_disable()
+
+            self.image = None
 
             if self._after_callback is not None:
                 self._after_callback(response)
@@ -206,6 +211,7 @@ class AutoCheck(Calibration):
         # Capture data
         for i in xrange(0, 360, scan_step):
             image = camera.capture_image(flush=1)
+            self.image = image
             ret = solve_pnp(image)
             if ret is not None:
                 patterns_detected[i] = ret[0].T[2][0]
@@ -244,6 +250,7 @@ class AutoCheck(Calibration):
 
     def check_lasers(self):
         img_raw = camera.capture_image(flush=1)
+        self.image = img_raw
 
         if img_raw is not None:
             s = solve_pnp(img_raw)
@@ -268,6 +275,7 @@ class AutoCheck(Calibration):
                 raise PatternNotDetected
 
     def move_home(self):
+        # Setup pattern for the next calibration
         board.motor_relative(-90)
         board.motor_move()
 
@@ -286,53 +294,38 @@ class CameraIntrinsics(Calibration):
 
     def __init__(self):
         Calibration.__init__(self)
-        self.objPointsStack = []
-        self.imagePointsStack = []
-        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+        self.shape = None
+        self.camera_matrix = None
+        self.distortion_vector = None
 
-    def set_intrinsics(self, _camera_matrix, _distortion_vector):
-        self._camera_matrix = _camera_matrix
-        self._distortion_vector = _distortion_vector
+    def _start(self):
+        ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(object_points, image_points, self.shape)
 
-    def set_use_distortion(self, use_distortion):
-        self.use_distortion = use_distortion
-
-    def setPatternParameters(self, rows, columns, squareWidth, distance):
-        # Pattern rows and columns are flipped due to the fact that the pattern is
-        # in landscape orientation
-        self.patternRows = columns
-        self.patternColumns = rows
-        self.squareWidth = squareWidth
-        self.patternDistance = distance
-        self.objpoints = self.generateObjectPoints(
-            self.patternColumns, self.patternRows, self.squareWidth)
-
-    def generateObjectPoints(self, patternColumns, patternRows, squareWidth):
-        objp = np.zeros((patternRows * patternColumns, 3), np.float32)
-        objp[:, :2] = np.mgrid[0:patternColumns, 0:patternRows].T.reshape(-1, 2)
-        objp = np.multiply(objp, squareWidth)
-        return objp
-
-    def _start(self, _progress_callback, _after_callback):
-        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
-            self.objPointsStack, self.imagePointsStack, self.shape)
-
-        if _progress_callback is not None:
-            _progress_callback(100)
+        if self._progress_callback is not None:
+            self._progress_callback(100)
 
         if ret:
-            response = (True, (mtx, dist[0], rvecs, tvecs))
+            self.camera_matrix = cmat
+            self.distortion_vector = dvec[0]
+            response = (True, (cmat, dvec[0], rvecs, tvecs))
         else:
-            response = (False, Error.CalibrationError)
+            response = (False, _("Calibration Error"))
 
-        if _after_callback is not None:
-            _after_callback(response)
+        if self._after_callback is not None:
+            self._after_callback(response)
 
-    def clearImageStack(self):
-        if hasattr(self, 'imagePointsStack'):
-            del self.imagePointsStack[:]
-        if hasattr(self, 'objPointsStack'):
-            del self.objPointsStack[:]
+    def capture(self):
+        if driver.is_connected:
+            frame = camera.capture_image(flush=1, mirror=False)
+            if frame is not None:
+                self.shape = frame.shape[:2]
+                retval, frame = detect_chessboard(frame, capture=True)
+                frame = cv2.flip(frame, 1)  # Mirror
+                return retval, frame
+
+    def accept(self):
+        camera.camera_matrix = self.camera_matrix
+        camera.distortion_vector = self.distortion_vector
 
 
 @Singleton
@@ -898,7 +891,15 @@ driver = Driver.Instance()
 board = driver.board
 camera = driver.camera
 pattern = Pattern.Instance()
+
+image_points = []
+object_points = []
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+
+
+def reset_stack():
+    image_points = []
+    object_points = []
 
 
 def detect_chessboard(frame, capture=False):
@@ -908,14 +909,14 @@ def detect_chessboard(frame, capture=False):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, corners = cv2.findChessboardCorners(
             gray, (pattern.columns, pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
-        
+
         if retval:
             cv2.cornerSubPix(
                 gray, corners, winSize=(11, 11), zeroZone=(-1, -1), criteria=criteria)
-            # if capture:
-            #    if len(self.objPointsStack) < 12:
-            #        self.imagePointsStack.append(corners)
-            #        self.objPointsStack.append(pattern.object_points)
+            if capture:
+                if len(object_points) < 12:
+                    image_points.append(corners)
+                    object_points.append(pattern.object_points)
             cv2.drawChessboardCorners(
                 frame, (pattern.columns, pattern.rows), corners, retval)
         return retval, frame

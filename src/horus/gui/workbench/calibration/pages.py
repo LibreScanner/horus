@@ -107,7 +107,7 @@ class CameraIntrinsicsMainPage(Page):
 		if event.GetShow():
 			self.gauge.SetValue(0)
 			self.videoView.play()
-			calibration.CameraIntrinsics.Instance().clearImageStack()
+			calibration.reset_stack()
 			self.GetParent().Layout()
 			self.Layout()
 		else:
@@ -120,7 +120,7 @@ class CameraIntrinsicsMainPage(Page):
 	def getFrame(self):
 		frame = self.driver.camera.capture_image(mirror=True)
 		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+			retval, frame = calibration.detect_chessboard(frame)
 			if retval:
 				self.videoView.SetBackgroundColour((45,178,0))
 			else:
@@ -129,15 +129,11 @@ class CameraIntrinsicsMainPage(Page):
 
 	def onKeyPress(self, event):
 		if event.GetKeyCode() == 32: #-- spacebar
-			if self.driver.is_connected:
-				self.videoView.pause()
-				frame = self.driver.camera.capture_image(mirror=False, flush=True)
-				if frame is not None:
-					retval, frame = self.cameraIntrinsics.detectChessboard(frame, capture=True)
-					frame = cv2.flip(frame, 1) #-- Mirror
-					self.addFrameToGrid(retval, frame)
-					self.gauge.SetValue(7*self.currentGrid)
-				self.videoView.play()
+			self.videoView.pause()
+			retval, frame = self.cameraIntrinsics.capture()
+			self.videoView.play()
+			self.addFrameToGrid(retval, frame)
+			self.gauge.SetValue(7*self.currentGrid)
 
 	def addFrameToGrid(self, retval, image):
 		if self.currentGrid < (self.columns*self.rows):
@@ -155,7 +151,7 @@ class CameraIntrinsicsMainPage(Page):
 			# self._rightButton.Enable()
 
 	def onCalibrate(self):
-		self.cameraIntrinsics.setCallbacks(self.beforeCalibration,
+		self.cameraIntrinsics.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
 										   lambda p: wx.CallAfter(self.progressCalibration,p),
 										   lambda r: wx.CallAfter(self.afterCalibration,r))
 		self.cameraIntrinsics.start()
