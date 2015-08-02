@@ -69,8 +69,8 @@ class PreferencesDialog(wx.Dialog):
 
 		self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
 
-		self.cancelButton = wx.Button(self, label=_("Cancel"))
-		self.saveButton = wx.Button(self, label=_("Save"))
+		self.cancelButton = wx.Button(self, label=_("Cancel"), size=(110,-1))
+		self.saveButton = wx.Button(self, label=_("Save"), size=(110,-1))
 
 		#-- Events
 		self.hexCombo.Bind(wx.EVT_COMBOBOX, self.onHexComboChanged)
