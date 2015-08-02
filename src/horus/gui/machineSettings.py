@@ -43,9 +43,9 @@ class MachineSettingsDialog(wx.Dialog):
 		self.main = parent
 
 		#-- Graphic elements
-		self.platformShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
-		self.platformShapes = self.main.platformShapesList()
-		self.platformShapeCombo = wx.ComboBox(self, choices=self.platformShapes, size=(170,-1), style=wx.CB_READONLY)
+		self.machineShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
+		self.machineShapes = profile.getMachineSettingType("machine_shape")
+		self.machineShapeCombo = wx.ComboBox(self, choices=self.machineShapes, size=(170,-1), style=wx.CB_READONLY)
 
 		self.dimensionsStaticText = wx.StaticText(self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
 		self.diameterLabel = wx.StaticText(self, label=_("Diameter"))
@@ -66,7 +66,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.defaultButton = wx.Button(self, label=_("Default"))
 
 		#-- Events
-		self.platformShapeCombo.Bind(wx.EVT_COMBOBOX, self.onPlatformShapeComboChanged)
+		self.machineShapeCombo.Bind(wx.EVT_COMBOBOX, self.onmachineShapeComboChanged)
 		self.machineModelButton.Bind(wx.EVT_BUTTON, self.onMachineModelButton)
 		self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
 		self.saveButton.Bind(wx.EVT_BUTTON, self.onSaveButton)
@@ -77,9 +77,9 @@ class MachineSettingsDialog(wx.Dialog):
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.platformShapeLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
+		hbox.Add(self.machineShapeLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox.AddStretchSpacer()
-		hbox.Add(self.platformShapeCombo, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+		hbox.Add(self.machineShapeCombo, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
 		self.vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
 		self.vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
@@ -126,7 +126,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.vbox.Add(hbox, 0, wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
 		#-- Fill data from settings
-		self.platformShapeCombo.SetValue(profile.getMachineSetting('machine_shape'))
+		self.machineShapeCombo.SetValue(profile.getMachineSetting('machine_shape'))
 		self.diameterField.SetValue(profile.getMachineSettingInteger('machine_diameter'))
 		self.widthField.SetValue(profile.getMachineSettingInteger('machine_width'))
 		self.heightField.SetValue(profile.getMachineSettingInteger('machine_height'))
@@ -134,7 +134,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.machineModelPath = profile.getMachineSetting('machine_model_path')
 		self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
 
-		self.onPlatformShapeComboChanged(None)
+		self.onmachineShapeComboChanged(None)
 
 		self.SetSizer(self.vbox)
 
@@ -151,7 +151,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.onClose(None)
 
 	def onSaveButton(self, event):
-		profile.putMachineSetting('machine_shape', self.platformShapeCombo.GetValue())
+		profile.putMachineSetting('machine_shape', self.machineShapeCombo.GetValue())
 		profile.putMachineSetting('machine_diameter', self.diameterField.GetValue())
 		profile.putMachineSetting('machine_width', self.widthField.GetValue())
 		profile.putMachineSetting('machine_height', self.heightField.GetValue())
@@ -161,8 +161,8 @@ class MachineSettingsDialog(wx.Dialog):
 		self.onClose(None)
 
 	def onDefaultButton(self, event):
-		self.platformShapeCombo.SetValue(profile.getDefaultMachineSetting('machine_shape'))
-		self.onPlatformShapeComboChanged(None)
+		self.machineShapeCombo.SetValue(profile.getDefaultMachineSetting('machine_shape'))
+		self.onmachineShapeComboChanged(None)
 		self.diameterField.SetValue(profile.getDefaultMachineSettingInteger('machine_diameter'))
 		self.widthField.SetValue(profile.getDefaultMachineSettingInteger('machine_width'))
 		self.heightField.SetValue(profile.getDefaultMachineSettingInteger('machine_height'))
@@ -170,14 +170,14 @@ class MachineSettingsDialog(wx.Dialog):
 		self.machineModelPath = profile.getDefaultMachineSetting('machine_model_path')
 		self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
 
-	def onPlatformShapeComboChanged(self, event):
-		if self.platformShapeCombo.GetValue() == self.main.platformShapesList()[0]:
+	def onmachineShapeComboChanged(self, event):
+		if self.machineShapeCombo.GetValue() == "Circular":
 			self.vbox.Show(self.diam_hbox, recursive=True)
 			self.vbox.Hide(self.width_hbox, recursive=True)
 			self.vbox.Hide(self.depth_hbox, recursive=True)
 			self.Layout()
 			self.Fit()
-		elif self.platformShapeCombo.GetValue() == self.main.platformShapesList()[1]:
+		elif self.machineShapeCombo.GetValue() == "Rectangular":
 			self.vbox.Hide(self.diam_hbox, recursive=True)
 			self.vbox.Show(self.width_hbox, recursive=True)
 			self.vbox.Show(self.depth_hbox, recursive=True)

@@ -798,6 +798,14 @@ def isMachineSetting(name):
 		return True
 	return False
 
+def getMachineSettingType(name):
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
+		return settingsDictionary[name].getType()
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
+	return ''
+
 #Returns a list of convex polygons, first polygon is the allowed area of the machine,
 # the rest of the polygons are the dis-allowed areas of the machine.
 def getMachineSizePolygons(machine_shape):
