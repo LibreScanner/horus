@@ -119,13 +119,13 @@ class PreferencesDialog(wx.Dialog):
 		hbox.Add(self.baudRateLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox.AddStretchSpacer()
 		hbox.Add(self.baudRateCombo, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
+		vbox.Add(hbox, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)   
 		hbox.Add(self.cameraIdLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox.AddStretchSpacer()
 		hbox.Add(self.cameraIdCombo, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
+		vbox.Add(hbox, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
@@ -141,7 +141,7 @@ class PreferencesDialog(wx.Dialog):
 		hbox.Add(self.hexLabel, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox.AddStretchSpacer()
 		hbox.Add(self.hexCombo, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
+		vbox.Add(hbox, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.uploadFirmwareButton, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
@@ -163,7 +163,7 @@ class PreferencesDialog(wx.Dialog):
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		hbox.Add(self.invertMotorCheckBox, 0, wx.ALIGN_CENTER_VERTICAL)
-		vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
+		vbox.Add(hbox, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 10)
 
 		vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
