@@ -254,11 +254,10 @@ class PointCloudGeneration(ExpandablePanel):
     def updateCallbacks(self):
         section = self.sections['point_cloud_generation']
         section.updateCallback('view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_width', lambda v: (self.pcg.setROIWidth(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_depth', lambda v: (self.pcg.setROIDepth(int(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('point_cloud_color', self.onColorPicker)
 
     def onColorPicker(self):
@@ -277,6 +276,10 @@ class PointCloudGeneration(ExpandablePanel):
     def updateProfile(self):
         section = self.sections['point_cloud_generation']
         section.items['view_roi'][0].updateProfile()
+        section.items['roi_diameter'].updateProfile()
+        section.items['roi_width'].updateProfile()
+        section.items['roi_height'].updateProfile()
+        section.items['roi_depth'].updateProfile()
         if profile.getMachineSetting('machine_shape') == "Rectangular":
             section.hideItem('roi_diameter')
             section.showItem('roi_width')
