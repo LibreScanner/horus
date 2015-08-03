@@ -824,6 +824,14 @@ def getSizePolygons(size, machine_shape):
 			circle.append([math.cos(float(n)/steps*2*math.pi) * size[0]/2, math.sin(float(n)/steps*2*math.pi) * size[1]/2])
 		ret.append(numpy.array(circle, numpy.float32))
 
+	elif machine_shape == 'Rectangular':
+		rectangle = []
+		rectangle.append([-size[0]/2, size[1]/2])
+		rectangle.append([size[0]/2, size[1]/2])
+		rectangle.append([size[0]/2, -size[1]/2])
+		rectangle.append([-size[0]/2, -size[1]/2])
+		ret.append(numpy.array(rectangle, numpy.float32))
+
 	w = 20
 	h = 20
 	ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))
