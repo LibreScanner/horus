@@ -268,10 +268,11 @@ setting('threshold_value', 25, int, 'advanced', _('Threshold'), tag='texture').s
 setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'), tag='simple')
 setting('cr_threshold_value', 140, int, 'advanced', _('Threshold'), tag='simple').setRange(0, 255)
 
-setting('view_roi', False, bool, 'advanced', _('View ROI'))
-
-setting('roi_diameter', 200, int, 'advanced', _('Diameter')).setRange(0, 250)
-setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
+setting('view_roi', False, bool, 'machine_setting', _('View ROI'))
+setting('roi_diameter', 200, int, 'machine_setting', _('Diameter')).setRange(0,250)
+setting('roi_width', 200, int, 'machine_setting', _('Width')).setRange(0,250)
+setting('roi_height', 200, int, 'machine_setting', _('Height')).setRange(0,250)
+setting('roi_depth', 200, int, 'machine_setting', _('Depth')).setRange(0,250)
 
 setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
@@ -342,6 +343,80 @@ setting('model_color', '#888899', str, 'preference', 'hidden').setLabel(_('Model
 
 #Remove fake defined _() because later the localization will define a global _()
 del _
+
+#########################################################
+## Settings functions
+#########################################################
+
+def getSetting(name):
+	"""
+		Get the value of a setting.
+	:param name: Name of the setting to retrieve.
+	:return:     Value of the current setting.
+	"""
+	global settingsDictionary
+	if name in settingsDictionary:
+		return settingsDictionary[name].getValue()
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
+	return ''
+
+def getSettingObject(name):
+	""" """
+	global settingsList
+	for set in settingsList:
+		if set.getName() is name:
+			return set
+
+def putSetting(name, value):
+	""" Store a certain value in a setting. """
+	global settingsDictionary
+	if name in settingsDictionary:
+		settingsDictionary[name].setValue(value)
+
+def resetSetting(name):
+	""" Reset only the especified setting """
+	global settingsDictionary
+	if name in settingsDictionary:
+		settingsDictionary[name].setValue(settingsDictionary[name]._default)
+
+def getSettingBool(name):
+	try:
+		setting = getSetting(name)
+		return bool(eval(setting, {}, {}))
+	except:
+		return False
+
+def getSettingInteger(name):
+	try:
+		setting = getSetting(name)
+		return int(eval(setting, {}, {}))
+	except:
+		return 0
+
+def getSettingMinValue(name):
+	global settingsDictionary
+	if name in settingsDictionary:
+		setting = settingsDictionary[name].getMinValue()
+		try:
+			return int(eval(setting, {}, {}))
+		except:
+			return 0
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
+	return ''
+
+def getSettingMaxValue(name):
+	global settingsDictionary
+	if name in settingsDictionary:
+		setting = settingsDictionary[name].getMaxValue()
+		try:
+			return int(eval(setting, {}, {}))
+		except:
+			return 0
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
+	return ''
 
 #########################################################
 ## Profile and preferences functions
@@ -746,6 +821,20 @@ def getMachineSetting(name, index = None):
 	traceback.print_stack()
 	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
 	return ''
+
+def getMachineSettingObject(name):
+	""" """
+	global settingsList
+	for set in settingsList:
+		if set.getName() is name:
+			return set
+
+def getMachineSettingBool(name):
+	try:
+		setting = getMachineSetting(name)
+		return bool(eval(setting, {}, {}))
+	except:
+		return False
 
 def getMachineSettingInteger(name):
 	try:

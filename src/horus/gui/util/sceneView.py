@@ -609,23 +609,25 @@ class SceneView(openglGui.glGuiPanel):
 
 		glDepthMask(False)
 		
-		size = numpy.array([profile.getProfileSettingFloat('roi_diameter'),
-							profile.getProfileSettingFloat('roi_diameter'),
-							profile.getProfileSettingFloat('roi_height')], numpy.float32)
+		size = numpy.array([profile.getMachineSettingFloat('roi_diameter'),
+							profile.getMachineSettingFloat('roi_diameter'),
+							profile.getMachineSettingFloat('roi_height')], numpy.float32)
 
-		if profile.getProfileSettingBool('view_roi'):
-			polys = profile.getSizePolygons(size)
-			height = profile.getProfileSettingFloat('roi_height')
-			circular = profile.getMachineSetting('machine_shape') == 'Circular'
+		machine_shape = profile.getMachineSetting('machine_shape')
+
+		if profile.getMachineSettingFloat('view_roi'):
+			polys = profile.getSizePolygons(size, machine_shape)
+			height = profile.getMachineSettingFloat('roi_height')
+
 			# Draw the sides of the build volume.
 			glBegin(GL_QUADS)
 			for n in xrange(0, len(polys[0])):
-				if not circular:
+				if machine_shape == 'Rectangular':
 					if n % 2 == 0:
 						glColor4ub(5, 171, 231, 96)
 					else:
 						glColor4ub(5, 171, 231, 64)
-				else:
+				elif machine_shape == 'Circular':
 					glColor4ub(5, 171, 231, 96)
 					#glColor4ub(200, 200, 200, 150)
 

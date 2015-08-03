@@ -712,10 +712,17 @@ class PointCloudGenerator:
 		self.roiRadius = value / 2.0
 		self.calculateROI()
 
+	def setROIWidth(self, value):
+		self.roiWidth = value
+		self.calculateROI()
+
 	def setROIHeight(self, value):
 		self.roiHeight = value
 		self.calculateROI()
 
+	def setROIDepth(self, value):
+		self.roiDepth = value
+		self.calculateROI()
 
 	def setDegrees(self, degrees):
 		self.degrees = degrees

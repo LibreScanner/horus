@@ -401,6 +401,7 @@ class MainWindow(wx.Frame):
 
         if ret == wx.ID_OK:
             self.scanningWorkbench.sceneView._drawMachine()
+            self.scanningWorkbench.controls.panels["point_cloud_generation"].updateProfile()
 
         self.controlWorkbench.updateCallbacks()
         self.calibrationWorkbench.updateCallbacks()
@@ -625,49 +626,51 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.driver.board.setInvertMotor(profile.getProfileSettingBool('invert_motor'))
 
     def updatePCGProfile(self):
-            self.pcg.resetTheta()
-            self.pcg.setViewROI(profile.getProfileSettingBool('view_roi'))
-            self.pcg.setROIDiameter(profile.getProfileSettingInteger('roi_diameter'))
-            self.pcg.setROIHeight(profile.getProfileSettingInteger('roi_height'))
-            self.pcg.setDegrees(profile.getProfileSettingFloat('step_degrees_scanning'))
-            resolution = profile.getProfileSetting('resolution_scanning')
-            self.pcg.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
-            useLaser = profile.getProfileSetting('use_laser')
-            self.pcg.setUseLaser(useLaser == 'Left' or useLaser == 'Both',
-                                 useLaser == 'Right' or useLaser == 'Both')
-            self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                         profile.getProfileSettingNumpy('distortion_vector'))
-            self.pcg.setLaserTriangulation(profile.getProfileSettingNumpy('distance_left'),
-                                           profile.getProfileSettingNumpy('normal_left'),
-                                           profile.getProfileSettingNumpy('distance_right'),
-                                           profile.getProfileSettingNumpy('normal_right'))
-            self.pcg.setPlatformExtrinsics(profile.getProfileSettingNumpy('rotation_matrix'),
-                                           profile.getProfileSettingNumpy('translation_vector'))
+        self.pcg.resetTheta()
+        self.pcg.setViewROI(profile.getMachineSettingBool('view_roi'))
+        self.pcg.setROIDiameter(profile.getMachineSettingInteger('roi_diameter'))
+        self.pcg.setROIWidth(profile.getMachineSettingInteger('roi_width'))
+        self.pcg.setROIHeight(profile.getMachineSettingInteger('roi_height'))
+        self.pcg.setROIDepth(profile.getMachineSettingInteger('roi_depth'))
+        self.pcg.setDegrees(profile.getProfileSettingFloat('step_degrees_scanning'))
+        resolution = profile.getProfileSetting('resolution_scanning')
+        self.pcg.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
+        useLaser = profile.getProfileSetting('use_laser')
+        self.pcg.setUseLaser(useLaser == 'Left' or useLaser == 'Both',
+                             useLaser == 'Right' or useLaser == 'Both')
+        self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
+                                     profile.getProfileSettingNumpy('distortion_vector'))
+        self.pcg.setLaserTriangulation(profile.getProfileSettingNumpy('distance_left'),
+                                       profile.getProfileSettingNumpy('normal_left'),
+                                       profile.getProfileSettingNumpy('distance_right'),
+                                       profile.getProfileSettingNumpy('normal_right'))
+        self.pcg.setPlatformExtrinsics(profile.getProfileSettingNumpy('rotation_matrix'),
+                                       profile.getProfileSettingNumpy('translation_vector'))
 
-            scanType = profile.getProfileSetting('scan_type')
-            if scanType == 'Simple Scan':
-                self.scanningWorkbench.currentScan = self.simpleScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
-            elif scanType == 'Texture Scan':
-                self.scanningWorkbench.currentScan = self.textureScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
+        scanType = profile.getProfileSetting('scan_type')
+        if scanType == 'Simple Scan':
+            self.scanningWorkbench.currentScan = self.simpleScan
+            self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+        elif scanType == 'Texture Scan':
+            self.scanningWorkbench.currentScan = self.textureScan
+            self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 
-            self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
-            self.simpleScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
-            self.simpleScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
-            self.simpleScan.setImageType(profile.getProfileSetting('img_type'))
-            self.simpleScan.setUseThreshold(profile.getProfileSettingBool('use_cr_threshold'))
-            self.simpleScan.setThresholdValue(profile.getProfileSettingInteger('cr_threshold_value'))
-            self.simpleScan.setColor(struct.unpack('BBB',profile.getProfileSetting('point_cloud_color').decode('hex')))
+        self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
+        self.simpleScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
+        self.simpleScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
+        self.simpleScan.setImageType(profile.getProfileSetting('img_type'))
+        self.simpleScan.setUseThreshold(profile.getProfileSettingBool('use_cr_threshold'))
+        self.simpleScan.setThresholdValue(profile.getProfileSettingInteger('cr_threshold_value'))
+        self.simpleScan.setColor(struct.unpack('BBB',profile.getProfileSetting('point_cloud_color').decode('hex')))
 
-            self.textureScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
-            self.textureScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
-            self.textureScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
-            self.textureScan.setImageType(profile.getProfileSetting('img_type'))
-            self.textureScan.setUseOpen(profile.getProfileSettingBool('use_open'))
-            self.textureScan.setOpenValue(profile.getProfileSettingInteger('open_value'))
-            self.textureScan.setUseThreshold(profile.getProfileSettingBool('use_threshold'))
-            self.textureScan.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
+        self.textureScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
+        self.textureScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
+        self.textureScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
+        self.textureScan.setImageType(profile.getProfileSetting('img_type'))
+        self.textureScan.setUseOpen(profile.getProfileSettingBool('use_open'))
+        self.textureScan.setOpenValue(profile.getProfileSettingInteger('open_value'))
+        self.textureScan.setUseThreshold(profile.getProfileSettingBool('use_threshold'))
+        self.textureScan.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
 
     def updateCalibrationProfile(self):
         self.driver.camera.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
