@@ -54,6 +54,17 @@ from horus.util.singleton import Singleton
         - Platform Extrinsics Calibration
 """
 
+# Common
+
+driver = Driver.Instance()
+board = driver.board
+camera = driver.camera
+pattern = Pattern.Instance()
+
+image_points = []
+object_points = []
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+
 
 class PatternNotDetected(Exception):
 
@@ -647,15 +658,6 @@ class PlatformExtrinsics(Calibration):
         return center_point, R, [cxTupel, cyTupel, czTupel]
 
 # Common
-
-driver = Driver.Instance()
-board = driver.board
-camera = driver.camera
-pattern = Pattern.Instance()
-
-image_points = []
-object_points = []
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 
 def reset_stack():
