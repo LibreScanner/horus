@@ -71,7 +71,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
 		self.saveButton.Bind(wx.EVT_BUTTON, self.onSaveButton)
 		self.defaultButton.Bind(wx.EVT_BUTTON, self.onDefaultButton)
-		self.Bind(wx.EVT_CLOSE, self.onClose)
+		self.Bind(wx.EVT_CLOSE, self.onCancelButton)
 
 		#-- Layout
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -143,12 +143,9 @@ class MachineSettingsDialog(wx.Dialog):
 		self.Fit()
 
 
-	def onClose(self, event):
-		self.EndModal(wx.ID_OK)
-		self.Destroy()
-
 	def onCancelButton(self, event):
-		self.onClose(None)
+		self.EndModal(wx.ID_CANCEL)
+		self.Destroy()
 
 	def onSaveButton(self, event):
 		profile.putMachineSetting('machine_shape', self.machineShapeCombo.GetValue())
@@ -158,7 +155,8 @@ class MachineSettingsDialog(wx.Dialog):
 		profile.putMachineSetting('machine_depth', self.depthField.GetValue())
 		profile.putMachineSetting('machine_model_path', self.machineModelPath)
 		profile.saveMachineSettings(os.path.join(profile.getBasePath(), 'machine_settings.ini'))
-		self.onClose(None)
+		self.EndModal(wx.ID_OK)
+		self.Destroy()
 
 	def onDefaultButton(self, event):
 		self.machineShapeCombo.SetValue(profile.getDefaultMachineSetting('machine_shape'))

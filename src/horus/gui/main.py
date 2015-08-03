@@ -397,10 +397,10 @@ class MainWindow(wx.Frame):
             waitCursor = wx.BusyCursor()
 
         MachineDialog = MachineSettingsDialog(self)
-        MachineDialog.ShowModal()
+        ret = MachineDialog.ShowModal()
 
-        # Load scene
-        self.scanningWorkbench.sceneView._drawMachine()
+        if ret == wx.ID_OK:
+            self.scanningWorkbench.sceneView._drawMachine()
 
         self.controlWorkbench.updateCallbacks()
         self.calibrationWorkbench.updateCallbacks()
