@@ -609,13 +609,18 @@ class SceneView(openglGui.glGuiPanel):
 
 		glDepthMask(False)
 		
-		size = numpy.array([profile.getMachineSettingFloat('roi_diameter'),
-							profile.getMachineSettingFloat('roi_diameter'),
-							profile.getMachineSettingFloat('roi_height')], numpy.float32)
-
 		machine_shape = profile.getMachineSetting('machine_shape')
 
-		if profile.getMachineSettingFloat('view_roi'):
+		if machine_shape == 'Circular':
+			size = numpy.array([profile.getMachineSettingFloat('roi_diameter'),
+								profile.getMachineSettingFloat('roi_diameter'),
+								profile.getMachineSettingFloat('roi_height')], numpy.float32)
+		elif machine_shape == 'Rectangular':
+			size = numpy.array([profile.getMachineSettingFloat('roi_width'),
+								profile.getMachineSettingFloat('roi_depth'),
+								profile.getMachineSettingFloat('roi_height')], numpy.float32)
+
+		if profile.getMachineSettingBool('view_roi'):
 			polys = profile.getSizePolygons(size, machine_shape)
 			height = profile.getMachineSettingFloat('roi_height')
 
