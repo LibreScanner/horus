@@ -6,8 +6,8 @@
 #                                                                       #
 # Copyright (C) 2014-2015 Mundo Reader S.L.                             #
 #                                                                       #
-# Date: June, November 2014                                             #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
+# Date: July 2015                                                       #
+# Author: Nicanor Romero Venier <nicanor.romerovenier@bq.com>           #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
@@ -58,12 +58,12 @@ class MachineSettingsDialog(wx.Dialog):
 		self.depthField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 
 		self.machineModelLabel = wx.StaticText(self, label=_("Machine Model"))
-		self.machineModelField = wx.StaticText(self, size=(200,-1))
 		self.machineModelButton = wx.Button(self, label=_("Browse"))
+		self.machineModelField = wx.StaticText(self, size=(200,-1))
 
+		self.defaultButton = wx.Button(self, label=_("Default"))
 		self.cancelButton = wx.Button(self, label=_("Cancel"))
 		self.saveButton = wx.Button(self, label=_("Save"))
-		self.defaultButton = wx.Button(self, label=_("Default"))
 
 		#-- Events
 		self.machineShapeCombo.Bind(wx.EVT_COMBOBOX, self.onmachineShapeComboChanged)
@@ -113,16 +113,16 @@ class MachineSettingsDialog(wx.Dialog):
 		# Machine STL
 		self.vbox.Add(self.machineModelLabel, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.machineModelField, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
+		hbox.Add(self.machineModelButton, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 10)
 		hbox.AddStretchSpacer()
-		hbox.Add(self.machineModelButton, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+		hbox.Add(self.machineModelField, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
 		self.vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
 		self.vbox.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.defaultButton, 0, wx.ALL^wx.RIGHT, 10)
 		hbox.Add(self.cancelButton, 0, wx.ALL^wx.RIGHT, 10)
-		hbox.Add(self.saveButton, 0, wx.ALL^wx.RIGHT, 10)
-		hbox.Add(self.defaultButton, 0, wx.ALL, 10)
+		hbox.Add(self.saveButton, 0, wx.ALL, 10)
 		self.vbox.Add(hbox, 0, wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
 		#-- Fill data from settings
