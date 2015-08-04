@@ -154,7 +154,7 @@ class MachineSettingsDialog(wx.Dialog):
 		profile.putMachineSetting('machine_height', self.heightField.GetValue())
 		profile.putMachineSetting('machine_depth', self.depthField.GetValue())
 		profile.putMachineSetting('machine_model_path', self.machineModelPath)
-		profile.saveMachineSettings(os.path.join(profile.getBasePath(), 'machine_settings.ini'))
+		profile.saveMachineSettings(os.path.join(profile.getBasePath(), 'machine-settings.ini'))
 		self.EndModal(wx.ID_OK)
 		self.Destroy()
 
