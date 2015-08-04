@@ -58,7 +58,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.depthField = wx.lib.intctrl.IntCtrl(self, size=(170,-1), style=wx.TE_RIGHT)
 
 		self.machineModelLabel = wx.StaticText(self, label=_("Machine Model"))
-		self.machineModelField = wx.TextCtrl(self, size=(200,-1))
+		self.machineModelField = wx.StaticText(self, size=(200,-1))
 		self.machineModelButton = wx.Button(self, label=_("Browse"))
 
 		self.cancelButton = wx.Button(self, label=_("Cancel"))
@@ -132,7 +132,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.heightField.SetValue(profile.getMachineSettingInteger('machine_height'))
 		self.depthField.SetValue(profile.getMachineSettingInteger('machine_depth'))
 		self.machineModelPath = profile.getMachineSetting('machine_model_path')
-		self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
+		self.machineModelField.SetLabel(self._getFileName(self.machineModelPath))
 
 		self.onmachineShapeComboChanged(None)
 
@@ -166,28 +166,26 @@ class MachineSettingsDialog(wx.Dialog):
 		self.heightField.SetValue(profile.getDefaultMachineSettingInteger('machine_height'))
 		self.depthField.SetValue(profile.getDefaultMachineSettingInteger('machine_depth'))
 		self.machineModelPath = profile.getDefaultMachineSetting('machine_model_path')
-		self.machineModelField.SetValue(self._getFileName(self.machineModelPath))
+		self.machineModelField.SetLabel(self._getFileName(self.machineModelPath))
 
 	def onmachineShapeComboChanged(self, event):
 		if self.machineShapeCombo.GetValue() == "Circular":
 			self.vbox.Show(self.diam_hbox, recursive=True)
 			self.vbox.Hide(self.width_hbox, recursive=True)
 			self.vbox.Hide(self.depth_hbox, recursive=True)
-			self.Layout()
-			self.Fit()
 		elif self.machineShapeCombo.GetValue() == "Rectangular":
 			self.vbox.Hide(self.diam_hbox, recursive=True)
 			self.vbox.Show(self.width_hbox, recursive=True)
 			self.vbox.Show(self.depth_hbox, recursive=True)
-			self.Layout()
-			self.Fit()
+		self.Layout()
+		self.Fit()
 
 	def onMachineModelButton(self, event):
 		dlg = wx.FileDialog(self, message=_("Select binary file to load"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
 		dlg.SetWildcard("Model files (*.stl)|*.stl")
 		if dlg.ShowModal() == wx.ID_OK:
 			self.machineModelPath = dlg.GetPath()
-			self.machineModelField.SetValue(dlg.GetFilename())
+			self.machineModelField.SetLabel(dlg.GetFilename())
 		dlg.Destroy()
 
 	def _getFileName(self, path):
