@@ -11,18 +11,14 @@ from horus.util import resources
 
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
-
 from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.control.panels import CameraControl, LaserControl, LDRControl, MotorControl, GcodeControl
 
-from horus.engine.driver import Driver
 
 class ControlWorkbench(WorkbenchConnection):
 
 	def __init__(self, parent):
 		WorkbenchConnection.__init__(self, parent)
-
-		self.driver = Driver.Instance()
 
 		self.load()
 

@@ -14,17 +14,17 @@ from horus.gui.util.resolutionWindow import ResolutionWindow
 
 from horus.util import profile, system as sys
 
-from horus.engine.driver import Driver
-from horus.engine import scan, calibration
+from horus.engine.driver.driver import Driver
+from horus.engine.calibration.pattern import Pattern
 
+driver = Driver()
+pattern = Pattern()
 
 class CameraSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Camera Settings"))
 
-        self.driver = Driver.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
         self.last_resolution = profile.getProfileSetting('resolution_calibration')
 
         self.clearSections()
@@ -43,18 +43,18 @@ class CameraSettingsPanel(ExpandablePanel):
         
     def updateCallbacks(self):
         section = self.sections['camera_calibration']
-        section.updateCallback('brightness_calibration', self.driver.camera.set_brightness)
-        section.updateCallback('contrast_calibration', self.driver.camera.set_contrast)
-        section.updateCallback('saturation_calibration', self.driver.camera.set_saturation)
-        section.updateCallback('exposure_calibration', self.driver.camera.set_exposure)
-        section.updateCallback('framerate_calibration', lambda v: self.driver.camera.set_frame_rate(int(v)))
+        section.updateCallback('brightness_calibration', driver.camera.set_brightness)
+        section.updateCallback('contrast_calibration', driver.camera.set_contrast)
+        section.updateCallback('saturation_calibration', driver.camera.set_saturation)
+        section.updateCallback('exposure_calibration', driver.camera.set_exposure)
+        section.updateCallback('framerate_calibration', lambda v: driver.camera.set_frame_rate(int(v)))
         section.updateCallback('resolution_calibration', lambda v: self.setResolution(v))
-        section.updateCallback('use_distortion_calibration', lambda v: self.driver.camera.set_use_distortion(v))
+        section.updateCallback('use_distortion_calibration', lambda v: driver.camera.set_use_distortion(v))
 
     def setResolution(self, value):
         if value != self.last_resolution:
             ResolutionWindow(self)
-        self.driver.camera.set_resolution(int(value.split('x')[0]), int(value.split('x')[1]))
+        driver.camera.set_resolution(int(value.split('x')[0]), int(value.split('x')[1]))
         self.last_resolution = profile.getProfileSetting('resolution_calibration')
 
 
@@ -62,12 +62,6 @@ class PatternSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Pattern Settings"), hasUndo=False)
-
-        self.pattern = calibration.Pattern.Instance()
-        self.autoCheck = calibration.AutoCheck.Instance()
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
-        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
         self.clearSections()
         section = self.createSection('pattern_settings')
@@ -84,19 +78,16 @@ class PatternSettingsPanel(ExpandablePanel):
         section.updateCallback('pattern_distance', lambda v: self.updatePatternParameters())
 
     def updatePatternParameters(self):
-        self.pattern.rows = profile.getProfileSettingInteger('pattern_rows')
-        self.pattern.columns = profile.getProfileSettingInteger('pattern_columns')
-        self.pattern.square_width = profile.getProfileSettingInteger('square_width')
-        self.pattern.distance = profile.getProfileSettingInteger('pattern_distance')
+        pattern.rows = profile.getProfileSettingInteger('pattern_rows')
+        pattern.columns = profile.getProfileSettingInteger('pattern_columns')
+        pattern.square_width = profile.getProfileSettingInteger('square_width')
+        pattern.distance = profile.getProfileSettingInteger('pattern_distance')
 
 
 class LaserSettingsPanel(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Laser Settings"), hasUndo=False, hasRestore=False)
-
-        self.driver = Driver.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
 
         self.clearSections()
         section = self.createSection('laser_settings')
@@ -106,8 +97,8 @@ class LaserSettingsPanel(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['laser_settings']
-        section.updateCallback('left_button', (self.driver.board.left_laser_on, self.driver.board.left_laser_off))
-        section.updateCallback('right_button', (self.driver.board.right_laser_on, self.driver.board.right_laser_off))
+        section.updateCallback('left_button', (driver.board.left_laser_on, driver.board.left_laser_off))
+        section.updateCallback('right_button', (driver.board.right_laser_on, driver.board.right_laser_off))
 
 
 ## TODO: Use TextBoxArray
@@ -161,12 +152,6 @@ class CameraIntrinsicsPanel(CalibrationPanel):
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Camera Intrinsics"), buttonStartCallback=buttonStartCallback,
                                   description=_("This calibration acquires the camera intrinsic parameters (focal lenghts and optical centers) and the lens distortion"))
-
-        self.driver = Driver.Instance()
-        self.pcg = scan.PointCloudGenerator.Instance()
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
-        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
         cameraPanel = wx.Panel(self.content)
         distortionPanel = wx.Panel(self.content)
@@ -280,9 +265,8 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.distortionTexts[i].SetValue(str(self.distortionValues[i]))
 
     def updateEngine(self):
-        if hasattr(self, 'driver'):
-            self.driver.camera.camera_matrix = self.cameraValues
-            self.driver.camera.distortion_values = self.distortionValues
+        driver.camera.camera_matrix = self.cameraValues
+        driver.camera.distortion_values = self.distortionValues
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -306,8 +290,6 @@ class LaserTriangulationPanel(CalibrationPanel):
     def __init__(self, parent, buttonStartCallback):
         CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation"), buttonStartCallback=buttonStartCallback,
                                   description=_("This calibration determines the lasers' planes relative to the camera's coordinate system"))
-
-        self.pcg = scan.PointCloudGenerator.Instance()
 
         distanceLeftPanel = wx.Panel(self.content)
         normalLeftPanel = wx.Panel(self.content)
@@ -472,8 +454,9 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.normalRightTexts[i].SetValue(str(self.normalRightValues[i]))
 
     def updateEngine(self):
-        if hasattr(self, 'pcg'):
-            self.pcg.setLaserTriangulation(self.distanceLeftValue, self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
+        pass
+        #if hasattr(self, 'pcg'):
+        #    self.pcg.setLaserTriangulation(self.distanceLeftValue, self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -498,7 +481,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         CalibrationPanel.__init__(self, parent, titleText=_("Platform Extrinsics"), buttonStartCallback=buttonStartCallback,
                                   description=_("This calibration determines the position and orientation of the rotating platform relative to the camera's coordinate system"))
 
-        self.pcg = scan.PointCloudGenerator.Instance()
+        self.pcg = None
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -614,8 +597,9 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
             self.translationTexts[i].SetValue(str(self.translationValues[i]))
 
     def updateEngine(self):
-        if hasattr(self, 'pcg'):
-            self.pcg.setPlatformExtrinsics(self.rotationValues, self.translationValues)
+        pass
+        #if hasattr(self, 'pcg'):
+        #    self.pcg.setPlatformExtrinsics(self.rotationValues, self.translationValues)
 
     def updateProfile(self):
         self.getProfileSettings()

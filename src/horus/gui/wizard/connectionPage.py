@@ -15,8 +15,10 @@ from horus.gui.wizard.wizardPage import WizardPage
 import horus.util.error as Error
 from horus.util import profile, resources
 
-from horus.engine.driver import Driver
-from horus.engine.calibration import AutoCheck, Pattern, detect_chessboard
+from horus.engine.driver.driver import Driver
+from horus.engine.calibration.pattern import Pattern
+from horus.engine.calibration.autocheck import Autocheck
+#from horus.engine.calibration import detect_chessboard
 
 
 class ConnectionPage(WizardPage):
@@ -27,8 +29,8 @@ class ConnectionPage(WizardPage):
                             buttonNextCallback=buttonNextCallback)
 
         self.parent = parent
-        self.driver = Driver.Instance()
-        self.autocheck = AutoCheck.Instance()
+        self.driver = Driver()
+        self.autocheck = Autocheck()
 
         self.connectButton = wx.Button(self.panel, label=_("Connect"))
         self.settingsButton = wx.Button(self.panel, label=_("Edit settings"))
@@ -91,8 +93,8 @@ class ConnectionPage(WizardPage):
         frame = self.autocheck.image
         if frame is None:
             frame = self.getFrame()
-        if frame is not None:
-            retval, frame = detect_chessboard(frame)
+        #if frame is not None:
+        #    retval, frame = detect_chessboard(frame)
         return frame
 
     def onUnplugged(self):
@@ -253,8 +255,8 @@ class SettingsWindow(wx.Dialog):
     def __init__(self, parent):
         super(SettingsWindow, self).__init__(parent, title=_('Settings'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
-        self.driver = Driver.Instance()
-        self.pattern = Pattern.Instance()
+        self.driver = Driver()
+        self.pattern = Pattern()
 
         #-- Elements
         _choices = []

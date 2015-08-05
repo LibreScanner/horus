@@ -16,8 +16,7 @@ from scipy.sparse import linalg
 
 system = platform.system()
 
-from driver import Driver
-from horus.util.singleton import Singleton
+from horus import Singleton
 
 """
     Calibrations:
@@ -27,13 +26,6 @@ from horus.util.singleton import Singleton
         - Laser Triangulation Calibration
         - Platform Extrinsics Calibration
 """
-
-# Common
-
-driver = Driver.Instance()
-board = driver.board
-camera = driver.camera
-pattern = Pattern.Instance()
 
 image_points = []
 object_points = []
@@ -64,6 +56,7 @@ class WrongLaserPosition(Exception):
         Exception.__init__(self, _("Wrong Laser Position"))
 
 
+@Singleton
 class Calibration(object):
 
     """Generic class for threading calibration"""
@@ -98,227 +91,6 @@ class Calibration(object):
         self._is_calibrating = False
 
 
-@Singleton
-class Pattern(object):
-
-    def __init__(self):
-        self._rows = 0
-        self._columns = 0
-        self._square_width = 0
-        self.distance = 0
-
-    @property
-    def rows(self):
-        return self._rows
-
-    @rows.setter
-    def rows(self, value):
-        self._rows = value
-        self._generate_object_points()
-
-    @property
-    def columns(self):
-        return self._columns
-
-    @columns.setter
-    def columns(self, value):
-        self._columns = value
-        self._generate_object_points()
-
-    @property
-    def square_width(self):
-        return self._square_width
-
-    @square_width.setter
-    def square_width(self, value):
-        self._square_width = value
-        self._generate_object_points()
-
-    def _generate_object_points(self):
-        objp = np.zeros((self.columns * self.rows, 3), np.float32)
-        objp[:, :2] = np.mgrid[0:self.columns, 0:self.rows].T.reshape(-1, 2)
-        objp = np.multiply(objp, self.square_width)
-        self.object_points = objp
-
-
-@Singleton
-class AutoCheck(Calibration):
-
-    """Auto check algorithm:
-            - Check pattern detection
-            - Check motor direction
-            - Check lasers
-    """
-
-    def __init__(self):
-        Calibration.__init__(self)
-        self.image = None
-
-    def _start(self):
-        if driver.is_connected:
-
-            response = None
-            self.image = None
-
-            # Setup scanner
-            board.lasers_off()
-            board.motor_enable()
-
-            # Perform auto check
-            try:
-                self.check_pattern_and_motor()
-                time.sleep(0.1)
-                self.check_lasers()
-                self.move_home()
-            except Exception as e:
-                response = str(e)
-            finally:
-                board.lasers_off()
-                board.motor_disable()
-
-            self.image = None
-
-            self._is_calibrating = False
-
-            if self._after_callback is not None:
-                self._after_callback(response)
-
-    def check_pattern_and_motor(self):
-        scan_step = 30
-        patterns_detected = {}
-        patterns_sorted = {}
-
-        # Setup scanner
-        board.motor_speed(300)
-        board.motor_acceleration(500)
-
-        if self._progress_callback is not None:
-            self._progress_callback(0)
-
-        # Capture data
-        for i in xrange(0, 360, scan_step):
-            image = camera.capture_image(flush=1)
-            self.image = image
-            ret = solve_pnp(image)
-            if ret is not None:
-                patterns_detected[i] = ret[0].T[2][0]
-            if self._progress_callback is not None:
-                self._progress_callback(i / 4.)
-            board.motor_relative(scan_step)
-            board.motor_move()
-
-        # Check pattern detection
-        if len(patterns_detected) == 0:
-            raise PatternNotDetected
-
-        # Check motor direction
-        max_x = max(patterns_detected.values())
-        max_i = [key for key, value in patterns_detected.items() if value == max_x][0]
-        min_v = max_x
-        for i in xrange(max_i, max_i + 360, scan_step):
-            if i % 360 in patterns_detected:
-                v = patterns_detected[i % 360]
-                patterns_sorted[i] = v
-                if v <= min_v:
-                    min_v = v
-                else:
-                    raise WrongMotorDirection
-
-        # Move to nearest position
-        x = np.array(patterns_sorted.keys())
-        y = np.array(patterns_sorted.values())
-        A = np.vstack([x, np.ones(len(x))]).T
-        m, c = np.linalg.lstsq(A, y)[0]
-        pos = -c / m
-        if pos > 180:
-            pos = pos - 360
-        board.motor_relative(pos)
-        board.motor_move()
-
-    def check_lasers(self):
-        img_raw = camera.capture_image(flush=1)
-        self.image = img_raw
-
-        if img_raw is not None:
-            s = solve_pnp(img_raw)
-            if s is not None:
-                board.left_laser_on()
-                img_las_left = camera.capture_image(flush=1)
-                board.left_laser_off()
-                board.right_laser_on()
-                img_las_right = camera.capture_image(flush=1)
-                board.right_laser_off()
-                if img_las_left is not None and img_las_right is not None:
-                    corners = s[2]
-
-                    # Corners ROI mask
-                    img_las_left = corners_mask(img_las_left, corners)
-                    img_las_right = corners_mask(img_las_right, corners)
-
-                    # Obtain Lines
-                    detect_line(img_raw, img_las_left)
-                    detect_line(img_raw, img_las_right)
-            else:
-                raise PatternNotDetected
-
-    def move_home(self):
-        # Setup pattern for the next calibration
-        board.motor_relative(-90)
-        board.motor_move()
-
-        if self._progress_callback is not None:
-            self._progress_callback(100)
-
-
-@Singleton
-class CameraIntrinsics(Calibration):
-
-    """Camera calibration algorithms, based on [Zhang2000] and [BouguetMCT]:
-
-            - Camera matrix
-            - Distortion vector
-    """
-
-    def __init__(self):
-        Calibration.__init__(self)
-        self.shape = None
-        self.camera_matrix = None
-        self.distortion_vector = None
-
-    def _start(self):
-        ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(
-            object_points, image_points, self.shape)
-
-        if self._progress_callback is not None:
-            self._progress_callback(100)
-
-        if ret:
-            self.camera_matrix = cmat
-            self.distortion_vector = dvec[0]
-            response = (True, (cmat, dvec[0], rvecs, tvecs))
-        else:
-            response = (False, _("Calibration Error"))
-
-        self._is_calibrating = False
-
-        if self._after_callback is not None:
-            self._after_callback(response)
-
-    def capture(self):
-        if driver.is_connected:
-            frame = camera.capture_image(flush=1, mirror=False)
-            if frame is not None:
-                self.shape = frame.shape[:2]
-                retval, frame = detect_chessboard(frame, capture=True)
-                frame = cv2.flip(frame, 1)  # Mirror
-                return retval, frame
-
-    def accept(self):
-        camera.camera_matrix = self.camera_matrix
-        camera.distortion_vector = self.distortion_vector
-
-
-@Singleton
 class LaserTriangulation(Calibration):
 
     """Laser triangulation algorithm:
@@ -466,7 +238,6 @@ class LaserTriangulation(Calibration):
             self._progress_callback(100)
 
 
-@Singleton
 class PlatformExtrinsics(Calibration):
 
     """Platform extrinsics algorithm:

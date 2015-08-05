@@ -14,8 +14,15 @@ from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
 from horus.util import profile, system as sys
 from horus.gui.util.resolutionWindow import ResolutionWindow
 
-from horus.engine.driver import Driver
-from horus.engine.scan import SimpleScan, TextureScan, PointCloudGenerator
+from horus.engine.driver.driver import Driver
+from horus.engine.scan.ciclop_scan import CiclopScan
+from horus.engine.algorithms.laser_segmentation import LaserSegmentation
+from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
+
+driver = Driver()
+ciclop_scan = CiclopScan()
+laser_segmentation = LaserSegmentation()
+point_cloud_generation = PointCloudGeneration()
 
 
 class ScanParameters(ExpandablePanel):
@@ -23,14 +30,8 @@ class ScanParameters(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Scan Parameters"), hasUndo=False, hasRestore=False)
-        
-        self.driver = Driver.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.textureScan = TextureScan.Instance()
-        self.pcg = PointCloudGenerator.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
+
         self.parent = parent
-        self.lastScan = profile.getProfileSetting('scan_type')
 
         self.clearSections()
         section = self.createSection('scan_parameters')
@@ -41,33 +42,12 @@ class ScanParameters(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['scan_parameters']
-        section.updateCallback('scan_type', self.setCurrentScan)
         section.updateCallback('use_laser', self.setUseLaser)
-        if not sys.isWindows() and not sys.isDarwin():
-            section.updateCallback('fast_scan', self.setFastScan)
-
-    def setCurrentScan(self, value):
-        if self.lastScan != value:
-            self.lastScan = value
-            self.parent.updateProfile()
-
-        if not self.main.currentScan.run or self.main.currentScan.inactive:
-            if value == 'Simple Scan':
-                self.main.currentScan = self.simpleScan
-                self.driver.camera.set_exposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
-            elif value == 'Texture Scan':
-                self.main.currentScan = self.textureScan
-                self.driver.camera.set_exposure(profile.getProfileSettingInteger('color_exposure_scanning'))
-        else:
-            print "Error: Can not change Scan Type"
 
     def setUseLaser(self, value):
-        self.pcg.setUseLaser(value == 'Left' or value == 'Both',
-                             value == 'Right' or value == 'Both')
-
-    def setFastScan(self, value):
-        self.simpleScan.setFastScan(bool(value))
-        self.textureScan.setFastScan(bool(value))
+        pass
+        #self.pcg.setUseLaser(value == 'Left' or value == 'Both',
+        #                     value == 'Right' or value == 'Both')
 
 
 class RotativePlatform(ExpandablePanel):
@@ -75,12 +55,6 @@ class RotativePlatform(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Rotative Platform"), hasUndo=False)
-        
-        self.driver = Driver.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.textureScan = TextureScan.Instance()
-        self.pcg = PointCloudGenerator.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
 
         self.clearSections()
         section = self.createSection('motor_scanning')
@@ -95,18 +69,16 @@ class RotativePlatform(ExpandablePanel):
         section.updateCallback('acceleration_scanning', self.setAcceleration)
 
     def setDegrees(self, value):
-        self.driver.board.motor_relative(self.getValueFloat(value))
-        self.pcg.setDegrees(self.getValueFloat(value))
+        driver.board.motor_relative(self.getValueFloat(value))
+        ciclop_scan.motor_step = self.getValueFloat(value)
 
     def setFeedRate(self, value):
-        self.driver.board.motor_speed(self.getValueInteger(value))
-        self.simpleScan.motor_speed(self.getValueInteger(value))
-        self.textureScan.motor_speed(self.getValueInteger(value))
+        driver.board.motor_speed(self.getValueInteger(value))
+        ciclop_scan.motor_speed = self.getValueInteger(value)
 
     def setAcceleration(self, value):
-        self.driver.board.motor_acceleration(self.getValueInteger(value))
-        self.simpleScan.motor_acceleration(self.getValueInteger(value))
-        self.textureScan.motor_acceleration(self.getValueInteger(value))
+        driver.board.motor_acceleration(self.getValueInteger(value))
+        ciclop_scan.motor_acceleration = self.getValueInteger(value)
 
     #TODO: move
     def getValueInteger(self, value):
@@ -128,11 +100,6 @@ class ImageAcquisition(ExpandablePanel):
         """"""
         ExpandablePanel.__init__(self, parent, _("Image Acquisition"))
 
-        self.driver = Driver.Instance()
-        self.pcg = PointCloudGenerator.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.textureScan = TextureScan.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
         self.last_resolution = profile.getProfileSetting('resolution_scanning')
         
         self.clearSections()
@@ -152,28 +119,24 @@ class ImageAcquisition(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['camera_scanning']
-        section.updateCallback('brightness_scanning', self.driver.camera.set_brightness)
-        section.updateCallback('contrast_scanning', self.driver.camera.set_contrast)
-        section.updateCallback('saturation_scanning', self.driver.camera.set_saturation)
-        section.updateCallback('laser_exposure_scanning', self.setLaserExposure)
-        section.updateCallback('color_exposure_scanning', self.setColorExposure)
-        section.updateCallback('framerate_scanning', lambda v: self.driver.camera.set_frame_rate(int(v)))
+        section.updateCallback('brightness_scanning', driver.camera.set_brightness)
+        section.updateCallback('contrast_scanning', driver.camera.set_contrast)
+        section.updateCallback('saturation_scanning', driver.camera.set_saturation)
+        section.updateCallback('framerate_scanning', lambda v: driver.camera.set_frame_rate(int(v)))
         section.updateCallback('resolution_scanning', lambda v: self.setResolution(v))
-        section.updateCallback('use_distortion_scanning', lambda v: self.driver.camera.set_use_distortion(v))
+        section.updateCallback('use_distortion_scanning', lambda v: driver.camera.set_use_distortion(v))
 
     def setResolution(self, value):
         if value != self.last_resolution:
             ResolutionWindow(self)
-        self.driver.camera.set_resolution(int(value.split('x')[0]), int(value.split('x')[1]))
+        driver.camera.set_resolution(int(value.split('x')[0]), int(value.split('x')[1]))
         self.last_resolution = profile.getProfileSetting('resolution_scanning')
 
     def setLaserExposure(self, value):
-        if self.main.currentScan is self.simpleScan:
-            self.driver.camera.set_exposure(value)
+        pass
 
     def setColorExposure(self, value):
-        if self.main.currentScan is self.textureScan:
-            self.driver.camera.set_exposure(value)
+        pass
 
 
 class ImageSegmentation(ExpandablePanel):
@@ -181,11 +144,6 @@ class ImageSegmentation(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Image Segmentation"))
-        
-        self.driver = Driver.Instance()
-        self.pcg = PointCloudGenerator.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.textureScan = TextureScan.Instance()
 
         self.clearSections()
         section = self.createSection('image_segmentation_simple', None, tag='Simple Scan')
@@ -198,15 +156,11 @@ class ImageSegmentation(ExpandablePanel):
         section.addItem(Slider, 'threshold_value')
 
     def updateCallbacks(self):
-        section = self.sections['image_segmentation_simple']
-        section.updateCallback('use_cr_threshold', lambda v: self.simpleScan.setUseThreshold(bool(v)))
-        section.updateCallback('cr_threshold_value', lambda v: self.simpleScan.setThresholdValue(int(v)))
-
         section = self.sections['image_segmentation_texture']
-        section.updateCallback('use_open', lambda v: self.textureScan.setUseOpen(bool(v)))
-        section.updateCallback('open_value', lambda v: self.textureScan.setOpenValue(int(v)))
-        section.updateCallback('use_threshold', lambda v: self.textureScan.setUseThreshold(bool(v)))
-        section.updateCallback('threshold_value', lambda v: self.textureScan.setThresholdValue(int(v)))
+        section.updateCallback('use_open', lambda v: laser_segmentation.set_use_open(bool(v)))
+        section.updateCallback('open_value', lambda v: laser_segmentation.set_open_value(int(v)))
+        section.updateCallback('use_threshold', lambda v: laser_segmentation.set_use_threshold(bool(v)))
+        section.updateCallback('threshold_value', lambda v: laser_segmentation.set_threshold_value(int(v)))
 
 
 class PointCloudGeneration(ExpandablePanel):
@@ -214,10 +168,7 @@ class PointCloudGeneration(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Point Cloud Generation"))
-        
-        self.driver = Driver.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.pcg = PointCloudGenerator.Instance()
+
         self.main = self.GetParent().GetParent().GetParent().GetParent()
 
         self.clearSections()
@@ -229,9 +180,9 @@ class PointCloudGeneration(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['point_cloud_generation']
-        section.updateCallback('view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('view_roi', lambda v: (point_cloud_generation.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_diameter', lambda v: (point_cloud_generation.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_height', lambda v: (point_cloud_generation.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('point_cloud_color', self.onColorPicker)
 
     def onColorPicker(self):

@@ -21,8 +21,15 @@ from horus.gui.util.imageView import ImageView, VideoView
 
 from horus.gui.workbench.calibration.page import Page
 
-from horus.engine.driver import Driver
-from horus.engine import calibration
+from horus.engine.driver.driver import Driver
+from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
+from horus.engine.calibration.laser_triangulation import LaserTriangulation
+from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
+
+driver = Driver()
+laser_triangulation = LaserTriangulation()
+platform_extrinsics = PlatformExtrinsics()
+
 
 class CameraIntrinsicsMainPage(Page):
 
@@ -36,9 +43,6 @@ class CameraIntrinsicsMainPage(Page):
 							buttonRightCallback=self.onCalibrate,
 							panelOrientation=wx.HORIZONTAL,
 							viewProgress=True)
-
-		self.driver = Driver.Instance()
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 
 		self.afterCancelCallback = afterCancelCallback
 		self.afterCalibrationCallback = afterCalibrationCallback
@@ -96,7 +100,7 @@ class CameraIntrinsicsMainPage(Page):
 				pass
 
 	def getFrame(self):
-		frame = self.driver.camera.capture_image(mirror=True)
+		frame = driver.camera.capture_image(mirror=True)
 		if frame is not None:
 			retval, frame = calibration.detect_chessboard(frame)
 			if retval:
@@ -108,7 +112,7 @@ class CameraIntrinsicsMainPage(Page):
 	def onKeyPress(self, event):
 		if event.GetKeyCode() == 32: #-- spacebar
 			self.videoView.pause()
-			retval, frame = self.cameraIntrinsics.capture()
+			retval, frame = self.camera_intrinsics.capture()
 			self.videoView.play()
 			self.addFrameToGrid(retval, frame)
 			self.gauge.SetValue(7*self.currentGrid)
@@ -129,10 +133,10 @@ class CameraIntrinsicsMainPage(Page):
 			# self._rightButton.Enable()
 
 	def onCalibrate(self):
-		self.cameraIntrinsics.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
-										   lambda p: wx.CallAfter(self.progressCalibration,p),
-										   lambda r: wx.CallAfter(self.afterCalibration,r))
-		self.cameraIntrinsics.start()
+		self.camera_intrinsics.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+										     lambda p: wx.CallAfter(self.progressCalibration,p),
+										     lambda r: wx.CallAfter(self.afterCalibration,r))
+		self.camera_intrinsics.start()
 
 	def beforeCalibration(self):
 		self.videoView.pause()
@@ -152,19 +156,19 @@ class CameraIntrinsicsMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
-		boardUnplugCallback = self.driver.board.unplug_callback
-		cameraUnplugCallback = self.driver.camera.unplug_callback
-		self.driver.board.set_unplug_callback(None)
-		self.driver.camera.set_unplug_callback(None)
+		boardUnplugCallback = driver.board.unplug_callback
+		cameraUnplugCallback = driver.camera.unplug_callback
+		driver.board.set_unplug_callback(None)
+		driver.camera.set_unplug_callback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
 		self.onCalibration = False
-		self.cameraIntrinsics.cancel()
+		self.camera_intrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.set_unplug_callback(boardUnplugCallback)
-		self.driver.camera.set_unplug_callback(cameraUnplugCallback)
+		driver.board.set_unplug_callback(boardUnplugCallback)
+		driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class CameraIntrinsicsResultPage(Page):
@@ -177,8 +181,6 @@ class CameraIntrinsicsResultPage(Page):
 							buttonLeftCallback=buttonRejectCallback,
 							buttonRightCallback=buttonAcceptCallback,
 							panelOrientation=wx.HORIZONTAL)
-
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
 
 		#-- 3D Plot Panel
 		self.plotPanel = CameraIntrinsics3DPlot(self._panel)
@@ -311,11 +313,6 @@ class LaserTriangulationMainPage(Page):
 							panelOrientation=wx.HORIZONTAL,
 							viewProgress=True)
 
-		self.driver = Driver.Instance()
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.laserTriangulation = calibration.LaserTriangulation.Instance()
-
-
 		self.onCalibration=False
 
 		self.afterCancelCallback = afterCancelCallback
@@ -356,9 +353,9 @@ class LaserTriangulationMainPage(Page):
 
 	def getFrame(self):
 		if self.onCalibration:
-			frame = self.laserTriangulation.image
+			frame = laser_triangulation.image
 		else:
-			frame = self.driver.camera.capture_image()
+			frame = driver.camera.capture_image()
 
 		#if frame is not None:
 		#	retval, frame = calibration.detect_chessboard(frame)
@@ -366,15 +363,15 @@ class LaserTriangulationMainPage(Page):
 
 	def onCalibrate(self):
 		self.onCalibration = True
-		self.laserTriangulation.image = self.driver.camera.capture_image()
-		self.laserTriangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
-		self.laserTriangulation.exposure_normal = profile.getProfileSettingNumpy('exposure_calibration')
-		self.laserTriangulation.exposure_laser = profile.getProfileSettingNumpy('exposure_calibration') / 2.
+		laser_triangulation.image = driver.camera.capture_image()
+		laser_triangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
+		laser_triangulation.exposure_normal = profile.getProfileSettingNumpy('exposure_calibration')
+		laser_triangulation.exposure_laser = profile.getProfileSettingNumpy('exposure_calibration') / 2.
 
-		self.laserTriangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+		laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
 											  lambda p: wx.CallAfter(self.progressCalibration,p),
 											  lambda r: wx.CallAfter(self.afterCalibration,r))
-		self.laserTriangulation.start()
+		laser_triangulation.start()
 
 	def beforeCalibration(self):
 		self._rightButton.Disable()
@@ -396,19 +393,19 @@ class LaserTriangulationMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
-		boardUnplugCallback = self.driver.board.unplug_callback
-		cameraUnplugCallback = self.driver.camera.unplug_callback
-		self.driver.board.set_unplug_callback(None)
-		self.driver.camera.set_unplug_callback(None)
+		boardUnplugCallback = driver.board.unplug_callback
+		cameraUnplugCallback = driver.camera.unplug_callback
+		driver.board.set_unplug_callback(None)
+		driver.camera.set_unplug_callback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
 		self.onCalibration = False
-		self.laserTriangulation.cancel()
+		laser_triangulation.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.set_unplug_callback(boardUnplugCallback)
-		self.driver.camera.set_unplug_callback(cameraUnplugCallback)
+		driver.board.set_unplug_callback(boardUnplugCallback)
+		driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class LaserTriangulationResultPage(Page):
@@ -424,7 +421,6 @@ class LaserTriangulationResultPage(Page):
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
-		self.laserTriangulation = calibration.LaserTriangulation.Instance()
 		self.plotPanel = LaserTriangulation3DPlot(self._panel)
 
 		#-- Layout
@@ -555,10 +551,6 @@ class PlatformExtrinsicsMainPage(Page):
 							panelOrientation=wx.HORIZONTAL,
 							viewProgress=True)
 
-		self.driver = Driver.Instance()
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
-
 		self.onCalibration=False
 
 		self.afterCancelCallback = afterCancelCallback
@@ -599,9 +591,9 @@ class PlatformExtrinsicsMainPage(Page):
 
 	def getFrame(self):
 		if self.onCalibration:
-			frame = self.platformExtrinsics.image
+			frame = platform_extrinsics.image
 		else:
-			frame = self.driver.camera.capture_image()
+			frame = driver.camera.capture_image()
 		if frame is not None:
 			retval, frame = calibration.detect_chessboard(frame)
 
@@ -609,12 +601,12 @@ class PlatformExtrinsicsMainPage(Page):
 
 	def onCalibrate(self):
 		self.onCalibration = True
-		self.platformExtrinsics.image = self.driver.camera.capture_image()
+		platform_extrinsics.image = driver.camera.capture_image()
 
-		self.platformExtrinsics.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
-											  lambda p: wx.CallAfter(self.progressCalibration,p),
-											  lambda r: wx.CallAfter(self.afterCalibration,r))
-		self.platformExtrinsics.start()
+		platform_extrinsics.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+										  lambda p: wx.CallAfter(self.progressCalibration,p),
+										  lambda r: wx.CallAfter(self.afterCalibration,r))
+		platform_extrinsics.start()
 
 	def beforeCalibration(self):
 		self._rightButton.Disable()
@@ -636,19 +628,19 @@ class PlatformExtrinsicsMainPage(Page):
 			del self.waitCursor
 
 	def onCancel(self):
-		boardUnplugCallback = self.driver.board.unplug_callback
-		cameraUnplugCallback = self.driver.camera.unplug_callback
-		self.driver.board.set_unplug_callback(None)
-		self.driver.camera.set_unplug_callback(None)
+		boardUnplugCallback = driver.board.unplug_callback
+		cameraUnplugCallback = driver.camera.unplug_callback
+		driver.board.set_unplug_callback(None)
+		driver.camera.set_unplug_callback(None)
 		if not hasattr(self, 'waitCursor'):
 			self.waitCursor = wx.BusyCursor()
 		self.onCalibration = False
-		self.platformExtrinsics.cancel()
+		platform_extrinsics.cancel()
 		if self.afterCancelCallback is not None:
 			self.afterCancelCallback()
 		del self.waitCursor
-		self.driver.board.set_unplug_callback(boardUnplugCallback)
-		self.driver.camera.set_unplug_callback(cameraUnplugCallback)
+		driver.board.set_unplug_callback(boardUnplugCallback)
+		driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class PlatformExtrinsicsResultPage(Page):
@@ -664,7 +656,6 @@ class PlatformExtrinsicsResultPage(Page):
 
 		vbox = wx.BoxSizer(wx.VERTICAL)
 
-		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 		self.plotPanel = PlatformExtrinsics3DPlot(self._panel)
 
 		#-- Layout

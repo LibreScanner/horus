@@ -10,7 +10,7 @@ import wx._core
 
 from horus.util import profile
 
-from horus.engine.driver import Driver
+from horus.engine.driver.driver import Driver
 
 from horus.gui.wizard.connectionPage import ConnectionPage
 from horus.gui.wizard.calibrationPage import CalibrationPage
@@ -23,7 +23,7 @@ class Wizard(wx.Dialog):
 
         self.parent = parent
 
-        self.driver = Driver.Instance()
+        self.driver = Driver()
 
         self.currentWorkbench = profile.getPreference('workbench')
  

@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
+
 class Workbench(wx.Panel):
 
 	def __init__(self, parent):
@@ -43,14 +44,14 @@ class Workbench(wx.Panel):
 import horus.util.error as Error
 from horus.util import resources
 
-from horus.engine.driver import Driver
+from horus.engine.driver.driver import Driver
 
 class WorkbenchConnection(Workbench):
 
 	def __init__(self, parent):
 		Workbench.__init__(self, parent)
 
-		self.driver = Driver.Instance()
+		self.driver = Driver()
 
 		#-- Toolbar Configuration
 		self.connectTool    = self.toolbar.AddLabelTool(wx.NewId(), _("Connect"), wx.Bitmap(resources.getPathForImage("connect.png")), shortHelp=_("Connect"))

@@ -12,7 +12,9 @@ from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, Co
 
 from horus.util import profile, system as sys
 
-from horus.engine.driver import Driver
+from horus.engine.driver.driver import Driver
+
+driver = Driver()
 
 
 class CameraControl(ExpandablePanel):
@@ -20,8 +22,7 @@ class CameraControl(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Camera Control"))
-        
-        self.driver = Driver.Instance()
+
         self.main = self.GetParent().GetParent().GetParent().GetParent()
 
         self.clearSections()
@@ -40,13 +41,13 @@ class CameraControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['camera_control']
-        section.updateCallback('brightness_control', self.driver.camera.set_brightness)
-        section.updateCallback('contrast_control', self.driver.camera.set_contrast)
-        section.updateCallback('saturation_control', self.driver.camera.set_saturation)
-        section.updateCallback('exposure_control', self.driver.camera.set_exposure)
-        section.updateCallback('framerate_control', lambda v: self.driver.camera.set_frame_rate(int(v)))
-        section.updateCallback('resolution_control', lambda v: self.driver.camera.set_resolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        section.updateCallback('use_distortion_control', lambda v: self.driver.camera.set_use_distortion(v))
+        section.updateCallback('brightness_control', driver.camera.set_brightness)
+        section.updateCallback('contrast_control', driver.camera.set_contrast)
+        section.updateCallback('saturation_control', driver.camera.set_saturation)
+        section.updateCallback('exposure_control', driver.camera.set_exposure)
+        section.updateCallback('framerate_control', lambda v: driver.camera.set_frame_rate(int(v)))
+        section.updateCallback('resolution_control', lambda v: driver.camera.set_resolution(int(v.split('x')[0]), int(v.split('x')[1])))
+        section.updateCallback('use_distortion_control', lambda v: driver.camera.set_use_distortion(v))
 
 
 class LaserControl(ExpandablePanel):
@@ -54,8 +55,6 @@ class LaserControl(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Laser Control"), hasUndo=False, hasRestore=False)
-        
-        self.driver = Driver.Instance()
 
         self.clearSections()
         section = self.createSection('laser_control')
@@ -64,8 +63,8 @@ class LaserControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['laser_control']
-        section.updateCallback('left_button', (self.driver.board.left_laser_on, self.driver.board.left_laser_off))
-        section.updateCallback('right_button', (self.driver.board.right_laser_on, self.driver.board.right_laser_off))
+        section.updateCallback('left_button', (driver.board.left_laser_on, driver.board.left_laser_off))
+        section.updateCallback('right_button', (driver.board.right_laser_on, driver.board.right_laser_off))
 
 
 class LDRControl(ExpandablePanel):
@@ -73,8 +72,6 @@ class LDRControl(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("LDR Control"), hasUndo=False, hasRestore=False)
-        
-        self.driver = Driver.Instance()
 
         self.clearSections()
         section = self.createSection('ldr_control')
@@ -82,7 +79,7 @@ class LDRControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['ldr_control']
-        section.updateCallback('ldr_value', lambda id: self.driver.board.ldr_sensor(id))
+        section.updateCallback('ldr_value', lambda id: driver.board.ldr_sensor(id))
 
 
 class LDRSection(SectionItem):
@@ -148,8 +145,6 @@ class MotorControl(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Motor Control"), hasUndo=False)
-        
-        self.driver = Driver.Instance()
 
         self.clearSections()
         section = self.createSection('motor_control')
@@ -161,11 +156,11 @@ class MotorControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['motor_control']
-        section.updateCallback('step_degrees_control', lambda v: self.driver.board.motor_relative(self.getValueFloat(v)))
-        section.updateCallback('feed_rate_control', lambda v: self.driver.board.motor_speed(self.getValueInteger(v)))
-        section.updateCallback('acceleration_control', lambda v: self.driver.board.motor_acceleration(self.getValueInteger(v)))
-        section.updateCallback('move_button', lambda c: self.driver.board.motor_move(nonblocking=True, callback=c))
-        section.updateCallback('enable_button', (self.driver.board.motor_enable, self.driver.board.motor_disable))
+        section.updateCallback('step_degrees_control', lambda v: driver.board.motor_relative(self.getValueFloat(v)))
+        section.updateCallback('feed_rate_control', lambda v: driver.board.motor_speed(self.getValueInteger(v)))
+        section.updateCallback('acceleration_control', lambda v: driver.board.motor_acceleration(self.getValueInteger(v)))
+        section.updateCallback('move_button', lambda c: driver.board.motor_move(nonblocking=True, callback=c))
+        section.updateCallback('enable_button', (driver.board.motor_enable, driver.board.motor_disable))
 
     #TODO: move
     def getValueInteger(self, value):
@@ -186,8 +181,6 @@ class GcodeControl(ExpandablePanel):
     def __init__(self, parent):
         """"""
         ExpandablePanel.__init__(self, parent, _("Gcode Control"), hasUndo=False, hasRestore=False)
-        
-        self.driver = Driver.Instance()
 
         self.clearSections()
         section = self.createSection('gcode_control')
@@ -195,7 +188,7 @@ class GcodeControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['gcode_control']
-        section.updateCallback('gcode_gui', lambda v, c: self.driver.board.sendRequest(v, callback=c, readLines=True))
+        section.updateCallback('gcode_gui', lambda v, c: driver.board.sendRequest(v, callback=c, readLines=True))
 
 
 class GcodeSection(SectionItem):

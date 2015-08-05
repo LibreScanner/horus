@@ -8,11 +8,11 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import numpy as np
 
-from horus.util.singleton import Singleton
+from horus import Singleton
 
 
 @Singleton
-class PointCloudGenerator(object):
+class PointCloudGeneration(object):
 
     """Contain point cloud generation algorithms:
 

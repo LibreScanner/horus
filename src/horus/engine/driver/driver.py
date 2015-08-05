@@ -7,11 +7,9 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import threading
 
-from board import Board, WrongFirmware, BoardNotConnected
-from camera import Camera, CameraNotConnected, WrongCamera, InvalidVideo
-
-import horus.util.error as Error
-from horus.util.singleton import Singleton
+from horus import Singleton
+from horus.engine.driver.board import Board
+from horus.engine.driver.camera import Camera
 
 
 @Singleton
@@ -40,16 +38,8 @@ class Driver(object):
         try:
             self.camera.connect()
             self.board.connect()
-        except WrongFirmware:
-            error = Error.WrongFirmware
-        except BoardNotConnected:
-            error = Error.BoardNotConnected
-        except CameraNotConnected:
-            error = Error.CameraNotConnected
-        except WrongCamera:
-            error = Error.WrongCamera
-        except InvalidVideo:
-            error = Error.InvalidVideo
+        except Exception as e:
+                response = str(e)
         else:
             self.is_connected = True
         finally:
@@ -70,8 +60,3 @@ class Driver(object):
     def set_callbacks(self, before, after):
         self._before_callback = before
         self._after_callback = after
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(Driver, cls).__new__(cls, *args, **kwargs)
-        return cls._instance

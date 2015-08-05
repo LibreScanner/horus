@@ -97,12 +97,12 @@ class Board(object):
 
     def motor_invert(self, value):
         if value:
-            self._direction = -1
+            self._motor_direction = -1
         else:
-            self._direction = +1
+            self._motor_direction = +1
 
     def motor_relative(self, value):
-        self._motor_position += value * self._direction
+        self._motor_position += value * self._motor_direction
 
     def motor_absolute(self, value):
         self._motor_position = value

@@ -11,8 +11,8 @@ from horus.gui.wizard.wizardPage import WizardPage
 
 from horus.util import profile
 
-from horus.engine.driver import Driver
-from horus.engine.scan import PointCloudGenerator
+from horus.engine.driver.driver import Driver
+from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
 
 class ScanningPage(WizardPage):
 	def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
@@ -21,8 +21,8 @@ class ScanningPage(WizardPage):
 							buttonPrevCallback=buttonPrevCallback,
 							buttonNextCallback=buttonNextCallback)
 
-		self.driver = Driver.Instance()
-		self.pcg = PointCloudGenerator.Instance()
+		self.driver = Driver()
+		self.pcg = PointCloudGeneration()
 
 		value = abs(float(profile.getProfileSetting('step_degrees_scanning')))
 		if value > 1.35:

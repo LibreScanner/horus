@@ -18,7 +18,11 @@ from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.scanning.panels import ScanParameters, RotativePlatform, ImageAcquisition, \
 												ImageSegmentation, PointCloudGeneration
 
-from horus.engine.scan import CiclopScan
+from horus.engine.scan.ciclop_scan import CiclopScan
+from horus.engine.driver.driver import Driver
+
+driver = Driver()
+
 
 class ScanningWorkbench(WorkbenchConnection):
 
@@ -28,7 +32,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.scanning = False
 		self.showVideoViews = False
 
-		self.ciclop_scan = CiclopScan.Instance()
+		self.ciclop_scan = CiclopScan()
 
 		self.load()
 
@@ -118,7 +122,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.ciclop_scan.driver.is_connected)
+			self.updateStatus(driver.is_connected)
 			self.pointCloudTimer.Stop()
 		else:
 			try:
@@ -143,7 +147,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		if self.scanning:
 			return self.currentScan.getImage()
 		else:
-			return self.currentScan.getImage(self.driver.camera.capture_image())
+			return self.currentScan.getImage(driver.camera.capture_image())
 
 	def onPointCloudTimer(self, event):
 		p, r = self.currentScan.getProgress()

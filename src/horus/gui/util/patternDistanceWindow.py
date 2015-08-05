@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 from horus.util import profile, resources
 
-from horus.engine import calibration
+from horus.engine.calibration.pattern import Pattern
 
 
 class PatternDistanceWindow(wx.Dialog):
@@ -17,10 +17,7 @@ class PatternDistanceWindow(wx.Dialog):
         super(PatternDistanceWindow, self).__init__(parent, title=_('Pattern distance'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
         self.value = float(profile.getProfileSetting('pattern_distance'))
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.autoCheck = calibration.AutoCheck.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
-        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+        self.pattern = Pattern()
 
         #-- Elements
         self.description = wx.StaticText(self, label=_('Pattern distance value must be a number higher than 0. Please, change it in the textbox below.'))
@@ -65,17 +62,9 @@ class PatternDistanceWindow(wx.Dialog):
         except:
             pass
 
-    def setPatternDistance(self, patternDistance):
-        profile.putProfileSetting('pattern_distance', patternDistance)
-
-        patternRows = profile.getProfileSettingInteger('pattern_rows')
-        patternColumns = profile.getProfileSettingInteger('pattern_columns')
-        squareWidth = profile.getProfileSettingInteger('square_width')
-
-        self.cameraIntrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
-        self.autoCheck.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
-        self.laserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
-        self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
+    def setPatternDistance(self, distance):
+        profile.putProfileSetting('pattern_distance', distance)
+        pattern.distance = distance
 
     def onOk(self, event):
         self.setPatternDistance(self.value)

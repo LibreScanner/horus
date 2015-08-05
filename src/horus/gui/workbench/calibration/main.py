@@ -21,7 +21,8 @@ from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, Came
                                                   LaserTriangulationMainPage, LaserTriangulationResultPage, \
                                                   PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
-from horus.engine.driver import Driver
+from horus.engine.driver.driver import Driver
+
 from horus.engine import calibration
 
 class CalibrationWorkbench(WorkbenchConnection):
@@ -109,7 +110,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.controls.updateCallbacks()
 
     def getFrame(self):
-        frame = Driver.Instance().camera.capture_image()
+        frame = Driver().camera.capture_image()
         if frame is not None:
             retval, frame = calibration.detect_chessboard(frame)
         return frame

@@ -16,8 +16,9 @@ from horus.gui.wizard.wizardPage import WizardPage
 import horus.util.error as Error
 from horus.util import profile, resources
 
-from horus.engine.driver import Driver
-from horus.engine import calibration
+from horus.engine.driver.driver import Driver
+from horus.engine.calibration.laser_triangulation import LaserTriangulation
+from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
 
 
 class CalibrationPage(WizardPage):
@@ -27,10 +28,9 @@ class CalibrationPage(WizardPage):
 							buttonPrevCallback=buttonPrevCallback,
 							buttonNextCallback=buttonNextCallback)
 
-		self.driver = Driver.Instance()
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.laserTriangulation = calibration.LaserTriangulation.Instance()
-		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+		self.driver = Driver()
+		self.laser_triangulation = LaserTriangulation()
+		self.platform_extrinsics = PlatformExtrinsics()
 		self.phase = 'none'
 
 		self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform as shown in the picture and press \"Calibrate\""))
@@ -80,9 +80,9 @@ class CalibrationPage(WizardPage):
 
 	def getFrame(self):
 		if self.phase is 'platformCalibration':
-			frame = self.platformExtrinsics.image
+			frame = self.platform_extrinsics.image
 		elif self.phase is 'laserTriangulation':
-			frame = self.laserTriangulation.image
+			frame = self.laser_triangulation.image
 		else: # 'none'
 			frame = self.driver.camera.capture_image()
 
@@ -93,22 +93,22 @@ class CalibrationPage(WizardPage):
 
 	def onUnplugged(self):
 		self.videoView.stop()
-		self.laserTriangulation.cancel()
-		self.platformExtrinsics.cancel()
+		self.laser_triangulation.cancel()
+		self.platform_extrinsics.cancel()
 		self.enableNext = True
 
 	def onCalibrationButtonClicked(self, event):
 		self.phase = 'laserTriangulation'
-		self.laserTriangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
-		self.laserTriangulation.exposure_normal = profile.getProfileSettingNumpy('exposure_calibration')
-		self.laserTriangulation.exposure_laser = profile.getProfileSettingNumpy('exposure_calibration') / 2.
-		self.laserTriangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+		self.laser_triangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
+		self.laser_triangulation.exposure_normal = profile.getProfileSettingNumpy('exposure_calibration')
+		self.laser_triangulation.exposure_laser = profile.getProfileSettingNumpy('exposure_calibration') / 2.
+		self.laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
 											  lambda p: wx.CallAfter(self.progressLaserCalibration,p),
 											  lambda r: wx.CallAfter(self.afterLaserCalibration,r))
 		if profile.getProfileSettingFloat('pattern_distance') == 0:
 			PatternDistanceWindow(self)
 		else:
-			self.laserTriangulation.start()
+			self.laser_triangulation.start()
 
 	def onCancelButtonClicked(self, event):
 		boardUnplugCallback = self.driver.board.unplug_callback
@@ -117,8 +117,8 @@ class CalibrationPage(WizardPage):
 		self.driver.camera.set_unplug_callback(None)
 		self.phase = 'none'
 		self.resultLabel.SetLabel(_("Calibration canceled. To try again press \"Calibrate\""))
-		self.platformExtrinsics.cancel()
-		self.laserTriangulation.cancel()
+		self.platform_extrinsics.cancel()
+		self.laser_triangulation.cancel()
 		self.skipButton.Enable()
 		self.onFinishCalibration()
 		self.driver.board.set_unplug_callback(boardUnplugCallback)
@@ -150,10 +150,10 @@ class CalibrationPage(WizardPage):
 			profile.putProfileSettingNumpy('normal_left', result[0][1])
 			profile.putProfileSetting('distance_right', result[1][0])
 			profile.putProfileSettingNumpy('normal_right', result[1][1])
-			self.platformExtrinsics.set_callbacks(None,
+			self.platform_extrinsics.set_callbacks(None,
 												  lambda p: wx.CallAfter(self.progressPlatformCalibration,p),
 												  lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
-			self.platformExtrinsics.start()
+			self.platform_extrinsics.start()
 		else:
 			if result == Error.CalibrationError:
 				self.resultLabel.SetLabel(_("Error in lasers: please connect the lasers and try again"))
