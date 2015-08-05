@@ -1,31 +1,9 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: June, November 2014                                             #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
 
@@ -40,7 +18,7 @@ from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.scanning.panels import ScanParameters, RotativePlatform, ImageAcquisition, \
 												ImageSegmentation, PointCloudGeneration
 
-from horus.engine.scan import SimpleScan, TextureScan
+from horus.engine.scan import CiclopScan
 
 class ScanningWorkbench(WorkbenchConnection):
 
@@ -50,10 +28,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.scanning = False
 		self.showVideoViews = False
 
-		self.simpleScan = SimpleScan.Instance()
-		self.textureScan = TextureScan.Instance()
-
-		self.currentScan = self.simpleScan
+		self.ciclop_scan = CiclopScan.Instance()
 
 		self.load()
 
@@ -143,7 +118,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def onShow(self, event):
 		if event.GetShow():
-			self.updateStatus(self.currentScan.driver.is_connected)
+			self.updateStatus(self.ciclop_scan.driver.is_connected)
 			self.pointCloudTimer.Stop()
 		else:
 			try:
@@ -161,7 +136,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
 	def onComboBoVideoViewsSelect(self, event):
 		value = self.videoViewsDict[self.comboVideoViews.GetValue()]
-		self.currentScan.setImageType(value)
+		self.ciclop_scan.setImageType(value)
 		profile.putProfileSetting('img_type', value)
 
 	def getFrame(self):

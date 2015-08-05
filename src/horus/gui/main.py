@@ -1,31 +1,9 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: March, June, November 2014                                      #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import gc
 import os
@@ -49,8 +27,17 @@ from horus.gui.welcome import WelcomeWindow
 from horus.gui.wizard.main import *
 from horus.gui.util.versionWindow import VersionWindow
 
-from horus.engine.driver import Driver
-from horus.engine import scan, calibration
+from horus.engine import driver, scan, calibration, pointcloud
+
+###-- Initialize Engine
+driver = driver.Driver.Instance()
+ciclop_scan = scan.CiclopScan.Instance()
+pcg = pointcloud.PointCloudGenerator.Instance()
+pattern = calibration.Pattern.Instance()
+autoCheck = calibration.AutoCheck.Instance()
+cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+laserTriangulation = calibration.LaserTriangulation.Instance()
+platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
 class MainWindow(wx.Frame):
 
@@ -60,17 +47,6 @@ class MainWindow(wx.Frame):
         super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion()), size=self.size)
 
         self.SetMinSize((600, 450))
-
-        ###-- Initialize Engine
-        self.driver = Driver.Instance()
-        self.simpleScan = scan.SimpleScan.Instance()
-        self.textureScan = scan.TextureScan.Instance()
-        self.pcg = scan.PointCloudGenerator.Instance()
-        self.pattern = calibration.Pattern.Instance()
-        self.autoCheck = calibration.AutoCheck.Instance()
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
-        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
 
         #-- Serial Name initialization
         serialList = self.serialList()
@@ -119,9 +95,6 @@ class MainWindow(wx.Frame):
 
         #-- Menu Edit
         self.menuEdit = wx.Menu()
-        # self.menuBasicMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Basic Mode"))
-        # self.menuAdvancedMode = self.menuEdit.AppendRadioItem(wx.NewId(), _("Advanced Mode"))
-        # self.menuEdit.AppendSeparator()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
         self.menuBar.Append(self.menuEdit, _("Edit"))
 
@@ -313,9 +286,8 @@ class MainWindow(wx.Frame):
 
     def onClose(self, event):
         try:
-            if self.simpleScan.run or self.textureScan.run:
-                self.simpleScan.stop()
-                self.textureScan.stop()
+            if self.ciclop_scan.is_scanning:
+                self.ciclop_scan.stop()
                 time.sleep(0.5)
             self.controlWorkbench.videoView.stop()
             self.calibrationWorkbench.videoView.stop()
@@ -323,9 +295,9 @@ class MainWindow(wx.Frame):
             self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
             self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
-            self.driver.board.set_unplug_callback(None)
-            self.driver.camera.set_unplug_callback(None)
-            self.driver.disconnect()
+            driver.board.set_unplug_callback(None)
+            driver.camera.set_unplug_callback(None)
+            driver.disconnect()
         except:
             pass
         event.Skip()
@@ -348,8 +320,7 @@ class MainWindow(wx.Frame):
 
     def onPreferences(self, event):
         if sys.isWindows():
-            self.simpleScan.stop()
-            self.textureScan.stop()
+            self.ciclop_scan.stop()
             self.laserTriangulation.cancel()
             self.platformExtrinsics.cancel()
             self.controlWorkbench.videoView.stop()
@@ -358,12 +329,12 @@ class MainWindow(wx.Frame):
             self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
             self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
-            self.driver.board.set_unplug_callback(None)
-            self.driver.camera.set_unplug_callback(None)
+            driver.board.set_unplug_callback(None)
+            driver.camera.set_unplug_callback(None)
             self.controlWorkbench.updateStatus(False)
             self.calibrationWorkbench.updateStatus(False)
             self.scanningWorkbench.updateStatus(False)
-            self.driver.disconnect()
+            driver.disconnect()
             waitCursor = wx.BusyCursor()
 
         prefDialog = PreferencesDialog(self)
@@ -500,14 +471,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self._onDeviceUnplugged(_("Camera unplugged"), _("Camera has been unplugged. Please, plug it in and press connect"))
 
     def _onDeviceUnplugged(self, title="", description=""):
-        self.simpleScan.stop()
-        self.textureScan.stop()
+        self.ciclop_scan.stop()
         self.laserTriangulation.cancel()
         self.platformExtrinsics.cancel()
         self.controlWorkbench.updateStatus(False)
         self.calibrationWorkbench.updateStatus(False)
         self.scanningWorkbench.updateStatus(False)
-        self.driver.disconnect()
+        driver.disconnect()
         dlg = wx.MessageDialog(self, description, title, wx.OK|wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
@@ -587,10 +557,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.Layout()
 
     def updateDriverProfile(self):
-        self.driver.camera.camera_id = int(profile.getProfileSetting('camera_id')[-1:])
-        self.driver.board.serial_name = profile.getProfileSetting('serial_name')
-        self.driver.board.baud_rate = profile.getProfileSettingInteger('baud_rate')
-        self.driver.board.motor_invert(profile.getProfileSettingBool('invert_motor'))
+        camera.camera_id = int(profile.getProfileSetting('camera_id')[-1:])
+        board.serial_name = profile.getProfileSetting('serial_name')
+        board.baud_rate = profile.getProfileSettingInteger('baud_rate')
+        board.motor_invert(profile.getProfileSettingBool('invert_motor'))
 
     def updatePCGProfile(self):
             self.pcg.resetTheta()
@@ -620,31 +590,30 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 self.scanningWorkbench.currentScan = self.textureScan
                 self.driver.camera.set_exposure(profile.getProfileSettingInteger('color_exposure_scanning'))
 
-            self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
-            self.simpleScan.motor_speed(profile.getProfileSettingInteger('feed_rate_scanning'))
-            self.simpleScan.motor_acceleration(profile.getProfileSettingInteger('acceleration_scanning'))
-            self.simpleScan.setImageType(profile.getProfileSetting('img_type'))
-            self.simpleScan.setUseThreshold(profile.getProfileSettingBool('use_cr_threshold'))
-            self.simpleScan.setThresholdValue(profile.getProfileSettingInteger('cr_threshold_value'))
-            self.simpleScan.setColor(struct.unpack('BBB',profile.getProfileSetting('point_cloud_color').decode('hex')))
+            ciclop_scan.with_difference = profile.getProfileSettingBool('scan_with_difference')
+            ciclop_scan.with_texture = profile.getProfileSettingBool('scan_with_texture')
+            ciclop_scan.exposure_texture = profile.getProfileSettingInteger('exposure_texture_scanning')
+            ciclop_scan.exposure_laser = profile.getProfileSettingInteger('exposure_laser_scanning')
+            ciclop_scan.use_left_laser = profile.getProfileSettingBool('use_left_laser')
+            ciclop_scan.use_right_laser = profile.getProfileSettingBool('use_right_laser')
+            ciclop_scan.move_motor = profile.getProfileSettingBool('move_motor_scanning')
+            ciclop_scan.motor_step = profile.getProfileSettingInteger('motor_step_scanning')
+            ciclop_scan.motor_speed = profile.getProfileSettingInteger('motor_speed_scanning')
+            ciclop_scan.motor_acceleration = profile.getProfileSettingInteger('exposure_acceleration_scanning')
 
-            self.textureScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
-            self.textureScan.motor_speed(profile.getProfileSettingInteger('feed_rate_scanning'))
-            self.textureScan.motor_acceleration(profile.getProfileSettingInteger('acceleration_scanning'))
-            self.textureScan.setImageType(profile.getProfileSetting('img_type'))
-            self.textureScan.setUseOpen(profile.getProfileSettingBool('use_open'))
-            self.textureScan.setOpenValue(profile.getProfileSettingInteger('open_value'))
-            self.textureScan.setUseThreshold(profile.getProfileSettingBool('use_threshold'))
-            self.textureScan.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
+            seg.open_enable = profile.getProfileSettingBool('open_enable')
+            seg.open_value = profile.getProfileSettingInteger('open_value')
+            seg.threshold_enable = profile.getProfileSettingBool('threhold_enable')
+            seg.threshold_value = profile.getProfileSettingInteger('threshold_value')
 
     def updateCalibrationProfile(self):
-        self.pattern.rows = profile.getProfileSettingInteger('pattern_rows')
-        self.pattern.columns = profile.getProfileSettingInteger('pattern_columns')
-        self.pattern.square_width = profile.getProfileSettingInteger('square_width')
-        self.pattern.distance = profile.getProfileSettingFloat('pattern_distance')
-        self.driver.camera.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
-        self.driver.camera.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
-        self.driver.camera.set_use_distortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+        pattern.rows = profile.getProfileSettingInteger('pattern_rows')
+        pattern.columns = profile.getProfileSettingInteger('pattern_columns')
+        pattern.square_width = profile.getProfileSettingInteger('square_width')
+        pattern.distance = profile.getProfileSettingFloat('pattern_distance')
+        camera.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
+        camera.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
+        camera.set_use_distortion(profile.getProfileSettingInteger('use_distortion_calibration'))
 
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.getPreference('workbench')
