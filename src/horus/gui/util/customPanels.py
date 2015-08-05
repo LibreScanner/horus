@@ -297,6 +297,13 @@ class SectionPanel(wx.Panel):
 		self.appendUndoCallback = appendUndoCallback
 		self.releaseUndoCallback = releaseUndoCallback
 
+	def showItem(self, _name):
+		self.items[_name].Show()
+		self.Layout()
+
+	def hideItem(self, _name):
+		self.items[_name].Hide()
+		self.Layout()
 
 class SectionItem(wx.Panel):
 	def __init__(self, parent, name, engineCallback=None):
@@ -310,7 +317,8 @@ class SectionItem(wx.Panel):
 		self.control = None
 
 		self.name = name
-		self.setting = profile.getProfileSettingObject(self.name)
+
+		self.setting = profile.getSettingObject(self.name)
 
 	def setEngineCallback(self, engineCallback=None):
 		self.engineCallback = engineCallback
@@ -323,7 +331,7 @@ class SectionItem(wx.Panel):
 		if profile.getPreferenceBool('basic_mode'):
 			return self.setting.getCategory() is 'basic'
 		else:
-			scanType = profile.getProfileSetting('scan_type')
+			scanType = profile.getSetting('scan_type')
 			if self.setting.getTag() != None:
 				if scanType == 'Simple Scan':
 					return self.setting.getTag() == 'simple'
@@ -352,11 +360,11 @@ class SectionItem(wx.Panel):
 	def undo(self):
 		if len(self.undoValues) > 0:
 			value = self.undoValues.pop()
-			profile.putProfileSetting(self.name, value)
+			profile.putSetting(self.name, value)
 			self.update(value)
 
 	def resetProfile(self):
-		profile.resetProfileSetting(self.name)
+		profile.resetSetting(self.name)
 		del self.undoValues[:]
 		self.updateProfile()
 
@@ -396,9 +404,9 @@ class Slider(SectionItem):
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
 		self.control = wx.Slider(self, wx.ID_ANY,
-								 profile.getProfileSettingInteger(self.name),
-								 int(eval(self.setting.getMinValue(), {}, {})),
-								 int(eval(self.setting.getMaxValue(), {}, {})),
+								 profile.getSettingInteger(name),
+								 profile.getSettingMinValue(name),
+								 profile.getSettingMaxValue(name),
 								 size=(1, -1),
 								 style=wx.SL_LABELS)
 
@@ -416,14 +424,14 @@ class Slider(SectionItem):
 		self.control.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onSliderTracked)
 
 	def onSlider(self, event):
-		value = profile.getProfileSettingInteger(self.name)
+		value = profile.getSettingInteger(name)
 		self.undoValues.append(value)
 
 		if self.appendUndoCallback is not None:
 			self.appendUndoCallback(self)
 
 		value = self.control.GetValue()
-		profile.putProfileSetting(self.name, value)
+		profile.putSetting(self.name, value)
 		self._updateEngine(value)
 
 		if self.releaseUndoCallback is not None:
@@ -436,18 +444,18 @@ class Slider(SectionItem):
 
 	def onSliderTracked(self, event):
 		if self.flagFirstMove:
-			value = profile.getProfileSettingInteger(self.name)
+			value = profile.getSettingInteger(self.name)
 			self.undoValues.append(value)
 			if self.appendUndoCallback is not None:
 				self.appendUndoCallback(self)
 			self.flagFirstMove = False
 		value = self.control.GetValue()
-		profile.putProfileSetting(self.name, value)
+		profile.putSetting(self.name, value)
 		self._updateEngine(value)
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = profile.getProfileSettingInteger(self.name)
+			value = profile.getSettingInteger(self.name)
 			self.update(value)
 
 
@@ -510,9 +518,9 @@ class CheckBox(SectionItem):
 		self.control.Bind(wx.EVT_CHECKBOX, self.onCheckBoxChanged)
 
 	def onCheckBoxChanged(self, event):
-		self.undoValues.append(profile.getProfileSettingBool(self.name))
+		self.undoValues.append(profile.getSettingBool(self.name))
 		value = self.control.GetValue()
-		profile.putProfileSetting(self.name, value)
+		profile.putSetting(self.name, value)
 		self._updateEngine(value)
 		if self.appendUndoCallback is not None:
 			self.appendUndoCallback(self)
@@ -521,7 +529,7 @@ class CheckBox(SectionItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = profile.getProfileSettingBool(self.name)
+			value = profile.getSettingBool(self.name)
 			self.update(value)
 
 

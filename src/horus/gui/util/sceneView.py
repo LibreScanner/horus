@@ -589,44 +589,50 @@ class SceneView(openglGui.glGuiPanel):
 
 	def _drawMachine(self):
 		glEnable(GL_BLEND)
+		machine_model_path = profile.getMachineSettingPath('machine_model_path')
+		glEnable(GL_CULL_FACE)
+		#-- Draw Platform
+		if machine_model_path in self._platformMesh:
+			self._platformMesh[machine_model_path]._mesh.vbo.release()
 
-		machine = profile.getMachineSetting('machine_type')
-		if machine.startswith('ciclop'):
-
-			glEnable(GL_CULL_FACE)
-			#-- Draw Platform
-			if machine not in self._platformMesh:
-				mesh = meshLoader.loadMesh(resources.getPathForMesh(machine + '_platform.stl'))
-				if mesh is not None:
-					self._platformMesh[machine] = mesh
-				else:
-					self._platformMesh[machine] = None
-				self._platformMesh[machine]._drawOffset = numpy.array([0,0,8.05], numpy.float32)
-			glColor4f(0.6,0.6,0.6,0.5)
-			self._objectShader.bind()
-			self._renderObject(self._platformMesh[machine])
-			self._objectShader.unbind()
-			glDisable(GL_CULL_FACE)
+		mesh = meshLoader.loadMesh(machine_model_path)
+		if mesh is not None:
+			self._platformMesh[machine_model_path] = mesh
+		else:
+			self._platformMesh[machine_model_path] = None
+		self._platformMesh[machine_model_path]._drawOffset = numpy.array([0,0,8.05], numpy.float32)
+		glColor4f(0.6,0.6,0.6,0.5)
+		self._objectShader.bind()
+		self._renderObject(self._platformMesh[machine_model_path])
+		self._objectShader.unbind()
+		glDisable(GL_CULL_FACE)
 
 		glDepthMask(False)
 		
-		size = numpy.array([profile.getProfileSettingFloat('roi_diameter'),
-							profile.getProfileSettingFloat('roi_diameter'),
-							profile.getProfileSettingFloat('roi_height')], numpy.float32)
+		machine_shape = profile.getMachineSetting('machine_shape')
 
-		if profile.getProfileSettingBool('view_roi'):
-			polys = profile.getSizePolygons(size)
-			height = profile.getProfileSettingFloat('roi_height')
-			circular = profile.getMachineSetting('machine_shape') == 'Circular'
+		if machine_shape == 'Circular':
+			size = numpy.array([profile.getMachineSettingFloat('roi_diameter'),
+								profile.getMachineSettingFloat('roi_diameter'),
+								profile.getMachineSettingFloat('roi_height')], numpy.float32)
+		elif machine_shape == 'Rectangular':
+			size = numpy.array([profile.getMachineSettingFloat('roi_width'),
+								profile.getMachineSettingFloat('roi_depth'),
+								profile.getMachineSettingFloat('roi_height')], numpy.float32)
+
+		if profile.getMachineSettingBool('view_roi'):
+			polys = profile.getSizePolygons(size, machine_shape)
+			height = profile.getMachineSettingFloat('roi_height')
+
 			# Draw the sides of the build volume.
 			glBegin(GL_QUADS)
 			for n in xrange(0, len(polys[0])):
-				if not circular:
+				if machine_shape == 'Rectangular':
 					if n % 2 == 0:
 						glColor4ub(5, 171, 231, 96)
 					else:
 						glColor4ub(5, 171, 231, 64)
-				else:
+				elif machine_shape == 'Circular':
 					glColor4ub(5, 171, 231, 96)
 					#glColor4ub(200, 200, 200, 150)
 
@@ -661,7 +667,7 @@ class SceneView(openglGui.glGuiPanel):
 			gluCylinder(quadric,6,6,1,32,16);
 			glTranslate(0,0,-height+1)
 
-		polys = profile.getMachineSizePolygons()
+		polys = profile.getMachineSizePolygons(profile.getMachineSetting("machine_shape"))
 		
 		#-- Draw checkerboard
 		if self._platformTexture is None:

@@ -43,7 +43,7 @@ if sys.version_info[0] < 3:
 else:
 	import configparser as ConfigParser
 
-from horus.util import validators, system
+from horus.util import validators, system, resources
 
 #The settings dictionary contains a key/value reference to all possible settings. With the setting name as key.
 settingsDictionary = {}
@@ -129,7 +129,7 @@ class setting(object):
 		return self._category == 'preference'
 
 	def isMachineSetting(self):
-		return self._category == 'machine'
+		return self._category == 'machine_setting'
 
 	def isProfile(self):
 		return not self.isPreference() and not self.isMachineSetting()
@@ -268,11 +268,6 @@ setting('threshold_value', 25, int, 'advanced', _('Threshold'), tag='texture').s
 setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'), tag='simple')
 setting('cr_threshold_value', 140, int, 'advanced', _('Threshold'), tag='simple').setRange(0, 255)
 
-setting('view_roi', False, bool, 'advanced', _('View ROI'))
-
-setting('roi_diameter', 200, int, 'advanced', _('Diameter')).setRange(0, 250)
-setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
-
 setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
 setting('adjust_laser', True, bool, 'advanced', _('Adjust Laser'))
@@ -307,14 +302,18 @@ setting('enable_button', '', str, 'basic', _('Enable'), False)
 setting('gcode_gui', '', str, 'advanced', _('Send'), False)
 setting('ldr_value', '', str, 'advanced', _('Send'), False)
 
-setting('machine_name', '', str, 'machine', 'hidden')
-setting('machine_type', 'ciclop', str, 'machine', 'hidden')
-setting('machine_width', '200', float, 'machine', 'hidden').setLabel(_("Maximum width (mm)"), _("Size of the machine in mm"))
-setting('machine_depth', '200', float, 'machine', 'hidden').setLabel(_("Maximum depth (mm)"), _("Size of the machine in mm"))
-setting('machine_height', '200', float, 'machine', 'hidden').setLabel(_("Maximum height (mm)"), _("Size of the machine in mm"))
-setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_("Machine center 0,0"), _("Machines firmware defines the center of the bed as 0,0 instead of the front left corner."))
-setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden').setLabel(_("Build area shape"), _("The shape of machine build area."))
+setting('machine_diameter', 200.0, float, 'machine_setting', _('Machine Diameter'))
+setting('machine_width', 200.0, float, 'machine_setting', _('Machine Width'))
+setting('machine_height', 200.0, float, 'machine_setting', _('Machine Height'))
+setting('machine_depth', 200.0, float, 'machine_setting', _('Machine Depth'))
+setting('machine_shape', 'Circular', ['Circular', 'Rectangular'], 'machine_setting', _('Machine Shape'))
+setting('machine_model_path', resources.getPathForMesh('ciclop_platform.stl'), str, 'machine_setting', _('Machine Model')) # TODO: Check if this path should be absolute
 
+setting('view_roi', False, bool, 'machine_setting', _('View ROI'))
+setting('roi_diameter', 200, int, 'machine_setting', _('Diameter')).setRange(0,250)
+setting('roi_width', 200, int, 'machine_setting', _('Width')).setRange(0,250)
+setting('roi_height', 200, int, 'machine_setting', _('Height')).setRange(0,250)
+setting('roi_depth', 200, int, 'machine_setting', _('Depth')).setRange(0,250)
 
 ##-- Preferences
 
@@ -344,6 +343,80 @@ setting('model_color', '#888899', str, 'preference', 'hidden').setLabel(_('Model
 
 #Remove fake defined _() because later the localization will define a global _()
 del _
+
+#########################################################
+## Settings functions
+#########################################################
+
+def getSetting(name):
+	"""
+		Get the value of a setting.
+	:param name: Name of the setting to retrieve.
+	:return:     Value of the current setting.
+	"""
+	global settingsDictionary
+	if name in settingsDictionary:
+		return settingsDictionary[name].getValue()
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
+	return ''
+
+def getSettingObject(name):
+	""" """
+	global settingsList
+	for set in settingsList:
+		if set.getName() is name:
+			return set
+
+def putSetting(name, value):
+	""" Store a certain value in a setting. """
+	global settingsDictionary
+	if name in settingsDictionary:
+		settingsDictionary[name].setValue(value)
+
+def resetSetting(name):
+	""" Reset only the especified setting """
+	global settingsDictionary
+	if name in settingsDictionary:
+		settingsDictionary[name].setValue(settingsDictionary[name]._default)
+
+def getSettingBool(name):
+	try:
+		setting = getSetting(name)
+		return bool(eval(setting, {}, {}))
+	except:
+		return False
+
+def getSettingInteger(name):
+	try:
+		setting = getSetting(name)
+		return int(eval(setting, {}, {}))
+	except:
+		return 0
+
+def getSettingMinValue(name):
+	global settingsDictionary
+	if name in settingsDictionary:
+		setting = settingsDictionary[name].getMinValue()
+		try:
+			return int(eval(setting, {}, {}))
+		except:
+			return 0
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
+	return ''
+
+def getSettingMaxValue(name):
+	global settingsDictionary
+	if name in settingsDictionary:
+		setting = settingsDictionary[name].getMaxValue()
+		try:
+			return int(eval(setting, {}, {}))
+		except:
+			return 0
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
+	return ''
 
 #########################################################
 ## Profile and preferences functions
@@ -421,7 +494,7 @@ def loadProfile(filename, allMachines = False):
 		n = 0
 		while profileParser.has_section('profile_%d' % (n)):
 			for set in settingsList:
-				if set.isPreference():
+				if set.isPreference() or set.isMachineSetting():
 					continue
 				section = 'profile_%d' % (n)
 				if profileParser.has_option(section, set.getName()):
@@ -429,7 +502,7 @@ def loadProfile(filename, allMachines = False):
 			n += 1
 	else:
 		for set in settingsList:
-			if set.isPreference():
+			if set.isPreference() or set.isMachineSetting():
 				continue
 			section = 'profile'
 			if profileParser.has_option(section, set.getName()):
@@ -566,6 +639,18 @@ def getDefaultProfileSetting(name):
 	sys.stderr.write('Error: "%s" not found in profile settings\n' % (name))
 	return ''
 
+def getDefaultProfileSettingInteger(name):
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isProfile():
+		try:
+			setting = settingsDictionary[name].getDefault()
+			return int(eval(setting, {}, {}))
+		except:
+			return 0.0
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in profile settings\n' % (name))
+	return ''
+
 def getProfileSettingInteger(name):
 	try:
 		setting = getProfileSetting(name)
@@ -666,14 +751,6 @@ def loadPreferences(filename):
 			if profileParser.has_option('preference', set.getName()):
 				set.setValue(unicode(profileParser.get('preference', set.getName()), 'utf-8', 'replace'))
 
-	n = 0
-	while profileParser.has_section('machine_%d' % (n)):
-		for set in settingsList:
-			if set.isMachineSetting():
-				if profileParser.has_option('machine_%d' % (n), set.getName()):
-					set.setValue(unicode(profileParser.get('machine_%d' % (n), set.getName()), 'utf-8', 'replace'), n)
-		n += 1
-
 def savePreferences(filename):
 	global settingsList
 	#Save the current profile to an ini file
@@ -684,13 +761,6 @@ def savePreferences(filename):
 		if set.isPreference():
 			parser.set('preference', set.getName(), set.getValue().encode('utf-8'))
 
-	n = 0
-	while getMachineSetting('machine_name', n) != '':
-		parser.add_section('machine_%d' % (n))
-		for set in settingsList:
-			if set.isMachineSetting():
-				parser.set('machine_%d' % (n), set.getName(), set.getValue(n).encode('utf-8'))
-		n += 1
 	parser.write(open(filename, 'w'))
 
 def getPreference(name):
@@ -717,13 +787,7 @@ def isPreference(name):
 		return True
 	return False
 
-def getMachineSettingFloat(name, index = None):
-	try:
-		setting = getMachineSetting(name, index).replace(',', '.')
-		return float(eval(setting, {}, {}))
-	except:
-		return 0.0
-
+## Machine functions
 def loadMachineSettings(filename):
 	global settingsList
 	#Read a configuration file as global config
@@ -735,9 +799,23 @@ def loadMachineSettings(filename):
 
 	for set in settingsList:
 		if set.isMachineSetting():
-			if profileParser.has_option('machine', set.getName()):
-				set.setValue(unicode(profileParser.get('machine', set.getName()), 'utf-8', 'replace'))
-	checkAndUpdateMachineName()
+			if profileParser.has_option('machine_setting', set.getName()):
+				set.setValue(unicode(profileParser.get('machine_setting', set.getName()), 'utf-8', 'replace'))
+
+def saveMachineSettings(filename):
+	global settingsList
+	#Save the current profile to an ini file
+	parser = ConfigParser.ConfigParser()
+	parser.add_section('machine_setting')
+
+	for set in settingsList:
+		if set.isMachineSetting():
+			parser.set('machine_setting', set.getName(), set.getValue().encode('utf-8'))
+
+	parser.write(open(filename, 'w'))
+
+def getMachineSettingFileName():
+	return 'machine_settings.ini'
 
 def getMachineSetting(name, index = None):
 	global settingsDictionary
@@ -747,12 +825,77 @@ def getMachineSetting(name, index = None):
 	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
 	return ''
 
+def getMachineSettingObject(name):
+	""" """
+	global settingsList
+	for set in settingsList:
+		if set.getName() is name:
+			return set
+
+def getMachineSettingBool(name):
+	try:
+		setting = getMachineSetting(name)
+		return bool(eval(setting, {}, {}))
+	except:
+		return False
+
+def getMachineSettingInteger(name):
+	try:
+		setting = getMachineSetting(name)
+		return int(eval(setting, {}, {}))
+	except:
+		return 0
+
+def getMachineSettingFloat(name, index = None):
+	try:
+		setting = getMachineSetting(name, index).replace(',', '.')
+		return float(eval(setting, {}, {}))
+	except:
+		return 0.0
+
+def getMachineSettingPath(name, index = None):
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
+		value = settingsDictionary[name].getValue(index)
+		import os
+		if os.path.exists(value):
+			return value
+		else:
+			return getDefaultMachineSetting(name)
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
+	return ''
+
+def getDefaultMachineSetting(name):
+	"""
+		Get the default value of a machine setting.
+	:param name: Name of the setting to retrieve.
+	:return:     Value of the current setting.
+	"""
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
+		return settingsDictionary[name].getDefault()
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
+	return ''
+
+def getDefaultMachineSettingInteger(name):
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
+		try:
+			setting = settingsDictionary[name].getDefault()
+			return int(eval(setting, {}, {}))
+		except:
+			return 0
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
+	return ''
+
 def putMachineSetting(name, value):
-	#Check if we have a configuration file loaded, else load the default.
+	""" Store a certain value in a profile setting. """
 	global settingsDictionary
 	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
 		settingsDictionary[name].setValue(value)
-	savePreferences(getPreferencePath())
 
 def isMachineSetting(name):
 	global settingsDictionary
@@ -760,32 +903,45 @@ def isMachineSetting(name):
 		return True
 	return False
 
-def getMachineCenterCoords():
-	if getMachineSetting('machine_center_is_zero') == 'True':
-		return [0, 0]
-	return [getMachineSettingFloat('machine_width') / 2, getMachineSettingFloat('machine_depth') / 2]
+def getMachineSettingType(name):
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
+		return settingsDictionary[name].getType()
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
+	return ''
 
 #Returns a list of convex polygons, first polygon is the allowed area of the machine,
 # the rest of the polygons are the dis-allowed areas of the machine.
-def getMachineSizePolygons():
-	size = numpy.array([getMachineSettingFloat('machine_width'), getMachineSettingFloat('machine_depth'), getMachineSettingFloat('machine_height')], numpy.float32)
-	return getSizePolygons(size)
+def getMachineSizePolygons(machine_shape):
+	if machine_shape == "Circular":
+		size = numpy.array([getMachineSettingFloat('machine_diameter'), getMachineSettingFloat('machine_diameter'), getMachineSettingFloat('machine_height')], numpy.float32)
+	elif machine_shape == "Rectangular":
+		size = numpy.array([getMachineSettingFloat('machine_width'), getMachineSettingFloat('machine_depth'), getMachineSettingFloat('machine_height')], numpy.float32)
+	return getSizePolygons(size, machine_shape)
 
-def getSizePolygons(size):
+def getSizePolygons(size, machine_shape):
 	ret = []
-	if getMachineSetting('machine_shape') == 'Circular':
+	if machine_shape == 'Circular':
 		circle = []
 		steps = 32
 		for n in xrange(0, steps):
 			circle.append([math.cos(float(n)/steps*2*math.pi) * size[0]/2, math.sin(float(n)/steps*2*math.pi) * size[1]/2])
 		ret.append(numpy.array(circle, numpy.float32))
 
-	if getMachineSetting('machine_type') == 'ciclop':
-		w = 20
-		h = 20
-		ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))
-		ret.append(numpy.array([[ size[0]/2-w-2,-size[1]/2],[ size[0]/2,-size[1]/2], [ size[0]/2,-size[1]/2+h],[ size[0]/2-w,-size[1]/2+h]], numpy.float32))
-		ret.append(numpy.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], numpy.float32))
-		ret.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
+	elif machine_shape == 'Rectangular':
+		rectangle = []
+		rectangle.append([-size[0]/2, size[1]/2])
+		rectangle.append([size[0]/2, size[1]/2])
+		rectangle.append([size[0]/2, -size[1]/2])
+		rectangle.append([-size[0]/2, -size[1]/2])
+		ret.append(numpy.array(rectangle, numpy.float32))
+
+	w = 20
+	h = 20
+	ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))
+	ret.append(numpy.array([[ size[0]/2-w-2,-size[1]/2],[ size[0]/2,-size[1]/2], [ size[0]/2,-size[1]/2+h],[ size[0]/2-w,-size[1]/2+h]], numpy.float32))
+	ret.append(numpy.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], numpy.float32))
+	ret.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
 	
 	return ret

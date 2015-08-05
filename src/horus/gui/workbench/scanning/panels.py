@@ -244,16 +244,20 @@ class PointCloudGeneration(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('point_cloud_generation')
-        section.addItem(CheckBox, 'view_roi', tooltip=_("View the Region Of Interest (ROI). This cylindrical region is the one being scanned. All information outside won't be taken into account during the scanning process"))
+        section.addItem(CheckBox, 'view_roi', tooltip=_("View the Region Of Interest (ROI). This region is the one being scanned. All information outside won't be taken into account during the scanning process"))
         section.addItem(Slider, 'roi_diameter')
+        section.addItem(Slider, 'roi_width')
         section.addItem(Slider, 'roi_height')
+        section.addItem(Slider, 'roi_depth')
         section.addItem(Button, 'point_cloud_color')
 
     def updateCallbacks(self):
         section = self.sections['point_cloud_generation']
         section.updateCallback('view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_width', lambda v: (self.pcg.setROIWidth(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_depth', lambda v: (self.pcg.setROIDepth(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('point_cloud_color', self.onColorPicker)
 
     def onColorPicker(self):
@@ -267,3 +271,21 @@ class PointCloudGeneration(ExpandablePanel):
             self.simpleScan.setColor(color)
             profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
         dialog.Destroy()
+
+    # Overwrites ExpandablePanel method
+    def updateProfile(self):
+        section = self.sections['point_cloud_generation']
+        section.items['view_roi'][0].updateProfile()
+        section.items['roi_diameter'].updateProfile()
+        section.items['roi_width'].updateProfile()
+        section.items['roi_height'].updateProfile()
+        section.items['roi_depth'].updateProfile()
+        if profile.getMachineSetting('machine_shape') == "Rectangular":
+            section.hideItem('roi_diameter')
+            section.showItem('roi_width')
+            section.showItem('roi_depth')
+        elif profile.getMachineSetting('machine_shape') == "Circular":
+            section.hideItem('roi_width')
+            section.hideItem('roi_depth')
+            section.showItem('roi_diameter')
+        self.GetParent().GetParent().Layout()

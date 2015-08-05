@@ -37,7 +37,8 @@ from horus.engine.driver import Driver
 
 import horus.util.error as Error
 from horus.util.singleton import Singleton
-from horus.util import system as sys
+from horus.util import profile, system as sys
+
 
 
 class Scan:
@@ -700,7 +701,7 @@ class PointCloudGenerator:
 									 [np.sin(i*2*np.pi/self.circleResolution) for i in xrange(self.circleResolution)],
 									 np.zeros(self.circleResolution)])
 
-
+		self.rectangleArray = np.array([[0.5, 0.5, -0.5, -0.5], [0.5, -0.5, 0.5, -0.5], np.zeros(4)], np.float32)
 
 	def setViewROI(self, value):
 		self.viewROI = value
@@ -712,10 +713,17 @@ class PointCloudGenerator:
 		self.roiRadius = value / 2.0
 		self.calculateROI()
 
+	def setROIWidth(self, value):
+		self.roiWidth = value
+		self.calculateROI()
+
 	def setROIHeight(self, value):
 		self.roiHeight = value
 		self.calculateROI()
 
+	def setROIDepth(self, value):
+		self.roiDepth = value
+		self.calculateROI()
 
 	def setDegrees(self, degrees):
 		self.degrees = degrees
@@ -753,55 +761,64 @@ class PointCloudGenerator:
 		self.theta = 0
 
 	def calculateROI(self):
-		if hasattr(self, 'roiRadius') and \
-		   hasattr(self, 'roiHeight') and \
-		   hasattr(self, 'rotationMatrix') and \
+		if hasattr(self, 'rotationMatrix') and \
 		   hasattr(self, 'translationVector') and \
 		   hasattr(self, 'fx') and hasattr(self, 'fy') and \
 		   hasattr(self, 'cx') and hasattr(self, 'cy') and \
 		   hasattr(self, 'width') and hasattr(self, 'height'):
 
-			#-- Platform system
-			bottom = np.matrix(self.roiRadius * self.circleArray)
-			top = bottom + np.matrix([0,0,self.roiHeight]).T
-			data = np.concatenate((bottom, top), axis=1)
+		    if (profile.getMachineSetting('machine_shape') == 'Circular' and hasattr(self, 'roiRadius') and hasattr(self, 'roiHeight')) or \
+			   (profile.getMachineSetting('machine_shape') == 'Rectangular' and hasattr(self, 'roiWidth') and hasattr(self, 'roiHeight') and hasattr(self, 'roiDepth')):
 
-			#-- Camera system
-			data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
+				#-- Platform system
+				if profile.getMachineSetting('machine_shape') == 'Circular':
+					bottom = np.matrix(self.roiRadius * self.circleArray)
+				elif profile.getMachineSetting('machine_shape') == 'Rectangular':
+					bottom = np.matrix(self.roiWidth * self.rectangleArray)
 
-			#-- Video system
-			u = self.fx * data[0] / data[2] + self.cx
-			v = self.fy * data[1] / data[2] + self.cy
+				top = bottom + np.matrix([0,0,self.roiHeight]).T
+				data = np.concatenate((bottom, top), axis=1)
 
-			umin = int(round(np.min(u)))
-			umax = int(round(np.max(u)))
-			vmin = int(round(np.min(v)))
-			vmax = int(round(np.max(v)))
+				#-- Camera system
+				data =  self.rotationMatrix * data + np.matrix(self.translationVector).T
 
-			#visualization : 
-			v_=np.array(v.T)
-			#lower cylinder base
-			a=v_[:(len(v_)/2)]
-			#upper cylinder base
-			b=v_[(len(v_)/2):]
-			self.lower_vmin=int(round(np.max(a)))
-			self.lower_vmax=int(round(np.min(a)))
-			self.upper_vmin=int(round(np.min(b)))
-			self.upper_vmax=int(round(np.max(b)))
+				#-- Video system
+				u = self.fx * data[0] / data[2] + self.cx
+				v = self.fy * data[1] / data[2] + self.cy
 
-			self.no_trimmed_umin=umin
-			self.no_trimmed_umax = int(round(np.max(u)))
-			self.no_trimmed_vmin = int(round(np.min(v)))
-			self.no_trimmed_vmax = int(round(np.max(v)))
+				umin = int(round(np.min(u)))
+				umax = int(round(np.max(u)))
+				vmin = int(round(np.min(v)))
+				vmax = int(round(np.max(v)))
 
-			self.umin = max(umin, 0)
-			self.umax = min(umax, self.width)
-			self.vmin = max(vmin, 0)
-			self.vmax = min(vmax, self.height)
+				#visualization :
+				v_=np.array(v.T)
+				#lower cylinder base
+				a=v_[:(len(v_)/2)]
+				#upper cylinder base
+				b=v_[(len(v_)/2):]
+
+				self.lower_vmin = int(round(np.max(a)))
+				self.lower_vmax = int(round(np.min(a)))
+				self.upper_vmin = int(round(np.min(b)))
+				self.upper_vmax = int(round(np.max(b)))
+
+				self.no_trimmed_umin = umin
+				self.no_trimmed_umax = int(round(np.max(u)))
+				self.no_trimmed_vmin = int(round(np.min(v)))
+				self.no_trimmed_vmax = int(round(np.max(v)))
+
+				self.umin = max(umin, 0)
+				self.umax = min(umax, self.width)
+				self.vmin = max(vmin, 0)
+				self.vmax = min(vmax, self.height)
 
 	def calculateCenter(self):
 		#-- Platform system
-		bottom = np.matrix(0* self.circleArray)
+		if profile.getMachineSetting('machine_shape') == 'Circular':
+			bottom = np.matrix(0* self.circleArray)
+		elif profile.getMachineSetting('machine_shape') == 'Rectangular':
+			bottom = np.matrix(0* self.rectangleArray)
 		top = bottom + np.matrix([0,0,0]).T
 		data = np.concatenate((bottom, top), axis=1)
 
