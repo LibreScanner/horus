@@ -589,7 +589,7 @@ class SceneView(openglGui.glGuiPanel):
 
 	def _drawMachine(self):
 		glEnable(GL_BLEND)
-		machine_model_path = profile.getMachineSetting('machine_model_path')
+		machine_model_path = profile.getMachineSettingPath('machine_model_path')
 		glEnable(GL_CULL_FACE)
 		#-- Draw Platform
 		if machine_model_path in self._platformMesh:

@@ -131,7 +131,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.widthField.SetValue(profile.getMachineSettingInteger('machine_width'))
 		self.heightField.SetValue(profile.getMachineSettingInteger('machine_height'))
 		self.depthField.SetValue(profile.getMachineSettingInteger('machine_depth'))
-		self.machineModelPath = profile.getMachineSetting('machine_model_path')
+		self.machineModelPath = profile.getMachineSettingPath('machine_model_path')
 		self.machineModelField.SetLabel(self._getFileName(self.machineModelPath))
 
 		self.onmachineShapeComboChanged(None)
@@ -154,7 +154,7 @@ class MachineSettingsDialog(wx.Dialog):
 		profile.putMachineSetting('machine_height', self.heightField.GetValue())
 		profile.putMachineSetting('machine_depth', self.depthField.GetValue())
 		profile.putMachineSetting('machine_model_path', self.machineModelPath)
-		profile.saveMachineSettings(os.path.join(profile.getBasePath(), profile.getMachineSettingFileName()))
+		# Settings are saved after mesh is loaded. This way we avoid saving a faulty STL model.
 		self.EndModal(wx.ID_OK)
 		self.Destroy()
 

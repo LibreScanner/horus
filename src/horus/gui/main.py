@@ -401,6 +401,7 @@ class MainWindow(wx.Frame):
 
         if ret == wx.ID_OK:
             self.scanningWorkbench.sceneView._drawMachine()
+            profile.saveMachineSettings(os.path.join(profile.getBasePath(), profile.getMachineSettingFileName()))
             self.scanningWorkbench.controls.panels["point_cloud_generation"].updateProfile()
 
         self.controlWorkbench.updateCallbacks()

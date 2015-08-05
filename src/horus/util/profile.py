@@ -853,6 +853,19 @@ def getMachineSettingFloat(name, index = None):
 	except:
 		return 0.0
 
+def getMachineSettingPath(name, index = None):
+	global settingsDictionary
+	if name in settingsDictionary and settingsDictionary[name].isMachineSetting():
+		value = settingsDictionary[name].getValue(index)
+		import os
+		if os.path.exists(value):
+			return value
+		else:
+			return getDefaultMachineSetting(name)
+	traceback.print_stack()
+	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
+	return ''
+
 def getDefaultMachineSetting(name):
 	"""
 		Get the default value of a machine setting.
