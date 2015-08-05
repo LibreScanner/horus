@@ -268,12 +268,6 @@ setting('threshold_value', 25, int, 'advanced', _('Threshold'), tag='texture').s
 setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'), tag='simple')
 setting('cr_threshold_value', 140, int, 'advanced', _('Threshold'), tag='simple').setRange(0, 255)
 
-setting('view_roi', False, bool, 'machine_setting', _('View ROI'))
-setting('roi_diameter', 200, int, 'machine_setting', _('Diameter')).setRange(0,250)
-setting('roi_width', 200, int, 'machine_setting', _('Width')).setRange(0,250)
-setting('roi_height', 200, int, 'machine_setting', _('Height')).setRange(0,250)
-setting('roi_depth', 200, int, 'machine_setting', _('Depth')).setRange(0,250)
-
 setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
 setting('adjust_laser', True, bool, 'advanced', _('Adjust Laser'))
@@ -314,6 +308,12 @@ setting('machine_height', 200.0, float, 'machine_setting', _('Machine Height'))
 setting('machine_depth', 200.0, float, 'machine_setting', _('Machine Depth'))
 setting('machine_shape', 'Circular', ['Circular', 'Rectangular'], 'machine_setting', _('Machine Shape'))
 setting('machine_model_path', resources.getPathForMesh('ciclop_platform.stl'), str, 'machine_setting', _('Machine Model')) # TODO: Check if this path should be absolute
+
+setting('view_roi', False, bool, 'machine_setting', _('View ROI'))
+setting('roi_diameter', 200, int, 'machine_setting', _('Diameter')).setRange(0,250)
+setting('roi_width', 200, int, 'machine_setting', _('Width')).setRange(0,250)
+setting('roi_height', 200, int, 'machine_setting', _('Height')).setRange(0,250)
+setting('roi_depth', 200, int, 'machine_setting', _('Depth')).setRange(0,250)
 
 ##-- Preferences
 
@@ -494,7 +494,7 @@ def loadProfile(filename, allMachines = False):
 		n = 0
 		while profileParser.has_section('profile_%d' % (n)):
 			for set in settingsList:
-				if set.isPreference():
+				if set.isPreference() or set.isMachineSetting():
 					continue
 				section = 'profile_%d' % (n)
 				if profileParser.has_option(section, set.getName()):
@@ -502,7 +502,7 @@ def loadProfile(filename, allMachines = False):
 			n += 1
 	else:
 		for set in settingsList:
-			if set.isPreference():
+			if set.isPreference() or set.isMachineSetting():
 				continue
 			section = 'profile'
 			if profileParser.has_option(section, set.getName()):
@@ -813,6 +813,9 @@ def saveMachineSettings(filename):
 			parser.set('machine_setting', set.getName(), set.getValue().encode('utf-8'))
 
 	parser.write(open(filename, 'w'))
+
+def getMachineSettingFileName():
+	return 'machine_settings.ini'
 
 def getMachineSetting(name, index = None):
 	global settingsDictionary
