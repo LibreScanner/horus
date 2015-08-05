@@ -174,7 +174,7 @@ class PreferencesDialog(wx.Dialog):
 
 		self.hexPath = None
 
-		self.SetSizer(vbox)
+		self.SetSizerAndFit(vbox)
 
 		self.Centre()
 		self.Layout()
@@ -253,8 +253,8 @@ class PreferencesDialog(wx.Dialog):
 		self.gauge.SetValue(0)
 		self.gauge.Show()
 		self.waitCursor = wx.BusyCursor()
-		self.Layout()
-		self.Fit()
+		self.GetSizer().Layout()
+		self.SetSizerAndFit(self.GetSizer())
 
 	def afterLoadFirmware(self):
 		self.uploadFirmwareButton.Enable()
@@ -263,8 +263,8 @@ class PreferencesDialog(wx.Dialog):
 		self.saveButton.Enable()
 		self.gauge.Hide()
 		del self.waitCursor
-		self.Layout()
-		self.Fit()
+		self.GetSizer().Layout()
+		self.SetSizerAndFit(self.GetSizer())
 
 	def onLanguageComboChanged(self, event):
 		if profile.getPreference('language') is not self.languageCombo.GetValue():
