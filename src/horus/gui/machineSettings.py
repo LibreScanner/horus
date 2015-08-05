@@ -136,7 +136,7 @@ class MachineSettingsDialog(wx.Dialog):
 
 		self.onmachineShapeComboChanged(None)
 
-		self.SetSizer(self.vbox)
+		self.SetSizerAndFit(self.vbox)
 
 		self.Centre()
 		self.Layout()
@@ -177,8 +177,8 @@ class MachineSettingsDialog(wx.Dialog):
 			self.vbox.Hide(self.diam_hbox, recursive=True)
 			self.vbox.Show(self.width_hbox, recursive=True)
 			self.vbox.Show(self.depth_hbox, recursive=True)
-		self.Layout()
-		self.Fit()
+		self.vbox.Layout()
+		self.SetSizerAndFit(self.vbox)
 
 	def onMachineModelButton(self, event):
 		dlg = wx.FileDialog(self, message=_("Select binary file to load"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
