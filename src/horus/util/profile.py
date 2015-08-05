@@ -43,19 +43,161 @@ if sys.version_info[0] < 3:
 else:
 	import configparser as ConfigParser
 
-from horus.util import validators, system, resources
+from horus.util import system, resources
 
-#The settings dictionary contains a key/value reference to all possible settings. With the setting name as key.
-settingsDictionary = {}
-#The settings list is used to keep a full list of all the settings. This is needed to keep the settings in the proper order,
-# as the dictionary will not contain insertion order.
-settingsList = []
 
-#Currently selected machine (by index) Cura support multiple machines in the same preferences and can switch between them.
-# Each machine has it's own index and unique name.
-_selectedMachineIndex = 0
+# TODO: Make this class inherit from dict or iterable to be able to gen len, values, access with [], etc.
+# TODO: Try to erase tag -> Used to hide panels
+# TODO: Raise error if setting id already exists in dictionary
+# TODO: Change to "preferences" and "machine_settings"+
+class Settings():
 
-class setting(object):
+	def __init__(self):
+		self.settings = {}
+
+	def addSetting(setting):
+		self.settings[setting.id, setting]
+
+	def populateSettings():
+
+		self.addSetting(Setting('serial_name', _('Serial Name'), 'profile', str, '/dev/ttyUSB0'))
+		self.addSetting(Setting('baud_rate', _('Baud rate'), 'profile', (9600, 14400, 19200, 38400, 57600, 115200), 115200))
+		self.addSetting(Setting('camera_id', _('Camera Id'), 'profile', str, '/dev/video0'))
+		self.addSetting(Setting('board', _('Board'), 'profile', ('Arduino Uno', 'BT ATmega328'), 'BT ATmega328'))
+		self.addSetting(Setting('invert_motor', _('Invert motor'), 'profile', bool, False))
+
+		# Hack to translate combo boxes:
+		_('High')
+		_('Medium')
+		_('Low')
+		self.addSetting(Setting('luminosity', _('Luminosity'), 'profile', ('High', 'Medium', 'Low'), 'Medium'))
+		self.addSetting(Setting('brightness_control', _('Brightness'), 'profile', int, 128, min_value=0, max_value=255))
+		self.addSetting(Setting('contrast_control', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
+		self.addSetting(Setting('saturation_control', _('Saturation'), 'profile', int, 32, min_value=0, max_value=255))
+		self.addSetting(Setting('exposure_control', _('Exposure'), 'profile', int, 16, min_value=1, max_value=512))
+		# TODO: Contemplate this type of settings. Validate that the value (int) is within the possible values
+		# self.addSetting(Setting('framerate_control', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'profile', _('Framerate'))
+		self.addSetting(Setting('framerate_control', _('Framerate'), 'profile', (30, 25, 20, 15, 10, 5), 30))
+		self.addSetting(Setting('resolution_control', _('Resolution'), 'profile', ('1280x960', '960x720', '800x600', '320x240', '160x120'), '1280x960'))
+		self.addSetting(Setting('use_distortion_control', _('Use Distortion'), 'profile', bool, False))
+		self.addSetting(Setting('step_degrees_control', _('Step Degrees'), 'profile', float, -0.45, min_value=0.01)
+		self.addSetting(Setting('feed_rate_control', _('Feed Rate'), 'profile', int, 200, min_value=1, max_value=1000))
+		self.addSetting(Setting('acceleration_control', _('Acceleration'), 'profile', int, 200, min_value=1, max_value=1000))
+
+		self.addSetting(Setting('brightness_calibration', _('Brightness'), 'profile', int, 100, min_value=0, max_value=255))
+		self.addSetting(Setting('contrast_calibration', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
+		self.addSetting(Setting('saturation_calibration', _('Saturation'), 'profile', int, 100, min_value=0, max_value=255))
+		self.addSetting(Setting('exposure_calibration', _('Exposure'), 'profile', int, 16, min_value=1, max_value=512))
+		self.addSetting(Setting('framerate_calibration', _('Framerate'), 'profile', (30, 25, 20, 15, 10, 5), 30))
+		self.addSetting(Setting('resolution_calibration', _('Resolution'), 'profile', ('1280x960', '960x720', '800x600', '320x240', '160x120'), '1280x960'))
+		self.addSetting(Setting('use_distortion_calibration', _('Use Distortion'), 'profile', bool, False))
+
+		# Hack to translate combo boxes:
+		_('Simple Scan')
+		_('Texture Scan')
+		self.addSetting(Setting('scan_type', _('Scan'), 'profile', ('Simple Scan', 'Texture Scan'), 'Texture Scan'))
+		# Hack to translate combo boxes:
+		_('Left')
+		_('Right')
+		_('Both')
+		self.addSetting(Setting('use_laser', _('Use Laser'), 'profile', ('Left', 'Right', 'Both'), 'Both'))
+		self.addSetting(Setting('fast_scan', _('Fast Scan (experimental)'), 'profile', bool, False))
+
+		self.addSetting(Setting('step_degrees_scanning', _('Step Degrees'), 'profile', float, 0.45, min_value=0.01))
+		self.addSetting(Setting('feed_rate_scanning', _('Feed Rate'), 'profile', int, 200, min_value=1, max_value=1000))
+		self.addSetting(Setting('acceleration_scanning', _('Acceleration'), 'profile', int, 300, min_value=1, max_value=1000))
+		self.addSetting(Setting('brightness_scanning', _('Brightness'), 'profile', int, 100, min_value=0, max_value=255))
+		self.addSetting(Setting('contrast_scanning', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
+		self.addSetting(Setting('saturation_scanning', _('Saturation'), 'profile', int, 32, min_value=0, max_value=255))
+		self.addSetting(Setting('laser_exposure_scanning', _('Exposure'), 'profile', int, 6, min_value=1, max_value=512, tag='simple'))
+		self.addSetting(Setting('color_exposure_scanning', _('Exposure'), 'profile', int, 10, min_value=1, max_value=512, tag='texture'))
+		self.addSetting(Setting('framerate_scanning', _('Framerate'), 'profile', (30, 25, 20, 15, 10, 5), 30))
+		self.addSetting(Setting('resolution_scanning', _('Resolution'), 'profile', ('1280x960', '960x720', '800x600', '320x240', '160x120'), '1280x960'))
+		self.addSetting(Setting('use_distortion_scanning', _('Use Distortion'), 'profile', bool, False))
+
+		# Hack to translate combo boxes:
+		_('Laser')
+		_('Gray')
+		_('Line')
+		_('Color')
+		self.addSetting(Setting('img_type', _('Image Type'), 'profile', ('Laser', 'Gray', 'Line', 'Color'), 'Laser'))
+		self.addSetting(Setting('use_open', _('Use Open'), 'profile', bool, True, tag='texture'))
+		self.addSetting(Setting('open_value', _('Open'), 'profile', int, 2, min_value=1, max_value=10, tag='texture'))
+		self.addSetting(Setting('use_threshold', _('Use Threshold'), 'profile', bool, True, tag='texture'))
+		self.addSetting(Setting('threshold_value', _('Threshold'), 'profile', int, 25, min_value=0, max_value=255, tag='texture'))
+		self.addSetting(Setting('use_cr_threshold', _('Use Threshold'), 'profile', bool, True, tag='simple'))
+		self.addSetting(Setting('cr_threshold_value', _('Threshold'), 'profile', int, 140, min_value=0, max_value=255, tag='simple'))
+		self.addSetting(Setting('point_cloud_color', _('Choose Point Cloud Color'), 'profile', str, 'AAAAAA'))
+		self.addSetting(Setting('adjust_laser', _('Adjust Laser'), 'profile', bool, True))
+		self.addSetting(Setting('camera_matrix', _('Calibration Matrix'), 'profile', numpy.ndarray, ([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]])))
+		self.addSetting(Setting('distortion_vector', _('Distortion Vector'), 'profile', numpy.ndarray, ([0.0,0.0,0.0,0.0,0.0]))
+
+		self.addSetting(Setting('laser_threshold_value', _('Laser Threshold'), 'profile', int, 120, min_value=0, max_value=255))
+		self.addSetting(Setting('distance_left', _('Distance'), 'profile', float, 0.0))
+		self.addSetting(Setting('normal_left', _('Normal'), 'profile', numpy.ndarray, ([0.0,0.0,0.0])))
+		self.addSetting(Setting('distance_right', _('Distance'), 'profile', float, 0.0))
+		self.addSetting(Setting('normal_right', _('Normal'), 'profile', numpy.ndarray, ([0.0,0.0,0.0])))
+		self.addSetting(Setting('rotation_matrix', _('Rotation Matrix'), 'profile', numpy.ndarray, ([[0.0,1.0,0.0],[0.0,0.0,-1.0],[-1.0,0.0,0.0]])))
+		self.addSetting(Setting('translation_vector', _('Translation Matrix'), 'profile', numpy.ndarray, ([5.0,80.0,320.0])))
+
+		self.addSetting(Setting('pattern_rows', _('Pattern Rows'), 'profile', int, 6))
+		self.addSetting(Setting('pattern_columns', _('Pattern Columns'), 'profile', int, 11))
+		self.addSetting(Setting('square_width', _('Square width'), 'profile', int, 13))
+		self.addSetting(Setting('pattern_distance', _('Pattern Distance'), 'profile', float, 0))
+		self.addSetting(Setting('extrinsics_step', _('Extrinsics Step'), 'profile', float, -5.0))
+
+		self.addSetting(Setting('laser_coordinates', _('Laser Coordinates'), 'profile', numpy.ndarray, ([[480.0,480.0],[480.0,480.0]])))
+		self.addSetting(Setting('laser_origin', _('Laser Origin'), 'profile', numpy.ndarray, ([0.0,0.0,0.0])))
+		self.addSetting(Setting('laser_normal', _('Laser Normal'), 'profile', numpy.ndarray, ([0.0,0.0,0.0])))
+
+		# self.addSetting(Setting('left_button', _('Left'), 'profile', str, 'profile', False))
+		# self.addSetting(Setting('right_button', '', str, 'profile', _('Right'), False))
+		# self.addSetting(Setting('move_button', '', str, 'profile', _('Move'), False))
+		# self.addSetting(Setting('enable_button', '', str, 'profile', _('Enable'), False))
+		# self.addSetting(Setting('gcode_gui', '', str, 'profile', _('Send'), False))
+		# self.addSetting(Setting('ldr_value', '', str, 'profile', _('Send'), False))
+
+		self.addSetting(Setting('machine_diameter', _('Machine Diameter'), 'machine_setting', float, 200.0))
+		self.addSetting(Setting('machine_width', _('Machine Width'), 'machine_setting', float, 200.0))
+		self.addSetting(Setting('machine_height', _('Machine Height'), 'machine_setting', float, 200.0))
+		self.addSetting(Setting('machine_depth', _('Machine Depth'), 'machine_setting', float, 200.0))
+		self.addSetting(Setting('machine_shape', _('Machine Shape'), 'machine_setting', ('Circular', 'Rectangular'), 'Circular'))
+		self.addSetting(Setting('machine_model_path', _('Machine Model'), str, resources.getPathForMesh('ciclop_platform.stl')))
+
+		self.addSetting(Setting('view_roi', _('View ROI'), 'machine_setting', bool, False))
+		self.addSetting(Setting('roi_diameter', _('Diameter'), 'machine_setting', int, 200, min_value=0, max_value=250))
+		self.addSetting(Setting('roi_width', _('Width'), 'machine_setting', int, 200, min_value=0, max_value=250))
+		self.addSetting(Setting('roi_height', _('Height'), 'machine_setting', int, 200, min_value=0, max_value=250))
+		self.addSetting(Setting('roi_depth', _('Depth'), 'machine_setting', int, 200, min_value=0, max_value=250))
+
+		##-- Preferences
+
+		self.addSetting(Setting('language', _('Language'), 'preference', ('English', 'Español', 'Français', 'Deutsch', 'Italiano', 'Português'), 'English', tooltip=_('Change the language in which Horus runs. Switching language requires a restart of Horus')))
+		# Hack to translate combo boxes:
+		_('Control workbench')
+		_('Calibration workbench')
+		_('Scanning workbench')
+		self.addSetting(Setting('workbench', _('Workbench'), 'preference', ('Control workbench', 'Calibration workbench', 'Scanning workbench'), 'Scanning workbench'))
+		self.addSetting(Setting('show_welcome', _('Show Welcome'), 'preference', bool, True))
+		self.addSetting(Setting('check_for_updates', _('Check for Updates'), 'preference', bool, True))
+		self.addSetting(Setting('basic_mode', _('Basic Mode'), 'preference', bool, False))
+		self.addSetting(Setting('view_control_panel', _('View Control Panel'), 'preference', bool, True))
+		self.addSetting(Setting('view_control_video', _('View Control Panel') 'preference', bool, True)
+		self.addSetting(Setting('view_calibration_panel', _('View Calibration Panel'), 'preference', bool, True))
+		self.addSetting(Setting('view_calibration_video', _('View Calibration Video'), 'preference', bool, True))
+		self.addSetting(Setting('view_scanning_panel', _('View Scanning Panel'), 'preference', bool, False))
+		self.addSetting(Setting('view_scanning_video', _('View Scanning Video'), 'preference', bool, False))
+		self.addSetting(Setting('view_scanning_scene', _('View Scanning Scene'), 'preference', bool, True))
+
+		# TODO: change default last file
+		self.addSetting(Setting('last_files', _('Last Files'), 'preference', list, []))
+		self.addSetting(Setting('last_file', _('Last File'), 'preference', str, '')) # TODO: Set this default value
+		self.addSetting(Setting('last_profile', _('Last Profile'), 'preference', str, '')) # TODO: Set this default value
+		self.addSetting(Setting('model_color', _('Model color'), 'preference', str, '#888899', tooltip=_('Display color for first extruder')))
+
+
+
+class Setting():
 	"""
 		A setting object contains a configuration setting. These are globally accessible trough the quick access functions
 		and trough the settingsDictionary function.
@@ -66,49 +208,18 @@ class setting(object):
 		Settings have validators that check if the value is valid, but do not prevent invalid values!
 		Settings have conditions that enable/disable this setting depending on other settings.
 	"""
-	def __init__(self, name, default, type, category, subcategory, store=True, tag=None):
-		self._name = name
-		self._label = subcategory
-		self._tooltip = ''
-		self._default = unicode(default)
-		self._values = []
-		self._type = type
+	def __init__(self, setting_id, label, category, default, setting_type, tooltip='', min_value=None, max_value=None, tag=None):
+		self._id = setting_id
+		self._label = label
 		self._category = category
-		self._subcategory = subcategory
-		self._validators = []
-		self._conditions = []
-		self._store = store
+		self._default = default
+		self._type = setting_type
+		self._tooltip = tooltip
+		self._min_value = min_value
+		self._max_value = max_value
 		self._tag = tag
 
-		if type is types.FloatType:
-			validators.validFloat(self)
-		elif type is types.IntType:
-			validators.validInt(self)
-
-		global settingsDictionary
-		settingsDictionary[name] = self
-		global settingsList
-		settingsList.append(self)
-
-	def setLabel(self, label, tooltip = ''):
-		self._label = label
-		self._tooltip = tooltip
-		return self
-
-	def setRange(self, minValue=None, maxValue=None):
-		if len(self._validators) < 1:
-			return
-		self._validators[0].minValue = minValue
-		self._validators[0].maxValue = maxValue
-		return self
-
-	def getMinValue(self):
-		if len(self._validators) > 0:
-			return _(self._validators[0].minValue)
-
-	def getMaxValue(self):
-		if len(self._validators) > 0:
-			return _(self._validators[0].maxValue)
+		self._value = None
 
 	def getLabel(self):
 		return _(self._label)
@@ -116,77 +227,28 @@ class setting(object):
 	def getTooltip(self):
 		return _(self._tooltip)
 
-	def getCategory(self):
-		return self._category
+	def setValue(self, value):
+		# TODO: Implement this. Check if value is of type _type and that is _min_value <= value <= _max_value
+		self._value = value
 
-	def getTag(self):
-		return self._tag
+	def _isValidInt(n):
+		try:
+			int(eval(n), {}, {}))			
+		except:
+			return False
+		else:
+			return True
 
-	def getSubCategory(self):
-		return self._subcategory
+	def _isValidFloat(n):
+		try:
+			float(eval(n), {}, {}))			
+		except:
+			return False
+		else:
+			return True
 
-	def isPreference(self):
-		return self._category == 'preference'
 
-	def isMachineSetting(self):
-		return self._category == 'machine_setting'
 
-	def isProfile(self):
-		return not self.isPreference() and not self.isMachineSetting()
-
-	def isStorable(self):
-		return self._store
-
-	def getName(self):
-		return self._name
-
-	def getType(self):
-		return self._type
-
-	def getValue(self, index = None):
-		if index is None:
-			index = self.getValueIndex()
-		if index >= len(self._values):
-			return self._default
-		return self._values[index]
-
-	def getDefault(self):
-		return self._default
-
-	def setValue(self, value, index = None):
-		if index is None:
-			index = self.getValueIndex()
-		while index >= len(self._values):
-			self._values.append(self._default)
-		self._values[index] = unicode(value)
-
-	def getValueIndex(self):
-		if self.isMachineSetting() or self.isProfile():
-			global _selectedMachineIndex
-			return _selectedMachineIndex
-		return 0
-
-	def validate(self):
-		result = validators.SUCCESS
-		msgs = []
-		for validator in self._validators:
-			res, err = validator.validate()
-			if res == validators.ERROR:
-				result = res
-			elif res == validators.WARNING and result != validators.ERROR:
-				result = res
-			if res != validators.SUCCESS:
-				msgs.append(err)
-		return result, '\n'.join(msgs)
-
-	def addCondition(self, conditionFunction):
-		self._conditions.append(conditionFunction)
-
-	def checkConditions(self):
-		for condition in self._conditions:
-			if not condition():
-				return False
-		return True
 
 #########################################################
 ## Settings
@@ -198,148 +260,9 @@ def _(n):
 
 #-- Settings
 
-setting('serial_name', '/dev/ttyUSB0', str, 'basic', _('Serial Name'))
-setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic', _('Baud rate'))
-setting('camera_id', '/dev/video0', str, 'basic', _('Camera Id'))
-setting('board', 'BT ATmega328', ['Arduino Uno', 'BT ATmega328'], 'basic', _('Board'))
-setting('invert_motor', False, bool, 'basic', _('Invert motor'))
+settings = Settings()
 
-# Hack to translate combo boxes:
-_('High')
-_('Medium')
-_('Low')
-setting('luminosity', 'Medium', ['High', 'Medium', 'Low'], 'basic', _('Luminosity'))
-
-setting('brightness_control', 128, int, 'advanced', _('Brightness')).setRange(0, 255)
-setting('contrast_control', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
-setting('saturation_control', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_control', 16, int, 'basic', _('Exposure')).setRange(1, 512)
-setting('framerate_control', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
-setting('resolution_control', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
-setting('use_distortion_control', False, bool, 'advanced', _('Use Distortion'))
-
-setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
-setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRange(1, 1000)
-
-setting('brightness_calibration', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
-setting('contrast_calibration', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
-setting('saturation_calibration', 100, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_calibration', 16, int, 'basic', _('Exposure')).setRange(1, 512)
-setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
-setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
-setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
-
-# Hack to translate combo boxes:
-_('Simple Scan')
-_('Texture Scan')
-setting('scan_type', 'Texture Scan', ['Simple Scan', 'Texture Scan'], 'basic', _('Scan'))
-# Hack to translate combo boxes:
-_('Left')
-_('Right')
-_('Both')
-setting('use_laser', 'Both', ['Left', 'Right', 'Both'], 'basic', _('Use Laser'))
-setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
-
-setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
-setting('acceleration_scanning', 300, int, 'advanced', _('Acceleration')).setRange(1, 1000)
-
-setting('brightness_scanning', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
-setting('contrast_scanning', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
-setting('saturation_scanning', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('laser_exposure_scanning', 6, int, 'basic', _('Exposure'), tag='simple').setRange(1, 512)
-setting('color_exposure_scanning', 10, int, 'basic', _('Exposure'), tag='texture').setRange(1, 512)
-setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
-setting('resolution_scanning', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
-setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
-
-# Hack to translate combo boxes:
-_('Laser')
-_('Gray')
-_('Line')
-_('Color')
-setting('img_type', 'Laser', ['Laser', 'Gray', 'Line', 'Color'], 'advanced', _('Image Type'))
-
-setting('use_open', True, bool, 'advanced', _('Use Open'), tag='texture')
-setting('open_value', 2, int, 'advanced', _('Open'), tag='texture').setRange(1, 10)
-setting('use_threshold', True, bool, 'advanced', _('Use Threshold'), tag='texture')
-setting('threshold_value', 25, int, 'advanced', _('Threshold'), tag='texture').setRange(0, 255)
-setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'), tag='simple')
-setting('cr_threshold_value', 140, int, 'advanced', _('Threshold'), tag='simple').setRange(0, 255)
-
-setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
-
-setting('adjust_laser', True, bool, 'advanced', _('Adjust Laser'))
-
-setting('camera_matrix', ([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]]), numpy.ndarray, 'advanced', _('Calibration Matrix'))
-setting('distortion_vector',([0.0,0.0,0.0,0.0,0.0]),numpy.ndarray,'advanced',_('Distortion Vector'))
-
-setting('laser_threshold_value', 120., int, 'advanced', _('Laser Threshold')).setRange(0, 255)
-
-setting('distance_left', 0.0, float, 'advanced', _('Distance'))
-setting('normal_left', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
-setting('distance_right', 0.0, float, 'advanced', _('Distance'))
-setting('normal_right', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
-
-setting('rotation_matrix', ([[0.0,1.0,0.0],[0.0,0.0,-1.0],[-1.0,0.0,0.0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
-setting('translation_vector', ([5.0,80.0,320.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
-
-setting('pattern_rows', 6, int, 'advanced', _('Pattern Rows'))
-setting('pattern_columns', 11, int, 'advanced', _('Pattern Columns'))
-setting('square_width', 13, int, 'advanced', _('Square width'))
-setting('pattern_distance', 0, float, 'advanced', _('Pattern Distance'))
-setting('extrinsics_step', -5.0, float, 'advanced', _('Extrinsics Step'), False)
-
-setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
-setting('laser_origin', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Origin'))
-setting('laser_normal', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Normal'))
-
-setting('left_button', '', str, 'basic', _('Left'), False)
-setting('right_button', '', str, 'basic', _('Right'), False)
-setting('move_button', '', str, 'basic', _('Move'), False)
-setting('enable_button', '', str, 'basic', _('Enable'), False)
-setting('gcode_gui', '', str, 'advanced', _('Send'), False)
-setting('ldr_value', '', str, 'advanced', _('Send'), False)
-
-setting('machine_diameter', 200.0, float, 'machine_setting', _('Machine Diameter'))
-setting('machine_width', 200.0, float, 'machine_setting', _('Machine Width'))
-setting('machine_height', 200.0, float, 'machine_setting', _('Machine Height'))
-setting('machine_depth', 200.0, float, 'machine_setting', _('Machine Depth'))
-setting('machine_shape', 'Circular', ['Circular', 'Rectangular'], 'machine_setting', _('Machine Shape'))
-setting('machine_model_path', resources.getPathForMesh('ciclop_platform.stl'), str, 'machine_setting', _('Machine Model')) # TODO: Check if this path should be absolute
-
-setting('view_roi', False, bool, 'machine_setting', _('View ROI'))
-setting('roi_diameter', 200, int, 'machine_setting', _('Diameter')).setRange(0,250)
-setting('roi_width', 200, int, 'machine_setting', _('Width')).setRange(0,250)
-setting('roi_height', 200, int, 'machine_setting', _('Height')).setRange(0,250)
-setting('roi_depth', 200, int, 'machine_setting', _('Depth')).setRange(0,250)
-
-##-- Preferences
-
-setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
-# Hack to translate combo boxes:
-_('Control workbench')
-_('Calibration workbench')
-_('Scanning workbench')
-setting('workbench', 'Scanning workbench', ['Control workbench', 'Calibration workbench', 'Scanning workbench'], 'preference', 'hidden')
-setting('show_welcome', True, bool, 'preference', 'hidden')
-setting('check_for_updates', True, bool, 'preference', 'hidden')
-setting('basic_mode', False, bool, 'preference', 'hidden')
-setting('view_control_panel', True, bool, 'preference', 'hidden')
-setting('view_control_video', True, bool, 'preference', 'hidden')
-setting('view_calibration_panel', True, bool, 'preference', 'hidden')
-setting('view_calibration_video', True, bool, 'preference', 'hidden')
-setting('view_scanning_panel', False, bool, 'preference', 'hidden')
-setting('view_scanning_video', False, bool, 'preference', 'hidden')
-setting('view_scanning_scene', True, bool, 'preference', 'hidden')
-
-# TODO: change default last file
-setting('last_files', [], str, 'preference', 'hidden')
-setting('last_file', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
-setting('last_profile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'example', 'default.ini')), str, 'preference', 'hidden')
-
-setting('model_color', '#888899', str, 'preference', 'hidden').setLabel(_('Model color'), _('Display color for first extruder'))
+settings.populateSettings()
 
 #Remove fake defined _() because later the localization will define a global _()
 del _
@@ -422,22 +345,6 @@ def getSettingMaxValue(name):
 ## Profile and preferences functions
 #########################################################
 
-def getSubCategoriesFor(category):
-	done = {}
-	ret = []
-	for s in settingsList:
-		if s.getCategory() == category and not s.getSubCategory() in done and s.checkConditions():
-			done[s.getSubCategory()] = True
-			ret.append(s.getSubCategory())
-	return ret
-
-def getSettingsForCategory(category, subCategory = None):
-	ret = []
-	for s in settingsList:
-		if s.getCategory() == category and (subCategory is None or s.getSubCategory() == subCategory) and s.checkConditions():
-			ret.append(s)
-	return ret
-
 ## Profile functions
 def getBasePath():
 	"""
@@ -457,26 +364,6 @@ def getBasePath():
 			print "Failed to create directory: %s" % (basePath)
 	return basePath
 
-def getAlternativeBasePaths():
-	"""
-	Search for alternative installations of Horus and their preference files. Used to load configuration from older versions of Horus.
-	"""
-	paths = []
-	basePath = os.path.normpath(os.path.join(getBasePath(), '..'))
-	for subPath in os.listdir(basePath):
-		path = os.path.join(basePath, subPath)
-		if os.path.isdir(path) and os.path.isfile(os.path.join(path, 'preferences.ini')) and path != getBasePath():
-			paths.append(path)
-		path = os.path.join(basePath, subPath, 'Horus')
-		if os.path.isdir(path) and os.path.isfile(os.path.join(path, 'preferences.ini')) and path != getBasePath():
-			paths.append(path)
-	return paths
-
-def getDefaultProfilePath():
-	"""
-	:return: The default path where the currently used profile is stored and loaded on open and close of Horus.
-	"""
-	return os.path.join(getBasePath(), 'current_profile.ini')
 
 def loadProfile(filename, allMachines = False):
 	"""
@@ -535,9 +422,14 @@ def saveProfile(filename, allMachines = False):
 
 	profileParser.write(open(filename, 'w'))
 
+
+
+
+# TODO: Keep checking which of these functions are used..
+
+
 def resetProfile():
 	""" Reset the profile for the current machine to default. """
-	global settingsList
 	for set in settingsList:
 		if not set.isProfile():
 			continue
