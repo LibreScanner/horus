@@ -46,7 +46,7 @@ class ScanningPage(WizardPage):
 		self.driver = Driver.Instance()
 		self.pcg = PointCloudGenerator.Instance()
 
-		value = abs(float(profile.getProfileSetting('step_degrees_scanning')))
+		value = abs(float(profile.settings['step_degrees_scanning']))
 		if value > 1.35:
 			value = _("Low")
 		elif value > 0.625:
@@ -60,26 +60,25 @@ class ScanningPage(WizardPage):
 												style=wx.CB_READONLY)
 
 		_choices = []
-		choices = profile.getProfileSettingObject('use_laser').getType()
+		choices = profile.settings.getPossibleValues('use_laser')
 		for i in choices:
 			_choices.append(_(i))
 		self.laserDict = dict(zip(_choices, choices))
 		self.laserLabel = wx.StaticText(self.panel, label=_("Laser"))
-		useLaser = profile.getProfileSettingObject('use_laser').getType()
+		useLaser = profile.settings.getPossibleValues('use_laser')
 		self.laserComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
-										value=_(profile.getProfileSetting('use_laser')),
+										value=_(profile.settings['use_laser']),
 										choices=_choices,
 										style=wx.CB_READONLY)
 
 		_choices = []
-		choices = profile.getProfileSettingObject('scan_type').getType()
+		choices = profile.settings.getPossibleValues('scan_type')
 		for i in choices:
 			_choices.append(_(i))
 		self.scanTypeDict = dict(zip(_choices, choices))
 		self.scanTypeLabel = wx.StaticText(self.panel, label=_('Scan'))
-		scanType = profile.getProfileSettingObject('scan_type').getType()
 		self.scanTypeComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
-											value=_(profile.getProfileSetting('scan_type')),
+											value=_(profile.settings['scan_type']),
 											choices=_choices,
 											style=wx.CB_READONLY)
 
@@ -164,7 +163,7 @@ class ScanningPage(WizardPage):
 			profile.putPreference('workbench', 'Scanning workbench')
 			self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
-			value = profile.getProfileSetting('use_laser')
+			value = profile.settings['use_laser']
 			if value == 'Left':
 				self.driver.board.setLeftLaserOn()
 				self.driver.board.setRightLaserOff()

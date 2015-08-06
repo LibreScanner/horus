@@ -54,8 +54,8 @@ class PreferencesDialog(wx.Dialog):
 
 		self.firmwareStaticText = wx.StaticText(self, label=_("Burn Firmware"), style=wx.ALIGN_CENTRE)
 		self.boardLabel = wx.StaticText(self, label=_("AVR Board"))
-		self.boards = profile.getProfileSettingObject('board').getType()
-		board = profile.getProfileSetting('board')
+		self.boards = profile.settings.getPossibleValues('board')
+		board = profile.settings['board']
 		self.boardsCombo = wx.ComboBox(self, choices=self.boards, value=board , size=(168,-1), style=wx.CB_READONLY)
 		self.hexLabel = wx.StaticText(self, label=_("Binary file"))
 		self.hexCombo = wx.ComboBox(self, choices=[_("Default"), _("External file...")], value=_("Default") , size=(172,-1), style=wx.CB_READONLY)
@@ -88,17 +88,17 @@ class PreferencesDialog(wx.Dialog):
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
 		#-- Fill data
-		currentSerial = profile.getProfileSetting('serial_name')
+		currentSerial = profile.settings['serial_name']
 		if len(self.serialNames) > 0:
 			if currentSerial not in self.serialNames:
 				self.serialNameCombo.SetValue(self.serialNames[0])
 			else:
 				self.serialNameCombo.SetValue(currentSerial)
 
-		currentBaudRate = profile.getProfileSetting('baud_rate')
+		currentBaudRate = profile.settings['baud_rate']
 		self.baudRateCombo.SetValue(currentBaudRate)
 
-		currentVideoId = profile.getProfileSetting('camera_id')
+		currentVideoId = profile.settings['camera_id']
 		if len(self.cameraIdNames) > 0:
 			if currentVideoId not in self.cameraIdNames:
 				self.cameraIdCombo.SetValue(self.cameraIdNames[0])
@@ -219,7 +219,7 @@ class PreferencesDialog(wx.Dialog):
 			return 19200
 
 	def loadFirmware(self, hexBaudRate, clearEEPROM):
-		avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'), baudRate=hexBaudRate)
+		avr_dude = AvrDude(port=profile.settings['serial_name'], baudRate=hexBaudRate)
 		extraFlags = []
 		if clearEEPROM:
 			extraFlags = ["-D"]

@@ -47,7 +47,7 @@ class CameraSettingsPanel(ExpandablePanel):
 
         self.driver = Driver.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
-        self.last_resolution = profile.getProfileSetting('resolution_calibration')
+        self.last_resolution = profile.settings['resolution_calibration']
 
         self.clearSections()
         section = self.createSection('camera_calibration')
@@ -77,7 +77,7 @@ class CameraSettingsPanel(ExpandablePanel):
         if value != self.last_resolution:
             ResolutionWindow(self)
         self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
-        self.last_resolution = profile.getProfileSetting('resolution_calibration')
+        self.last_resolution = profile.settings['resolution_calibration']
 
 
 class PatternSettingsPanel(ExpandablePanel):
@@ -285,8 +285,8 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('camera_matrix')
-            profile.resetProfileSetting('distortion_vector')
+            profile.settings.resetToDefault('camera_matrix')
+            profile.settings.resetToDefault('distortion_vector')
             self.updateProfile()
 
     def getParameters(self):
@@ -470,10 +470,10 @@ class LaserTriangulationPanel(CalibrationPanel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('distance_left')
-            profile.resetProfileSetting('normal_left')
-            profile.resetProfileSetting('distance_right')
-            profile.resetProfileSetting('normal_right')
+            profile.settings.resetToDefault('distance_left')
+            profile.settings.resetToDefault('normal_left')
+            profile.settings.resetToDefault('distance_right')
+            profile.settings.resetToDefault('normal_right')
             self.updateProfile()
 
     def getParameters(self):
@@ -655,9 +655,9 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('laser_coordinates')
-            profile.resetProfileSetting('laser_origin')
-            profile.resetProfileSetting('laser_normal')
+            profile.settings.resetToDefault('laser_coordinates')
+            profile.settings.resetToDefault('laser_origin')
+            profile.settings.resetToDefault('laser_normal')
             self.updateProfile()
 
     def getParameters(self):
@@ -805,8 +805,8 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('rotation_matrix')
-            profile.resetProfileSetting('translation_vector')
+            profile.settings.resetToDefault('rotation_matrix')
+            profile.settings.resetToDefault('translation_vector')
             self.updateProfile()
 
     def getParameters(self):

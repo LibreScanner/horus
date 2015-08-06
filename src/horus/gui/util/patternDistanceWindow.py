@@ -38,7 +38,7 @@ class PatternDistanceWindow(wx.Dialog):
     def __init__(self, parent):
         super(PatternDistanceWindow, self).__init__(parent, title=_('Pattern distance'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
-        self.value = float(profile.getProfileSetting('pattern_distance'))
+        self.value = float(profile.settings['pattern_distance'])
         self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
         self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
         self.laserTriangulation = calibration.LaserTriangulation.Instance()

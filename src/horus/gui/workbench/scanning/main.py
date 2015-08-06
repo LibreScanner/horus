@@ -118,13 +118,13 @@ class ScanningWorkbench(WorkbenchConnection):
 
 		#- Video View Selector
 		_choices = []
-		choices = profile.getProfileSettingObject('img_type').getType()
+		choices = profile.settings.getPossibleValues('img_type')
 		for i in choices:
 			_choices.append(_(i))
 		self.videoViewsDict = dict(zip(_choices, choices))
 
 		self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10,10))
-		self.comboVideoViews = wx.ComboBox(self.videoView, value=_(profile.getProfileSetting('img_type')), choices=_choices, style=wx.CB_READONLY, pos=(60,10))
+		self.comboVideoViews = wx.ComboBox(self.videoView, value=_(profile.settings['img_type']), choices=_choices, style=wx.CB_READONLY, pos=(60,10))
 
 		self.buttonShowVideoViews.Hide()
 		self.comboVideoViews.Hide()
@@ -194,7 +194,7 @@ class ScanningWorkbench(WorkbenchConnection):
 				result = dlg.ShowModal() == wx.ID_YES
 				dlg.Destroy()
 			if result:
-				value = profile.getProfileSetting('scan_type')
+				value = profile.settings['scan_type']
 				if value == 'Simple Scan':
 					self.currentScan = self.simpleScan
 				elif value == 'Texture Scan':

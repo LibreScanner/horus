@@ -293,10 +293,10 @@ class SettingsWindow(wx.Dialog):
 
         #-- Elements
         _choices = []
-        choices = profile.getProfileSettingObject('luminosity').getType()
+        choices = profile.settings.getPossibleValues('luminosity')
         for i in choices:
             _choices.append(_(i))
-        self.initLuminosity = profile.getProfileSetting('luminosity')
+        self.initLuminosity = profile.settings['luminosity']
         self.luminosityDict = dict(zip(_choices, choices))
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
         self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until colored lines appear over the chess pattern in the video')))
@@ -310,7 +310,7 @@ class SettingsWindow(wx.Dialog):
         tooltip = _("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
         self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
         
-        self.patternDistance = float(profile.getProfileSetting('pattern_distance'))
+        self.patternDistance = float(profile.settings['pattern_distance'])
         self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))
         self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))

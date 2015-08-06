@@ -52,7 +52,7 @@ class ScanParameters(ExpandablePanel):
         self.pcg = PointCloudGenerator.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
         self.parent = parent
-        self.lastScan = profile.getProfileSetting('scan_type')
+        self.lastScan = profile.settings['scan_type']
 
         self.clearSections()
         section = self.createSection('scan_parameters')
@@ -155,7 +155,7 @@ class ImageAcquisition(ExpandablePanel):
         self.simpleScan = SimpleScan.Instance()
         self.textureScan = TextureScan.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
-        self.last_resolution = profile.getProfileSetting('resolution_scanning')
+        self.last_resolution = profile.settings['resolution_scanning']
         
         self.clearSections()
         section = self.createSection('camera_scanning')
@@ -187,7 +187,7 @@ class ImageAcquisition(ExpandablePanel):
         if value != self.last_resolution:
             ResolutionWindow(self)
         self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
-        self.last_resolution = profile.getProfileSetting('resolution_scanning')
+        self.last_resolution = profile.settings['resolution_scanning']
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:

@@ -74,14 +74,14 @@ class MainWindow(wx.Frame):
 
         #-- Serial Name initialization
         serialList = self.serialList()
-        currentSerial = profile.getProfileSetting('serial_name')
+        currentSerial = profile.settings['serial_name']
         if len(serialList) > 0:
             if currentSerial not in serialList:
                 profile.putProfileSetting('serial_name', serialList[0])
 
         #-- Video Id initialization
         videoList = self.videoList()
-        currentVideoId = profile.getProfileSetting('camera_id')
+        currentVideoId = profile.settings['camera_id']
         if len(videoList) > 0:
             if currentVideoId not in videoList:
                 profile.putProfileSetting('camera_id', videoList[0])
@@ -163,7 +163,7 @@ class MainWindow(wx.Frame):
         self.calibrationWorkbench = CalibrationWorkbench(self)
 
         _choices = []
-        choices = profile.getProfileSettingObject('workbench').getType()
+        choices = profile.settings.getPossibleValues('workbench')
         for i in choices:
             _choices.append(_(i))
         self.workbenchDict = dict(zip(_choices, choices))
@@ -621,8 +621,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.Layout()
 
     def updateDriverProfile(self):
-        self.driver.camera.setCameraId(int(profile.getProfileSetting('camera_id')[-1:]))
-        self.driver.board.setSerialName(profile.getProfileSetting('serial_name'))
+        self.driver.camera.setCameraId(int(profile.settings['camera_id'][-1:]))
+        self.driver.board.setSerialName(profile.settings['serial_name'])
         self.driver.board.setBaudRate(profile.getProfileSettingInteger('baud_rate'))
         self.driver.board.setInvertMotor(profile.getProfileSettingBool('invert_motor'))
 
@@ -634,9 +634,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.pcg.setROIHeight(profile.getMachineSettingInteger('roi_height'))
         self.pcg.setROIDepth(profile.getMachineSettingInteger('roi_depth'))
         self.pcg.setDegrees(profile.getProfileSettingFloat('step_degrees_scanning'))
-        resolution = profile.getProfileSetting('resolution_scanning')
+        resolution = profile.settings['resolution_scanning']
         self.pcg.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
-        useLaser = profile.getProfileSetting('use_laser')
+        useLaser = profile.settings['use_laser']
         self.pcg.setUseLaser(useLaser == 'Left' or useLaser == 'Both',
                              useLaser == 'Right' or useLaser == 'Both')
         self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
@@ -648,7 +648,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.pcg.setPlatformExtrinsics(profile.getProfileSettingNumpy('rotation_matrix'),
                                        profile.getProfileSettingNumpy('translation_vector'))
 
-        scanType = profile.getProfileSetting('scan_type')
+        scanType = profile.settings['scan_type']
         if scanType == 'Simple Scan':
             self.scanningWorkbench.currentScan = self.simpleScan
             self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
@@ -659,15 +659,15 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
         self.simpleScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
         self.simpleScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
-        self.simpleScan.setImageType(profile.getProfileSetting('img_type'))
+        self.simpleScan.setImageType(profile.settings['img_type']
         self.simpleScan.setUseThreshold(profile.getProfileSettingBool('use_cr_threshold'))
         self.simpleScan.setThresholdValue(profile.getProfileSettingInteger('cr_threshold_value'))
-        self.simpleScan.setColor(struct.unpack('BBB',profile.getProfileSetting('point_cloud_color').decode('hex')))
+        self.simpleScan.setColor(struct.unpack('BBB',profile.settings['point_cloud_color'].decode('hex')))
 
         self.textureScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
         self.textureScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
         self.textureScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
-        self.textureScan.setImageType(profile.getProfileSetting('img_type'))
+        self.textureScan.setImageType(profile.settings['img_type'])
         self.textureScan.setUseOpen(profile.getProfileSettingBool('use_open'))
         self.textureScan.setOpenValue(profile.getProfileSettingInteger('open_value'))
         self.textureScan.setUseThreshold(profile.getProfileSettingBool('use_threshold'))

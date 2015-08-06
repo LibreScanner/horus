@@ -60,7 +60,7 @@ class Settings(collections.MutableMapping):
 		if self._settings_dict[key].value != None:
 			return self._settings_dict[key].value
 		else:
-			return self._settings_dict[key].__default
+			return self._settings_dict[key].default
 
 	def getSetting(self, key):
 		return self._settings_dict[key]
@@ -73,6 +73,9 @@ class Settings(collections.MutableMapping):
 
 	def getMaxValue(self, key):
 		return self.getSetting(key).__max_value
+
+	def getPossibleValues(self, key):
+		return self.getSetting(key)._possible_values
 
 	# Setters
 
@@ -349,7 +352,7 @@ class Setting(object):
 		# Convert only configurable fields
 		json_dict = dict()
 		if self._type == np.ndarray and self.value != None:
-			json_dict['value'] = np.self.value.tolist()
+			json_dict['value'] = self.value.tolist()
 		else:
 			json_dict['value'] = self.value
 		json_dict['min_value'] = self.min_value
@@ -361,17 +364,6 @@ class Setting(object):
 #Define a fake _() function to fake the gettext tools in to generating strings for the profile settings.
 def _(n):
 	return n
-
-
-
-
-
-# TESTING
-
-settings = Settings()
-
-settings._initializeSettings()
-
 
 
 def loadOldSettings(filename):
@@ -402,15 +394,22 @@ def loadOldSettings(filename):
 			else:
 				raise TypeError("Unknown type when loading old setting:", key)
 
-loadOldSettings('/home/nicanor.romero/.horus/machine_settings.ini')
-loadOldSettings('/home/nicanor.romero/.horus/current-profile.ini')
-loadOldSettings('/home/nicanor.romero/.horus/preferences.ini')
+
+# TESTING
+
+settings = Settings()
+
+settings._initializeSettings()
 
 
 
 
-print "Done."
 
+
+
+# loadOldSettings('/home/nicanor.romero/.horus/machine_settings.ini')
+# loadOldSettings('/home/nicanor.romero/.horus/current-profile.ini')
+# loadOldSettings('/home/nicanor.romero/.horus/preferences.ini')
 
 
 #Remove fake defined _() because later the localization will define a global _()
@@ -452,19 +451,8 @@ del _
 ## Settings functions
 #########################################################
 
-def getSetting(name):
-	"""
-		Get the value of a setting.
-	:param name: Name of the setting to retrieve.
-	:return:     Value of the current setting.
-	"""
-	global settingsDictionary
-	if name in settingsDictionary:
-		return settingsDictionary[name].getValue()
-	traceback.print_stack()
-	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
-	return ''
 
+# Refactoring pending...
 def getSettingObject(name):
 	""" """
 	global settingsList
@@ -472,55 +460,9 @@ def getSettingObject(name):
 		if set.getName() is name:
 			return set
 
-def putSetting(name, value):
-	""" Store a certain value in a setting. """
-	global settingsDictionary
-	if name in settingsDictionary:
-		settingsDictionary[name].setValue(value)
 
-def resetSetting(name):
-	""" Reset only the especified setting """
-	global settingsDictionary
-	if name in settingsDictionary:
-		settingsDictionary[name].setValue(settingsDictionary[name].__default)
 
-def getSettingBool(name):
-	try:
-		setting = getSetting(name)
-		return bool(eval(setting, {}, {}))
-	except:
-		return False
 
-def getSettingInteger(name):
-	try:
-		setting = getSetting(name)
-		return int(eval(setting, {}, {}))
-	except:
-		return 0
-
-def getSettingMinValue(name):
-	global settingsDictionary
-	if name in settingsDictionary:
-		setting = settingsDictionary[name].getMinValue()
-		try:
-			return int(eval(setting, {}, {}))
-		except:
-			return 0
-	traceback.print_stack()
-	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
-	return ''
-
-def getSettingMaxValue(name):
-	global settingsDictionary
-	if name in settingsDictionary:
-		setting = settingsDictionary[name].getMaxValue()
-		try:
-			return int(eval(setting, {}, {}))
-		except:
-			return 0
-	traceback.print_stack()
-	sys.stderr.write('Error: "%s" not found in settings\n' % (name))
-	return ''
 
 #########################################################
 ## Profile and preferences functions
@@ -546,6 +488,8 @@ def getSettingMaxValue(name):
 # 			print "Failed to create directory: %s" % (basePath)
 # 	return basePath
 
+
+# pending
 def loadProfile(filename):
 	"""
 		Read a profile file as active profile settings.
@@ -591,33 +535,22 @@ def resetProfile():
 			continue
 		set.setValue(set.getDefault())
 
-def resetProfileSetting(name):
-	""" Reset only the especified profile setting """
-	global settingsDictionary
-	if name in settingsDictionary and settingsDictionary[name].isProfile():
-		settingsDictionary[name].setValue(settingsDictionary[name].__default)
 
-def getProfileSettingObject(name):
-	""" """
-	global settingsList
-	for set in settingsList:
-		if set.getName() is name:
-			return set
+
+
+
+
+
+
+
+
+
+
+
 
 #TODO: get profile setting using getType
 
-def getProfileSetting(name):
-	"""
-		Get the value of an profile setting.
-	:param name: Name of the setting to retrieve.
-	:return:     Value of the current setting.
-	"""
-	global settingsDictionary
-	if name in settingsDictionary and settingsDictionary[name].isProfile():
-		return settingsDictionary[name].getValue()
-	traceback.print_stack()
-	sys.stderr.write('Error: "%s" not found in profile settings\n' % (name))
-	return ''
+
 
 def getProfileSettingInteger(name):
 	try:
