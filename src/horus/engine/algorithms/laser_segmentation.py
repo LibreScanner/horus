@@ -23,13 +23,13 @@ class LaserSegmentation(object):
                         'gray': [None, None],
                         'line': [None, None]}
 
-    def set_use_open(self, value):
-        self.use_open = value
+    def set_open_enable(self, value):
+        self.open_enable = value
 
     def set_open_value(self, value):
         self.open_value = value
 
-    def set_use_threshold(self, value):
+    def set_threshold_enable(self, value):
         self.threshold_enable = value
 
     def set_threshold_value(self, value):

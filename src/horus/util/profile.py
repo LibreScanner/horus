@@ -174,7 +174,7 @@ class setting(object):
 def _(n):
 	return n
 
-#-- Settings
+# Settings
 
 setting('serial_name', '/dev/ttyUSB0', str, 'basic', _('Serial Name'))
 setting('baud_rate', 115200, [9600, 14400, 19200, 38400, 57600, 115200], 'basic', _('Baud rate'))
@@ -210,33 +210,36 @@ setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion
 
 setting('pattern_rows', 6, int, 'advanced', _('Pattern Rows'))
 setting('pattern_columns', 11, int, 'advanced', _('Pattern Columns'))
-setting('pattern_square_width', 13, int, 'advanced', _('Square width'))
+setting('pattern_square_width', 13, int, 'advanced', _('Square Width'))
 setting('pattern_distance', 0, float, 'advanced', _('Pattern Distance'))
 
+setting('capture_texture', True, bool, 'advanced', _('Capture Texture'))
+setting('remove_background', True, bool, 'advanced', _('Remove Background'))
+setting('use_left_laser', True, bool, 'advanced', _('Use Left Laser'))
+setting('use_right_laser', True, bool, 'advanced', _('Use Right Laser'))
 
-# Hack to translate combo boxes:
-_('Simple Scan')
-_('Texture Scan')
-setting('scan_type', 'Texture Scan', ['Simple Scan', 'Texture Scan'], 'basic', _('Scan'))
-# Hack to translate combo boxes:
-_('Left')
-_('Right')
-_('Both')
-setting('use_laser', 'Both', ['Left', 'Right', 'Both'], 'basic', _('Use Laser'))
-setting('fast_scan', False, bool, 'advanced', _('Fast Scan (experimental)'))
-
-setting('step_degrees_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
-setting('feed_rate_scanning', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
-setting('acceleration_scanning', 300, int, 'advanced', _('Acceleration')).setRange(1, 1000)
+setting('motor_step_scanning', 0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
+setting('motor_speed_scanning', 200, int, 'advanced', _('Speed')).setRange(1, 1000)
+setting('motor_acceleration_scanning', 300, int, 'advanced', _('Acceleration')).setRange(1, 1000)
 
 setting('brightness_scanning', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_scanning', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_scanning', 32, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('laser_exposure_scanning', 6, int, 'basic', _('Exposure'), tag='simple').setRange(1, 128)
-setting('color_exposure_scanning', 10, int, 'basic', _('Exposure'), tag='texture').setRange(1, 128)
+setting('exposure_texture_scanning', 16, int, 'basic', _('Exposure Texture')).setRange(1, 128)
+setting('exposure_laser_scanning', 4, int, 'basic', _('Exposure Laser')).setRange(1, 128)
 setting('framerate_scanning', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'advanced', _('Framerate'))
 setting('resolution_scanning', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_scanning', False, bool, 'advanced', _('Use Distortion'))
+
+setting('open_enable', True, bool, 'advanced', _('Enable Open'), tag='texture')
+setting('open_value', 2, int, 'advanced', _('Open Value'), tag='texture').setRange(1, 10)
+setting('threshold_enable', True, bool, 'advanced', _('Enable Threshold'), tag='texture')
+setting('threshold_value', 25, int, 'advanced', _('Threshold Value'), tag='texture').setRange(0, 255)
+
+setting('view_roi', False, bool, 'advanced', _('View ROI'))
+setting('roi_diameter', 200, int, 'advanced', _('Diameter')).setRange(0, 250)
+setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
+setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
 # Hack to translate combo boxes:
 _('Laser')
@@ -244,20 +247,6 @@ _('Gray')
 _('Line')
 _('Color')
 setting('img_type', 'Laser', ['Laser', 'Gray', 'Line', 'Color'], 'advanced', _('Image Type'))
-
-setting('use_open', True, bool, 'advanced', _('Use Open'), tag='texture')
-setting('open_value', 2, int, 'advanced', _('Open'), tag='texture').setRange(1, 10)
-setting('use_threshold', True, bool, 'advanced', _('Use Threshold'), tag='texture')
-setting('threshold_value', 25, int, 'advanced', _('Threshold'), tag='texture').setRange(0, 255)
-setting('use_cr_threshold', True, bool, 'advanced', _('Use Threshold'), tag='simple')
-setting('cr_threshold_value', 140, int, 'advanced', _('Threshold'), tag='simple').setRange(0, 255)
-
-setting('view_roi', False, bool, 'advanced', _('View ROI'))
-
-setting('roi_diameter', 200, int, 'advanced', _('Diameter')).setRange(0, 250)
-setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
-
-setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose Point Cloud Color'))
 
 setting('adjust_laser', True, bool, 'advanced', _('Adjust Laser'))
 
@@ -295,7 +284,7 @@ setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_(
 setting('machine_shape', 'Circular', ['Square','Circular'], 'machine', 'hidden').setLabel(_("Build area shape"), _("The shape of machine build area."))
 
 
-##-- Preferences
+## Preferences
 
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Horus runs. Switching language requires a restart of Horus'))
 # Hack to translate combo boxes:

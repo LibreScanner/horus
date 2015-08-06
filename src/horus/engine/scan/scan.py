@@ -7,17 +7,20 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import threading
 
-from horus import Singleton
+from horus.engine.driver.driver import Driver
+from horus.engine.algorithms.laser_segmentation import LaserSegmentation
+from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
 
 
-@Singleton
 class Scan(object):
 
     """Generic class for threading scanning"""
 
     def __init__(self):
+        self.driver = Driver()
+        self.laser_segmentation = LaserSegmentation()
+        self.point_cloud_generation = PointCloudGeneration()
         self.is_scanning = False
-
         # TODO: Callbacks to Observer pattern
         self._before_callback = None
         self._progress_callback = None

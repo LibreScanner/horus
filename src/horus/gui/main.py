@@ -568,26 +568,25 @@ Suite 330, Boston, MA  02111-1307  USA""")
         driver.board.motor_invert(profile.getProfileSettingBool('invert_motor'))
 
     def updatePCGProfile(self):
-        
-        #ciclop_scan.with_difference = profile.getProfileSettingBool('scan_with_difference')
-        #ciclop_scan.with_texture = profile.getProfileSettingBool('scan_with_texture')
-        #ciclop_scan.exposure_texture = profile.getProfileSettingInteger('exposure_texture_scanning')
-        #ciclop_scan.exposure_laser = profile.getProfileSettingInteger('exposure_laser_scanning')
+        #ciclop_scan.capture_texture = profile.getProfileSettingBool('capture_texture')
+        #ciclop_scan.remove_background = profile.getProfileSettingBool('remove_background')
         #ciclop_scan.use_left_laser = profile.getProfileSettingBool('use_left_laser')
         #ciclop_scan.use_right_laser = profile.getProfileSettingBool('use_right_laser')
         #ciclop_scan.move_motor = profile.getProfileSettingBool('move_motor_scanning')
         #ciclop_scan.motor_step = profile.getProfileSettingInteger('motor_step_scanning')
         #ciclop_scan.motor_speed = profile.getProfileSettingInteger('motor_speed_scanning')
-        #ciclop_scan.motor_acceleration = profile.getProfileSettingInteger('exposure_acceleration_scanning')
+        #ciclop_scan.motor_acceleration = profile.getProfileSettingInteger('motor_acceleration_scanning')
+        #ciclop_scan.exposure_texture = profile.getProfileSettingInteger('exposure_texture_scanning')
+        #ciclop_scan.exposure_laser = profile.getProfileSettingInteger('exposure_laser_scanning')
 
         point_cloud_generation.resetTheta()
         point_cloud_generation.setViewROI(profile.getProfileSettingBool('view_roi'))
         point_cloud_generation.setROIDiameter(profile.getProfileSettingInteger('roi_diameter'))
         point_cloud_generation.setROIHeight(profile.getProfileSettingInteger('roi_height'))
 
-        laser_segmentation.open_enable = profile.getProfileSettingBool('use_open')
+        laser_segmentation.open_enable = profile.getProfileSettingBool('open_enable')
         laser_segmentation.open_value = profile.getProfileSettingInteger('open_value')
-        laser_segmentation.threshold_enable = profile.getProfileSettingBool('use_threshold')
+        laser_segmentation.threshold_enable = profile.getProfileSettingBool('threshold_enable')
         laser_segmentation.threshold_value = profile.getProfileSettingInteger('threshold_value')
 
     def updateCalibrationProfile(self):
