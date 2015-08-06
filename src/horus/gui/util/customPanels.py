@@ -627,10 +627,10 @@ class CallbackButton(SectionItem):
 		if self.engineCallback is not None:
 			self.control.Disable()
 			self.waitCursor = wx.BusyCursor()
-			self.engineCallback(self.onFinishCallback)
+			self.engineCallback(lambda r: wx.CallAfter(self.onFinishCallback, r))
 
 	def onFinishCallback(self, ret):
-		wx.CallAfter(self.control.Enable)
+		self.control.Enable()
 		if hasattr(self,'waitCursor'):
 			del self.waitCursor
 
