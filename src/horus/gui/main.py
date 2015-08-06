@@ -593,7 +593,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def updateCalibrationProfile(self):
         pattern.rows = profile.getProfileSettingInteger('pattern_rows')
         pattern.columns = profile.getProfileSettingInteger('pattern_columns')
-        pattern.square_width = profile.getProfileSettingInteger('square_width')
+        pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
         pattern.distance = profile.getProfileSettingFloat('pattern_distance')
         driver.camera.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
         driver.camera.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')

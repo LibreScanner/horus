@@ -230,7 +230,7 @@ class CameraIntrinsics3DPlot(wx.Panel):
 		# Parameters of the pattern
 		self.rows = profile.getProfileSettingInteger('pattern_rows')
 		self.columns = profile.getProfileSettingInteger('pattern_columns')
-		self.squareWidth = profile.getProfileSettingInteger('square_width')
+		self.squareWidth = profile.getProfileSettingInteger('pattern_square_width')
 		
 		self.printCanvas()
 

@@ -19,7 +19,8 @@ from horus.engine.driver.driver import Driver
 from horus.engine.driver.board import WrongFirmware, BoardNotConnected
 from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo
 from horus.engine.calibration.pattern import Pattern
-from horus.engine.calibration.autocheck import Autocheck
+from horus.engine.calibration.autocheck import Autocheck, PatternNotDetected, \
+    WrongMotorDirection, LaserNotDetected
 #from horus.engine.calibration import detect_chessboard
 
 
@@ -130,7 +131,8 @@ class ConnectionPage(WizardPage):
         if not ret:
             if isinstance(result, WrongFirmware):
                 dlg = wx.MessageDialog(
-                    self, _("Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board and press Upload Firmware"),
+                    self, _(
+                        "Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board and press Upload Firmware"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -138,7 +140,8 @@ class ConnectionPage(WizardPage):
                 self.GetParent().parent.onPreferences(None)
             elif isinstance(result, BoardNotConnected):
                 dlg = wx.MessageDialog(
-                    self, _("Board is not connected.\nPlease connect your board and select a valid Serial Name"),
+                    self, _(
+                        "Board is not connected.\nPlease connect your board and select a valid Serial Name"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -146,7 +149,8 @@ class ConnectionPage(WizardPage):
                 self.GetParent().parent.onPreferences(None)
             elif isinstance(result, WrongCamera):
                 dlg = wx.MessageDialog(
-                    self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"),
+                    self, _(
+                        "You probably have selected a wrong camera.\nPlease select other Camera Id"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -175,7 +179,8 @@ class ConnectionPage(WizardPage):
         if profile.getProfileSettingBool('adjust_laser'):
             profile.putProfileSetting('adjust_laser', False)
             dlg = wx.MessageDialog(
-                self, _("It is recomended to adjust line lasers vertically.\nYou need to use the allen wrench.\nDo you want to adjust it now?"),
+                self, _(
+                    "It is recomended to adjust line lasers vertically.\nYou need to use the allen wrench.\nDo you want to adjust it now?"),
                 _("Manual laser adjustment"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
@@ -205,13 +210,37 @@ class ConnectionPage(WizardPage):
     def progressAutoCheck(self, progress):
         self.gauge.SetValue(progress)
 
-    def afterAutoCheck(self, response):
-        if response:
-            self.resultLabel.SetLabel(response)
+    def afterAutoCheck(self, result):
+        if result:
+            self.resultLabel.SetLabel(str(result))
+            if isinstance(result, PatternNotDetected):
+                dlg = wx.MessageDialog(
+                    self, _("Please, put the pattern on the platform"),
+                    _(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+            elif isinstance(result, WrongMotorDirection):
+                dlg = wx.MessageDialog(
+                    self, _(
+                        'Please, go to "Edit settings" and select "Invert the motor direction"'),
+                    _(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+            elif isinstance(result, LaserNotDetected):
+                dlg = wx.MessageDialog(
+                    self, _("Please, check the lasers conection"),
+                    _(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
         else:
             self.resultLabel.SetLabel(_("All OK. Please press next to continue"))
+            dlg = wx.MessageDialog(
+                self, _("Autocheck executed correctly"),
+                _("Success!"), wx.OK | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
 
-        if response:
+        if result:
             self.skipButton.Enable()
             self.nextButton.Disable()
         else:
@@ -225,12 +254,10 @@ class ConnectionPage(WizardPage):
 
         self.settingsButton.Enable()
         self.breadcrumbs.Enable()
-        self.gauge.SetValue(100)
         self.enableNext = True
         self.resultLabel.Show()
         self.autoCheckButton.Enable()
         self.prevButton.Enable()
-        self.driver.board.motor_disable()
         self.gauge.Hide()
         if hasattr(self, 'waitCursor'):
             del self.waitCursor

@@ -208,6 +208,12 @@ setting('framerate_calibration', str('30'), [str('30'), str('25'), str('20'), st
 setting('resolution_calibration', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_calibration', False, bool, 'advanced', _('Use Distortion'))
 
+setting('pattern_rows', 6, int, 'advanced', _('Pattern Rows'))
+setting('pattern_columns', 11, int, 'advanced', _('Pattern Columns'))
+setting('pattern_square_width', 13, int, 'advanced', _('Square width'))
+setting('pattern_distance', 0, float, 'advanced', _('Pattern Distance'))
+
+
 # Hack to translate combo boxes:
 _('Simple Scan')
 _('Texture Scan')
@@ -268,11 +274,6 @@ setting('normal_right', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Normal'))
 setting('rotation_matrix', ([[0.0,1.0,0.0],[0.0,0.0,-1.0],[-1.0,0.0,0.0]]), numpy.ndarray, 'advanced', _('Rotation Matrix'))
 setting('translation_vector', ([5.0,80.0,320.0]), numpy.ndarray, 'advanced', _('Translation Matrix'))
 
-setting('pattern_rows', 6, int, 'advanced', _('Pattern Rows'))
-setting('pattern_columns', 11, int, 'advanced', _('Pattern Columns'))
-setting('square_width', 13, int, 'advanced', _('Square width'))
-setting('pattern_distance', 0, float, 'advanced', _('Pattern Distance'))
-
 setting('laser_coordinates', ([[480.0,480.0],[480.0,480.0]]), numpy.ndarray, 'advanced', _('Laser Coordinates'))
 setting('laser_origin', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Origin'))
 setting('laser_normal', ([0.0,0.0,0.0]), numpy.ndarray, 'advanced', _('Laser Normal'))
@@ -283,6 +284,7 @@ setting('move_button', '', str, 'basic', _('Move'), False)
 setting('enable_button', '', str, 'basic', _('Enable'), False)
 setting('gcode_gui', '', str, 'advanced', _('Send'), False)
 setting('ldr_value', '', str, 'advanced', _('Send'), False)
+setting('autocheck_button', '', str, 'basic', _('Perform Autocheck'), False)
 
 setting('machine_name', '', str, 'machine', 'hidden')
 setting('machine_type', 'ciclop', str, 'machine', 'hidden')

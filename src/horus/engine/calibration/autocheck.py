@@ -5,12 +5,39 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-from horus.engine.driver.driver import Driver
+import cv2
+import time
+import numpy as np
+
+from horus import Singleton
 from horus.engine.calibration.calibration import Calibration
 
-driver = Driver()
+
+class PatternNotDetected(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("Pattern Not Detected"))
 
 
+class WrongMotorDirection(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("Wrong Motor Direction"))
+
+
+class LaserNotDetected(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("Laser Not Detected"))
+
+
+class WrongLaserPosition(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("Wrong Laser Position"))
+
+
+@Singleton
 class Autocheck(Calibration):
 
     """Auto check algorithm:
@@ -24,29 +51,29 @@ class Autocheck(Calibration):
         self.image = None
 
     def _start(self):
-        if driver.is_connected:
+        if self.driver.is_connected:
 
             response = None
             self.image = None
 
             # Setup scanner
-            board.lasers_off()
-            board.motor_enable()
+            self.driver.board.lasers_off()
+            self.driver.board.motor_enable()
 
-            # Perform auto check
+            # Perform autocheck
             try:
                 self.check_pattern_and_motor()
                 time.sleep(0.1)
                 self.check_lasers()
-                self.move_home()
             except Exception as e:
-                response = str(e)
+                response = e
             finally:
-                board.lasers_off()
-                board.motor_disable()
+                self.driver.board.lasers_off()
+                self.driver.board.motor_disable()
+                if self._progress_callback is not None:
+                    self._progress_callback(100)
 
             self.image = None
-
             self._is_calibrating = False
 
             if self._after_callback is not None:
@@ -58,23 +85,23 @@ class Autocheck(Calibration):
         patterns_sorted = {}
 
         # Setup scanner
-        board.motor_speed(300)
-        board.motor_acceleration(500)
+        self.driver.board.motor_speed(300)
+        self.driver.board.motor_acceleration(500)
 
         if self._progress_callback is not None:
             self._progress_callback(0)
 
         # Capture data
         for i in xrange(0, 360, scan_step):
-            image = camera.capture_image(flush=1)
+            image = self.driver.camera.capture_image(flush=1)
             self.image = image
-            ret = solve_pnp(image)
+            ret = self.solve_pnp(image)
             if ret is not None:
                 patterns_detected[i] = ret[0].T[2][0]
             if self._progress_callback is not None:
-                self._progress_callback(i / 4.)
-            board.motor_relative(scan_step)
-            board.motor_move()
+                self._progress_callback(i / 3.6)
+            self.driver.board.motor_relative(scan_step)
+            self.driver.board.motor_move()
 
         # Check pattern detection
         if len(patterns_detected) == 0:
@@ -101,39 +128,52 @@ class Autocheck(Calibration):
         pos = -c / m
         if pos > 180:
             pos = pos - 360
-        board.motor_relative(pos)
-        board.motor_move()
+        self.driver.board.motor_relative(pos)
+        self.driver.board.motor_move()
 
     def check_lasers(self):
-        img_raw = camera.capture_image(flush=1)
+        img_raw = self.driver.camera.capture_image(flush=1)
         self.image = img_raw
 
         if img_raw is not None:
-            s = solve_pnp(img_raw)
+            s = self.solve_pnp(img_raw)
             if s is not None:
-                board.laser_left_on()
-                img_las_left = camera.capture_image(flush=1)
-                board.laser_left_off()
-                board.laser_right_on()
-                img_las_right = camera.capture_image(flush=1)
-                board.laser_right_off()
+                self.driver.board.laser_left_on()
+                img_las_left = self.driver.camera.capture_image(flush=1)
+                self.driver.board.laser_left_off()
+                self.driver.board.laser_right_on()
+                img_las_right = self.driver.camera.capture_image(flush=1)
+                self.driver.board.laser_right_off()
                 if img_las_left is not None and img_las_right is not None:
                     corners = s[2]
 
                     # Corners ROI mask
-                    img_las_left = corners_mask(img_las_left, corners)
-                    img_las_right = corners_mask(img_las_right, corners)
+                    img_las_left = self.corners_mask(img_las_left, corners)
+                    img_las_right = self.corners_mask(img_las_right, corners)
 
                     # Obtain Lines
-                    detect_line(img_raw, img_las_left)
-                    detect_line(img_raw, img_las_right)
+                    self.detect_line(img_raw, img_las_left)
+                    self.detect_line(img_raw, img_las_right)
             else:
                 raise PatternNotDetected
 
-    def move_home(self):
-        # Setup pattern for the next calibration
-        board.motor_relative(-90)
-        board.motor_move()
+    def detect_line(self, img_raw, img_las):
+        height, width, depth = img_raw.shape
+        img_line = np.zeros((height, width, depth), np.uint8)
 
-        if self._progress_callback is not None:
-            self._progress_callback(100)
+        diff = cv2.subtract(img_las, img_raw)
+        r, g, b = cv2.split(diff)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
+        edges = cv2.threshold(r, 20.0, 255.0, cv2.THRESH_BINARY)[1]
+        lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+
+        if lines is not None:
+            rho, theta = lines[0][0]
+            # Calculate coordinates
+            u1 = rho / np.cos(theta)
+            u2 = u1 - height * np.tan(theta)
+            # TODO: use u1, u2
+            #       WrongLaserPosition
+        else:
+            raise LaserNotDetected

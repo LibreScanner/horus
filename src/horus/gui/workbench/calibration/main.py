@@ -9,21 +9,19 @@ import wx.lib.scrolledpanel
 
 from horus.util import resources, profile
 
-from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
+from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 
 from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.calibration.panels import CameraSettingsPanel, PatternSettingsPanel, \
-                                                   LaserSettingsPanel, CameraIntrinsicsPanel, \
-                                                   LaserTriangulationPanel, PlatformExtrinsicsPanel
-from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, CameraIntrinsicsResultPage, \
-                                                  LaserTriangulationMainPage, LaserTriangulationResultPage, \
-                                                  PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
+    AutocheckPanel, CameraIntrinsicsPanel, LaserTriangulationPanel, PlatformExtrinsicsPanel
+from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
+    CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
+    PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
-from horus.engine.driver.driver import Driver
+from horus.engine.calibration.autocheck import Autocheck
 
-from horus.engine import calibration
 
 class CalibrationWorkbench(WorkbenchConnection):
 
@@ -32,13 +30,11 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.calibrating = False
 
-        self.load()
+        self.autocheck = Autocheck()
 
-    def load(self):
-        #-- Toolbar Configuration
         self.toolbar.Realize()
 
-        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
+        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290, -1))
         self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
         self.scrollPanel.SetAutoLayout(1)
 
@@ -47,15 +43,20 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.videoView = VideoView(self._panel, self.getFrame, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
-        #-- Add Scroll Panels
+        # Add Scroll Panels
         self.controls.addPanel('camera_settings', CameraSettingsPanel(self.controls))
         self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
-        self.controls.addPanel('laser_settings', LaserSettingsPanel(self.controls))
-        self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
-        self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
-        self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
+        self.controls.addPanel('autocheck', AutocheckPanel(
+            self.controls, buttonStartCallback=self.onAutocheckStartCallback,
+            buttonStopCallback=self.onCancelCallback))
+        self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
+            self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
+        self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(
+            self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
+        self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(
+            self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
 
-        #-- Add Calibration Pages
+        # Add Calibration Pages
         self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(self._panel,
                                                                  afterCancelCallback=self.onCancelCallback,
                                                                  afterCalibrationCallback=self.onCameraIntrinsicsAfterCalibrationCallback)
@@ -87,9 +88,9 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
 
-        #-- Layout
+        # Layout
         vsbox = wx.BoxSizer(wx.VERTICAL)
-        vsbox.Add(self.controls, 0, wx.ALL|wx.EXPAND, 0)
+        vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
 
@@ -110,9 +111,11 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.controls.updateCallbacks()
 
     def getFrame(self):
-        frame = Driver().camera.capture_image()
-        if frame is not None:
-            retval, frame = calibration.detect_chessboard(frame)
+        frame = self.autocheck.image
+        if frame is None:
+            frame = self.driver.camera.capture_image()
+        # if frame is not None:
+        #    retval, frame = calibration.detect_chessboard(frame)
         return frame
 
     def enableMenus(self, value):
@@ -125,6 +128,14 @@ class CalibrationWorkbench(WorkbenchConnection):
         main.menuEdit.Enable(main.menuPreferences.GetId(), value)
         main.menuHelp.Enable(main.menuWelcome.GetId(), value)
         main.Layout()
+
+    def onAutocheckStartCallback(self):
+        self.calibrating = True
+        self.enableLabelTool(self.disconnectTool, False)
+        self.controls.setExpandable(False)
+        self.combo.Disable()
+        self.enableMenus(False)
+        self.Layout()
 
     def onCameraIntrinsicsStartCallback(self):
         self.calibrating = True

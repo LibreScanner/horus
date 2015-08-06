@@ -16,7 +16,8 @@ from scipy.sparse import linalg
 
 system = platform.system()
 
-from horus import Singleton
+from horus.engine.driver.driver import Driver
+from horus.engine.calibration.pattern import Pattern
 
 """
     Calibrations:
@@ -32,36 +33,13 @@ object_points = []
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 
-class PatternNotDetected(Exception):
-
-    def __init__(self):
-        Exception.__init__(self, _("Pattern Not Detected"))
-
-
-class WrongMotorDirection(Exception):
-
-    def __init__(self):
-        Exception.__init__(self, _("Wrong Motor Direction"))
-
-
-class LaserNotDetected(Exception):
-
-    def __init__(self):
-        Exception.__init__(self, _("Laser Not Detected"))
-
-
-class WrongLaserPosition(Exception):
-
-    def __init__(self):
-        Exception.__init__(self, _("Wrong Laser Position"))
-
-
-@Singleton
 class Calibration(object):
 
     """Generic class for threading calibration"""
 
     def __init__(self):
+        self.driver = Driver()
+        self.pattern = Pattern()
         # TODO: Callbacks to Observer pattern
         self._before_callback = None
         self._progress_callback = None
@@ -89,6 +67,55 @@ class Calibration(object):
 
     def cancel(self):
         self._is_calibrating = False
+
+    def solve_pnp(self, image):
+        if image is not None:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            retval, corners = cv2.findChessboardCorners(
+                gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
+
+            if retval:
+                cv2.cornerSubPix(
+                    gray, corners, winSize=(11, 11), zeroZone=(-1, -1), criteria=criteria)
+                if self.driver.camera.use_distortion:
+                    ret, rvecs, tvecs = cv2.solvePnP(
+                        self.pattern.object_points, corners, self.driver.camera.camera_matrix, self.driver.camera.distortion_vector)
+                else:
+                    ret, rvecs, tvecs = cv2.solvePnP(
+                        self.pattern.object_points, corners, self.driver.camera.camera_matrix, None)
+                if ret is not None:
+                    return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
+                else:
+                    return None
+            else:
+                return None
+        else:
+            return None
+
+    def corners_mask(self, frame, corners):
+        p1 = corners[0][0]
+        p2 = corners[self.pattern.columns - 1][0]
+        p3 = corners[self.pattern.columns * (self.pattern.rows - 1) - 1][0]
+        p4 = corners[self.pattern.columns * self.pattern.rows - 1][0]
+        p11 = min(p1[1], p2[1], p3[1], p4[1])
+        p12 = max(p1[1], p2[1], p3[1], p4[1])
+        p21 = min(p1[0], p2[0], p3[0], p4[0])
+        p22 = max(p1[0], p2[0], p3[0], p4[0])
+        d = max(corners[1][0][0] - corners[0][0][0],
+                corners[1][0][1] - corners[0][0][1],
+                corners[self.pattern.columns][0][1] - corners[0][0][1],
+                corners[self.pattern.columns][0][0] - corners[0][0][0])
+        mask = np.zeros(frame.shape[:2], np.uint8)
+        mask[p11 - d:p12 + d, p21 - d:p22 + d] = 255
+        frame = cv2.bitwise_and(frame, frame, mask=mask)
+        return frame
+
+
+
+
+
+
+
 
 
 class LaserTriangulation(Calibration):
@@ -432,72 +459,6 @@ def detect_chessboard(frame, capture=False):
         return False, frame
 
 
-def solve_pnp(image):
-    if image is not None:
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        retval, corners = cv2.findChessboardCorners(
-            gray, (pattern.columns, pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
-
-        if retval:
-            cv2.cornerSubPix(
-                gray, corners, winSize=(11, 11), zeroZone=(-1, -1), criteria=criteria)
-            if camera.use_distortion:
-                ret, rvecs, tvecs = cv2.solvePnP(
-                    pattern.object_points, corners, camera.camera_matrix, camera.distortion_vector)
-            else:
-                ret, rvecs, tvecs = cv2.solvePnP(
-                    pattern.object_points, corners, camera.camera_matrix, None)
-            if ret is not None:
-                return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
-            else:
-                return None
-        else:
-            return None
-    else:
-        return None
-
-
-def corners_mask(frame, corners):
-    p1 = corners[0][0]
-    p2 = corners[pattern.columns - 1][0]
-    p3 = corners[pattern.columns * (pattern.rows - 1) - 1][0]
-    p4 = corners[pattern.columns * pattern.rows - 1][0]
-    p11 = min(p1[1], p2[1], p3[1], p4[1])
-    p12 = max(p1[1], p2[1], p3[1], p4[1])
-    p21 = min(p1[0], p2[0], p3[0], p4[0])
-    p22 = max(p1[0], p2[0], p3[0], p4[0])
-    d = max(corners[1][0][0] - corners[0][0][0],
-            corners[1][0][1] - corners[0][0][1],
-            corners[pattern.columns][0][1] - corners[0][0][1],
-            corners[pattern.columns][0][0] - corners[0][0][0])
-    mask = np.zeros(frame.shape[:2], np.uint8)
-    mask[p11 - d:p12 + d, p21 - d:p22 + d] = 255
-    frame = cv2.bitwise_and(frame, frame, mask=mask)
-    return frame
-
-
-def detect_line(img_raw, img_las):
-    height, width, depth = img_raw.shape
-    img_line = np.zeros((height, width, depth), np.uint8)
-
-    diff = cv2.subtract(img_las, img_raw)
-    r, g, b = cv2.split(diff)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
-    edges = cv2.threshold(r, 20.0, 255.0, cv2.THRESH_BINARY)[1]
-    lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
-
-    if lines is not None:
-        rho, theta = lines[0][0]
-        # Calculate coordinates
-        u1 = rho / np.cos(theta)
-        u2 = u1 - height * np.tan(theta)
-        # TODO: use u1, u2
-        # WrongLaserPosition
-    else:
-        raise LaserNotDetected
-
-
 def save_scene(filename, point_cloud):
     if point_cloud is not None:
         f = open(filename, 'wb')
@@ -555,10 +516,10 @@ def compute_laser_line(img_las, img_raw, threshold):
 
 
 def compute_point_cloud(u, v, d, n):
-    fx = camera.camera_matrix[0][0]
-    fy = camera.camera_matrix[1][1]
-    cx = camera.camera_matrix[0][2]
-    cy = camera.camera_matrix[1][2]
+    fx = driver.camera.camera_matrix[0][0]
+    fy = driver.camera.camera_matrix[1][1]
+    cx = driver.camera.camera_matrix[0][2]
+    cy = driver.camera.camera_matrix[1][2]
 
     x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
 
