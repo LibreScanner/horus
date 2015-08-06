@@ -228,9 +228,18 @@ class GcodeSection(SectionItem):
         self.Layout()
 
         # Events
+        self.request.Bind(wx.wx.EVT_KEY_DOWN, self.onKeyPressed)
         self.control.Bind(wx.EVT_BUTTON, self.onButtonClicked)
 
+    def onKeyPressed(self, event):
+        if event.GetKeyCode() is wx.WXK_RETURN:
+            self.sendRequest()
+        event.Skip()
+
     def onButtonClicked(self, event):
+        self.sendRequest()
+
+    def sendRequest(self):
         self.control.Disable()
         self.waitCursor = wx.BusyCursor()
         if self.engineCallback is not None:
