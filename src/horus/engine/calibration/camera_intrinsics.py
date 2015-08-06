@@ -9,8 +9,6 @@ from horus.engine.driver.driver import Driver
 from horus.engine.calibration.calibration import Calibration
 
 driver = Driver()
-board = driver.board
-camera = driver.camera
 
 
 class CameraIntrinsics(Calibration):

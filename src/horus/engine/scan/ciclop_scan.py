@@ -15,8 +15,6 @@ from horus.engine.algorithms.laser_segmentation import LaserSegmentation
 from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
 
 driver = Driver()
-board = driver.board
-camera = driver.camera
 laser_segmentation = LaserSegmentation()
 point_cloud_generation = PointCloudGeneration()
 

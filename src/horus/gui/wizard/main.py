@@ -80,8 +80,8 @@ class Wizard(wx.Dialog):
         self.scanningPage.Hide()
 
     def onExit(self):
-        self.driver.board.left_laser_off()
-        self.driver.board.right_laser_off()
+        self.driver.board.laser_left_off()
+        self.driver.board.laser_right_off()
         profile.putPreference('workbench', self.currentWorkbench)
         dlg = wx.MessageDialog(self, _("Do you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
@@ -118,8 +118,8 @@ class Wizard(wx.Dialog):
         self.Layout()
 
     def onScanningPageNextClicked(self):
-        self.driver.board.left_laser_off()
-        self.driver.board.right_laser_off()
+        self.driver.board.laser_left_off()
+        self.driver.board.laser_right_off()
         profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
         dlg = wx.MessageDialog(self, _("You have finished the wizard.\nPress Play button to start scanning."), _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK

@@ -30,27 +30,27 @@ class Driver(object):
     def connect(self):
         if self._before_callback is not None:
             self._before_callback()
-        threading.Thread(target=self._connect, args=(self._after_callback,)).start()
+        threading.Thread(target=self._connect).start()
 
-    def _connect(self, callback):
-        error = None
+    def _connect(self):
+        exception = None
         self.is_connected = False
         try:
             self.camera.connect()
             self.board.connect()
         except Exception as e:
-                response = str(e)
+            exception = e
         else:
             self.is_connected = True
         finally:
-            if error is None:
+            if exception is None:
                 self.unplugged = False
                 response = (True, self.is_connected)
             else:
-                response = (False, error)
+                response = (False, exception)
                 self.disconnect()
-            if callback is not None:
-                callback(response)
+            if self._after_callback is not None:
+                self._after_callback(response)
 
     def disconnect(self):
         self.is_connected = False

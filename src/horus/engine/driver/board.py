@@ -46,10 +46,14 @@ class Board(object):
 
         self._serial_port = None
         self._is_connected = False
+        self._motor_enabled = False
         self._motor_position = 0
+        self._motor_relative = 0
         self._motor_speed = 0
         self._motor_acceleration = 0
         self._motor_direction = 1
+        self._laser_left_enabled = False
+        self._laser_right_enabled = False
         self._tries = 0  # Check if command fails
 
     def connect(self):
@@ -102,48 +106,67 @@ class Board(object):
             self._motor_direction = +1
 
     def motor_relative(self, value):
-        self._motor_position += value * self._motor_direction
+        self._motor_relative = value
 
     def motor_absolute(self, value):
+        self._motor_relative = 0
         self._motor_position = value
 
     def motor_speed(self, value):
-        self._motor_speed = value
-        self._send_command("G1F{0}".format(value))
+        if self._motor_speed != value:
+            self._send_command("G1F{0}".format(value))
+            self._motor_speed = value
 
     def motor_acceleration(self, value):
-        self._motor_acceleration = value
-        self._send_command("$120={0}".format(value))
+        if self._motor_acceleration != value:
+            self._send_command("$120={0}".format(value))
+            self._motor_acceleration = value
 
     def motor_enable(self):
-        speed = self._motor_speed
-        self.motor_speed(1)
-        self._send_command("M17")
-        time.sleep(0.3)
-        self.motor_speed(speed)
+        if not self._motor_enabled:
+            speed = self._motor_speed
+            self.motor_speed(1)
+            self._send_command("M17")
+            time.sleep(0.3)
+            self.motor_speed(speed)
+            self._motor_enabled = True
 
     def motor_disable(self):
-        self._send_command("M18")
+        if self._motor_enabled:
+            self._send_command("M18")
+            self._motor_enabled = False
 
-    def left_laser_on(self):
-        self._send_command("M71T1")
+    def motor_move(self, nonblocking=False, callback=None):
+        self._motor_position += self._motor_relative * self._motor_direction
+        self.send_command("G1X{0}".format(self._motor_position), nonblocking, callback)
 
-    def left_laser_off(self):
-        self._send_command("M70T1")
+    def laser_left_on(self):
+        if not self._laser_left_enabled:
+            self._send_command("M71T1")
+            self._laser_left_enabled = True
 
-    def right_laser_on(self):
-        self._send_command("M71T2")
+    def laser_left_off(self):
+        if self._laser_left_enabled:
+            self._send_command("M70T1")
+            self._laser_left_enabled = False
 
-    def right_laser_off(self):
-        self._send_command("M70T2")
+    def laser_right_on(self):
+        if not self._laser_right_enabled:
+            self._send_command("M71T2")
+            self._laser_right_enabled = True
+
+    def laser_right_off(self):
+        if self._laser_right_enabled:
+            self._send_command("M70T2")
+            self._laser_right_enabled = False
 
     def lasers_off(self):
-        self.left_laser_off()
-        self.right_laser_off()
+        self.laser_left_off()
+        self.laser_right_off()
 
     def lasers_on(self):
-        self.left_laser_on()
-        self.right_laser_on()
+        self.laser_left_on()
+        self.laser_right_on()
 
     def ldr_sensor(self, pin):
         value = self._send_command("M50T" + pin, read_lines=True).split("\n")[0]
@@ -151,9 +174,6 @@ class Board(object):
             return int(value)
         except ValueError:
             return 0
-
-    def motor_move(self, nonblocking=False, callback=None):
-        self.send_command("G1X{0}".format(self._motor_position), nonblocking, callback)
 
     def send_command(self, req, nonblocking=False, callback=None, read_lines=False):
         if nonblocking:

@@ -9,8 +9,6 @@ from horus.engine.driver.driver import Driver
 from horus.engine.calibration.calibration import Calibration
 
 driver = Driver()
-board = driver.board
-camera = driver.camera
 
 
 class Autocheck(Calibration):
@@ -113,12 +111,12 @@ class Autocheck(Calibration):
         if img_raw is not None:
             s = solve_pnp(img_raw)
             if s is not None:
-                board.left_laser_on()
+                board.laser_left_on()
                 img_las_left = camera.capture_image(flush=1)
-                board.left_laser_off()
-                board.right_laser_on()
+                board.laser_left_off()
+                board.laser_right_on()
                 img_las_right = camera.capture_image(flush=1)
-                board.right_laser_off()
+                board.laser_right_off()
                 if img_las_left is not None and img_las_right is not None:
                     corners = s[2]
 

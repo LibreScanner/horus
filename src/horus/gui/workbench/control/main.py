@@ -14,6 +14,10 @@ from horus.gui.util.customPanels import ExpandableControl
 from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.control.panels import CameraControl, LaserControl, LDRControl, MotorControl, GcodeControl
 
+from horus.engine.driver.driver import Driver
+
+driver = Driver()
+
 
 class ControlWorkbench(WorkbenchConnection):
 
@@ -57,7 +61,7 @@ class ControlWorkbench(WorkbenchConnection):
 		self.controls.updateCallbacks()
 
 	def getFrame(self):
-		return self.driver.camera.capture_image()
+		return driver.camera.capture_image()
 
 	def updateToolbarStatus(self, status):
 		if status:

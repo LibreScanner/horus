@@ -152,17 +152,17 @@ class LaserTriangulation(Calibration):
                     camera.set_exposure(self.exposure_laser)
 
                     img_raw_left = camera.capture_image(flush=flush)
-                    board.left_laser_on()
+                    board.laser_left_on()
                     img_las_left = camera.capture_image(flush=flush)
-                    board.left_laser_off()
+                    board.laser_left_off()
                     self.image = img_las_left
                     if img_las_left is None:
                         break
 
                     img_raw_right = camera.capture_image(flush=flush)
-                    board.right_laser_on()
+                    board.laser_right_on()
                     img_las_right = camera.capture_image(flush=flush)
-                    board.right_laser_off()
+                    board.laser_right_off()
                     self.image = img_las_right
                     if img_las_right is None:
                         break

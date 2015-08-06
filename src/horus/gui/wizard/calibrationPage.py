@@ -212,8 +212,8 @@ class CalibrationPage(WizardPage):
 			self.videoView.play()
 			self.calibrateButton.Enable()
 			self.skipButton.Enable()
-			self.driver.board.left_laser_off()
-			self.driver.board.right_laser_off()
+			self.driver.board.laser_left_off()
+			self.driver.board.laser_right_off()
 		else:
 			self.videoView.stop()
 			self.gauge.SetValue(0)

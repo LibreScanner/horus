@@ -97,8 +97,8 @@ class LaserSettingsPanel(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['laser_settings']
-        section.updateCallback('left_button', (driver.board.left_laser_on, driver.board.left_laser_off))
-        section.updateCallback('right_button', (driver.board.right_laser_on, driver.board.right_laser_off))
+        section.updateCallback('left_button', (driver.board.laser_left_on, driver.board.laser_left_off))
+        section.updateCallback('right_button', (driver.board.laser_right_on, driver.board.laser_right_off))
 
 
 ## TODO: Use TextBoxArray

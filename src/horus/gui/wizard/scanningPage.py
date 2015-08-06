@@ -115,14 +115,14 @@ class ScanningPage(WizardPage):
 		useLeft = value == 'Left' or value == 'Both'
 		useRight = value == 'Right' or value == 'Both'
 		if useLeft:
-			self.driver.board.left_laser_on()
+			self.driver.board.laser_left_on()
 		else:
-			self.driver.board.left_laser_off()
+			self.driver.board.laser_left_off()
 
 		if useRight:
-			self.driver.board.right_laser_on()
+			self.driver.board.laser_right_on()
 		else:
-			self.driver.board.right_laser_off()
+			self.driver.board.laser_right_off()
 		self.pcg.setUseLaser(useLeft, useRight)
 
 	def onScanTypeComboBoxChanged(self, event):
@@ -144,13 +144,13 @@ class ScanningPage(WizardPage):
 			self.videoView.play()
 			value = profile.getProfileSetting('use_laser')
 			if value == 'Left':
-				self.driver.board.left_laser_on()
-				self.driver.board.right_laser_off()
+				self.driver.board.laser_left_on()
+				self.driver.board.laser_right_off()
 			elif value == 'Right':
-				self.driver.board.left_laser_off()
-				self.driver.board.right_laser_on()
+				self.driver.board.laser_left_off()
+				self.driver.board.laser_right_on()
 			elif value == 'Both':
-				self.driver.board.left_laser_on()
-				self.driver.board.right_laser_on()
+				self.driver.board.laser_left_on()
+				self.driver.board.laser_right_on()
 		else:
 			self.videoView.stop()

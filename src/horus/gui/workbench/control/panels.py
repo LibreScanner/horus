@@ -23,8 +23,6 @@ class CameraControl(ExpandablePanel):
         """"""
         ExpandablePanel.__init__(self, parent, _("Camera Control"))
 
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
-
         self.clearSections()
         section = self.createSection('camera_control')
         section.addItem(Slider, 'brightness_control', tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
@@ -63,8 +61,8 @@ class LaserControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['laser_control']
-        section.updateCallback('left_button', (driver.board.left_laser_on, driver.board.left_laser_off))
-        section.updateCallback('right_button', (driver.board.right_laser_on, driver.board.right_laser_off))
+        section.updateCallback('left_button', (driver.board.laser_left_on, driver.board.laser_left_off))
+        section.updateCallback('right_button', (driver.board.laser_right_on, driver.board.laser_right_off))
 
 
 class LDRControl(ExpandablePanel):
@@ -188,7 +186,7 @@ class GcodeControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['gcode_control']
-        section.updateCallback('gcode_gui', lambda v, c: driver.board.sendRequest(v, callback=c, readLines=True))
+        section.updateCallback('gcode_gui', lambda v, c: driver.board._send_command(v, callback=c, read_lines=True))
 
 
 class GcodeSection(SectionItem):

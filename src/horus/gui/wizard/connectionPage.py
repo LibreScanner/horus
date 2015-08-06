@@ -16,12 +16,15 @@ import horus.util.error as Error
 from horus.util import profile, resources
 
 from horus.engine.driver.driver import Driver
+from horus.engine.driver.board import WrongFirmware, BoardNotConnected
+from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo
 from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.autocheck import Autocheck
 #from horus.engine.calibration import detect_chessboard
 
 
 class ConnectionPage(WizardPage):
+
     def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
         WizardPage.__init__(self, parent,
                             title=_("Connection"),
@@ -35,8 +38,8 @@ class ConnectionPage(WizardPage):
         self.connectButton = wx.Button(self.panel, label=_("Connect"))
         self.settingsButton = wx.Button(self.panel, label=_("Edit settings"))
 
-
-        self.patternLabel = wx.StaticText(self.panel, label=_("Put the pattern on the platform as shown in the picture and press \"Auto check\""))
+        self.patternLabel = wx.StaticText(self.panel, label=_(
+            "Put the pattern on the platform as shown in the picture and press \"Auto check\""))
         self.patternLabel.Wrap(400)
         self.imageView = ImageView(self.panel)
         self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
@@ -56,14 +59,14 @@ class ConnectionPage(WizardPage):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.connectButton, 1, wx.ALL|wx.EXPAND, 5)
-        hbox.Add(self.settingsButton, 1, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 2)
-        vbox.Add(self.patternLabel, 0, wx.ALL|wx.CENTER, 5)
-        vbox.Add(self.imageView, 1, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(self.resultLabel, 0, wx.ALL|wx.CENTER, 5)
-        vbox.Add(self.gauge, 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(self.autoCheckButton, 0, wx.ALL|wx.EXPAND, 5)
+        hbox.Add(self.connectButton, 1, wx.ALL | wx.EXPAND, 5)
+        hbox.Add(self.settingsButton, 1, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 2)
+        vbox.Add(self.patternLabel, 0, wx.ALL | wx.CENTER, 5)
+        vbox.Add(self.imageView, 1, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(self.resultLabel, 0, wx.ALL | wx.CENTER, 5)
+        vbox.Add(self.gauge, 0, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(self.autoCheckButton, 0, wx.ALL | wx.EXPAND, 5)
         self.panel.SetSizer(vbox)
 
         self.Layout()
@@ -93,7 +96,7 @@ class ConnectionPage(WizardPage):
         frame = self.autocheck.image
         if frame is None:
             frame = self.getFrame()
-        #if frame is not None:
+        # if frame is not None:
         #    retval, frame = detect_chessboard(frame)
         return frame
 
@@ -103,7 +106,9 @@ class ConnectionPage(WizardPage):
         self.afterAutoCheck()
 
     def onConnectButtonClicked(self, event):
-        self.driver.set_callbacks(lambda: wx.CallAfter(self.beforeConnect), lambda r: wx.CallAfter(self.afterConnect,r))
+        self.driver.set_callbacks(
+            lambda: wx.CallAfter(self.beforeConnect),
+            lambda r: wx.CallAfter(self.afterConnect, r))
         self.driver.connect()
 
     def onSettingsButtonClicked(self, event):
@@ -123,30 +128,40 @@ class ConnectionPage(WizardPage):
         ret, result = response
 
         if not ret:
-            if result is Error.WrongFirmware:
-                dlg = wx.MessageDialog(self, _("Board has a wrong firmware.\nPlease select your Board\nand press Upload Firmware"), _(result), wx.OK|wx.ICON_INFORMATION)
+            if isinstance(result, WrongFirmware):
+                dlg = wx.MessageDialog(
+                    self, _("Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board and press Upload Firmware"),
+                    _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.updateStatus(False)
                 self.GetParent().parent.onPreferences(None)
-            elif result is Error.BoardNotConnected:
-                dlg = wx.MessageDialog(self, _("Board is not connected.\nPlease connect your board\nand select a valid Serial Name"), _(result), wx.OK|wx.ICON_INFORMATION)
+            elif isinstance(result, BoardNotConnected):
+                dlg = wx.MessageDialog(
+                    self, _("Board is not connected.\nPlease connect your board and select a valid Serial Name"),
+                    _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.updateStatus(False)
                 self.GetParent().parent.onPreferences(None)
-            elif result is Error.CameraNotConnected:
-                dlg = wx.MessageDialog(self, _("Please plug your camera and try to connect again"), _(result), wx.OK|wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
-            elif result is Error.WrongCamera:
-                dlg = wx.MessageDialog(self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"), _(result), wx.OK|wx.ICON_INFORMATION)
+            elif isinstance(result, WrongCamera):
+                dlg = wx.MessageDialog(
+                    self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"),
+                    _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.updateStatus(False)
                 self.GetParent().parent.onPreferences(None)
-            elif result is Error.InvalidVideo:
-                dlg = wx.MessageDialog(self, _("Unplug and plug your camera USB cable and try to connect again."), _(result), wx.OK|wx.ICON_ERROR)
+            elif isinstance(result, CameraNotConnected):
+                dlg = wx.MessageDialog(
+                    self, _("Please plug your camera and try to connect again"),
+                    _(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+            elif isinstance(result, InvalidVideo):
+                dlg = wx.MessageDialog(
+                    self, _("Unplug and plug your camera USB cable and try to connect again"),
+                    _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
 
@@ -159,7 +174,9 @@ class ConnectionPage(WizardPage):
     def onAutoCheckButtonClicked(self, event):
         if profile.getProfileSettingBool('adjust_laser'):
             profile.putProfileSetting('adjust_laser', False)
-            dlg = wx.MessageDialog(self, _("It is recomended to adjust line lasers vertically.\nYou need to use the allen wrench.\nDo you want to adjust it now?"), _("Manual laser adjustment"), wx.YES_NO | wx.ICON_QUESTION)
+            dlg = wx.MessageDialog(
+                self, _("It is recomended to adjust line lasers vertically.\nYou need to use the allen wrench.\nDo you want to adjust it now?"),
+                _("Manual laser adjustment"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
@@ -167,8 +184,8 @@ class ConnectionPage(WizardPage):
         else:
             # Perform auto check
             self.autocheck.set_callbacks(lambda: wx.CallAfter(self.beforeAutoCheck),
-                                         lambda p: wx.CallAfter(self.progressAutoCheck,p),
-                                         lambda r: wx.CallAfter(self.afterAutoCheck,r))
+                                         lambda p: wx.CallAfter(self.progressAutoCheck, p),
+                                         lambda r: wx.CallAfter(self.afterAutoCheck, r))
             self.autocheck.start()
 
     def beforeAutoCheck(self):
@@ -197,14 +214,14 @@ class ConnectionPage(WizardPage):
         if response:
             self.skipButton.Enable()
             self.nextButton.Disable()
-        else:  
+        else:
             self.skipButton.Disable()
             self.nextButton.Enable()
 
-        #self.videoView.setMilliseconds(20)
-        #self.videoView.setCallback(self.getFrame)
-        #self.videoView.setMilliseconds(50)
-        #self.videoView.setCallback(self.getDetectChessboardFrame)
+        # self.videoView.setMilliseconds(20)
+        # self.videoView.setCallback(self.getFrame)
+        # self.videoView.setMilliseconds(50)
+        # self.videoView.setCallback(self.getDetectChessboardFrame)
 
         self.settingsButton.Enable()
         self.breadcrumbs.Enable()
@@ -223,9 +240,11 @@ class ConnectionPage(WizardPage):
 
     def updateStatus(self, status):
         if status:
-            self.driver.board.set_unplug_callback(lambda: wx.CallAfter(self.parent.onBoardUnplugged))
-            self.driver.camera.set_unplug_callback(lambda: wx.CallAfter(self.parent.onCameraUnplugged))
-            #if profile.getPreference('workbench') != 'Calibration workbench':
+            self.driver.board.set_unplug_callback(
+                lambda: wx.CallAfter(self.parent.onBoardUnplugged))
+            self.driver.camera.set_unplug_callback(
+                lambda: wx.CallAfter(self.parent.onCameraUnplugged))
+            # if profile.getPreference('workbench') != 'Calibration workbench':
             profile.putPreference('workbench', 'Calibration workbench')
             self.GetParent().parent.workbenchUpdate(False)
             self.videoView.play()
@@ -235,8 +254,8 @@ class ConnectionPage(WizardPage):
             self.imageView.Enable()
             self.skipButton.Enable()
             self.enableNext = True
-            self.driver.board.left_laser_off()
-            self.driver.board.right_laser_off()
+            self.driver.board.laser_left_off()
+            self.driver.board.laser_right_off()
         else:
             self.videoView.stop()
             self.gauge.SetValue(0)
@@ -250,10 +269,13 @@ class ConnectionPage(WizardPage):
             self.autoCheckButton.Disable()
         self.Layout()
 
+
 class SettingsWindow(wx.Dialog):
 
     def __init__(self, parent):
-        super(SettingsWindow, self).__init__(parent, title=_('Settings'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
+        super(SettingsWindow, self).__init__(
+            parent, title=_('Settings'), size=(420, -1),
+            style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
 
         self.driver = Driver()
         self.pattern = Pattern()
@@ -266,26 +288,30 @@ class SettingsWindow(wx.Dialog):
         self.initLuminosity = profile.getProfileSetting('luminosity')
         self.luminosityDict = dict(zip(_choices, choices))
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
-        self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until colored lines appear over the chess pattern in the video')))
+        self.luminosityText.SetToolTip(wx.ToolTip(
+            _('Change the luminosity until colored lines appear over the chess pattern in the video')))
         self.luminosityComboBox = wx.ComboBox(self, wx.ID_ANY,
-                                            value=_(self.initLuminosity),
-                                            choices=_choices,
-                                            style=wx.CB_READONLY)
+                                              value=_(self.initLuminosity),
+                                              choices=_choices,
+                                              style=wx.CB_READONLY)
         invert = profile.getProfileSettingBool('invert_motor')
         self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
         self.invertMotorCheckBox.SetValue(invert)
-        tooltip = _("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
-        self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
-        
+        tooltip = _(
+            "Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
+        self.image = wx.Image(
+            resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
+
         self.patternDistance = float(profile.getProfileSetting('pattern_distance'))
         self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))
         self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))
         self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
-        self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
+        self.patternTextbox = wx.TextCtrl(
+            self, value=str(profile.getProfileSettingFloat('pattern_distance')))
         self.okButton = wx.Button(self, label=_('OK'))
         self.cancelButton = wx.Button(self, label=_('Cancel'))
-        
+
         #-- Events
         self.luminosityComboBox.Bind(wx.EVT_COMBOBOX, self.onLuminosityComboBoxChanged)
         self.invertMotorCheckBox.Bind(wx.EVT_CHECKBOX, self.onInvertMotor)
@@ -299,21 +325,21 @@ class SettingsWindow(wx.Dialog):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.luminosityText, 0, wx.ALL, 7)
         hbox.Add(self.luminosityComboBox, 1, wx.ALL, 3)
-        vbox.Add(hbox, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 7)
-        vbox.Add(wx.StaticLine(self), 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 10)
+        vbox.Add(hbox, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 7)
+        vbox.Add(wx.StaticLine(self), 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.invertMotorCheckBox, 0, wx.ALL, 10)
         vbox.Add(hbox)
-        vbox.Add(wx.StaticLine(self), 0, wx.ALL^wx.BOTTOM^wx.TOP|wx.EXPAND, 10)
+        vbox.Add(wx.StaticLine(self), 0, wx.ALL ^ wx.BOTTOM ^ wx.TOP | wx.EXPAND, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.patternLabel, 0, wx.ALL, 7)
         hbox.Add(self.patternTextbox, 1, wx.ALL, 3)
-        vbox.Add(hbox, 0, wx.ALL^wx.BOTTOM|wx.EXPAND, 10)
-        vbox.Add(self.patternImage, 0, wx.ALL|wx.CENTER, 10)
+        vbox.Add(hbox, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 10)
+        vbox.Add(self.patternImage, 0, wx.ALL | wx.CENTER, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.cancelButton, 1, wx.ALL, 3)
         hbox.Add(self.okButton, 1, wx.ALL, 3)
-        vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 10)
+        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
         self.SetSizer(vbox)
         self.Center()
         self.Fit()
@@ -334,12 +360,12 @@ class SettingsWindow(wx.Dialog):
 
     def setLuminosity(self, luminosity):
         profile.putProfileSetting('luminosity', luminosity)
-        
-        if luminosity =='Low':
+
+        if luminosity == 'Low':
             luminosity = 32
-        elif luminosity =='Medium':
+        elif luminosity == 'Medium':
             luminosity = 16
-        elif luminosity =='High':
+        elif luminosity == 'High':
             luminosity = 8
         profile.putProfileSetting('exposure_control', luminosity)
         profile.putProfileSetting('exposure_calibration', luminosity)

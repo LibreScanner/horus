@@ -36,8 +36,6 @@ if sys.isDarwin():
     from horus.engine.uvc.mac import Camera_List
 
 driver = Driver()
-board = driver.board
-camera = driver.camera
 ciclop_scan = CiclopScan()
 pattern = Pattern()
 laser_triangulation = LaserTriangulation()
@@ -293,6 +291,9 @@ class MainWindow(wx.Frame):
 
     def onClose(self, event):
         try:
+            driver.board.set_unplug_callback(None)
+            driver.camera.set_unplug_callback(None)
+            driver.disconnect()
             if ciclop_scan.is_scanning:
                 ciclop_scan.stop()
                 time.sleep(0.5)
@@ -302,9 +303,6 @@ class MainWindow(wx.Frame):
             self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
             self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
-            board.set_unplug_callback(None)
-            camera.set_unplug_callback(None)
-            driver.disconnect()
         except:
             pass
         event.Skip()
@@ -328,16 +326,16 @@ class MainWindow(wx.Frame):
     def onPreferences(self, event):
         if sys.isWindows():
             ciclop_scan.stop()
-            self.laser_triangulation.cancel()
-            self.platform_extrinsics.cancel()
+            laser_triangulation.cancel()
+            platform_extrinsics.cancel()
             self.controlWorkbench.videoView.stop()
             self.calibrationWorkbench.videoView.stop()
             self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
             self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
             self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
-            board.set_unplug_callback(None)
-            camera.set_unplug_callback(None)
+            driver.board.set_unplug_callback(None)
+            driver.camera.set_unplug_callback(None)
             self.controlWorkbench.updateStatus(False)
             self.calibrationWorkbench.updateStatus(False)
             self.scanningWorkbench.updateStatus(False)
@@ -479,8 +477,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def _onDeviceUnplugged(self, title="", description=""):
         ciclop_scan.stop()
-        self.laser_triangulation.cancel()
-        self.platform_extrinsics.cancel()
+        laser_triangulation.cancel()
+        platform_extrinsics.cancel()
         self.controlWorkbench.updateStatus(False)
         self.calibrationWorkbench.updateStatus(False)
         self.scanningWorkbench.updateStatus(False)
@@ -564,17 +562,13 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.Layout()
 
     def updateDriverProfile(self):
-        camera.camera_id = int(profile.getProfileSetting('camera_id')[-1:])
-        board.serial_name = profile.getProfileSetting('serial_name')
-        board.baud_rate = profile.getProfileSettingInteger('baud_rate')
-        board.motor_invert(profile.getProfileSettingBool('invert_motor'))
+        driver.camera.camera_id = int(profile.getProfileSetting('camera_id')[-1:])
+        driver.board.serial_name = profile.getProfileSetting('serial_name')
+        driver.board.baud_rate = profile.getProfileSettingInteger('baud_rate')
+        driver.board.motor_invert(profile.getProfileSettingBool('invert_motor'))
 
     def updatePCGProfile(self):
-        point_cloud_generation.resetTheta()
-        point_cloud_generation.setViewROI(profile.getProfileSettingBool('view_roi'))
-        point_cloud_generation.setROIDiameter(profile.getProfileSettingInteger('roi_diameter'))
-        point_cloud_generation.setROIHeight(profile.getProfileSettingInteger('roi_height'))
-
+        
         #ciclop_scan.with_difference = profile.getProfileSettingBool('scan_with_difference')
         #ciclop_scan.with_texture = profile.getProfileSettingBool('scan_with_texture')
         #ciclop_scan.exposure_texture = profile.getProfileSettingInteger('exposure_texture_scanning')
@@ -586,6 +580,11 @@ Suite 330, Boston, MA  02111-1307  USA""")
         #ciclop_scan.motor_speed = profile.getProfileSettingInteger('motor_speed_scanning')
         #ciclop_scan.motor_acceleration = profile.getProfileSettingInteger('exposure_acceleration_scanning')
 
+        point_cloud_generation.resetTheta()
+        point_cloud_generation.setViewROI(profile.getProfileSettingBool('view_roi'))
+        point_cloud_generation.setROIDiameter(profile.getProfileSettingInteger('roi_diameter'))
+        point_cloud_generation.setROIHeight(profile.getProfileSettingInteger('roi_height'))
+
         laser_segmentation.open_enable = profile.getProfileSettingBool('use_open')
         laser_segmentation.open_value = profile.getProfileSettingInteger('open_value')
         laser_segmentation.threshold_enable = profile.getProfileSettingBool('use_threshold')
@@ -596,9 +595,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         pattern.columns = profile.getProfileSettingInteger('pattern_columns')
         pattern.square_width = profile.getProfileSettingInteger('square_width')
         pattern.distance = profile.getProfileSettingFloat('pattern_distance')
-        camera.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
-        camera.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
-        camera.set_use_distortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+        driver.camera.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
+        driver.camera.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
+        driver.camera.set_use_distortion(profile.getProfileSettingInteger('use_distortion_calibration'))
 
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.getPreference('workbench')
