@@ -31,241 +31,422 @@ __license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.htm
 import os
 import traceback
 import math
-import numpy
-import re
-import zlib
-import base64
 import sys
+import collections
+import json
 import types
+import numpy as np
 
 if sys.version_info[0] < 3:
 	import ConfigParser
 else:
 	import configparser as ConfigParser
 
-from horus.util import system, resources
+#from horus.util import system, resources
 
-
-# TODO: Make this class inherit from dict or iterable to be able to gen len, values, access with [], etc.
 # TODO: Try to erase tag -> Used to hide panels
 # TODO: Raise error if setting id already exists in dictionary
-# TODO: Change to "preferences" and "machine_settings"+
-class Settings():
+# TODO: Change to "preferences" and "machine_settings"
+
+class Settings(collections.MutableMapping):
 
 	def __init__(self):
-		self.settings = {}
+		self._settings_dict = dict()
 
-	def addSetting(setting):
-		self.settings[setting.id, setting]
+	# Getters
 
-	def populateSettings():
+	def __getitem__(self, key):
+		# For convinience, this returns the Setting value and not the Setting object itself
+		if self._settings_dict[key].value != None:
+			return self._settings_dict[key].value
+		else:
+			return self._settings_dict[key].__default
 
-		self.addSetting(Setting('serial_name', _('Serial Name'), 'profile', str, '/dev/ttyUSB0'))
-		self.addSetting(Setting('baud_rate', _('Baud rate'), 'profile', (9600, 14400, 19200, 38400, 57600, 115200), 115200))
-		self.addSetting(Setting('camera_id', _('Camera Id'), 'profile', str, '/dev/video0'))
-		self.addSetting(Setting('board', _('Board'), 'profile', ('Arduino Uno', 'BT ATmega328'), 'BT ATmega328'))
-		self.addSetting(Setting('invert_motor', _('Invert motor'), 'profile', bool, False))
+	def getSetting(self, key):
+		return self._settings_dict[key]
+
+	def getLabel(self, key):
+		return self.getSetting(key)._label
+
+	def getMinValue(self, key):
+		return self.getSetting(key).__min_value
+
+	def getMaxValue(self, key):
+		return self.getSetting(key).__max_value
+
+	# Setters
+
+	def __setitem__(self, key, value):
+		# For convinience, this sets the Setting value and not a Setting object
+		self.getSetting(key).value = value
+
+	def setMinValue(self, key, value):
+		self.getSetting(key).__min_value = value
+
+	def setMaxValue(self, key, value):
+		self.getSetting(key).__max_value = value
+
+	# File management
+
+	def loadSettings(self, filepath=None):
+		if filepath == None:
+			filepath = '/home/nicanor.romero/.horus/settings.json' # TODO: Get this path from resources?
+		with open(filepath, 'r') as f:
+			self._loadJsonDict(json.loads(f.read()))
+
+	def _loadJsonDict(self, json_dict):
+		for key in json_dict.keys():
+			if key in self._settings_dict:
+				self.getSetting(key)._loadJsonDict(json_dict[key])
+
+	def saveSettings(self, filepath=None):
+		if filepath == None:
+			filepath = '/home/nicanor.romero/.horus/settings.json' # TODO: Get this path from resources?
+		with open(filepath, 'w') as f:
+			f.write(json.dumps(self._toJsonDict(), sort_keys=True, indent=4))
+
+	def _toJsonDict(self):
+		json_dict = dict()
+		for key in self._settings_dict.keys():
+			json_dict[key] = self.getSetting(key)._toJsonDict()
+		return json_dict	
+
+	# Other
+
+	def __delitem__(self, key):
+		del self._settings_dict[key]
+
+	def __iter__(self):
+		return iter(self._settings_dict)
+
+	def __len__(self):
+		return len(self._settings_dict)
+
+	def resetToDefault(self, key):
+		self.__setitem__(key, self.getSetting(key).__default)
+
+	def _addSetting(self, setting):
+		self._settings_dict[setting._id] = setting
+
+	def _initializeSettings(self):
+		self._addSetting(Setting('serial_name', _('Serial Name'), 'profile', str, '/dev/ttyUSB0'))
+		self._addSetting(Setting('baud_rate', _('Baud rate'), 'profile', int, 115200, possible_values=(9600, 14400, 19200, 38400, 57600, 115200)))
+		self._addSetting(Setting('camera_id', _('Camera Id'), 'profile', str, '/dev/video0'))
+		self._addSetting(Setting('board', _('Board'), 'profile', str, 'BT ATmega328', possible_values=('Arduino Uno', 'BT ATmega328')))
+		self._addSetting(Setting('invert_motor', _('Invert motor'), 'profile', bool, False))
 
 		# Hack to translate combo boxes:
 		_('High')
 		_('Medium')
 		_('Low')
-		self.addSetting(Setting('luminosity', _('Luminosity'), 'profile', ('High', 'Medium', 'Low'), 'Medium'))
-		self.addSetting(Setting('brightness_control', _('Brightness'), 'profile', int, 128, min_value=0, max_value=255))
-		self.addSetting(Setting('contrast_control', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
-		self.addSetting(Setting('saturation_control', _('Saturation'), 'profile', int, 32, min_value=0, max_value=255))
-		self.addSetting(Setting('exposure_control', _('Exposure'), 'profile', int, 16, min_value=1, max_value=512))
+		self._addSetting(Setting('luminosity', _('Luminosity'), 'profile', str, 'Medium', possible_values=('High', 'Medium', 'Low')))
+		self._addSetting(Setting('brightness_control', _('Brightness'), 'profile', int, 128, min_value=0, max_value=255))
+		self._addSetting(Setting('contrast_control', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
+		self._addSetting(Setting('saturation_control', _('Saturation'), 'profile', int, 32, min_value=0, max_value=255))
+		self._addSetting(Setting('exposure_control', _('Exposure'), 'profile', int, 16, min_value=1, max_value=512))
 		# TODO: Contemplate this type of settings. Validate that the value (int) is within the possible values
-		# self.addSetting(Setting('framerate_control', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'profile', _('Framerate'))
-		self.addSetting(Setting('framerate_control', _('Framerate'), 'profile', (30, 25, 20, 15, 10, 5), 30))
-		self.addSetting(Setting('resolution_control', _('Resolution'), 'profile', ('1280x960', '960x720', '800x600', '320x240', '160x120'), '1280x960'))
-		self.addSetting(Setting('use_distortion_control', _('Use Distortion'), 'profile', bool, False))
-		self.addSetting(Setting('step_degrees_control', _('Step Degrees'), 'profile', float, -0.45, min_value=0.01)
-		self.addSetting(Setting('feed_rate_control', _('Feed Rate'), 'profile', int, 200, min_value=1, max_value=1000))
-		self.addSetting(Setting('acceleration_control', _('Acceleration'), 'profile', int, 200, min_value=1, max_value=1000))
+		# self._addSetting(Setting('framerate_control', str('30'), [str('30'), str('25'), str('20'), str('15'), str('10'), str('5')], 'profile', _('Framerate'))
+		self._addSetting(Setting('framerate_control', _('Framerate'), 'profile', int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
+		self._addSetting(Setting('resolution_control', _('Resolution'), 'profile', str, '1280x960', possible_values=('1280x960', '960x720', '800x600', '320x240', '160x120')))
+		self._addSetting(Setting('use_distortion_control', _('Use Distortion'), 'profile', bool, False))
+		self._addSetting(Setting('step_degrees_control', _('Step Degrees'), 'profile', float, 0.45, min_value=0.01))
+		self._addSetting(Setting('feed_rate_control', _('Feed Rate'), 'profile', int, 200, min_value=1, max_value=1000))
+		self._addSetting(Setting('acceleration_control', _('Acceleration'), 'profile', int, 200, min_value=1, max_value=1000))
 
-		self.addSetting(Setting('brightness_calibration', _('Brightness'), 'profile', int, 100, min_value=0, max_value=255))
-		self.addSetting(Setting('contrast_calibration', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
-		self.addSetting(Setting('saturation_calibration', _('Saturation'), 'profile', int, 100, min_value=0, max_value=255))
-		self.addSetting(Setting('exposure_calibration', _('Exposure'), 'profile', int, 16, min_value=1, max_value=512))
-		self.addSetting(Setting('framerate_calibration', _('Framerate'), 'profile', (30, 25, 20, 15, 10, 5), 30))
-		self.addSetting(Setting('resolution_calibration', _('Resolution'), 'profile', ('1280x960', '960x720', '800x600', '320x240', '160x120'), '1280x960'))
-		self.addSetting(Setting('use_distortion_calibration', _('Use Distortion'), 'profile', bool, False))
+		self._addSetting(Setting('brightness_calibration', _('Brightness'), 'profile', int, 100, min_value=0, max_value=255))
+		self._addSetting(Setting('contrast_calibration', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
+		self._addSetting(Setting('saturation_calibration', _('Saturation'), 'profile', int, 100, min_value=0, max_value=255))
+		self._addSetting(Setting('exposure_calibration', _('Exposure'), 'profile', int, 16, min_value=1, max_value=512))
+		self._addSetting(Setting('framerate_calibration', _('Framerate'), 'profile', int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
+		self._addSetting(Setting('resolution_calibration', _('Resolution'), 'profile', str, '1280x960', possible_values=('1280x960', '960x720', '800x600', '320x240', '160x120')))
+		self._addSetting(Setting('use_distortion_calibration', _('Use Distortion'), 'profile', bool, False))
 
 		# Hack to translate combo boxes:
 		_('Simple Scan')
 		_('Texture Scan')
-		self.addSetting(Setting('scan_type', _('Scan'), 'profile', ('Simple Scan', 'Texture Scan'), 'Texture Scan'))
+		self._addSetting(Setting('scan_type', _('Scan'), 'profile', str, 'Texture Scan', possible_values=('Simple Scan', 'Texture Scan')))
 		# Hack to translate combo boxes:
 		_('Left')
 		_('Right')
 		_('Both')
-		self.addSetting(Setting('use_laser', _('Use Laser'), 'profile', ('Left', 'Right', 'Both'), 'Both'))
-		self.addSetting(Setting('fast_scan', _('Fast Scan (experimental)'), 'profile', bool, False))
-
-		self.addSetting(Setting('step_degrees_scanning', _('Step Degrees'), 'profile', float, 0.45, min_value=0.01))
-		self.addSetting(Setting('feed_rate_scanning', _('Feed Rate'), 'profile', int, 200, min_value=1, max_value=1000))
-		self.addSetting(Setting('acceleration_scanning', _('Acceleration'), 'profile', int, 300, min_value=1, max_value=1000))
-		self.addSetting(Setting('brightness_scanning', _('Brightness'), 'profile', int, 100, min_value=0, max_value=255))
-		self.addSetting(Setting('contrast_scanning', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
-		self.addSetting(Setting('saturation_scanning', _('Saturation'), 'profile', int, 32, min_value=0, max_value=255))
-		self.addSetting(Setting('laser_exposure_scanning', _('Exposure'), 'profile', int, 6, min_value=1, max_value=512, tag='simple'))
-		self.addSetting(Setting('color_exposure_scanning', _('Exposure'), 'profile', int, 10, min_value=1, max_value=512, tag='texture'))
-		self.addSetting(Setting('framerate_scanning', _('Framerate'), 'profile', (30, 25, 20, 15, 10, 5), 30))
-		self.addSetting(Setting('resolution_scanning', _('Resolution'), 'profile', ('1280x960', '960x720', '800x600', '320x240', '160x120'), '1280x960'))
-		self.addSetting(Setting('use_distortion_scanning', _('Use Distortion'), 'profile', bool, False))
+		self._addSetting(Setting('use_laser', _('Use Laser'), 'profile', str, 'Both', possible_values=('Left', 'Right', 'Both')))
+		self._addSetting(Setting('fast_scan', _('Fast Scan (experimental)'), 'profile', bool, False))
+		self._addSetting(Setting('step_degrees_scanning', _('Step Degrees'), 'profile', float, 0.45, min_value=0.01))
+		self._addSetting(Setting('feed_rate_scanning', _('Feed Rate'), 'profile', int, 200, min_value=1, max_value=1000))
+		self._addSetting(Setting('acceleration_scanning', _('Acceleration'), 'profile', int, 300, min_value=1, max_value=1000))
+		self._addSetting(Setting('brightness_scanning', _('Brightness'), 'profile', int, 100, min_value=0, max_value=255))
+		self._addSetting(Setting('contrast_scanning', _('Contrast'), 'profile', int, 32, min_value=0, max_value=255))
+		self._addSetting(Setting('saturation_scanning', _('Saturation'), 'profile', int, 32, min_value=0, max_value=255))
+		self._addSetting(Setting('laser_exposure_scanning', _('Exposure'), 'profile', int, 6, min_value=1, max_value=512, tag='simple'))
+		self._addSetting(Setting('color_exposure_scanning', _('Exposure'), 'profile', int, 10, min_value=1, max_value=512, tag='texture'))
+		self._addSetting(Setting('framerate_scanning', _('Framerate'), 'profile', int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
+		self._addSetting(Setting('resolution_scanning', _('Resolution'), 'profile', str, '1280x960', possible_values=('1280x960', '960x720', '800x600', '320x240', '160x120')))
+		self._addSetting(Setting('use_distortion_scanning', _('Use Distortion'), 'profile', bool, False))
 
 		# Hack to translate combo boxes:
 		_('Laser')
 		_('Gray')
 		_('Line')
 		_('Color')
-		self.addSetting(Setting('img_type', _('Image Type'), 'profile', ('Laser', 'Gray', 'Line', 'Color'), 'Laser'))
-		self.addSetting(Setting('use_open', _('Use Open'), 'profile', bool, True, tag='texture'))
-		self.addSetting(Setting('open_value', _('Open'), 'profile', int, 2, min_value=1, max_value=10, tag='texture'))
-		self.addSetting(Setting('use_threshold', _('Use Threshold'), 'profile', bool, True, tag='texture'))
-		self.addSetting(Setting('threshold_value', _('Threshold'), 'profile', int, 25, min_value=0, max_value=255, tag='texture'))
-		self.addSetting(Setting('use_cr_threshold', _('Use Threshold'), 'profile', bool, True, tag='simple'))
-		self.addSetting(Setting('cr_threshold_value', _('Threshold'), 'profile', int, 140, min_value=0, max_value=255, tag='simple'))
-		self.addSetting(Setting('point_cloud_color', _('Choose Point Cloud Color'), 'profile', str, 'AAAAAA'))
-		self.addSetting(Setting('adjust_laser', _('Adjust Laser'), 'profile', bool, True))
-		self.addSetting(Setting('camera_matrix', _('Calibration Matrix'), 'profile', numpy.ndarray, ([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]])))
-		self.addSetting(Setting('distortion_vector', _('Distortion Vector'), 'profile', numpy.ndarray, ([0.0,0.0,0.0,0.0,0.0]))
+		self._addSetting(Setting('img_type', _('Image Type'), 'profile', str, 'Laser', possible_values=('Laser', 'Gray', 'Line', 'Color')))
+		self._addSetting(Setting('use_open', _('Use Open'), 'profile', bool, True, tag='texture'))
+		self._addSetting(Setting('open_value', _('Open'), 'profile', int, 2, min_value=1, max_value=10, tag='texture'))
+		self._addSetting(Setting('use_threshold', _('Use Threshold'), 'profile', bool, True, tag='texture'))
+		self._addSetting(Setting('threshold_value', _('Threshold'), 'profile', int, 25, min_value=0, max_value=255, tag='texture'))
+		self._addSetting(Setting('use_cr_threshold', _('Use Threshold'), 'profile', bool, True, tag='simple'))
+		self._addSetting(Setting('cr_threshold_value', _('Threshold'), 'profile', int, 140, min_value=0, max_value=255, tag='simple'))
+		self._addSetting(Setting('point_cloud_color', _('Choose Point Cloud Color'), 'profile', str, 'AAAAAA'))
+		self._addSetting(Setting('adjust_laser', _('Adjust Laser'), 'profile', bool, True))
+		self._addSetting(Setting('camera_matrix', _('Calibration Matrix'), 'profile', np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1425.0,0.0,480.0],[0.0,1425.0,640.0],[0.0,0.0,1.0]]))))
+		self._addSetting(Setting('distortion_vector', _('Distortion Vector'), 'profile', np.ndarray, np.ndarray(shape=(5,), buffer=np.array([0.0,0.0,0.0,0.0,0.0]))))
 
-		self.addSetting(Setting('laser_threshold_value', _('Laser Threshold'), 'profile', int, 120, min_value=0, max_value=255))
-		self.addSetting(Setting('distance_left', _('Distance'), 'profile', float, 0.0))
-		self.addSetting(Setting('normal_left', _('Normal'), 'profile', numpy.ndarray, ([0.0,0.0,0.0])))
-		self.addSetting(Setting('distance_right', _('Distance'), 'profile', float, 0.0))
-		self.addSetting(Setting('normal_right', _('Normal'), 'profile', numpy.ndarray, ([0.0,0.0,0.0])))
-		self.addSetting(Setting('rotation_matrix', _('Rotation Matrix'), 'profile', numpy.ndarray, ([[0.0,1.0,0.0],[0.0,0.0,-1.0],[-1.0,0.0,0.0]])))
-		self.addSetting(Setting('translation_vector', _('Translation Matrix'), 'profile', numpy.ndarray, ([5.0,80.0,320.0])))
+		self._addSetting(Setting('laser_threshold_value', _('Laser Threshold'), 'profile', int, 120, min_value=0, max_value=255))
+		self._addSetting(Setting('distance_left', _('Distance'), 'profile', float, 0.0))
+		self._addSetting(Setting('normal_left', _('Normal'), 'profile', np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0,0.0,0.0]))))
+		self._addSetting(Setting('distance_right', _('Distance'), 'profile', float, 0.0))
+		self._addSetting(Setting('normal_right', _('Normal'), 'profile', np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0,0.0,0.0]))))
+		self._addSetting(Setting('rotation_matrix', _('Rotation Matrix'), 'profile', np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[0.0,1.0,0.0],[0.0,0.0,-1.0],[-1.0,0.0,0.0]]))))
+		self._addSetting(Setting('translation_vector', _('Translation Matrix'), 'profile', np.ndarray, np.ndarray(shape=(3,), buffer=np.array([5.0,80.0,320.0]))))
 
-		self.addSetting(Setting('pattern_rows', _('Pattern Rows'), 'profile', int, 6))
-		self.addSetting(Setting('pattern_columns', _('Pattern Columns'), 'profile', int, 11))
-		self.addSetting(Setting('square_width', _('Square width'), 'profile', int, 13))
-		self.addSetting(Setting('pattern_distance', _('Pattern Distance'), 'profile', float, 0))
-		self.addSetting(Setting('extrinsics_step', _('Extrinsics Step'), 'profile', float, -5.0))
+		self._addSetting(Setting('pattern_rows', _('Pattern Rows'), 'profile', int, 6))
+		self._addSetting(Setting('pattern_columns', _('Pattern Columns'), 'profile', int, 11))
+		self._addSetting(Setting('square_width', _('Square width'), 'profile', int, 13))
+		self._addSetting(Setting('pattern_distance', _('Pattern Distance'), 'profile', float, 0.0))
+		self._addSetting(Setting('extrinsics_step', _('Extrinsics Step'), 'profile', float, -5.0))
 
-		self.addSetting(Setting('laser_coordinates', _('Laser Coordinates'), 'profile', numpy.ndarray, ([[480.0,480.0],[480.0,480.0]])))
-		self.addSetting(Setting('laser_origin', _('Laser Origin'), 'profile', numpy.ndarray, ([0.0,0.0,0.0])))
-		self.addSetting(Setting('laser_normal', _('Laser Normal'), 'profile', numpy.ndarray, ([0.0,0.0,0.0])))
+		self._addSetting(Setting('laser_coordinates', _('Laser Coordinates'), 'profile', np.ndarray, np.ndarray(shape=(2, 2), buffer=np.array([[480.0,480.0],[480.0,480.0]]))))
+		self._addSetting(Setting('laser_origin', _('Laser Origin'), 'profile', np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0,0.0,0.0]))))
+		self._addSetting(Setting('laser_normal', _('Laser Normal'), 'profile', np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0,0.0,0.0]))))
 
-		# self.addSetting(Setting('left_button', _('Left'), 'profile', str, 'profile', False))
-		# self.addSetting(Setting('right_button', '', str, 'profile', _('Right'), False))
-		# self.addSetting(Setting('move_button', '', str, 'profile', _('Move'), False))
-		# self.addSetting(Setting('enable_button', '', str, 'profile', _('Enable'), False))
-		# self.addSetting(Setting('gcode_gui', '', str, 'profile', _('Send'), False))
-		# self.addSetting(Setting('ldr_value', '', str, 'profile', _('Send'), False))
+		# self._addSetting(Setting('left_button', _('Left'), 'profile', str, 'profile', False))
+		# self._addSetting(Setting('right_button', '', str, 'profile', _('Right'), False))
+		# self._addSetting(Setting('move_button', '', str, 'profile', _('Move'), False))
+		# self._addSetting(Setting('enable_button', '', str, 'profile', _('Enable'), False))
+		# self._addSetting(Setting('gcode_gui', '', str, 'profile', _('Send'), False))
+		# self._addSetting(Setting('ldr_value', '', str, 'profile', _('Send'), False))
 
-		self.addSetting(Setting('machine_diameter', _('Machine Diameter'), 'machine_setting', float, 200.0))
-		self.addSetting(Setting('machine_width', _('Machine Width'), 'machine_setting', float, 200.0))
-		self.addSetting(Setting('machine_height', _('Machine Height'), 'machine_setting', float, 200.0))
-		self.addSetting(Setting('machine_depth', _('Machine Depth'), 'machine_setting', float, 200.0))
-		self.addSetting(Setting('machine_shape', _('Machine Shape'), 'machine_setting', ('Circular', 'Rectangular'), 'Circular'))
-		self.addSetting(Setting('machine_model_path', _('Machine Model'), str, resources.getPathForMesh('ciclop_platform.stl')))
-
-		self.addSetting(Setting('view_roi', _('View ROI'), 'machine_setting', bool, False))
-		self.addSetting(Setting('roi_diameter', _('Diameter'), 'machine_setting', int, 200, min_value=0, max_value=250))
-		self.addSetting(Setting('roi_width', _('Width'), 'machine_setting', int, 200, min_value=0, max_value=250))
-		self.addSetting(Setting('roi_height', _('Height'), 'machine_setting', int, 200, min_value=0, max_value=250))
-		self.addSetting(Setting('roi_depth', _('Depth'), 'machine_setting', int, 200, min_value=0, max_value=250))
+		self._addSetting(Setting('machine_diameter', _('Machine Diameter'), 'machine_setting', float, 200.0))
+		self._addSetting(Setting('machine_width', _('Machine Width'), 'machine_setting', float, 200.0))
+		self._addSetting(Setting('machine_height', _('Machine Height'), 'machine_setting', float, 200.0))
+		self._addSetting(Setting('machine_depth', _('Machine Depth'), 'machine_setting', float, 200.0))
+		# Hack to translate combo boxes:
+		_('Circular')
+		_('Rectangular')
+		self._addSetting(Setting('machine_shape', _('Machine Shape'), 'machine_setting', str, 'Circular', possible_values=('Circular', 'Rectangular')))
+		#self._addSetting(Setting('machine_model_path', _('Machine Model'), str, resources.getPathForMesh('ciclop_platform.stl')))
+		self._addSetting(Setting('view_roi', _('View ROI'), 'machine_setting', bool, False))
+		self._addSetting(Setting('roi_diameter', _('Diameter'), 'machine_setting', int, 200, min_value=0, max_value=250))
+		self._addSetting(Setting('roi_width', _('Width'), 'machine_setting', int, 200, min_value=0, max_value=250))
+		self._addSetting(Setting('roi_height', _('Height'), 'machine_setting', int, 200, min_value=0, max_value=250))
+		self._addSetting(Setting('roi_depth', _('Depth'), 'machine_setting', int, 200, min_value=0, max_value=250))
 
 		##-- Preferences
 
-		self.addSetting(Setting('language', _('Language'), 'preference', ('English', 'Español', 'Français', 'Deutsch', 'Italiano', 'Português'), 'English', tooltip=_('Change the language in which Horus runs. Switching language requires a restart of Horus')))
+		self._addSetting(Setting('language', _('Language'), 'preference', str, 'English', possible_values=('English', 'Español', 'Français', 'Deutsch', 'Italiano', 'Português'), tooltip=_('Change the language in which Horus runs. Switching language requires a restart of Horus')))
 		# Hack to translate combo boxes:
 		_('Control workbench')
 		_('Calibration workbench')
 		_('Scanning workbench')
-		self.addSetting(Setting('workbench', _('Workbench'), 'preference', ('Control workbench', 'Calibration workbench', 'Scanning workbench'), 'Scanning workbench'))
-		self.addSetting(Setting('show_welcome', _('Show Welcome'), 'preference', bool, True))
-		self.addSetting(Setting('check_for_updates', _('Check for Updates'), 'preference', bool, True))
-		self.addSetting(Setting('basic_mode', _('Basic Mode'), 'preference', bool, False))
-		self.addSetting(Setting('view_control_panel', _('View Control Panel'), 'preference', bool, True))
-		self.addSetting(Setting('view_control_video', _('View Control Panel') 'preference', bool, True)
-		self.addSetting(Setting('view_calibration_panel', _('View Calibration Panel'), 'preference', bool, True))
-		self.addSetting(Setting('view_calibration_video', _('View Calibration Video'), 'preference', bool, True))
-		self.addSetting(Setting('view_scanning_panel', _('View Scanning Panel'), 'preference', bool, False))
-		self.addSetting(Setting('view_scanning_video', _('View Scanning Video'), 'preference', bool, False))
-		self.addSetting(Setting('view_scanning_scene', _('View Scanning Scene'), 'preference', bool, True))
+		self._addSetting(Setting('workbench', _('Workbench'), 'preference', str, 'Scanning workbench', possible_values=('Control workbench', 'Calibration workbench', 'Scanning workbench')))
+		self._addSetting(Setting('show_welcome', _('Show Welcome'), 'preference', bool, True))
+		self._addSetting(Setting('check_for_updates', _('Check for Updates'), 'preference', bool, True))
+		self._addSetting(Setting('basic_mode', _('Basic Mode'), 'preference', bool, False))
+		self._addSetting(Setting('view_control_panel', _('View Control Panel'), 'preference', bool, True))
+		self._addSetting(Setting('view_control_video', _('View Control Panel'), 'preference', bool, True))
+		self._addSetting(Setting('view_calibration_panel', _('View Calibration Panel'), 'preference', bool, True))
+		self._addSetting(Setting('view_calibration_video', _('View Calibration Video'), 'preference', bool, True))
+		self._addSetting(Setting('view_scanning_panel', _('View Scanning Panel'), 'preference', bool, False))
+		self._addSetting(Setting('view_scanning_video', _('View Scanning Video'), 'preference', bool, False))
+		self._addSetting(Setting('view_scanning_scene', _('View Scanning Scene'), 'preference', bool, True))
 
 		# TODO: change default last file
-		self.addSetting(Setting('last_files', _('Last Files'), 'preference', list, []))
-		self.addSetting(Setting('last_file', _('Last File'), 'preference', str, '')) # TODO: Set this default value
-		self.addSetting(Setting('last_profile', _('Last Profile'), 'preference', str, '')) # TODO: Set this default value
-		self.addSetting(Setting('model_color', _('Model color'), 'preference', str, '#888899', tooltip=_('Display color for first extruder')))
+		self._addSetting(Setting('last_files', _('Last Files'), 'preference', list, []))
+		self._addSetting(Setting('last_file', _('Last File'), 'preference', str, '')) # TODO: Set this default value
+		self._addSetting(Setting('last_profile', _('Last Profile'), 'preference', str, '')) # TODO: Set this default value
+		self._addSetting(Setting('model_color', _('Model color'), 'preference', str, '#888899', tooltip=_('Display color for first extruder')))
 
 
 
-class Setting():
-	"""
-		A setting object contains a configuration setting. These are globally accessible trough the quick access functions
-		and trough the settingsDictionary function.
-		Settings can be:
-		* profile settings (settings that effect the scan process and the scan result)
-		* preferences (settings that effect how horus works and acts)
-		* machine settings (settings that relate to the physical configuration of your machine)
-		Settings have validators that check if the value is valid, but do not prevent invalid values!
-		Settings have conditions that enable/disable this setting depending on other settings.
-	"""
-	def __init__(self, setting_id, label, category, default, setting_type, tooltip='', min_value=None, max_value=None, tag=None):
+
+
+class Setting(object):
+
+	def __init__(self, setting_id, label, category, setting_type, default, min_value=None, max_value=None, possible_values=None, tooltip='', tag=None):
 		self._id = setting_id
 		self._label = label
 		self._category = category
-		self._default = default
 		self._type = setting_type
+		self.min_value = min_value
+		self.max_value = max_value
+		self.default = default
+		self._possible_values = possible_values
 		self._tooltip = tooltip
-		self._min_value = min_value
-		self._max_value = max_value
 		self._tag = tag
 
-		self._value = None
+		self.__value = None
 
-	def getLabel(self):
-		return _(self._label)
+	@property
+	def value(self):
+		return self.__value
+	
+	@value.setter
+	def value(self, value):
+		if value == None:
+			return
+		self._checkType(value)
+		self._checkRange(value)
+		self.__value = value
 
-	def getTooltip(self):
-		return _(self._tooltip)
+	@property
+	def default(self):
+		return self.__default
 
-	def setValue(self, value):
-		# TODO: Implement this. Check if value is of type _type and that is _min_value <= value <= _max_value
-		self._value = value
+	@default.setter
+	def default(self, value):
+		self._checkType(value)
+		self._checkRange(value)
+		self.__default = value
 
-	def _isValidInt(n):
-		try:
-			int(eval(n), {}, {}))			
-		except:
-			return False
+	@property
+	def min_value(self):
+		return self.__min_value
+
+	@min_value.setter
+	def min_value(self, value):
+		if value != None:
+			self._checkType(value)
+		self.__min_value = value
+
+	@property
+	def max_value(self):
+		return self.__max_value
+
+	@max_value.setter
+	def max_value(self, value):
+		if value != None:
+			self._checkType(value)
+		self.__max_value = value	
+
+	def _checkType(self, value):
+		if not isinstance(value, self._type):
+			raise TypeError("Error when setting %s.\n%s is not of type %s." % (self._id, value, self._type))
+
+	def _checkRange(self, value):
+		if self.min_value != None and value < self.min_value:
+			#raise ValueError('Error when setting %s.\n%s is below min value %s.' % (self._id, value, self.min_value))
+			print 'Warning: For setting %s, %s is below min value %s.' % (self._id, value, self.min_value)
+		if self.max_value != None and value > self.max_value:
+			#raise ValueError('Error when setting %s.\n%s is above max value %s.' % (self._id, value, self.max_value))
+			print 'Warning: For setting %s.\n%s is above max value %s.' % (self._id, value, self.max_value)
+
+	def _loadJsonDict(self, json_dict):
+		# Only load configurable fields (__value, __min_value, __max_value)
+		self.value = json_dict['value']
+		self.min_value = json_dict['min_value']
+		self.max_value = json_dict['max_value']
+
+	def _toJsonDict(self):
+		# Convert only configurable fields
+		json_dict = dict()
+		if self._type == np.ndarray and self.value != None:
+			json_dict['value'] = np.self.value.tolist()
 		else:
-			return True
-
-	def _isValidFloat(n):
-		try:
-			float(eval(n), {}, {}))			
-		except:
-			return False
-		else:
-			return True
+			json_dict['value'] = self.value
+		json_dict['min_value'] = self.min_value
+		json_dict['max_value'] = self.max_value
+		return json_dict
 
 
-
-
-#########################################################
-## Settings
-#########################################################
 
 #Define a fake _() function to fake the gettext tools in to generating strings for the profile settings.
 def _(n):
 	return n
 
-#-- Settings
+
+
+
+
+# TESTING
 
 settings = Settings()
 
-settings.populateSettings()
+settings._initializeSettings()
+
+
+
+def loadOldSettings(filename):
+	profileParser = ConfigParser.ConfigParser()
+	try:
+		profileParser.read(filename)
+	except ConfigParser.ParsingError:
+		print "Unable to read file: %s" % filename
+	section = profileParser.sections()[0]
+
+	for key in settings:
+		if profileParser.has_option(section, key):
+			setting_type = settings.getSetting(key)._type
+			if setting_type == types.BooleanType:
+				settings[key] = bool(profileParser.get(section, key))
+			elif setting_type == types.IntType:
+				settings[key] = int(float(profileParser.get(section, key)))
+			elif setting_type == types.FloatType:
+				settings[key] = float(profileParser.get(section, key))
+			elif setting_type == types.StringType:
+				settings[key] = str(profileParser.get(section, key))
+			elif setting_type == types.ListType:
+				from ast import literal_eval
+				settings[key] = literal_eval(profileParser.get(section, key))
+			elif setting_type == np.ndarray:
+				from ast import literal_eval
+				settings[key] = np.asarray(literal_eval(profileParser.get(section, key)))
+			else:
+				raise TypeError("Unknown type when loading old setting:", key)
+
+loadOldSettings('/home/nicanor.romero/.horus/machine_settings.ini')
+loadOldSettings('/home/nicanor.romero/.horus/current-profile.ini')
+loadOldSettings('/home/nicanor.romero/.horus/preferences.ini')
+
+
+
+
+print "Done."
+
+
 
 #Remove fake defined _() because later the localization will define a global _()
 del _
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #########################################################
 ## Settings functions
@@ -301,7 +482,7 @@ def resetSetting(name):
 	""" Reset only the especified setting """
 	global settingsDictionary
 	if name in settingsDictionary:
-		settingsDictionary[name].setValue(settingsDictionary[name]._default)
+		settingsDictionary[name].setValue(settingsDictionary[name].__default)
 
 def getSettingBool(name):
 	try:
@@ -345,27 +526,27 @@ def getSettingMaxValue(name):
 ## Profile and preferences functions
 #########################################################
 
-## Profile functions
-def getBasePath():
-	"""
-	:return: The path in which the current configuration files are stored. This depends on the used OS.
-	"""
-	if system.isWindows():
-		basePath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-		#If we have a frozen python install, we need to step out of the library.zip
-		if hasattr(sys, 'frozen'):
-			basePath = os.path.normpath(os.path.join(basePath, ".."))
-	else:
-		basePath = os.path.expanduser('~/.horus/')
-	if not os.path.isdir(basePath):
-		try:
-			os.makedirs(basePath)
-		except:
-			print "Failed to create directory: %s" % (basePath)
-	return basePath
+## Profile file functions
 
+# def getBasePath():
+# 	"""
+# 	:return: The path in which the current configuration files are stored. This depends on the used OS.
+# 	"""
+# 	if system.isWindows():
+# 		basePath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+# 		#If we have a frozen python install, we need to step out of the library.zip
+# 		if hasattr(sys, 'frozen'):
+# 			basePath = os.path.normpath(os.path.join(basePath, ".."))
+# 	else:
+# 		basePath = os.path.expanduser('~/.horus/')
+# 	if not os.path.isdir(basePath):
+# 		try:
+# 			os.makedirs(basePath)
+# 		except:
+# 			print "Failed to create directory: %s" % (basePath)
+# 	return basePath
 
-def loadProfile(filename, allMachines = False):
+def loadProfile(filename):
 	"""
 		Read a profile file as active profile settings.
 	:param filename:    The ini filename to save the profile in.
@@ -377,25 +558,15 @@ def loadProfile(filename, allMachines = False):
 		profileParser.read(filename)
 	except ConfigParser.ParsingError:
 		return
-	if allMachines:
-		n = 0
-		while profileParser.has_section('profile_%d' % (n)):
-			for set in settingsList:
-				if set.isPreference() or set.isMachineSetting():
-					continue
-				section = 'profile_%d' % (n)
-				if profileParser.has_option(section, set.getName()):
-					set.setValue(unicode(profileParser.get(section, set.getName()), 'utf-8', 'replace'), n)
-			n += 1
-	else:
-		for set in settingsList:
-			if set.isPreference() or set.isMachineSetting():
-				continue
-			section = 'profile'
-			if profileParser.has_option(section, set.getName()):
-				set.setValue(unicode(profileParser.get(section, set.getName()), 'utf-8', 'replace'))
+	
+	for set in settingsList:
+		if set.isPreference() or set.isMachineSetting():
+			continue
+		section = 'profile'
+		if profileParser.has_option(section, set.getName()):
+			set.setValue(unicode(profileParser.get(section, set.getName()), 'utf-8', 'replace'))
 				
-def saveProfile(filename, allMachines = False):
+def saveProfile(filename):
 	"""
 		Save the current profile to an ini file.
 	:param filename:    The ini filename to save the profile in.
@@ -403,30 +574,15 @@ def saveProfile(filename, allMachines = False):
 	"""
 	global settingsList
 	profileParser = ConfigParser.ConfigParser()
-	if allMachines:
-		for set in settingsList:
-			if set.isPreference() or set.isMachineSetting():
-				continue
-			for n in xrange(0, getMachineCount()):
-				section = 'profile_%d' % (n)
-				if not profileParser.has_section(section):
-					profileParser.add_section(section)
-				profileParser.set(section, set.getName(), set.getValue(n).encode('utf-8'))
-	else:
-		profileParser.add_section('profile')
-		for set in settingsList:
-			if set.isPreference() or set.isMachineSetting():
-				continue
-			if set.isStorable():
-				profileParser.set('profile', set.getName(), set.getValue().encode('utf-8'))
+	
+	profileParser.add_section('profile')
+	for set in settingsList:
+		if set.isPreference() or set.isMachineSetting():
+			continue
+		if set.isStorable():
+			profileParser.set('profile', set.getName(), set.getValue().encode('utf-8'))
 
 	profileParser.write(open(filename, 'w'))
-
-
-
-
-# TODO: Keep checking which of these functions are used..
-
 
 def resetProfile():
 	""" Reset the profile for the current machine to default. """
@@ -439,62 +595,7 @@ def resetProfileSetting(name):
 	""" Reset only the especified profile setting """
 	global settingsDictionary
 	if name in settingsDictionary and settingsDictionary[name].isProfile():
-		settingsDictionary[name].setValue(settingsDictionary[name]._default)
-
-def setProfileFromString(options):
-	"""
-	Parse an encoded string which has all the profile settings stored inside of it.
-	Used in combination with getProfileString to ease sharing of profiles.
-	"""
-	options = base64.b64decode(options)
-	options = zlib.decompress(options)
-	(profileOpts, alt) = options.split('\f', 1)
-	global settingsDictionary
-	for option in profileOpts.split('\b'):
-		if len(option) > 0:
-			(key, value) = option.split('=', 1)
-			if key in settingsDictionary:
-				if settingsDictionary[key].isProfile():
-					settingsDictionary[key].setValue(value)
-	for option in alt.split('\b'):
-		if len(option) > 0:
-			(key, value) = option.split('=', 1)
-			if key in settingsDictionary:
-				settingsDictionary[key].setValue(value)
-
-def getProfileString():
-	"""
-	Get an encoded string which contains all profile settings.
-	Used in combination with setProfileFromString to share settings in files, forums or other text based ways.
-	"""
-	p = []
-	alt = []
-	global settingsList
-	for set in settingsList:
-		if set.isProfile():
-			p.append(set.getName() + "=" + set.getValue().encode('utf-8'))
-	ret = '\b'.join(p) + '\f' + '\b'.join(alt)
-	ret = base64.b64encode(zlib.compress(ret, 9))
-	return ret
-
-def insertNewlines(string, every=64): #This should be moved to a better place then profile.
-	lines = []
-	for i in xrange(0, len(string), every):
-		lines.append(string[i:i+every])
-	return '\n'.join(lines)
-
-def getPreferencesString():
-	"""
-	:return: An encoded string which contains all the current preferences.
-	"""
-	p = []
-	global settingsList
-	for set in settingsList:
-		if set.isPreference():
-			p.append(set.getName() + "=" + set.getValue().encode('utf-8'))
-	ret = '\b'.join(p)
-	ret = base64.b64encode(zlib.compress(ret, 9))
-	return ret
+		settingsDictionary[name].setValue(settingsDictionary[name].__default)
 
 def getProfileSettingObject(name):
 	""" """
@@ -514,31 +615,6 @@ def getProfileSetting(name):
 	global settingsDictionary
 	if name in settingsDictionary and settingsDictionary[name].isProfile():
 		return settingsDictionary[name].getValue()
-	traceback.print_stack()
-	sys.stderr.write('Error: "%s" not found in profile settings\n' % (name))
-	return ''
-
-def getDefaultProfileSetting(name):
-	"""
-		Get the default value of a profile setting.
-	:param name: Name of the setting to retrieve.
-	:return:     Value of the current setting.
-	"""
-	global settingsDictionary
-	if name in settingsDictionary and settingsDictionary[name].isProfile():
-		return settingsDictionary[name].getDefault()
-	traceback.print_stack()
-	sys.stderr.write('Error: "%s" not found in profile settings\n' % (name))
-	return ''
-
-def getDefaultProfileSettingInteger(name):
-	global settingsDictionary
-	if name in settingsDictionary and settingsDictionary[name].isProfile():
-		try:
-			setting = settingsDictionary[name].getDefault()
-			return int(eval(setting, {}, {}))
-		except:
-			return 0.0
 	traceback.print_stack()
 	sys.stderr.write('Error: "%s" not found in profile settings\n' % (name))
 	return ''
@@ -568,7 +644,7 @@ def getProfileSettingNumpy(name):
 	try:
 		setting = getProfileSetting(name)
 
-		return numpy.array(eval(setting, {}, {}))
+		return np.array(eval(setting, {}, {}))
 	except:
 		return []
 
@@ -586,12 +662,6 @@ def putProfileSettingNumpy(name, value):
 	reprValue=reprValue.replace(' ','')
 	putProfileSetting(name,reprValue)
 
-def isProfileSetting(name):
-	""" Check if a certain key name is actually a profile value. """
-	global settingsDictionary
-	if name in settingsDictionary and settingsDictionary[name].isProfile():
-		return True
-	return False
 
 ## Preferences functions
 def getPreferencePath():
@@ -600,15 +670,7 @@ def getPreferencePath():
 	"""
 	return os.path.join(getBasePath(), 'preferences.ini')
 
-def getPreferenceFloat(name):
-	"""
-	Get the float value of a preference, returns 0.0 if the preference is not a invalid float
-	"""
-	try:
-		setting = getPreference(name).replace(',', '.')
-		return float(eval(setting, {}, {}))
-	except:
-		return 0.0
+
 
 def getPreferenceBool(name):
 	"""
@@ -673,11 +735,7 @@ def putPreference(name, value):
 	traceback.print_stack()
 	sys.stderr.write('Error: "%s" not found in preferences\n' % (name))
 
-def isPreference(name):
-	global settingsDictionary
-	if name in settingsDictionary and settingsDictionary[name].isPreference():
-		return True
-	return False
+
 
 ## Machine functions
 def loadMachineSettings(filename):
@@ -717,12 +775,7 @@ def getMachineSetting(name, index = None):
 	sys.stderr.write('Error: "%s" not found in machine settings\n' % (name))
 	return ''
 
-def getMachineSettingObject(name):
-	""" """
-	global settingsList
-	for set in settingsList:
-		if set.getName() is name:
-			return set
+
 
 def getMachineSettingBool(name):
 	try:
@@ -807,9 +860,9 @@ def getMachineSettingType(name):
 # the rest of the polygons are the dis-allowed areas of the machine.
 def getMachineSizePolygons(machine_shape):
 	if machine_shape == "Circular":
-		size = numpy.array([getMachineSettingFloat('machine_diameter'), getMachineSettingFloat('machine_diameter'), getMachineSettingFloat('machine_height')], numpy.float32)
+		size = np.array([getMachineSettingFloat('machine_diameter'), getMachineSettingFloat('machine_diameter'), getMachineSettingFloat('machine_height')], np.float32)
 	elif machine_shape == "Rectangular":
-		size = numpy.array([getMachineSettingFloat('machine_width'), getMachineSettingFloat('machine_depth'), getMachineSettingFloat('machine_height')], numpy.float32)
+		size = np.array([getMachineSettingFloat('machine_width'), getMachineSettingFloat('machine_depth'), getMachineSettingFloat('machine_height')], np.float32)
 	return getSizePolygons(size, machine_shape)
 
 def getSizePolygons(size, machine_shape):
@@ -819,7 +872,7 @@ def getSizePolygons(size, machine_shape):
 		steps = 32
 		for n in xrange(0, steps):
 			circle.append([math.cos(float(n)/steps*2*math.pi) * size[0]/2, math.sin(float(n)/steps*2*math.pi) * size[1]/2])
-		ret.append(numpy.array(circle, numpy.float32))
+		ret.append(np.array(circle, np.float32))
 
 	elif machine_shape == 'Rectangular':
 		rectangle = []
@@ -827,13 +880,18 @@ def getSizePolygons(size, machine_shape):
 		rectangle.append([size[0]/2, size[1]/2])
 		rectangle.append([size[0]/2, -size[1]/2])
 		rectangle.append([-size[0]/2, -size[1]/2])
-		ret.append(numpy.array(rectangle, numpy.float32))
+		ret.append(np.array(rectangle, np.float32))
 
 	w = 20
 	h = 20
-	ret.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))
-	ret.append(numpy.array([[ size[0]/2-w-2,-size[1]/2],[ size[0]/2,-size[1]/2], [ size[0]/2,-size[1]/2+h],[ size[0]/2-w,-size[1]/2+h]], numpy.float32))
-	ret.append(numpy.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], numpy.float32))
-	ret.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
+	ret.append(np.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], np.float32))
+	ret.append(np.array([[ size[0]/2-w-2,-size[1]/2],[ size[0]/2,-size[1]/2], [ size[0]/2,-size[1]/2+h],[ size[0]/2-w,-size[1]/2+h]], np.float32))
+	ret.append(np.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], np.float32))
+	ret.append(np.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], np.float32))
 	
 	return ret
+
+
+
+
+
