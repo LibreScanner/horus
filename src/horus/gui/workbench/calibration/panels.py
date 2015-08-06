@@ -288,6 +288,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.buttonEdit.SetLabel(_("OK"))
         else:
             self.buttonEdit.SetLabel(_("Edit"))
+            self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
         dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _(
@@ -326,7 +327,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
 
     def updateEngine(self):
         driver.camera.camera_matrix = self.cameraValues
-        driver.camera.distortion_values = self.distortionValues
+        driver.camera.distortion_vector = self.distortionValues
 
     def updateProfile(self):
         self.getProfileSettings()

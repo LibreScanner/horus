@@ -28,10 +28,6 @@ from horus.engine.calibration.pattern import Pattern
         - Platform Extrinsics Calibration
 """
 
-image_points = []
-object_points = []
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
-
 
 class Calibration(object):
 
@@ -40,6 +36,7 @@ class Calibration(object):
     def __init__(self):
         self.driver = Driver()
         self.pattern = Pattern()
+        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         # TODO: Callbacks to Observer pattern
         self._before_callback = None
         self._progress_callback = None
@@ -68,21 +65,33 @@ class Calibration(object):
     def cancel(self):
         self._is_calibrating = False
 
+    def detect_chessboard(self, frame):
+        if self.pattern.rows <= 2 or self.pattern.columns <= 2:
+            return False, frame, None
+        if frame is not None:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            ret, corners = cv2.findChessboardCorners(
+                gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
+            # Always None :(
+            # cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
+            cv2.drawChessboardCorners(
+                frame, (self.pattern.columns, self.pattern.rows), corners, ret)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            return ret, frame, corners
+        else:
+            return False, frame, None
+
     def solve_pnp(self, image):
         if image is not None:
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
             retval, corners = cv2.findChessboardCorners(
                 gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
-
             if retval:
-                cv2.cornerSubPix(
-                    gray, corners, winSize=(11, 11), zeroZone=(-1, -1), criteria=criteria)
-                if self.driver.camera.use_distortion:
-                    ret, rvecs, tvecs = cv2.solvePnP(
-                        self.pattern.object_points, corners, self.driver.camera.camera_matrix, self.driver.camera.distortion_vector)
-                else:
-                    ret, rvecs, tvecs = cv2.solvePnP(
-                        self.pattern.object_points, corners, self.driver.camera.camera_matrix, None)
+                # Always None :(
+                # cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
+                ret, rvecs, tvecs = cv2.solvePnP(
+                    self.pattern.object_points, corners,
+                    self.driver.camera.camera_matrix, self.driver.camera.distortion_vector)
                 if ret is not None:
                     return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
                 else:
@@ -110,379 +119,29 @@ class Calibration(object):
         frame = cv2.bitwise_and(frame, frame, mask=mask)
         return frame
 
-
-
-
-
-
-
-
-
-class LaserTriangulation(Calibration):
-
-    """Laser triangulation algorithm:
-
-            - Laser coordinates matrix
-            - Pattern's origin
-            - Pattern's normal
-    """
-
-    def __init__(self):
-        Calibration.__init__(self)
-        self.image = None
-        self.threshold = 0
-        self.exposure_laser = 0
-        self.exposure_normal = 0
-
-    def _start(self):
-        XL = None
-        XR = None
-        step = 5
-        angle = 0
-
-        if system == 'Windows':
-            flush = 2
-        elif system == 'Darwin':
-            flush = 2
-        else:
-            flush = 1
-
-        if driver.is_connected:
-            # Setup scanner
-            board.lasers_off()
-            board.motor_enable()
-            board.motor_speed(200)
-            board.motor_acceleration(200)
-            time.sleep(0.1)
-
-            if self._progress_callback is not None:
-                self._progress_callback(0)
-
-            while self._is_calibrating and abs(angle) < 180:
-
-                if self._progress_callback is not None:
-                    self._progress_callback(1.11 * abs(angle / 2.))
-
-                angle += step
-
-                camera.set_exposure(self.exposure_normal)
-                img_raw = camera.capture_image(flush=flush)
-                self.image = img_raw
-                ret = detect_pattern_plane(img_raw)
-
-                if ret is not None:
-                    step = 5  # 2
-
-                    d, n, corners = ret
-
-                    # Image laser acquisition
-                    camera.set_exposure(self.exposure_laser)
-
-                    img_raw_left = camera.capture_image(flush=flush)
-                    board.laser_left_on()
-                    img_las_left = camera.capture_image(flush=flush)
-                    board.laser_left_off()
-                    self.image = img_las_left
-                    if img_las_left is None:
-                        break
-
-                    img_raw_right = camera.capture_image(flush=flush)
-                    board.laser_right_on()
-                    img_las_right = camera.capture_image(flush=flush)
-                    board.laser_right_off()
-                    self.image = img_las_right
-                    if img_las_right is None:
-                        break
-
-                    # Pattern ROI mask
-                    img_las_left = corners_mask(img_las_left, corners)
-                    img_raw_left = corners_mask(img_raw_left, corners)
-                    img_las_right = corners_mask(img_las_right, corners)
-                    img_raw_right = corners_mask(img_raw_right, corners)
-
-                    # Line segmentation
-                    uL, vL = compute_laser_line(img_las_left, img_raw_left, self.threshold)
-                    uR, vR = compute_laser_line(img_las_right, img_raw_right, self.threshold)
-
-                    # Point Cloud generation
-                    xL = compute_point_cloud(uL, vL, d, n)
-                    if xL is not None:
-                        if XL is None:
-                            XL = xL
-                        else:
-                            XL = np.concatenate((XL, xL))
-                    xR = compute_point_cloud(uR, vR, d, n)
-                    if xR is not None:
-                        if XR is None:
-                            XR = xR
-                        else:
-                            XR = np.concatenate((XR, xR))
-                else:
-                    step = 5
-                    self.image = img_raw
-
-                self.image = img_raw
-
-                board.motor_relative(step)
-                board.motor_move()
-                time.sleep(0.1)
-
-            # self.save_scene('XL.ply', XL)
-            # self.save_scene('XR.ply', XR)
-
-            # Compute planes
-            dL, nL, stdL = compute_plane(XL, 'l')
-            dR, nR, stdR = compute_plane(XR, 'r')
-
-        board.lasers_off()
-        board.motor_disable()
-
-        # Restore camera exposure
-        camera.set_exposure(self.exposure_normal)
-
-        self.image = None
-
-        if self._is_calibrating and nL is not None and nR is not None:
-            response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
-            self.move_home()
-        else:
-            if self._is_calibrating:
-                response = (False, _("Calibration Error"))
-            else:
-                response = (False, _("Calibration Canceled"))
-
-        self._is_calibrating = False
-
-        if self._after_callback is not None:
-            self._after_callback(response)
-
-    def move_home(self):
-        # Restart pattern position
-        board.motor_relative(-180)
-        board.motor_move()
-
-        if self._progress_callback is not None:
-            self._progress_callback(100)
-
-
-class PlatformExtrinsics(Calibration):
-
-    """Platform extrinsics algorithm:
-
-            - Rotation matrix
-            - Translation vector
-    """
-
-    def __init__(self):
-        Calibration.__init__(self)
-        self.image = None
-
-    def _start(self):
-        t = None
-        angle = 0
-        step = 5
-
-        if driver.is_connected:
-
-            x = []
-            y = []
-            z = []
-
-            # Setup scanner
-            board.lasers_off()
-            board.motor_enable()
-            board.motor_speed(200)
-            board.motor_acceleration(200)
-            time.sleep(0.1)
-
-            if self._progress_callback is not None:
-                self._progress_callback(0)
-
-            while self._is_calibrating and abs(angle) < 180:
-                angle += step
-                t = self.compute_pattern_position()
-                board.motor_relative(step)
-                board.motor_move()
-                if self._progress_callback is not None:
-                    self._progress_callback(1.1 * abs(angle / 2.))
-                time.sleep(0.1)
-                if t is not None:
-                    x += [t[0][0]]
-                    y += [t[1][0]]
-                    z += [t[2][0]]
-
-            x = np.array(x)
-            y = np.array(y)
-            z = np.array(z)
-
-            points = zip(x, y, z)
-
-            if len(points) > 4:
-
-                # Fitting a plane
-                point, normal = self.fit_plane(points)
-
-                if normal[1] > 0:
-                    normal = -normal
-
-                # Fitting a circle inside the plane
-                center, R, circle = self.fit_circle(point, normal, points)
-
-                # Get real origin
-                t = center - pattern.distance * np.array(normal)
-
-            board.lasers_off()
-            board.motor_disable()
-
-        self.image = None
-
-        if self._is_calibrating and t is not None and np.linalg.norm(t - [5, 80, 320]) < 100:
-            response = (True, (R, t, center, point, normal, [x, y, z], circle))
-            self.move_home()
-        else:
-            if self._is_calibrating:
-                response = (False, _("Calibration Error"))
-            else:
-                response = (False, _("Calibration Canceled"))
-
-        self._is_calibrating = False
-
-        if self._after_callback is not None:
-            self._after_callback(response)
-
-    def move_home(self):
-        # Restart pattern position
-        board.motor_relative(-180)
-        board.motor_move()
-
-        if self._progress_callback is not None:
-            self._progress_callback(100)
-
-    def compute_pattern_position(self):
-        t = None
-        if system == 'Windows':
-            flush = 2
-        elif system == 'Darwin':
-            flush = 2
-        else:
-            flush = 1
-        image = camera.capture_image(flush=flush)
-        if image is not None:
-            self.image = image
-            ret = solve_pnp(image)
-            if ret is not None:
-                t = ret[1]
-        return t
-
-    def distance2plane(self, p0, n0, p):
-        return np.dot(np.array(n0), np.array(p) - np.array(p0))
-
-    def residuals_plane(self, parameters, data_point):
-        px, py, pz, theta, phi = parameters
-        nx, ny, nz = np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)
-        distances = [self.distance2plane(
-            [px, py, pz], [nx, ny, nz], [x, y, z]) for x, y, z in data_point]
-        return distances
-
-    def fit_plane(self, data):
-        estimate = [0, 0, 0, 0, 0]  # px,py,pz and zeta, phi
-        # you may automize this by using the center of mass data
-        # note that the normal vector is given in polar coordinates
-        best_fit_values, ier = optimize.leastsq(self.residuals_plane, estimate, args=(data))
-        xF, yF, zF, tF, pF = best_fit_values
-
-        #self.point  = [xF,yF,zF]
-        self.point = data[0]
-        self.normal = -np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
-
-        return self.point, self.normal
-
-    def residuals_circle(self, parameters, data_point):
-        r, s, Ri = parameters
-        plane_point = s * self.s + r * self.r + np.array(self.point)
-        distance = [np.linalg.norm(plane_point - np.array([x, y, z])) for x, y, z in data_point]
-        res = [(Ri - dist) for dist in distance]
-        return res
-
-    def fit_circle(self, point, normal, data):
-        # creating two inplane vectors
-        # assuming that normal not parallel x!
-        self.s = np.cross(np.array([1, 0, 0]), np.array(normal))
-        self.s = self.s / np.linalg.norm(self.s)
-        self.r = np.cross(np.array(normal), self.s)
-        self.r = self.r / np.linalg.norm(self.r)  # should be normalized already, but anyhow
-
-        # Define rotation
-        R = np.array([self.s, self.r, normal]).T
-
-        estimate_circle = [0, 0, 0]  # px,py,pz and zeta, phi
-        best_circle_fit_values, ier = optimize.leastsq(
-            self.residuals_circle, estimate_circle, args=(data))
-
-        rF, sF, RiF = best_circle_fit_values
-
-        # Synthetic Data
-        center_point = sF * self.s + rF * self.r + np.array(self.point)
-        synthetic = [list(center_point + RiF * np.cos(phi) * self.r + RiF * np.sin(phi) * self.s)
-                     for phi in np.linspace(0, 2 * np.pi, 50)]
-        [cxTupel, cyTupel, czTupel] = [x for x in zip(*synthetic)]
-
-        return center_point, R, [cxTupel, cyTupel, czTupel]
-
-# Common
-
-
-def reset_stack():
-    image_points = []
-    object_points = []
-
-
-def detect_chessboard(frame, capture=False):
-    if pattern.rows < 2 or pattern.columns < 2:
-        return False, frame
-    if frame is not None:
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        retval, corners = cv2.findChessboardCorners(
-            gray, (pattern.columns, pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
-
-        if retval:
-            cv2.cornerSubPix(
-                gray, corners, winSize=(11, 11), zeroZone=(-1, -1), criteria=criteria)
-            if capture:
-                if len(object_points) < 12:
-                    image_points.append(corners)
-                    object_points.append(pattern.object_points)
-            cv2.drawChessboardCorners(
-                frame, (pattern.columns, pattern.rows), corners, retval)
-        return retval, frame
-    else:
-        return False, frame
-
-
-def save_scene(filename, point_cloud):
-    if point_cloud is not None:
-        f = open(filename, 'wb')
-        save_scene_stream(f, point_cloud)
-        f.close()
-
-
-def save_scene_stream(stream, point_cloud):
-    frame = "ply\n"
-    frame += "format binary_little_endian 1.0\n"
-    frame += "comment Generated by Horus software\n"
-    frame += "element vertex {0}\n".format(len(point_cloud))
-    frame += "property float x\n"
-    frame += "property float y\n"
-    frame += "property float z\n"
-    frame += "property uchar red\n"
-    frame += "property uchar green\n"
-    frame += "property uchar blue\n"
-    frame += "element face 0\n"
-    frame += "property list uchar int vertex_indices\n"
-    frame += "end_header\n"
-    for point in point_cloud:
-        frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
-    stream.write(frame)
+    def save_scene(self, filename, point_cloud):
+        if point_cloud is not None:
+            f = open(filename, 'wb')
+            save_scene_stream(f, point_cloud)
+            f.close()
+
+    def save_scene_stream(self, stream, point_cloud):
+        frame = "ply\n"
+        frame += "format binary_little_endian 1.0\n"
+        frame += "comment Generated by Horus software\n"
+        frame += "element vertex {0}\n".format(len(point_cloud))
+        frame += "property float x\n"
+        frame += "property float y\n"
+        frame += "property float z\n"
+        frame += "property uchar red\n"
+        frame += "property uchar green\n"
+        frame += "property uchar blue\n"
+        frame += "element face 0\n"
+        frame += "property list uchar int vertex_indices\n"
+        frame += "end_header\n"
+        for point in point_cloud:
+            frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
+        stream.write(frame)
 
 
 def detect_pattern_plane(image):

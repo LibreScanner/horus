@@ -28,6 +28,7 @@ class Driver(object):
         self._after_callback = None
 
     def connect(self):
+        self.__init__()
         if self._before_callback is not None:
             self._before_callback()
         threading.Thread(target=self._connect).start()

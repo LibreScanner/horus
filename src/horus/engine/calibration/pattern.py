@@ -25,8 +25,9 @@ class Pattern(object):
 
     @rows.setter
     def rows(self, value):
-        self._rows = value
-        self._generate_object_points()
+        if self._rows != value:
+            self._rows = value
+            self._generate_object_points()
 
     def set_rows(self, value):
         self.rows = value
@@ -37,8 +38,9 @@ class Pattern(object):
 
     @columns.setter
     def columns(self, value):
-        self._columns = value
-        self._generate_object_points()
+        if self._columns != value:
+            self._columns = value
+            self._generate_object_points()
 
     def set_columns(self, value):
         self.columns = value
@@ -49,14 +51,15 @@ class Pattern(object):
 
     @square_width.setter
     def square_width(self, value):
-        self._square_width = value
-        self._generate_object_points()
+        if self._square_width != value:
+            self._square_width = value
+            self._generate_object_points()
 
     def set_square_width(self, value):
         self.square_width = value
 
     def _generate_object_points(self):
-        objp = np.zeros((self.columns * self.rows, 3), np.float32)
+        objp = np.zeros((self.rows * self.columns, 3), np.float32)
         objp[:, :2] = np.mgrid[0:self.columns, 0:self.rows].T.reshape(-1, 2)
         objp = np.multiply(objp, self.square_width)
         self.object_points = objp

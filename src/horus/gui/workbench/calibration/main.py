@@ -20,7 +20,9 @@ from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
     CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
     PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
+from horus.engine.driver.driver import Driver
 from horus.engine.calibration.autocheck import Autocheck
+from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
 
 
 class CalibrationWorkbench(WorkbenchConnection):
@@ -30,7 +32,9 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.calibrating = False
 
+        self.driver = Driver()
         self.autocheck = Autocheck()
+        self.camera_intrinsics = CameraIntrinsics()
 
         self.toolbar.Realize()
 
@@ -113,9 +117,9 @@ class CalibrationWorkbench(WorkbenchConnection):
     def getFrame(self):
         frame = self.autocheck.image
         if frame is None:
-            frame = self.driver.camera.capture_image()
-        # if frame is not None:
-        #    retval, frame = calibration.detect_chessboard(frame)
+            frame = self.driver.camera.capture_image(rgb=False)
+        if frame is not None:
+            retval, frame, corners = self.autocheck.detect_chessboard(frame)
         return frame
 
     def enableMenus(self, value):
@@ -179,6 +183,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.Layout()
 
     def onCancelCallback(self):
+        self.driver.camera.set_use_distortion(self.camera_intrinsics._camera_use_distortion)
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -208,13 +213,14 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onCameraIntrinsicsAcceptCallback(self):
+        self.driver.camera.set_use_distortion(self.camera_intrinsics._camera_use_distortion)
         self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
         self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
         self.controls.panels['camera_intrinsics_panel'].updateAllControlsToProfile()
-        calibration.CameraIntrinsics.Instance().accept()
+        self.camera_intrinsics.accept()
         self.combo.Enable()
         self.enableMenus(True)
         self.cameraIntrinsicsResultPage.Hide()

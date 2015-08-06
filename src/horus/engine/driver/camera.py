@@ -57,6 +57,7 @@ class Camera(object):
         self._camera_matrix = None
         self._distortion_vector = None
         self._dist_camera_matrix = None
+        self._roi = None
         self._tries = 0  # Check if command fails
 
         if system == 'Windows':
@@ -142,7 +143,7 @@ class Camera(object):
         if not c_exp or not c_bri:
             raise WrongCamera()
 
-    def capture_image(self, flush=0, mirror=False):
+    def capture_image(self, flush=0, mirror=False, rgb=True):
         """Capture image from camera"""
         if self._is_connected:
             self._reading = True
@@ -152,20 +153,22 @@ class Camera(object):
             ret, image = self._capture.read()
             self._reading = False
             if ret:
-                if self.use_distortion and \
-                   self._camera_matrix is not None and \
-                   self._distortion_vector is not None and \
-                   self._dist_camera_matrix is not None:
-                    mapx, mapy = cv2.initUndistortRectifyMap(
-                        self._camera_matrix, self._distortion_vector,
-                        R=None, newCameraMatrix=self._dist_camera_matrix,
-                        size=(self._width, self._height), m1type=5)
-                    image = cv2.remap(image, mapx, mapy, cv2.INTER_LINEAR)
                 image = cv2.transpose(image)
                 if not mirror:
                     image = cv2.flip(image, 1)
+                if self.use_distortion and \
+                   self._camera_matrix is not None and \
+                   self._distortion_vector is not None and \
+                   self._dist_camera_matrix is not None and \
+                   self._roi is not None:
+                    image = cv2.undistort(image, self._camera_matrix, self._distortion_vector,
+                                          None, self._dist_camera_matrix)
+                    #x, y, w, h = self._roi
+                    #image = image[y:y + h, x:x + w]
                 self._success()
-                return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                if rgb:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                return image
             else:
                 self._fail()
                 return None
@@ -229,15 +232,11 @@ class Camera(object):
 
     def _set_width(self, value):
         if self._is_connected:
-            if self._width != value:
-                self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
-                self._width = value
+            self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
 
     def _set_height(self, value):
         if self._is_connected:
-            if self._height != value:
-                self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)
-                self._height = value
+            self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)
 
     def set_resolution(self, width, height):
         if self._is_connected:
@@ -268,14 +267,15 @@ class Camera(object):
 
     @distortion_vector.setter
     def distortion_vector(self, value):
+        print value
         self._distortion_vector = value
         self._compute_dist_camera_matrix()
 
     def _compute_dist_camera_matrix(self):
         if self._camera_matrix is not None and self._distortion_vector is not None:
-            self._dist_camera_matrix = cv2.getOptimalNewCameraMatrix(
+            self._dist_camera_matrix, self._roi = cv2.getOptimalNewCameraMatrix(
                 self._camera_matrix, self._distortion_vector,
-                (int(self._width), int(self._height)), alpha=1)[0]
+                (int(self._height), int(self._width)), alpha=1)
 
     def get_brightness(self):
         if self._is_connected:

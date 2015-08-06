@@ -68,16 +68,14 @@ class Autocheck(Calibration):
             except Exception as e:
                 response = e
             finally:
+                self.image = None
+                self._is_calibrating = False
                 self.driver.board.lasers_off()
                 self.driver.board.motor_disable()
                 if self._progress_callback is not None:
                     self._progress_callback(100)
-
-            self.image = None
-            self._is_calibrating = False
-
-            if self._after_callback is not None:
-                self._after_callback(response)
+                if self._after_callback is not None:
+                    self._after_callback(response)
 
     def check_pattern_and_motor(self):
         scan_step = 30
@@ -93,7 +91,7 @@ class Autocheck(Calibration):
 
         # Capture data
         for i in xrange(0, 360, scan_step):
-            image = self.driver.camera.capture_image(flush=1)
+            image = self.driver.camera.capture_image(flush=1, rgb=False)
             self.image = image
             ret = self.solve_pnp(image)
             if ret is not None:
@@ -132,7 +130,7 @@ class Autocheck(Calibration):
         self.driver.board.motor_move()
 
     def check_lasers(self):
-        img_raw = self.driver.camera.capture_image(flush=1)
+        img_raw = self.driver.camera.capture_image(flush=1, rgb=False)
         self.image = img_raw
 
         if img_raw is not None:

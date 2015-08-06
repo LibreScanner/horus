@@ -33,7 +33,7 @@ class Page(wx.Panel):
         self._leftButton = wx.Button(self._downPanel, -1, left)
         self._rightButton = wx.Button(self._downPanel, -1, right)
 
-        #-- Layout
+        # Layout
         vbox.Add(titleText, 0, wx.ALL | wx.EXPAND, 10)
         if subTitle != "":
             vbox.Add(self.subTitleText, 0, wx.ALL | wx.EXPAND, 10)
@@ -53,7 +53,7 @@ class Page(wx.Panel):
 
         self.SetSizer(vbox)
 
-        #-- Events
+        # Events
         self._leftButton.Bind(wx.EVT_BUTTON, self._onLeftButtonPressed)
         self._rightButton.Bind(wx.EVT_BUTTON, self._onRightButtonPressed)
 
