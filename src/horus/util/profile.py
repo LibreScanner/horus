@@ -196,7 +196,7 @@ setting('framerate_control', str('30'), [str('30'), str('25'), str('20'), str('1
 setting('resolution_control', str('1280x960'), [str('1280x960'), str('960x720'), str('800x600'), str('320x240'), str('160x120')], 'advanced', _('Resolution'))
 setting('use_distortion_control', False, bool, 'advanced', _('Use Distortion'))
 
-setting('step_degrees_control', -0.45, float, 'basic', _('Step Degrees')).setRange(0.01)
+setting('step_degrees_control', 90, float, 'basic', _('Step Degrees'))
 setting('feed_rate_control', 200, int, 'advanced', _('Feed Rate')).setRange(1, 1000)
 setting('acceleration_control', 200, int, 'advanced', _('Acceleration')).setRange(1, 1000)
 

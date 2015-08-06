@@ -14,63 +14,54 @@ from horus.gui.util.customPanels import ExpandableControl
 from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.control.panels import CameraControl, LaserControl, LDRControl, MotorControl, GcodeControl
 
-from horus.engine.driver.driver import Driver
-
-driver = Driver()
-
-
 class ControlWorkbench(WorkbenchConnection):
 
-	def __init__(self, parent):
-		WorkbenchConnection.__init__(self, parent)
+    def __init__(self, parent):
+        WorkbenchConnection.__init__(self, parent)
 
-		self.load()
+        # Elements
+        self.toolbar.Realize()
 
-	def load(self):
-		#-- Toolbar Configuration
-		self.toolbar.Realize()
+        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290, -1))
+        self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
+        self.scrollPanel.SetAutoLayout(1)
 
-		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
-		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
-		self.scrollPanel.SetAutoLayout(1)
+        self.controls = ExpandableControl(self.scrollPanel)
+        self.controls.addPanel('camera_control', CameraControl(self.controls))
+        self.controls.addPanel('laser_control', LaserControl(self.controls))
+        self.controls.addPanel('ldr_value', LDRControl(self.controls))
+        self.controls.addPanel('motor_control', MotorControl(self.controls))
+        self.controls.addPanel('gcode_control', GcodeControl(self.controls))
 
-		self.controls = ExpandableControl(self.scrollPanel)
+        self.videoView = VideoView(self._panel, self.getFrame, 10)
+        self.videoView.SetBackgroundColour(wx.BLACK)
 
-		self.controls.addPanel('camera_control', CameraControl(self.controls))
-		self.controls.addPanel('laser_control', LaserControl(self.controls))
-		self.controls.addPanel('ldr_value', LDRControl(self.controls))
-		self.controls.addPanel('motor_control', MotorControl(self.controls))
-		self.controls.addPanel('gcode_control', GcodeControl(self.controls))
+        # Layout
+        vsbox = wx.BoxSizer(wx.VERTICAL)
+        vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
+        self.scrollPanel.SetSizer(vsbox)
+        vsbox.Fit(self.scrollPanel)
 
-		self.videoView = VideoView(self._panel, self.getFrame, 10)
-		self.videoView.SetBackgroundColour(wx.BLACK)
+        self.addToPanel(self.scrollPanel, 0)
+        self.addToPanel(self.videoView, 1)
 
-		#-- Layout
-		vsbox = wx.BoxSizer(wx.VERTICAL)
-		vsbox.Add(self.controls, 0, wx.ALL|wx.EXPAND, 0)
-		self.scrollPanel.SetSizer(vsbox)
-		vsbox.Fit(self.scrollPanel)
+        self.updateCallbacks()
+        self.Layout()
 
-		self.addToPanel(self.scrollPanel, 0)
-		self.addToPanel(self.videoView, 1)
+    def updateCallbacks(self):
+        self.controls.updateCallbacks()
 
-		self.updateCallbacks()
-		self.Layout()
+    def getFrame(self):
+        return self.driver.camera.capture_image()
 
-	def updateCallbacks(self):
-		self.controls.updateCallbacks()
+    def updateToolbarStatus(self, status):
+        if status:
+            if self.IsShown():
+                self.videoView.play()
+            self.controls.enableContent()
+        else:
+            self.videoView.stop()
+            self.controls.disableContent()
 
-	def getFrame(self):
-		return driver.camera.capture_image()
-
-	def updateToolbarStatus(self, status):
-		if status:
-			if self.IsShown():
-				self.videoView.play()
-			self.controls.enableContent()
-		else:
-			self.videoView.stop()
-			self.controls.disableContent()
-
-	def updateProfileToAllControls(self):
-		self.controls.updateProfile()
+    def updateProfileToAllControls(self):
+        self.controls.updateProfile()
