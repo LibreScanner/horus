@@ -127,12 +127,12 @@ class ScanningPage(WizardPage):
 		elif value ==_("Low"):
 			value = -1.8
 
-		profile.putProfileSetting('step_degrees_scanning', value)
+		profile.settings['step_degrees_scanning'] = value
 		self.pcg.setDegrees(value)
 
 	def onLaserComboBoxChanged(self, event):
 		value = self.laserDict[event.GetEventObject().GetValue()]
-		profile.putProfileSetting('use_laser', value)
+		profile.settings['use_laser'] = value
 		useLeft = value == 'Left' or value == 'Both'
 		useRight = value == 'Right' or value == 'Both'
 		if useLeft:
@@ -148,11 +148,11 @@ class ScanningPage(WizardPage):
 
 	def onScanTypeComboBoxChanged(self, event):
 		value = self.scanTypeDict[event.GetEventObject().GetValue()]
-		profile.putProfileSetting('scan_type', value)
+		profile.settings['scan_type'] = value
 		if value == 'Simple Scan':
-			self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+			self.driver.camera.setExposure(profile.settings['laser_exposure_scanning'])
 		elif value == 'Texture Scan':
-			self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
+			self.driver.camera.setExposure(profile.settings['color_exposure_scanning'])
 
 	def getFrame(self):
 		frame = self.driver.camera.captureImage()
@@ -160,7 +160,7 @@ class ScanningPage(WizardPage):
 
 	def updateStatus(self, status):
 		if status:
-			profile.putPreference('workbench', 'Scanning workbench')
+			profile.settings['workbench'] = 'Scanning workbench'
 			self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			value = profile.settings['use_laser']

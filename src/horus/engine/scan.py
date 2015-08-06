@@ -767,13 +767,13 @@ class PointCloudGenerator:
 		   hasattr(self, 'cx') and hasattr(self, 'cy') and \
 		   hasattr(self, 'width') and hasattr(self, 'height'):
 
-		    if (profile.getMachineSetting('machine_shape') == 'Circular' and hasattr(self, 'roiRadius') and hasattr(self, 'roiHeight')) or \
-			   (profile.getMachineSetting('machine_shape') == 'Rectangular' and hasattr(self, 'roiWidth') and hasattr(self, 'roiHeight') and hasattr(self, 'roiDepth')):
+		    if (profile.settings['machine_shape'] == 'Circular' and hasattr(self, 'roiRadius') and hasattr(self, 'roiHeight')) or \
+			   (profile.settings['machine_shape'] == 'Rectangular' and hasattr(self, 'roiWidth') and hasattr(self, 'roiHeight') and hasattr(self, 'roiDepth')):
 
 				#-- Platform system
-				if profile.getMachineSetting('machine_shape') == 'Circular':
+				if profile.settings['machine_shape'] == 'Circular':
 					bottom = np.matrix(self.roiRadius * self.circleArray)
-				elif profile.getMachineSetting('machine_shape') == 'Rectangular':
+				elif profile.settings['machine_shape'] == 'Rectangular':
 					bottom = np.matrix(self.roiWidth * self.rectangleArray)
 
 				top = bottom + np.matrix([0,0,self.roiHeight]).T
@@ -815,9 +815,9 @@ class PointCloudGenerator:
 
 	def calculateCenter(self):
 		#-- Platform system
-		if profile.getMachineSetting('machine_shape') == 'Circular':
+		if profile.settings['machine_shape'] == 'Circular':
 			bottom = np.matrix(0* self.circleArray)
-		elif profile.getMachineSetting('machine_shape') == 'Rectangular':
+		elif profile.settings['machine_shape'] == 'Rectangular':
 			bottom = np.matrix(0* self.rectangleArray)
 		top = bottom + np.matrix([0,0,0]).T
 		data = np.concatenate((bottom, top), axis=1)

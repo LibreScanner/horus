@@ -124,7 +124,7 @@ class CalibrationPage(WizardPage):
 		self.laserTriangulation.setCallbacks(self.beforeCalibration,
 											 lambda p: wx.CallAfter(self.progressLaserCalibration,p),
 											 lambda r: wx.CallAfter(self.afterLaserCalibration,r))
-		if profile.getProfileSettingFloat('pattern_distance') == 0:
+		if profile.settings['pattern_distance'] == 0:
 			PatternDistanceWindow(self)
 		else:
 			self.laserTriangulation.start()
@@ -165,10 +165,10 @@ class CalibrationPage(WizardPage):
 		ret, result = response
 
 		if ret:
-			profile.putProfileSetting('distance_left', result[0][0])
-			profile.putProfileSettingNumpy('normal_left', result[0][1])
-			profile.putProfileSetting('distance_right', result[1][0])
-			profile.putProfileSettingNumpy('normal_right', result[1][1])
+			profile.settings['distance_left'] = result[0][0]
+			profile.settings['normal_left'] = result[0][1]
+			profile.settings['distance_right'] = result[1][0]
+			profile.settings['normal_right'] = result[1][1]
 			self.platformExtrinsics.setCallbacks(None,
 												 lambda p: wx.CallAfter(self.progressPlatformCalibration,p),
 												 lambda r: wx.CallAfter(self.afterPlatformCalibration,r))
@@ -190,8 +190,8 @@ class CalibrationPage(WizardPage):
 		ret, result = response
 		
 		if ret:
-			profile.putProfileSettingNumpy('rotation_matrix', result[0])
-			profile.putProfileSettingNumpy('translation_vector', result[1])
+			profile.settings['rotation_matrix'] = result[0]
+			profile.settings['translation_vector'] = result[1]
 		else:
 			if result == Error.CalibrationError:
 				self.resultLabel.SetLabel(_("Error in pattern: please check the pattern and try again"))
@@ -225,8 +225,8 @@ class CalibrationPage(WizardPage):
 
 	def updateStatus(self, status):
 		if status:
-			if profile.getPreference('workbench') != 'Calibration workbench':
-				profile.putPreference('workbench', 'Calibration workbench')
+			if profile.settings['workbench'] != 'Calibration workbench':
+				profile.settings['workbench'] = 'Calibration workbench'
 				self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			self.calibrateButton.Enable()

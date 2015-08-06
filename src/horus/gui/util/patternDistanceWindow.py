@@ -53,7 +53,7 @@ class PatternDistanceWindow(wx.Dialog):
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))
         self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))
         self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
-        self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
+        self.patternTextbox = wx.TextCtrl(self, value = str(profile.settings['pattern_distance']))
         self.okButton = wx.Button(self, label=_('OK'))
         self.cancelButton = wx.Button(self, label=_('Cancel'))
         
@@ -88,11 +88,11 @@ class PatternDistanceWindow(wx.Dialog):
             pass
 
     def setPatternDistance(self, patternDistance):
-        profile.putProfileSetting('pattern_distance', patternDistance)
+        profile.settings['pattern_distance'] = patternDistance
 
-        patternRows = profile.getProfileSettingInteger('pattern_rows')
-        patternColumns = profile.getProfileSettingInteger('pattern_columns')
-        squareWidth = profile.getProfileSettingInteger('square_width')
+        patternRows = profile.settings['pattern_rows']
+        patternColumns = profile.settings['pattern_columns']
+        squareWidth = profile.settings['square_width']
 
         self.cameraIntrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
         self.simpleLaserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)

@@ -162,7 +162,7 @@ class ScanningWorkbench(WorkbenchConnection):
 	def onComboBoVideoViewsSelect(self, event):
 		value = self.videoViewsDict[self.comboVideoViews.GetValue()]
 		self.currentScan.setImageType(value)
-		profile.putProfileSetting('img_type', value)
+		profile.settings['img_type'] = value
 
 	def getFrame(self):
 		if self.scanning:

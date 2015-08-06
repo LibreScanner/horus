@@ -66,9 +66,9 @@ class PreferencesDialog(wx.Dialog):
 
 		self.languageLabel = wx.StaticText(self, label=_("Language"))
 		self.languages = [row[1] for row in resources.getLanguageOptions()]
-		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(175,-1), style=wx.CB_READONLY)
+		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.settings['language'] , size=(175,-1), style=wx.CB_READONLY)
 
-		invert = profile.getProfileSettingBool('invert_motor')
+		invert = profile.settings['invert_motor']
 		self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
 		self.invertMotorCheckBox.SetValue(invert)
 
@@ -96,7 +96,7 @@ class PreferencesDialog(wx.Dialog):
 				self.serialNameCombo.SetValue(currentSerial)
 
 		currentBaudRate = profile.settings['baud_rate']
-		self.baudRateCombo.SetValue(currentBaudRate)
+		self.baudRateCombo.SetValue(str(currentBaudRate))
 
 		currentVideoId = profile.settings['camera_id']
 		if len(self.cameraIdNames) > 0:
@@ -178,18 +178,18 @@ class PreferencesDialog(wx.Dialog):
 
 	def onSerialNameComboChanged(self, event):
 		if len(self.serialNameCombo.GetValue()):
-			profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
+			profile.settings['serial_name'] = self.serialNameCombo.GetValue()
 
 	def onBaudRateComboChanged(self, event):
 		if self.baudRateCombo.GetValue() in self.baudRates:
-			profile.putProfileSetting('baud_rate', int(self.baudRateCombo.GetValue()))
+			profile.settings['baud_rate'] = int(self.baudRateCombo.GetValue())
 
 	def onCameraIdComboChanged(self, event):
 		if len(self.cameraIdCombo.GetValue()):
-			profile.putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
+			profile.settings['camera_id'] = self.cameraIdCombo.GetValue()
 
 	def onBoardsComboChanged(self, event):
-		profile.putProfileSetting('board', self.boardsCombo.GetValue())
+		profile.settings['board'] = self.boardsCombo.GetValue()
 
 	def onHexComboChanged(self, event):
 		value = self.hexCombo.GetValue()
@@ -261,9 +261,9 @@ class PreferencesDialog(wx.Dialog):
 		self.Fit()
 
 	def onLanguageComboChanged(self, event):
-		if profile.getPreference('language') is not self.languageCombo.GetValue():
-			profile.putPreference('language', self.languageCombo.GetValue())
+		if profile.settings['language'] is not self.languageCombo.GetValue():
+			profile.settings['language'] = self.languageCombo.GetValue()
 			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
 
 	def onInvertMotor(self, event):
-		profile.putProfileSetting('invert_motor', self.invertMotorCheckBox.GetValue())
+		profile.settings['invert_motor'] = self.invertMotorCheckBox.GetValue()

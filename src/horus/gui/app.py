@@ -49,19 +49,17 @@ class HorusApp(wx.App):
 			SplashScreen(self.afterSplashCallback)
 
 	def afterSplashCallback(self):
-		#-- Load Profile and Preferences
-		profile.loadPreferences(os.path.join(self.basePath, 'preferences.ini'))
-		profile.loadProfile(os.path.join(self.basePath, 'current-profile.ini'))
-		profile.loadMachineSettings(os.path.join(self.basePath, profile.getMachineSettingFileName()))
+		#-- Load Settings
+		profile.loadSettings()
 
 		#-- Load Language
-		resources.setupLocalization(profile.getPreference('language'))
+		resources.setupLocalization(profile.settings['language'])
 
 		#-- Create Main Window
 		self.mainWindow = MainWindow()
 
 		#-- Check for updates
-		if profile.getPreferenceBool('check_for_updates') and version.checkForUpdates():
+		if profile.settings['check_for_updates'] and version.checkForUpdates():
 			v = VersionWindow(self.mainWindow)
 			if v.download:
 				return
@@ -70,7 +68,7 @@ class HorusApp(wx.App):
 		self.SetTopWindow(self.mainWindow)
 		self.mainWindow.Show()
 		
-		if profile.getPreferenceBool('show_welcome'):
+		if profile.settings['show_welcome']:
 			#-- Create Welcome Window
 			WelcomeWindow(self.mainWindow)
 
@@ -80,9 +78,8 @@ class HorusApp(wx.App):
 			wx.CallAfter(self.StupidMacOSWorkaround)
 
 	def __del__(self):
-		#-- Save Profile and Preferences
-		profile.savePreferences(os.path.join(self.basePath, 'preferences.ini'))
-		profile.saveProfile(os.path.join(self.basePath, 'current-profile.ini'))
+		#-- Save Settings
+		profile.settings.saveSettings()
 
 	def MacReopenApp(self):
 		self.GetTopWindow().Raise()

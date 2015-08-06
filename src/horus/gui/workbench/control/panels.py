@@ -227,7 +227,7 @@ class GcodeSection(SectionItem):
 
         #-- Elements
         self.request = wx.TextCtrl(self, size=(10,10))
-        self.control = wx.Button(self, label=self.setting.getLabel())
+        self.control = wx.Button(self, label=self.setting._label)
         self.response = wx.TextCtrl(self, size=(10,250), style=wx.TE_MULTILINE)
 
         #-- Layout

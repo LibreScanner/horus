@@ -195,8 +195,8 @@ class SceneView(openglGui.glGuiPanel):
 		self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
 	def updateProfileToControls(self):
-		self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat('machine_depth'), profile.getMachineSettingFloat('machine_height')])
-		self._objColor = profile.getPreferenceColor('model_color')
+		self._machineSize = numpy.array([profile.settings['machine_width'], profile.settings['machine_depth'], profile.settings['machine_height']])
+		self._objColor = profile.settings['model_color']
 		
 	def ShaderUpdate(self, v, f):
 		s = openglHelpers.GLShader(v, f)
@@ -589,7 +589,7 @@ class SceneView(openglGui.glGuiPanel):
 
 	def _drawMachine(self):
 		glEnable(GL_BLEND)
-		machine_model_path = profile.getMachineSettingPath('machine_model_path')
+		machine_model_path = profile.settings['machine_model_path']
 		glEnable(GL_CULL_FACE)
 		#-- Draw Platform
 		if machine_model_path in self._platformMesh:
@@ -609,20 +609,20 @@ class SceneView(openglGui.glGuiPanel):
 
 		glDepthMask(False)
 		
-		machine_shape = profile.getMachineSetting('machine_shape')
+		machine_shape = profile.settings['machine_shape']
 
 		if machine_shape == 'Circular':
-			size = numpy.array([profile.getMachineSettingFloat('roi_diameter'),
-								profile.getMachineSettingFloat('roi_diameter'),
-								profile.getMachineSettingFloat('roi_height')], numpy.float32)
+			size = numpy.array([profile.settings['roi_diameter'],
+								profile.settings['roi_diameter'],
+								profile.settings['roi_height']], numpy.float32)
 		elif machine_shape == 'Rectangular':
-			size = numpy.array([profile.getMachineSettingFloat('roi_width'),
-								profile.getMachineSettingFloat('roi_depth'),
-								profile.getMachineSettingFloat('roi_height')], numpy.float32)
+			size = numpy.array([profile.settings['roi_width'],
+								profile.settings['roi_depth'],
+								profile.settings['roi_height']], numpy.float32)
 
-		if profile.getMachineSettingBool('view_roi'):
+		if profile.settings['view_roi']:
 			polys = profile.getSizePolygons(size, machine_shape)
-			height = profile.getMachineSettingFloat('roi_height')
+			height = profile.settings['roi_height']
 
 			# Draw the sides of the build volume.
 			glBegin(GL_QUADS)
@@ -667,7 +667,7 @@ class SceneView(openglGui.glGuiPanel):
 			gluCylinder(quadric,6,6,1,32,16);
 			glTranslate(0,0,-height+1)
 
-		polys = profile.getMachineSizePolygons(profile.getMachineSetting("machine_shape"))
+		polys = profile.getMachineSizePolygons(profile.settings["machine_shape"])
 		
 		#-- Draw checkerboard
 		if self._platformTexture is None:
