@@ -593,7 +593,10 @@ class SceneView(openglGui.glGuiPanel):
 		glEnable(GL_CULL_FACE)
 		#-- Draw Platform
 		if machine_model_path in self._platformMesh:
-			self._platformMesh[machine_model_path]._mesh.vbo.release()
+			try: # TODO: Fix this. If not in the Scanning workbench, _drawMachine() fails.
+				self._platformMesh[machine_model_path]._mesh.vbo.release()
+			except:
+				pass
 
 		mesh = meshLoader.loadMesh(machine_model_path)
 		if mesh is not None:

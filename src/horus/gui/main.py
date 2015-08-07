@@ -400,7 +400,10 @@ class MainWindow(wx.Frame):
         ret = MachineDialog.ShowModal()
 
         if ret == wx.ID_OK:
-            self.scanningWorkbench.sceneView._drawMachine()
+            try: # TODO: Fix this. If not in the Scanning workbench, _drawMachine() fails.
+                self.scanningWorkbench.sceneView._drawMachine()
+            except:
+                pass
             profile.settings.saveSettings()
             self.scanningWorkbench.controls.panels["point_cloud_generation"].updateProfile()
 

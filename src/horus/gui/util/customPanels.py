@@ -594,7 +594,7 @@ class TextBox(SectionItem):
 	def onTextBoxChanged(self, event):
 		self.undoValues.append(profile.settings[self.name])
 		value = self.control.GetValue()
-		profile.settings[self.name] = value
+		profile.settings.castAndSet(self.name, value)
 		self._updateEngine(value)
 		if self.appendUndoCallback is not None:
 			self.appendUndoCallback(self)

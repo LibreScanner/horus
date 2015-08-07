@@ -89,6 +89,30 @@ class Settings(collections.MutableMapping):
 	def setMaxValue(self, key, value):
 		self.getSetting(key).__max_value = value
 
+	def castAndSet(self, key, value):
+		if len(value) == 0:
+			return
+		setting_type = self.getSetting(key)._type
+		try:
+			if setting_type == types.BooleanType:
+				value = bool(value)
+			elif setting_type == types.IntType:
+				value = int(value)
+			elif setting_type == types.FloatType:
+				value = float(value)
+			elif setting_type == types.UnicodeType:
+				value = unicode(value)
+			elif setting_type == types.ListType:
+				from ast import literal_eval
+				value = literal_eval(value)
+			elif setting_type == np.ndarray:
+				from ast import literal_eval
+				value = np.asarray(literal_eval(value))
+		except:
+			raise ValueError("Unable to cast setting %s to type %s" % (key, setting_type))
+		else:
+			self.__setitem__(key, value)
+
 	# File management
 
 	def loadSettings(self, filepath=None):
@@ -416,7 +440,7 @@ def loadOldSettings(filename):
 				settings[key] = int(float(profileParser.get(section, key)))
 			elif setting_type == types.FloatType:
 				settings[key] = float(profileParser.get(section, key))
-			elif setting_type == types.StringType:
+			elif setting_type == types.UnicodeType:
 				settings[key] = unicode(profileParser.get(section, key))
 			elif setting_type == types.ListType:
 				from ast import literal_eval
@@ -425,7 +449,7 @@ def loadOldSettings(filename):
 				from ast import literal_eval
 				settings[key] = np.asarray(literal_eval(profileParser.get(section, key)))
 			else:
-				raise TypeError("Unknown type when loading old setting:", key)
+				raise TypeError("Unknown type when loading old setting %s of type %s" % (key, setting_type))
 
 
 

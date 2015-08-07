@@ -269,7 +269,7 @@ class PointCloudGeneration(ExpandablePanel):
             data = dialog.GetColourData()
             color = data.GetColour().Get()
             self.simpleScan.setColor(color)
-            profile.settings['point_cloud_color'] = "".join(map(chr, color)).encode('hex')
+            profile.settings['point_cloud_color'] = unicode("".join(map(chr, color)).encode('hex'))
         dialog.Destroy()
 
     # Overwrites ExpandablePanel method
