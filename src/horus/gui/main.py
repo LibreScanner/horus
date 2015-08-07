@@ -295,9 +295,9 @@ class MainWindow(wx.Frame):
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            if not profileFile.endswith('.ini'):
-                if sys.isLinux(): # hack for linux, as for some reason the .ini is not appended.
-                    profileFile += '.ini'
+            if not profileFile.endswith('.json'):
+                if sys.isLinux(): # hack for linux, as for some reason the .json is not appended.
+                    profileFile += '.json'
             profile.settings.saveSettings(profileFile)
         dlg.Destroy()
 
