@@ -160,7 +160,7 @@ class ScanningPage(WizardPage):
 
 	def updateStatus(self, status):
 		if status:
-			profile.settings['workbench'] = 'Scanning workbench'
+			profile.settings['workbench'] = u'Scanning workbench'
 			self.GetParent().parent.workbenchUpdate(False)
 			self.videoView.play()
 			value = profile.settings['use_laser']

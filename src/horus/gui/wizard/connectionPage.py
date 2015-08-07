@@ -255,8 +255,8 @@ class ConnectionPage(WizardPage):
         if status:
             self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.parent.onBoardUnplugged))
             self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.parent.onCameraUnplugged))
-            #if profile.settings['workbench'] != 'Calibration workbench':
-            profile.settings['workbench'] = 'Calibration workbench'
+            #if profile.settings['workbench'] != u'Calibration workbench':
+            profile.settings['workbench'] = u'Calibration workbench'
             self.GetParent().parent.workbenchUpdate(False)
             self.videoView.play()
             self.connectButton.Disable()
@@ -374,7 +374,7 @@ class SettingsWindow(wx.Dialog):
         self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
 
     def setLuminosity(self, luminosity):
-        profile['luminosity'] = luminosity
+        profile.settings['luminosity'] = luminosity
         
         if luminosity =='Low':
             luminosity = 32

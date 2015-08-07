@@ -134,17 +134,17 @@ class CreateNew(wx.Panel):
         self.GetParent().GetParent().Close()
 
     def onScan(self, event):
-        profile.settings['workbench'] = 'Scanning workbench'
+        profile.settings['workbench'] = u'Scanning workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
     def onAdvancedControl(self, event):
-        profile.settings['workbench'] = 'Control workbench'
+        profile.settings['workbench'] = u'Control workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
     def onAdvancedCalibration(self, event):
-        profile.settings['workbench'] =  'Calibration workbench'
+        profile.settings['workbench'] = u'Calibration workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
