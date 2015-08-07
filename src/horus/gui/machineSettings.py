@@ -45,7 +45,7 @@ class MachineSettingsDialog(wx.Dialog):
 		#-- Graphic elements
 		self.machineShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
 		self.machineShapes = profile.settings.getPossibleValues("machine_shape")
-		self.translatedMachineShapes = [_(s) for s in machineShapes]
+		self.translatedMachineShapes = [_(s) for s in self.machineShapes]
 		self.machineShapeCombo = wx.ComboBox(self, choices=self.translatedMachineShapes, size=(170,-1), style=wx.CB_READONLY)
 
 		self.dimensionsStaticText = wx.StaticText(self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
