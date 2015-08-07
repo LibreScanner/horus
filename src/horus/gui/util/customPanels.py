@@ -328,21 +328,19 @@ class SectionItem(wx.Panel):
 		self.releaseUndoCallback = releaseUndoCallback
 
 	def isVisible(self):
-		return True
-
 		# TODO: Refactor this hiding and showing.
 
-		# if profile.settings['basic_mode']:
-		# 	return self.setting.getCategory() is 'basic'
-		# else:
-		# 	scanType = profile.settings['scan_type']
-		# 	if self.setting.getTag() != None:
-		# 		if scanType == 'Simple Scan':
-		# 			return self.setting.getTag() == 'simple'
-		# 		elif scanType == 'Texture Scan':
-		# 			return self.setting.getTag() == 'texture'
-		# 	else:
-		# 		return True
+		#if profile.settings['basic_mode']:
+		#	return self.setting.getCategory() is 'basic'
+		#else:
+		scanType = profile.settings['scan_type']
+		if self.setting._tag != None:
+			if scanType == 'Simple Scan':
+				return self.setting._tag == 'simple'
+			elif scanType == 'Texture Scan':
+				return self.setting._tag == 'texture'
+		else:
+			return True
 
 	def update(self, value, trans=False):
 		if self.isVisible():
@@ -350,8 +348,7 @@ class SectionItem(wx.Panel):
 			if trans:
 				self.control.SetValue(_(value))
 			else:
-				pass
-				# self.control.SetValue(str(value)) # TOFIX - Refactor panels
+				self.control.SetValue(value)
 			self._updateEngine(value)
 		else:
 			self.Hide()
@@ -372,7 +369,6 @@ class SectionItem(wx.Panel):
 		profile.settings.resetToDefault(self.name)
 		del self.undoValues[:]
 		self.updateProfile()
-
 
 class TitleText(wx.Panel):
 	def __init__(self, parent, title, bold=True, handCursor=True):
@@ -463,7 +459,6 @@ class Slider(SectionItem):
 			value = profile.settings[self.name]
 			self.update(value)
 
-
 class ComboBox(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
 		""" """
@@ -499,9 +494,8 @@ class ComboBox(SectionItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = profile.settings[self.name]
+			value = unicode(profile.settings[self.name])
 			self.update(value, trans=True)
-
 
 class CheckBox(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
@@ -534,9 +528,8 @@ class CheckBox(SectionItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = profile.settings[self.name]
+			value = bool(profile.settings[self.name])
 			self.update(value)
-
 
 class RadioButton(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
@@ -603,12 +596,8 @@ class TextBox(SectionItem):
 
 	def updateProfile(self):
 		if hasattr(self,'control'):
-			value = profile.settings[self.name]
+			value = unicode(profile.settings[self.name])
 			self.update(value)
-
-
-##TODO: Create TextBoxArray
-
 
 class Button(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
@@ -715,3 +704,5 @@ class ToggleButton(SectionItem):
 			self.Show()
 		else:
 			self.Hide()
+
+##TODO: Create TextBoxArray
