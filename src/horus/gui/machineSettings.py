@@ -45,7 +45,8 @@ class MachineSettingsDialog(wx.Dialog):
 		#-- Graphic elements
 		self.machineShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
 		self.machineShapes = profile.settings.getPossibleValues("machine_shape")
-		self.machineShapeCombo = wx.ComboBox(self, choices=self.machineShapes, size=(170,-1), style=wx.CB_READONLY)
+		self.translatedMachineShapes = [_(s) for s in machineShapes]
+		self.machineShapeCombo = wx.ComboBox(self, choices=self.translatedMachineShapes, size=(170,-1), style=wx.CB_READONLY)
 
 		self.dimensionsStaticText = wx.StaticText(self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
 		self.diameterLabel = wx.StaticText(self, label=_("Diameter"))
@@ -126,7 +127,7 @@ class MachineSettingsDialog(wx.Dialog):
 		vbox.Add(hbox, 0, wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
 		#-- Fill data from settings
-		self.machineShapeCombo.SetValue(profile.settings['machine_shape'])
+		self.machineShapeCombo.SetValue(_(profile.settings['machine_shape']))
 		self.diameterField.SetValue(profile.settings['machine_diameter'])
 		self.widthField.SetValue(profile.settings['machine_width'])
 		self.heightField.SetValue(profile.settings['machine_height'])
@@ -148,7 +149,9 @@ class MachineSettingsDialog(wx.Dialog):
 		self.Destroy()
 
 	def onSaveButton(self, event):
-		profile.settings['machine_shape'] = self.machineShapeCombo.GetValue()
+		# Store the original value, not the translated one
+		machine_shape = self.machineShapes[self.translatedMachineShapes.index(self.machineShapeCombo.GetValue())]
+		profile.settings['machine_shape'] = machine_shape
 		profile.settings['machine_diameter'] = self.diameterField.GetValue()
 		profile.settings['machine_width'] = self.widthField.GetValue()
 		profile.settings['machine_height'] = self.heightField.GetValue()
@@ -159,7 +162,7 @@ class MachineSettingsDialog(wx.Dialog):
 		self.Destroy()
 
 	def onDefaultButton(self, event):
-		self.machineShapeCombo.SetValue(profile.settings.getDefault('machine_shape'))
+		self.machineShapeCombo.SetValue(_(profile.settings.getDefault('machine_shape')))
 		self.onmachineShapeComboChanged(None)
 		self.diameterField.SetValue(profile.settings.getDefault('machine_diameter'))
 		self.widthField.SetValue(profile.settings.getDefault('machine_width'))
@@ -170,11 +173,12 @@ class MachineSettingsDialog(wx.Dialog):
 
 	def onmachineShapeComboChanged(self, event):
 		vbox = self.GetSizer()
-		if self.machineShapeCombo.GetValue() == "Circular":
+		machine_shape = self.machineShapes[self.translatedMachineShapes.index(self.machineShapeCombo.GetValue())]
+		if machine_shape == "Circular":
 			vbox.Show(self.diam_hbox, recursive=True)
 			vbox.Hide(self.width_hbox, recursive=True)
 			vbox.Hide(self.depth_hbox, recursive=True)
-		elif self.machineShapeCombo.GetValue() == "Rectangular":
+		elif machine_shape == "Rectangular":
 			vbox.Hide(self.diam_hbox, recursive=True)
 			vbox.Show(self.width_hbox, recursive=True)
 			vbox.Show(self.depth_hbox, recursive=True)
