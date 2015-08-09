@@ -403,16 +403,16 @@ class Slider(SectionItem):
 		self.flagFirstMove = True
 
 		#-- Elements
-		self.label = wx.StaticText(self, label=self.setting.getLabel())
+		self.label = wx.StaticText(self, label=self.setting.getLabel(), size=(130,-1))
 		self.control = wx.Slider(self, wx.ID_ANY,
 								 profile.getSettingInteger(name),
 								 profile.getSettingMinValue(name),
 								 profile.getSettingMaxValue(name),
-								 size=(150, -1))
+								 size=(130, -1))
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 20)
+		hbox.Add(self.label, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
 		hbox.AddStretchSpacer()
 		hbox.Add(self.control, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
 		self.SetSizer(hbox)
@@ -470,15 +470,15 @@ class ComboBox(SectionItem):
 		self.keyDict = dict(zip(_choices, choices))
 
 		#-- Elements
-		self.label = wx.StaticText(self, label=self.setting.getLabel())
+		self.label = wx.StaticText(self, label=self.setting.getLabel(), size=(130,-1))
 		self.control = wx.ComboBox(self, wx.ID_ANY,
 								   value=_(profile.getProfileSetting(self.name)),
 								   choices=_choices,
-								   size=(150, -1),
+								   size=(130, -1),
 								   style=wx.CB_READONLY)
 
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 20)
+		hbox.Add(self.label, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
 		hbox.AddStretchSpacer()
 		hbox.Add(self.control, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
 		self.SetSizer(hbox)
