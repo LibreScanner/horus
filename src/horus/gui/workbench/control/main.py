@@ -52,7 +52,7 @@ class ControlWorkbench(WorkbenchConnection):
 		#-- Toolbar Configuration
 		self.toolbar.Realize()
 
-		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
+		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(310,-1))
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
 		self.scrollPanel.SetAutoLayout(1)
 

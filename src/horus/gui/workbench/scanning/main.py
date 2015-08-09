@@ -77,7 +77,7 @@ class ScanningWorkbench(WorkbenchConnection):
 		self.Bind(wx.EVT_TOOL, self.onStopToolClicked  , self.stopTool)
 		self.Bind(wx.EVT_TOOL, self.onPauseToolClicked , self.pauseTool)
 
-		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290,-1))
+		self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(310,-1))
 		self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
 		self.scrollPanel.SetAutoLayout(1)
 

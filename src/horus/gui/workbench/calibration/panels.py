@@ -159,20 +159,18 @@ class CalibrationPanel(ExpandablePanel):
         self.buttonsPanel = wx.Panel(self.content)
 
         self.buttonEdit = wx.ToggleButton(self.buttonsPanel, wx.NewId(), label=_("Edit"))
-        self.buttonEdit.SetMinSize((0,-1))
         self.buttonDefault = wx.Button(self.buttonsPanel, wx.NewId(), label=_("Default"))
-        self.buttonDefault.SetMinSize((0,-1))
         self.buttonStart = wx.Button(self.buttonsPanel, wx.NewId(), label=_("Start"))
-        self.buttonStart.SetMinSize((0,-1))
         self.buttonStart.SetToolTip(wx.ToolTip(description))
 
-        self.contentBox.Add(self.parametersBox, 1, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox.Add(self.buttonEdit, 2, wx.ALL|wx.EXPAND, 3)
-        self.hbox.Add(self.buttonDefault, 2, wx.ALL|wx.EXPAND, 3)
-        self.hbox.Add(self.buttonStart, 3, wx.ALL|wx.EXPAND, 3)
+        self.hbox.Add(self.buttonEdit, 1, wx.RIGHT, 4)
+        self.hbox.Add(self.buttonDefault, 1, wx.LEFT|wx.RIGHT, 4)
+        self.hbox.Add(self.buttonStart, 1, wx.LEFT, 4)
         self.buttonsPanel.SetSizer(self.hbox)
-        self.contentBox.Add(self.buttonsPanel, 0, wx.ALL|wx.EXPAND, 3)
+
+        self.contentBox.Add(self.parametersBox, 0, wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5)
+        self.contentBox.Add(self.buttonsPanel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 7)
 
         self.buttonEdit.Bind(wx.EVT_TOGGLEBUTTON, self.onButtonEditPressed)
         self.buttonDefault.Bind(wx.EVT_BUTTON, self.onButtonDefaultPressed)
@@ -217,14 +215,11 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         for i in range(3):
             ibox = wx.BoxSizer(wx.HORIZONTAL)
             for j in range(3):
-                jbox = wx.BoxSizer(wx.VERTICAL)
                 self.cameraTexts[i][j] = wx.TextCtrl(cameraPanel, wx.ID_ANY, "")
-                self.cameraTexts[i][j].SetMinSize((0,-1))
                 self.cameraTexts[i][j].SetEditable(False)
                 self.cameraTexts[i][j].Disable()
-                jbox.Add(self.cameraTexts[i][j], 1, wx.ALL|wx.EXPAND, 2)
-                ibox.Add(jbox, 1, wx.ALL|wx.EXPAND, 2)
-            cameraBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+                ibox.Add(self.cameraTexts[i][j], 1, wx.ALL, 2)
+            cameraBox.Add(ibox, 0, wx.ALL|wx.EXPAND, 2)
 
         distortionText = wx.StaticText(self.content, label=_("Distortion vector"))
         distortionText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
@@ -235,18 +230,15 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         distortionBox = wx.BoxSizer(wx.HORIZONTAL)
         distortionPanel.SetSizer(distortionBox)
         for i in range(5):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
-            self.distortionTexts[i] = wx.TextCtrl(distortionPanel, wx.ID_ANY, "")
-            self.distortionTexts[i].SetMinSize((0,-1))
+            self.distortionTexts[i] = wx.TextCtrl(distortionPanel, wx.ID_ANY, "", size=(20,-1))
             self.distortionTexts[i].SetEditable(False)
             self.distortionTexts[i].Disable()
-            ibox.Add(self.distortionTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            distortionBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+            distortionBox.Add(self.distortionTexts[i], 1, wx.ALL, 2)
 
         self.parametersBox.Add(cameraText, 0, wx.ALL|wx.EXPAND, 8)
        	self.parametersBox.Add(cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
         self.parametersBox.Add(distortionText, 0, wx.ALL|wx.EXPAND, 8)
-       	self.parametersBox.Add(distortionPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(distortionPanel, 0, wx.ALL|wx.EXPAND, 4)
 
         cameraText.SetToolTip(wx.ToolTip(self.description))
         cameraPanel.SetToolTip(wx.ToolTip(self.description))
@@ -364,10 +356,9 @@ class LaserTriangulationPanel(CalibrationPanel):
         distanceLeftBox = wx.BoxSizer(wx.HORIZONTAL)
         distanceLeftPanel.SetSizer(distanceLeftBox)
         self.distanceLeftText = wx.TextCtrl(distanceLeftPanel, wx.ID_ANY, "")
-        self.distanceLeftText.SetMinSize((0,-1))
         self.distanceLeftText.SetEditable(False)
         self.distanceLeftText.Disable()
-        distanceLeftBox.Add(self.distanceLeftText, 1, wx.ALL|wx.EXPAND, 4)
+        distanceLeftBox.Add(self.distanceLeftText, 1, wx.ALL, 4)
 
         self.normalLeftTexts = [0]*3
         self.normalLeftValues = np.zeros(3)
@@ -375,13 +366,10 @@ class LaserTriangulationPanel(CalibrationPanel):
         normalLeftBox = wx.BoxSizer(wx.HORIZONTAL)
         normalLeftPanel.SetSizer(normalLeftBox)
         for i in range(3):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
             self.normalLeftTexts[i] = wx.TextCtrl(normalLeftPanel, wx.ID_ANY, "")
-            self.normalLeftTexts[i].SetMinSize((0,-1))
             self.normalLeftTexts[i].SetEditable(False)
             self.normalLeftTexts[i].Disable()
-            ibox.Add(self.normalLeftTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            normalLeftBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+            normalLeftBox.Add(self.normalLeftTexts[i], 1, wx.ALL, 2)
 
         laserRightText = wx.StaticText(self.content, label=_("Right Laser Plane"))
         laserRightText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
@@ -394,7 +382,7 @@ class LaserTriangulationPanel(CalibrationPanel):
         self.distanceRightText.SetMinSize((0,-1))
         self.distanceRightText.SetEditable(False)
         self.distanceRightText.Disable()
-        distanceRightBox.Add(self.distanceRightText, 1, wx.ALL|wx.EXPAND, 4)
+        distanceRightBox.Add(self.distanceRightText, 1, wx.ALL, 4)
 
         self.normalRightTexts = [0]*3
         self.normalRightValues = np.zeros(3)
@@ -404,18 +392,16 @@ class LaserTriangulationPanel(CalibrationPanel):
         for i in range(3):
             ibox = wx.BoxSizer(wx.HORIZONTAL)
             self.normalRightTexts[i] = wx.TextCtrl(normalRightPanel, wx.ID_ANY, "")
-            self.normalRightTexts[i].SetMinSize((0,-1))
             self.normalRightTexts[i].SetEditable(False)
             self.normalRightTexts[i].Disable()
-            ibox.Add(self.normalRightTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            normalRightBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+            normalRightBox.Add(self.normalRightTexts[i], 1, wx.ALL, 2)
 
         self.parametersBox.Add(laserLeftText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(distanceLeftPanel, 1, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(normalLeftPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(distanceLeftPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(normalLeftPanel, 0, wx.ALL|wx.EXPAND, 4)
         self.parametersBox.Add(laserRightText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(distanceRightPanel, 1, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(normalRightPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(distanceRightPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(normalRightPanel, 0, wx.ALL|wx.EXPAND, 4)
 
         laserLeftText.SetToolTip(wx.ToolTip(self.description))
         distanceLeftPanel.SetToolTip(wx.ToolTip(self.description))
@@ -738,14 +724,11 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         for i in range(3):
             ibox = wx.BoxSizer(wx.HORIZONTAL)
             for j in range(3):
-                jbox = wx.BoxSizer(wx.VERTICAL)
                 self.rotationTexts[i][j] = wx.TextCtrl(rotationPanel, wx.ID_ANY, "")
-                self.rotationTexts[i][j].SetMinSize((0,-1))
                 self.rotationTexts[i][j].SetEditable(False)
                 self.rotationTexts[i][j].Disable()
-                jbox.Add(self.rotationTexts[i][j], 1, wx.ALL|wx.EXPAND, 2)
-                ibox.Add(jbox, 1, wx.ALL|wx.EXPAND, 2)
-            rotationBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+                ibox.Add(self.rotationTexts[i][j], 1, wx.ALL, 2)
+            rotationBox.Add(ibox, 0, wx.ALL|wx.EXPAND, 2)
 
         translationText = wx.StaticText(self.content, label=_("Translation vector"))
         translationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
@@ -756,18 +739,15 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         translationBox = wx.BoxSizer(wx.HORIZONTAL)
         translationPanel.SetSizer(translationBox)
         for i in range(3):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
             self.translationTexts[i] = wx.TextCtrl(translationPanel, wx.ID_ANY, "")
-            self.translationTexts[i].SetMinSize((0,-1))
             self.translationTexts[i].SetEditable(False)
             self.translationTexts[i].Disable()
-            ibox.Add(self.translationTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            translationBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
+            translationBox.Add(self.translationTexts[i], 1, wx.ALL, 2)
 
-        self.parametersBox.Add(rotationText, 0, wx.ALL|wx.EXPAND, 8)
+        self.parametersBox.Add(rotationText, 0, wx.ALL, 8)
         self.parametersBox.Add(rotationPanel, 0, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(translationText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(translationPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(translationText, 0, wx.ALL, 8)
+        self.parametersBox.Add(translationPanel, 0, wx.ALL|wx.EXPAND, 4)
 
         rotationText.SetToolTip(wx.ToolTip(self.description))
         rotationPanel.SetToolTip(wx.ToolTip(self.description))
