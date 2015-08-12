@@ -101,18 +101,18 @@ class PatternSettingsPanel(ExpandablePanel):
 class AutocheckPanel(ExpandablePanel):
 
     def __init__(self, parent, buttonStartCallback=None, buttonStopCallback=None):
-        ExpandablePanel.__init__(self, parent, _("Autocheck"), hasUndo=False, hasRestore=False)
+        ExpandablePanel.__init__(self, parent, _("Scanner autocheck"), hasUndo=False, hasRestore=False)
 
         self.autocheck = Autocheck()
         self.buttonStartCallback = buttonStartCallback
         self.buttonStopCallback = buttonStopCallback
 
         self.clearSections()
-        section = self.createSection('autocheck')
+        section = self.createSection('scanner_autocheck')
         section.addItem(Button, 'autocheck_button')
 
     def updateCallbacks(self):
-        section = self.sections['autocheck']
+        section = self.sections['scanner_autocheck']
         section.updateCallback('autocheck_button', self.performAutocheck)
 
     def performAutocheck(self):
@@ -122,13 +122,13 @@ class AutocheckPanel(ExpandablePanel):
         self.autocheck.start()
 
     def beforeAutocheck(self):
-        section = self.sections['autocheck'].items['autocheck_button'].Disable()
+        section = self.sections['scanner_autocheck'].items['autocheck_button'].Disable()
         if self.buttonStartCallback is not None:
             self.buttonStartCallback()
         self.waitCursor = wx.BusyCursor()
 
     def afterAutocheck(self, result):
-        section = self.sections['autocheck'].items['autocheck_button'].Enable()
+        section = self.sections['scanner_autocheck'].items['autocheck_button'].Enable()
         if isinstance(result, PatternNotDetected):
             dlg = wx.MessageDialog(
                 self, _("Please, put the pattern on the platform"),

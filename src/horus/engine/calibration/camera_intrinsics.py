@@ -37,16 +37,15 @@ class CameraIntrinsics(Calibration):
         self._camera_use_distortion = False
 
     def _start(self):
-        ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(
-            self.object_points, self.image_points, self.shape)
+        ret, error, cmat, dvec, rvecs, tvecs = self.calibrate()
 
         if self._progress_callback is not None:
             self._progress_callback(100)
 
         if ret:
             self.camera_matrix = cmat
-            self.distortion_vector = dvec.ravel()
-            response = (True, (self.camera_matrix, self.distortion_vector, rvecs, tvecs))
+            self.distortion_vector = dvec
+            response = (True, (error, cmat, dvec, rvecs, tvecs))
         else:
             response = (False, CameraIntrinsicsError)
 
@@ -54,6 +53,20 @@ class CameraIntrinsics(Calibration):
 
         if self._after_callback is not None:
             self._after_callback(response)
+
+    def calibrate(self):
+        error = 0
+        ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(
+            self.object_points, self.image_points, self.shape)
+
+        if ret:
+            for i in xrange(len(self.object_points)):
+                imgpoints2, _ = cv2.projectPoints(
+                    self.object_points[i], rvecs[i], tvecs[i], cmat, dvec)
+                error += cv2.norm(self.image_points[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
+            error /= len(self.object_points)
+
+        return ret, error, cmat, dvec.ravel(), rvecs, tvecs
 
     def reset(self):
         self.image_points = []
@@ -68,7 +81,7 @@ class CameraIntrinsics(Calibration):
                 self.shape = frame.shape[:2]
                 retval, frame, corners = self.detect_chessboard(frame)
                 if retval:
-                    if len(self.object_points) < 12:
+                    if len(self.object_points) < 15:
                         self.image_points.append(corners)
                         self.object_points.append(self.pattern.object_points)
                 return retval, frame

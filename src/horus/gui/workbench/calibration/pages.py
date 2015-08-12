@@ -56,7 +56,7 @@ class CameraIntrinsicsMainPage(Page):
 
         # Image Grid Panel
         self.imageGridPanel = wx.Panel(self._panel)
-        self.rows, self.columns = 2, 6
+        self.rows, self.columns = 3, 5
         self.panelGrid = []
         self.gridSizer = wx.GridSizer(self.rows, self.columns, 3, 3)
         for panel in xrange(self.rows * self.columns):
@@ -115,21 +115,17 @@ class CameraIntrinsicsMainPage(Page):
     def onKeyPress(self, event):
         if event.GetKeyCode() == 32:  # spacebar
             self.videoView.pause()
-            retval, frame = camera_intrinsics.capture()
+            ret, frame = camera_intrinsics.capture()
+            if ret:
+                self.addFrameToGrid(frame)
+                if self.currentGrid <= self.rows * self.columns:
+                    self.gauge.SetValue(self.currentGrid * 100.0 / self.rows / self.columns)
             self.videoView.play()
-            self.addFrameToGrid(retval, frame)
-            self.gauge.SetValue(7 * self.currentGrid)
 
-    def addFrameToGrid(self, retval, image):
+    def addFrameToGrid(self, image):
         if self.currentGrid < (self.columns * self.rows):
-            if retval:
-                self.panelGrid[self.currentGrid].setFrame(image)
-                self.panelGrid[self.currentGrid].SetBackgroundColour((45, 178, 0))
-                self.currentGrid += 1
-            else:
-                self.panelGrid[self.currentGrid].setFrame(image)
-                self.panelGrid[self.currentGrid].SetBackgroundColour((217, 0, 0))
-
+            self.panelGrid[self.currentGrid].setFrame(image)
+            self.currentGrid += 1
         if self.currentGrid is (self.columns * self.rows):
             self.subTitleText.SetLabel(_("Press Calibrate to continue"))
             self.buttonRightCallback()
@@ -137,19 +133,15 @@ class CameraIntrinsicsMainPage(Page):
 
     def onCalibrate(self):
         camera_intrinsics.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
-                                        lambda p: wx.CallAfter(self.progressCalibration, p),
+                                        None,
                                         lambda r: wx.CallAfter(self.afterCalibration, r))
         camera_intrinsics.start()
 
     def beforeCalibration(self):
         self.videoView.pause()
         self._rightButton.Disable()
-        self.gauge.SetValue(95)
         if not hasattr(self, 'waitCursor'):
             self.waitCursor = wx.BusyCursor()
-
-    def progressCalibration(self, progress):
-        self.gauge.SetValue(max(95, progress))
 
     def afterCalibration(self, result):
         self._rightButton.Enable()
@@ -205,10 +197,10 @@ class CameraIntrinsicsResultPage(Page):
         ret, result = response
 
         if ret:
-            mtx, dist, rvecs, tvecs = result
+            error, mtx, dist, rvecs, tvecs = result
             self.GetParent().GetParent().controls.panels[
                 'camera_intrinsics_panel'].setParameters((mtx, dist))
-            self.plotPanel.add(rvecs, tvecs)
+            self.plotPanel.add(error, rvecs, tvecs)
             self.plotPanel.Show()
             self.Layout()
         else:
@@ -258,14 +250,16 @@ class CameraIntrinsics3DPlot(wx.Panel):
         self.ax.invert_yaxis()
         self.ax.invert_zaxis()
 
-    def add(self, rvecs, tvecs):
+    def add(self, error, rvecs, tvecs):
         w = pattern.columns * pattern.square_width
         h = pattern.rows * pattern.square_width
 
         p = np.array([[0, 0, 0], [w, 0, 0], [w, h, 0], [0, h, 0], [0, 0, 0]])
         n = np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]])
 
-        c = np.array([[30, 0, 0], [0, 30, 0], [0, 0, 30]])
+        c = np.array([[30, 0, 0], [0, 30, 0], [0, 0, -30]])
+
+        self.ax.text(-100, 200, 0, str(round(error, 5)), fontsize=15)
 
         for ind, transvector in enumerate(rvecs):
 
@@ -290,9 +284,9 @@ class CameraIntrinsics3DPlot(wx.Panel):
             self.ax.plot_surface(X, Z, Y, linewidth=0, color=color)
 
             self.ax.plot([t[0][0], CX[0]], [t[2][0], CZ[0]],
-                         [t[1][0], CY[0]], linewidth=1.0, color='red')
+                         [t[1][0], CY[0]], linewidth=1.0, color='green')
             self.ax.plot([t[0][0], CX[1]], [t[2][0], CZ[1]],
-                         [t[1][0], CY[1]], linewidth=1.0, color='green')
+                         [t[1][0], CY[1]], linewidth=1.0, color='red')
             self.ax.plot([t[0][0], CX[2]], [t[2][0], CZ[2]],
                          [t[1][0], CY[2]], linewidth=1.0, color='blue')
             self.canvas.draw()
@@ -376,17 +370,13 @@ class LaserTriangulationMainPage(Page):
             'exposure_calibration') / 2.
 
         laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
-                                          lambda p: wx.CallAfter(self.progressCalibration, p),
+                                          None,
                                           lambda r: wx.CallAfter(self.afterCalibration, r))
         laser_triangulation.start()
 
     def beforeCalibration(self):
         self._rightButton.Disable()
-        self.gauge.SetValue(0)
         self.waitCursor = wx.BusyCursor()
-
-    def progressCalibration(self, progress):
-        self.gauge.SetValue(progress)
 
     def afterCalibration(self, result):
         self.onCalibrationFinished(result)

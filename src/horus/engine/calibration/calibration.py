@@ -72,10 +72,10 @@ class Calibration(object):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             ret, corners = cv2.findChessboardCorners(
                 gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
-            # Always None :(
-            # cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
-            cv2.drawChessboardCorners(
-                frame, (self.pattern.columns, self.pattern.rows), corners, ret)
+            if ret:
+                cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
+                cv2.drawChessboardCorners(
+                    frame, (self.pattern.columns, self.pattern.rows), corners, ret)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             return ret, frame, corners
         else:
@@ -87,8 +87,7 @@ class Calibration(object):
             retval, corners = cv2.findChessboardCorners(
                 gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
             if retval:
-                # Always None :(
-                # cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
+                cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
                 ret, rvecs, tvecs = cv2.solvePnP(
                     self.pattern.object_points, corners,
                     self.driver.camera.camera_matrix, self.driver.camera.distortion_vector)

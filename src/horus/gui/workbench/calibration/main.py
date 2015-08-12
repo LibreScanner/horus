@@ -50,11 +50,11 @@ class CalibrationWorkbench(WorkbenchConnection):
         # Add Scroll Panels
         self.controls.addPanel('camera_settings', CameraSettingsPanel(self.controls))
         self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
-        self.controls.addPanel('autocheck', AutocheckPanel(
-            self.controls, buttonStartCallback=self.onAutocheckStartCallback,
-            buttonStopCallback=self.onCancelCallback))
         self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
             self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
+        self.controls.addPanel('scanner_autocheck', AutocheckPanel(
+            self.controls, buttonStartCallback=self.onAutocheckStartCallback,
+            buttonStopCallback=self.onCancelCallback))
         self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(
             self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
         self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(

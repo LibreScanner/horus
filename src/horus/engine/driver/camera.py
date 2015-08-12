@@ -267,7 +267,6 @@ class Camera(object):
 
     @distortion_vector.setter
     def distortion_vector(self, value):
-        print value
         self._distortion_vector = value
         self._compute_dist_camera_matrix()
 
