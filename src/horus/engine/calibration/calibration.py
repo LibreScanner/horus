@@ -74,27 +74,28 @@ class Calibration(object):
                 gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
             if ret:
                 cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
-                cv2.drawChessboardCorners(
-                    frame, (self.pattern.columns, self.pattern.rows), corners, ret)
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             return ret, frame, corners
         else:
             return False, frame, None
 
-    def solve_pnp(self, image):
-        if image is not None:
-            gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-            retval, corners = cv2.findChessboardCorners(
-                gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
-            if retval:
-                cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
-                ret, rvecs, tvecs = cv2.solvePnP(
-                    self.pattern.object_points, corners,
-                    self.driver.camera.camera_matrix, self.driver.camera.distortion_vector)
-                if ret is not None:
-                    return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
-                else:
-                    return None
+    def draw_chessboard(self, frame):
+        retval, frame, corners = self.detect_chessboard(frame)
+        if frame is not None:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        cv2.drawChessboardCorners(
+            frame, (self.pattern.columns, self.pattern.rows), corners, retval)
+        if frame is not None:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        return retval, frame, corners
+
+    def solve_pnp(self, frame):
+        retval, frame, corners = self.detect_chessboard(frame)
+        if retval:
+            ret, rvecs, tvecs = cv2.solvePnP(
+                self.pattern.object_points, corners,
+                self.driver.camera.camera_matrix, self.driver.camera.distortion_vector)
+            if ret is not None:
+                return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
             else:
                 return None
         else:

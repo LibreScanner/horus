@@ -39,9 +39,6 @@ class CameraIntrinsics(Calibration):
     def _start(self):
         ret, error, cmat, dvec, rvecs, tvecs = self.calibrate()
 
-        if self._progress_callback is not None:
-            self._progress_callback(100)
-
         if ret:
             self.camera_matrix = cmat
             self.distortion_vector = dvec
@@ -76,10 +73,10 @@ class CameraIntrinsics(Calibration):
 
     def capture(self):
         if self.driver.is_connected:
-            frame = self.driver.camera.capture_image(flush=1, rgb=False)
+            frame = self.driver.camera.capture_image(flush=1)
             if frame is not None:
                 self.shape = frame.shape[:2]
-                retval, frame, corners = self.detect_chessboard(frame)
+                retval, frame, corners = self.draw_chessboard(frame)
                 if retval:
                     if len(self.object_points) < 15:
                         self.image_points.append(corners)

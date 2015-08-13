@@ -103,13 +103,12 @@ class CameraIntrinsicsMainPage(Page):
                 pass
 
     def getFrame(self):
-        frame = driver.camera.capture_image(rgb=False)
-        if frame is not None:
-            retval, frame, corners = camera_intrinsics.detect_chessboard(frame)
-            if retval:
-                self.videoView.SetBackgroundColour((45, 178, 0))
-            else:
-                self.videoView.SetBackgroundColour((217, 0, 0))
+        frame = driver.camera.capture_image()
+        retval, frame, _ = camera_intrinsics.draw_chessboard(frame)
+        if retval:
+            self.videoView.SetBackgroundColour((45, 178, 0))
+        else:
+            self.videoView.SetBackgroundColour((217, 0, 0))
         return frame
 
     def onKeyPress(self, event):
@@ -595,8 +594,7 @@ class PlatformExtrinsicsMainPage(Page):
             frame = platform_extrinsics.image
         else:
             frame = driver.camera.capture_image()
-        if frame is not None:
-            retval, frame = calibration.detect_chessboard(frame)
+        _,frame,_ = calibration.draw_chessboard(frame)
 
         return frame
 

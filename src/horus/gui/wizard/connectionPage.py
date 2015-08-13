@@ -21,7 +21,6 @@ from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidV
 from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.autocheck import Autocheck, PatternNotDetected, \
     WrongMotorDirection, LaserNotDetected
-#from horus.engine.calibration import detect_chessboard
 
 
 class ConnectionPage(WizardPage):
@@ -96,9 +95,8 @@ class ConnectionPage(WizardPage):
     def getDetectChessboardFrame(self):
         frame = self.autocheck.image
         if frame is None:
-            frame = self.getFrame()
-        # if frame is not None:
-        #    retval, frame = detect_chessboard(frame)
+            frame = self.driver.camera.capture_image()
+        _,frame,_ = self.autocheck.draw_chessboard(frame)
         return frame
 
     def onUnplugged(self):
@@ -228,7 +226,7 @@ class ConnectionPage(WizardPage):
                 dlg.Destroy()
             elif isinstance(result, LaserNotDetected):
                 dlg = wx.MessageDialog(
-                    self, _("Please, check the lasers conection"),
+                    self, _("Please, check the lasers connection"),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()

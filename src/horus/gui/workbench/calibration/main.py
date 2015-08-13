@@ -117,9 +117,8 @@ class CalibrationWorkbench(WorkbenchConnection):
     def getFrame(self):
         frame = self.autocheck.image
         if frame is None:
-            frame = self.driver.camera.capture_image(rgb=False)
-        if frame is not None:
-            retval, frame, corners = self.autocheck.detect_chessboard(frame)
+            frame = self.driver.camera.capture_image()
+        _,frame,_ = self.autocheck.draw_chessboard(frame)
         return frame
 
     def enableMenus(self, value):

@@ -91,7 +91,7 @@ class Autocheck(Calibration):
 
         # Capture data
         for i in xrange(0, 360, scan_step):
-            image = self.driver.camera.capture_image(flush=1, rgb=False)
+            image = self.driver.camera.capture_image(flush=1)
             self.image = image
             ret = self.solve_pnp(image)
             if ret is not None:
@@ -130,12 +130,10 @@ class Autocheck(Calibration):
         self.driver.board.motor_move()
 
     def check_lasers(self):
-        img_raw = self.driver.camera.capture_image(flush=1, rgb=False)
-        self.image = img_raw
-
+        img_raw = self.driver.camera.capture_image(flush=1)
         if img_raw is not None:
-            s = self.solve_pnp(img_raw)
-            if s is not None:
+            ret = self.solve_pnp(img_raw)
+            if ret is not None:
                 self.driver.board.laser_left_on()
                 img_las_left = self.driver.camera.capture_image(flush=1)
                 self.driver.board.laser_left_off()
@@ -143,7 +141,7 @@ class Autocheck(Calibration):
                 img_las_right = self.driver.camera.capture_image(flush=1)
                 self.driver.board.laser_right_off()
                 if img_las_left is not None and img_las_right is not None:
-                    corners = s[2]
+                    corners = ret[2]
 
                     # Corners ROI mask
                     img_las_left = self.corners_mask(img_las_left, corners)
@@ -158,7 +156,6 @@ class Autocheck(Calibration):
     def detect_line(self, img_raw, img_las):
         height, width, depth = img_raw.shape
         img_line = np.zeros((height, width, depth), np.uint8)
-
         diff = cv2.subtract(img_las, img_raw)
         r, g, b = cv2.split(diff)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))

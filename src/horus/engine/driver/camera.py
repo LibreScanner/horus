@@ -143,7 +143,7 @@ class Camera(object):
         if not c_exp or not c_bri:
             raise WrongCamera()
 
-    def capture_image(self, flush=0, mirror=False, rgb=True):
+    def capture_image(self, flush=0, mirror=False):
         """Capture image from camera"""
         if self._is_connected:
             self._reading = True
@@ -166,8 +166,7 @@ class Camera(object):
                     #x, y, w, h = self._roi
                     #image = image[y:y + h, x:x + w]
                 self._success()
-                if rgb:
-                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 return image
             else:
                 self._fail()
