@@ -48,7 +48,7 @@ class ExpandableControl(wx.Panel):
 
 	def addPanel(self, name, panel):
 		self.panels.update({name : panel})
-		self.vbox.Add(panel, 0, wx.ALL|wx.EXPAND, 0)
+		self.vbox.Add(panel, 0, wx.EXPAND)
 		panel.titleText.title.Bind(wx.EVT_LEFT_DOWN, self._onTitleClicked)
 		if len(self.panels) == 1:
 			panel.content.Show()
@@ -137,15 +137,17 @@ class ExpandablePanel(wx.Panel):
 		#-- Layout
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-		self.hbox.Add(self.titleText, 1, wx.LEFT|wx.EXPAND, 2)
+		self.hbox.Add(self.titleText, 1, wx.ALIGN_CENTER_VERTICAL)
 		if self.hasUndo:
-			self.hbox.Add(self.undoButton, 0, wx.ALL, 0)
+			self.hbox.Add(self.undoButton, 0, wx.RIGHT|wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
 		if self.hasRestore:
-			self.hbox.Add(self.restoreButton, 0, wx.ALL, 0)
-		self.vbox.Add(self.hbox, 0, wx.ALL|wx.EXPAND, 0)
+			self.hbox.Add(self.restoreButton, 0, wx.RIGHT|wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
+		self.vbox.Add(self.hbox, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
+
 		self.contentBox = wx.BoxSizer(wx.VERTICAL)
 		self.content.SetSizer(self.contentBox)
-		self.vbox.Add(self.content, 1, wx.LEFT|wx.EXPAND, 10)
+
+		self.vbox.Add(self.content, 0, wx.ALL|wx.EXPAND, 10)
 		self.SetSizer(self.vbox)
 		self.Layout()
 
@@ -245,7 +247,7 @@ class SectionPanel(wx.Panel):
 			self.items.update({_name : item})
 		else:
 			self.items.update({_name : (item, tooltip)})
-		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 1)
+		self.vbox.Add(item, 0, wx.ALL|wx.EXPAND, 5)
 		self.Layout()
 		return self
 
@@ -368,7 +370,6 @@ class SectionItem(wx.Panel):
 		del self.undoValues[:]
 		self.updateProfile()
 
-
 class TitleText(wx.Panel):
 	def __init__(self, parent, title, bold=True, handCursor=True):
 		wx.Panel.__init__(self, parent)
@@ -402,18 +403,18 @@ class Slider(SectionItem):
 		self.flagFirstMove = True
 
 		#-- Elements
-		self.label = wx.StaticText(self, label=self.setting.getLabel())
+		self.label = wx.StaticText(self, label=self.setting.getLabel(), size=(100,-1))
 		self.control = wx.Slider(self, wx.ID_ANY,
 								 profile.getSettingInteger(name),
 								 profile.getSettingMinValue(name),
 								 profile.getSettingMaxValue(name),
-								 size=(1, -1),
-								 style=wx.SL_LABELS)
+								 size=(160, -1))
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 20)
-		hbox.Add(self.control, 1, wx.RIGHT|wx.EXPAND, 12)
+		hbox.Add(self.label, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.control, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -458,32 +459,31 @@ class Slider(SectionItem):
 			value = profile.getSettingInteger(self.name)
 			self.update(value)
 
-
 class ComboBox(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
 		""" """
 		SectionItem.__init__(self, parent, name, engineCallback)
 
-		_choices = []
 		choices = self.setting.getType()
-		for i in choices:
-			_choices.append(_(i))
+		_choices = [_(i) for i in choices]
+
 		self.keyDict = dict(zip(_choices, choices))
 
 		#-- Elements
-		self.label = wx.StaticText(self, label=self.setting.getLabel())
+		self.label = wx.StaticText(self, label=self.setting.getLabel(), size=(130,-1))
 		self.control = wx.ComboBox(self, wx.ID_ANY,
 								   value=_(profile.getProfileSetting(self.name)),
 								   choices=_choices,
-								   size=(1, -1),
+								   size=(130, -1),
 								   style=wx.CB_READONLY)
 
-		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 18)
-		hbox.Add(self.control, 1, wx.TOP|wx.RIGHT|wx.EXPAND, 12)
+		hbox.Add(self.label, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.control, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
 		self.SetSizer(hbox)
 		self.Layout()
+
 		#-- Events
 		self.control.Bind(wx.EVT_COMBOBOX, self.onComboBoxChanged)
 
@@ -497,7 +497,6 @@ class ComboBox(SectionItem):
 			value = profile.getProfileSetting(self.name)
 			self.update(value, trans=True)
 
-
 class CheckBox(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
 		""" """
@@ -505,12 +504,12 @@ class CheckBox(SectionItem):
 
 		#-- Elements
 		self.label = wx.StaticText(self, label=self.setting.getLabel())
-		self.control = wx.CheckBox(self, size=(1, -1), style=wx.ALIGN_RIGHT)
+		self.control = wx.CheckBox(self)
 
-		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.TOP|wx.RIGHT|wx.EXPAND, 7)
-		hbox.Add(self.control, 1, wx.TOP|wx.EXPAND, 8)
+		hbox.Add(self.label, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.control, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -531,7 +530,6 @@ class CheckBox(SectionItem):
 		if hasattr(self,'control'):
 			value = profile.getSettingBool(self.name)
 			self.update(value)
-
 
 class RadioButton(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
@@ -573,13 +571,13 @@ class TextBox(SectionItem):
 		SectionItem.__init__(self, parent, name, engineCallback)
 
 		#-- Elements
-		self.label = wx.StaticText(self, label=self.setting.getLabel())
-		self.control = wx.TextCtrl(self)
+		self.label = wx.StaticText(self, size=(140,-1), label=self.setting.getLabel())
+		self.control = wx.TextCtrl(self, size=(120,-1), style=wx.TE_RIGHT)
 
-		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.label, 0, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 18)
-		hbox.Add(self.control, 1, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 12)
+		hbox.Add(self.label, 0, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
+		hbox.AddStretchSpacer()
+		hbox.Add(self.control, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -601,10 +599,6 @@ class TextBox(SectionItem):
 			value = profile.getProfileSetting(self.name)
 			self.update(value)
 
-
-##TODO: Create TextBoxArray
-
-
 class Button(SectionItem):
 	def __init__(self, parent, name, engineCallback=None):
 		""" """
@@ -615,7 +609,7 @@ class Button(SectionItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.control, 1, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 10)
+		hbox.Add(self.control, 1, wx.ALL|wx.EXPAND, 5)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -646,7 +640,7 @@ class CallbackButton(SectionItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.control, 1, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 10)
+		hbox.Add(self.control, 1, wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -684,7 +678,7 @@ class ToggleButton(SectionItem):
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
-		hbox.Add(self.control, 1, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 10)
+		hbox.Add(self.control, 1, wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
 		self.SetSizer(hbox)
 		self.Layout()
 
@@ -710,3 +704,5 @@ class ToggleButton(SectionItem):
 			self.Show()
 		else:
 			self.Hide()
+
+# TODO: Create TextBoxArray

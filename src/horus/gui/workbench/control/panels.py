@@ -106,29 +106,33 @@ class LDRControl(ExpandablePanel):
         section = self.sections['ldr_control']
         section.updateCallback('ldr_value', lambda id: self.driver.board.getLDRSensor(id))
 
-
 class LDRSection(SectionItem):
     def __init__(self, parent, name, engineCallback=None):
         """"""
         SectionItem.__init__(self, parent, name, engineCallback)
 
         #-- Elements
-        self.LDR0Button = wx.Button(self, label='LDR 0')
-        self.LDR1Button = wx.Button(self, label='LDR 1')
+        self.LDR0Button = wx.Button(self, label='LDR 0', size=(140,-1))
+        self.LDR1Button = wx.Button(self, label='LDR 1', size=(140,-1))
 
         self.LDR0Label = wx.StaticText(self, label='0')
         self.LDR1Label = wx.StaticText(self, label='0')
 
         #-- Layout
         vbox =wx.BoxSizer(wx.VERTICAL)
+
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.LDR0Button, -1, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 10)
-        hbox.Add(self.LDR0Label, -1, wx.ALL^wx.BOTTOM|wx.EXPAND, 15)
-        vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 0)
+        hbox.Add(self.LDR0Button, 0, wx.ALIGN_CENTER_VERTICAL)
+        hbox.AddStretchSpacer()
+        hbox.Add(self.LDR0Label, 1, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
+
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.LDR1Button, -1, wx.ALL^wx.LEFT^wx.BOTTOM|wx.EXPAND, 10)
-        hbox.Add(self.LDR1Label, -1, wx.ALL^wx.BOTTOM|wx.EXPAND, 15)
-        vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 0)
+        hbox.Add(self.LDR1Button, 0, wx.ALIGN_CENTER_VERTICAL)
+        hbox.AddStretchSpacer()
+        hbox.Add(self.LDR1Label, 1, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
+
         self.SetSizer(vbox)
         self.Layout()
 
@@ -219,24 +223,24 @@ class GcodeControl(ExpandablePanel):
         section = self.sections['gcode_control']
         section.updateCallback('gcode_gui', lambda v, c: self.driver.board.sendRequest(v, callback=c, readLines=True))
 
-
 class GcodeSection(SectionItem):
     def __init__(self, parent, name, engineCallback=None):
         """"""
         SectionItem.__init__(self, parent, name, engineCallback)
 
         #-- Elements
-        self.request = wx.TextCtrl(self, size=(10,10))
-        self.control = wx.Button(self, label=self.setting.getLabel())
-        self.response = wx.TextCtrl(self, size=(10,250), style=wx.TE_MULTILINE)
+        self.request = wx.TextCtrl(self)
+        self.control = wx.Button(self, label=self.setting.getLabel(), size=(80,-1))
+        self.response = wx.TextCtrl(self, size=(-1,250), style=wx.TE_MULTILINE)
 
         #-- Layout
-        vbox =wx.BoxSizer(wx.VERTICAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.request, 1, wx.ALL^wx.RIGHT^wx.LEFT|wx.EXPAND, 12)
-        hbox.Add(self.control, 0, wx.ALL|wx.EXPAND, 12)
-        vbox.Add(hbox, 0, wx.ALL|wx.EXPAND, 0)
-        vbox.Add(self.response, 1, wx.ALL^wx.LEFT|wx.EXPAND, 12)
+        hbox.Add(self.request, 1, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.Add(self.control, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.EXPAND)
+        vbox.Add(self.response, 1, wx.TOP|wx.EXPAND, 8)
+
         self.SetSizer(vbox)
         self.Layout()
 
