@@ -403,12 +403,12 @@ class Slider(SectionItem):
 		self.flagFirstMove = True
 
 		#-- Elements
-		self.label = wx.StaticText(self, label=self.setting.getLabel(), size=(130,-1))
+		self.label = wx.StaticText(self, label=self.setting.getLabel(), size=(100,-1))
 		self.control = wx.Slider(self, wx.ID_ANY,
 								 profile.getSettingInteger(name),
 								 profile.getSettingMinValue(name),
 								 profile.getSettingMaxValue(name),
-								 size=(130, -1))
+								 size=(160, -1))
 
 		#-- Layout
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
