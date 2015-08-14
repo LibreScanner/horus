@@ -11,8 +11,6 @@ import struct
 import platform
 import threading
 import numpy as np
-from scipy import optimize
-from scipy.sparse import linalg
 
 system = platform.system()
 
@@ -122,7 +120,7 @@ class Calibration(object):
     def save_scene(self, filename, point_cloud):
         if point_cloud is not None:
             f = open(filename, 'wb')
-            save_scene_stream(f, point_cloud)
+            self.save_scene_stream(f, point_cloud)
             f.close()
 
     def save_scene_stream(self, stream, point_cloud):
@@ -142,94 +140,3 @@ class Calibration(object):
         for point in point_cloud:
             frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
         stream.write(frame)
-
-
-def detect_pattern_plane(image):
-    if image is not None:
-        ret = solve_pnp(image)
-        if ret is not None:
-            R = ret[0]
-            t = ret[1].T[0]
-            n = R.T[2]
-            c = ret[2]
-            d = -np.dot(n, t)
-            return (d, n, c)
-
-
-def compute_laser_line(img_las, img_raw, threshold):
-    # Image segmentation
-    sub = cv2.subtract(img_las, img_raw)
-    r, g, b = cv2.split(sub)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
-    r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
-    r = cv2.threshold(r, threshold, 255.0, cv2.THRESH_TOZERO)[1]
-
-    # Peak detection: center of mass
-    h, w = r.shape
-    W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
-    s = r.sum(axis=1)
-    v = np.where(s > 0)[0]
-    u = (W * r).sum(axis=1)[v] / s[v]
-
-    return u, v
-
-
-def compute_point_cloud(u, v, d, n):
-    fx = driver.camera.camera_matrix[0][0]
-    fy = driver.camera.camera_matrix[1][1]
-    cx = driver.camera.camera_matrix[0][2]
-    cy = driver.camera.camera_matrix[1][2]
-
-    x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
-
-    X = -d / np.dot(n, x) * x
-
-    return X.T
-
-
-def compute_plane(X, side):
-    if X is not None:
-        X = np.matrix(X).T
-        n = X.shape[1]
-        std = 0
-        if n > 3:
-            final_points = []
-
-            for trials in xrange(30):
-                X = np.matrix(X)
-                n = X.shape[1]
-
-                Xm = X.sum(axis=1) / n
-                M = np.array(X - Xm)
-                U = linalg.svds(M, k=2)[0]
-                s, t = U.T
-                n = np.cross(s, t)
-                if n[2] < 0:
-                    n *= -1
-                d = np.dot(n, np.array(Xm))[0]
-                distance_vector = np.dot(M.T, n)
-
-                # If last std is equal to current std, break loop
-                if std == distance_vector.std():
-                    break
-
-                std = distance_vector.std()
-
-                final_points = np.where(abs(distance_vector) < abs(2 * std))[0]
-
-                X = X[:, final_points]
-
-                # Save each iteration point cloud
-                # if side == 'l':
-                #   save_scene('new_'+str(trials)+'_XL.ply', np.asarray(X.T))
-                # else:
-                #   save_scene('new_'+str(trials)+'_XR.ply', np.asarray(X.T))
-
-                if std < 0.1 or len(final_points) < 1000:
-                    break
-
-            return d, n, std
-        else:
-            return None, None, None
-    else:
-        return None, None, None

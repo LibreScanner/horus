@@ -311,8 +311,6 @@ class LaserTriangulationMainPage(Page):
                       panelOrientation=wx.HORIZONTAL,
                       viewProgress=True)
 
-        self.onCalibration = False
-
         self.afterCancelCallback = afterCancelCallback
         self.afterCalibrationCallback = afterCalibrationCallback
 
@@ -350,17 +348,13 @@ class LaserTriangulationMainPage(Page):
                 pass
 
     def getFrame(self):
-        if self.onCalibration:
-            frame = laser_triangulation.image
-        else:
+        frame = laser_triangulation.image
+        if frame is None:
             frame = driver.camera.capture_image()
-
-        # if frame is not None:
-        #	retval, frame = calibration.detect_chessboard(frame)
+            _, frame, _ = laser_triangulation.draw_chessboard(frame)
         return frame
 
     def onCalibrate(self):
-        self.onCalibration = True
         laser_triangulation.image = driver.camera.capture_image()
         laser_triangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
         laser_triangulation.exposure_normal = profile.getProfileSettingNumpy(
@@ -369,7 +363,7 @@ class LaserTriangulationMainPage(Page):
             'exposure_calibration') / 2.
 
         laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
-                                          None,
+                                          lambda p: wx.CallAfter(self.progressCalibration, p),
                                           lambda r: wx.CallAfter(self.afterCalibration, r))
         laser_triangulation.start()
 
@@ -377,9 +371,11 @@ class LaserTriangulationMainPage(Page):
         self._rightButton.Disable()
         self.waitCursor = wx.BusyCursor()
 
+    def progressCalibration(self, progress):
+        self.gauge.SetValue(progress)
+
     def afterCalibration(self, result):
         self.onCalibrationFinished(result)
-        self.onCalibration = False
 
     def onCalibrationFinished(self, result):
         self._rightButton.Enable()
@@ -395,7 +391,6 @@ class LaserTriangulationMainPage(Page):
         driver.camera.set_unplug_callback(None)
         if not hasattr(self, 'waitCursor'):
             self.waitCursor = wx.BusyCursor()
-        self.onCalibration = False
         laser_triangulation.cancel()
         if self.afterCancelCallback is not None:
             self.afterCancelCallback()
@@ -594,7 +589,7 @@ class PlatformExtrinsicsMainPage(Page):
             frame = platform_extrinsics.image
         else:
             frame = driver.camera.capture_image()
-        _,frame,_ = calibration.draw_chessboard(frame)
+        _, frame, _ = calibration.draw_chessboard(frame)
 
         return frame
 
