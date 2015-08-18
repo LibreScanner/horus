@@ -54,8 +54,10 @@ class PreferencesDialog(wx.Dialog):
 
 		self.firmwareStaticText = wx.StaticText(self, label=_("Burn Firmware"), style=wx.ALIGN_CENTRE)
 		self.boardLabel = wx.StaticText(self, label=_("AVR Board"))
-		self.boards = profile.getProfileSettingObject('board').getType()
+
+		self.boards = profile.settings.getPossibleValues('board')
 		self.boardsCombo = wx.ComboBox(self, choices=self.boards, size=(170,-1), style=wx.CB_READONLY)
+
 		self.hexLabel = wx.StaticText(self, label=_("Binary file"))
 		self.hexCombo = wx.ComboBox(self, choices=[_("Default"), _("External file...")], value=_("Default") , size=(170,-1), style=wx.CB_READONLY)
 		self.clearCheckBox = wx.CheckBox(self, label=_("Clear EEPROM"))
@@ -65,7 +67,7 @@ class PreferencesDialog(wx.Dialog):
 
 		self.languageLabel = wx.StaticText(self, label=_("Language"))
 		self.languages = [row[1] for row in resources.getLanguageOptions()]
-		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.getPreference('language') , size=(175,-1), style=wx.CB_READONLY)
+		self.languageCombo = wx.ComboBox(self, choices=self.languages, value=profile.settings['language'] , size=(175,-1), style=wx.CB_READONLY)
 
 		self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
 
@@ -81,17 +83,17 @@ class PreferencesDialog(wx.Dialog):
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
 		#-- Fill data
-		currentSerial = profile.getProfileSetting('serial_name')
+		currentSerial = profile.settings['serial_name']
 		if len(self.serialNames) > 0:
 			if currentSerial not in self.serialNames:
 				self.serialNameCombo.SetValue(self.serialNames[0])
 			else:
 				self.serialNameCombo.SetValue(currentSerial)
 
-		currentBaudRate = profile.getProfileSetting('baud_rate')
-		self.baudRateCombo.SetValue(currentBaudRate)
+		currentBaudRate = profile.settings['baud_rate']
+		self.baudRateCombo.SetValue(str(currentBaudRate))
 
-		currentVideoId = profile.getProfileSetting('camera_id')
+		currentVideoId = profile.settings['camera_id']
 		if len(self.cameraIdNames) > 0:
 			if currentVideoId not in self.cameraIdNames:
 				self.cameraIdCombo.SetValue(self.cameraIdNames[0])
@@ -182,20 +184,20 @@ class PreferencesDialog(wx.Dialog):
 
 	def onSaveButton(self, event):
 		if len(self.serialNameCombo.GetValue()):
-			profile.putProfileSetting('serial_name', self.serialNameCombo.GetValue())
+			profile.settings['serial_name'] = self.serialNameCombo.GetValue()
 		if self.baudRateCombo.GetValue() in self.baudRates:
-			profile.putProfileSetting('baud_rate', int(self.baudRateCombo.GetValue()))
+			profile.settings['baud_rate'] = int(self.baudRateCombo.GetValue())
 		if len(self.cameraIdCombo.GetValue()):
-			profile.putProfileSetting('camera_id', self.cameraIdCombo.GetValue())
-		profile.putProfileSetting('board', self.boardsCombo.GetValue())
+			profile.settings['camera_id'] = self.cameraIdCombo.GetValue()
+		profile.settings['board'] = self.boardsCombo.GetValue()
 		if profile.getPreference('language') is not self.languageCombo.GetValue():
-			profile.putPreference('language', self.languageCombo.GetValue())
-		profile.putProfileSetting('invert_motor', self.invertMotorCheckBox.GetValue())
+			profile.settings['language'] = self.languageCombo.GetValue()
+		profile.settings['invert_motor'] = self.invertMotorCheckBox.GetValue()
 		self.onClose(None)
 
 	def onClose(self, event):
 		self.EndModal(wx.ID_OK)
-		self.Destroy()		
+		self.Destroy()
 
 	def onHexComboChanged(self, event):
 		value = self.hexCombo.GetValue()
@@ -267,5 +269,6 @@ class PreferencesDialog(wx.Dialog):
 		self.SetSizerAndFit(self.GetSizer())
 
 	def onLanguageComboChanged(self, event):
-		if profile.getPreference('language') is not self.languageCombo.GetValue():
+		if profile.settings['language'] is not self.languageCombo.GetValue():
 			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
+

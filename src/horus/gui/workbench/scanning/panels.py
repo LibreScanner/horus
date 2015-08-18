@@ -52,7 +52,7 @@ class ScanParameters(ExpandablePanel):
         self.pcg = PointCloudGenerator.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
         self.parent = parent
-        self.lastScan = profile.getProfileSetting('scan_type')
+        self.lastScan = profile.settings['scan_type']
 
         self.clearSections()
         section = self.createSection('scan_parameters')
@@ -76,10 +76,10 @@ class ScanParameters(ExpandablePanel):
         if not self.main.currentScan.run or self.main.currentScan.inactive:
             if value == 'Simple Scan':
                 self.main.currentScan = self.simpleScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+                self.driver.camera.setExposure(profile.settings['laser_exposure_scanning'])
             elif value == 'Texture Scan':
                 self.main.currentScan = self.textureScan
-                self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
+                self.driver.camera.setExposure(profile.settings['color_exposure_scanning'])
         else:
             print "Error: Can not change Scan Type"
 
@@ -155,7 +155,7 @@ class ImageAcquisition(ExpandablePanel):
         self.simpleScan = SimpleScan.Instance()
         self.textureScan = TextureScan.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
-        self.last_resolution = profile.getProfileSetting('resolution_scanning')
+        self.last_resolution = profile.settings['resolution_scanning']
         
         self.clearSections()
         section = self.createSection('camera_scanning')
@@ -187,7 +187,7 @@ class ImageAcquisition(ExpandablePanel):
         if value != self.last_resolution:
             ResolutionWindow(self)
         self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
-        self.last_resolution = profile.getProfileSetting('resolution_scanning')
+        self.last_resolution = profile.settings['resolution_scanning']
 
     def setLaserExposure(self, value):
         if self.main.currentScan is self.simpleScan:
@@ -269,7 +269,7 @@ class PointCloudGeneration(ExpandablePanel):
             data = dialog.GetColourData()
             color = data.GetColour().Get()
             self.simpleScan.setColor(color)
-            profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
+            profile.settings['point_cloud_color'] = unicode("".join(map(chr, color)).encode('hex'))
         dialog.Destroy()
 
     # Overwrites ExpandablePanel method
@@ -280,11 +280,11 @@ class PointCloudGeneration(ExpandablePanel):
         section.items['roi_width'].updateProfile()
         section.items['roi_height'].updateProfile()
         section.items['roi_depth'].updateProfile()
-        if profile.getMachineSetting('machine_shape') == "Rectangular":
+        if profile.settings['machine_shape'] == "Rectangular":
             section.hideItem('roi_diameter')
             section.showItem('roi_width')
             section.showItem('roi_depth')
-        elif profile.getMachineSetting('machine_shape') == "Circular":
+        elif profile.settings['machine_shape'] == "Circular":
             section.hideItem('roi_width')
             section.hideItem('roi_depth')
             section.showItem('roi_diameter')

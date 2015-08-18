@@ -42,12 +42,12 @@ class WelcomeWindow(wx.Dialog):
 
         self.parent = parent
 
-        self.lastFiles = eval(profile.getPreference('last_files'))
+        self.lastFiles = profile.settings['last_files']
 
         header = Header(self)
         content = Content(self)
         checkBoxShow = wx.CheckBox(self, label=_("Don't show this dialog again"), style=wx.ALIGN_LEFT)
-        checkBoxShow.SetValue(not profile.getPreferenceBool('show_welcome'))
+        checkBoxShow.SetValue(not profile.settings['show_welcome'])
 
         checkBoxShow.Bind(wx.EVT_CHECKBOX, self.onCheckBoxChanged)
         self.Bind(wx.EVT_CLOSE, self.onClose)
@@ -66,7 +66,7 @@ class WelcomeWindow(wx.Dialog):
         self.ShowModal()
 
     def onCheckBoxChanged(self, event):
-        profile.putPreference('show_welcome', not event.Checked())
+        profile.settings['show_welcome'] = not event.Checked()
 
     def onClose(self, event):
         self.EndModal(wx.ID_OK)
@@ -134,17 +134,17 @@ class CreateNew(wx.Panel):
         self.GetParent().GetParent().Close()
 
     def onScan(self, event):
-        profile.putPreference('workbench', 'Scanning workbench')
+        profile.settings['workbench'] = u'Scanning workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
     def onAdvancedControl(self, event):
-        profile.putPreference('workbench', 'Control workbench')
+        profile.settings['workbench'] = u'Control workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
     def onAdvancedCalibration(self, event):
-        profile.putPreference('workbench', 'Calibration workbench')
+        profile.settings['workbench'] = u'Calibration workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
@@ -156,7 +156,7 @@ class OpenRecent(wx.Panel):
         titleText = wx.StaticText(self, label=_("Open recent file"))
         titleText.SetFont((wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
-        lastFiles = eval(profile.getPreference('last_files'))
+        lastFiles = profile.settings['last_files']
         lastFiles.reverse()
 
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -172,7 +172,7 @@ class OpenRecent(wx.Panel):
 
     def onButtonPressed(self, event):
         button = event.GetEventObject()
-        profile.putPreference('workbench', 'Scanning workbench')
+        profile.settings['workbench'] = 'Scanning workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().parent.appendLastFile(button.GetName())
         self.GetParent().GetParent().parent.scanningWorkbench.sceneView.loadFile(button.GetName())

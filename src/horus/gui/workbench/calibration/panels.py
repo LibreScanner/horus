@@ -47,7 +47,7 @@ class CameraSettingsPanel(ExpandablePanel):
 
         self.driver = Driver.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
-        self.last_resolution = profile.getProfileSetting('resolution_calibration')
+        self.last_resolution = profile.settings['resolution_calibration']
 
         self.clearSections()
         section = self.createSection('camera_calibration')
@@ -77,7 +77,7 @@ class CameraSettingsPanel(ExpandablePanel):
         if value != self.last_resolution:
             ResolutionWindow(self)
         self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
-        self.last_resolution = profile.getProfileSetting('resolution_calibration')
+        self.last_resolution = profile.settings['resolution_calibration']
 
 
 class PatternSettingsPanel(ExpandablePanel):
@@ -105,24 +105,24 @@ class PatternSettingsPanel(ExpandablePanel):
         section.updateCallback('pattern_distance', lambda v: self.updatePatternParameters())
 
     def updatePatternParameters(self):
-        self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                   profile.getProfileSettingInteger('pattern_columns'),
-                                                   profile.getProfileSettingInteger('square_width'),
-                                                   profile.getProfileSettingFloat('pattern_distance'))
+        self.cameraIntrinsics.setPatternParameters(profile.settings['pattern_rows'],
+                                                   profile.settings['pattern_columns'],
+                                                   profile.settings['square_width'],
+                                                   profile.settings['pattern_distance'])
 
-        self.simpleLaserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                           profile.getProfileSettingInteger('pattern_columns'),
-                                                           profile.getProfileSettingInteger('square_width'),
-                                                           profile.getProfileSettingFloat('pattern_distance'))
+        self.simpleLaserTriangulation.setPatternParameters(profile.settings['pattern_rows'],
+                                                           profile.settings['pattern_columns'],
+                                                           profile.settings['square_width'],
+                                                           profile.settings['pattern_distance'])
 
-        self.laserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
-        self.platformExtrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
+        self.laserTriangulation.setPatternParameters(profile.settings['pattern_rows'],
+                                                     profile.settings['pattern_columns'],
+                                                     profile.settings['square_width'],
+                                                     profile.settings['pattern_distance'])
+        self.platformExtrinsics.setPatternParameters(profile.settings['pattern_rows'],
+                                                     profile.settings['pattern_columns'],
+                                                     profile.settings['square_width'],
+                                                     profile.settings['pattern_distance'])
 
 
 class LaserSettingsPanel(ExpandablePanel):
@@ -277,8 +277,8 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('camera_matrix')
-            profile.resetProfileSetting('distortion_vector')
+            profile.settings.resetToDefault('camera_matrix')
+            profile.settings.resetToDefault('distortion_vector')
             self.updateProfile()
 
     def getParameters(self):
@@ -290,12 +290,12 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         self.updateAllControls()
 
     def getProfileSettings(self):
-        self.cameraValues = profile.getProfileSettingNumpy('camera_matrix')
-        self.distortionValues = profile.getProfileSettingNumpy('distortion_vector')
+        self.cameraValues = profile.settings['camera_matrix']
+        self.distortionValues = profile.settings['distortion_vector']
 
     def putProfileSettings(self):
-        profile.putProfileSettingNumpy('camera_matrix', self.cameraValues)
-        profile.putProfileSettingNumpy('distortion_vector', self.distortionValues)
+        profile.settings['camera_matrix'] = self.cameraValues
+        profile.settings['distortion_vector'] = self.distortionValues
 
     def updateAllControls(self):
         for i in range(3):
@@ -456,10 +456,10 @@ class LaserTriangulationPanel(CalibrationPanel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('distance_left')
-            profile.resetProfileSetting('normal_left')
-            profile.resetProfileSetting('distance_right')
-            profile.resetProfileSetting('normal_right')
+            profile.settings.resetToDefault('distance_left')
+            profile.settings.resetToDefault('normal_left')
+            profile.settings.resetToDefault('distance_right')
+            profile.settings.resetToDefault('normal_right')
             self.updateProfile()
 
     def getParameters(self):
@@ -473,16 +473,16 @@ class LaserTriangulationPanel(CalibrationPanel):
         self.updateAllControls()
 
     def getProfileSettings(self):
-        self.distanceLeftValue = profile.getProfileSettingFloat('distance_left')
-        self.normalLeftValues = profile.getProfileSettingNumpy('normal_left')
-        self.distanceRightValue = profile.getProfileSettingFloat('distance_right')
-        self.normalRightValues = profile.getProfileSettingNumpy('normal_right')
+        self.distanceLeftValue = profile.settings['distance_left']
+        self.normalLeftValues = profile.settings['normal_left']
+        self.distanceRightValue = profile.settings['distance_right']
+        self.normalRightValues = profile.settings['normal_right']
 
     def putProfileSettings(self):
-        profile.putProfileSettingNumpy('distance_left', self.distanceLeftValue)
-        profile.putProfileSettingNumpy('normal_left', self.normalLeftValues)
-        profile.putProfileSettingNumpy('distance_right', self.distanceRightValue)
-        profile.putProfileSettingNumpy('normal_right', self.normalRightValues)
+        profile.settings['distance_left'] = self.distanceLeftValue
+        profile.settings['normal_left'] = self.normalLeftValues
+        profile.settings['distance_right'] = self.distanceRightValue
+        profile.settings['normal_right'] = self.normalRightValues
 
     def updateAllControls(self):
         self.distanceLeftValue = round(self.distanceLeftValue, 6)
@@ -641,9 +641,9 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('laser_coordinates')
-            profile.resetProfileSetting('laser_origin')
-            profile.resetProfileSetting('laser_normal')
+            profile.settings.resetToDefault('laser_coordinates')
+            profile.settings.resetToDefault('laser_origin')
+            profile.settings.resetToDefault('laser_normal')
             self.updateProfile()
 
     def getParameters(self):
@@ -656,14 +656,14 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
         self.updateAllControls()
 
     def getProfileSettings(self):
-        self.coordinatesValues = profile.getProfileSettingNumpy('laser_coordinates')
-        self.originValues = profile.getProfileSettingNumpy('laser_origin')
-        self.normalValues = profile.getProfileSettingNumpy('laser_normal')
+        self.coordinatesValues = profile.settings['laser_coordinates']
+        self.originValues = profile.settings['laser_origin']
+        self.normalValues = profile.settings['laser_normal']
 
     def putProfileSettings(self):
-        profile.putProfileSettingNumpy('laser_coordinates', self.coordinatesValues)
-        profile.putProfileSettingNumpy('laser_origin', self.originValues)
-        profile.putProfileSettingNumpy('laser_normal', self.normalValues)
+        profile.settings['laser_coordinates'] = self.coordinatesValues
+        profile.settings['laser_origin'] = self.originValues
+        profile.settings['laser_normal'] = self.normalValues
 
     def updateAllControls(self):
         for i in range(2):
@@ -785,8 +785,8 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfileSetting('rotation_matrix')
-            profile.resetProfileSetting('translation_vector')
+            profile.settings.resetToDefault('rotation_matrix')
+            profile.settings.resetToDefault('translation_vector')
             self.updateProfile()
 
     def getParameters(self):
@@ -798,12 +798,12 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         self.updateAllControls()
 
     def getProfileSettings(self):
-        self.rotationValues = profile.getProfileSettingNumpy('rotation_matrix')
-        self.translationValues = profile.getProfileSettingNumpy('translation_vector')
+        self.rotationValues = profile.settings['rotation_matrix']
+        self.translationValues = profile.settings['translation_vector']
 
     def putProfileSettings(self):
-        profile.putProfileSettingNumpy('rotation_matrix', self.rotationValues)
-        profile.putProfileSettingNumpy('translation_vector', self.translationValues)
+        profile.settings['rotation_matrix'] = self.rotationValues
+        profile.settings['translation_vector'] = self.translationValues
 
     def updateAllControls(self):
         for i in range(3):

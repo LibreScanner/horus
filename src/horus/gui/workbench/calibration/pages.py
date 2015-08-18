@@ -252,9 +252,9 @@ class CameraIntrinsics3DPlot(wx.Panel):
 		self.ax = self.fig.gca(projection='3d', axisbg=(0.7490196,0.7490196,0.7490196,1))
 
 		# Parameters of the pattern
-		self.rows = profile.getProfileSettingInteger('pattern_rows')
-		self.columns = profile.getProfileSettingInteger('pattern_columns')
-		self.squareWidth = profile.getProfileSettingInteger('square_width')
+		self.rows = profile.settings['pattern_rows']
+		self.columns = profile.settings['pattern_columns']
+		self.squareWidth = profile.settings['square_width']
 		
 		self.printCanvas()
 
@@ -934,7 +934,7 @@ class PlatformExtrinsics3DPlot(wx.Panel):
 		#self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
 		self.ax.plot(circle[0], circle[2], circle[1], c='r')
 
-		d = profile.getProfileSettingFloat('pattern_distance')
+		d = profile.settings['pattern_distance']
 
 		self.ax.plot([t[0],t[0]+50*R[0][0]], [t[2],t[2]+50*R[2][0]], [t[1],t[1]+50*R[1][0]], linewidth=2.0, color='red')
 		self.ax.plot([t[0],t[0]+50*R[0][1]], [t[2],t[2]+50*R[2][1]], [t[1],t[1]+50*R[1][1]], linewidth=2.0, color='green')

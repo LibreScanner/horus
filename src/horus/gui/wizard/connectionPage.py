@@ -176,8 +176,8 @@ class ConnectionPage(WizardPage):
         del self.waitCursor
 
     def onAutoCheckButtonClicked(self, event):
-        if profile.getProfileSettingBool('adjust_laser'):
-            profile.putProfileSetting('adjust_laser', False)
+        if profile.settings['adjust_laser']:
+            profile.settings['adjust_laser'] = False
             dlg = wx.MessageDialog(self, _("It is recomended to adjust line lasers vertically.\nYou need to use the allen wrench.\nDo you want to adjust it now?"), _("Manual laser adjustment"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
@@ -255,8 +255,8 @@ class ConnectionPage(WizardPage):
         if status:
             self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.parent.onBoardUnplugged))
             self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.parent.onCameraUnplugged))
-            #if profile.getPreference('workbench') != 'Calibration workbench':
-            profile.putPreference('workbench', 'Calibration workbench')
+            #if profile.settings['workbench'] != u'Calibration workbench':
+            profile.settings['workbench'] = u'Calibration workbench'
             self.GetParent().parent.workbenchUpdate(False)
             self.videoView.play()
             self.connectButton.Disable()
@@ -293,10 +293,10 @@ class SettingsWindow(wx.Dialog):
 
         #-- Elements
         _choices = []
-        choices = profile.getProfileSettingObject('luminosity').getType()
+        choices = profile.settings.getPossibleValues('luminosity')
         for i in choices:
             _choices.append(_(i))
-        self.initLuminosity = profile.getProfileSetting('luminosity')
+        self.initLuminosity = profile.settings['luminosity']
         self.luminosityDict = dict(zip(_choices, choices))
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
         self.luminosityText.SetToolTip(wx.ToolTip(_('Change the luminosity until colored lines appear over the chess pattern in the video')))
@@ -304,18 +304,18 @@ class SettingsWindow(wx.Dialog):
                                             value=_(self.initLuminosity),
                                             choices=_choices,
                                             style=wx.CB_READONLY)
-        invert = profile.getProfileSettingBool('invert_motor')
+        invert = profile.settings['invert_motor']
         self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
         self.invertMotorCheckBox.SetValue(invert)
         tooltip = _("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
         self.image = wx.Image(resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
         
-        self.patternDistance = float(profile.getProfileSetting('pattern_distance'))
+        self.patternDistance = float(profile.settings['pattern_distance'])
         self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))
         self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))
         self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
-        self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
+        self.patternTextbox = wx.TextCtrl(self, value = str(profile.settings['pattern_distance']))
         self.okButton = wx.Button(self, label=_('OK'))
         self.cancelButton = wx.Button(self, label=_('Cancel'))
         
@@ -362,11 +362,11 @@ class SettingsWindow(wx.Dialog):
             pass
 
     def setPatternDistance(self, patternDistance):
-        profile.putProfileSetting('pattern_distance', patternDistance)
+        profile.settings['pattern_distance'] = patternDistance
 
-        patternRows = profile.getProfileSettingInteger('pattern_rows')
-        patternColumns = profile.getProfileSettingInteger('pattern_columns')
-        squareWidth = profile.getProfileSettingInteger('square_width')
+        patternRows = profile.settings['pattern_rows']
+        patternColumns = profile.settings['pattern_columns']
+        squareWidth = profile.settings['square_width']
 
         self.cameraIntrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
         self.simpleLaserTriangulation.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
@@ -374,7 +374,7 @@ class SettingsWindow(wx.Dialog):
         self.platformExtrinsics.setPatternParameters(patternRows, patternColumns, squareWidth, patternDistance)
 
     def setLuminosity(self, luminosity):
-        profile.putProfileSetting('luminosity', luminosity)
+        profile.settings['luminosity'] = luminosity
         
         if luminosity =='Low':
             luminosity = 32
@@ -382,8 +382,8 @@ class SettingsWindow(wx.Dialog):
             luminosity = 16
         elif luminosity =='High':
             luminosity = 8
-        profile.putProfileSetting('exposure_control', luminosity)
-        profile.putProfileSetting('exposure_calibration', luminosity)
+        profile.settings['exposure_control'] = luminosity
+        profile.settings['exposure_calibration'] = luminosity
 
         self.driver.camera.setExposure(luminosity)
 
@@ -393,7 +393,7 @@ class SettingsWindow(wx.Dialog):
 
     def onInvertMotor(self, event):
         invert = self.invertMotorCheckBox.GetValue()
-        profile.putProfileSetting('invert_motor', invert)
+        profile.settings['invert_motor'] = invert
         self.driver.board.setInvertMotor(invert)
 
     def onOk(self, event):

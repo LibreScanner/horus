@@ -74,19 +74,19 @@ class MainWindow(wx.Frame):
 
         #-- Serial Name initialization
         serialList = self.serialList()
-        currentSerial = profile.getProfileSetting('serial_name')
+        currentSerial = profile.settings['serial_name']
         if len(serialList) > 0:
             if currentSerial not in serialList:
-                profile.putProfileSetting('serial_name', serialList[0])
+                profile.settings['serial_name'] = serialList[0]
 
         #-- Video Id initialization
         videoList = self.videoList()
-        currentVideoId = profile.getProfileSetting('camera_id')
+        currentVideoId = profile.settings['camera_id']
         if len(videoList) > 0:
             if currentVideoId not in videoList:
-                profile.putProfileSetting('camera_id', videoList[0])
+                profile.settings['camera_id'] = videoList[0]
 
-        self.lastFiles = eval(profile.getPreference('last_files'))
+        self.lastFiles = profile.settings['last_files']
 
         print ">>> Horus " + version.getVersion() + " <<<"
 
@@ -146,7 +146,7 @@ class MainWindow(wx.Frame):
         #-- Menu Help
         self.menuHelp = wx.Menu()
         self.menuWelcome = self.menuHelp.Append(wx.ID_ANY, _("Welcome"))
-        if profile.getPreferenceBool('check_for_updates'):
+        if profile.settings['check_for_updates']:
             self.menuUpdates = self.menuHelp.Append(wx.ID_ANY, _("Updates"))
         self.menuWiki = self.menuHelp.Append(wx.ID_ANY, _("Wiki"))
         self.menuSources = self.menuHelp.Append(wx.ID_ANY, _("Sources"))
@@ -163,7 +163,7 @@ class MainWindow(wx.Frame):
         self.calibrationWorkbench = CalibrationWorkbench(self)
 
         _choices = []
-        choices = profile.getProfileSettingObject('workbench').getType()
+        choices = profile.settings.getPossibleValues('workbench')
         for i in choices:
             _choices.append(_(i))
         self.workbenchDict = dict(zip(_choices, choices))
@@ -204,7 +204,7 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onAbout, self.menuAbout)
         self.Bind(wx.EVT_MENU, self.onWelcome, self.menuWelcome)
-        if profile.getPreferenceBool('check_for_updates'):
+        if profile.settings['check_for_updates']:
             self.Bind(wx.EVT_MENU, self.onUpdates, self.menuUpdates)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), self.menuWiki)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), self.menuSources)
@@ -240,7 +240,7 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench.Enable()
 
     def onLoadModel(self, event):
-        lastFile = os.path.split(profile.getPreference('last_file'))[0]
+        lastFile = os.path.split(profile.settings['last_file'])[0]
         dlg = wx.FileDialog(self, _("Open 3D model"), lastFile, style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
         wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
         wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
@@ -257,7 +257,7 @@ class MainWindow(wx.Frame):
     def onSaveModel(self, event):
         if self.scanningWorkbench.sceneView._object is None:
             return
-        dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.getPreference('last_file'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.settings['last_file'])[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
         fileExtensions = meshLoader.saveSupportedExtensions()
         wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
         wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
@@ -281,24 +281,24 @@ class MainWindow(wx.Frame):
 
     def onOpenProfile(self, event):
         """ """
-        dlg=wx.FileDialog(self, _("Select profile file to load"), os.path.split(profile.getPreference('last_profile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
-        dlg.SetWildcard("ini files (*.ini)|*.ini")
+        dlg = wx.FileDialog(self, _("Select profile file to load"), os.path.split(profile.settings['last_profile'])[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            profile.loadProfile(profileFile)
+            profile.settings.loadSettings(profileFile)
             self.updateProfileToAllControls()
         dlg.Destroy()
 
     def onSaveProfile(self, event):
         """ """
-        dlg=wx.FileDialog(self, _("Select profile file to save"), os.path.split(profile.getPreference('last_profile'))[0], style=wx.FD_SAVE)
-        dlg.SetWildcard("ini files (*.ini)|*.ini")
+        dlg = wx.FileDialog(self, _("Select profile file to save"), os.path.split(profile.settings['last_profile'])[0], style=wx.FD_SAVE)
+        dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            if not profileFile.endswith('.ini'):
-                if sys.isLinux(): #hack for linux, as for some reason the .ini is not appended.
-                    profileFile += '.ini'
-            profile.saveProfile(profileFile)
+            if not profileFile.endswith('.json'):
+                if sys.isLinux(): # hack for linux, as for some reason the .json is not appended.
+                    profileFile += '.json'
+            profile.settings.saveSettings(profileFile)
         dlg.Destroy()
 
     def onResetProfile(self, event):
@@ -307,7 +307,7 @@ class MainWindow(wx.Frame):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.resetProfile()
+            profile.settings.resetToDefault()
             self.updateProfileToAllControls()
 
     def onExit(self, event):
@@ -338,11 +338,11 @@ class MainWindow(wx.Frame):
         self.lastFiles.append(lastFile)
         if len(self.lastFiles) > 4:
             self.lastFiles = self.lastFiles[1:5]
-        profile.putPreference('last_file', lastFile)
-        profile.putPreference('last_files', self.lastFiles)
+        profile.settings['last_file'] = lastFile
+        profile.settings['last_files'] = self.lastFiles
 
     def onModeChanged(self, event):
-        # profile.putPreference('basic_mode', self.menuBasicMode.IsChecked())
+        # profile.settings['basic_mode'] = self.menuBasicMode.IsChecked()
         self.controlWorkbench.updateProfileToAllControls()
         self.calibrationWorkbench.updateProfileToAllControls()
         self.scanningWorkbench.updateProfileToAllControls()
@@ -400,8 +400,11 @@ class MainWindow(wx.Frame):
         ret = MachineDialog.ShowModal()
 
         if ret == wx.ID_OK:
-            self.scanningWorkbench.sceneView._drawMachine()
-            profile.saveMachineSettings(os.path.join(profile.getBasePath(), profile.getMachineSettingFileName()))
+            try: # TODO: Fix this. If not in the Scanning workbench, _drawMachine() fails.
+                self.scanningWorkbench.sceneView._drawMachine()
+            except:
+                pass
+            profile.settings.saveSettings()
             self.scanningWorkbench.controls.panels["point_cloud_generation"].updateProfile()
 
         self.controlWorkbench.updateCallbacks()
@@ -409,7 +412,7 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench.updateCallbacks()
 
     def onMenuViewClicked(self, key, checked, panel):
-        profile.putPreference(key, checked)
+        profile.settings[key] = checked
         if checked:
             panel.Show()
         else:
@@ -446,8 +449,8 @@ class MainWindow(wx.Frame):
     def onScanningVideoSceneClicked(self, event):
         checkedVideo = self.menuScanningVideo.IsChecked()
         checkedScene = self.menuScanningScene.IsChecked()
-        profile.putPreference('view_scanning_video', checkedVideo)
-        profile.putPreference('view_scanning_scene', checkedScene)
+        profile.settings['view_scanning_video'] = checkedVideo
+        profile.settings['view_scanning_scene'] = checkedScene
         self.scanningWorkbench.splitterWindow.Unsplit()
         if checkedVideo:
             self.scanningWorkbench.videoView.Show()
@@ -473,9 +476,9 @@ class MainWindow(wx.Frame):
 
     def onComboBoxWorkbenchSelected(self, event):
         """ """
-        if _(profile.getPreference('workbench')) != event.GetEventObject().GetValue():
-            profile.putPreference('workbench', self.workbenchDict[event.GetEventObject().GetValue()])
-            profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
+        if _(profile.settings['workbench']) != event.GetEventObject().GetValue():
+            profile.settings['workbench'] = self.workbenchDict[event.GetEventObject().GetValue()]
+            profile.settings.saveSettings()
             self.workbenchUpdate()
 
     def onAbout(self, event):
@@ -519,7 +522,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         WelcomeWindow(self)
 
     def onUpdates(self, event):
-        if profile.getPreferenceBool('check_for_updates'):
+        if profile.settings['check_for_updates']:
             if version.checkForUpdates():
                 VersionWindow(self)
             else:
@@ -548,48 +551,48 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateProfileToAllControls(self):
         """ """
-        # if profile.getPreferenceBool('basic_mode'):
+        # if profile.settings['basic_mode']:
         #     self.menuBasicMode.Check(True)
         # else:
         #     self.menuAdvancedMode.Check(True)
 
-        if profile.getPreferenceBool('view_control_panel'):
+        if profile.settings['view_control_panel']:
             self.controlWorkbench.scrollPanel.Show()
             self.menuControlPanel.Check(True)
         else:
             self.controlWorkbench.scrollPanel.Hide()
             self.menuControlPanel.Check(False)
 
-        if profile.getPreferenceBool('view_control_video'):
+        if profile.settings['view_control_video']:
             self.controlWorkbench.videoView.Show()
             self.menuControlVideo.Check(True)
         else:
             self.controlWorkbench.videoView.Hide()
             self.menuControlVideo.Check(False)
 
-        if profile.getPreferenceBool('view_calibration_panel'):
+        if profile.settings['view_calibration_panel']:
             self.calibrationWorkbench.scrollPanel.Show()
             self.menuCalibrationPanel.Check(True)
         else:
             self.calibrationWorkbench.scrollPanel.Hide()
             self.menuCalibrationPanel.Check(False)
 
-        if profile.getPreferenceBool('view_calibration_video'):
+        if profile.settings['view_calibration_video']:
             self.calibrationWorkbench.videoView.Show()
             self.menuCalibrationVideo.Check(True)
         else:
             self.calibrationWorkbench.videoView.Hide()
             self.menuCalibrationVideo.Check(False)
 
-        if profile.getPreferenceBool('view_scanning_panel'):
+        if profile.settings['view_scanning_panel']:
             self.scanningWorkbench.scrollPanel.Show()
             self.menuScanningPanel.Check(True)
         else:
             self.scanningWorkbench.scrollPanel.Hide()
             self.menuScanningPanel.Check(False)
 
-        checkedVideo = profile.getPreferenceBool('view_scanning_video')
-        checkedScene = profile.getPreferenceBool('view_scanning_scene')
+        checkedVideo = profile.settings['view_scanning_video']
+        checkedScene = profile.settings['view_scanning_scene']
 
         self.menuScanningVideo.Check(checkedVideo)
         self.menuScanningScene.Check(checkedScene)
@@ -621,97 +624,97 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.Layout()
 
     def updateDriverProfile(self):
-        self.driver.camera.setCameraId(int(profile.getProfileSetting('camera_id')[-1:]))
-        self.driver.board.setSerialName(profile.getProfileSetting('serial_name'))
-        self.driver.board.setBaudRate(profile.getProfileSettingInteger('baud_rate'))
-        self.driver.board.setInvertMotor(profile.getProfileSettingBool('invert_motor'))
+        self.driver.camera.setCameraId(int(profile.settings['camera_id'][-1:]))
+        self.driver.board.setSerialName(profile.settings['serial_name'])
+        self.driver.board.setBaudRate(profile.settings['baud_rate'])
+        self.driver.board.setInvertMotor(profile.settings['invert_motor'])
 
     def updatePCGProfile(self):
         self.pcg.resetTheta()
-        self.pcg.setViewROI(profile.getMachineSettingBool('view_roi'))
-        self.pcg.setROIDiameter(profile.getMachineSettingInteger('roi_diameter'))
-        self.pcg.setROIWidth(profile.getMachineSettingInteger('roi_width'))
-        self.pcg.setROIHeight(profile.getMachineSettingInteger('roi_height'))
-        self.pcg.setROIDepth(profile.getMachineSettingInteger('roi_depth'))
-        self.pcg.setDegrees(profile.getProfileSettingFloat('step_degrees_scanning'))
-        resolution = profile.getProfileSetting('resolution_scanning')
+        self.pcg.setViewROI(profile.settings['view_roi'])
+        self.pcg.setROIDiameter(profile.settings['roi_diameter'])
+        self.pcg.setROIWidth(profile.settings['roi_width'])
+        self.pcg.setROIHeight(profile.settings['roi_height'])
+        self.pcg.setROIDepth(profile.settings['roi_depth'])
+        self.pcg.setDegrees(profile.settings['step_degrees_scanning'])
+        resolution = profile.settings['resolution_scanning']
         self.pcg.setResolution(int(resolution.split('x')[1]), int(resolution.split('x')[0]))
-        useLaser = profile.getProfileSetting('use_laser')
+        useLaser = profile.settings['use_laser']
         self.pcg.setUseLaser(useLaser == 'Left' or useLaser == 'Both',
                              useLaser == 'Right' or useLaser == 'Both')
-        self.pcg.setCameraIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                     profile.getProfileSettingNumpy('distortion_vector'))
-        self.pcg.setLaserTriangulation(profile.getProfileSettingNumpy('distance_left'),
-                                       profile.getProfileSettingNumpy('normal_left'),
-                                       profile.getProfileSettingNumpy('distance_right'),
-                                       profile.getProfileSettingNumpy('normal_right'))
-        self.pcg.setPlatformExtrinsics(profile.getProfileSettingNumpy('rotation_matrix'),
-                                       profile.getProfileSettingNumpy('translation_vector'))
+        self.pcg.setCameraIntrinsics(profile.settings['camera_matrix'],
+                                     profile.settings['distortion_vector'])
+        self.pcg.setLaserTriangulation(profile.settings['distance_left'],
+                                       profile.settings['normal_left'],
+                                       profile.settings['distance_right'],
+                                       profile.settings['normal_right'])
+        self.pcg.setPlatformExtrinsics(profile.settings['rotation_matrix'],
+                                       profile.settings['translation_vector'])
 
-        scanType = profile.getProfileSetting('scan_type')
+        scanType = profile.settings['scan_type']
         if scanType == 'Simple Scan':
             self.scanningWorkbench.currentScan = self.simpleScan
-            self.driver.camera.setExposure(profile.getProfileSettingInteger('laser_exposure_scanning'))
+            self.driver.camera.setExposure(profile.settings['laser_exposure_scanning'])
         elif scanType == 'Texture Scan':
             self.scanningWorkbench.currentScan = self.textureScan
-            self.driver.camera.setExposure(profile.getProfileSettingInteger('color_exposure_scanning'))
+            self.driver.camera.setExposure(profile.settings['color_exposure_scanning'])
 
-        self.simpleScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
-        self.simpleScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
-        self.simpleScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
-        self.simpleScan.setImageType(profile.getProfileSetting('img_type'))
-        self.simpleScan.setUseThreshold(profile.getProfileSettingBool('use_cr_threshold'))
-        self.simpleScan.setThresholdValue(profile.getProfileSettingInteger('cr_threshold_value'))
-        self.simpleScan.setColor(struct.unpack('BBB',profile.getProfileSetting('point_cloud_color').decode('hex')))
+        self.simpleScan.setFastScan(profile.settings['fast_scan'])
+        self.simpleScan.setSpeedMotor(profile.settings['feed_rate_scanning'])
+        self.simpleScan.setAccelerationMotor(profile.settings['acceleration_scanning'])
+        self.simpleScan.setImageType(profile.settings['img_type'])
+        self.simpleScan.setUseThreshold(profile.settings['use_cr_threshold'])
+        self.simpleScan.setThresholdValue(profile.settings['cr_threshold_value'])
+        self.simpleScan.setColor(struct.unpack('BBB',profile.settings['point_cloud_color'].decode('hex')))
 
-        self.textureScan.setFastScan(profile.getProfileSettingBool('fast_scan'))
-        self.textureScan.setSpeedMotor(profile.getProfileSettingInteger('feed_rate_scanning'))
-        self.textureScan.setAccelerationMotor(profile.getProfileSettingInteger('acceleration_scanning'))
-        self.textureScan.setImageType(profile.getProfileSetting('img_type'))
-        self.textureScan.setUseOpen(profile.getProfileSettingBool('use_open'))
-        self.textureScan.setOpenValue(profile.getProfileSettingInteger('open_value'))
-        self.textureScan.setUseThreshold(profile.getProfileSettingBool('use_threshold'))
-        self.textureScan.setThresholdValue(profile.getProfileSettingInteger('threshold_value'))
+        self.textureScan.setFastScan(profile.settings['fast_scan'])
+        self.textureScan.setSpeedMotor(profile.settings['feed_rate_scanning'])
+        self.textureScan.setAccelerationMotor(profile.settings['acceleration_scanning'])
+        self.textureScan.setImageType(profile.settings['img_type'])
+        self.textureScan.setUseOpen(profile.settings['use_open'])
+        self.textureScan.setOpenValue(profile.settings['open_value'])
+        self.textureScan.setUseThreshold(profile.settings['use_threshold'])
+        self.textureScan.setThresholdValue(profile.settings['threshold_value'])
 
     def updateCalibrationProfile(self):
-        self.driver.camera.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                         profile.getProfileSettingNumpy('distortion_vector'))
+        self.driver.camera.setIntrinsics(profile.settings['camera_matrix'],
+                                         profile.settings['distortion_vector'])
 
-        self.cameraIntrinsics.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                            profile.getProfileSettingNumpy('distortion_vector'))
-        self.cameraIntrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                   profile.getProfileSettingInteger('pattern_columns'),
-                                                   profile.getProfileSettingInteger('square_width'),
-                                                   profile.getProfileSettingFloat('pattern_distance'))
-        self.cameraIntrinsics.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+        self.cameraIntrinsics.setIntrinsics(profile.settings['camera_matrix'],
+                                            profile.settings['distortion_vector'])
+        self.cameraIntrinsics.setPatternParameters(profile.settings['pattern_rows'],
+                                                   profile.settings['pattern_columns'],
+                                                   profile.settings['square_width'],
+                                                   profile.settings['pattern_distance'])
+        self.cameraIntrinsics.setUseDistortion(profile.settings['use_distortion_calibration'])
 
-        self.simpleLaserTriangulation.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                                    profile.getProfileSettingNumpy('distortion_vector'))
-        self.simpleLaserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                           profile.getProfileSettingInteger('pattern_columns'),
-                                                           profile.getProfileSettingInteger('square_width'),
-                                                           profile.getProfileSettingFloat('pattern_distance'))
-        self.simpleLaserTriangulation.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+        self.simpleLaserTriangulation.setIntrinsics(profile.settings['camera_matrix'],
+                                                    profile.settings['distortion_vector'])
+        self.simpleLaserTriangulation.setPatternParameters(profile.settings['pattern_rows'],
+                                                           profile.settings['pattern_columns'],
+                                                           profile.settings['square_width'],
+                                                           profile.settings['pattern_distance'])
+        self.simpleLaserTriangulation.setUseDistortion(profile.settings['use_distortion_calibration'])
 
-        self.laserTriangulation.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                              profile.getProfileSettingNumpy('distortion_vector'))
-        self.laserTriangulation.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
-        self.laserTriangulation.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+        self.laserTriangulation.setIntrinsics(profile.settings['camera_matrix'],
+                                              profile.settings['distortion_vector'])
+        self.laserTriangulation.setPatternParameters(profile.settings['pattern_rows'],
+                                                     profile.settings['pattern_columns'],
+                                                     profile.settings['square_width'],
+                                                     profile.settings['pattern_distance'])
+        self.laserTriangulation.setUseDistortion(profile.settings['use_distortion_calibration'])
 
-        self.platformExtrinsics.setExtrinsicsStep(profile.getProfileSettingFloat('extrinsics_step'))
-        self.platformExtrinsics.setIntrinsics(profile.getProfileSettingNumpy('camera_matrix'),
-                                              profile.getProfileSettingNumpy('distortion_vector'))
-        self.platformExtrinsics.setPatternParameters(profile.getProfileSettingInteger('pattern_rows'),
-                                                     profile.getProfileSettingInteger('pattern_columns'),
-                                                     profile.getProfileSettingInteger('square_width'),
-                                                     profile.getProfileSettingFloat('pattern_distance'))
-        self.platformExtrinsics.setUseDistortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+        self.platformExtrinsics.setExtrinsicsStep(profile.settings['extrinsics_step'])
+        self.platformExtrinsics.setIntrinsics(profile.settings['camera_matrix'],
+                                              profile.settings['distortion_vector'])
+        self.platformExtrinsics.setPatternParameters(profile.settings['pattern_rows'],
+                                                     profile.settings['pattern_columns'],
+                                                     profile.settings['square_width'],
+                                                     profile.settings['pattern_distance'])
+        self.platformExtrinsics.setUseDistortion(profile.settings['use_distortion_calibration'])
 
     def workbenchUpdate(self, layout=True):
-        currentWorkbench = profile.getPreference('workbench')
+        currentWorkbench = profile.settings['workbench']
 
         wb = {'Control workbench'     : self.controlWorkbench,
               'Calibration workbench' : self.calibrationWorkbench,

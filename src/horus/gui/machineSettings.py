@@ -44,8 +44,9 @@ class MachineSettingsDialog(wx.Dialog):
 
 		#-- Graphic elements
 		self.machineShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
-		self.machineShapes = profile.getMachineSettingType("machine_shape")
-		self.machineShapeCombo = wx.ComboBox(self, choices=self.machineShapes, size=(170,-1), style=wx.CB_READONLY)
+		self.machineShapes = profile.settings.getPossibleValues("machine_shape")
+		self.translatedMachineShapes = [_(s) for s in self.machineShapes]
+		self.machineShapeCombo = wx.ComboBox(self, choices=self.translatedMachineShapes, size=(170,-1), style=wx.CB_READONLY)
 
 		self.dimensionsStaticText = wx.StaticText(self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
 		self.diameterLabel = wx.StaticText(self, label=_("Diameter"))
@@ -126,12 +127,12 @@ class MachineSettingsDialog(wx.Dialog):
 		vbox.Add(hbox, 0, wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
 		#-- Fill data from settings
-		self.machineShapeCombo.SetValue(profile.getMachineSetting('machine_shape'))
-		self.diameterField.SetValue(profile.getMachineSettingInteger('machine_diameter'))
-		self.widthField.SetValue(profile.getMachineSettingInteger('machine_width'))
-		self.heightField.SetValue(profile.getMachineSettingInteger('machine_height'))
-		self.depthField.SetValue(profile.getMachineSettingInteger('machine_depth'))
-		self.machineModelPath = profile.getMachineSettingPath('machine_model_path')
+		self.machineShapeCombo.SetValue(_(profile.settings['machine_shape']))
+		self.diameterField.SetValue(profile.settings['machine_diameter'])
+		self.widthField.SetValue(profile.settings['machine_width'])
+		self.heightField.SetValue(profile.settings['machine_height'])
+		self.depthField.SetValue(profile.settings['machine_depth'])
+		self.machineModelPath = profile.settings['machine_model_path']
 		self.machineModelField.SetLabel(self._getFileName(self.machineModelPath))
 
 		self.SetSizerAndFit(vbox)
@@ -148,33 +149,36 @@ class MachineSettingsDialog(wx.Dialog):
 		self.Destroy()
 
 	def onSaveButton(self, event):
-		profile.putMachineSetting('machine_shape', self.machineShapeCombo.GetValue())
-		profile.putMachineSetting('machine_diameter', self.diameterField.GetValue())
-		profile.putMachineSetting('machine_width', self.widthField.GetValue())
-		profile.putMachineSetting('machine_height', self.heightField.GetValue())
-		profile.putMachineSetting('machine_depth', self.depthField.GetValue())
-		profile.putMachineSetting('machine_model_path', self.machineModelPath)
+		# Store the original value, not the translated one
+		machine_shape = self.machineShapes[self.translatedMachineShapes.index(self.machineShapeCombo.GetValue())]
+		profile.settings['machine_shape'] = machine_shape
+		profile.settings['machine_diameter'] = self.diameterField.GetValue()
+		profile.settings['machine_width'] = self.widthField.GetValue()
+		profile.settings['machine_height'] = self.heightField.GetValue()
+		profile.settings['machine_depth'] = self.depthField.GetValue()
+		profile.settings['machine_model_path'] = self.machineModelPath
 		# Settings are saved after mesh is loaded. This way we avoid saving a faulty STL model.
 		self.EndModal(wx.ID_OK)
 		self.Destroy()
 
 	def onDefaultButton(self, event):
-		self.machineShapeCombo.SetValue(profile.getDefaultMachineSetting('machine_shape'))
+		self.machineShapeCombo.SetValue(_(profile.settings.getDefault('machine_shape')))
 		self.onmachineShapeComboChanged(None)
-		self.diameterField.SetValue(profile.getDefaultMachineSettingInteger('machine_diameter'))
-		self.widthField.SetValue(profile.getDefaultMachineSettingInteger('machine_width'))
-		self.heightField.SetValue(profile.getDefaultMachineSettingInteger('machine_height'))
-		self.depthField.SetValue(profile.getDefaultMachineSettingInteger('machine_depth'))
-		self.machineModelPath = profile.getDefaultMachineSetting('machine_model_path')
+		self.diameterField.SetValue(profile.settings.getDefault('machine_diameter'))
+		self.widthField.SetValue(profile.settings.getDefault('machine_width'))
+		self.heightField.SetValue(profile.settings.getDefault('machine_height'))
+		self.depthField.SetValue(profile.settings.getDefault('machine_depth'))
+		self.machineModelPath = profile.settings.getDefault('machine_model_path')
 		self.machineModelField.SetLabel(self._getFileName(self.machineModelPath))
 
 	def onmachineShapeComboChanged(self, event):
 		vbox = self.GetSizer()
-		if self.machineShapeCombo.GetValue() == "Circular":
+		machine_shape = self.machineShapes[self.translatedMachineShapes.index(self.machineShapeCombo.GetValue())]
+		if machine_shape == "Circular":
 			vbox.Show(self.diam_hbox, recursive=True)
 			vbox.Hide(self.width_hbox, recursive=True)
 			vbox.Hide(self.depth_hbox, recursive=True)
-		elif self.machineShapeCombo.GetValue() == "Rectangular":
+		elif machine_shape == "Rectangular":
 			vbox.Hide(self.diam_hbox, recursive=True)
 			vbox.Show(self.width_hbox, recursive=True)
 			vbox.Show(self.depth_hbox, recursive=True)

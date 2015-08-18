@@ -174,7 +174,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onPlatformExtrinsicsStartCallback(self):
-        if profile.getProfileSettingFloat('pattern_distance') == 0:
+        if profile.settings['pattern_distance'] == 0:
             PatternDistanceWindow(self)
             self.updateProfileToAllControls()
         else:
