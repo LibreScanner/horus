@@ -16,19 +16,21 @@ from horus.util import profile, system as sys
 
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.pattern import Pattern
+from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms.laser_segmentation import LaserSegmentation
 from horus.engine.calibration.autocheck import Autocheck, PatternNotDetected, \
     WrongMotorDirection, LaserNotDetected
 
 driver = Driver()
 pattern = Pattern()
+image_detection = ImageDetection()
 laser_segmentation = LaserSegmentation()
 
 
 class PatternSettingsPanel(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Pattern settings"), hasUndo=False)
+        ExpandablePanel.__init__(self, parent, _("Pattern settings"), callback=self.callback, hasUndo=False)
 
         self.clearSections()
         section = self.createSection('pattern_settings')
@@ -38,6 +40,9 @@ class PatternSettingsPanel(ExpandablePanel):
         section.addItem(TextBox, 'pattern_square_width')
         section.addItem(TextBox, 'pattern_origin_distance', tooltip=_(
             "Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface"))
+
+    def callback(self):
+        image_detection.set_pattern_mode()
 
     def updateCallbacks(self):
         section = self.sections['pattern_settings']
@@ -56,13 +61,13 @@ class PatternSettingsPanel(ExpandablePanel):
 class ImageDetectionPanel(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Image detection"))
+        ExpandablePanel.__init__(self, parent, _("Image detection"), callback=self.callback)
 
         self.clearSections()
         section = self.createSection('camera_calibration')
+        section.addItem(ComboBox, 'camera_mode')
 
-        # TODO: add combo
-
+        section = self.createSection('pattern_mode')
         section.addItem(Slider, 'brightness_pattern', tooltip=_(
             'Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
         section.addItem(Slider, 'contrast_pattern', tooltip=_(
@@ -72,18 +77,79 @@ class ImageDetectionPanel(ExpandablePanel):
         section.addItem(Slider, 'exposure_pattern', tooltip=_(
             'Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
 
+        section = self.createSection('laser_mode')
+        section.addItem(Slider, 'brightness_laser', tooltip=_(
+            'Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+        section.addItem(Slider, 'contrast_laser', tooltip=_(
+            'Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+        section.addItem(Slider, 'saturation_laser', tooltip=_(
+            'Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
+        section.addItem(Slider, 'exposure_laser', tooltip=_(
+            'Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+        section.addItem(CheckBox, 'remove_background')
+
+        section = self.createSection('texture_mode')
+        section.addItem(Slider, 'brightness_texture', tooltip=_(
+            'Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+        section.addItem(Slider, 'contrast_texture', tooltip=_(
+            'Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+        section.addItem(Slider, 'saturation_texture', tooltip=_(
+            'Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
+        section.addItem(Slider, 'exposure_texture', tooltip=_(
+            'Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+
+    def callback(self):
+        self.setCameraMode(profile.getProfileSetting('camera_mode'))
+
     def updateCallbacks(self):
         section = self.sections['camera_calibration']
-        section.updateCallback('brightness_pattern', driver.camera.set_brightness)
-        section.updateCallback('contrast_pattern', driver.camera.set_contrast)
-        section.updateCallback('saturation_pattern', driver.camera.set_saturation)
-        section.updateCallback('exposure_pattern', driver.camera.set_exposure)
+        section.updateCallback('camera_mode', lambda v: self.setCameraMode(v))
+
+        mode = image_detection.pattern_mode
+        section = self.sections['pattern_mode']
+        section.updateCallback('brightness_pattern', mode.set_brightness)
+        section.updateCallback('contrast_pattern', mode.set_contrast)
+        section.updateCallback('saturation_pattern', mode.set_saturation)
+        section.updateCallback('exposure_pattern', mode.set_exposure)
+
+        mode = image_detection.laser_mode
+        section = self.sections['laser_mode']
+        section.updateCallback('brightness_laser', mode.set_brightness)
+        section.updateCallback('contrast_laser', mode.set_contrast)
+        section.updateCallback('saturation_laser', mode.set_saturation)
+        section.updateCallback('exposure_laser', mode.set_exposure)
+        section.updateCallback('remove_background', image_detection.set_remove_background)
+
+        mode = image_detection.texture_mode
+        section = self.sections['texture_mode']
+        section.updateCallback('brightness_texture', mode.set_brightness)
+        section.updateCallback('contrast_texture', mode.set_contrast)
+        section.updateCallback('saturation_texture', mode.set_saturation)
+        section.updateCallback('exposure_texture', mode.set_exposure)
+
+    def setCameraMode(self, mode):
+        if mode == 'Pattern':
+            self.sections['pattern_mode'].Show()
+            self.sections['laser_mode'].Hide()
+            self.sections['texture_mode'].Hide()
+            image_detection.set_pattern_mode()
+        elif mode == 'Laser':
+            self.sections['pattern_mode'].Hide()
+            self.sections['laser_mode'].Show()
+            self.sections['texture_mode'].Hide()
+            image_detection.set_laser_mode()
+        elif mode == 'Texture':
+            self.sections['pattern_mode'].Hide()
+            self.sections['laser_mode'].Hide()
+            self.sections['texture_mode'].Show()
+            image_detection.set_texture_mode()
+        self.GetParent().Layout()
 
 
 class LaserSegmentation(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Laser segmentation"))
+        ExpandablePanel.__init__(self, parent, _("Laser segmentation"), callback=self.callback)
 
         self.clearSections()
         section = self.createSection('laser_segmentation', None)
@@ -93,6 +159,9 @@ class LaserSegmentation(ExpandablePanel):
         section.addItem(Slider, 'threshold_value')
         section.addItem(CheckBox, 'threshold_enable', tooltip=_(
             "Threshold is a function used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value"))
+
+    def callback(self):
+        image_detection.set_laser_mode(segmentation=True)
 
     def updateCallbacks(self):
         section = self.sections['laser_segmentation']
@@ -108,7 +177,7 @@ class AutocheckPanel(ExpandablePanel):
 
     def __init__(self, parent, buttonStartCallback=None, buttonStopCallback=None):
         ExpandablePanel.__init__(
-            self, parent, _("Scanner autocheck"), hasUndo=False, hasRestore=False)
+            self, parent, _("Scanner autocheck"), callback=self.callback, hasUndo=False, hasRestore=False)
 
         self.autocheck = Autocheck()
         self.buttonStartCallback = buttonStartCallback
@@ -117,6 +186,9 @@ class AutocheckPanel(ExpandablePanel):
         self.clearSections()
         section = self.createSection('scanner_autocheck')
         section.addItem(Button, 'autocheck_button')
+
+    def callback(self):
+        image_detection.set_pattern_mode()
 
     def updateCallbacks(self):
         section = self.sections['scanner_autocheck']
@@ -171,7 +243,7 @@ class AutocheckPanel(ExpandablePanel):
 class CalibrationPanel(ExpandablePanel):
 
     def __init__(self, parent, titleText="Workbench", buttonStartCallback=None, description="_(Workbench description)"):
-        ExpandablePanel.__init__(self, parent, titleText, hasUndo=False, hasRestore=False)
+        ExpandablePanel.__init__(self, parent, titleText, callback=self.callback, hasUndo=False, hasRestore=False)
 
         self.buttonStartCallback = buttonStartCallback
         self.description = description
@@ -200,6 +272,9 @@ class CalibrationPanel(ExpandablePanel):
         self.buttonStart.Bind(wx.EVT_BUTTON, self.onButtonStartPressed)
 
         self.Layout()
+
+    def callback(self):
+        image_detection.set_pattern_mode()
 
     def onButtonEditPressed(self, event):
         pass

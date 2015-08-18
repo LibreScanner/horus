@@ -24,6 +24,7 @@ from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
 
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.autocheck import Autocheck
+from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
 
 
@@ -36,6 +37,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.driver = Driver()
         self.autocheck = Autocheck()
+        self.image_detection = ImageDetection()
         self.camera_intrinsics = CameraIntrinsics()
 
         self.toolbar.Realize()
@@ -120,8 +122,9 @@ class CalibrationWorkbench(WorkbenchConnection):
     def getFrame(self):
         frame = self.autocheck.image
         if frame is None:
-            frame = self.driver.camera.capture_image()
-        _, frame, _ = self.autocheck.draw_chessboard(frame)
+            frame = self.image_detection.capture()
+        else:
+            _, frame, _ = self.autocheck.draw_chessboard(frame)
         return frame
 
     def enableMenus(self, value):

@@ -219,7 +219,7 @@ setting('pattern_origin_distance', 0, float, 'advanced', _('Origin distance (mm)
 _('Pattern')
 _('Laser')
 _('Texture')
-setting('camera_mode', 'Pattern', ['Pattern', 'Laser', 'Texture'], 'basic', '')
+setting('camera_mode', 'Pattern', ['Pattern', 'Laser', 'Texture'], 'basic', _('Camera mode'), False)
 
 setting('brightness_pattern', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_pattern', 32, int, 'advanced', _('Contrast')).setRange(0, 255)

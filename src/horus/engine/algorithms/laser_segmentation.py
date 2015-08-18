@@ -5,6 +5,8 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import cv2
+import numpy as np
 
 from horus import Singleton
 
@@ -60,31 +62,38 @@ class LaserSegmentation(object):
 
     def laser_segmentation(self, index, image):
 
-        # Apply ROI mask
-        image = self.apply_ROI_mask(image)
+        if image is not None:
 
-        # Open image
-        if self.open_enable:
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (self.open_value, self.open_value))
-            image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+            # Apply ROI mask
+            #image = self.apply_ROI_mask(image)
 
-        # Threshold image
-        if self.threshold_enable:
-            image = cv2.threshold(image, self.threshold_value, 255.0, cv2.THRESH_TOZERO)[1]
+            #y, cr, cb = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))
+            r, g, b = cv2.split(image)
+            image = r
 
-        # Peak detection: center of mass
-        h, w = image.shape
-        W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
-        s = image.sum(axis=1)
-        v = np.where(s > 0)[0]
-        u = (W * image).sum(axis=1)[v] / s[v]
+            # Open image
+            if self.open_enable:
+                kernel = cv2.getStructuringElement(
+                    cv2.MORPH_RECT, (self.open_value, self.open_value))
+                image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
 
-        temp_line = np.zeros_like(image)
-        temp_line[v, u.astype(int)] = 255.0
-        self._images['line'][index] = temp_line
-        self._images['gray'][index] = cv2.merge((image, image, image))
+            # Threshold image
+            if self.threshold_enable:
+                image = cv2.threshold(image, self.threshold_value, 255.0, cv2.THRESH_TOZERO)[1]
 
-        return (u, v)
+            # Peak detection: center of mass
+            h, w = image.shape
+            W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
+            s = image.sum(axis=1)
+            v = np.where(s > 0)[0]
+            u = (W * image).sum(axis=1)[v] / s[v]
+
+            temp_line = np.zeros_like(image)
+            temp_line[v, u.astype(int)] = 255.0
+            self._images['line'][index] = cv2.merge((temp_line, temp_line, temp_line))
+            self._images['gray'][index] = cv2.merge((image, image, image))
+
+            return (u, v)
 
     def get_image(self, img_type='texture', img_index=None):
         img = None
@@ -92,9 +101,9 @@ class LaserSegmentation(object):
             img = self._images[img_type]
         else:
             if img_type in ['laser', 'gray', 'line']:
-                img = self._images[img_type]
+                img = self._images[img_type][img_index]
 
-        #if img is not None:
+        # if img is not None:
         #    if self.pcg.viewROI:
         #        img = seg.roi2DVisualization(img)
 

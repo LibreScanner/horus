@@ -36,15 +36,12 @@ class ScanParameters(ExpandablePanel):
         section.addItem(CheckBox, 'capture_texture')
         section.addItem(CheckBox, 'use_left_laser')
         section.addItem(CheckBox, 'use_right_laser')
-        section.addItem(CheckBox, 'remove_background')
 
     def updateCallbacks(self):
         section = self.sections['scan_parameters']
         section.updateCallback('capture_texture', ciclop_scan.set_capture_texture)
         section.updateCallback('use_left_laser', ciclop_scan.set_use_left_laser)
         section.updateCallback('use_right_laser', ciclop_scan.set_use_right_laser)
-        section.updateCallback('remove_background', ciclop_scan.set_remove_background)
-
 
 class ScanStep(ExpandablePanel):
 
