@@ -255,14 +255,7 @@ class SectionPanel(wx.Panel):
 			self.items[_name].Disable()
 
 	def updateProfile(self):
-		scanType = profile.getProfileSetting('scan_type')
-		if self.tag != None:
-			if scanType == self.tag:
-				self.Show()
-			else:
-				self.Hide()
-		else:
-			self.Show()
+		self.Show()
 
 		for item in self.items.values():
 			if isinstance(item, tuple):
@@ -301,14 +294,7 @@ class SectionItem(wx.Panel):
 		if profile.getPreferenceBool('basic_mode'):
 			return self.setting.getCategory() is 'basic'
 		else:
-			scanType = profile.getProfileSetting('scan_type')
-			if self.setting.getTag() != None:
-				if scanType == 'Simple Scan':
-					return self.setting.getTag() == 'simple'
-				elif scanType == 'Texture Scan':
-					return self.setting.getTag() == 'texture'
-			else:
-				return True
+			return True
 
 	def update(self, value, trans=False):
 		if self.isVisible():

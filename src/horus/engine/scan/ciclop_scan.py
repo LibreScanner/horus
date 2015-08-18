@@ -9,16 +9,11 @@ import time
 import Queue
 import numpy as np
 
+from horus import Singleton
 from horus.engine.scan.scan import Scan
-from horus.engine.driver.driver import Driver
-from horus.engine.algorithms.laser_segmentation import LaserSegmentation
-from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
-
-driver = Driver()
-laser_segmentation = LaserSegmentation()
-point_cloud_generation = PointCloudGeneration()
 
 
+@Singleton
 class CiclopScan(Scan):
 
     """Perform Ciclop scanning algorithm:
@@ -28,21 +23,50 @@ class CiclopScan(Scan):
     """
 
     def __init__(self):
-        self.with_difference = True
-        self.with_texture = True
-        self.exposure_texture = 0
-        self.exposure_laser = 0
+        self.capture_texture = True
+        self.remove_background = True
         self.use_left_laser = True
         self.use_right_laser = True
         self.move_motor = True
         self.motor_step = 0
         self.motor_speed = 0
         self.motor_acceleration = 0
-        # self.fast_scan = False
+        self.exposure_texture = 0
+        self.exposure_laser = 0
 
         self._theta = 0
         self._images_queue = Queue.Queue(100)
         self._point_cloud_queue = Queue.Queue(1000)
+
+    def set_capture_texture(self, value):
+        self.capture_texture = value
+
+    def set_remove_background(self, value):
+        self.remove_background = value
+
+    def set_use_left_laser(self, value):
+        self.use_left_laser = value
+
+    def set_use_right_laser(self, value):
+        self.use_right_laser = value
+
+    def set_move_motor(self, value):
+        self.move_motor = value
+
+    def set_motor_step(self, value):
+        self.motor_step = value
+
+    def set_motor_speed(self, value):
+        self.motor_speed = value
+
+    def set_motor_acceleration(self, value):
+        self.motor_acceleration = value
+
+    def set_exposure_texture(self, value):
+        self.exposure_texture = value
+
+    def set_exposure_laser(self, value):
+        self.exposure_laser = value
 
     def _initialize(self):
         self._theta = 0
@@ -50,15 +74,16 @@ class CiclopScan(Scan):
         self._point_cloud_queue.queue.clear()
 
         #-- Setup scanner
-        camera.capture_image()
-        board.lasers_off()
+        self.driver.camera.capture_image()
+        self.driver.board.lasers_off()
         if self.move_motor:
-            board.motor_enable()
-            board.motor_speed(self.motor_speed)
-            board.motor_acceleration(self.motor_acceleration)
+            self.driver.board.motor_enable()
+            self.driver.board.motor_relative(self.motor_step)
+            self.driver.board.motor_speed(self.motor_speed)
+            self.driver.board.motor_acceleration(self.motor_acceleration)
             time.sleep(0.1)
         else:
-            board.motor_disable()
+            self.driver.board.motor_disable()
 
     def _capture(self):
         while self.is_scanning:
@@ -75,8 +100,8 @@ class CiclopScan(Scan):
 
                     # Move motor
                     if self.move_motor:
-                        board.motor_relative(self.motor_step)
-                        board.motor_move()
+                        #self.driver.board.motor_relative(self.motor_step)
+                        self.driver.board.motor_move()
                     else:
                         time.sleep(0.05)
 
@@ -102,27 +127,27 @@ class CiclopScan(Scan):
 
         # TODO: custom flush for each OS
 
-        if self.with_texture:
-            board.lasers_off()
-            camera.set_exposure(self.exposure_texture)
-            captures.img_texture = camera.capture_image(flush=1)
+        if self.capture_texture:
+            self.driver.board.lasers_off()
+            self.driver.camera.set_exposure(self.exposure_texture)
+            captures.img_texture = self.driver.camera.capture_image(flush=1)
 
-        if self.with_difference:
-            board.lasers_off()
-            camera.set_exposure(self.exposure_laser)
-            captures.img_no_laser = camera.capture_image(flush=1)
+        if self.remove_background:
+            self.driver.board.lasers_off()
+            self.driver.camera.set_exposure(self.exposure_laser)
+            captures.img_no_laser = self.driver.camera.capture_image(flush=1)
 
         if self.use_left_laser:
-            board.laser_left_on()
-            board.laser_right_off()
-            camera.set_exposure(self.exposure_laser)
-            captures.img_laser[0] = camera.capture_image(flush=1)
+            self.driver.board.laser_left_on()
+            self.driver.board.laser_right_off()
+            self.driver.camera.set_exposure(self.exposure_laser)
+            captures.img_laser[0] = self.driver.camera.capture_image(flush=1)
 
         if self.use_right_laser:
-            board.laser_left_off()
-            board.laser_right_on()
-            camera.set_exposure(self.exposure_laser)
-            captures.img_laser[1] = camera.capture_image(flush=1)
+            self.driver.board.laser_left_off()
+            self.driver.board.laser_right_on()
+            self.driver.camera.set_exposure(self.exposure_laser)
+            captures.img_laser[1] = self.driver.camera.capture_image(flush=1)
 
         return captures
 
