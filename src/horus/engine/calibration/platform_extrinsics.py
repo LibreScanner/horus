@@ -5,11 +5,23 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-
+import numpy as np
 from scipy import optimize
 
 from horus import Singleton
 from horus.engine.calibration.moving_calibration import MovingCalibration
+
+
+class PlatformExtrinsicsError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("PlatformExtrinsicsError"))
+
+
+class PlatformExtrinsicsCancel(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("PlatformExtrinsicsCancel"))
 
 
 @Singleton
@@ -25,102 +37,73 @@ class PlatformExtrinsics(MovingCalibration):
         MovingCalibration.__init__(self)
         self.image = None
 
-    def _start(self):
+    def _initialize(self):
+        self.x = []
+        self.y = []
+        self.z = []
+
+    def _capture(self, angle):
+        t = self.compute_pattern_position()
+        if t is not None:
+            self.x += [t[0][0]]
+            self.y += [t[1][0]]
+            self.z += [t[2][0]]
+
+    def _calibrate(self):
         t = None
-        angle = 0
-        step = 5
 
-        if driver.is_connected:
+        self.x = np.array(self.x)
+        self.y = np.array(self.y)
+        self.z = np.array(self.z)
 
-            x = []
-            y = []
-            z = []
+        points = zip(self.x, self.y, self.z)
 
-            # Setup scanner
-            board.lasers_off()
-            board.motor_enable()
-            board.motor_speed(200)
-            board.motor_acceleration(200)
-            time.sleep(0.1)
+        if len(points) > 4:
 
-            if self._progress_callback is not None:
-                self._progress_callback(0)
+            # Fitting a plane
+            point, normal = self.fit_plane(points)
 
-            while self._is_calibrating and abs(angle) < 180:
-                angle += step
-                t = self.compute_pattern_position()
-                board.motor_relative(step)
-                board.motor_move()
-                if self._progress_callback is not None:
-                    self._progress_callback(1.1 * abs(angle / 2.))
-                time.sleep(0.1)
-                if t is not None:
-                    x += [t[0][0]]
-                    y += [t[1][0]]
-                    z += [t[2][0]]
+            if normal[1] > 0:
+                normal = -normal
 
-            x = np.array(x)
-            y = np.array(y)
-            z = np.array(z)
+            # Fitting a circle inside the plane
+            center, R, circle = self.fit_circle(point, normal, points)
 
-            points = zip(x, y, z)
+            # Get real origin
+            t = center - self.pattern.distance * np.array(normal)
 
-            if len(points) > 4:
-
-                # Fitting a plane
-                point, normal = self.fit_plane(points)
-
-                if normal[1] > 0:
-                    normal = -normal
-
-                # Fitting a circle inside the plane
-                center, R, circle = self.fit_circle(point, normal, points)
-
-                # Get real origin
-                t = center - pattern.distance * np.array(normal)
-
-            board.lasers_off()
-            board.motor_disable()
-
-        self.image = None
-
-        if self._is_calibrating and t is not None and np.linalg.norm(t - [5, 80, 320]) < 100:
-            response = (True, (R, t, center, point, normal, [x, y, z], circle))
-            self.move_home()
+        if self._is_calibrating and t is not None and np.linalg.norm(t - [5, 90, 320]) < 100:
+            response = (True, (R, t, center, point, normal, [self.x, self.y, self.z], circle))
         else:
             if self._is_calibrating:
-                response = (False, _("Calibration Error"))
+                response = (False, PlatformExtrinsicsError)
             else:
-                response = (False, _("Calibration Canceled"))
+                response = (False, PlatformExtrinsicsCancel)
 
         self._is_calibrating = False
 
-        if self._after_callback is not None:
-            self._after_callback(response)
-
-    def move_home(self):
-        # Restart pattern position
-        board.motor_relative(-180)
-        board.motor_move()
-
-        if self._progress_callback is not None:
-            self._progress_callback(100)
+        return response
 
     def compute_pattern_position(self):
-        t = None
-        if system == 'Windows':
+        point = None
+        """if system == 'Windows':
             flush = 2
         elif system == 'Darwin':
             flush = 2
         else:
-            flush = 1
-        image = camera.capture_image(flush=flush)
+            flush = 1"""
+        flush = 1
+        image = self.driver.camera.capture_image(flush=flush)
         if image is not None:
             self.image = image
-            ret = solve_pnp(image)
+            ret = self.solve_pnp(image)
             if ret is not None:
-                t = ret[1]
-        return t
+                # Compute point coordinates
+                rotation, origin, corners = ret
+                dist = (self.pattern.rows - 1) * self.pattern.square_width
+                point = origin + np.matrix(rotation) * np.matrix([[0], [dist], [0]])
+                point = np.array(point)
+        return point
 
     def distance2plane(self, p0, n0, p):
         return np.dot(np.array(n0), np.array(p) - np.array(p0))

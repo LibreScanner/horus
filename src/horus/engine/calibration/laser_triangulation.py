@@ -13,6 +13,18 @@ from horus import Singleton
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
 
+class LaserTriangulationError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("LaserTriangulationError"))
+
+
+class LaserTriangulationCancel(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("LaserTriangulationCancel"))
+
+
 @Singleton
 class LaserTriangulation(MovingCalibration):
 
@@ -30,6 +42,7 @@ class LaserTriangulation(MovingCalibration):
         self.exposure_laser = 0
         self.exposure_normal = 0
 
+    def _initialize(self):
         self._pcl = None
         self._pcr = None
 
@@ -110,9 +123,9 @@ class LaserTriangulation(MovingCalibration):
             response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
         else:
             if self._is_calibrating:
-                response = (False, _("Calibration Error"))
+                response = (False, LaserTriangulationError)
             else:
-                response = (False, _("Calibration Canceled"))
+                response = (False, LaserTriangulationCancel)
 
         self._is_calibrating = False
 

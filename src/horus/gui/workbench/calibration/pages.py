@@ -24,8 +24,8 @@ from horus.gui.workbench.calibration.page import Page
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.camera_intrinsics import CameraIntrinsics, CameraIntrinsicsError
-from horus.engine.calibration.laser_triangulation import LaserTriangulation
-from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
+from horus.engine.calibration.laser_triangulation import LaserTriangulation, LaserTriangulationError
+from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics, PlatformExtrinsicsError
 
 driver = Driver()
 pattern = Pattern()
@@ -51,7 +51,7 @@ class CameraIntrinsicsMainPage(Page):
         self.afterCalibrationCallback = afterCalibrationCallback
 
         # Video View
-        self.videoView = VideoView(self._panel, self.getFrame, 50)
+        self.videoView = VideoView(self._panel, self.getFrame, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Image Grid Panel
@@ -319,7 +319,7 @@ class LaserTriangulationMainPage(Page):
         imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 
         #-- Video View
-        self.videoView = VideoView(self._panel, self.getFrame, 50)
+        self.videoView = VideoView(self._panel, self.getFrame, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         #-- Layout
@@ -443,7 +443,7 @@ class LaserTriangulationResultPage(Page):
             self.plotPanel.Show()
             self.Layout()
         else:
-            if result == Error.CalibrationError:
+            if isinstance(result, LaserTriangulationError):
                 dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), _(
                     result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
@@ -556,7 +556,7 @@ class PlatformExtrinsicsMainPage(Page):
         imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 
         #-- Video View
-        self.videoView = VideoView(self._panel, self.getFrame, 50)
+        self.videoView = VideoView(self._panel, self.getFrame, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         #-- Layout
@@ -589,7 +589,7 @@ class PlatformExtrinsicsMainPage(Page):
             frame = platform_extrinsics.image
         else:
             frame = driver.camera.capture_image()
-        _, frame, _ = calibration.draw_chessboard(frame)
+        _, frame, _ = platform_extrinsics.draw_chessboard(frame)
 
         return frame
 
@@ -676,7 +676,7 @@ class PlatformExtrinsicsResultPage(Page):
             self.plotPanel.Show()
             self.Layout()
         else:
-            if result == Error.CalibrationError:
+            if isinstance(result, PlatformExtrinsicsError):
                 dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), _(
                     result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()

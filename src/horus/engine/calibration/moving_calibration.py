@@ -19,8 +19,11 @@ class MovingCalibration(Calibration):
     """
 
     def __init__(self):
-        Calibration.__init__(self, )
+        Calibration.__init__(self)
         self.step = 5
+
+    def _initialize(self):
+        pass
 
     def _capture(self, angle):
         pass
@@ -31,6 +34,8 @@ class MovingCalibration(Calibration):
     def _start(self):
         if self.driver.is_connected:
             angle = 0
+
+            self._initialize()
 
             # Setup scanner
             self.driver.board.lasers_off()
