@@ -54,7 +54,7 @@ class Settings(collections.MutableMapping):
 
 	def __getitem__(self, key):
 		# For convinience, this returns the Setting value and not the Setting object itself
-		if self._settings_dict[key].value != None:
+		if self._settings_dict[key].value is not None:
 			return self._settings_dict[key].value
 		else:
 			return self._settings_dict[key].default
@@ -320,7 +320,7 @@ class Setting(object):
 	
 	@value.setter
 	def value(self, value):
-		if value == None:
+		if value is None:
 			return
 		self._checkType(value)
 		self._checkRange(value)
@@ -384,12 +384,12 @@ class Setting(object):
 		# Convert only configurable fields
 		json_dict = dict()
 		
-		if self.value == None:
+		if self.value is None:
 			value = self.default
 		else:
 			value = self.value
 
-		if self._type == np.ndarray and value != None:
+		if self._type == np.ndarray and value is not None:
 			json_dict['value'] = value.tolist()
 		else:
 			json_dict['value'] = value
