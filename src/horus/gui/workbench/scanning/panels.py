@@ -121,12 +121,12 @@ class PointCloudColor(ExpandablePanel):
 
     def onColorPicker(self):
         data = wx.ColourData()
-        data.SetColour(self.simpleScan.color)
+        #data.SetColour(self.simpleScan.color)
         dialog = wx.ColourDialog(self, data)
         dialog.GetColourData().SetChooseFull(True)
         if dialog.ShowModal() == wx.ID_OK:
             data = dialog.GetColourData()
             color = data.GetColour().Get()
-            self.simpleScan.setColor(color)
+            #self.simpleScan.setColor(color)
             profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
         dialog.Destroy()

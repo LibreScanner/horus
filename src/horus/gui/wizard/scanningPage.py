@@ -24,7 +24,7 @@ class ScanningPage(WizardPage):
 		self.driver = Driver()
 		self.pcg = PointCloudGeneration()
 
-		value = abs(float(profile.getProfileSetting('step_degrees_scanning')))
+		value = abs(float(profile.getProfileSetting('motor_step_scanning')))
 		if value > 1.35:
 			value = _("Low")
 		elif value > 0.625:
@@ -106,7 +106,7 @@ class ScanningPage(WizardPage):
 		elif value ==_("Low"):
 			value = -1.8
 
-		profile.putProfileSetting('step_degrees_scanning', value)
+		profile.putProfileSetting('motor_step_scanning', value)
 		self.pcg.setDegrees(value)
 
 	def onLaserComboBoxChanged(self, event):

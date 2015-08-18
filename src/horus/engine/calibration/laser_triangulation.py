@@ -112,8 +112,8 @@ class LaserTriangulation(MovingCalibration):
         self.driver.camera.set_exposure(self.exposure_normal)
 
         # Save point clouds
-        self.save_scene('PCL.ply', self._pcl)
-        self.save_scene('PCR.ply', self._pcr)
+        #self.save_scene('PCL.ply', self._pcl)
+        #self.save_scene('PCR.ply', self._pcr)
 
         # Compute planes
         dL, nL, stdL = self.compute_plane(self._pcl, 'l')

@@ -103,14 +103,14 @@ class CalibrationPage(WizardPage):
         self.laser_triangulation.threshold = profile.getProfileSettingFloat(
             'laser_threshold_value')
         self.laser_triangulation.exposure_normal = profile.getProfileSettingNumpy(
-            'exposure_calibration')
+            'exposure_texture')
         self.laser_triangulation.exposure_laser = profile.getProfileSettingNumpy(
-            'exposure_calibration') / 2.
+            'exposure_laser') / 2.
         self.laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
                                                lambda p: wx.CallAfter(
                                                    self.progressLaserCalibration, p),
                                                lambda r: wx.CallAfter(self.afterLaserCalibration, r))
-        if profile.getProfileSettingFloat('pattern_distance') == 0:
+        if profile.getProfileSettingFloat('pattern_origin_distance') == 0:
             PatternDistanceWindow(self)
         else:
             self.laser_triangulation.start()

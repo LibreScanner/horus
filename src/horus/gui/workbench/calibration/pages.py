@@ -358,9 +358,9 @@ class LaserTriangulationMainPage(Page):
         laser_triangulation.image = driver.camera.capture_image()
         laser_triangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
         laser_triangulation.exposure_normal = profile.getProfileSettingNumpy(
-            'exposure_calibration')
+            'exposure_texture')
         laser_triangulation.exposure_laser = profile.getProfileSettingNumpy(
-            'exposure_calibration') / 2.
+            'exposure_laser') / 2.
 
         laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
                                           lambda p: wx.CallAfter(self.progressCalibration, p),

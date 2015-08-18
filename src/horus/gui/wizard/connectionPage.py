@@ -327,7 +327,7 @@ class SettingsWindow(wx.Dialog):
         self.image = wx.Image(
             resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
 
-        self.patternDistance = float(profile.getProfileSetting('pattern_distance'))
+        self.patternDistance = float(profile.getProfileSetting('pattern_origin_distance'))
         self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))
         self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))
@@ -380,7 +380,7 @@ class SettingsWindow(wx.Dialog):
             pass
 
     def setPatternDistance(self, distance):
-        profile.putProfileSetting('pattern_distance', distance)
+        profile.putProfileSetting('pattern_origin_distance', distance)
         self.pattern.distance = distance
 
     def setLuminosity(self, luminosity):
@@ -392,8 +392,7 @@ class SettingsWindow(wx.Dialog):
             luminosity = 16
         elif luminosity == 'High':
             luminosity = 8
-        profile.putProfileSetting('exposure_control', luminosity)
-        profile.putProfileSetting('exposure_calibration', luminosity)
+        profile.putProfileSetting('brightness_pattern', luminosity)
 
         self.driver.camera.set_exposure(luminosity)
 
