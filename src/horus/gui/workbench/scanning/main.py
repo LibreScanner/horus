@@ -15,8 +15,7 @@ from horus.gui.util.sceneView import SceneView
 from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.scanning.panels import ScanParameters, RotativePlatform, ImageAcquisition, \
-    ImageSegmentation, PointCloudGeneration
+from horus.gui.workbench.scanning.panels import ScanParameters, ScanStep, PointCloudROI, PointCloudColor
 
 from horus.engine.scan.ciclop_scan import CiclopScan
 
@@ -63,10 +62,9 @@ class ScanningWorkbench(WorkbenchConnection):
         self.controls = ExpandableControl(self.scrollPanel)
 
         self.controls.addPanel('scan_parameters', ScanParameters(self.controls))
-        self.controls.addPanel('rotative_platform', RotativePlatform(self.controls))
-        self.controls.addPanel('image_acquisition', ImageAcquisition(self.controls))
-        self.controls.addPanel('image_segmentation', ImageSegmentation(self.controls))
-        self.controls.addPanel('point_cloud_generation', PointCloudGeneration(self.controls))
+        self.controls.addPanel('scan_step', ScanStep(self.controls))
+        self.controls.addPanel('point_cloud_roi', PointCloudROI(self.controls))
+        self.controls.addPanel('point_cloud_color', PointCloudColor(self.controls))
 
         self.splitterWindow = wx.SplitterWindow(self._panel)
 
@@ -205,19 +203,10 @@ class ScanningWorkbench(WorkbenchConnection):
         self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), False)
         self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), False)
         self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), False)
-        panel = self.controls.panels['scan_parameters']
-        section = panel.sections['scan_parameters']
-        section.disable('scan_type')
-        section.disable('use_laser')
-        panel = self.controls.panels['rotative_platform']
-        section = panel.sections['motor_scanning']
-        section.disable('feed_rate_scanning')
-        section.disable('acceleration_scanning')
-        panel = self.controls.panels['image_acquisition']
-        section = panel.sections['camera_scanning']
-        if not sys.isDarwin():
-            section.disable('framerate_scanning')
-            section.disable('resolution_scanning')
+        panel = self.controls.panels['scan_step']
+        section = panel.sections['scan_step']
+        section.disable('motor_speed_scanning')
+        section.disable('motor_acceleration_scanning')
         self.enableRestore(False)
         self.pointCloudTimer.Start(milliseconds=50)
 
@@ -266,19 +255,10 @@ class ScanningWorkbench(WorkbenchConnection):
         self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), True)
         self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), True)
         self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), True)
-        panel = self.controls.panels['scan_parameters']
-        section = panel.sections['scan_parameters']
-        section.enable('scan_type')
-        section.enable('use_laser')
-        panel = self.controls.panels['rotative_platform']
-        section = panel.sections['motor_scanning']
-        section.enable('feed_rate_scanning')
-        section.enable('acceleration_scanning')
-        panel = self.controls.panels['image_acquisition']
-        section = panel.sections['camera_scanning']
-        if not sys.isDarwin():
-            section.enable('framerate_scanning')
-            section.enable('resolution_scanning')
+        panel = self.controls.panels['scan_step']
+        section = panel.sections['scan_step']
+        section.enable('motor_speed_scanning')
+        section.enable('motor_acceleration_scanning')
         self.enableRestore(True)
         self.pointCloudTimer.Stop()
         self.videoView.setMilliseconds(10)

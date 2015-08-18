@@ -68,6 +68,9 @@ class CiclopScan(Scan):
     def set_exposure_laser(self, value):
         self.exposure_laser = value
 
+    def getImage(self, value):
+        pass
+
     def _initialize(self):
         self._theta = 0
         self._images_queue.queue.clear()

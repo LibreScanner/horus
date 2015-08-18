@@ -16,7 +16,7 @@ from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, Co
 class CameraControl(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Camera Control"))
+        ExpandablePanel.__init__(self, parent, _("Camera control"))
 
         self.driver = Driver()
 
@@ -30,16 +30,16 @@ class CameraControl(ExpandablePanel):
             'Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
         section.addItem(Slider, 'exposure_control', tooltip=_(
             'Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
-        section.addItem(ComboBox, 'framerate_control', tooltip=_(
+        section.addItem(ComboBox, 'frame_rate', tooltip=_(
             'Number of frames captured by the camera every second. Maximum frame rate is recommended'))
-        section.addItem(ComboBox, 'resolution_control', tooltip=_(
+        section.addItem(ComboBox, 'resolution', tooltip=_(
             'Size of the video. Maximum resolution is recommended'))
-        section.addItem(CheckBox, 'use_distortion_control', tooltip=_(
+        section.addItem(CheckBox, 'use_distortion', tooltip=_(
             "This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
 
         if sys.isDarwin():
-            section = self.sections['camera_control'].disable('framerate_control')
-            section = self.sections['camera_control'].disable('resolution_control')
+            section = self.sections['camera_control'].disable('frame_rate')
+            section = self.sections['camera_control'].disable('resolution')
 
     def updateCallbacks(self):
         section = self.sections['camera_control']
@@ -48,17 +48,17 @@ class CameraControl(ExpandablePanel):
         section.updateCallback('saturation_control', self.driver.camera.set_saturation)
         section.updateCallback('exposure_control', self.driver.camera.set_exposure)
         section.updateCallback(
-            'framerate_control', lambda v: self.driver.camera.set_frame_rate(int(v)))
-        section.updateCallback('resolution_control', lambda v: self.driver.camera.set_resolution(
+            'frame_rate', lambda v: self.driver.camera.set_frame_rate(int(v)))
+        section.updateCallback('resolution', lambda v: self.driver.camera.set_resolution(
             int(v.split('x')[0]), int(v.split('x')[1])))
         section.updateCallback(
-            'use_distortion_control', lambda v: self.driver.camera.set_use_distortion(v))
+            'use_distortion', lambda v: self.driver.camera.set_use_distortion(v))
 
 
 class LaserControl(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Laser Control"), hasUndo=False, hasRestore=False)
+        ExpandablePanel.__init__(self, parent, _("Laser control"), hasUndo=False, hasRestore=False)
 
         self.driver = Driver()
 
@@ -78,7 +78,7 @@ class LaserControl(ExpandablePanel):
 class LDRControl(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("LDR Control"), hasUndo=False, hasRestore=False)
+        ExpandablePanel.__init__(self, parent, _("LDR control"), hasUndo=False, hasRestore=False)
 
         self.driver = Driver()
 
@@ -151,26 +151,26 @@ class LDRSection(SectionItem):
 class MotorControl(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Motor Control"), hasUndo=False)
+        ExpandablePanel.__init__(self, parent, _("Motor control"), hasUndo=False)
 
         self.driver = Driver()
 
         self.clearSections()
         section = self.createSection('motor_control')
-        section.addItem(TextBox, 'step_degrees_control')
-        section.addItem(TextBox, 'feed_rate_control')
-        section.addItem(TextBox, 'acceleration_control')
+        section.addItem(TextBox, 'motor_step_control')
+        section.addItem(TextBox, 'motor_speed_control')
+        section.addItem(TextBox, 'motor_acceleration_control')
         section.addItem(CallbackButton, 'move_button')
         section.addItem(ToggleButton, 'enable_button')
 
     def updateCallbacks(self):
         section = self.sections['motor_control']
         section.updateCallback(
-            'step_degrees_control', lambda v: self.driver.board.motor_relative(self.getValueFloat(v)))
+            'motor_step_control', lambda v: self.driver.board.motor_relative(self.getValueFloat(v)))
         section.updateCallback(
-            'feed_rate_control', lambda v: self.driver.board.motor_speed(self.getValueInteger(v)))
+            'motor_speed_control', lambda v: self.driver.board.motor_speed(self.getValueInteger(v)))
         section.updateCallback(
-            'acceleration_control', lambda v: self.driver.board.motor_acceleration(self.getValueInteger(v)))
+            'motor_acceleration_control', lambda v: self.driver.board.motor_acceleration(self.getValueInteger(v)))
         section.updateCallback(
             'move_button', lambda c: self.driver.board.motor_move(nonblocking=True, callback=c))
         section.updateCallback(

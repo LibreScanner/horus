@@ -14,8 +14,10 @@ from horus.gui.util.customPanels import ExpandableControl
 from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.calibration.panels import CameraSettingsPanel, PatternSettingsPanel, \
-    AutocheckPanel, CameraIntrinsicsPanel, LaserTriangulationPanel, PlatformExtrinsicsPanel
+
+from horus.gui.workbench.calibration.panels import PatternSettingsPanel, ImageDetectionPanel, \
+    LaserSegmentation, AutocheckPanel, CameraIntrinsicsPanel, LaserTriangulationPanel, PlatformExtrinsicsPanel
+
 from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
     CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
     PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
@@ -48,8 +50,9 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Add Scroll Panels
-        self.controls.addPanel('camera_settings', CameraSettingsPanel(self.controls))
         self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
+        self.controls.addPanel('image_detection', ImageDetectionPanel(self.controls))
+        self.controls.addPanel('laser_segmentation', LaserSegmentation(self.controls))
         self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
             self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
         self.controls.addPanel('scanner_autocheck', AutocheckPanel(
@@ -118,7 +121,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         frame = self.autocheck.image
         if frame is None:
             frame = self.driver.camera.capture_image()
-        _,frame,_ = self.autocheck.draw_chessboard(frame)
+        _, frame, _ = self.autocheck.draw_chessboard(frame)
         return frame
 
     def enableMenus(self, value):
@@ -166,7 +169,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onPlatformExtrinsicsStartCallback(self):
-        if profile.getProfileSettingFloat('pattern_distance') == 0:
+        if profile.getProfileSettingFloat('pattern_origin_distance') == 0:
             PatternDistanceWindow(self)
             self.updateProfileToAllControls()
         else:

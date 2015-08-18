@@ -46,10 +46,11 @@ point_cloud_generation = PointCloudGeneration()
 
 class MainWindow(wx.Frame):
 
-    size = (640+337,480+150)
+    size = (640 + 340, 480 + 155)
 
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus " + version.getVersion()), size=self.size)
+        super(MainWindow, self).__init__(
+            None, title=_("Horus " + version.getVersion()), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -71,16 +72,16 @@ class MainWindow(wx.Frame):
 
         print ">>> Horus " + version.getVersion() + " <<<"
 
-        ###-- Initialize GUI
+        # -- Initialize GUI
 
-        ##-- Set Icon
+        # -- Set Icon
         icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
-        ##-- Status Bar
-        #self.CreateStatusBar()
+        # -- Status Bar
+        # self.CreateStatusBar()
 
-        ##-- Menu Bar
+        # -- Menu Bar
         self.menuBar = wx.MenuBar()
 
         #--  Menu File
@@ -91,7 +92,8 @@ class MainWindow(wx.Frame):
         self.menuSaveModel = self.menuFile.Append(wx.NewId(), _("Save Model"))
         self.menuClearModel = self.menuFile.Append(wx.NewId(), _("Clear Model"))
         self.menuFile.AppendSeparator()
-        self.menuOpenProfile = self.menuFile.Append(wx.NewId(), _("Open Profile"), _("Opens Profile .ini"))
+        self.menuOpenProfile = self.menuFile.Append(
+            wx.NewId(), _("Open Profile"), _("Opens Profile .ini"))
         self.menuSaveProfile = self.menuFile.Append(wx.NewId(), _("Save Profile"))
         self.menuResetProfile = self.menuFile.Append(wx.NewId(), _("Reset Profile"))
         self.menuFile.AppendSeparator()
@@ -134,7 +136,7 @@ class MainWindow(wx.Frame):
 
         self.SetMenuBar(self.menuBar)
 
-        ##-- Create Workbenchs
+        # -- Create Workbenchs
         self.controlWorkbench = ControlWorkbench(self)
         self.scanningWorkbench = ScanningWorkbench(self)
         self.calibrationWorkbench = CalibrationWorkbench(self)
@@ -151,9 +153,9 @@ class MainWindow(wx.Frame):
                 workbench.combo.Append(_(i))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.controlWorkbench, 1, wx.ALL|wx.EXPAND)
-        sizer.Add(self.calibrationWorkbench, 1, wx.ALL|wx.EXPAND)
-        sizer.Add(self.scanningWorkbench, 1, wx.ALL|wx.EXPAND)
+        sizer.Add(self.controlWorkbench, 1, wx.ALL | wx.EXPAND)
+        sizer.Add(self.calibrationWorkbench, 1, wx.ALL | wx.EXPAND)
+        sizer.Add(self.scanningWorkbench, 1, wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
 
         ##-- Events
@@ -182,13 +184,18 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onWelcome, self.menuWelcome)
         if profile.getPreferenceBool('check_for_updates'):
             self.Bind(wx.EVT_MENU, self.onUpdates, self.menuUpdates)
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/wiki'), self.menuWiki)
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus'), self.menuSources)
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://github.com/bq/horus/issues'), self.menuIssues)
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open('https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menuForum)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
+            'https://github.com/bq/horus/wiki'), self.menuWiki)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
+            'https://github.com/bq/horus'), self.menuSources)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
+            'https://github.com/bq/horus/issues'), self.menuIssues)
+        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
+            'https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menuForum)
 
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.controlWorkbench.combo)
-        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.calibrationWorkbench.combo)
+        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected,
+                  self.calibrationWorkbench.combo)
         self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.scanningWorkbench.combo)
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
@@ -198,7 +205,7 @@ class MainWindow(wx.Frame):
         x, y, w, h = wx.Display(0).GetGeometry()
         ws, hs = self.size
 
-        self.SetPosition((x+(w-ws)/2., y+(h-hs)/2.))
+        self.SetPosition((x + (w - ws) / 2., y + (h - hs) / 2.))
 
     def onLaunchWizard(self, event):
         self.controlWorkbench.videoView.stop()
@@ -217,11 +224,13 @@ class MainWindow(wx.Frame):
 
     def onLoadModel(self, event):
         lastFile = os.path.split(profile.getPreference('last_file'))[0]
-        dlg = wx.FileDialog(self, _("Open 3D model"), lastFile, style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        dlg = wx.FileDialog(
+            self, _("Open 3D model"), lastFile, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
         wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
         wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList,
+                                                      wildcardList, wildcardList.upper())
         dlg.SetWildcard(wildcardFilter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
@@ -233,15 +242,17 @@ class MainWindow(wx.Frame):
     def onSaveModel(self, event):
         if self.scanningWorkbench.sceneView._object is None:
             return
-        dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(profile.getPreference('last_file'))[0], style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(
+            profile.getPreference('last_file'))[0], style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         fileExtensions = meshLoader.saveSupportedExtensions()
         wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
-        wildcardFilter = "Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+        wildcardFilter = "Mesh files (%s)|%s;%s" % (
+            wildcardList, wildcardList, wildcardList.upper())
         dlg.SetWildcard(wildcardFilter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if not filename.endswith('.ply'):
-                if sys.isLinux(): #hack for linux, as for some reason the .ply is not appended.
+                if sys.isLinux():  # hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
             meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
             self.appendLastFile(filename)
@@ -249,7 +260,8 @@ class MainWindow(wx.Frame):
 
     def onClearModel(self, event):
         if self.scanningWorkbench.sceneView._object is not None:
-            dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+            dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _(
+                "Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
@@ -257,7 +269,8 @@ class MainWindow(wx.Frame):
 
     def onOpenProfile(self, event):
         """ """
-        dlg=wx.FileDialog(self, _("Select profile file to load"), os.path.split(profile.getPreference('last_profile'))[0], style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        dlg = wx.FileDialog(self, _("Select profile file to load"), os.path.split(
+            profile.getPreference('last_profile'))[0], style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
@@ -267,19 +280,21 @@ class MainWindow(wx.Frame):
 
     def onSaveProfile(self, event):
         """ """
-        dlg=wx.FileDialog(self, _("Select profile file to save"), os.path.split(profile.getPreference('last_profile'))[0], style=wx.FD_SAVE)
+        dlg = wx.FileDialog(self, _("Select profile file to save"), os.path.split(
+            profile.getPreference('last_profile'))[0], style=wx.FD_SAVE)
         dlg.SetWildcard("ini files (*.ini)|*.ini")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
             if not profileFile.endswith('.ini'):
-                if sys.isLinux(): #hack for linux, as for some reason the .ini is not appended.
+                if sys.isLinux():  # hack for linux, as for some reason the .ini is not appended.
                     profileFile += '.ini'
             profile.saveProfile(profileFile)
         dlg.Destroy()
 
     def onResetProfile(self, event):
         """ """
-        dlg = wx.MessageDialog(self, _("This will reset all profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _("Profile reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self, _("This will reset all profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _(
+            "Profile reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -362,28 +377,28 @@ class MainWindow(wx.Frame):
 
     def onControlPanelClicked(self, event):
         self.onMenuViewClicked('view_control_panel',
-                                self.menuControlPanel.IsChecked(),
-                                self.controlWorkbench.scrollPanel)
+                               self.menuControlPanel.IsChecked(),
+                               self.controlWorkbench.scrollPanel)
 
     def onControlVideoClicked(self, event):
         self.onMenuViewClicked('view_control_video',
-                                self.menuControlVideo.IsChecked(),
-                                self.controlWorkbench.videoView)
+                               self.menuControlVideo.IsChecked(),
+                               self.controlWorkbench.videoView)
 
     def onCalibrationPanelClicked(self, event):
         self.onMenuViewClicked('view_calibration_panel',
-                                self.menuCalibrationPanel.IsChecked(),
-                                self.calibrationWorkbench.scrollPanel)
+                               self.menuCalibrationPanel.IsChecked(),
+                               self.calibrationWorkbench.scrollPanel)
 
     def onCalibrationVideoClicked(self, event):
         self.onMenuViewClicked('view_calibration_video',
-                                self.menuCalibrationVideo.IsChecked(),
-                                self.calibrationWorkbench.videoView)
+                               self.menuCalibrationVideo.IsChecked(),
+                               self.calibrationWorkbench.videoView)
 
     def onScanningPanelClicked(self, event):
         self.onMenuViewClicked('view_scanning_panel',
-                                self.menuScanningPanel.IsChecked(),
-                                self.scanningWorkbench.scrollPanel)
+                               self.menuScanningPanel.IsChecked(),
+                               self.scanningWorkbench.scrollPanel)
 
     def onScanningVideoSceneClicked(self, event):
         checkedVideo = self.menuScanningVideo.IsChecked()
@@ -393,7 +408,8 @@ class MainWindow(wx.Frame):
         self.scanningWorkbench.splitterWindow.Unsplit()
         if checkedVideo:
             self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
+            self.scanningWorkbench.splitterWindow.SplitVertically(
+                self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
             if checkedScene:
                 self.scanningWorkbench.scenePanel.Show()
             else:
@@ -403,7 +419,8 @@ class MainWindow(wx.Frame):
             self.scanningWorkbench.videoView.Hide()
             if checkedScene:
                 self.scanningWorkbench.scenePanel.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.splitterWindow.SplitVertically(
+                    self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
                 self.scanningWorkbench.splitterWindow.Unsplit()
             else:
                 self.scanningWorkbench.scenePanel.Hide()
@@ -416,7 +433,8 @@ class MainWindow(wx.Frame):
     def onComboBoxWorkbenchSelected(self, event):
         """ """
         if _(profile.getPreference('workbench')) != event.GetEventObject().GetValue():
-            profile.putPreference('workbench', self.workbenchDict[event.GetEventObject().GetValue()])
+            profile.putPreference(
+                'workbench', self.workbenchDict[event.GetEventObject().GetValue()])
             profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
             self.workbenchUpdate()
 
@@ -453,7 +471,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
         info.AddDeveloper(u'Jesús Arroyo, Irene Sanz, Jorge Robles')
         info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
-        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, Meike Schirmeister')
+        info.AddTranslator(
+            u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, Meike Schirmeister')
 
         wx.AboutBox(info)
 
@@ -465,15 +484,18 @@ Suite 330, Boston, MA  02111-1307  USA""")
             if version.checkForUpdates():
                 VersionWindow(self)
             else:
-                dlg = wx.MessageDialog(self, _("You are running the latest version of Horus!"), _("Updated!"), wx.OK|wx.ICON_INFORMATION)
+                dlg = wx.MessageDialog(self, _("You are running the latest version of Horus!"), _(
+                    "Updated!"), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
 
     def onBoardUnplugged(self):
-        self._onDeviceUnplugged(_("Board unplugged"), _("Board has been unplugged. Please, plug it in and press connect"))
+        self._onDeviceUnplugged(
+            _("Board unplugged"), _("Board has been unplugged. Please, plug it in and press connect"))
 
     def onCameraUnplugged(self):
-        self._onDeviceUnplugged(_("Camera unplugged"), _("Camera has been unplugged. Please, plug it in and press connect"))
+        self._onDeviceUnplugged(_("Camera unplugged"), _(
+            "Camera has been unplugged. Please, plug it in and press connect"))
 
     def _onDeviceUnplugged(self, title="", description=""):
         ciclop_scan.stop()
@@ -483,7 +505,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.calibrationWorkbench.updateStatus(False)
         self.scanningWorkbench.updateStatus(False)
         driver.disconnect()
-        dlg = wx.MessageDialog(self, description, title, wx.OK|wx.ICON_ERROR)
+        dlg = wx.MessageDialog(self, description, title, wx.OK | wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -538,7 +560,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.scanningWorkbench.splitterWindow.Unsplit()
         if checkedVideo:
             self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
+            self.scanningWorkbench.splitterWindow.SplitVertically(
+                self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
             if checkedScene:
                 self.scanningWorkbench.scenePanel.Show()
             else:
@@ -548,7 +571,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
             self.scanningWorkbench.videoView.Hide()
             if checkedScene:
                 self.scanningWorkbench.scenePanel.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
+                self.scanningWorkbench.splitterWindow.SplitVertically(
+                    self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
                 self.scanningWorkbench.splitterWindow.Unsplit()
             else:
                 self.scanningWorkbench.scenePanel.Hide()
@@ -580,7 +604,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         #ciclop_scan.exposure_laser = profile.getProfileSettingInteger('exposure_laser_scanning')
 
         point_cloud_generation.resetTheta()
-        point_cloud_generation.setViewROI(profile.getProfileSettingBool('view_roi'))
+        point_cloud_generation.setViewROI(profile.getProfileSettingBool('roi_view'))
         point_cloud_generation.setROIDiameter(profile.getProfileSettingInteger('roi_diameter'))
         point_cloud_generation.setROIHeight(profile.getProfileSettingInteger('roi_height'))
 
@@ -593,17 +617,22 @@ Suite 330, Boston, MA  02111-1307  USA""")
         pattern.rows = profile.getProfileSettingInteger('pattern_rows')
         pattern.columns = profile.getProfileSettingInteger('pattern_columns')
         pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
-        pattern.distance = profile.getProfileSettingFloat('pattern_distance')
+        pattern.distance = profile.getProfileSettingFloat('pattern_origin_distance')
         driver.camera.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
         driver.camera.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
-        driver.camera.set_use_distortion(profile.getProfileSettingInteger('use_distortion_calibration'))
+
+    def updateDriver(self):
+        driver.camera.set_frame_rate(int(profile.getProfileSetting('frame_rate')))
+        resolution = profile.getProfileSetting('resolution').split('x')
+        driver.camera.set_resolution(int(resolution[0]), int(resolution[1]))
+        driver.camera.set_use_distortion(profile.getProfileSettingBool('use_distortion'))
 
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.getPreference('workbench')
 
-        wb = {'Control workbench'     : self.controlWorkbench,
-              'Calibration workbench' : self.calibrationWorkbench,
-              'Scanning workbench'    : self.scanningWorkbench}
+        wb = {'Control workbench': self.controlWorkbench,
+              'Calibration workbench': self.calibrationWorkbench,
+              'Scanning workbench': self.scanningWorkbench}
 
         waitCursor = wx.BusyCursor()
 
@@ -613,6 +642,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
         wb[currentWorkbench].updateProfileToAllControls()
         wb[currentWorkbench].combo.SetValue(_(currentWorkbench))
+
+        self.updateDriver()
 
         if layout:
             for key in wb:
@@ -629,15 +660,16 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
         gc.collect()
 
-    ##-- TODO: move to util
+    # -- TODO: move to util
 
     def serialList(self):
-        baselist=[]
+        baselist = []
         if sys.isWindows():
             import _winreg
             try:
-                key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM")
-                i=0
+                key = _winreg.OpenKey(
+                    _winreg.HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM")
+                i = 0
                 while True:
                     try:
                         values = _winreg.EnumValue(key, i)
@@ -645,7 +677,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
                         return baselist
                     if 'USBSER' in values[0] or 'VCP' in values[0] or '\Device\Serial' in values[0]:
                         baselist.append(values[1])
-                    i+=1
+                    i += 1
             except:
                 return baselist
         else:
@@ -654,7 +686,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         return baselist
 
     def baudRateList(self):
-        baselist=['9600', '14400', '19200', '38400', '57600', '115200']
+        baselist = ['9600', '14400', '19200', '38400', '57600', '115200']
         return baselist
 
     def countCameras(self):
@@ -667,7 +699,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         return 5
 
     def videoList(self):
-        baselist=[]
+        baselist = []
         if sys.isWindows():
             count = self.countCameras()
             for i in xrange(count):
@@ -680,4 +712,4 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 baselist = baselist + glob.glob(device)
         return baselist
 
-    ##-- END TODO
+    # -- END TODO

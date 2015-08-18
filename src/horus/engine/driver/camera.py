@@ -229,24 +229,22 @@ class Camera(object):
                 self._capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
                 self._frame_rate = value
 
-    def _set_width(self, value):
-        if self._is_connected:
-            self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
-
-    def _set_height(self, value):
-        if self._is_connected:
-            self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)
-
     def set_resolution(self, width, height):
         if self._is_connected:
-            self._set_width(width)
-            self._set_height(height)
-            self._update_resolution()
+            if self._width != width or self._height != height:
+                self._set_width(width)
+                self._set_height(height)
+                self._update_resolution()
+
+    def _set_width(self, value):
+        self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, value)
+
+    def _set_height(self, value):
+        self._capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, value)
 
     def _update_resolution(self):
-        if self._is_connected:
-            self._width = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
-            self._height = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
+        self._width = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
+        self._height = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
     def set_use_distortion(self, value):
         self.use_distortion = value

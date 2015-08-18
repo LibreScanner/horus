@@ -592,7 +592,7 @@ class SceneView(openglGui.glGuiPanel):
 							profile.getProfileSettingFloat('roi_diameter'),
 							profile.getProfileSettingFloat('roi_height')], numpy.float32)
 
-		if profile.getProfileSettingBool('view_roi'):
+		if profile.getProfileSettingBool('roi_view'):
 			polys = profile.getSizePolygons(size)
 			height = profile.getProfileSettingFloat('roi_height')
 			circular = profile.getMachineSetting('machine_shape') == 'Circular'
