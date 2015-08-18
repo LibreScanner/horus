@@ -100,10 +100,10 @@ class PreferencesDialog(wx.Dialog):
 			else:
 				self.cameraIdCombo.SetValue(currentVideoId)		
 
-		currentBoard = profile.getProfileSetting('board')
+		currentBoard = profile.settings['board']
 		self.boardsCombo.SetValue(currentBoard)
 
-		currentInvert = profile.getProfileSettingBool('invert_motor')
+		currentInvert = profile.settings['invert_motor']
 		self.invertMotorCheckBox.SetValue(currentInvert)
 
 		#-- Layout
