@@ -27,37 +27,6 @@ image_detection = ImageDetection()
 laser_segmentation = LaserSegmentation()
 
 
-class PatternSettingsPanel(ExpandablePanel):
-
-    def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Pattern settings"), callback=self.callback, hasUndo=False)
-
-        self.clearSections()
-        section = self.createSection('pattern_settings')
-        section.addItem(TextBox, 'pattern_rows', tooltip=_('Number of corner rows in the pattern'))
-        section.addItem(TextBox, 'pattern_columns', tooltip=_(
-            'Number of corner columns in the pattern'))
-        section.addItem(TextBox, 'pattern_square_width')
-        section.addItem(TextBox, 'pattern_origin_distance', tooltip=_(
-            "Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface"))
-
-    def callback(self):
-        image_detection.set_pattern_mode()
-
-    def updateCallbacks(self):
-        section = self.sections['pattern_settings']
-        section.updateCallback('pattern_rows', lambda v: self.updatePatternParameters())
-        section.updateCallback('pattern_columns', lambda v: self.updatePatternParameters())
-        section.updateCallback('pattern_square_width', lambda v: self.updatePatternParameters())
-        section.updateCallback('pattern_origin_distance', lambda v: self.updatePatternParameters())
-
-    def updatePatternParameters(self):
-        pattern.rows = profile.getProfileSettingInteger('pattern_rows')
-        pattern.columns = profile.getProfileSettingInteger('pattern_columns')
-        pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
-        pattern.distance = profile.getProfileSettingInteger('pattern_origin_distance')
-
-
 class ImageDetectionPanel(ExpandablePanel):
 
     def __init__(self, parent):
@@ -65,7 +34,7 @@ class ImageDetectionPanel(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('camera_calibration')
-        section.addItem(ComboBox, 'camera_mode')
+        section.addItem(ComboBox, 'video_mode')
 
         section = self.createSection('pattern_mode')
         section.addItem(Slider, 'brightness_pattern', tooltip=_(
@@ -99,11 +68,11 @@ class ImageDetectionPanel(ExpandablePanel):
             'Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
 
     def callback(self):
-        self.setCameraMode(profile.getProfileSetting('camera_mode'))
+        self.setCameraMode(profile.getProfileSetting('video_mode'))
 
     def updateCallbacks(self):
         section = self.sections['camera_calibration']
-        section.updateCallback('camera_mode', lambda v: self.setCameraMode(v))
+        section.updateCallback('video_mode', lambda v: self.setCameraMode(v))
 
         mode = image_detection.pattern_mode
         section = self.sections['pattern_mode']
@@ -153,6 +122,7 @@ class LaserSegmentation(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('laser_segmentation', None)
+        section.addItem(ComboBox, 'red_channel')
         section.addItem(Slider, 'open_value')
         section.addItem(CheckBox, 'open_enable', tooltip=_(
             "Open is an operation used to remove the noise when scanning. The higher its value, the lower the noise but also the lower the detail in the image"))
@@ -165,12 +135,44 @@ class LaserSegmentation(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['laser_segmentation']
+        section.updateCallback('red_channel', laser_segmentation.set_red_channel)
         section.updateCallback('open_value', laser_segmentation.set_open_value)
         section.updateCallback('open_enable', laser_segmentation.set_open_enable)
         section.updateCallback(
             'threshold_value', laser_segmentation.set_threshold_value)
         section.updateCallback(
             'threshold_enable', laser_segmentation.set_threshold_enable)
+
+
+class PatternSettingsPanel(ExpandablePanel):
+
+    def __init__(self, parent):
+        ExpandablePanel.__init__(self, parent, _("Pattern settings"), callback=self.callback, hasUndo=False)
+
+        self.clearSections()
+        section = self.createSection('pattern_settings')
+        section.addItem(TextBox, 'pattern_rows', tooltip=_('Number of corner rows in the pattern'))
+        section.addItem(TextBox, 'pattern_columns', tooltip=_(
+            'Number of corner columns in the pattern'))
+        section.addItem(TextBox, 'pattern_square_width')
+        section.addItem(TextBox, 'pattern_origin_distance', tooltip=_(
+            "Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface"))
+
+    def callback(self):
+        image_detection.set_pattern_mode()
+
+    def updateCallbacks(self):
+        section = self.sections['pattern_settings']
+        section.updateCallback('pattern_rows', lambda v: self.updatePatternParameters())
+        section.updateCallback('pattern_columns', lambda v: self.updatePatternParameters())
+        section.updateCallback('pattern_square_width', lambda v: self.updatePatternParameters())
+        section.updateCallback('pattern_origin_distance', lambda v: self.updatePatternParameters())
+
+    def updatePatternParameters(self):
+        pattern.rows = profile.getProfileSettingInteger('pattern_rows')
+        pattern.columns = profile.getProfileSettingInteger('pattern_columns')
+        pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
+        pattern.distance = profile.getProfileSettingInteger('pattern_origin_distance')
 
 
 class AutocheckPanel(ExpandablePanel):

@@ -16,7 +16,7 @@ class PatternDistanceWindow(wx.Dialog):
     def __init__(self, parent):
         super(PatternDistanceWindow, self).__init__(parent, title=_('Pattern distance'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
 
-        self.value = float(profile.getProfileSetting('pattern_distance'))
+        self.value = float(profile.getProfileSetting('pattern_origin_distance'))
         self.pattern = Pattern()
 
         #-- Elements
@@ -28,7 +28,7 @@ class PatternDistanceWindow(wx.Dialog):
         self.patternImage.SetToolTip(wx.ToolTip(tooltip))
         self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))
         self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
-        self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_distance')))
+        self.patternTextbox = wx.TextCtrl(self, value = str(profile.getProfileSettingFloat('pattern_origin_distance')))
         self.okButton = wx.Button(self, label=_('OK'))
         self.cancelButton = wx.Button(self, label=_('Cancel'))
         
@@ -63,8 +63,8 @@ class PatternDistanceWindow(wx.Dialog):
             pass
 
     def setPatternDistance(self, distance):
-        profile.putProfileSetting('pattern_distance', distance)
-        pattern.distance = distance
+        profile.putProfileSetting('pattern_origin_distance', distance)
+        self.pattern.distance = distance
 
     def onOk(self, event):
         self.setPatternDistance(self.value)

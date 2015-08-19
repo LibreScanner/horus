@@ -3,7 +3,7 @@
 
 __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.\
-				 Copyright (C) 2013 David Braam from Cura Project'
+                 Copyright (C) 2013 David Braam from Cura Project'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import os
@@ -212,14 +212,15 @@ setting('motor_acceleration_control', 200, int, 'advanced',
 
 setting('pattern_rows', 6, int, 'advanced', _('Pattern rows'))
 setting('pattern_columns', 11, int, 'advanced', _('Pattern columns'))
-setting('pattern_square_width', 13, int, 'advanced', _('Square width (mm)'))
-setting('pattern_origin_distance', 0, float, 'advanced', _('Origin distance (mm)'))
+setting('pattern_square_width', 13.0, float, 'advanced', _('Square width (mm)'))
+setting('pattern_origin_distance', 0.0, float, 'advanced', _('Origin distance (mm)'))
 
 # Hack to translate combo boxes:
-_('Pattern')
-_('Laser')
 _('Texture')
-setting('camera_mode', 'Pattern', ['Pattern', 'Laser', 'Texture'], 'basic', _('Camera mode'), False)
+_('Laser')
+_('Pattern')
+setting('video_mode', 'Texture', [
+        'Texture', 'Laser', 'Pattern'], 'basic', _('Video mode'), False)
 
 setting('brightness_pattern', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_pattern', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
@@ -230,12 +231,14 @@ setting('brightness_laser', 100, int, 'advanced', _('Brightness')).setRange(0, 2
 setting('contrast_laser', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_laser', 100, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_laser', 16, int, 'basic', _('Exposure')).setRange(1, 128)
+setting('remove_background', True, bool, 'advanced', _('Remove background'))
 
 setting('brightness_texture', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_texture', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_texture', 100, int, 'advanced', _('Saturation')).setRange(0, 255)
 setting('exposure_texture', 16, int, 'basic', _('Exposure')).setRange(1, 128)
 
+setting('red_channel', 'R (RGB)', ['R (RGB)', 'Cr (YCrCb)', 'U (YUV)'], 'basic', _('Red channel'))
 setting('open_enable', True, bool, 'advanced', _('Enable open'), tag='texture')
 setting('open_value', 2, int, 'advanced', _('Open value'), tag='texture').setRange(1, 10)
 setting('threshold_enable', True, bool, 'advanced', _('Enable threshold'), tag='texture')
@@ -243,7 +246,6 @@ setting('threshold_value', 25, int, 'advanced', _(
     'Threshold value'), tag='texture').setRange(0, 255)
 
 setting('capture_texture', True, bool, 'advanced', _('Capture texture'))
-setting('remove_background', True, bool, 'advanced', _('Remove background'))
 setting('use_left_laser', True, bool, 'advanced', _('Use left laser'))
 setting('use_right_laser', True, bool, 'advanced', _('Use right laser'))
 

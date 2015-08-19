@@ -15,6 +15,7 @@ from horus import Singleton
 class LaserSegmentation(object):
 
     def __init__(self):
+        self.channel = 'R (RGB)'
         self.open_enable = True
         self.open_value = 2
         self.threshold_enable = True
@@ -24,6 +25,9 @@ class LaserSegmentation(object):
                         'laser': [None, None],
                         'gray': [None, None],
                         'line': [None, None]}
+
+    def set_red_channel(self, value):
+        self.channel = value
 
     def set_open_enable(self, value):
         self.open_enable = value
@@ -36,6 +40,16 @@ class LaserSegmentation(object):
 
     def set_threshold_value(self, value):
         self.threshold_value = value
+
+    def obtain_red_channel(self, image):
+        ret = None
+        if self.channel == 'R (RGB)':
+            ret = cv2.split(image)[0]
+        elif self.channel == 'Cr (YCrCb)':
+            ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))[1]
+        elif self.channel == 'U (YUV)':
+            ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YUV))[1]
+        return ret
 
     def compute_2D_points(self, images):
         uv = []
@@ -61,15 +75,10 @@ class LaserSegmentation(object):
         return uv
 
     def laser_segmentation(self, index, image):
-
         if image is not None:
 
             # Apply ROI mask
             #image = self.apply_ROI_mask(image)
-
-            #y, cr, cb = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))
-            r, g, b = cv2.split(image)
-            image = r
 
             # Open image
             if self.open_enable:

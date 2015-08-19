@@ -50,18 +50,18 @@ class MainWindow(wx.Frame):
 
     def __init__(self):
         super(MainWindow, self).__init__(
-            None, title=_("Horus " + version.getVersion()), size=self.size)
+            None, title=_("Horus 0.2"), size=self.size)
 
         self.SetMinSize((600, 450))
 
-        #-- Serial Name initialization
+        # Serial Name initialization
         serialList = self.serialList()
         currentSerial = profile.getProfileSetting('serial_name')
         if len(serialList) > 0:
             if currentSerial not in serialList:
                 profile.putProfileSetting('serial_name', serialList[0])
 
-        #-- Video Id initialization
+        # Video Id initialization
         videoList = self.videoList()
         currentVideoId = profile.getProfileSetting('camera_id')
         if len(videoList) > 0:
@@ -72,19 +72,19 @@ class MainWindow(wx.Frame):
 
         print ">>> Horus " + version.getVersion() + " <<<"
 
-        # -- Initialize GUI
+        # Initialize GUI
 
-        # -- Set Icon
+        # Set Icon
         icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
-        # -- Status Bar
+        # Status Bar
         # self.CreateStatusBar()
 
-        # -- Menu Bar
+        # Menu Bar
         self.menuBar = wx.MenuBar()
 
-        #--  Menu File
+        # Menu File
         self.menuFile = wx.Menu()
         self.menuLaunchWizard = self.menuFile.Append(wx.NewId(), _("Launch Wizard"))
         self.menuFile.AppendSeparator()
@@ -100,12 +100,12 @@ class MainWindow(wx.Frame):
         self.menuExit = self.menuFile.Append(wx.ID_EXIT, _("Exit"))
         self.menuBar.Append(self.menuFile, _("File"))
 
-        #-- Menu Edit
+        # Menu Edit
         self.menuEdit = wx.Menu()
         self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
         self.menuBar.Append(self.menuEdit, _("Edit"))
 
-        #-- Menu View
+        # Menu View
         self.menuView = wx.Menu()
         self.menuControl = wx.Menu()
         self.menuControlPanel = self.menuControl.AppendCheckItem(wx.NewId(), _("Panel"))
@@ -122,7 +122,7 @@ class MainWindow(wx.Frame):
         self.menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
         self.menuBar.Append(self.menuView, _("View"))
 
-        #-- Menu Help
+        # Menu Help
         self.menuHelp = wx.Menu()
         self.menuWelcome = self.menuHelp.Append(wx.ID_ANY, _("Welcome"))
         if profile.getPreferenceBool('check_for_updates'):
@@ -136,7 +136,7 @@ class MainWindow(wx.Frame):
 
         self.SetMenuBar(self.menuBar)
 
-        # -- Create Workbenchs
+        # Create Workbenchs
         self.controlWorkbench = ControlWorkbench(self)
         self.scanningWorkbench = ScanningWorkbench(self)
         self.calibrationWorkbench = CalibrationWorkbench(self)
@@ -158,7 +158,7 @@ class MainWindow(wx.Frame):
         sizer.Add(self.scanningWorkbench, 1, wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
 
-        ##-- Events
+        ## Events
         self.Bind(wx.EVT_MENU, self.onLaunchWizard, self.menuLaunchWizard)
         self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
         self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
@@ -660,7 +660,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
         gc.collect()
 
-    # -- TODO: move to util
+    # TODO: move to util
 
     def serialList(self):
         baselist = []
@@ -712,4 +712,4 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 baselist = baselist + glob.glob(device)
         return baselist
 
-    # -- END TODO
+    # END TODO

@@ -104,10 +104,14 @@ class ImageDetection(object):
             elif self._mode is self.laser_mode:
                 self.driver.board.lasers_on()
                 image = self.driver.camera.capture_image(flush=flush)
+                if self.segmentation:
+                    image = self.laser_segmentation.obtain_red_channel(image)
 
                 if self._remove_background:
                     self.driver.board.lasers_off()
                     img_no_laser = self.driver.camera.capture_image(flush=flush)
+                    if self.segmentation:
+                        img_no_laser = self.laser_segmentation.obtain_red_channel(img_no_laser)
                     image = cv2.subtract(image, img_no_laser)
 
                 if self.segmentation:

@@ -8,8 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
-    CheckBox, Button, TextBox
+from horus.gui.util.customPanels import ExpandablePanel, Slider, CheckBox, Button, TextBox
 
 from horus.util import profile, system as sys
 from horus.gui.util.resolutionWindow import ResolutionWindow
@@ -43,19 +42,20 @@ class ScanParameters(ExpandablePanel):
         section.updateCallback('use_left_laser', ciclop_scan.set_use_left_laser)
         section.updateCallback('use_right_laser', ciclop_scan.set_use_right_laser)
 
-class ScanStep(ExpandablePanel):
+
+class RotatingPlatform(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Scan step"), hasUndo=False)
+        ExpandablePanel.__init__(self, parent, _("Rotating platform"), hasUndo=False)
 
         self.clearSections()
-        section = self.createSection('scan_step')
+        section = self.createSection('rotating_platform')
         section.addItem(TextBox, 'motor_step_scanning')
         section.addItem(TextBox, 'motor_speed_scanning')
         section.addItem(TextBox, 'motor_acceleration_scanning')
 
     def updateCallbacks(self):
-        section = self.sections['scan_step']
+        section = self.sections['rotating_platform']
         section.updateCallback(
             'motor_step_scanning', lambda v: ciclop_scan.set_motor_step(self.getValueFloat(v)))
         section.updateCallback(
@@ -104,7 +104,8 @@ class PointCloudROI(ExpandablePanel):
 class PointCloudColor(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Point cloud color"), hasUndo=False, hasRestore=False)
+        ExpandablePanel.__init__(
+            self, parent, _("Point cloud color"), hasUndo=False, hasRestore=False)
 
         self.main = self.GetParent().GetParent().GetParent().GetParent()
 
@@ -118,12 +119,12 @@ class PointCloudColor(ExpandablePanel):
 
     def onColorPicker(self):
         data = wx.ColourData()
-        #data.SetColour(self.simpleScan.color)
+        # data.SetColour(self.simpleScan.color)
         dialog = wx.ColourDialog(self, data)
         dialog.GetColourData().SetChooseFull(True)
         if dialog.ShowModal() == wx.ID_OK:
             data = dialog.GetColourData()
             color = data.GetColour().Get()
-            #self.simpleScan.setColor(color)
+            # self.simpleScan.setColor(color)
             profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
         dialog.Destroy()

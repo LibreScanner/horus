@@ -25,6 +25,7 @@ class Pattern(object):
 
     @rows.setter
     def rows(self, value):
+        value = self.to_int(value)
         if self._rows != value:
             self._rows = value
             self._generate_object_points()
@@ -38,6 +39,7 @@ class Pattern(object):
 
     @columns.setter
     def columns(self, value):
+        value = self.to_int(value)
         if self._columns != value:
             self._columns = value
             self._generate_object_points()
@@ -51,6 +53,7 @@ class Pattern(object):
 
     @square_width.setter
     def square_width(self, value):
+        value = self.to_float(value)
         if self._square_width != value:
             self._square_width = value
             self._generate_object_points()
@@ -65,4 +68,24 @@ class Pattern(object):
         self.object_points = objp
 
     def set_distance(self, value):
-        self.distance = value
+        self.distance = self.to_float(value)
+
+    def to_int(self, value):
+        try:
+            value = int(value)
+            if value > 0:
+                return value
+            else:
+                return 0
+        except:
+            return 0
+
+    def to_float(self, value):
+        try:
+            value = float(value)
+            if value > 0.0:
+                return value
+            else:
+                return 0.0
+        except:
+            return 0.0

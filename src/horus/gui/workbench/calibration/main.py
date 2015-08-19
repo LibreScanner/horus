@@ -52,9 +52,9 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Add Scroll Panels
-        self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
         self.controls.addPanel('image_detection', ImageDetectionPanel(self.controls))
         self.controls.addPanel('laser_segmentation', LaserSegmentation(self.controls))
+        self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
         self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
             self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
         self.controls.addPanel('scanner_autocheck', AutocheckPanel(
@@ -204,6 +204,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationResultPage.Hide()
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
+        self.image_detection.set_pattern_mode()
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -219,7 +220,6 @@ class CalibrationWorkbench(WorkbenchConnection):
 
     def onCameraIntrinsicsAcceptCallback(self):
         self.driver.camera.set_use_distortion(self.camera_intrinsics._camera_use_distortion)
-        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -229,6 +229,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.cameraIntrinsicsResultPage.Hide()
+        self.image_detection.set_pattern_mode()
+        self.videoView.play()
         self.videoView.Show()
         self.Layout()
 
@@ -242,7 +244,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onLaserTriangulationAcceptCallback(self):
-        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -251,6 +252,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.laserTriangulationResultPage.Hide()
+        self.image_detection.set_pattern_mode()
+        self.videoView.play()
         self.videoView.Show()
         self.Layout()
 
@@ -264,7 +267,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onPlatformExtrinsicsAcceptCallback(self):
-        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -273,6 +275,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.platformExtrinsicsResultPage.Hide()
+        self.image_detection.set_pattern_mode()
+        self.videoView.play()
         self.videoView.Show()
         self.Layout()
 

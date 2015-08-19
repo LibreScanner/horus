@@ -15,7 +15,7 @@ from horus.gui.util.sceneView import SceneView
 from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.scanning.panels import ScanParameters, ScanStep, PointCloudROI, PointCloudColor
+from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform, PointCloudROI, PointCloudColor
 
 from horus.engine.scan.ciclop_scan import CiclopScan
 
@@ -62,7 +62,7 @@ class ScanningWorkbench(WorkbenchConnection):
         self.controls = ExpandableControl(self.scrollPanel)
 
         self.controls.addPanel('scan_parameters', ScanParameters(self.controls))
-        self.controls.addPanel('scan_step', ScanStep(self.controls))
+        self.controls.addPanel('scan_step', RotatingPlatform(self.controls))
         self.controls.addPanel('point_cloud_roi', PointCloudROI(self.controls))
         self.controls.addPanel('point_cloud_color', PointCloudColor(self.controls))
 
