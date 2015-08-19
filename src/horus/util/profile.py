@@ -399,7 +399,7 @@ class Setting(object):
 		return json_dict
 
 
-#Define a fake _() function to fake the gettext tools in to generating strings for the profile settings.
+# Define a fake _() function to fake the gettext tools in to generating strings for the profile settings.
 def _(n):
 	return n
 
@@ -408,8 +408,27 @@ settings = Settings()
 settings._initializeSettings()
 
 
-#Remove fake defined _() because later the localization will define a global _()
+# Remove fake defined _() because later the localization will define a global _()
 del _
+
+
+def getBasePath():
+	"""
+	:return: The path in which the current configuration files are stored. This depends on the used OS.
+	"""
+	if system.isWindows():
+		Path = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+		#If we have a frozen python install, we need to step out of the library.zip
+		if hasattr(sys, 'frozen'):
+			basePath = os.path.normpath(os.path.join(basePath, ".."))
+	else:
+		basePath = os.path.expanduser('~/.horus/')
+	if not os.path.isdir(basePath):
+		try:
+			os.makedirs(basePath)
+		except:
+			print "Failed to create directory: %s" % (basePath)
+	return basePath
 
 
 # Temporary function to migrate old settings (INI) into new ones (JSON)
@@ -417,9 +436,11 @@ def loadSettings():
 	if os.path.exists(os.path.join(getBasePath(), 'settings.json')):
 		settings.loadSettings()
 	else:
-		loadOldSettings(os.path.join(getBasePath(), 'machine_settings.ini'))
-		loadOldSettings(os.path.join(getBasePath(), 'current-profile.ini'))
-		loadOldSettings(os.path.join(getBasePath(), 'preferences.ini'))
+		for setting_file in ('machine_settings.ini', 'current-profile.ini', 'preferences.ini'):
+			try:
+				loadOldSettings(os.path.join(getBasePath(), setting_file))
+			except:
+				pass # Setting file might not exist
 	settings.saveSettings()
 
 # Temporary function to migrate old settings (INI) into new ones (JSON)
@@ -452,56 +473,9 @@ def loadOldSettings(filename):
 				raise TypeError("Unknown type when loading old setting %s of type %s" % (key, setting_type))
 
 
+# TODO: Move these somewhere else
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# TOERASE
-
-# Refactoring pending...
-def getSettingObject(name):
-	""" """
-	global settingsList
-	for set in settingsList:
-		if set.getName() is name:
-			return set
-
-def getBasePath():
-	"""
-	:return: The path in which the current configuration files are stored. This depends on the used OS.
-	"""
-	if system.isWindows():
-		Path = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-		#If we have a frozen python install, we need to step out of the library.zip
-		if hasattr(sys, 'frozen'):
-			basePath = os.path.normpath(os.path.join(basePath, ".."))
-	else:
-		basePath = os.path.expanduser('~/.horus/')
-	if not os.path.isdir(basePath):
-		try:
-			os.makedirs(basePath)
-		except:
-			print "Failed to create directory: %s" % (basePath)
-	return basePath
-
-def getPreferencePath():
-	return os.path.join(getBasePath(), 'preferences.ini')
-
-
-
-# TOERASE - Move somewhere else
-
-#Returns a list of convex polygons, first polygon is the allowed area of the machine,
+# Returns a list of convex polygons, first polygon is the allowed area of the machine,
 # the rest of the polygons are the dis-allowed areas of the machine.
 def getMachineSizePolygons(machine_shape):
 	if machine_shape == "Circular":

@@ -41,8 +41,6 @@ class HorusApp(wx.App):
 	def __init__(self):
 		super(HorusApp, self).__init__(redirect=False)
 
-		self.basePath = profile.getBasePath()
-
 		if sys.isDarwin():
 			self.afterSplashCallback()
 		else:
