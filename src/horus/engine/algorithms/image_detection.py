@@ -87,29 +87,29 @@ class ImageDetection(object):
         self._remove_background = value
 
     def capture(self):
-        flush = 1  # TODO: detect system
+        # TODO: custom flush: detect system
         image = None
 
         if not self._updating:
 
             if self._mode is self.pattern_mode:
                 self.driver.board.lasers_off()
-                image = self.driver.camera.capture_image(flush=flush)
+                image = self.driver.camera.capture_image(flush=0)
                 image = self.draw_chessboard(image)
 
             elif self._mode is self.texture_mode:
                 self.driver.board.lasers_off()
-                image = self.driver.camera.capture_image(flush=flush)
+                image = self.driver.camera.capture_image(flush=0)
 
             elif self._mode is self.laser_mode:
                 self.driver.board.lasers_on()
-                image = self.driver.camera.capture_image(flush=flush)
+                image = self.driver.camera.capture_image(flush=1)
                 if self.segmentation:
                     image = self.laser_segmentation.obtain_red_channel(image)
 
                 if self._remove_background:
                     self.driver.board.lasers_off()
-                    img_no_laser = self.driver.camera.capture_image(flush=flush)
+                    img_no_laser = self.driver.camera.capture_image(flush=1)
                     if self.segmentation:
                         img_no_laser = self.laser_segmentation.obtain_red_channel(img_no_laser)
                     image = cv2.subtract(image, img_no_laser)
