@@ -13,6 +13,12 @@ from horus import Singleton
 from horus.engine.scan.scan import Scan
 
 
+class ScanError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("ScanError"))
+
+
 @Singleton
 class CiclopScan(Scan):
 
@@ -24,25 +30,19 @@ class CiclopScan(Scan):
 
     def __init__(self):
         self.capture_texture = True
-        self.remove_background = True
         self.use_left_laser = True
         self.use_right_laser = True
         self.move_motor = True
         self.motor_step = 0
         self.motor_speed = 0
         self.motor_acceleration = 0
-        self.exposure_texture = 0
-        self.exposure_laser = 0
 
         self._theta = 0
-        self._images_queue = Queue.Queue(100)
+        self._captures_queue = Queue.Queue(100)
         self._point_cloud_queue = Queue.Queue(1000)
 
     def set_capture_texture(self, value):
         self.capture_texture = value
-
-    def set_remove_background(self, value):
-        self.remove_background = value
 
     def set_use_left_laser(self, value):
         self.use_left_laser = value
@@ -62,22 +62,12 @@ class CiclopScan(Scan):
     def set_motor_acceleration(self, value):
         self.motor_acceleration = value
 
-    def set_exposure_texture(self, value):
-        self.exposure_texture = value
-
-    def set_exposure_laser(self, value):
-        self.exposure_laser = value
-
-    def getImage(self, value):
-        pass
-
     def _initialize(self):
         self._theta = 0
-        self._images_queue.queue.clear()
+        self._captures_queue.queue.clear()
         self._point_cloud_queue.queue.clear()
 
         #-- Setup scanner
-        self.driver.camera.capture_image()
         self.driver.board.lasers_off()
         if self.move_motor:
             self.driver.board.motor_enable()
@@ -97,66 +87,42 @@ class CiclopScan(Scan):
                     break
                 else:
                     begin = time.time()
-
                     # Capture images
-                    images = self._capture_images()
-
+                    capture = self._capture_images()
                     # Move motor
                     if self.move_motor:
-                        #self.driver.board.motor_relative(self.motor_step)
+                        self.driver.board.motor_relative(self.motor_step)
                         self.driver.board.motor_move()
                     else:
                         time.sleep(0.05)
-
                     # Update theta
                     self._theta += np.deg2rad(self.motor_step)
-
                     # Refresh progress
                     if abs(self.motor_step) > 0:
                         self._progress = abs(np.rad2deg(self._theta) / self.motor_step)
                         self._range = abs(360.0 / self.motor_step)
-
                     # Put images into queue
-                    self._images_queue.put(images)
-
+                    self._captures_queue.put(capture)
                     print "Capture: {0} ms".format(int((time.time() - begin) * 1000))
 
-        board.lasers_off()
-        board.motor_dissable()
+        self.driver.board.lasers_off()
+        self.driver.board.motor_dissable()
 
     def _capture_images(self):
-        captures = segmentation.Captures()
-        captures.theta = self_theta
-
-        # TODO: custom flush for each OS
+        capture = ScanCapture()
+        capture.theta = self_theta
 
         if self.capture_texture:
-            self.driver.board.lasers_off()
-            self.driver.camera.set_exposure(self.exposure_texture)
-            captures.img_texture = self.driver.camera.capture_image(flush=1)
+            capture.img_texture = self.image_capture.capture_texture()
 
-        if self.remove_background:
-            self.driver.board.lasers_off()
-            self.driver.camera.set_exposure(self.exposure_laser)
-            captures.img_no_laser = self.driver.camera.capture_image(flush=1)
+        for i in xrange(2):
+            # TODO: check lasers
+            capture.img_laser[i] = self.image_capture.capture_laser(i)
 
-        if self.use_left_laser:
-            self.driver.board.laser_left_on()
-            self.driver.board.laser_right_off()
-            self.driver.camera.set_exposure(self.exposure_laser)
-            captures.img_laser[0] = self.driver.camera.capture_image(flush=1)
-
-        if self.use_right_laser:
-            self.driver.board.laser_left_off()
-            self.driver.board.laser_right_on()
-            self.driver.camera.set_exposure(self.exposure_laser)
-            captures.img_laser[1] = self.driver.camera.capture_image(flush=1)
-
-        return captures
+        return capture
 
     def _process(self):
         ret = False
-
         while self.is_scanning:
             if self._inactive:
                 time.sleep(0.1)
@@ -166,40 +132,35 @@ class CiclopScan(Scan):
                     break
                 else:
                     begin = time.time()
+                    # Get capture from queue
+                    capture = self._captures_queue.get(timeout=0.1)
+                    self._captures_queue.task_done()
 
-                    # Get images from queue
-                    images = self._images_queue.get(timeout=0.1)
-                    self._images_queue.task_done()
-
-                    # Compute 2D points from images
-                    points2D = laser_segmentation.compute_2D_points(images)
-
-                    # Texture
-                    if images.img_texture is None:
-                        temp = np.ones_like(images.img_texture)
-                        temp[:, :, 0] *= images.color[0]
-                        temp[:, :, 1] *= images.color[1]
-                        temp[:, :, 2] *= images.color[2]
-                        img_texture = temp
-                    else:
-                        img_texture = images.img_texture
-
-                    #texture = img_texture[v, u.astype(int)].T
-
-                    """
-                    #-- Compute 3D points
-                    points3D, colors = self.pcg.compute3DPoints(points2D, \
-                        colors, laser, updateTheta)
-                    """
-
-                    # Put point cloud into queue
-                    self.pointsQueue.put((points3D, colors))
-
+                    for i in xrange(2):
+                        if capture.img_laser[i] is not None:
+                            image = capture.img_laser[i]
+                            # Compute 2D points from images
+                            points_2d = self.laser_segmentation.compute_2d_points(image)
+                            # Compute point cloud from 2D points
+                            point_cloud = self.point_cloud_generation.compute_point_cloud(
+                                capture.theta, points_2d, i)
+                            # Compute point cloud texture
+                            if capture.img_texture is not None:
+                                u, v = point_2d
+                                texture = capture.img_texture[v, u.astype(int)].T
+                            else:
+                                img = np.zeros_like(self.laser[index])
+                                img[v, u.astype(int)] = self._color
+                            # Filter point cloud
+                            point_cloud, texture = self.point_cloud_roi.mask_point_cloud(
+                                point_cloud_roi, texture)
+                            # Put point cloud into queue
+                            self._point_cloud_queue.put((point_cloud, texture))
                     print "Process: {0} ms".format(int((time.time() - begin) * 1000))
         if ret:
             response = (True, None)
         else:
-            response = (False, _("Scan Error"))
+            response = (False, ScanError)
 
         if self._after_callback is not None:
             self._after_callback(response)

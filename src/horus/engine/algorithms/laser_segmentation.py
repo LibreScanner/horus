@@ -41,6 +41,15 @@ class LaserSegmentation(object):
     def set_threshold_value(self, value):
         self.threshold_value = value
 
+    def compute_2d_points(self, image):
+        if image is not None:
+            image = self._compute_line_segmentation(image)
+            # Peak detection: center of mass
+            s = image.sum(axis=1)
+            v = np.where(s > 0)[0]
+            u = (self.calibration_data.weight_matrix * image).sum(axis=1)[v] / s[v]
+            return (u, v)
+
     def compute_hough_lines(self, image):
         if image is not None:
             image = self._compute_line_segmentation(image)
@@ -51,15 +60,6 @@ class LaserSegmentation(object):
                 #u1 = rho / np.cos(theta)
                 #u2 = u1 - height * np.tan(theta)
             return Lines
-
-    def compute_2d_points(self, image):
-        if image is not None:
-            image = self._compute_line_segmentation(image)
-            # Peak detection: center of mass
-            s = image.sum(axis=1)
-            v = np.where(s > 0)[0]
-            u = (self.calibration_data.weight_matrix * image).sum(axis=1)[v] / s[v]
-            return (u, v)
 
     def _compute_line_segmentation(self, image):
         if image is not None:

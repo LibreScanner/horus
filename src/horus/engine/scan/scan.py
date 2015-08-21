@@ -8,8 +8,12 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import threading
 
 from horus.engine.driver.driver import Driver
+from horus.engine.scan.scan_capture import ScanCapture
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms.laser_segmentation import LaserSegmentation
 from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
+from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 
 class Scan(object):
@@ -18,9 +22,13 @@ class Scan(object):
 
     def __init__(self):
         self.driver = Driver()
+        self.image_capture = ImageCapture()
+        self.image_detection = ImageDetection()
         self.laser_segmentation = LaserSegmentation()
         self.point_cloud_generation = PointCloudGeneration()
+        self.point_cloud_roi = PointCloudROI()
         self.is_scanning = False
+
         # TODO: Callbacks to Observer pattern
         self._before_callback = None
         self._progress_callback = None
