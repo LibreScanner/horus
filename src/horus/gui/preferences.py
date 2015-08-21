@@ -190,9 +190,11 @@ class PreferencesDialog(wx.Dialog):
 		if len(self.cameraIdCombo.GetValue()):
 			profile.settings['camera_id'] = self.cameraIdCombo.GetValue()
 		profile.settings['board'] = self.boardsCombo.GetValue()
-		if profile.getPreference('language') is not self.languageCombo.GetValue():
+		if profile.settings['language'] != self.languageCombo.GetValue():
 			profile.settings['language'] = self.languageCombo.GetValue()
 		profile.settings['invert_motor'] = self.invertMotorCheckBox.GetValue()
+
+		profile.settings.saveSettings(categories=["preferences"])
 		self.onClose(None)
 
 	def onClose(self, event):
@@ -269,6 +271,6 @@ class PreferencesDialog(wx.Dialog):
 		self.SetSizerAndFit(self.GetSizer())
 
 	def onLanguageComboChanged(self, event):
-		if profile.settings['language'] is not self.languageCombo.GetValue():
+		if profile.settings['language'] != self.languageCombo.GetValue():
 			wx.MessageBox(_("You have to restart the application to make the changes effective."), 'Info', wx.OK | wx.ICON_INFORMATION)
 

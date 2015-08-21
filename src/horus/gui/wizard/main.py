@@ -142,7 +142,7 @@ class Wizard(wx.Dialog):
     def onScanningPageNextClicked(self):
         self.driver.board.setLeftLaserOff()
         self.driver.board.setRightLaserOff()
-        profile.settings.saveSettings()
+        profile.settings.saveSettings(categories=["scan_settings"])
         dlg = wx.MessageDialog(self, _("You have finished the wizard.\nPress Play button to start scanning."), _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()

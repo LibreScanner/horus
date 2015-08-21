@@ -285,7 +285,7 @@ class MainWindow(wx.Frame):
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            profile.settings.loadSettings(profileFile)
+            profile.settings.loadSettings(profileFile, categories=["scan_settings"])
             self.updateProfileToAllControls()
         dlg.Destroy()
 
@@ -298,7 +298,7 @@ class MainWindow(wx.Frame):
             if not profileFile.endswith('.json'):
                 if sys.isLinux(): # hack for linux, as for some reason the .json is not appended.
                     profileFile += '.json'
-            profile.settings.saveSettings(profileFile)
+            profile.settings.saveSettings(profileFile, categories=["scan_settings"])
         dlg.Destroy()
 
     def onResetProfile(self, event):
@@ -307,7 +307,7 @@ class MainWindow(wx.Frame):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.settings.resetToDefault()
+            profile.settings.resetToDefault(categories=["scan_settings"])
             self.updateProfileToAllControls()
 
     def onExit(self, event):
@@ -404,7 +404,7 @@ class MainWindow(wx.Frame):
                 self.scanningWorkbench.sceneView._drawMachine()
             except:
                 pass
-            profile.settings.saveSettings()
+            profile.settings.saveSettings(categories=["machine_settings"])
             self.scanningWorkbench.controls.panels["point_cloud_generation"].updateProfile()
 
         self.controlWorkbench.updateCallbacks()
@@ -478,7 +478,6 @@ class MainWindow(wx.Frame):
         """ """
         if _(profile.settings['workbench']) != event.GetEventObject().GetValue():
             profile.settings['workbench'] = self.workbenchDict[event.GetEventObject().GetValue()]
-            profile.settings.saveSettings()
             self.workbenchUpdate()
 
     def onAbout(self, event):
