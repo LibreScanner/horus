@@ -36,7 +36,7 @@ class LaserSegmentation(object):
     def set_threshold_value(self, value):
         self.threshold_value = value
 
-    def line_segmentation(self, image):
+    def compute_line_segmentation(self, image):
         if image is not None:
             # Apply ROI mask
             #image = self.apply_ROI_mask(image)
