@@ -41,7 +41,6 @@ class Camera(object):
     def __init__(self, parent=None, camera_id=0):
         self.parent = parent
         self.camera_id = camera_id
-        self.use_distortion = False
         self.unplug_callback = None
 
         self._capture = None
@@ -52,12 +51,8 @@ class Camera(object):
         self._saturation = 0
         self._exposure = 0
         self._frame_rate = 0
-        self._width = 800
-        self._height = 600
-        self._camera_matrix = None
-        self._distortion_vector = None
-        self._dist_camera_matrix = None
-        self._roi = None
+        self._width = 0
+        self._height = 0
         self._tries = 0  # Check if command fails
 
         if system == 'Windows':
@@ -156,15 +151,6 @@ class Camera(object):
                 image = cv2.transpose(image)
                 if not mirror:
                     image = cv2.flip(image, 1)
-                if self.use_distortion and \
-                   self._camera_matrix is not None and \
-                   self._distortion_vector is not None and \
-                   self._dist_camera_matrix is not None and \
-                   self._roi is not None:
-                    image = cv2.undistort(image, self._camera_matrix, self._distortion_vector,
-                                          None, self._dist_camera_matrix)
-                    #x, y, w, h = self._roi
-                    #image = image[y:y + h, x:x + w]
                 self._success()
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 return image
@@ -245,33 +231,6 @@ class Camera(object):
     def _update_resolution(self):
         self._width = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
         self._height = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
-
-    def set_use_distortion(self, value):
-        self.use_distortion = value
-
-    @property
-    def camera_matrix(self):
-        return self._camera_matrix
-
-    @camera_matrix.setter
-    def camera_matrix(self, value):
-        self._camera_matrix = value
-        self._compute_dist_camera_matrix()
-
-    @property
-    def distortion_vector(self):
-        return self._distortion_vector
-
-    @distortion_vector.setter
-    def distortion_vector(self, value):
-        self._distortion_vector = value
-        self._compute_dist_camera_matrix()
-
-    def _compute_dist_camera_matrix(self):
-        if self._camera_matrix is not None and self._distortion_vector is not None:
-            self._dist_camera_matrix, self._roi = cv2.getOptimalNewCameraMatrix(
-                self._camera_matrix, self._distortion_vector,
-                (int(self._height), int(self._width)), alpha=1)
 
     def get_brightness(self):
         if self._is_connected:
