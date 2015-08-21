@@ -9,12 +9,15 @@ import cv2
 import numpy as np
 
 from horus import Singleton
+from horus.engine.calibration.calibration_data import CalibrationData
 
 
 @Singleton
 class LaserSegmentation(object):
 
     def __init__(self):
+        self.calibration_data = CalibrationData()
+
         self._red_channel = 'R (RGB)'
         self._open_enable = False
         self._open_value = 0
@@ -51,11 +54,9 @@ class LaserSegmentation(object):
             if self.threshold_enable:
                 image = cv2.threshold(image, self.threshold_value, 255.0, cv2.THRESH_TOZERO)[1]
             # Peak detection: center of mass
-            h, w = image.shape
-            W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
             s = image.sum(axis=1)
             v = np.where(s > 0)[0]
-            u = (W * image).sum(axis=1)[v] / s[v]
+            u = (self.calibration_data.weight_matrix * image).sum(axis=1)[v] / s[v]
             return (u, v)
 
     def obtain_red_channel(self, image):

@@ -1,0 +1,173 @@
+# -*- coding: utf-8 -*-
+# This file is part of the Horus Project
+
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
+
+import cv2
+import numpy as np
+
+from horus import Singleton
+from horus.engine.calibration.calibration_data import CalibrationData
+
+
+@Singleton
+class PointCloudROI(object):
+
+    def __init__(self):
+        self.calibration_data = CalibrationData()
+
+        self._umin = 0
+        self._umax = 0
+        self._vmin = 0
+        self._vmax = 0
+        self._lower_vmin = 0
+        self._lower_vmax = 0
+        self._upper_vmin = 0
+        self._upper_vmax = 0
+        self._no_trimmed_umin = 0
+        self._no_trimmed_umax = 0
+        self._no_trimmed_vmin = 0
+        self._no_trimmed_vmax = 0
+        self._height = 0
+        self._radious = 0
+        self._circle_resolution = 30
+        self._circle_array = np.array([[np.cos(i * 2 * np.pi / self._circle_resolution)
+                                        for i in xrange(self._circle_resolution)],
+                                       [np.sin(i * 2 * np.pi / self._circle_resolution)
+                                        for i in xrange(self._circle_resolution)],
+                                       np.zeros(self._circle_resolution)])
+
+    def set_diameter(self, value):
+        self._radious = value / 2.0
+        self._compute_roi()
+
+    def set_height(self, value):
+        self._height = value
+        self._compute_roi()
+
+    def mask_image(self, image):
+        mask = np.zeros(image.shape, np.uint8)
+        mask[self._vmin:self._vmax, self._umin:self._umax] = image[
+            self._vmin:self._vmax, self._umin:self._umax]
+        return mask
+
+    def mask_point_cloud(self, point_cloud, texture):
+        rho = np.sqrt(point_cloud[0, :] ** 2 + point_cloud[1, :] ** 2)
+        z = point_cloud[2, :]
+        idx = np.where((z >= 0) &
+                       (z <= self._height) &
+                       (rho >= -self._radious) &
+                       (rho <= self._radious))[0]
+        return points[:, idx], texture[:, idx]
+
+    def draw_roi(self, image):
+        thickness = 6
+        thickness_hiden = 1
+
+        center_up_u = self._no_trimmed_umin + \
+            (self._no_trimmed_umax - self._no_trimmed_umin) / 2
+        center_up_v = self._upper_vmin + (self._upper_vmax - self._upper_vmin) / 2
+        center_down_u = self._no_trimmed_umin + \
+            (self._no_trimmed_umax - self._no_trimmed_umin) / 2
+        center_down_v = self._lower_vmax + (self._lower_vmin - self._lower_vmax) / 2
+        axes_up = ((self._no_trimmed_umax - self._no_trimmed_umin) / 2,
+                   ((self._upper_vmax - self._upper_vmin) / 2))
+        axes_down = ((self._no_trimmed_umax - self._no_trimmed_umin) / 2,
+                     ((self._lower_vmin - self._lower_vmax) / 2))
+
+        img = img.copy()
+        # upper ellipse
+        if (center_up_v < self.cy):
+            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+                        0, 180, 360, (0, 100, 200), thickness)
+            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+                        0, 0, 180, (0, 100, 200), thickness_hiden)
+        else:
+            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+                        0, 180, 360, (0, 100, 200), thickness)
+            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+                        0, 0, 180, (0, 100, 200), thickness)
+
+        # lower ellipse
+        cv2.ellipse(img, (center_down_u, center_down_v), axes_down,
+                    0, 180, 360, (0, 100, 200), thickness_hiden)
+        cv2.ellipse(img, (center_down_u, center_down_v),
+                    axes_down, 0, 0, 180, (0, 100, 200), thickness)
+
+        # cylinder lines
+        cv2.line(img, (self._no_trimmed_umin, center_up_v),
+                 (self._no_trimmed_umin, center_down_v), (0, 100, 200), thickness)
+        cv2.line(img, (self._no_trimmed_umax, center_up_v),
+                 (self._no_trimmed_umax, center_down_v), (0, 100, 200), thickness)
+
+        # view center
+        if axes_up[0] <= 0 or axes_up[1] <= 0:
+            axes_up_center = (20, 1)
+            axes_down_center = (20, 1)
+        else:
+            axes_up_center = (20, axes_up[1] * 20 / axes_up[0])
+            axes_down_center = (20, axes_down[1] * 20 / axes_down[0])
+
+        # upper center
+        cv2.ellipse(img, (self.center_u, min(center_up_v, self.center_v)),
+                    axes_up_center, 0, 0, 360, (0, 70, 120), -1)
+        # lower center
+        cv2.ellipse(img, (self.center_u, self.center_v),
+                    axes_down_center, 0, 0, 360, (0, 70, 120), -1)
+
+        return img
+
+    def _compute_roi(self):
+        # Load calibration values
+        fx = self.calibration_data.camera_matrix[0][0]
+        fy = self.calibration_data.camera_matrix[1][1]
+        cx = self.calibration_data.camera_matrix[0][2]
+        cy = self.calibration_data.camera_matrix[1][2]
+        n = self.calibration_data.laser_planes[index].normal
+        d = self.calibration_data.laser_planes[index].distance
+        R = np.matrix(self.calibration_data.platform_rotation).T
+        t = np.matrix(self.calibration_data.platform_translation).T
+
+        bottom = np.matrix(self._radious * self._circle_array)
+        top = bottom + np.matrix([0, 0, self._height]).T
+        data = np.concatenate((bottom, top), axis=1)
+
+        # Camera system
+        data = self.R * data + t
+
+        # Video system
+        u = fx * data[0] / data[2] + cx
+        v = fy * data[1] / data[2] + cy
+
+        _umin = int(round(np.min(u)))
+        _umax = int(round(np.max(u)))
+        _vmin = int(round(np.min(v)))
+        _vmax = int(round(np.max(v)))
+
+        self.center_u = _umin + (_umax - _umin) / 2
+        self.center_v = _vmin + (_vmax - _vmin) / 2
+
+        # Visualization
+        v_ = np.array(v.T)
+
+        # Lower cylinder base
+        a = v_[:(len(v_) / 2)]
+        # Upper cylinder base
+        b = v_[(len(v_) / 2):]
+
+        self._lower_vmin = int(round(np.max(a)))
+        self._lower_vmax = int(round(np.min(a)))
+        self._upper_vmin = int(round(np.min(b)))
+        self._upper_vmax = int(round(np.max(b)))
+
+        self._no_trimmed_umin = _umin
+        self._no_trimmed_umax = int(round(np.max(u)))
+        self._no_trimmed_vmin = int(round(np.min(v)))
+        self._no_trimmed_vmax = int(round(np.max(v)))
+
+        self._umin = max(_umin, 0)
+        self._umax = min(_umax, self.calibration_data.width)
+        self._vmin = max(_vmin, 0)
+        self._vmax = min(_vmax, self.calibration_data.height)
