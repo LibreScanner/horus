@@ -8,7 +8,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import cv2
 
 from horus import Singleton
-from horus.engine.driver.driver import Driver
 from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.calibration_result import CalibrationResult
 
@@ -17,7 +16,6 @@ from horus.engine.calibration.calibration_result import CalibrationResult
 class ImageDetection(object):
 
     def __init__(self):
-        self.driver = Driver()
         self.pattern = Pattern()
         self.calibration_result = CalibrationResult()
 
