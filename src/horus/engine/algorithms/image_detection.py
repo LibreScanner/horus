@@ -10,38 +10,7 @@ import cv2
 from horus import Singleton
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.pattern import Pattern
-from horus.engine.algorithms.laser_segmentation import LaserSegmentation
-
-
-class CameraSettings(object):
-
-    def __init__(self):
-        self.driver = Driver()
-        self._enable = False
-        self._brightness = 0
-        self._contrast = 0
-        self._saturation = 0
-        self._exposure = 0
-
-    def set_brightness(self, value):
-        self._brightness = value
-        if self._enable:
-            self.driver.camera.set_brightness(value)
-
-    def set_contrast(self, value):
-        self._contrast = value
-        if self._enable:
-            self.driver.camera.set_contrast(value)
-
-    def set_saturation(self, value):
-        self._saturation = value
-        if self._enable:
-            self.driver.camera.set_saturation(value)
-
-    def set_exposure(self, value):
-        self._exposure = value
-        if self._enable:
-            self.driver.camera.set_exposure(value)
+from horus.engine.calibration.calibration_result import CalibrationResult
 
 
 @Singleton
@@ -50,95 +19,58 @@ class ImageDetection(object):
     def __init__(self):
         self.driver = Driver()
         self.pattern = Pattern()
-        self.laser_segmentation = LaserSegmentation()
-        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+        self.calibration_result = CalibrationResult()
 
-        self.segmentation = False
-        self.pattern_mode = CameraSettings()
-        self.laser_mode = CameraSettings()
-        self.texture_mode = CameraSettings()
+        self._criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-        self._mode = self.pattern_mode
-        self._remove_background = True
-        self._updating = False
-
-    def set_pattern_mode(self):
-        self._set_mode(self.pattern_mode)
-
-    def set_laser_mode(self, segmentation=False):
-        self.segmentation = segmentation
-        self._set_mode(self.laser_mode)
-
-    def set_texture_mode(self):
-        self._set_mode(self.texture_mode)
-
-    def _set_mode(self, mode):
-        self._updating = True
-        self._mode._enable = False
-        self._mode = mode
-        self._mode._enable = True
-        self.driver.camera.set_brightness(self._mode._brightness)
-        self.driver.camera.set_contrast(self._mode._contrast)
-        self.driver.camera.set_saturation(self._mode._saturation)
-        self.driver.camera.set_exposure(self._mode._exposure)
-        self._updating = False
-
-    def set_remove_background(self, value):
-        self._remove_background = value
-
-    def capture(self):
-        # TODO: custom flush: detect system
-        image = None
-
-        if not self._updating:
-
-            if self._mode is self.pattern_mode:
-                self.driver.board.lasers_off()
-                image = self.driver.camera.capture_image(flush=0)
-                image = self.draw_chessboard(image)
-
-            elif self._mode is self.texture_mode:
-                self.driver.board.lasers_off()
-                image = self.driver.camera.capture_image(flush=0)
-
-            elif self._mode is self.laser_mode:
-                self.driver.board.lasers_on()
-                image = self.driver.camera.capture_image(flush=1)
-                if self.segmentation:
-                    image = self.laser_segmentation.obtain_red_channel(image)
-
-                if self._remove_background:
-                    self.driver.board.lasers_off()
-                    img_no_laser = self.driver.camera.capture_image(flush=1)
-                    if self.segmentation:
-                        img_no_laser = self.laser_segmentation.obtain_red_channel(img_no_laser)
-                    image = cv2.subtract(image, img_no_laser)
-
-                if self.segmentation:
-                    self.laser_segmentation.laser_segmentation(0, image)
-                    image = self.laser_segmentation.get_image('gray', 0)
-
+    def detect_pattern(self, image):
+        corners = self._detect_chessboard(image)
+        if corners is not None:
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            cv2.drawChessboardCorners(
+                image, (self.pattern.columns, self.pattern.rows), corners, True)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return image
 
-    def detect_chessboard(self, frame):
-        if self.pattern.rows <= 2 or self.pattern.columns <= 2:
-            return False, frame, None
-        if frame is not None:
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            ret, corners = cv2.findChessboardCorners(
-                gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
-            if ret:
-                cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
-            return ret, frame, corners
-        else:
-            return False, frame, None
+    def detect_corners(self, image):
+        corners = self._detect_chessboard(image)
+        return corners
 
-    def draw_chessboard(self, frame):
-        retval, frame, corners = self.detect_chessboard(frame)
-        if frame is not None:
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        cv2.drawChessboardCorners(
-            frame, (self.pattern.columns, self.pattern.rows), corners, retval)
-        if frame is not None:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        return frame
+    def detect_pose(self, image):
+        corners = self._detect_chessboard(image)
+        if corners is not None:
+            ret, rvecs, tvecs = cv2.solvePnP(
+                self.pattern.object_points, corners,
+                self.calibration_result.camera_matrix, self.calibration_result.distortion_vector)
+            if ret:
+                return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
+
+    def pattern_mask(self, image):
+        corners = self._detect_chessboard(image)
+        if corners is not None:
+            p1 = corners[0][0]
+            p2 = corners[self.pattern.columns - 1][0]
+            p3 = corners[self.pattern.columns * (self.pattern.rows - 1) - 1][0]
+            p4 = corners[self.pattern.columns * self.pattern.rows - 1][0]
+            p11 = min(p1[1], p2[1], p3[1], p4[1])
+            p12 = max(p1[1], p2[1], p3[1], p4[1])
+            p21 = min(p1[0], p2[0], p3[0], p4[0])
+            p22 = max(p1[0], p2[0], p3[0], p4[0])
+            d = max(corners[1][0][0] - corners[0][0][0],
+                    corners[1][0][1] - corners[0][0][1],
+                    corners[self.pattern.columns][0][1] - corners[0][0][1],
+                    corners[self.pattern.columns][0][0] - corners[0][0][0])
+            mask = np.zeros(image.shape[:2], np.uint8)
+            mask[p11 - d:p12 + d, p21 - d:p22 + d] = 255
+            image = cv2.bitwise_and(image, image, mask=mask)
+        return image
+
+    def _detect_chessboard(self, image):
+        if image is not None:
+            if self.pattern.rows > 2 or self.pattern.columns > 2:
+                gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                ret, corners = cv2.findChessboardCorners(
+                    gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
+                if ret:
+                    cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self._criteria)
+                return corners
