@@ -52,8 +52,8 @@ class Board(object):
         self._motor_speed = 0
         self._motor_acceleration = 0
         self._motor_direction = 1
-        self._laser_left_enabled = False
-        self._laser_right_enabled = False
+        self._laser_number = 2
+        self._laser_enabled = self._laser_number * [False]
         self._tries = 0  # Check if command fails
 
     def connect(self):
@@ -140,33 +140,23 @@ class Board(object):
         self._motor_position += self._motor_relative * self._motor_direction
         self.send_command("G1X{0}".format(self._motor_position), nonblocking, callback)
 
-    def laser_left_on(self):
-        if not self._laser_left_enabled:
-            self._send_command("M71T1")
-            self._laser_left_enabled = True
+    def laser_on(self, index):
+        if not self._laser_enabled[index]:
+            self._send_command("M71T"+str(index+1))
+            self._laser_enabled[index] = True
 
-    def laser_left_off(self):
-        if self._laser_left_enabled:
-            self._send_command("M70T1")
-            self._laser_left_enabled = False
-
-    def laser_right_on(self):
-        if not self._laser_right_enabled:
-            self._send_command("M71T2")
-            self._laser_right_enabled = True
-
-    def laser_right_off(self):
-        if self._laser_right_enabled:
-            self._send_command("M70T2")
-            self._laser_right_enabled = False
-
-    def lasers_off(self):
-        self.laser_left_off()
-        self.laser_right_off()
+    def laser_off(self, index):
+        if self._laser_enabled[index]:
+            self._send_command("M70T"+str(index+1))
+            self._laser_enabled[index] = False
 
     def lasers_on(self):
-        self.laser_left_on()
-        self.laser_right_on()
+        for i in xrange(self._laser_number):
+            self.laser_on(i)
+
+    def lasers_off(self):
+        for i in xrange(self._laser_number):
+            self.laser_off(i)
 
     def ldr_sensor(self, pin):
         value = self._send_command("M50T" + pin, read_lines=True).split("\n")[0]
