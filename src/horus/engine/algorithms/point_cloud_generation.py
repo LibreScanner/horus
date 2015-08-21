@@ -20,33 +20,37 @@ class PointCloudGeneration(object):
 
     def compute_point_cloud(self, theta, points_2d, index):
         # Load calibration values
-        fx = self.calibration_data.camera_matrix[0][0]
-        fy = self.calibration_data.camera_matrix[1][1]
-        cx = self.calibration_data.camera_matrix[0][2]
-        cy = self.calibration_data.camera_matrix[1][2]
-        n = self.calibration_data.laser_planes[index].normal
-        d = self.calibration_data.laser_planes[index].distance
         R = np.matrix(self.calibration_data.platform_rotation).T
         t = np.matrix(self.calibration_data.platform_translation).T
-
-        # Compute projection point
-        u, v = points2D
-        x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
-
-        # Compute laser intersection
-        Xc = d / np.dot(n, x) * x
-
         # Compute platform transformation
-        Xwo = R * Xc - R * t
-
+        Xwo = self.compute_platform_point_cloud(R, t)
         # Rotate to world coordinates
-        c = np.cos(theta)
-        s = np.sin(theta)
+        c, s = np.cos(theta), np.sin(theta)
         Rz = np.matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]])
         Xw = Rz * Xwo
-
         # Return point cloud
         if Xw.size > 0:
             return np.array(Xw)
         else:
             return None
+
+    def compute_platform_point_cloud(self, R, t):
+        # Load calibration values
+        n = self.calibration_data.laser_planes[index].normal
+        d = self.calibration_data.laser_planes[index].distance
+        # Camera system
+        Xc = self.compute_camera_point_cloud(points_2d, d, n)
+        # Compute platform transformation
+        return R * Xc - R * t
+
+    def compute_camera_point_cloud(self, points_2d, d, n):
+        # Load calibration values
+        fx = self.calibration_data.camera_matrix[0][0]
+        fy = self.calibration_data.camera_matrix[1][1]
+        cx = self.calibration_data.camera_matrix[0][2]
+        cy = self.calibration_data.camera_matrix[1][2]
+        # Compute projection point
+        u, v = points2D
+        x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
+        # Compute laser intersection
+        return d / np.dot(n, x) * x

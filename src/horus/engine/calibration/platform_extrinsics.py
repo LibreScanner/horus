@@ -35,7 +35,7 @@ class PlatformExtrinsics(MovingCalibration):
 
     def __init__(self):
         MovingCalibration.__init__(self)
-        self.image = None
+        self._estimated_t = [5, 90, 320]
 
     def _initialize(self):
         self.x = []
@@ -51,28 +51,23 @@ class PlatformExtrinsics(MovingCalibration):
 
     def _calibrate(self):
         t = None
-
         self.x = np.array(self.x)
         self.y = np.array(self.y)
         self.z = np.array(self.z)
-
         points = zip(self.x, self.y, self.z)
 
         if len(points) > 4:
-
             # Fitting a plane
             point, normal = self.fit_plane(points)
-
             if normal[1] > 0:
                 normal = -normal
-
             # Fitting a circle inside the plane
             center, R, circle = self.fit_circle(point, normal, points)
-
             # Get real origin
             t = center - self.pattern.distance * np.array(normal)
 
-        if self._is_calibrating and t is not None and np.linalg.norm(t - [5, 90, 320]) < 100:
+        if self._is_calibrating and t is not None and \
+           np.linalg.norm(t - self._estimated_t) < 100:
             response = (True, (R, t, center, point, normal, [self.x, self.y, self.z], circle))
         else:
             if self._is_calibrating:
@@ -86,17 +81,9 @@ class PlatformExtrinsics(MovingCalibration):
 
     def compute_pattern_position(self):
         point = None
-        """if system == 'Windows':
-            flush = 2
-        elif system == 'Darwin':
-            flush = 2
-        else:
-            flush = 1"""
-        flush = 1
-        image = self.driver.camera.capture_image(flush=flush)
+        image = self.image_capture.capture_pattern()
         if image is not None:
-            self.image = image
-            ret = self.solve_pnp(image)
+            ret = self.image_detect.detect_pose(image)
             if ret is not None:
                 # Compute point coordinates
                 rotation, origin, corners = ret

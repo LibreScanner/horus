@@ -43,8 +43,18 @@ class ImageDetection(object):
             if ret:
                 return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
-    def pattern_mask(self, image):
-        corners = self._detect_chessboard(image)
+    def detect_pattern_plane(self, image):
+        if image is not None:
+            ret = self.detect_pose(image)
+            if ret is not None:
+                R = ret[0]
+                t = ret[1].T[0]
+                c = ret[2]
+                n = R.T[2]
+                d = -np.dot(n, t)
+                return (d, n, c)
+
+    def pattern_mask(self, image, corners):
         if corners is not None:
             p1 = corners[0][0]
             p2 = corners[self.pattern.columns - 1][0]

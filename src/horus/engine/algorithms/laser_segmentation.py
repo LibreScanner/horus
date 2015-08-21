@@ -10,6 +10,7 @@ import numpy as np
 
 from horus import Singleton
 from horus.engine.calibration.calibration_data import CalibrationData
+from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 
 @Singleton
@@ -17,6 +18,7 @@ class LaserSegmentation(object):
 
     def __init__(self):
         self.calibration_data = CalibrationData()
+        self.point_cloud_roi = PointCloudROI()
 
         self._red_channel = 'R (RGB)'
         self._open_enable = False
@@ -39,12 +41,32 @@ class LaserSegmentation(object):
     def set_threshold_value(self, value):
         self.threshold_value = value
 
-    def compute_line_segmentation(self, image):
+    def compute_hough_lines(self, image):
+        if image is not None:
+            image = self._compute_line_segmentation(image)
+            lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+            #if lines is not None:
+                #rho, theta = lines[0][0]
+                ## Calculate coordinates
+                #u1 = rho / np.cos(theta)
+                #u2 = u1 - height * np.tan(theta)
+            return Lines
+
+    def compute_2d_points(self, image):
+        if image is not None:
+            image = self._compute_line_segmentation(image)
+            # Peak detection: center of mass
+            s = image.sum(axis=1)
+            v = np.where(s > 0)[0]
+            u = (self.calibration_data.weight_matrix * image).sum(axis=1)[v] / s[v]
+            return (u, v)
+
+    def _compute_line_segmentation(self, image):
         if image is not None:
             # Apply ROI mask
-            #image = self.apply_ROI_mask(image)
+            image = self.point_cloud_roi.mask_image(image)
             # Obtain red channel
-            image = self.obtain_red_channel(image)
+            image = self._obtain_red_channel(image)
             # Open image
             if self.open_enable:
                 kernel = cv2.getStructuringElement(
@@ -53,13 +75,9 @@ class LaserSegmentation(object):
             # Threshold image
             if self.threshold_enable:
                 image = cv2.threshold(image, self.threshold_value, 255.0, cv2.THRESH_TOZERO)[1]
-            # Peak detection: center of mass
-            s = image.sum(axis=1)
-            v = np.where(s > 0)[0]
-            u = (self.calibration_data.weight_matrix * image).sum(axis=1)[v] / s[v]
-            return (u, v)
+            return image
 
-    def obtain_red_channel(self, image):
+    def _obtain_red_channel(self, image):
         ret = None
         if self._channel == 'R (RGB)':
             ret = cv2.split(image)[0]

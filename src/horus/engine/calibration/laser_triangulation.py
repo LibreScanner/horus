@@ -37,87 +37,33 @@ class LaserTriangulation(MovingCalibration):
 
     def __init__(self):
         MovingCalibration.__init__(self)
-        self.image = None
-        self.threshold = 0
-        self.exposure_laser = 0
-        self.exposure_normal = 0
 
     def _initialize(self):
-        self._pcl = None
-        self._pcr = None
+        self._point_cloud = [None, None]
 
     def _capture(self, angle):
-        """if system == 'Windows':
-            flush = 2
-        elif system == 'Darwin':
-            flush = 2
-        else:
-            flush = 1"""
-        flush = 1
-
-        self.driver.camera.set_exposure(self.exposure_normal)
-        img_raw = self.driver.camera.capture_image(flush=flush)
-
-        ret = self.detect_pattern_plane(img_raw)
-
-        if ret is not None:
-            d, n, corners = ret
-
-            # Image laser acquisition
-            self.driver.camera.set_exposure(self.exposure_laser)
-
-            img_raw = self.driver.camera.capture_image(flush=flush)
-
-            self.driver.board.laser_left_on()
-            img_las_left = self.driver.camera.capture_image(flush=flush)
-            self.driver.board.laser_left_off()
-            self.image = img_las_left
-            if img_las_left is None:
-                return
-
-            self.driver.board.laser_right_on()
-            img_las_right = self.driver.camera.capture_image(flush=flush)
-            self.driver.board.laser_right_off()
-            self.image = img_las_right
-            if img_las_right is None:
-                return
-
-            # Pattern ROI mask
-            img_las_raw = self.corners_mask(img_raw, corners)
-            img_las_left = self.corners_mask(img_las_left, corners)
-            img_las_right = self.corners_mask(img_las_right, corners)
-
-            # Line segmentation
-            uL, vL = self.compute_laser_line(img_las_left, img_las_raw)
-            uR, vR = self.compute_laser_line(img_las_right, img_las_raw)
-
-            # Point Cloud generation
-            _pcl = self.compute_point_cloud(uL, vL, d, n)
-            if _pcl is not None:
-                if self._pcl is None:
-                    self._pcl = _pcl
+        image = self.image_capture.capture_pattern()
+        if image is not None:
+            d, n, corners = self.image_detect.detect_pattern_plane(image)
+            for i in xrange(2):
+                image = self.image_capture.capture_laser(i)
+                image = self.image_detect.pattern_mask(image, corners)
+                points_2d = self.laser_segmentation.compute_2d_points(image)
+                point_3d = self.point_cloud_generation.compute_camera_point_cloud(points_2d, d, n)
+                if self._point_cloud[i] is None:
+                    self._point_cloud[i] = point_3d
                 else:
-                    self._pcl = np.concatenate((self._pcl, _pcl))
-            _pcr = self.compute_point_cloud(uR, vR, d, n)
-            if _pcr is not None:
-                if self._pcr is None:
-                    self._pcr = _pcr
-                else:
-                    self._pcr = np.concatenate((self._pcr, _pcr))
-
-            self.image = img_raw
+                    self._point_cloud[i] = np.concatenate((self._point_cloud[i], point_3d))
 
     def _calibrate(self):
-        # Restore camera exposure
-        self.driver.camera.set_exposure(self.exposure_normal)
-
         # Save point clouds
-        #self.save_scene('PCL.ply', self._pcl)
-        #self.save_scene('PCR.ply', self._pcr)
+        #for i in xrange(2):
+        #    self.save_scene('PC'+str(i)+'.ply', self._point_cloud[i])
 
+        # TODO: use arrays
         # Compute planes
-        dL, nL, stdL = self.compute_plane(self._pcl, 'l')
-        dR, nR, stdR = self.compute_plane(self._pcr, 'r')
+        dL, nL, stdL = self.compute_plane(self._point_cloud[0])
+        dR, nR, stdR = self.compute_plane(self._point_cloud[1])
 
         if self._is_calibrating and nL is not None and nR is not None:
             response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
@@ -131,47 +77,7 @@ class LaserTriangulation(MovingCalibration):
 
         return response
 
-    def detect_pattern_plane(self, image):
-        if image is not None:
-            ret = self.solve_pnp(image)
-            if ret is not None:
-                R = ret[0]
-                t = ret[1].T[0]
-                n = R.T[2]
-                c = ret[2]
-                d = -np.dot(n, t)
-                return (d, n, c)
-
-    def compute_laser_line(self, img_las, img_raw):
-        # Image segmentation
-        sub = cv2.subtract(img_las, img_raw)
-        r, g, b = cv2.split(sub)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
-        r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
-        r = cv2.threshold(r, self.threshold, 255.0, cv2.THRESH_TOZERO)[1]
-
-        # Peak detection: center of mass
-        h, w = r.shape
-        W = np.array((np.matrix(np.linspace(0, w - 1, w)).T * np.matrix(np.ones(h))).T)
-        s = r.sum(axis=1)
-        v = np.where(s > 0)[0]
-        u = (W * r).sum(axis=1)[v] / s[v]
-
-        return u, v
-
-    def compute_point_cloud(self, u, v, d, n):
-        fx = self.driver.camera.camera_matrix[0][0]
-        fy = self.driver.camera.camera_matrix[1][1]
-        cx = self.driver.camera.camera_matrix[0][2]
-        cy = self.driver.camera.camera_matrix[1][2]
-
-        x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
-
-        X = -d / np.dot(n, x) * x
-
-        return X.T
-
-    def compute_plane(self, X, side):
+    def compute_plane(self, X):
         if X is not None:
             X = np.matrix(X).T
             n = X.shape[1]

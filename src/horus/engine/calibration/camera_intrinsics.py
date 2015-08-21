@@ -51,12 +51,23 @@ class CameraIntrinsics(Calibration):
         if self._after_callback is not None:
             self._after_callback(response)
 
+    def capture(self):
+        if self.driver.is_connected:
+            image = self.image_capture.capture_pattern()
+            corners = self.image_detection.detect_corners(image)
+            if corners is not None:
+                if len(self.object_points) < 15:
+                    self.image_points.append(corners)
+                    self.object_points.append(self.pattern.object_points)
+            return image
+
     def calibrate(self):
         error = 0
         ret, cmat, dvec, rvecs, tvecs = cv2.calibrateCamera(
             self.object_points, self.image_points, self.shape)
 
         if ret:
+            # Compute calibration error
             for i in xrange(len(self.object_points)):
                 imgpoints2, _ = cv2.projectPoints(
                     self.object_points[i], rvecs[i], tvecs[i], cmat, dvec)
@@ -68,21 +79,14 @@ class CameraIntrinsics(Calibration):
     def reset(self):
         self.image_points = []
         self.object_points = []
-        self._camera_use_distortion = self.driver.camera.use_distortion
-        self.driver.camera.set_use_distortion(False)
-
-    def capture(self):
-        if self.driver.is_connected:
-            frame = self.driver.camera.capture_image(flush=1)
-            if frame is not None:
-                self.shape = frame.shape[:2]
-                retval, frame, corners = self.draw_chessboard(frame)
-                if retval:
-                    if len(self.object_points) < 15:
-                        self.image_points.append(corners)
-                        self.object_points.append(self.pattern.object_points)
-                return retval, frame
+        self._use_distortion = self.image.use_distortion
+        self.image_capture.set_use_distortion(False)
 
     def accept(self):
-        self.driver.camera.camera_matrix = self.camera_matrix
-        self.driver.camera.distortion_vector = self.distortion_vector
+        self.image_capture.set_use_distortion(self._use_distortion)
+        self.calibration_data.camera_matrix = self.camera_matrix
+        self.calibration_data.distortion_vector = self.distortion_vector
+
+    def cancel(self):
+        super(CameraIntrinsics, self).cancel()
+        self.image_capture.set_use_distortion(self._use_distortion)

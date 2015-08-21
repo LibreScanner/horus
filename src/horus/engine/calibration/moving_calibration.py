@@ -47,8 +47,6 @@ class MovingCalibration(Calibration):
             self.driver.board.motor_relative(-90)
             self.driver.board.motor_move()
 
-            self.image = None
-
             if self._progress_callback is not None:
                 self._progress_callback(0)
 
@@ -63,8 +61,6 @@ class MovingCalibration(Calibration):
                 self.driver.board.motor_relative(self.step)
                 self.driver.board.motor_move()
                 time.sleep(0.1)
-
-            self.image = None
 
             # Move to origin
             self.driver.board.motor_relative(90-angle)

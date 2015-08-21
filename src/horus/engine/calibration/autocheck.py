@@ -48,13 +48,11 @@ class Autocheck(Calibration):
 
     def __init__(self):
         Calibration.__init__(self)
-        self.image = None
 
     def _start(self):
         if self.driver.is_connected:
 
             response = None
-            self.image = None
 
             # Setup scanner
             self.driver.board.lasers_off()
@@ -68,7 +66,6 @@ class Autocheck(Calibration):
             except Exception as e:
                 response = e
             finally:
-                self.image = None
                 self._is_calibrating = False
                 self.driver.board.lasers_off()
                 self.driver.board.motor_disable()
@@ -91,11 +88,10 @@ class Autocheck(Calibration):
 
         # Capture data
         for i in xrange(0, 360, scan_step):
-            image = self.driver.camera.capture_image(flush=1)
-            self.image = image
-            ret = self.solve_pnp(image)
-            if ret is not None:
-                patterns_detected[i] = ret[0].T[2][0]
+            image = self.image_capture.capture_pattern()
+            pose = self.image_detection.detect_pose(image)
+            if pose is not None:
+                patterns_detected[i] = pose[0].T[2][0]
             if self._progress_callback is not None:
                 self._progress_callback(i / 3.6)
             self.driver.board.motor_relative(scan_step)
@@ -130,45 +126,9 @@ class Autocheck(Calibration):
         self.driver.board.motor_move()
 
     def check_lasers(self):
-        img_raw = self.driver.camera.capture_image(flush=1)
-        if img_raw is not None:
-            ret = self.solve_pnp(img_raw)
-            if ret is not None:
-                self.driver.board.laser_left_on()
-                img_las_left = self.driver.camera.capture_image(flush=1)
-                self.driver.board.laser_left_off()
-                self.driver.board.laser_right_on()
-                img_las_right = self.driver.camera.capture_image(flush=1)
-                self.driver.board.laser_right_off()
-                if img_las_left is not None and img_las_right is not None:
-                    corners = ret[2]
-
-                    # Corners ROI mask
-                    img_las_left = self.corners_mask(img_las_left, corners)
-                    img_las_right = self.corners_mask(img_las_right, corners)
-
-                    # Obtain Lines
-                    self.detect_line(img_raw, img_las_left)
-                    self.detect_line(img_raw, img_las_right)
-            else:
-                raise PatternNotDetected
-
-    def detect_line(self, img_raw, img_las):
-        height, width, depth = img_raw.shape
-        img_line = np.zeros((height, width, depth), np.uint8)
-        diff = cv2.subtract(img_las, img_raw)
-        r, g, b = cv2.split(diff)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-        r = cv2.morphologyEx(r, cv2.MORPH_OPEN, kernel)
-        edges = cv2.threshold(r, 20.0, 255.0, cv2.THRESH_BINARY)[1]
-        lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
-
-        if lines is not None:
-            rho, theta = lines[0][0]
-            # Calculate coordinates
-            u1 = rho / np.cos(theta)
-            u2 = u1 - height * np.tan(theta)
-            # TODO: use u1, u2
-            #       WrongLaserPosition
-        else:
-            raise LaserNotDetected
+        for i in xrange(2):
+            image = self.image_capture.capture_laser(i)
+            image = self.image_detection.pattern_mask(image)
+            lines = self.laser_segmentation.compute_hough_lines(image)
+            if lines is None:
+                raise LaserNotDetected

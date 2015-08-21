@@ -35,8 +35,10 @@ class CalibrationData(object):
         self.platform_translation = None
 
     def set_resolution(self, width, height):
-        self.width = width
-        self.height = height
+        if self.width != width or self.height != height:
+            self.width = width
+            self.height = height
+            self._compute_weight_matrix()
 
     @property
     def camera_matrix(self):
@@ -44,9 +46,10 @@ class CalibrationData(object):
 
     @camera_matrix.setter
     def camera_matrix(self, value):
-        self._camera_matrix = value
-        self._compute_dist_camera_matrix()
-        self._compute_weight_matrix()
+        if self._camera_matrix != value:
+            self._camera_matrix = value
+            self._compute_dist_camera_matrix()
+            
 
     @property
     def distortion_vector(self):
@@ -54,9 +57,9 @@ class CalibrationData(object):
 
     @distortion_vector.setter
     def distortion_vector(self, value):
-        self._distortion_vector = value
-        self._compute_dist_camera_matrix()
-        self._compute_weight_matrix()
+        if self._distortion_vector != value:
+            self._distortion_vector = value
+            self._compute_dist_camera_matrix()
 
     @property
     def roi(self):
