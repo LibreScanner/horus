@@ -64,6 +64,10 @@ class ControlWorkbench(WorkbenchConnection):
         if status:
             if self.IsShown():
                 self.videoView.play()
+                self.controls.panels['laser_control'].section.items[
+                    'left_button'].control.SetValue(False)
+                self.controls.panels['laser_control'].section.items[
+                    'right_button'].control.SetValue(False)
             self.controls.enableContent()
         else:
             self.videoView.stop()

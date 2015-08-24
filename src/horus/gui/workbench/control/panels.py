@@ -73,17 +73,15 @@ class LaserControl(ExpandablePanel):
         self.driver = Driver()
 
         self.clearSections()
-        section = self.createSection('laser_control')
-        section.addItem(ToggleButton, 'left_button')
-        section.addItem(ToggleButton, 'right_button')
+        self.section = self.createSection('laser_control')
+        self.section.addItem(ToggleButton, 'left_button')
+        self.section.addItem(ToggleButton, 'right_button')
 
     def updateCallbacks(self):
-        section = self.sections['laser_control']
-
-        section.updateCallback(
+        self.section.updateCallback(
             'left_button', (lambda i=0: self.driver.board.laser_on(i),
                             lambda i=0: self.driver.board.laser_off(i)))
-        section.updateCallback(
+        self.section.updateCallback(
             'right_button', (lambda i=1: self.driver.board.laser_on(i),
                              lambda i=1: self.driver.board.laser_off(i)))
 
