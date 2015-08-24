@@ -120,54 +120,56 @@ class PointCloudROI(object):
         return img
 
     def _compute_roi(self):
-        # Load calibration values
-        fx = self.calibration_data.camera_matrix[0][0]
-        fy = self.calibration_data.camera_matrix[1][1]
-        cx = self.calibration_data.camera_matrix[0][2]
-        cy = self.calibration_data.camera_matrix[1][2]
-        n = self.calibration_data.laser_planes[index].normal
-        d = self.calibration_data.laser_planes[index].distance
-        R = np.matrix(self.calibration_data.platform_rotation).T
-        t = np.matrix(self.calibration_data.platform_translation).T
+        if self.calibration_data.camera_matrix is not None and \
+           self.calibration_data.distortion_vector is not None:
+            # Load calibration values
+            fx = self.calibration_data.camera_matrix[0][0]
+            fy = self.calibration_data.camera_matrix[1][1]
+            cx = self.calibration_data.camera_matrix[0][2]
+            cy = self.calibration_data.camera_matrix[1][2]
+            n = self.calibration_data.laser_planes[index].normal
+            d = self.calibration_data.laser_planes[index].distance
+            R = np.matrix(self.calibration_data.platform_rotation).T
+            t = np.matrix(self.calibration_data.platform_translation).T
 
-        bottom = np.matrix(self._radious * self._circle_array)
-        top = bottom + np.matrix([0, 0, self._height]).T
-        data = np.concatenate((bottom, top), axis=1)
+            bottom = np.matrix(self._radious * self._circle_array)
+            top = bottom + np.matrix([0, 0, self._height]).T
+            data = np.concatenate((bottom, top), axis=1)
 
-        # Camera system
-        data = self.R * data + t
+            # Camera system
+            data = self.R * data + t
 
-        # Video system
-        u = fx * data[0] / data[2] + cx
-        v = fy * data[1] / data[2] + cy
+            # Video system
+            u = fx * data[0] / data[2] + cx
+            v = fy * data[1] / data[2] + cy
 
-        _umin = int(round(np.min(u)))
-        _umax = int(round(np.max(u)))
-        _vmin = int(round(np.min(v)))
-        _vmax = int(round(np.max(v)))
+            _umin = int(round(np.min(u)))
+            _umax = int(round(np.max(u)))
+            _vmin = int(round(np.min(v)))
+            _vmax = int(round(np.max(v)))
 
-        self.center_u = _umin + (_umax - _umin) / 2
-        self.center_v = _vmin + (_vmax - _vmin) / 2
+            self.center_u = _umin + (_umax - _umin) / 2
+            self.center_v = _vmin + (_vmax - _vmin) / 2
 
-        # Visualization
-        v_ = np.array(v.T)
+            # Visualization
+            v_ = np.array(v.T)
 
-        # Lower cylinder base
-        a = v_[:(len(v_) / 2)]
-        # Upper cylinder base
-        b = v_[(len(v_) / 2):]
+            # Lower cylinder base
+            a = v_[:(len(v_) / 2)]
+            # Upper cylinder base
+            b = v_[(len(v_) / 2):]
 
-        self._lower_vmin = int(round(np.max(a)))
-        self._lower_vmax = int(round(np.min(a)))
-        self._upper_vmin = int(round(np.min(b)))
-        self._upper_vmax = int(round(np.max(b)))
+            self._lower_vmin = int(round(np.max(a)))
+            self._lower_vmax = int(round(np.min(a)))
+            self._upper_vmin = int(round(np.min(b)))
+            self._upper_vmax = int(round(np.max(b)))
 
-        self._no_trimmed_umin = _umin
-        self._no_trimmed_umax = int(round(np.max(u)))
-        self._no_trimmed_vmin = int(round(np.min(v)))
-        self._no_trimmed_vmax = int(round(np.max(v)))
+            self._no_trimmed_umin = _umin
+            self._no_trimmed_umax = int(round(np.max(u)))
+            self._no_trimmed_vmin = int(round(np.min(v)))
+            self._no_trimmed_vmax = int(round(np.max(v)))
 
-        self._umin = max(_umin, 0)
-        self._umax = min(_umax, self.calibration_data.width)
-        self._vmin = max(_vmin, 0)
-        self._vmax = min(_vmax, self.calibration_data.height)
+            self._umin = max(_umin, 0)
+            self._umax = min(_umax, self.calibration_data.width)
+            self._vmin = max(_vmin, 0)
+            self._vmax = min(_vmax, self.calibration_data.height)

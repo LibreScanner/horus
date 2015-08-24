@@ -9,7 +9,7 @@ import cv2
 
 from horus import Singleton
 from horus.engine.driver.driver import Driver
-from horus.engine.calibration.calibration_result import CalibrationResult
+from horus.engine.calibration.calibration_data import CalibrationData
 
 
 class CameraSettings(object):
@@ -24,22 +24,22 @@ class CameraSettings(object):
 
     def set_brightness(self, value):
         self._brightness = value
-        if selected:
+        if self.selected:
             self.driver.camera.set_brightness(value)
 
     def set_contrast(self, value):
         self._contrast = value
-        if selected:
+        if self.selected:
             self.driver.camera.set_contrast(value)
 
     def set_saturation(self, value):
         self._saturation = value
-        if selected:
+        if self.selected:
             self.driver.camera.set_saturation(value)
 
     def set_exposure(self, value):
         self._exposure = value
-        if selected:
+        if self.selected:
             self.driver.camera.set_exposure(value)
 
     def send_all_settings(self):
@@ -54,7 +54,7 @@ class ImageCapture(object):
 
     def __init__(self):
         self.driver = Driver()
-        self.calibration_result = CalibrationResult()
+        self.calibration_data = CalibrationData()
 
         self.pattern_mode = CameraSettings()
         self.laser_mode = CameraSettings()
@@ -84,13 +84,13 @@ class ImageCapture(object):
             self._mode.send_all_settings()
             self._updating = False
 
-    def capture_texture():
+    def capture_texture(self):
         self._set_mode(self.texture_mode)
         self.driver.board.lasers_off()
         image = self._capture_image(flush=self._flush_texture)
         return image
 
-    def capture_laser(index):
+    def capture_laser(self, index):
         self._set_mode(self.laser_mode)
         self.driver.board.lasers_off()
         self.driver.board.laser_on(index)
@@ -102,26 +102,38 @@ class ImageCapture(object):
                 image = cv2.subtract(image, image_background)
         return image
 
-    def capture_pattern():
-        self._set_mode(self.pattern_mode)
-        self.driver.board.lasers_off()
-        image = self._capture_image(flush=self._flush_pattern)
+    def capture_lasers(self):
+        self._set_mode(self.laser_mode)
+        self.driver.board.lasers_on()
+        image = self._capture_image(flush=self._flush_laser)
+        if self._remove_background:
+            self.driver.board.lasers_off()
+            image_background = self.capture_image(flush=self._flush_laser)
+            if image is not None and image_background is not None:
+                image = cv2.subtract(image, image_background)
         return image
 
-    def _capture_image(self, flush=0):
-        image = None
-        if not self._updating:
-            image = self.driver.camera.capture_image(flush=0)
-            if self._use_distortion:
-                if self.calibration_result.camera_matrix is not None and \
-                   self.calibration_result.distortion_vector is not None and \
-                   self.calibration_result.dist_camera_matrix is not None and \
-                   self.calibration_result.roi is not None:
-                    image = cv2.undistort(image,
-                                          self.calibration_result.camera_matrix,
-                                          self.calibration_result.distortion_vector,
-                                          None,
-                                          self.calibration_result.dist_camera_matrix)
-                    x, y, w, h = self.calibration_result.roi
-                    image = image[y:y + h, x:x + w]
+    def capture_pattern(self):
+        self._set_mode(self.pattern_mode)
+        self.driver.board.lasers_off()
+        image = self.capture_image(flush=self._flush_pattern)
+        return image
+
+    def capture_image(self, flush=0):
+        #image = None
+        #while not self._updating:
+        #    pass
+        image = self.driver.camera.capture_image(flush=flush)
+        if self._use_distortion:
+            if self.calibration_data.camera_matrix is not None and \
+               self.calibration_data.distortion_vector is not None and \
+               self.calibration_data.dist_camera_matrix is not None and \
+               self.calibration_data.roi is not None:
+                image = cv2.undistort(image,
+                                      self.calibration_data.camera_matrix,
+                                      self.calibration_data.distortion_vector,
+                                      None,
+                                      self.calibration_data.dist_camera_matrix)
+                x, y, w, h = self.calibration_data.roi
+                image = image[y:y + h, x:x + w]
         return image

@@ -29,7 +29,7 @@ class ImageView(wx.Panel):
         if resize:
             self.Bind(wx.EVT_SIZE, self.onResize)
 
-        self.hide = True
+        self.hide = False
 
     def onShow(self, event):
         if event.GetShow():

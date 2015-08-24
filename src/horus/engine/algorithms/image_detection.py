@@ -9,7 +9,6 @@ import cv2
 
 from horus import Singleton
 from horus.engine.calibration.pattern import Pattern
-from horus.engine.calibration.calibration_result import CalibrationResult
 
 
 @Singleton
@@ -17,7 +16,6 @@ class ImageDetection(object):
 
     def __init__(self):
         self.pattern = Pattern()
-        self.calibration_result = CalibrationResult()
 
         self._criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
@@ -39,7 +37,7 @@ class ImageDetection(object):
         if corners is not None:
             ret, rvecs, tvecs = cv2.solvePnP(
                 self.pattern.object_points, corners,
-                self.calibration_result.camera_matrix, self.calibration_result.distortion_vector)
+                self.calibration_data.camera_matrix, self.calibration_data.distortion_vector)
             if ret:
                 return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
 

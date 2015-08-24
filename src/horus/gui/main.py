@@ -25,10 +25,13 @@ from horus.gui.util.versionWindow import VersionWindow
 from horus.engine.driver.driver import Driver
 from horus.engine.scan.ciclop_scan import CiclopScan
 from horus.engine.calibration.pattern import Pattern
+from horus.engine.calibration.calibration_data import CalibrationData
 from horus.engine.calibration.laser_triangulation import LaserTriangulation
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
+from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms.laser_segmentation import LaserSegmentation
 from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
+from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 from horus.util import profile, resources, meshLoader, version, system as sys
 
@@ -38,10 +41,13 @@ if sys.isDarwin():
 driver = Driver()
 ciclop_scan = CiclopScan()
 pattern = Pattern()
+calibration_data = CalibrationData()
 laser_triangulation = LaserTriangulation()
 platform_extrinsics = PlatformExtrinsics()
+image_detection = ImageDetection()
 laser_segmentation = LaserSegmentation()
 point_cloud_generation = PointCloudGeneration()
+point_cloud_roi = PointCloudROI()
 
 
 class MainWindow(wx.Frame):
@@ -50,7 +56,7 @@ class MainWindow(wx.Frame):
 
     def __init__(self):
         super(MainWindow, self).__init__(
-            None, title=_("Horus 0.2"), size=self.size)
+            None, title=_("Horus 0.2 BETA"), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -603,10 +609,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         #ciclop_scan.exposure_texture = profile.getProfileSettingInteger('exposure_texture_scanning')
         #ciclop_scan.exposure_laser = profile.getProfileSettingInteger('exposure_laser_scanning')
 
-        point_cloud_generation.resetTheta()
-        point_cloud_generation.setViewROI(profile.getProfileSettingBool('roi_view'))
-        point_cloud_generation.setROIDiameter(profile.getProfileSettingInteger('roi_diameter'))
-        point_cloud_generation.setROIHeight(profile.getProfileSettingInteger('roi_height'))
+        #point_cloud_roi.set_roi_view(profile.getProfileSettingBool('roi_view'))
+        point_cloud_roi.set_diameter(profile.getProfileSettingInteger('roi_diameter'))
+        point_cloud_roi.set_height(profile.getProfileSettingInteger('roi_height'))
 
         laser_segmentation.open_enable = profile.getProfileSettingBool('open_enable')
         laser_segmentation.open_value = profile.getProfileSettingInteger('open_value')
@@ -625,7 +630,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         driver.camera.set_frame_rate(int(profile.getProfileSetting('frame_rate')))
         resolution = profile.getProfileSetting('resolution').split('x')
         driver.camera.set_resolution(int(resolution[0]), int(resolution[1]))
-        driver.camera.set_use_distortion(profile.getProfileSettingBool('use_distortion'))
+        calibration_data.width = int(resolution[0])
+        calibration_data.height = int(resolution[1])
+        calibration_data.use_distortion = profile.getProfileSettingBool('use_distortion')
 
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.getPreference('workbench')

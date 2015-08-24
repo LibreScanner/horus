@@ -12,12 +12,18 @@ from horus.util import resources
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.control.panels import CameraControl, LaserControl, LDRControl, MotorControl, GcodeControl
+from horus.gui.workbench.control.panels import CameraControl, LaserControl, \
+    LDRControl, MotorControl, GcodeControl
+
+from horus.engine.algorithms.image_capture import ImageCapture
+
 
 class ControlWorkbench(WorkbenchConnection):
 
     def __init__(self, parent):
         WorkbenchConnection.__init__(self, parent)
+
+        self.image_capture = ImageCapture()
 
         # Elements
         self.toolbar.Realize()
@@ -33,7 +39,7 @@ class ControlWorkbench(WorkbenchConnection):
         self.controls.addPanel('motor_control', MotorControl(self.controls))
         self.controls.addPanel('gcode_control', GcodeControl(self.controls))
 
-        self.videoView = VideoView(self._panel, self.getFrame, 10)
+        self.videoView = VideoView(self._panel, self.get_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Layout
@@ -51,8 +57,8 @@ class ControlWorkbench(WorkbenchConnection):
     def updateCallbacks(self):
         self.controls.updateCallbacks()
 
-    def getFrame(self):
-        return self.driver.camera.capture_image()
+    def get_image(self):
+        return self.image_capture.capture_image()
 
     def updateToolbarStatus(self, status):
         if status:
