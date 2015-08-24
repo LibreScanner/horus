@@ -28,6 +28,7 @@ from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.calibration_data import CalibrationData
 from horus.engine.calibration.laser_triangulation import LaserTriangulation
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
+from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms.laser_segmentation import LaserSegmentation
 from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
@@ -44,6 +45,7 @@ pattern = Pattern()
 calibration_data = CalibrationData()
 laser_triangulation = LaserTriangulation()
 platform_extrinsics = PlatformExtrinsics()
+image_capture = ImageCapture
 image_detection = ImageDetection()
 laser_segmentation = LaserSegmentation()
 point_cloud_generation = PointCloudGeneration()
@@ -516,7 +518,6 @@ Suite 330, Boston, MA  02111-1307  USA""")
         dlg.Destroy()
 
     def updateProfileToAllControls(self):
-        """ """
         # if profile.getPreferenceBool('basic_mode'):
         #     self.menuBasicMode.Check(True)
         # else:
@@ -623,15 +624,14 @@ Suite 330, Boston, MA  02111-1307  USA""")
         pattern.columns = profile.getProfileSettingInteger('pattern_columns')
         pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
         pattern.distance = profile.getProfileSettingFloat('pattern_origin_distance')
-        driver.camera.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
-        driver.camera.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
+        calibration_data.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
+        calibration_data.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
 
     def updateDriver(self):
         driver.camera.set_frame_rate(int(profile.getProfileSetting('frame_rate')))
         resolution = profile.getProfileSetting('resolution').split('x')
         driver.camera.set_resolution(int(resolution[0]), int(resolution[1]))
-        calibration_data.width = int(resolution[0])
-        calibration_data.height = int(resolution[1])
+        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
         calibration_data.use_distortion = profile.getProfileSettingBool('use_distortion')
 
     def workbenchUpdate(self, layout=True):

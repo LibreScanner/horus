@@ -34,22 +34,32 @@ class PlatformExtrinsics(MovingCalibration):
     """
 
     def __init__(self):
+        self.image = None
+        self.has_image = False
         MovingCalibration.__init__(self)
         self._estimated_t = [5, 90, 320]
 
     def _initialize(self):
+        self.image = None
+        self.has_image = False
         self.x = []
         self.y = []
         self.z = []
 
     def _capture(self, angle):
+        self.image_capture._flush_pattern = 1
         t = self.compute_pattern_position()
-        if t is not None:
+        if t is None:
+            self.has_image = False
+        else:
+            self.has_image = True
             self.x += [t[0][0]]
             self.y += [t[1][0]]
             self.z += [t[2][0]]
 
     def _calibrate(self):
+        self.has_image = False
+        self.image_capture._flush_pattern = 0
         t = None
         self.x = np.array(self.x)
         self.y = np.array(self.y)
@@ -82,14 +92,16 @@ class PlatformExtrinsics(MovingCalibration):
     def compute_pattern_position(self):
         point = None
         image = self.image_capture.capture_pattern()
-        if image is not None:
-            ret = self.image_detect.detect_pose(image)
-            if ret is not None:
-                # Compute point coordinates
-                rotation, origin, corners = ret
-                dist = (self.pattern.rows - 1) * self.pattern.square_width
-                point = origin + np.matrix(rotation) * np.matrix([[0], [dist], [0]])
-                point = np.array(point)
+        pose = self.image_detection.detect_pose(image)
+        if pose is not None:
+            # Compute point coordinates
+            rotation, origin, corners = pose
+            self.image = self.image_detection.draw_pattern(image, corners)
+            dist = (self.pattern.rows - 1) * self.pattern.square_width
+            point = origin + np.matrix(rotation) * np.matrix([[0], [dist], [0]])
+            point = np.array(point)
+        else:
+            self.image = image
         return point
 
     def distance2plane(self, p0, n0, p):

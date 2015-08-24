@@ -13,13 +13,13 @@ from horus.gui.util.customPanels import ExpandablePanel, Slider, CheckBox, Butto
 from horus.util import profile, system as sys
 from horus.gui.util.resolutionWindow import ResolutionWindow
 
-from horus.engine.driver.driver import Driver
 from horus.engine.scan.ciclop_scan import CiclopScan
 from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
+from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
-driver = Driver()
 ciclop_scan = CiclopScan()
 point_cloud_generation = PointCloudGeneration()
+point_cloud_roi = PointCloudROI()
 
 
 class ScanParameters(ExpandablePanel):
@@ -93,12 +93,12 @@ class PointCloudROI(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['point_cloud_roi']
-        section.updateCallback('roi_view', lambda v: (
-            point_cloud_generation.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
+        #section.updateCallback('roi_view', lambda v: (
+        #    point_cloud_roi.set_roi_view(bool(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_diameter', lambda v: (
-            point_cloud_generation.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
+            point_cloud_roi.set_diameter(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_height', lambda v: (
-            point_cloud_generation.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
+            point_cloud_roi.set_height(int(v)), self.main.sceneView.QueueRefresh()))
 
 
 class PointCloudColor(ExpandablePanel):
@@ -119,12 +119,12 @@ class PointCloudColor(ExpandablePanel):
 
     def onColorPicker(self):
         data = wx.ColourData()
-        # data.SetColour(self.simpleScan.color)
+        data.SetColour(point_cloud_generation.color)
         dialog = wx.ColourDialog(self, data)
         dialog.GetColourData().SetChooseFull(True)
         if dialog.ShowModal() == wx.ID_OK:
             data = dialog.GetColourData()
             color = data.GetColour().Get()
-            # self.simpleScan.setColor(color)
+            point_cloud_generation.set_point_cloud_color(color)
             profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
         dialog.Destroy()

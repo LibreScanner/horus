@@ -8,6 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 import numpy as np
 
+from horus.gui.workbench.calibration.current_video import CurrentVideo
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
     CheckBox, ToggleButton, Button, TextBox
 from horus.gui.util.resolutionWindow import ResolutionWindow
@@ -16,80 +17,99 @@ from horus.util import profile, system as sys
 
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.pattern import Pattern
+from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms.laser_segmentation import LaserSegmentation
 from horus.engine.calibration.autocheck import Autocheck, PatternNotDetected, \
     WrongMotorDirection, LaserNotDetected
 
+
 driver = Driver()
 pattern = Pattern()
+image_capture = ImageCapture()
 image_detection = ImageDetection()
 laser_segmentation = LaserSegmentation()
+current_video = CurrentVideo()
 
 
 class ImageDetectionPanel(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Image detection"), callback=self.callback)
+        ExpandablePanel.__init__(self, parent, _("Image capture"), callback=self.callback)
 
         self.clearSections()
-        section = self.createSection('camera_calibration')
-        section.addItem(ComboBox, 'video_mode')
+        section = self.createSection('image_capture')
+        section.addItem(ComboBox, 'capture_mode')
 
         section = self.createSection('pattern_mode')
         section.addItem(Slider, 'brightness_pattern', tooltip=_(
-            'Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+            "Image luminosity. Low values are better for environments with high "
+            "ambient light conditions. High values are recommended for poorly lit places"))
         section.addItem(Slider, 'contrast_pattern', tooltip=_(
-            'Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+            "Relative difference in intensity between an image point and its surroundings. "
+            "Low values are recommended for black or very dark colored objects. "
+            "High values are better for very light colored objects"))
         section.addItem(Slider, 'saturation_pattern', tooltip=_(
-            'Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
+            "Purity of color. Low values will cause colors to disappear from the image. "
+            "High values will show an image with very intense colors"))
         section.addItem(Slider, 'exposure_pattern', tooltip=_(
-            'Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+            "Amount of light per unit area. It is controlled by the time the camera sensor is "
+            "exposed during a frame capture. High values are recommended for poorly lit places"))
 
         section = self.createSection('laser_mode')
         section.addItem(Slider, 'brightness_laser', tooltip=_(
-            'Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+            "Image luminosity. Low values are better for environments with high "
+            "ambient light conditions. High values are recommended for poorly lit places"))
         section.addItem(Slider, 'contrast_laser', tooltip=_(
-            'Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+            "Relative difference in intensity between an image point and its surroundings. "
+            "Low values are recommended for black or very dark colored objects. "
+            "High values are better for very light colored objects"))
         section.addItem(Slider, 'saturation_laser', tooltip=_(
-            'Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
+            "Purity of color. Low values will cause colors to disappear from the image. "
+            "High values will show an image with very intense colors"))
         section.addItem(Slider, 'exposure_laser', tooltip=_(
-            'Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+            "Amount of light per unit area. It is controlled by the time the camera sensor is "
+            "exposed during a frame capture. High values are recommended for poorly lit places"))
         section.addItem(CheckBox, 'remove_background')
 
         section = self.createSection('texture_mode')
         section.addItem(Slider, 'brightness_texture', tooltip=_(
-            'Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
+            "Image luminosity. Low values are better for environments with high "
+            "ambient light conditions. High values are recommended for poorly lit places"))
         section.addItem(Slider, 'contrast_texture', tooltip=_(
-            'Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
+            "Relative difference in intensity between an image point and its surroundings. "
+            "Low values are recommended for black or very dark colored objects. "
+            "High values are better for very light colored objects"))
         section.addItem(Slider, 'saturation_texture', tooltip=_(
-            'Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
+            "Purity of color. Low values will cause colors to disappear from the image. "
+            "High values will show an image with very intense colors"))
         section.addItem(Slider, 'exposure_texture', tooltip=_(
-            'Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
+            "Amount of light per unit area. It is controlled by the time the camera sensor is "
+            "exposed during a frame capture. High values are recommended for poorly lit places"))
 
     def callback(self):
-        self.setCameraMode(profile.getProfileSetting('video_mode'))
+        self.setCameraMode(profile.getProfileSetting('capture_mode'))
 
     def updateCallbacks(self):
-        section = self.sections['camera_calibration']
-        section.updateCallback('video_mode', lambda v: self.setCameraMode(v))
+        section = self.sections['image_capture']
+        section.updateCallback('capture_mode', lambda v: self.setCameraMode(v))
 
-        mode = image_detection.pattern_mode
+        mode = image_capture.pattern_mode
         section = self.sections['pattern_mode']
         section.updateCallback('brightness_pattern', mode.set_brightness)
         section.updateCallback('contrast_pattern', mode.set_contrast)
         section.updateCallback('saturation_pattern', mode.set_saturation)
         section.updateCallback('exposure_pattern', mode.set_exposure)
 
-        mode = image_detection.laser_mode
+        mode = image_capture.laser_mode
         section = self.sections['laser_mode']
         section.updateCallback('brightness_laser', mode.set_brightness)
         section.updateCallback('contrast_laser', mode.set_contrast)
         section.updateCallback('saturation_laser', mode.set_saturation)
         section.updateCallback('exposure_laser', mode.set_exposure)
-        section.updateCallback('remove_background', image_detection.set_remove_background)
+        section.updateCallback('remove_background', image_capture.set_remove_background)
 
-        mode = image_detection.texture_mode
+        mode = image_capture.texture_mode
         section = self.sections['texture_mode']
         section.updateCallback('brightness_texture', mode.set_brightness)
         section.updateCallback('contrast_texture', mode.set_contrast)
@@ -101,17 +121,15 @@ class ImageDetectionPanel(ExpandablePanel):
             self.sections['pattern_mode'].Show()
             self.sections['laser_mode'].Hide()
             self.sections['texture_mode'].Hide()
-            image_detection.set_pattern_mode()
         elif mode == 'Laser':
             self.sections['pattern_mode'].Hide()
             self.sections['laser_mode'].Show()
             self.sections['texture_mode'].Hide()
-            image_detection.set_laser_mode()
         elif mode == 'Texture':
             self.sections['pattern_mode'].Hide()
             self.sections['laser_mode'].Hide()
             self.sections['texture_mode'].Show()
-            image_detection.set_texture_mode()
+        current_video.mode = mode
         self.GetParent().Layout()
 
 
@@ -125,13 +143,15 @@ class LaserSegmentation(ExpandablePanel):
         section.addItem(ComboBox, 'red_channel')
         section.addItem(Slider, 'open_value')
         section.addItem(CheckBox, 'open_enable', tooltip=_(
-            "Open is an operation used to remove the noise when scanning. The higher its value, the lower the noise but also the lower the detail in the image"))
+            "Open is an operation used to remove the noise when scanning. The higher its value, "
+            "the lower the noise but also the lower the detail in the image"))
         section.addItem(Slider, 'threshold_value')
         section.addItem(CheckBox, 'threshold_enable', tooltip=_(
-            "Threshold is a function used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value"))
+            "Threshold is a function used to remove the noise when scanning. "
+            "It removes a pixel if its intensity is less than the threshold value"))
 
     def callback(self):
-        image_detection.set_laser_mode(segmentation=True)
+        current_video.mode = 'Gray'
 
     def updateCallbacks(self):
         section = self.sections['laser_segmentation']
@@ -147,7 +167,8 @@ class LaserSegmentation(ExpandablePanel):
 class PatternSettingsPanel(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Pattern settings"), callback=self.callback, hasUndo=False)
+        ExpandablePanel.__init__(
+            self, parent, _("Pattern settings"), callback=self.callback, hasUndo=False)
 
         self.clearSections()
         section = self.createSection('pattern_settings')
@@ -156,10 +177,11 @@ class PatternSettingsPanel(ExpandablePanel):
             'Number of corner columns in the pattern'))
         section.addItem(TextBox, 'pattern_square_width')
         section.addItem(TextBox, 'pattern_origin_distance', tooltip=_(
-            "Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface"))
+            "Minimum distance between the origin of the pattern (bottom-left corner) "
+            "and the pattern's base surface"))
 
     def callback(self):
-        image_detection.set_pattern_mode()
+        current_video.mode = 'Pattern'
 
     def updateCallbacks(self):
         section = self.sections['pattern_settings']
@@ -179,7 +201,8 @@ class AutocheckPanel(ExpandablePanel):
 
     def __init__(self, parent, buttonStartCallback=None, buttonStopCallback=None):
         ExpandablePanel.__init__(
-            self, parent, _("Scanner autocheck"), callback=self.callback, hasUndo=False, hasRestore=False)
+            self, parent, _("Scanner autocheck"),
+            callback=self.callback, hasUndo=False, hasRestore=False)
 
         self.autocheck = Autocheck()
         self.buttonStartCallback = buttonStartCallback
@@ -190,7 +213,7 @@ class AutocheckPanel(ExpandablePanel):
         section.addItem(Button, 'autocheck_button')
 
     def callback(self):
-        image_detection.set_pattern_mode()
+        current_video.mode = 'Pattern'
 
     def updateCallbacks(self):
         section = self.sections['scanner_autocheck']
@@ -228,6 +251,11 @@ class AutocheckPanel(ExpandablePanel):
                 _(result), wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
+        elif result is not None:
+            dlg = wx.MessageDialog(
+                self, _(result), _("Exception"), wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
         else:
             dlg = wx.MessageDialog(
                 self, _("Autocheck executed correctly"),
@@ -244,8 +272,9 @@ class AutocheckPanel(ExpandablePanel):
 
 class CalibrationPanel(ExpandablePanel):
 
-    def __init__(self, parent, titleText="Workbench", buttonStartCallback=None, description="_(Workbench description)"):
-        ExpandablePanel.__init__(self, parent, titleText, callback=self.callback, hasUndo=False, hasRestore=False)
+    def __init__(self, parent, titleText="", buttonStartCallback=None, description=""):
+        ExpandablePanel.__init__(
+            self, parent, titleText, callback=self.callback, hasUndo=False, hasRestore=False)
 
         self.buttonStartCallback = buttonStartCallback
         self.description = description
@@ -276,7 +305,7 @@ class CalibrationPanel(ExpandablePanel):
         self.Layout()
 
     def callback(self):
-        image_detection.set_pattern_mode()
+        current_video.mode = 'Pattern'
 
     def onButtonEditPressed(self, event):
         pass
@@ -292,8 +321,11 @@ class CalibrationPanel(ExpandablePanel):
 class CameraIntrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Camera intrinsics"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration acquires the camera intrinsic parameters (focal lenghts and optical centers) and the lens distortion"))
+        CalibrationPanel.__init__(
+            self, parent,
+            titleText=_("Camera intrinsics"), buttonStartCallback=buttonStartCallback,
+            description=_("This calibration acquires the camera intrinsic parameters "
+                          "(focal lenghts and optical centers) and the lens distortion"))
 
         cameraPanel = wx.Panel(self.content)
         distortionPanel = wx.Panel(self.content)
@@ -375,8 +407,11 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _(
-            "Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self, _("This will reset camera intrinsics profile settings to defaults.\n"
+                    "Unless you have saved your current profile, all settings will be lost! "
+                    "Do you really want to reset?"),
+            _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -433,8 +468,11 @@ class CameraIntrinsicsPanel(CalibrationPanel):
 class LaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Laser triangulation"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration determines the lasers' planes relative to the camera's coordinate system"))
+        CalibrationPanel.__init__(
+            self, parent,
+            titleText=_("Laser triangulation"), buttonStartCallback=buttonStartCallback,
+            description=_("This calibration determines the lasers' planes "
+                          "relative to the ""camera's coordinate system"))
 
         distanceLeftPanel = wx.Panel(self.content)
         normalLeftPanel = wx.Panel(self.content)
@@ -553,8 +591,11 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _(
-            "Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self, _("This will reset laser triangulation profile settings to defaults.\n"
+                    "Unless you have saved your current profile, all settings will be lost! "
+                    "Do you really want to reset?"),
+            _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -565,7 +606,8 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.updateProfile()
 
     def getParameters(self):
-        return self.distanceLeftValue, self.normalLeftValues, self.distanceLeftValue, self.normalRightValues
+        return self.distanceLeftValue, self.normalLeftValues, \
+            self.distanceLeftValue, self.normalRightValues
 
     def setParameters(self, params):
         self.distanceLeftValue = params[0]
@@ -604,7 +646,8 @@ class LaserTriangulationPanel(CalibrationPanel):
     def updateEngine(self):
         pass
         # if hasattr(self, 'pcg'):
-        #    self.pcg.setLaserTriangulation(self.distanceLeftValue, self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
+        #    self.pcg.setLaserTriangulation(self.distanceLeftValue,
+        #    self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -626,8 +669,11 @@ class LaserTriangulationPanel(CalibrationPanel):
 class PlatformExtrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Platform extrinsics"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration determines the position and orientation of the rotating platform relative to the camera's coordinate system"))
+        CalibrationPanel.__init__(
+            self, parent,
+            titleText=_("Platform extrinsics"), buttonStartCallback=buttonStartCallback,
+            description=_("This calibration determines the position and orientation of "
+                          "the rotating platform relative to the camera's coordinate system"))
 
         self.pcg = None
 
@@ -712,8 +758,11 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
             self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset platform extrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _(
-            "Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self, _("This will reset platform extrinsics profile settings to defaults.\n"
+                    "Unless you have saved your current profile, all settings will be lost! "
+                    "Do you really want to reset?"),
+            _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:

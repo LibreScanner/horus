@@ -219,8 +219,8 @@ setting('pattern_origin_distance', 0.0, float, 'advanced', _('Origin distance (m
 _('Texture')
 _('Laser')
 _('Pattern')
-setting('video_mode', 'Texture', [
-        'Texture', 'Laser', 'Pattern'], 'basic', _('Video mode'), False)
+setting('capture_mode', 'Texture', [
+        'Texture', 'Laser', 'Pattern'], 'basic', _('Capture mode'), False)
 
 setting('brightness_pattern', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_pattern', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
@@ -230,7 +230,7 @@ setting('exposure_pattern', 16, int, 'basic', _('Exposure')).setRange(1, 128)
 setting('brightness_laser', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_laser', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
 setting('saturation_laser', 100, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_laser', 16, int, 'basic', _('Exposure')).setRange(1, 128)
+setting('exposure_laser', 4, int, 'basic', _('Exposure')).setRange(1, 128)
 setting('remove_background', True, bool, 'advanced', _('Remove background'))
 
 setting('brightness_texture', 100, int, 'advanced', _('Brightness')).setRange(0, 255)

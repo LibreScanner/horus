@@ -12,6 +12,7 @@ from horus import Singleton
 
 
 class LaserPlane(object):
+
     def __init__(self):
         self.normal = None
         self.distance = None
@@ -21,8 +22,8 @@ class LaserPlane(object):
 class CalibrationData(object):
 
     def __init__(self):
-        self.width = 960
-        self.height = 1280
+        self.width = 0
+        self.height = 0
 
         self._camera_matrix = None
         self._distortion_vector = None
@@ -46,10 +47,9 @@ class CalibrationData(object):
 
     @camera_matrix.setter
     def camera_matrix(self, value):
-        if self._camera_matrix != value:
+        if self._camera_matrix is not value:
             self._camera_matrix = value
             self._compute_dist_camera_matrix()
-            
 
     @property
     def distortion_vector(self):
@@ -57,7 +57,7 @@ class CalibrationData(object):
 
     @distortion_vector.setter
     def distortion_vector(self, value):
-        if self._distortion_vector != value:
+        if self._distortion_vector is not value:
             self._distortion_vector = value
             self._compute_dist_camera_matrix()
 
@@ -80,4 +80,5 @@ class CalibrationData(object):
                 (int(self.width), int(self.height)), alpha=1)
 
     def _compute_weight_matrix(self):
-        self._weight_matrix = np.array((np.matrix(np.linspace(0, self.width - 1, width)).T * np.matrix(np.ones(self.height))).T)
+        self._weight_matrix = np.array((np.matrix(np.linspace(0, self.width - 1, self.width)).T *
+                                        np.matrix(np.ones(self.height))).T)

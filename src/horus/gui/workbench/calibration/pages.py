@@ -20,18 +20,27 @@ from horus.util import profile, resources
 from horus.gui.util.imageView import ImageView, VideoView
 
 from horus.gui.workbench.calibration.page import Page
+from horus.gui.workbench.calibration.current_video import CurrentVideo
 
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.pattern import Pattern
-from horus.engine.calibration.camera_intrinsics import CameraIntrinsics, CameraIntrinsicsError
-from horus.engine.calibration.laser_triangulation import LaserTriangulation, LaserTriangulationError
-from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics, PlatformExtrinsicsError
+from horus.engine.calibration.camera_intrinsics import CameraIntrinsics, \
+    CameraIntrinsicsError
+from horus.engine.calibration.laser_triangulation import LaserTriangulation, \
+    LaserTriangulationError
+from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics, \
+    PlatformExtrinsicsError
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
 
 driver = Driver()
 pattern = Pattern()
 camera_intrinsics = CameraIntrinsics()
 laser_triangulation = LaserTriangulation()
 platform_extrinsics = PlatformExtrinsics()
+image_capture = ImageCapture()
+image_detection = ImageDetection()
+current_video = CurrentVideo()
 
 
 class CameraIntrinsicsMainPage(Page):
@@ -51,7 +60,7 @@ class CameraIntrinsicsMainPage(Page):
         self.afterCalibrationCallback = afterCalibrationCallback
 
         # Video View
-        self.videoView = VideoView(self._panel, self.getFrame, 10)
+        self.videoView = VideoView(self._panel, self.get_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Image Grid Panel
@@ -102,21 +111,21 @@ class CameraIntrinsicsMainPage(Page):
             except:
                 pass
 
-    def getFrame(self):
-        frame = driver.camera.capture_image()
-        retval, frame, _ = camera_intrinsics.draw_chessboard(frame)
-        if retval:
-            self.videoView.SetBackgroundColour((45, 178, 0))
-        else:
+    def get_image(self):
+        image = image_capture.capture_pattern()
+        chessboard = image_detection.detect_pattern(image)
+        if image is chessboard:
             self.videoView.SetBackgroundColour((217, 0, 0))
-        return frame
+        else:
+            self.videoView.SetBackgroundColour((45, 178, 0))
+        return chessboard
 
     def onKeyPress(self, event):
         if event.GetKeyCode() == 32:  # spacebar
             self.videoView.pause()
-            ret, frame = camera_intrinsics.capture()
-            if ret:
-                self.addFrameToGrid(frame)
+            image = camera_intrinsics.capture()
+            if image is not None:
+                self.addFrameToGrid(image)
                 if self.currentGrid <= self.rows * self.columns:
                     self.gauge.SetValue(self.currentGrid * 100.0 / self.rows / self.columns)
             self.videoView.play()
@@ -204,8 +213,9 @@ class CameraIntrinsicsResultPage(Page):
             self.Layout()
         else:
             if isinstance(result, CameraIntrinsicsError):
-                dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), _(
-                    result), wx.OK | wx.ICON_ERROR)
+                dlg = wx.MessageDialog(
+                    self, _("Camera Intrinsics Calibration has failed. Please try again."),
+                    _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
 
@@ -302,8 +312,8 @@ class LaserTriangulationMainPage(Page):
     def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
         Page.__init__(self, parent,
                       title=_("Laser Triangulation"),
-                      subTitle=_(
-                          "Put the pattern on the platform as shown in the picture and press Calibrate to continue"),
+                      subTitle=_("Put the pattern on the platform as shown in the "
+                                 "picture and press Calibrate to continue"),
                       left=_("Cancel"),
                       right=_("Calibrate"),
                       buttonLeftCallback=self.onCancel,
@@ -319,7 +329,7 @@ class LaserTriangulationMainPage(Page):
         imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 
         #-- Video View
-        self.videoView = VideoView(self._panel, self.getFrame, 10)
+        self.videoView = VideoView(self._panel, self.get_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         #-- Layout
@@ -347,21 +357,16 @@ class LaserTriangulationMainPage(Page):
             except:
                 pass
 
-    def getFrame(self):
-        frame = laser_triangulation.image
-        if frame is None:
-            frame = driver.camera.capture_image()
-            _, frame, _ = laser_triangulation.draw_chessboard(frame)
-        return frame
+    def get_image(self):
+        if laser_triangulation.has_image:
+            image = laser_triangulation.image
+        else:
+            image = image_capture.capture_pattern()
+            if not laser_triangulation._is_calibrating:
+                image = image_detection.detect_pattern(image)
+        return image
 
     def onCalibrate(self):
-        laser_triangulation.image = driver.camera.capture_image()
-        laser_triangulation.threshold = profile.getProfileSettingFloat('laser_threshold_value')
-        laser_triangulation.exposure_normal = profile.getProfileSettingNumpy(
-            'exposure_texture')
-        laser_triangulation.exposure_laser = profile.getProfileSettingNumpy(
-            'exposure_laser') / 2.
-
         laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
                                           lambda p: wx.CallAfter(self.progressCalibration, p),
                                           lambda r: wx.CallAfter(self.afterCalibration, r))
@@ -444,8 +449,9 @@ class LaserTriangulationResultPage(Page):
             self.Layout()
         else:
             if isinstance(result, LaserTriangulationError):
-                dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), _(
-                    result), wx.OK | wx.ICON_ERROR)
+                dlg = wx.MessageDialog(
+                    self, _("Laser Triangulation Calibration has failed. Please try again."),
+                    _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
 
@@ -537,8 +543,8 @@ class PlatformExtrinsicsMainPage(Page):
     def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
         Page.__init__(self, parent,
                       title=_("Platform Extrinsics"),
-                      subTitle=_(
-                          "Put the pattern on the platform as shown in the picture and press Calibrate to continue"),
+                      subTitle=_("Put the pattern on the platform as shown "
+                                 "in the picture and press Calibrate to continue"),
                       left=_("Cancel"),
                       right=_("Calibrate"),
                       buttonLeftCallback=self.onCancel,
@@ -556,7 +562,7 @@ class PlatformExtrinsicsMainPage(Page):
         imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 
         #-- Video View
-        self.videoView = VideoView(self._panel, self.getFrame, 10)
+        self.videoView = VideoView(self._panel, self.get_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         #-- Layout
@@ -584,14 +590,14 @@ class PlatformExtrinsicsMainPage(Page):
             except:
                 pass
 
-    def getFrame(self):
-        if self.onCalibration:
-            frame = platform_extrinsics.image
+    def get_image(self):
+        if platform_extrinsics.has_image:
+            image = platform_extrinsics.image
         else:
-            frame = driver.camera.capture_image()
-        _, frame, _ = platform_extrinsics.draw_chessboard(frame)
-
-        return frame
+            image = image_capture.capture_pattern()
+            if not platform_extrinsics._is_calibrating:
+                image = image_detection.detect_pattern(image)
+        return image
 
     def onCalibrate(self):
         self.onCalibration = True
@@ -677,8 +683,9 @@ class PlatformExtrinsicsResultPage(Page):
             self.Layout()
         else:
             if isinstance(result, PlatformExtrinsicsError):
-                dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), _(
-                    result), wx.OK | wx.ICON_ERROR)
+                dlg = wx.MessageDialog(
+                    self, _("Platform Extrinsics Calibration has failed. Please try again."),
+                    _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
 

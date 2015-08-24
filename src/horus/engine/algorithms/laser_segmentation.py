@@ -43,7 +43,7 @@ class LaserSegmentation(object):
 
     def compute_2d_points(self, image):
         if image is not None:
-            image = self._compute_line_segmentation(image)
+            image = self.compute_line_segmentation(image)
             # Peak detection: center of mass
             s = image.sum(axis=1)
             v = np.where(s > 0)[0]
@@ -52,19 +52,20 @@ class LaserSegmentation(object):
 
     def compute_hough_lines(self, image):
         if image is not None:
-            image = self._compute_line_segmentation(image)
-            lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+            image = self.compute_line_segmentation(image)
+            lines = cv2.HoughLines(image, 1, np.pi / 180, 200)
             #if lines is not None:
                 #rho, theta = lines[0][0]
                 ## Calculate coordinates
                 #u1 = rho / np.cos(theta)
                 #u2 = u1 - height * np.tan(theta)
-            return Lines
+            return lines
 
-    def _compute_line_segmentation(self, image):
+    def compute_line_segmentation(self, image, roi_mask=False):
         if image is not None:
-            # Apply ROI mask
-            image = self.point_cloud_roi.mask_image(image)
+            if roi_mask:
+                # Apply ROI mask
+                image = self.point_cloud_roi.mask_image(image)
             # Obtain red channel
             image = self._obtain_red_channel(image)
             # Open image
@@ -79,10 +80,10 @@ class LaserSegmentation(object):
 
     def _obtain_red_channel(self, image):
         ret = None
-        if self._channel == 'R (RGB)':
+        if self._red_channel == 'R (RGB)':
             ret = cv2.split(image)[0]
-        elif self._channel == 'Cr (YCrCb)':
+        elif self._red_channel == 'Cr (YCrCb)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))[1]
-        elif self._channel == 'U (YUV)':
+        elif self._red_channel == 'U (YUV)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YUV))[1]
         return ret

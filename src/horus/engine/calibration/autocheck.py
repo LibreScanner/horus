@@ -47,12 +47,16 @@ class Autocheck(Calibration):
     """
 
     def __init__(self):
+        self.image = None
         Calibration.__init__(self)
 
     def _start(self):
         if self.driver.is_connected:
 
             response = None
+            self.image = None
+            self._is_calibrating = True
+            self.image_capture._flush_pattern = 1
 
             # Setup scanner
             self.driver.board.lasers_off()
@@ -66,7 +70,9 @@ class Autocheck(Calibration):
             except Exception as e:
                 response = e
             finally:
+                self.image = None
                 self._is_calibrating = False
+                self.image_capture._flush_pattern = 0
                 self.driver.board.lasers_off()
                 self.driver.board.motor_disable()
                 if self._progress_callback is not None:
@@ -81,7 +87,7 @@ class Autocheck(Calibration):
 
         # Setup scanner
         self.driver.board.motor_speed(300)
-        self.driver.board.motor_acceleration(500)
+        self.driver.board.motor_acceleration(400)
 
         if self._progress_callback is not None:
             self._progress_callback(0)
@@ -91,7 +97,10 @@ class Autocheck(Calibration):
             image = self.image_capture.capture_pattern()
             pose = self.image_detection.detect_pose(image)
             if pose is not None:
+                self.image = self.image_detection.draw_pattern(image, pose[2])
                 patterns_detected[i] = pose[0].T[2][0]
+            else:
+                self.image = self.image_detection.detect_pattern(image)
             if self._progress_callback is not None:
                 self._progress_callback(i / 3.6)
             self.driver.board.motor_relative(scan_step)
@@ -128,7 +137,9 @@ class Autocheck(Calibration):
     def check_lasers(self):
         for i in xrange(2):
             image = self.image_capture.capture_laser(i)
-            image = self.image_detection.pattern_mask(image)
+            self.image = image
+            corners = self.image_detection.detect_corners(image)
+            image = self.image_detection.pattern_mask(image, corners)
             lines = self.laser_segmentation.compute_hough_lines(image)
             if lines is None:
                 raise LaserNotDetected

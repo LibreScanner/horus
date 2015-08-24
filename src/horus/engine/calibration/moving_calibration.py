@@ -60,7 +60,7 @@ class MovingCalibration(Calibration):
                 angle += self.step
                 self.driver.board.motor_relative(self.step)
                 self.driver.board.motor_move()
-                time.sleep(0.1)
+                time.sleep(0.2)
 
             # Move to origin
             self.driver.board.motor_relative(90-angle)

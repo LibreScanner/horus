@@ -18,6 +18,7 @@ from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform, PointCloudROI, PointCloudColor
 
 from horus.engine.scan.ciclop_scan import CiclopScan
+from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
 
 
 class ScanningWorkbench(WorkbenchConnection):
@@ -29,6 +30,7 @@ class ScanningWorkbench(WorkbenchConnection):
         self.showVideoViews = False
 
         self.ciclop_scan = CiclopScan()
+        self.point_cloud_generation = PointCloudGeneration()
 
         self.load()
 
@@ -150,7 +152,7 @@ class ScanningWorkbench(WorkbenchConnection):
             return self.ciclop_scan.getImage(self.driver.camera.capture_image())
 
     def onPointCloudTimer(self, event):
-        p, r = self.ciclop_scan.getProgress()
+        p, r = self.ciclop_scan.get_progress()
         self.gauge.SetRange(r)
         self.gauge.SetValue(p)
         pointCloud = self.ciclop_scan.getPointCloudIncrement()

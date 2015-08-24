@@ -50,7 +50,7 @@ class PointCloudGeneration(object):
         cx = self.calibration_data.camera_matrix[0][2]
         cy = self.calibration_data.camera_matrix[1][2]
         # Compute projection point
-        u, v = points2D
+        u, v = points_2d
         x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
         # Compute laser intersection
-        return d / np.dot(n, x) * x
+        return -d / np.dot(n, x) * x

@@ -15,17 +15,20 @@ from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 
 from horus.gui.workbench.workbench import WorkbenchConnection
 
+from horus.gui.workbench.calibration.current_video import CurrentVideo
 from horus.gui.workbench.calibration.panels import PatternSettingsPanel, ImageDetectionPanel, \
-    LaserSegmentation, AutocheckPanel, CameraIntrinsicsPanel, LaserTriangulationPanel, PlatformExtrinsicsPanel
+    LaserSegmentation, AutocheckPanel, CameraIntrinsicsPanel, \
+    LaserTriangulationPanel, PlatformExtrinsicsPanel
 
 from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
     CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
     PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
 from horus.engine.driver.driver import Driver
-from horus.engine.calibration.autocheck import Autocheck
-from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
+from horus.engine.calibration.autocheck import Autocheck
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
 
 
 class CalibrationWorkbench(WorkbenchConnection):
@@ -36,9 +39,11 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.calibrating = False
 
         self.driver = Driver()
-        self.autocheck = Autocheck()
-        self.image_detection = ImageDetection()
         self.camera_intrinsics = CameraIntrinsics()
+        self.autocheck = Autocheck()
+        self.image_capture = ImageCapture()
+        self.image_detection = ImageDetection()
+        self.current_video = CurrentVideo()
 
         self.toolbar.Realize()
 
@@ -48,7 +53,8 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.controls = ExpandableControl(self.scrollPanel)
 
-        self.videoView = VideoView(self._panel, self.getFrame, 10)
+        self.video_image = None
+        self.videoView = VideoView(self._panel, self.get_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Add Scroll Panels
@@ -66,29 +72,35 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
 
         # Add Calibration Pages
-        self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(self._panel,
-                                                                 afterCancelCallback=self.onCancelCallback,
-                                                                 afterCalibrationCallback=self.onCameraIntrinsicsAfterCalibrationCallback)
+        self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(
+            self._panel,
+            afterCancelCallback=self.onCancelCallback,
+            afterCalibrationCallback=self.onCameraIntrinsicsAfterCalibrationCallback)
 
-        self.cameraIntrinsicsResultPage = CameraIntrinsicsResultPage(self._panel,
-                                                                     buttonRejectCallback=self.onCancelCallback,
-                                                                     buttonAcceptCallback=self.onCameraIntrinsicsAcceptCallback)
+        self.cameraIntrinsicsResultPage = CameraIntrinsicsResultPage(
+            self._panel,
+            buttonRejectCallback=self.onCancelCallback,
+            buttonAcceptCallback=self.onCameraIntrinsicsAcceptCallback)
 
-        self.laserTriangulationMainPage = LaserTriangulationMainPage(self._panel,
-                                                                     afterCancelCallback=self.onCancelCallback,
-                                                                     afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
+        self.laserTriangulationMainPage = LaserTriangulationMainPage(
+            self._panel,
+            afterCancelCallback=self.onCancelCallback,
+            afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
 
-        self.laserTriangulationResultPage = LaserTriangulationResultPage(self._panel,
-                                                                         buttonRejectCallback=self.onCancelCallback,
-                                                                         buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
+        self.laserTriangulationResultPage = LaserTriangulationResultPage(
+            self._panel,
+            buttonRejectCallback=self.onCancelCallback,
+            buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
 
-        self.platformExtrinsicsMainPage = PlatformExtrinsicsMainPage(self._panel,
-                                                                     afterCancelCallback=self.onCancelCallback,
-                                                                     afterCalibrationCallback=self.onPlatformExtrinsicsAfterCalibrationCallback)
+        self.platformExtrinsicsMainPage = PlatformExtrinsicsMainPage(
+            self._panel,
+            afterCancelCallback=self.onCancelCallback,
+            afterCalibrationCallback=self.onPlatformExtrinsicsAfterCalibrationCallback)
 
-        self.platformExtrinsicsResultPage = PlatformExtrinsicsResultPage(self._panel,
-                                                                         buttonRejectCallback=self.onCancelCallback,
-                                                                         buttonAcceptCallback=self.onPlatformExtrinsicsAcceptCallback)
+        self.platformExtrinsicsResultPage = PlatformExtrinsicsResultPage(
+            self._panel,
+            buttonRejectCallback=self.onCancelCallback,
+            buttonAcceptCallback=self.onPlatformExtrinsicsAcceptCallback)
 
         self.cameraIntrinsicsMainPage.Hide()
         self.cameraIntrinsicsResultPage.Hide()
@@ -119,13 +131,12 @@ class CalibrationWorkbench(WorkbenchConnection):
     def updateCallbacks(self):
         self.controls.updateCallbacks()
 
-    def getFrame(self):
-        frame = self.autocheck.image
-        if frame is None:
-            frame = self.image_detection.capture()
+    def get_image(self):
+        if self.autocheck._is_calibrating:
+            image = self.autocheck.image
         else:
-            _, frame, _ = self.autocheck.draw_chessboard(frame)
-        return frame
+            image = self.current_video.capture()
+        return image
 
     def enableMenus(self, value):
         main = self.GetParent()
@@ -188,7 +199,6 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.Layout()
 
     def onCancelCallback(self):
-        self.driver.camera.set_use_distortion(self.camera_intrinsics._camera_use_distortion)
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -204,7 +214,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationResultPage.Hide()
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
-        self.image_detection.set_pattern_mode()
+        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -219,7 +229,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onCameraIntrinsicsAcceptCallback(self):
-        self.driver.camera.set_use_distortion(self.camera_intrinsics._camera_use_distortion)
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -229,7 +238,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.cameraIntrinsicsResultPage.Hide()
-        self.image_detection.set_pattern_mode()
+        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -252,7 +261,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.laserTriangulationResultPage.Hide()
-        self.image_detection.set_pattern_mode()
+        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -275,7 +284,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.platformExtrinsicsResultPage.Hide()
-        self.image_detection.set_pattern_mode()
+        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()

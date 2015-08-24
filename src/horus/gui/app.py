@@ -38,10 +38,10 @@ class HorusApp(wx.App):
 		self.mainWindow = MainWindow()
 
 		#-- Check for updates
-		if profile.getPreferenceBool('check_for_updates') and version.checkForUpdates():
-			v = VersionWindow(self.mainWindow)
-			if v.download:
-				return
+		#if profile.getPreferenceBool('check_for_updates') and version.checkForUpdates():
+		#	v = VersionWindow(self.mainWindow)
+		#	if v.download:
+		#		return
 
 		#-- Show Main Window
 		self.SetTopWindow(self.mainWindow)

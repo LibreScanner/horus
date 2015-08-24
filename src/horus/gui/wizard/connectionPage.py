@@ -279,8 +279,7 @@ class ConnectionPage(WizardPage):
             self.imageView.Enable()
             self.skipButton.Enable()
             self.enableNext = True
-            self.driver.board.laser_left_off()
-            self.driver.board.laser_right_off()
+            self.driver.board.lasers_off()
         else:
             self.videoView.stop()
             self.gauge.SetValue(0)

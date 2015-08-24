@@ -6,9 +6,11 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
+import numpy as np
 
 from horus import Singleton
 from horus.engine.calibration.pattern import Pattern
+from horus.engine.calibration.calibration_data import CalibrationData
 
 
 @Singleton
@@ -16,16 +18,21 @@ class ImageDetection(object):
 
     def __init__(self):
         self.pattern = Pattern()
+        self.calibration_data = CalibrationData()
 
         self._criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
     def detect_pattern(self, image):
         corners = self._detect_chessboard(image)
         if corners is not None:
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            cv2.drawChessboardCorners(
-                image, (self.pattern.columns, self.pattern.rows), corners, True)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = self.draw_pattern(image, corners)
+        return image
+
+    def draw_pattern(self, image, corners):
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        cv2.drawChessboardCorners(
+            image, (self.pattern.columns, self.pattern.rows), corners, True)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return image
 
     def detect_corners(self, image):
@@ -73,8 +80,8 @@ class ImageDetection(object):
 
     def _detect_chessboard(self, image):
         if image is not None:
-            if self.pattern.rows > 2 or self.pattern.columns > 2:
-                gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            if self.pattern.rows > 2 and self.pattern.columns > 2:
+                gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
                 ret, corners = cv2.findChessboardCorners(
                     gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
                 if ret:

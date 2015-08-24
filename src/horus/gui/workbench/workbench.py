@@ -112,7 +112,8 @@ class WorkbenchConnection(Workbench):
         if not ret:
             if isinstance(result, WrongFirmware):
                 dlg = wx.MessageDialog(
-                    self, _("Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board and press Upload Firmware"),
+                    self, _("Board has a wrong firmware or an invalid Baud Rate.\n"
+                            "Please select your Board and press Upload Firmware"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -120,7 +121,9 @@ class WorkbenchConnection(Workbench):
                 self.GetParent().onPreferences(None)
             elif isinstance(result, BoardNotConnected):
                 dlg = wx.MessageDialog(
-                    self, _("Board is not connected.\nPlease connect your board and select a valid Serial Name"),
+                    self, _(
+                        "Board is not connected.\n"
+                        "Please connect your board and select a valid Serial Name"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -128,7 +131,9 @@ class WorkbenchConnection(Workbench):
                 self.GetParent().onPreferences(None)
             elif isinstance(result, WrongCamera):
                 dlg = wx.MessageDialog(
-                    self, _("You probably have selected a wrong camera.\nPlease select other Camera Id"),
+                    self, _(
+                        "You probably have selected a wrong camera.\n"
+                        "Please select other Camera Id"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()

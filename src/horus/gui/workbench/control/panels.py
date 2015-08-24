@@ -59,10 +59,14 @@ class CameraControl(ExpandablePanel):
         section.updateCallback('exposure_control', self.driver.camera.set_exposure)
         section.updateCallback(
             'frame_rate', lambda v: self.driver.camera.set_frame_rate(int(v)))
-        section.updateCallback('resolution', lambda v: self.driver.camera.set_resolution(
+        section.updateCallback('resolution', lambda v: self.set_resolution(
             int(v.split('x')[0]), int(v.split('x')[1])))
         section.updateCallback(
             'use_distortion', lambda v: self.image_capture.set_use_distortion(v))
+
+    def set_resolution(self, width, height):
+        self.driver.camera.set_resolution(width, height)
+        self.image_capture.set_resolution(height, width)
 
 
 class LaserControl(ExpandablePanel):

@@ -39,7 +39,7 @@ class ControlWorkbench(WorkbenchConnection):
         self.controls.addPanel('motor_control', MotorControl(self.controls))
         self.controls.addPanel('gcode_control', GcodeControl(self.controls))
 
-        self.videoView = VideoView(self._panel, self.get_image, 10)
+        self.videoView = VideoView(self._panel, self.image_capture.capture_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Layout
@@ -56,9 +56,6 @@ class ControlWorkbench(WorkbenchConnection):
 
     def updateCallbacks(self):
         self.controls.updateCallbacks()
-
-    def get_image(self):
-        return self.image_capture.capture_image()
 
     def updateToolbarStatus(self, status):
         if status:
