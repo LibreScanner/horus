@@ -30,6 +30,8 @@ class PointCloudROI(object):
         self._no_trimmed_umax = 0
         self._no_trimmed_vmin = 0
         self._no_trimmed_vmax = 0
+        self._center_u = 0
+        self._center_v = 0
         self._height = 0
         self._radious = 0
         self._circle_resolution = 30
@@ -65,6 +67,7 @@ class PointCloudROI(object):
     def draw_roi(self, image):
         thickness = 6
         thickness_hiden = 1
+        cy = self.calibration_data.camera_matrix[1][2]
 
         center_up_u = self._no_trimmed_umin + \
             (self._no_trimmed_umax - self._no_trimmed_umin) / 2
@@ -77,29 +80,28 @@ class PointCloudROI(object):
         axes_down = ((self._no_trimmed_umax - self._no_trimmed_umin) / 2,
                      ((self._lower_vmin - self._lower_vmax) / 2))
 
-        img = img.copy()
         # upper ellipse
-        if (center_up_v < self.cy):
-            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+        if (center_up_v < cy):
+            cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
                         0, 180, 360, (0, 100, 200), thickness)
-            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+            cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
                         0, 0, 180, (0, 100, 200), thickness_hiden)
         else:
-            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+            cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
                         0, 180, 360, (0, 100, 200), thickness)
-            cv2.ellipse(img, (center_up_u, center_up_v), axes_up,
+            cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
                         0, 0, 180, (0, 100, 200), thickness)
 
         # lower ellipse
-        cv2.ellipse(img, (center_down_u, center_down_v), axes_down,
+        cv2.ellipse(image, (center_down_u, center_down_v), axes_down,
                     0, 180, 360, (0, 100, 200), thickness_hiden)
-        cv2.ellipse(img, (center_down_u, center_down_v),
+        cv2.ellipse(image, (center_down_u, center_down_v),
                     axes_down, 0, 0, 180, (0, 100, 200), thickness)
 
         # cylinder lines
-        cv2.line(img, (self._no_trimmed_umin, center_up_v),
+        cv2.line(image, (self._no_trimmed_umin, center_up_v),
                  (self._no_trimmed_umin, center_down_v), (0, 100, 200), thickness)
-        cv2.line(img, (self._no_trimmed_umax, center_up_v),
+        cv2.line(image, (self._no_trimmed_umax, center_up_v),
                  (self._no_trimmed_umax, center_down_v), (0, 100, 200), thickness)
 
         # view center
@@ -111,35 +113,46 @@ class PointCloudROI(object):
             axes_down_center = (20, axes_down[1] * 20 / axes_down[0])
 
         # upper center
-        cv2.ellipse(img, (self.center_u, min(center_up_v, self.center_v)),
+        cv2.ellipse(image, (self._center_u, min(center_up_v, self._center_v)),
                     axes_up_center, 0, 0, 360, (0, 70, 120), -1)
         # lower center
-        cv2.ellipse(img, (self.center_u, self.center_v),
+        cv2.ellipse(image, (self._center_u, self._center_v),
                     axes_down_center, 0, 0, 360, (0, 70, 120), -1)
 
-        return img
+        return image
 
     def _compute_roi(self):
         if self.calibration_data.camera_matrix is not None and \
-           self.calibration_data.distortion_vector is not None:
+           self.calibration_data.distortion_vector is not None and \
+           self.calibration_data.platform_rotation is not None and \
+           self.calibration_data.platform_translation is not None:
             # Load calibration values
             fx = self.calibration_data.camera_matrix[0][0]
             fy = self.calibration_data.camera_matrix[1][1]
             cx = self.calibration_data.camera_matrix[0][2]
             cy = self.calibration_data.camera_matrix[1][2]
-            n = self.calibration_data.laser_planes[index].normal
-            d = self.calibration_data.laser_planes[index].distance
-            R = np.matrix(self.calibration_data.platform_rotation).T
+            R = np.matrix(self.calibration_data.platform_rotation)
             t = np.matrix(self.calibration_data.platform_translation).T
 
             bottom = np.matrix(self._radious * self._circle_array)
             top = bottom + np.matrix([0, 0, self._height]).T
             data = np.concatenate((bottom, top), axis=1)
 
-            # Camera system
-            data = self.R * data + t
+            # Compute center
+            center = R * np.matrix(0 * self._circle_array) + t
+            u = fx * center[0] / center[2] + cx
+            v = fy * center[1] / center[2] + cy
 
-            # Video system
+            _umin = int(round(np.min(u)))
+            _umax = int(round(np.max(u)))
+            _vmin = int(round(np.min(v)))
+            _vmax = int(round(np.max(v)))
+
+            self._center_u = _umin + (_umax - _umin) / 2
+            self._center_v = _vmin + (_vmax - _vmin) / 2
+
+            # Compute cylinders
+            data = R * data + t
             u = fx * data[0] / data[2] + cx
             v = fy * data[1] / data[2] + cy
 
@@ -147,9 +160,6 @@ class PointCloudROI(object):
             _umax = int(round(np.max(u)))
             _vmin = int(round(np.min(v)))
             _vmax = int(round(np.max(v)))
-
-            self.center_u = _umin + (_umax - _umin) / 2
-            self.center_v = _vmin + (_vmax - _vmin) / 2
 
             # Visualization
             v_ = np.array(v.T)

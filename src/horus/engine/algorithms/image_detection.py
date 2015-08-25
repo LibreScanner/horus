@@ -86,4 +86,4 @@ class ImageDetection(object):
                     gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)
                 if ret:
                     cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self._criteria)
-                return corners
+                    return corners

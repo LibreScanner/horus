@@ -626,6 +626,12 @@ Suite 330, Boston, MA  02111-1307  USA""")
         pattern.distance = profile.getProfileSettingFloat('pattern_origin_distance')
         calibration_data.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
         calibration_data.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
+        calibration_data.laser_planes[0].distance = profile.getProfileSettingNumpy('distance_left')
+        calibration_data.laser_planes[0].normal = profile.getProfileSettingNumpy('normal_left')
+        calibration_data.laser_planes[1].distance = profile.getProfileSettingNumpy('distance_right')
+        calibration_data.laser_planes[1].normal = profile.getProfileSettingNumpy('normal_right')
+        calibration_data.platform_rotation = profile.getProfileSettingNumpy('rotation_matrix')
+        calibration_data.platform_translation = profile.getProfileSettingNumpy('translation_vector')
 
     def updateDriver(self):
         driver.camera.set_frame_rate(int(profile.getProfileSetting('frame_rate')))

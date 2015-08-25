@@ -15,10 +15,14 @@ from horus.gui.util.sceneView import SceneView
 from horus.gui.util.customPanels import ExpandableControl
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform, PointCloudROI, PointCloudColor
+from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform, \
+    PointCloudROI, PointCloudColor
 
 from horus.engine.scan.ciclop_scan import CiclopScan
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
+from horus.engine.algorithms import point_cloud_roi
 
 
 class ScanningWorkbench(WorkbenchConnection):
@@ -30,21 +34,21 @@ class ScanningWorkbench(WorkbenchConnection):
         self.showVideoViews = False
 
         self.ciclop_scan = CiclopScan()
+        self.image_capture = ImageCapture()
+        self.image_detection = ImageDetection()
         self.point_cloud_generation = PointCloudGeneration()
+        self.point_cloud_roi = point_cloud_roi.PointCloudROI()
 
-        self.load()
-
-        self.pointCloudTimer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.onPointCloudTimer, self.pointCloudTimer)
-
-    def load(self):
         # Toolbar Configuration
         self.playTool = self.toolbar.AddLabelTool(
-            wx.NewId(), _("Play"), wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
+            wx.NewId(), _("Play"),
+            wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
         self.stopTool = self.toolbar.AddLabelTool(
-            wx.NewId(), _("Stop"), wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
+            wx.NewId(), _("Stop"),
+            wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
         self.pauseTool = self.toolbar.AddLabelTool(
-            wx.NewId(), _("Pause"), wx.Bitmap(resources.getPathForImage("pause.png")), shortHelp=_("Pause"))
+            wx.NewId(), _("Pause"),
+            wx.Bitmap(resources.getPathForImage("pause.png")), shortHelp=_("Pause"))
         self.toolbar.Realize()
 
         # Disable Toolbar Items
@@ -70,7 +74,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
         self.splitterWindow = wx.SplitterWindow(self._panel)
 
-        self.videoView = VideoView(self.splitterWindow, self.getFrame, 10)
+        self.videoView = VideoView(self.splitterWindow, self.get_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         self.scenePanel = wx.Panel(self.splitterWindow)
@@ -104,14 +108,18 @@ class ScanningWorkbench(WorkbenchConnection):
 
         self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(
             resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10, 10))
-        self.comboVideoViews = wx.ComboBox(self.videoView, value=_(
-            profile.getProfileSetting('img_type')), choices=_choices, style=wx.CB_READONLY, pos=(60, 10))
+        self.comboVideoViews = wx.ComboBox(self.videoView,
+                                           value=_(profile.getProfileSetting('img_type')),
+                                           choices=_choices, style=wx.CB_READONLY, pos=(60, 10))
 
         self.buttonShowVideoViews.Hide()
         self.comboVideoViews.Hide()
 
         self.buttonShowVideoViews.Bind(wx.EVT_BUTTON, self.onShowVideoViews)
         self.comboVideoViews.Bind(wx.EVT_COMBOBOX, self.onComboBoVideoViewsSelect)
+
+        self.pointCloudTimer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.onPointCloudTimer, self.pointCloudTimer)
 
         self.updateCallbacks()
         self.Layout()
@@ -145,11 +153,14 @@ class ScanningWorkbench(WorkbenchConnection):
         self.ciclop_scan.setImageType(value)
         profile.putProfileSetting('img_type', value)
 
-    def getFrame(self):
+    def get_image(self):
         if self.scanning:
-            return self.ciclop_scan.getImage()
+            return self.ciclop_scan.image
         else:
-            return self.ciclop_scan.getImage(self.driver.camera.capture_image())
+            image = self.image_capture.capture_texture()
+            if profile.getProfileSettingBool('roi_view'):
+                image = self.point_cloud_roi.draw_roi(image)
+            return image
 
     def onPointCloudTimer(self, event):
         p, r = self.ciclop_scan.get_progress()
@@ -171,8 +182,10 @@ class ScanningWorkbench(WorkbenchConnection):
         else:
             result = True
             if self.sceneView._object is not None:
-                dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _(
-                    "Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                dlg = wx.MessageDialog(self,
+                                       _("Your current model will be erased.\n"
+                                         "Do you really want to do it?"),
+                                       _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
                 result = dlg.ShowModal() == wx.ID_YES
                 dlg.Destroy()
             if result:
@@ -215,8 +228,10 @@ class ScanningWorkbench(WorkbenchConnection):
     def afterScan(self, response):
         ret, result = response
         if ret:
-            dlg = wx.MessageDialog(self, _("Scanning has finished. If you want to save your point cloud go to File > Save Model"), _(
-                "Scanning finished!"), wx.OK | wx.ICON_INFORMATION)
+            dlg = wx.MessageDialog(self,
+                                   _("Scanning has finished. If you want to save your "
+                                     "point cloud go to File > Save Model"),
+                                   _("Scanning finished!"), wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
             self.scanning = False
@@ -225,8 +240,10 @@ class ScanningWorkbench(WorkbenchConnection):
     def onStopToolClicked(self, event):
         paused = self.ciclop_scan.inactive
         self.ciclop_scan.pause()
-        dlg = wx.MessageDialog(self, _("Your current scanning will be stopped.\nDo you really want to do it?"), _(
-            "Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(self,
+                               _("Your current scanning will be stopped.\n"
+                                 "Do you really want to do it?"),
+                               _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
 

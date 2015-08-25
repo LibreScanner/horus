@@ -57,20 +57,21 @@ class RotatingPlatform(ExpandablePanel):
     def updateCallbacks(self):
         section = self.sections['rotating_platform']
         section.updateCallback(
-            'motor_step_scanning', lambda v: ciclop_scan.set_motor_step(self.getValueFloat(v)))
+            'motor_step_scanning', lambda v: ciclop_scan.set_motor_step(self.to_float(v)))
         section.updateCallback(
-            'motor_speed_scanning', lambda v: ciclop_scan.set_motor_speed(self.getValueInteger(v)))
+            'motor_speed_scanning', lambda v: ciclop_scan.set_motor_speed(self.to_int(v)))
         section.updateCallback(
-            'motor_acceleration_scanning', lambda v: ciclop_scan.set_motor_acceleration(self.getValueInteger(v)))
+            'motor_acceleration_scanning',
+            lambda v: ciclop_scan.set_motor_acceleration(self.to_float(v)))
 
     # TODO: move
-    def getValueInteger(self, value):
+    def to_int(self, value):
         try:
             return int(eval(value, {}, {}))
         except:
             return 0
 
-    def getValueFloat(self, value):
+    def to_float(self, value):
         try:
             return float(eval(value.replace(',', '.'), {}, {}))
         except:
@@ -86,15 +87,17 @@ class PointCloudROI(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('point_cloud_roi')
-        section.addItem(CheckBox, 'roi_view', tooltip=_(
-            "View the Region Of Interest (ROI). This cylindrical region is the one being scanned. All information outside won't be taken into account during the scanning process"))
+        section.addItem(CheckBox, 'roi_view',
+                        tooltip=_("View the Region Of Interest (ROI). "
+                                  "This cylindrical region is the one being scanned. "
+                                  "All information outside won't be taken into account "
+                                  "during the scanning process"))
         section.addItem(Slider, 'roi_diameter')
         section.addItem(Slider, 'roi_height')
 
     def updateCallbacks(self):
         section = self.sections['point_cloud_roi']
-        #section.updateCallback('roi_view', lambda v: (
-        #    point_cloud_roi.set_roi_view(bool(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_view', lambda v: (self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_diameter', lambda v: (
             point_cloud_roi.set_diameter(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_height', lambda v: (

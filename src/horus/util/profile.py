@@ -274,8 +274,6 @@ setting('camera_matrix', ([[1430.0, 0.0, 480.0], [0.0, 1430.0, 640.0],
 setting('distortion_vector', ([0.0, 0.0, 0.0, 0.0, 0.0]),
         numpy.ndarray, 'advanced', _('Distortion Vector'))
 
-setting('laser_threshold_value', 120., int, 'advanced', _('Laser threshold')).setRange(0, 255)
-
 setting('distance_left', 0.0, float, 'advanced', _('Distance'))
 setting('normal_left', ([0.0, 0.0, 0.0]), numpy.ndarray, 'advanced', _('Normal'))
 setting('distance_right', 0.0, float, 'advanced', _('Distance'))
@@ -285,11 +283,6 @@ setting('rotation_matrix', ([[0.0, 1.0, 0.0], [0.0, 0.0, -1.0],
                              [-1.0, 0.0, 0.0]]), numpy.ndarray, 'advanced', _('Rotation matrix'))
 setting('translation_vector', ([5.0, 80.0, 320.0]),
         numpy.ndarray, 'advanced', _('Translation matrix'))
-
-setting('laser_coordinates', ([[480.0, 480.0], [480.0, 480.0]]),
-        numpy.ndarray, 'advanced', _('Laser coordinates'))
-setting('laser_origin', ([0.0, 0.0, 0.0]), numpy.ndarray, 'advanced', _('Laser origin'))
-setting('laser_normal', ([0.0, 0.0, 0.0]), numpy.ndarray, 'advanced', _('Laser normal'))
 
 setting('left_button', '', str, 'basic', _('Left'), False)
 setting('right_button', '', str, 'basic', _('Right'), False)
