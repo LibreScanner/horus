@@ -10,6 +10,7 @@ import wx._core
 from horus.util import profile, system as sys
 from horus.engine.driver.driver import Driver
 from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.calibration.calibration_data import CalibrationData
 from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
     CheckBox, Button, TextBox, ToggleButton, CallbackButton
 
@@ -21,6 +22,7 @@ class CameraControl(ExpandablePanel):
 
         self.driver = Driver()
         self.image_capture = ImageCapture()
+        self.calibration_data = CalibrationData()
 
         self.clearSections()
         section = self.createSection('camera_control')
@@ -66,7 +68,7 @@ class CameraControl(ExpandablePanel):
 
     def set_resolution(self, width, height):
         self.driver.camera.set_resolution(width, height)
-        self.image_capture.set_resolution(height, width)
+        self.calibration_data.set_resolution(height, width)
 
 
 class LaserControl(ExpandablePanel):

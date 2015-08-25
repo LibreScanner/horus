@@ -219,7 +219,7 @@ setting('pattern_origin_distance', 0.0, float, 'advanced', _('Origin distance (m
 _('Texture')
 _('Laser')
 _('Pattern')
-setting('capture_mode', 'Texture', [
+setting('capture_mode', 'Pattern', [
         'Texture', 'Laser', 'Pattern'], 'basic', _('Capture mode'), False)
 
 setting('brightness_pattern', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
