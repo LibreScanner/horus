@@ -20,14 +20,14 @@ class LaserSegmentation(object):
         self.calibration_data = CalibrationData()
         self.point_cloud_roi = PointCloudROI()
 
-        self._red_channel = 'R (RGB)'
-        self._open_enable = False
-        self._open_value = 0
-        self._threshold_enable = False
-        self._threshold_value = 0
+        self.red_channel = 'R (RGB)'
+        self.open_enable = False
+        self.open_value = 0
+        self.threshold_enable = False
+        self.threshold_value = 0
 
     def set_red_channel(self, value):
-        self._red_channel = value
+        self.red_channel = value
 
     def set_open_enable(self, value):
         self.open_enable = value
@@ -80,10 +80,10 @@ class LaserSegmentation(object):
 
     def _obtain_red_channel(self, image):
         ret = None
-        if self._red_channel == 'R (RGB)':
+        if self.red_channel == 'R (RGB)':
             ret = cv2.split(image)[0]
-        elif self._red_channel == 'Cr (YCrCb)':
+        elif self.red_channel == 'Cr (YCrCb)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))[1]
-        elif self._red_channel == 'U (YUV)':
+        elif self.red_channel == 'U (YUV)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YUV))[1]
         return ret

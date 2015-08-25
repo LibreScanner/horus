@@ -17,36 +17,36 @@ class CameraSettings(object):
     def __init__(self):
         self.driver = Driver()
         self.selected = False
-        self._brightness = 0
-        self._contrast = 0
-        self._saturation = 0
-        self._exposure = 0
+        self.brightness = 0
+        self.contrast = 0
+        self.saturation = 0
+        self.exposure = 0
 
     def set_brightness(self, value):
-        self._brightness = value
+        self.brightness = value
         if self.selected:
             self.driver.camera.set_brightness(value)
 
     def set_contrast(self, value):
-        self._contrast = value
+        self.contrast = value
         if self.selected:
             self.driver.camera.set_contrast(value)
 
     def set_saturation(self, value):
-        self._saturation = value
+        self.saturation = value
         if self.selected:
             self.driver.camera.set_saturation(value)
 
     def set_exposure(self, value):
-        self._exposure = value
+        self.exposure = value
         if self.selected:
             self.driver.camera.set_exposure(value)
 
     def send_all_settings(self):
-        self.driver.camera.set_brightness(self._brightness)
-        self.driver.camera.set_contrast(self._contrast)
-        self.driver.camera.set_saturation(self._saturation)
-        self.driver.camera.set_exposure(self._exposure)
+        self.driver.camera.set_brightness(self.brightness)
+        self.driver.camera.set_contrast(self.contrast)
+        self.driver.camera.set_saturation(self.saturation)
+        self.driver.camera.set_exposure(self.exposure)
 
 
 @Singleton

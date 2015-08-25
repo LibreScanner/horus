@@ -45,7 +45,7 @@ pattern = Pattern()
 calibration_data = CalibrationData()
 laser_triangulation = LaserTriangulation()
 platform_extrinsics = PlatformExtrinsics()
-image_capture = ImageCapture
+image_capture = ImageCapture()
 image_detection = ImageDetection()
 laser_segmentation = LaserSegmentation()
 point_cloud_generation = PointCloudGeneration()
@@ -155,7 +155,8 @@ class MainWindow(wx.Frame):
             _choices.append(_(i))
         self.workbenchDict = dict(zip(_choices, choices))
 
-        for workbench in [self.controlWorkbench, self.calibrationWorkbench, self.scanningWorkbench]:
+        for workbench in [self.controlWorkbench, self.calibrationWorkbench,
+                          self.scanningWorkbench]:
             workbench.combo.Clear()
             for i in choices:
                 workbench.combo.Append(_(i))
@@ -166,7 +167,7 @@ class MainWindow(wx.Frame):
         sizer.Add(self.scanningWorkbench, 1, wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
 
-        ## Events
+        # Events
         self.Bind(wx.EVT_MENU, self.onLaunchWizard, self.menuLaunchWizard)
         self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
         self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
@@ -268,8 +269,10 @@ class MainWindow(wx.Frame):
 
     def onClearModel(self, event):
         if self.scanningWorkbench.sceneView._object is not None:
-            dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _(
-                "Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+            dlg = wx.MessageDialog(
+                self,
+                _("Your current model will be erased.\nDo you really want to do it?"),
+                _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
@@ -301,8 +304,12 @@ class MainWindow(wx.Frame):
 
     def onResetProfile(self, event):
         """ """
-        dlg = wx.MessageDialog(self, _("This will reset all profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost!\nDo you really want to reset?"), _(
-            "Profile reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self,
+            _("This will reset all profile settings to defaults.\n"
+              "Unless you have saved your current profile, all settings will be lost!\n"
+              "Do you really want to reset?"),
+            _("Profile reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -480,7 +487,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
         info.AddTranslator(
-            u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, Meike Schirmeister')
+            u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, '
+            'Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, '
+            'Meike Schirmeister')
 
         wx.AboutBox(info)
 
@@ -499,7 +508,8 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def onBoardUnplugged(self):
         self._onDeviceUnplugged(
-            _("Board unplugged"), _("Board has been unplugged. Please, plug it in and press connect"))
+            _("Board unplugged"),
+            _("Board has been unplugged. Please, plug it in and press connect"))
 
     def onCameraUnplugged(self):
         self._onDeviceUnplugged(_("Camera unplugged"), _(
@@ -586,8 +596,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 self.scanningWorkbench.splitterWindow.Unsplit()
 
         self.updateDriverProfile()
-        self.updatePCGProfile()
-        self.updateCalibrationProfile()
+        self.updateProfile()
 
         self.workbenchUpdate()
         self.Layout()
@@ -598,47 +607,64 @@ Suite 330, Boston, MA  02111-1307  USA""")
         driver.board.baud_rate = profile.getProfileSettingInteger('baud_rate')
         driver.board.motor_invert(profile.getProfileSettingBool('invert_motor'))
 
-    def updatePCGProfile(self):
-        #ciclop_scan.capture_texture = profile.getProfileSettingBool('capture_texture')
-        #ciclop_scan.remove_background = profile.getProfileSettingBool('remove_background')
-        #ciclop_scan.use_left_laser = profile.getProfileSettingBool('use_left_laser')
-        #ciclop_scan.use_right_laser = profile.getProfileSettingBool('use_right_laser')
-        #ciclop_scan.move_motor = profile.getProfileSettingBool('move_motor_scanning')
-        #ciclop_scan.motor_step = profile.getProfileSettingInteger('motor_step_scanning')
-        #ciclop_scan.motor_speed = profile.getProfileSettingInteger('motor_speed_scanning')
-        #ciclop_scan.motor_acceleration = profile.getProfileSettingInteger('motor_acceleration_scanning')
-        #ciclop_scan.exposure_texture = profile.getProfileSettingInteger('exposure_texture_scanning')
-        #ciclop_scan.exposure_laser = profile.getProfileSettingInteger('exposure_laser_scanning')
+    def updateProfile(self):
+        ciclop_scan.capture_texture = profile.getProfileSettingBool('capture_texture')
+        ciclop_scan.use_left_laser = profile.getProfileSettingBool('use_left_laser')
+        ciclop_scan.use_right_laser = profile.getProfileSettingBool('use_right_laser')
+        ciclop_scan.motor_step = profile.getProfileSettingInteger('motor_step_scanning')
+        ciclop_scan.motor_speed = profile.getProfileSettingInteger('motor_speed_scanning')
+        ciclop_scan.motor_acceleration = profile.getProfileSettingInteger(
+            'motor_acceleration_scanning')
 
-        #point_cloud_roi.set_roi_view(profile.getProfileSettingBool('roi_view'))
-        point_cloud_roi.set_diameter(profile.getProfileSettingInteger('roi_diameter'))
-        point_cloud_roi.set_height(profile.getProfileSettingInteger('roi_height'))
+        image_capture.pattern_mode.brightness = profile.getProfileSettingInteger(
+            'brightness_pattern')
+        image_capture.pattern_mode.contrast = profile.getProfileSettingInteger('contrast_pattern')
+        image_capture.pattern_mode.saturation = profile.getProfileSettingInteger(
+            'saturation_pattern')
+        image_capture.pattern_mode.exposure = profile.getProfileSettingInteger('exposure_pattern')
+        image_capture.laser_mode.brightness = profile.getProfileSettingInteger('brightness_laser')
+        image_capture.laser_mode.contrast = profile.getProfileSettingInteger('contrast_laser')
+        image_capture.laser_mode.saturation = profile.getProfileSettingInteger('saturation_laser')
+        image_capture.laser_mode.exposure = profile.getProfileSettingInteger('exposure_laser')
+        image_capture.texture_mode.brightness = profile.getProfileSettingInteger(
+            'brightness_texture')
+        image_capture.texture_mode.contrast = profile.getProfileSettingInteger('contrast_texture')
+        image_capture.texture_mode.saturation = profile.getProfileSettingInteger(
+            'saturation_texture')
+        image_capture.texture_mode.exposure = profile.getProfileSettingInteger('exposure_texture')
+        image_capture.use_distortion = profile.getProfileSettingBool('use_distortion')
 
+        laser_segmentation.red_channel = profile.getProfileSetting('red_channel')
         laser_segmentation.open_enable = profile.getProfileSettingBool('open_enable')
         laser_segmentation.open_value = profile.getProfileSettingInteger('open_value')
         laser_segmentation.threshold_enable = profile.getProfileSettingBool('threshold_enable')
         laser_segmentation.threshold_value = profile.getProfileSettingInteger('threshold_value')
 
-    def updateCalibrationProfile(self):
+        point_cloud_roi.set_diameter(profile.getProfileSettingInteger('roi_diameter'))
+        point_cloud_roi.set_height(profile.getProfileSettingInteger('roi_height'))
+
         pattern.rows = profile.getProfileSettingInteger('pattern_rows')
         pattern.columns = profile.getProfileSettingInteger('pattern_columns')
         pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
         pattern.distance = profile.getProfileSettingFloat('pattern_origin_distance')
+
+        resolution = profile.getProfileSetting('resolution').split('x')
+        driver.camera.set_frame_rate(int(profile.getProfileSetting('frame_rate')))
+        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
         calibration_data.camera_matrix = profile.getProfileSettingNumpy('camera_matrix')
         calibration_data.distortion_vector = profile.getProfileSettingNumpy('distortion_vector')
         calibration_data.laser_planes[0].distance = profile.getProfileSettingNumpy('distance_left')
         calibration_data.laser_planes[0].normal = profile.getProfileSettingNumpy('normal_left')
-        calibration_data.laser_planes[1].distance = profile.getProfileSettingNumpy('distance_right')
+        calibration_data.laser_planes[
+            1].distance = profile.getProfileSettingNumpy('distance_right')
         calibration_data.laser_planes[1].normal = profile.getProfileSettingNumpy('normal_right')
         calibration_data.platform_rotation = profile.getProfileSettingNumpy('rotation_matrix')
-        calibration_data.platform_translation = profile.getProfileSettingNumpy('translation_vector')
+        calibration_data.platform_translation = profile.getProfileSettingNumpy(
+            'translation_vector')
 
     def updateDriver(self):
-        driver.camera.set_frame_rate(int(profile.getProfileSetting('frame_rate')))
         resolution = profile.getProfileSetting('resolution').split('x')
         driver.camera.set_resolution(int(resolution[0]), int(resolution[1]))
-        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
-        calibration_data.use_distortion = profile.getProfileSettingBool('use_distortion')
 
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.getPreference('workbench')
@@ -649,14 +675,14 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
         waitCursor = wx.BusyCursor()
 
+        self.updateDriver()
+
         self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'Scanning workbench')
         self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'Scanning workbench')
         self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'Scanning workbench')
 
         wb[currentWorkbench].updateProfileToAllControls()
         wb[currentWorkbench].combo.SetValue(_(currentWorkbench))
-
-        self.updateDriver()
 
         if layout:
             for key in wb:
@@ -688,13 +714,16 @@ Suite 330, Boston, MA  02111-1307  USA""")
                         values = _winreg.EnumValue(key, i)
                     except:
                         return baselist
-                    if 'USBSER' in values[0] or 'VCP' in values[0] or '\Device\Serial' in values[0]:
+                    if 'USBSER' in values[0] or \
+                       'VCP' in values[0] or \
+                       '\Device\Serial' in values[0]:
                         baselist.append(values[1])
                     i += 1
             except:
                 return baselist
         else:
-            for device in ['/dev/ttyACM*', '/dev/ttyUSB*',  "/dev/tty.usb*", "/dev/tty.wchusb*", "/dev/cu.*", "/dev/rfcomm*"]:
+            for device in ['/dev/ttyACM*', '/dev/ttyUSB*', '/dev/tty.usb*', '/dev/tty.wchusb*',
+                           '/dev/cu.*', '/dev/rfcomm*']:
                 baselist = baselist + glob.glob(device)
         return baselist
 
