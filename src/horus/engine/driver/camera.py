@@ -46,14 +46,9 @@ class Camera(object):
         self._capture = None
         self._is_connected = False
         self._reading = False
-        self._brightness = 0
-        self._contrast = 0
-        self._saturation = 0
-        self._exposure = 0
-        self._frame_rate = 0
-        self._width = 0
-        self._height = 0
         self._tries = 0  # Check if command fails
+
+        self.initialize()
 
         if system == 'Windows':
             self._number_frames_fail = 3
@@ -73,9 +68,19 @@ class Camera(object):
             self._max_saturation = 255.
             self._max_exposure = 1000.
 
+    def initialize(self):
+        self._brightness = 0
+        self._contrast = 0
+        self._saturation = 0
+        self._exposure = 0
+        self._frame_rate = 0
+        self._width = 0
+        self._height = 0
+
     def connect(self):
         print ">>> Connecting camera {0}".format(self.camera_id)
         self._is_connected = False
+        self.initialize()
         if system == 'Darwin':
             for device in uvc.mac.Camera_List():
                 if device.src_id == self.camera_id:
