@@ -228,26 +228,29 @@ setting('saturation_pattern', 100, int, 'advanced', _('Saturation')).setRange(0,
 setting('exposure_pattern', 16, int, 'basic', _('Exposure')).setRange(1, 128)
 
 setting('brightness_laser', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
-setting('contrast_laser', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
-setting('saturation_laser', 100, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_laser', 4, int, 'basic', _('Exposure')).setRange(1, 128)
+setting('contrast_laser', 20, int, 'advanced', _('Contrast')).setRange(0, 255)
+setting('saturation_laser', 60, int, 'advanced', _('Saturation')).setRange(0, 255)
+setting('exposure_laser', 6, int, 'basic', _('Exposure')).setRange(1, 128)
 setting('remove_background', True, bool, 'advanced', _('Remove background'))
 
 setting('brightness_texture', 100, int, 'advanced', _('Brightness')).setRange(0, 255)
 setting('contrast_texture', 32, int, 'advanced', _('Contrast')).setRange(0, 255)
-setting('saturation_texture', 100, int, 'advanced', _('Saturation')).setRange(0, 255)
-setting('exposure_texture', 16, int, 'basic', _('Exposure')).setRange(1, 128)
+setting('saturation_texture', 60, int, 'advanced', _('Saturation')).setRange(0, 255)
+setting('exposure_texture', 20, int, 'basic', _('Exposure')).setRange(1, 128)
 
 setting('red_channel', 'R (RGB)', ['R (RGB)', 'Cr (YCrCb)', 'U (YUV)'], 'basic', _('Red channel'))
 setting('open_enable', True, bool, 'advanced', _('Enable open'), tag='texture')
 setting('open_value', 2, int, 'advanced', _('Open value'), tag='texture').setRange(1, 10)
 setting('threshold_enable', True, bool, 'advanced', _('Enable threshold'), tag='texture')
-setting('threshold_value', 25, int, 'advanced', _(
+setting('threshold_value', 60, int, 'advanced', _(
     'Threshold value'), tag='texture').setRange(0, 255)
 
 setting('capture_texture', True, bool, 'advanced', _('Capture texture'))
-setting('use_left_laser', True, bool, 'advanced', _('Use left laser'))
-setting('use_right_laser', True, bool, 'advanced', _('Use right laser'))
+# Hack to translate combo boxes:
+_('Left')
+_('Right')
+_('Both')
+setting('use_laser', 'Both', ['Left', 'Right', 'Both'], 'basic', _('Use laser'))
 
 setting('motor_step_scanning', 0.45, float, 'basic', _(u'Step (º)')).setRange(0.01)
 setting('motor_speed_scanning', 200, int, 'advanced', _(u'Speed (º/s)')).setRange(1, 1000)

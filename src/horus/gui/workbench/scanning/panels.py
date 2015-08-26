@@ -8,17 +8,16 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.gui.util.customPanels import ExpandablePanel, Slider, CheckBox, Button, TextBox
+from horus.gui.util.customPanels import ExpandablePanel, Slider, CheckBox, ComboBox, \
+    Button, TextBox
 
 from horus.util import profile, system as sys
 from horus.gui.util.resolutionWindow import ResolutionWindow
 
 from horus.engine.scan.ciclop_scan import CiclopScan
-from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
 from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 ciclop_scan = CiclopScan()
-point_cloud_generation = PointCloudGeneration()
 point_cloud_roi = PointCloudROI()
 
 
@@ -33,14 +32,16 @@ class ScanParameters(ExpandablePanel):
         self.clearSections()
         section = self.createSection('scan_parameters')
         section.addItem(CheckBox, 'capture_texture')
-        section.addItem(CheckBox, 'use_left_laser')
-        section.addItem(CheckBox, 'use_right_laser')
+        section.addItem(ComboBox, 'use_laser')
 
     def updateCallbacks(self):
         section = self.sections['scan_parameters']
         section.updateCallback('capture_texture', ciclop_scan.set_capture_texture)
-        section.updateCallback('use_left_laser', ciclop_scan.set_use_left_laser)
-        section.updateCallback('use_right_laser', ciclop_scan.set_use_right_laser)
+        section.updateCallback('use_laser', self.set_use_laser)
+
+    def set_use_laser(self, value):
+        ciclop_scan.set_use_left_laser(value == 'Left' or value == 'Both')
+        ciclop_scan.set_use_right_laser(value == 'Right' or value == 'Both')
 
 
 class RotatingPlatform(ExpandablePanel):
@@ -122,12 +123,12 @@ class PointCloudColor(ExpandablePanel):
 
     def onColorPicker(self):
         data = wx.ColourData()
-        data.SetColour(point_cloud_generation.color)
+        data.SetColour(ciclop_scan.color)
         dialog = wx.ColourDialog(self, data)
         dialog.GetColourData().SetChooseFull(True)
         if dialog.ShowModal() == wx.ID_OK:
             data = dialog.GetColourData()
             color = data.GetColour().Get()
-            point_cloud_generation.set_point_cloud_color(color)
+            ciclop_scan.color = color
             profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
         dialog.Destroy()

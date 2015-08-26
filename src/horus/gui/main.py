@@ -609,12 +609,15 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateProfile(self):
         ciclop_scan.capture_texture = profile.getProfileSettingBool('capture_texture')
-        ciclop_scan.use_left_laser = profile.getProfileSettingBool('use_left_laser')
-        ciclop_scan.use_right_laser = profile.getProfileSettingBool('use_right_laser')
+        use_laser = profile.getProfileSettingBool('use_laser')
+        ciclop_scan.set_use_left_laser(use_laser == 'Left' or use_laser == 'Both')
+        ciclop_scan.set_use_right_laser(use_laser == 'Right' or use_laser == 'Both')
         ciclop_scan.motor_step = profile.getProfileSettingInteger('motor_step_scanning')
         ciclop_scan.motor_speed = profile.getProfileSettingInteger('motor_speed_scanning')
         ciclop_scan.motor_acceleration = profile.getProfileSettingInteger(
             'motor_acceleration_scanning')
+        ciclop_scan.color = struct.unpack(
+            'BBB', profile.getProfileSetting('point_cloud_color').decode('hex'))
 
         image_capture.pattern_mode.brightness = profile.getProfileSettingInteger(
             'brightness_pattern')

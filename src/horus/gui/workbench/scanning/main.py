@@ -21,7 +21,6 @@ from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform
 from horus.engine.scan.ciclop_scan import CiclopScan
 from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.algorithms.image_detection import ImageDetection
-from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
 from horus.engine.algorithms import point_cloud_roi
 
 
@@ -36,7 +35,6 @@ class ScanningWorkbench(WorkbenchConnection):
         self.ciclop_scan = CiclopScan()
         self.image_capture = ImageCapture()
         self.image_detection = ImageDetection()
-        self.point_cloud_generation = PointCloudGeneration()
         self.point_cloud_roi = point_cloud_roi.PointCloudROI()
 
         # Toolbar Configuration
@@ -68,7 +66,7 @@ class ScanningWorkbench(WorkbenchConnection):
         self.controls = ExpandableControl(self.scrollPanel)
 
         self.controls.addPanel('scan_parameters', ScanParameters(self.controls))
-        self.controls.addPanel('scan_step', RotatingPlatform(self.controls))
+        self.controls.addPanel('rotating_platform', RotatingPlatform(self.controls))
         self.controls.addPanel('point_cloud_roi', PointCloudROI(self.controls))
         self.controls.addPanel('point_cloud_color', PointCloudColor(self.controls))
 
@@ -166,14 +164,14 @@ class ScanningWorkbench(WorkbenchConnection):
         p, r = self.ciclop_scan.get_progress()
         self.gauge.SetRange(r)
         self.gauge.SetValue(p)
-        pointCloud = self.ciclop_scan.getPointCloudIncrement()
+        pointCloud = self.ciclop_scan.get_point_cloud_increment()
         if pointCloud is not None:
             if pointCloud[0] is not None and pointCloud[1] is not None:
                 if len(pointCloud[0]) > 0:
                     self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
     def onPlayToolClicked(self, event):
-        if self.ciclop_scan.inactive:
+        if self.ciclop_scan._inactive:
             # Resume
             self.enableLabelTool(self.pauseTool, True)
             self.enableLabelTool(self.playTool, False)
@@ -193,8 +191,8 @@ class ScanningWorkbench(WorkbenchConnection):
                 self.gauge.Show()
                 self.scenePanel.Layout()
                 self.Layout()
-                self.ciclop_scan.setCallbacks(
-                    self.beforeScan, lambda r: wx.CallAfter(self.afterScan, r))
+                self.ciclop_scan.set_callbacks(self.beforeScan,
+                                               None, lambda r: wx.CallAfter(self.afterScan, r))
                 self.ciclop_scan.start()
 
     def beforeScan(self):
@@ -218,8 +216,8 @@ class ScanningWorkbench(WorkbenchConnection):
         self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), False)
         self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), False)
         self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), False)
-        panel = self.controls.panels['scan_step']
-        section = panel.sections['scan_step']
+        panel = self.controls.panels['rotating_platform']
+        section = panel.sections['rotating_platform']
         section.disable('motor_speed_scanning')
         section.disable('motor_acceleration_scanning')
         self.enableRestore(False)
@@ -238,7 +236,7 @@ class ScanningWorkbench(WorkbenchConnection):
             self.onScanFinished()
 
     def onStopToolClicked(self, event):
-        paused = self.ciclop_scan.inactive
+        paused = self.ciclop_scan._inactive
         self.ciclop_scan.pause()
         dlg = wx.MessageDialog(self,
                                _("Your current scanning will be stopped.\n"
@@ -274,8 +272,8 @@ class ScanningWorkbench(WorkbenchConnection):
         self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), True)
         self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), True)
         self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), True)
-        panel = self.controls.panels['scan_step']
-        section = panel.sections['scan_step']
+        panel = self.controls.panels['rotating_platform']
+        section = panel.sections['rotating_platform']
         section.enable('motor_speed_scanning')
         section.enable('motor_acceleration_scanning')
         self.enableRestore(True)

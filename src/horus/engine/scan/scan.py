@@ -35,7 +35,7 @@ class Scan(object):
         self._after_callback = None
         self._progress = 0
         self._range = 0
-        self._paused = False
+        self._inactive = False
 
     def set_callbacks(self, before, progress, after):
         self._before_callback = before
@@ -53,7 +53,7 @@ class Scan(object):
             self._initialize()
 
             self.is_scanning = True
-            self._paused = False
+            self._inactive = False
 
             threading.Thread(target=self._capture).start()
             threading.Thread(target=self._process).start()
