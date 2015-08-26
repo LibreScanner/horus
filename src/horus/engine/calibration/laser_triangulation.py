@@ -43,17 +43,16 @@ class LaserTriangulation(MovingCalibration):
 
     def _initialize(self):
         self.image = None
-        self.has_image = False
+        self.has_image = True
+        self.image_capture.stream = False
         self._point_cloud = [None, None]
 
     def _capture(self, angle):
-        self.image_capture._flush_pattern = 1
         image = self.image_capture.capture_pattern()
         ret = self.image_detection.detect_pattern_plane(image)
         if ret is None:
-            self.has_image = False
+            self.image = image
         else:
-            self.has_image = True
             d, n, corners = ret
             for i in xrange(2):
                 image = self.image_capture.capture_laser(i)
@@ -68,7 +67,7 @@ class LaserTriangulation(MovingCalibration):
 
     def _calibrate(self):
         self.has_image = False
-        self.image_capture._flush_pattern = 0
+        self.image_capture.stream = True
 
         # Save point clouds
         for i in xrange(2):

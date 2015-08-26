@@ -56,13 +56,14 @@ class PointCloudROI(object):
         return mask
 
     def mask_point_cloud(self, point_cloud, texture):
-        rho = np.sqrt(point_cloud[0, :] ** 2 + point_cloud[1, :] ** 2)
-        z = point_cloud[2, :]
-        idx = np.where((z >= 0) &
-                       (z <= self._height) &
-                       (rho >= -self._radious) &
-                       (rho <= self._radious))[0]
-        return points[:, idx], texture[:, idx]
+        if point_cloud is not None and len(point_cloud) > 0:
+            rho = np.sqrt(point_cloud[0, :] ** 2 + point_cloud[1, :] ** 2)
+            z = point_cloud[2, :]
+            idx = np.where((z >= 0) &
+                           (z <= self._height) &
+                           (rho >= -self._radious) &
+                           (rho <= self._radious))[0]
+            return point_cloud[:, idx], texture[:, idx]
 
     def draw_roi(self, image):
         thickness = 6

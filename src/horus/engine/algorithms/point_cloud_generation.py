@@ -23,9 +23,9 @@ class PointCloudGeneration(object):
         R = np.matrix(self.calibration_data.platform_rotation).T
         t = np.matrix(self.calibration_data.platform_translation).T
         # Compute platform transformation
-        Xwo = self.compute_platform_point_cloud(R, t, index)
+        Xwo = self.compute_platform_point_cloud(points_2d, R, t, index)
         # Rotate to world coordinates
-        c, s = np.cos(theta), np.sin(theta)
+        c, s = np.cos(-theta), np.sin(-theta)
         Rz = np.matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]])
         Xw = Rz * Xwo
         # Return point cloud
@@ -34,12 +34,12 @@ class PointCloudGeneration(object):
         else:
             return None
 
-    def compute_platform_point_cloud(self, R, t, index):
+    def compute_platform_point_cloud(self, points_2d, R, t, index):
         # Load calibration values
         n = self.calibration_data.laser_planes[index].normal
         d = self.calibration_data.laser_planes[index].distance
         # Camera system
-        Xc = self.compute_camera_point_cloud(points_2d, d, n)
+        Xc = - self.compute_camera_point_cloud(points_2d, d, n)
         # Compute platform transformation
         return R * Xc - R * t
 

@@ -41,25 +41,22 @@ class PlatformExtrinsics(MovingCalibration):
 
     def _initialize(self):
         self.image = None
-        self.has_image = False
+        self.has_image = True
+        self.image_capture.stream = False
         self.x = []
         self.y = []
         self.z = []
 
     def _capture(self, angle):
-        self.image_capture._flush_pattern = 1
         t = self.compute_pattern_position()
-        if t is None:
-            self.has_image = False
-        else:
-            self.has_image = True
+        if t is not None:
             self.x += [t[0][0]]
             self.y += [t[1][0]]
             self.z += [t[2][0]]
 
     def _calibrate(self):
         self.has_image = False
-        self.image_capture._flush_pattern = 0
+        self.image_capture.stream = True
         t = None
         self.x = np.array(self.x)
         self.y = np.array(self.y)

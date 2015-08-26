@@ -56,7 +56,7 @@ class Autocheck(Calibration):
             response = None
             self.image = None
             self._is_calibrating = True
-            self.image_capture._flush_pattern = 1
+            self.image_capture.stream = False
 
             # Setup scanner
             self.driver.board.lasers_off()
@@ -72,7 +72,7 @@ class Autocheck(Calibration):
             finally:
                 self.image = None
                 self._is_calibrating = False
-                self.image_capture._flush_pattern = 0
+                self.image_capture.stream = True
                 self.driver.board.lasers_off()
                 self.driver.board.motor_disable()
                 if self._progress_callback is not None:

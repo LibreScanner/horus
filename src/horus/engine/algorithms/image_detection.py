@@ -49,15 +49,14 @@ class ImageDetection(object):
                 return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
     def detect_pattern_plane(self, image):
-        if image is not None:
-            ret = self.detect_pose(image)
-            if ret is not None:
-                R = ret[0]
-                t = ret[1].T[0]
-                c = ret[2]
-                n = R.T[2]
-                d = -np.dot(n, t)
-                return (d, n, c)
+        ret = self.detect_pose(image)
+        if ret is not None:
+            R = ret[0]
+            t = ret[1].T[0]
+            c = ret[2]
+            n = R.T[2]
+            d = -np.dot(n, t)
+            return (d, n, c)
 
     def pattern_mask(self, image, corners):
         if corners is not None:
@@ -81,6 +80,7 @@ class ImageDetection(object):
     def _detect_chessboard(self, image):
         if image is not None:
             if self.pattern.rows > 2 and self.pattern.columns > 2:
+
                 gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
                 ret, corners = cv2.findChessboardCorners(
                     gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)

@@ -56,14 +56,18 @@ class ImageCapture(object):
         self.driver = Driver()
         self.calibration_data = CalibrationData()
 
-        self.pattern_mode = CameraSettings()
-        self.laser_mode = CameraSettings()
         self.texture_mode = CameraSettings()
+        self.laser_mode = CameraSettings()
+        self.pattern_mode = CameraSettings()
 
+        self.stream = True
         # TODO: custom flush for each OS
-        self._flush_pattern = 0
+        self._flush_texture = 2
         self._flush_laser = 1
-        self._flush_texture = 0
+        self._flush_pattern = 1
+        self._flush_stream_texture = 1
+        self._flush_stream_laser = 1
+        self._flush_stream_pattern = 0
         self._mode = self.pattern_mode
         self._mode.selected = True
         self._remove_background = True
@@ -88,17 +92,25 @@ class ImageCapture(object):
     def capture_texture(self):
         self.set_mode(self.texture_mode)
         self.driver.board.lasers_off()
-        image = self.capture_image(flush=self._flush_texture)
+        if self.stream:
+            flush = self._flush_stream_texture
+        else:
+            flush = self._flush_texture
+        image = self.capture_image(flush=flush)
         return image
 
     def capture_laser(self, index):
         self.set_mode(self.laser_mode)
         self.driver.board.lasers_off()
         self.driver.board.laser_on(index)
-        image = self.capture_image(flush=self._flush_laser)
+        if self.stream:
+            flush = self._flush_stream_laser
+        else:
+            flush = self._flush_laser
+        image = self.capture_image(flush=flush)
         if self._remove_background:
             self.driver.board.lasers_off()
-            image_background = self.capture_image(flush=self._flush_laser)
+            image_background = self.capture_image(flush=flush)
             if image is not None and image_background is not None:
                 image = cv2.subtract(image, image_background)
         return image
@@ -106,10 +118,14 @@ class ImageCapture(object):
     def capture_lasers(self):
         self.set_mode(self.laser_mode)
         self.driver.board.lasers_on()
-        image = self.capture_image(flush=self._flush_laser)
+        if self.stream:
+            flush = self._flush_stream_laser
+        else:
+            flush = self._flush_laser
+        image = self.capture_image(flush=flush)
         if self._remove_background:
             self.driver.board.lasers_off()
-            image_background = self.capture_image(flush=self._flush_laser)
+            image_background = self.capture_image(flush=flush)
             if image is not None and image_background is not None:
                 image = cv2.subtract(image, image_background)
         return image
@@ -117,7 +133,11 @@ class ImageCapture(object):
     def capture_pattern(self):
         self.set_mode(self.pattern_mode)
         self.driver.board.lasers_off()
-        image = self.capture_image(flush=self._flush_pattern)
+        if self.stream:
+            flush = self._flush_stream_pattern
+        else:
+            flush = self._flush_pattern
+        image = self.capture_image(flush=flush)
         return image
 
     def capture_image(self, flush=0):
