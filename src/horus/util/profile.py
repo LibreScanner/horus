@@ -264,11 +264,12 @@ setting('roi_height', 200, int, 'advanced', _('Height')).setRange(0, 250)
 setting('point_cloud_color', 'AAAAAA', str, 'advanced', _('Choose point cloud color'))
 
 # Hack to translate combo boxes:
+_('Texture')
 _('Laser')
 _('Gray')
 _('Line')
-_('Color')
-setting('img_type', 'Laser', ['Laser', 'Gray', 'Line', 'Color'], 'advanced', _('Image type'))
+setting('video_scanning', 'Laser', [
+        'Texture', 'Laser', 'Gray', 'Line'], 'advanced', _('Image type'))
 
 setting('adjust_laser', True, bool, 'advanced', _('Adjust laser'))
 

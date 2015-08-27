@@ -48,7 +48,7 @@ class LaserSegmentation(object):
             s = image.sum(axis=1)
             v = np.where(s > 0)[0]
             u = (self.calibration_data.weight_matrix * image).sum(axis=1)[v] / s[v]
-            return (u, v)
+            return (u, v), image
 
     def compute_hough_lines(self, image):
         if image is not None:

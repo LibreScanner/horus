@@ -10,5 +10,5 @@ class ScanCapture(object):
 
     def __init__(self):
         self.theta = 0
-        self.img_texture = None
-        self.img_laser = [None, None]
+        self.texture = None
+        self.lasers = [None, None]

@@ -65,7 +65,7 @@ class ImageCapture(object):
         self._flush_texture = 2
         self._flush_laser = 1
         self._flush_pattern = 1
-        self._flush_stream_texture = 1
+        self._flush_stream_texture = 0
         self._flush_stream_laser = 1
         self._flush_stream_pattern = 0
         self._mode = self.pattern_mode

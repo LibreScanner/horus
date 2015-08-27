@@ -19,6 +19,7 @@ from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform
     PointCloudROI, PointCloudColor
 
 from horus.engine.scan.ciclop_scan import CiclopScan
+from horus.engine.scan.current_video import CurrentVideo
 from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms import point_cloud_roi
@@ -33,6 +34,7 @@ class ScanningWorkbench(WorkbenchConnection):
         self.showVideoViews = False
 
         self.ciclop_scan = CiclopScan()
+        self.current_video = CurrentVideo()
         self.image_capture = ImageCapture()
         self.image_detection = ImageDetection()
         self.point_cloud_roi = point_cloud_roi.PointCloudROI()
@@ -99,7 +101,7 @@ class ScanningWorkbench(WorkbenchConnection):
 
         # Video View Selector
         _choices = []
-        choices = profile.getProfileSettingObject('img_type').getType()
+        choices = profile.getProfileSettingObject('video_scanning').getType()
         for i in choices:
             _choices.append(_(i))
         self.videoViewsDict = dict(zip(_choices, choices))
@@ -107,7 +109,7 @@ class ScanningWorkbench(WorkbenchConnection):
         self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(
             resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10, 10))
         self.comboVideoViews = wx.ComboBox(self.videoView,
-                                           value=_(profile.getProfileSetting('img_type')),
+                                           value=_(profile.getProfileSetting('video_scanning')),
                                            choices=_choices, style=wx.CB_READONLY, pos=(60, 10))
 
         self.buttonShowVideoViews.Hide()
@@ -148,15 +150,17 @@ class ScanningWorkbench(WorkbenchConnection):
 
     def onComboBoVideoViewsSelect(self, event):
         value = self.videoViewsDict[self.comboVideoViews.GetValue()]
-        self.ciclop_scan.setImageType(value)
-        profile.putProfileSetting('img_type', value)
+        self.current_video.mode = value
+        profile.putProfileSetting('video_scanning', value)
 
     def get_image(self):
         if self.scanning:
-            return self.ciclop_scan.image
+            self.image_capture.stream = False
+            return self.current_video.capture()
         else:
+            self.image_capture.stream = True
             image = self.image_capture.capture_texture()
-            if profile.getProfileSettingBool('roi_view'):
+            if profile.getProfileSettingBool('video_scanning'):
                 image = self.point_cloud_roi.draw_roi(image)
             return image
 
@@ -279,6 +283,7 @@ class ScanningWorkbench(WorkbenchConnection):
         self.enableRestore(True)
         self.pointCloudTimer.Stop()
         self.videoView.setMilliseconds(10)
+        self.gauge.SetValue(0)
         self.gauge.Hide()
         self.scenePanel.Layout()
         self.Layout()

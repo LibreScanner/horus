@@ -12,6 +12,7 @@ import numpy as np
 from horus import Singleton
 from horus.engine.scan.scan import Scan
 from horus.engine.scan.scan_capture import ScanCapture
+from horus.engine.scan.current_video import CurrentVideo
 
 
 class ScanError(Exception):
@@ -32,6 +33,7 @@ class CiclopScan(Scan):
     def __init__(self):
         Scan.__init__(self)
         self.image = None
+        self.current_video = CurrentVideo()
         self.capture_texture = True
         self.laser = [True, True]
         self.move_motor = True
@@ -67,6 +69,7 @@ class CiclopScan(Scan):
 
     def _initialize(self):
         self.image = None
+        self.image_capture.stream = False
         self._theta = 0
         self._captures_queue.queue.clear()
         self._point_cloud_queue.queue.clear()
@@ -85,8 +88,10 @@ class CiclopScan(Scan):
     def _capture(self):
         while self.is_scanning:
             if self._inactive:
+                self.image_capture.stream = True
                 time.sleep(0.1)
             else:
+                self.image_capture.stream = False
                 if abs(self._theta) > 2 * np.pi:
                     break
                 else:
@@ -117,11 +122,22 @@ class CiclopScan(Scan):
         capture.theta = self._theta
 
         if self.capture_texture:
-            capture.img_texture = self.image_capture.capture_texture()
+            capture.texture = self.image_capture.capture_texture()
+        else:
+            r, g, b = self.color
+            ones = np.ones((1280, 960, 3), np.uint8)  # TODO: add real values
+            ones[:, :, 0] *= r
+            ones[:, :, 1] *= g
+            ones[:, :, 2] *= b
+            capture.texture = ones
 
         for i in xrange(2):
             if self.laser[i]:
-                capture.img_laser[i] = self.image_capture.capture_laser(i)
+                capture.lasers[i] = self.image_capture.capture_laser(i)
+
+        # Set current video images
+        self.current_video.set_texture(capture.texture)
+        self.current_video.set_laser(capture.lasers)
 
         return capture
 
@@ -135,6 +151,7 @@ class CiclopScan(Scan):
                 self.image_detection.stream = False
                 if abs(self._theta) > 2 * np.pi:
                     self.is_scanning = False
+                    ret = True
                     break
                 else:
                     if not self._captures_queue.empty():
@@ -143,36 +160,43 @@ class CiclopScan(Scan):
                         capture = self._captures_queue.get(timeout=0.1)
                         self._captures_queue.task_done()
 
+                        # Current video arrays
+                        images = [None, None]
+                        points = [None, None]
+
                         for i in xrange(2):
-                            if capture.img_laser[i] is not None:
-                                image = capture.img_laser[i]
+                            if capture.lasers[i] is not None:
+                                image = capture.lasers[i]
                                 self.image = image
                                 # Compute 2D points from images
-                                points_2d = self.laser_segmentation.compute_2d_points(image)
+                                points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                                images[i] = image
+                                points[i] = points_2d
                                 # Compute point cloud from 2D points
                                 point_cloud = self.point_cloud_generation.compute_point_cloud(
                                     capture.theta, points_2d, i)
                                 # Compute point cloud texture
                                 u, v = points_2d
-                                if capture.img_texture is not None:
-                                    texture = capture.img_texture[v, u.astype(int)].T
-                                else:
-                                    n = len(u)
-                                    r, g, b = self.color
-                                    texture = np.array([n * [r], n * [g], n * [b]])
+                                texture = capture.texture[v, u.astype(int)].T
                                 # Filter point cloud
-                                ret = self.point_cloud_roi.mask_point_cloud(point_cloud, texture)
-                                if ret is not None:
+                                point_cloud_mask = self.point_cloud_roi.mask_point_cloud(
+                                    point_cloud, texture)
+                                if point_cloud_mask is not None:
                                     # Put point cloud into queue
-                                    point_cloud, texture = ret
+                                    point_cloud, texture = point_cloud_mask
                                     self._point_cloud_queue.put((point_cloud, texture))
+
+                        # Set current video images
+                        self.current_video.set_gray(images)
+                        self.current_video.set_line(points, image)
+
                         print "Process: {0} ms".format(int((time.time() - begin) * 1000))
         if ret:
             response = (True, None)
         else:
             response = (False, ScanError)
 
-        self.image_detection.stream = True
+        self.image_capture.stream = True
 
         if self._after_callback is not None:
             self._after_callback(response)

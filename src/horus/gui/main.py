@@ -24,6 +24,7 @@ from horus.gui.util.versionWindow import VersionWindow
 
 from horus.engine.driver.driver import Driver
 from horus.engine.scan.ciclop_scan import CiclopScan
+from horus.engine.scan.current_video import CurrentVideo
 from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.calibration_data import CalibrationData
 from horus.engine.calibration.laser_triangulation import LaserTriangulation
@@ -41,6 +42,7 @@ if sys.isDarwin():
 
 driver = Driver()
 ciclop_scan = CiclopScan()
+current_video = CurrentVideo()
 pattern = Pattern()
 calibration_data = CalibrationData()
 laser_triangulation = LaserTriangulation()
@@ -643,6 +645,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
         laser_segmentation.threshold_enable = profile.getProfileSettingBool('threshold_enable')
         laser_segmentation.threshold_value = profile.getProfileSettingInteger('threshold_value')
 
+        current_video.set_roi_view(profile.getProfileSettingBool('roi_view'))
         point_cloud_roi.set_diameter(profile.getProfileSettingInteger('roi_diameter'))
         point_cloud_roi.set_height(profile.getProfileSettingInteger('roi_height'))
 

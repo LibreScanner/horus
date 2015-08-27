@@ -50,10 +50,11 @@ class PointCloudROI(object):
         self._compute_roi()
 
     def mask_image(self, image):
-        mask = np.zeros(image.shape, np.uint8)
-        mask[self._vmin:self._vmax, self._umin:self._umax] = image[
-            self._vmin:self._vmax, self._umin:self._umax]
-        return mask
+        if image is not None:
+            mask = np.zeros(image.shape, np.uint8)
+            mask[self._vmin:self._vmax, self._umin:self._umax] = image[
+                self._vmin:self._vmax, self._umin:self._umax]
+            return mask
 
     def mask_point_cloud(self, point_cloud, texture):
         if point_cloud is not None and len(point_cloud) > 0:

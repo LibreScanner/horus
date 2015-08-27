@@ -15,9 +15,11 @@ from horus.util import profile, system as sys
 from horus.gui.util.resolutionWindow import ResolutionWindow
 
 from horus.engine.scan.ciclop_scan import CiclopScan
+from horus.engine.scan.current_video import CurrentVideo
 from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 ciclop_scan = CiclopScan()
+current_video = CurrentVideo()
 point_cloud_roi = PointCloudROI()
 
 
@@ -98,7 +100,8 @@ class PointCloudROI(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['point_cloud_roi']
-        section.updateCallback('roi_view', lambda v: (self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_view', lambda v: (
+            current_video.set_roi_view(v), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_diameter', lambda v: (
             point_cloud_roi.set_diameter(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_height', lambda v: (
