@@ -9,11 +9,14 @@ import platform
 s = platform.system()
 del platform
 
+
 def isLinux():
-	return s == 'Linux'
+    return s == 'Linux'
+
 
 def isDarwin():
-	return s == 'Darwin'
+    return s == 'Darwin'
+
 
 def isWindows():
-	return s == 'Windows'
+    return s == 'Windows'

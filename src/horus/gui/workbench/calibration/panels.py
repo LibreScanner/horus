@@ -11,7 +11,6 @@ import numpy as np
 from horus.gui.workbench.calibration.current_video import CurrentVideo
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
     CheckBox, ToggleButton, Button, TextBox
-from horus.gui.util.resolutionWindow import ResolutionWindow
 
 from horus.util import profile, system as sys
 

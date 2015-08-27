@@ -7,7 +7,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-import horus.util.error as Error
 from horus.util import resources, profile, system as sys
 
 from horus.gui.util.imageView import VideoView

@@ -14,7 +14,6 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
-import horus.util.error as Error
 from horus.util import profile, resources
 
 from horus.gui.util.imageView import ImageView, VideoView

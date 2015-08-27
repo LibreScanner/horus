@@ -12,7 +12,6 @@ from horus.gui.util.customPanels import ExpandablePanel, Slider, CheckBox, Combo
     Button, TextBox
 
 from horus.util import profile, system as sys
-from horus.gui.util.resolutionWindow import ResolutionWindow
 
 from horus.engine.scan.ciclop_scan import CiclopScan
 from horus.engine.scan.current_video import CurrentVideo

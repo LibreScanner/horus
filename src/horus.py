@@ -24,6 +24,7 @@ resources.setBasePath(os.path.join(os.path.dirname(__file__), "../res"))
 
 from horus.gui import app
 
+
 def main():
     app.HorusApp().MainLoop()
 

@@ -101,10 +101,12 @@ class ExpandablePanel(wx.Panel):
         self.titleText = TitleText(self, title, bold=True)
         if self.hasUndo:
             self.undoButton = wx.BitmapButton(
-                self, wx.NewId(), wx.Bitmap(resources.getPathForImage("undo.png"), wx.BITMAP_TYPE_ANY))
+                self, wx.NewId(),
+                wx.Bitmap(resources.getPathForImage("undo.png"), wx.BITMAP_TYPE_ANY))
         if self.hasRestore:
             self.restoreButton = wx.BitmapButton(
-                self, wx.NewId(), wx.Bitmap(resources.getPathForImage("restore.png"), wx.BITMAP_TYPE_ANY))
+                self, wx.NewId(),
+                wx.Bitmap(resources.getPathForImage("restore.png"), wx.BITMAP_TYPE_ANY))
         self.content = wx.Panel(self)
         self.sections = OrderedDict()
 
@@ -167,8 +169,11 @@ class ExpandablePanel(wx.Panel):
             self.undoButton.Disable()
 
     def onRestoreButtonClicked(self, event):
-        dlg = wx.MessageDialog(self, _(
-            "This will reset all section settings to defaults.\nUnless you have saved your current profile, all section settings will be lost!\nDo you really want to reset?"), self.title, wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self,
+            _("This will reset all section settings to defaults.\n"
+              "Unless you have saved your current profile, all section settings will be lost!\n"
+              "Do you really want to reset?"), self.title, wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -269,7 +274,7 @@ class SectionPanel(wx.Panel):
             self.items[_name].Disable()
 
     def updateProfile(self):
-        #self.Show()
+        # self.Show()
         for item in self.items.values():
             if isinstance(item, tuple):
                 item[0].updateProfile()

@@ -13,27 +13,30 @@ from horus.util import version
 class VersionWindow(wx.Dialog):
 
     def __init__(self, parent):
-        super(VersionWindow, self).__init__(parent, title=_('New version available!'), size=(420,-1), style=wx.DEFAULT_FRAME_STYLE^wx.RESIZE_BORDER)
+        super(VersionWindow, self).__init__(
+            parent, title=_('New version available!'),
+            size=(420, -1), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
 
-        #-- Elements
-        self.description = wx.StaticText(self, label= _('A new version of Horus is available, would you like to download?'))
+        # Elements
+        self.description = wx.StaticText(
+            self, label=_('A new version of Horus is available, would you like to download?'))
         self.downloadButton = wx.Button(self, label=_('Download'))
         self.cancelButton = wx.Button(self, label=_('Cancel'))
 
         self.download = False
 
-        #-- Events
+        # Events
         self.downloadButton.Bind(wx.EVT_BUTTON, self.onDownloadButton)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
         self.Bind(wx.EVT_CLOSE, self.onCancelButton)
 
-        #-- Layout
+        # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.description, 0, wx.ALL|wx.CENTER, 10)
+        vbox.Add(self.description, 0, wx.ALL | wx.CENTER, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.cancelButton, 0, wx.ALL, 3)
         hbox.Add(self.downloadButton, 0, wx.ALL, 3)
-        vbox.Add(hbox, 0, wx.ALL|wx.CENTER, 10)
+        vbox.Add(hbox, 0, wx.ALL | wx.CENTER, 10)
         self.SetSizer(vbox)
         self.Center()
         self.Fit()

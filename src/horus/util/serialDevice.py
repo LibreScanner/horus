@@ -71,6 +71,7 @@ class ConnectionError(Exception):
 
 
 class SerialDevice(object):
+
     '''
     This class provides a base interface for encapsulating interaction with a
     device connected through a serial-port.
@@ -85,6 +86,7 @@ class SerialDevice(object):
     This class intends to be cross-platform and has been verified to work on
     Windows and Ubuntu.
     '''
+
     def __init__(self):
         self.port = None
 

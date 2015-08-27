@@ -113,7 +113,8 @@ class SceneView(openglGui.glGuiPanel):
             if self._object._mesh is not None:
                 for i in xrange(point.shape[1]):
                     self._object._mesh._addVertex(
-                        point[0][i], point[1][i], point[2][i], color[0][i], color[1][i], color[2][i])
+                        point[0][i], point[1][i], point[2][i],
+                        color[0][i], color[1][i], color[2][i])
             # Conpute Z center
             if point.shape[1] > 0:
                 zmax = max(point[2])
@@ -173,7 +174,9 @@ class SceneView(openglGui.glGuiPanel):
             if abs(height) > abs(self._hOffset):
                 height -= self._hOffset
             newViewPos = numpy.array(
-                [self._object.getPosition()[0], self._object.getPosition()[1], height - self._zOffset])
+                [self._object.getPosition()[0],
+                 self._object.getPosition()[1],
+                 height - self._zOffset])
             newZoom = self._object.getBoundaryCircle() * 4
 
         if newZoom > numpy.max(self._machineSize) * 3:
@@ -183,8 +186,10 @@ class SceneView(openglGui.glGuiPanel):
         self._animView = openglGui.animation(self, self._viewTarget.copy(), newViewPos, 0.5)
 
     def updateProfileToControls(self):
-        self._machineSize = numpy.array([profile.getMachineSettingFloat('machine_width'), profile.getMachineSettingFloat(
-            'machine_depth'), profile.getMachineSettingFloat('machine_height')])
+        self._machineSize = numpy.array([
+            profile.getMachineSettingFloat('machine_width'),
+            profile.getMachineSettingFloat('machine_depth'),
+            profile.getMachineSettingFloat('machine_height')])
         self._objColor = profile.getPreferenceColor('model_color')
 
     def ShaderUpdate(self, v, f):
@@ -195,7 +200,9 @@ class SceneView(openglGui.glGuiPanel):
             self.QueueRefresh()
 
     def OnKeyDown(self, keyCode):
-        if keyCode == wx.WXK_DELETE or keyCode == wx.WXK_NUMPAD_DELETE or (keyCode == wx.WXK_BACK and sys.isDarwin()):
+        if keyCode == wx.WXK_DELETE or \
+                keyCode == wx.WXK_NUMPAD_DELETE or \
+                (keyCode == wx.WXK_BACK and sys.isDarwin()):
             if self._showDeleteMenu:
                 if self._object is not None:
                     self.onDeleteObject(None)
@@ -226,12 +233,14 @@ class SceneView(openglGui.glGuiPanel):
         elif keyCode == wx.WXK_RIGHT:
             self._yaw += 15
             self.QueueRefresh()
-        elif keyCode == wx.WXK_NUMPAD_ADD or keyCode == wx.WXK_ADD or keyCode == ord('+') or keyCode == ord('='):
+        elif keyCode == wx.WXK_NUMPAD_ADD or keyCode == wx.WXK_ADD or \
+                keyCode == ord('+') or keyCode == ord('='):
             self._zoom /= 1.2
             if self._zoom < 1:
                 self._zoom = 1
             self.QueueRefresh()
-        elif keyCode == wx.WXK_NUMPAD_SUBTRACT or keyCode == wx.WXK_SUBTRACT or keyCode == ord('-'):
+        elif keyCode == wx.WXK_NUMPAD_SUBTRACT or keyCode == wx.WXK_SUBTRACT or \
+                keyCode == ord('-'):
             self._zoom *= 1.2
             if self._zoom > numpy.max(self._machineSize) * 3:
                 self._zoom = numpy.max(self._machineSize) * 3
@@ -270,7 +279,8 @@ class SceneView(openglGui.glGuiPanel):
                 self._afterLeakTest[type(i)] += 1
             for k in self._afterLeakTest:
                 if self._afterLeakTest[k] - self._beforeLeakTest[k]:
-                    print k, self._afterLeakTest[k], self._beforeLeakTest[k], self._afterLeakTest[k] - self._beforeLeakTest[k]
+                    print k, self._afterLeakTest[k], self._beforeLeakTest[k],
+                    self._afterLeakTest[k] - self._beforeLeakTest[k]
 
         if keyCode == wx.WXK_CONTROL:
             self._moveVertical = True
@@ -313,8 +323,9 @@ class SceneView(openglGui.glGuiPanel):
 
     def onDeleteObject(self, event):
         if self._object is not None:
-            dlg = wx.MessageDialog(self, _("Your current model will be erased.\nDo you really want to do it?"), _(
-                "Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+            dlg = wx.MessageDialog(
+                self, _("Your current model will be erased.\nDo you really want to do it?"),
+                _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
@@ -370,10 +381,12 @@ class SceneView(openglGui.glGuiPanel):
             return numpy.array([0, 0, 0], numpy.float32), numpy.array([0, 0, 1], numpy.float32)
 
         p0 = openglHelpers.unproject(
-            x, self._viewport[1] + self._viewport[3] - y, 0, self._modelMatrix, self._projMatrix, self._viewport)
+            x, self._viewport[1] + self._viewport[3] - y, 0,
+            self._modelMatrix, self._projMatrix, self._viewport)
         p1 = openglHelpers.unproject(
-            x, self._viewport[1] + self._viewport[3] - y, 1, self._modelMatrix, self._projMatrix, self._viewport)
-        if type(p0) != type(None) and type(p1) != type(None):
+            x, self._viewport[1] + self._viewport[3] - y, 1,
+            self._modelMatrix, self._projMatrix, self._viewport)
+        if p0 is not None and p1 is not None:
             p0 -= self._viewTarget
             p1 -= self._viewTarget
             return p0, p1
@@ -431,69 +444,78 @@ class SceneView(openglGui.glGuiPanel):
                 self._animZoom = None
         if self._objectShader is None:  # TODO: add loading shaders from file(s)
             if openglHelpers.hasShaderSupport():
-                self._objectShader = openglHelpers.GLShader("""
-					varying float light_amount;
+                self._objectShader = openglHelpers.GLShader(
+                    """
+                    varying float light_amount;
 
-					void main(void)
-					{
-						gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-						gl_FrontColor = gl_Color;
+                    void main(void)
+                    {
+                        gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+                        gl_FrontColor = gl_Color;
 
-						light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
-						light_amount += 0.2;
-					}
-									""", """
-					varying float light_amount;
+                        light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal),
+                            normalize(gl_LightSource[0].position.xyz)));
+                        light_amount += 0.2;
+                    }
+                    """,
+                    """
+                    varying float light_amount;
 
-					void main(void)
-					{
-						gl_FragColor = vec4(gl_Color.xyz * light_amount, gl_Color[3]);
-					}
-				""")
-                self._objectShaderNoLight = openglHelpers.GLShader("""
-					varying float light_amount;
+                    void main(void)
+                    {
+                        gl_FragColor = vec4(gl_Color.xyz * light_amount, gl_Color[3]);
+                    }
+                    """)
+                self._objectShaderNoLight = openglHelpers.GLShader(
+                    """
+                    varying float light_amount;
 
-					void main(void)
-					{
-						gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-						gl_FrontColor = gl_Color;
+                    void main(void)
+                    {
+                        gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+                        gl_FrontColor = gl_Color;
 
-						light_amount = 1.0;
-					}
-									""", """
-					varying float light_amount;
+                        light_amount = 1.0;
+                    }
+                    """,
+                    """
+                    varying float light_amount;
 
-					void main(void)
-					{
-						gl_FragColor = vec4(gl_Color.xyz * light_amount, gl_Color[3]);
-					}
-				""")
-                self._objectLoadShader = openglHelpers.GLShader("""
-					uniform float intensity;
-					uniform float scale;
-					varying float light_amount;
+                    void main(void)
+                    {
+                        gl_FragColor = vec4(gl_Color.xyz * light_amount, gl_Color[3]);
+                    }
+                    """)
+                self._objectLoadShader = openglHelpers.GLShader(
+                    """
+                    uniform float intensity;
+                    uniform float scale;
+                    varying float light_amount;
 
-					void main(void)
-					{
-						vec4 tmp = gl_Vertex;
-						tmp.x += sin(tmp.z/5.0+intensity*30.0) * scale * intensity;
-						tmp.y += sin(tmp.z/3.0+intensity*40.0) * scale * intensity;
-						gl_Position = gl_ModelViewProjectionMatrix * tmp;
-						gl_FrontColor = gl_Color;
+                    void main(void)
+                    {
+                        vec4 tmp = gl_Vertex;
+                        tmp.x += sin(tmp.z/5.0+intensity*30.0) * scale * intensity;
+                        tmp.y += sin(tmp.z/3.0+intensity*40.0) * scale * intensity;
+                        gl_Position = gl_ModelViewProjectionMatrix * tmp;
+                        gl_FrontColor = gl_Color;
 
-						light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal), normalize(gl_LightSource[0].position.xyz)));
-						light_amount += 0.2;
-					}
-			""", """
-				uniform float intensity;
-				varying float light_amount;
+                        light_amount = abs(dot(normalize(gl_NormalMatrix * gl_Normal),
+                            normalize(gl_LightSource[0].position.xyz)));
+                        light_amount += 0.2;
+                    }
+                    """,
+                    """
+                    uniform float intensity;
+                    varying float light_amount;
 
-				void main(void)
-				{
-					gl_FragColor = vec4(gl_Color.xyz * light_amount, 1.0-intensity);
-				}
-				""")
-            if self._objectShader is None or not self._objectShader.isValid():  # Could not make shader.
+                    void main(void)
+                    {
+                        gl_FragColor = vec4(gl_Color.xyz * light_amount, 1.0-intensity);
+                    }
+                    """)
+            if self._objectShader is None or not self._objectShader.isValid():
+                # Could not make shader.
                 self._objectShader = openglHelpers.GLFakeShader()
                 self._objectLoadShader = None
 
@@ -518,8 +540,9 @@ class SceneView(openglGui.glGuiPanel):
             f = glReadPixels(self._mouseX, self.GetSize().GetHeight() - 1 -
                              self._mouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
             #self.GetTopLevelParent().SetTitle(hex(n) + " " + str(f))
-            self._mouse3Dpos = openglHelpers.unproject(self._mouseX, self._viewport[
-                                                       1] + self._viewport[3] - self._mouseY, f, self._modelMatrix, self._projMatrix, self._viewport)
+            self._mouse3Dpos = openglHelpers.unproject(
+                self._mouseX, self._viewport[1] + self._viewport[3] - self._mouseY,
+                f, self._modelMatrix, self._projMatrix, self._viewport)
             self._mouse3Dpos -= self._viewTarget
             self._mouse3Dpos[2] -= self._zOffset
 
@@ -574,14 +597,18 @@ class SceneView(openglGui.glGuiPanel):
                 if obj._mesh.vbo is None or obj._mesh.vertexCount > obj._mesh.vbo._size:
                     if obj._mesh.vbo is not None:
                         obj._mesh.vbo.release()
-                    obj._mesh.vbo = openglHelpers.GLVBO(GL_POINTS, obj._mesh.vertexes[
-                                                        :obj._mesh.vertexCount], colorArray=obj._mesh.colors[:obj._mesh.vertexCount])
+                    obj._mesh.vbo = openglHelpers.GLVBO(
+                        GL_POINTS,
+                        obj._mesh.vertexes[:obj._mesh.vertexCount],
+                        colorArray=obj._mesh.colors[:obj._mesh.vertexCount])
                 obj._mesh.vbo.render()
         else:
             if obj._mesh is not None:
                 if obj._mesh.vbo is None:
                     obj._mesh.vbo = openglHelpers.GLVBO(
-                        GL_TRIANGLES, obj._mesh.vertexes[:obj._mesh.vertexCount], obj._mesh.normal[:obj._mesh.vertexCount])
+                        GL_TRIANGLES,
+                        obj._mesh.vertexes[:obj._mesh.vertexCount],
+                        obj._mesh.normal[:obj._mesh.vertexCount])
                 if brightness != 0:
                     glColor4fv(map(lambda idx: idx * brightness, self._objColor))
                 obj._mesh.vbo.render()
@@ -614,7 +641,7 @@ class SceneView(openglGui.glGuiPanel):
                             profile.getProfileSettingFloat('roi_diameter'),
                             profile.getProfileSettingFloat('roi_height')], numpy.float32)
 
-        #TODO
+        # TODO
         if profile.getProfileSettingBool('roi_view') and self.driver.is_connected:
             polys = profile.getSizePolygons(size)
             height = profile.getProfileSettingFloat('roi_height')

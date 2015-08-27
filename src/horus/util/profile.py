@@ -26,11 +26,13 @@ from horus.util import validators, system
 # The settings dictionary contains a key/value reference to all possible
 # settings. With the setting name as key.
 settingsDictionary = {}
-# The settings list is used to keep a full list of all the settings. This is needed to keep the settings in the proper order,
+# The settings list is used to keep a full list of all the settings.
+# This is needed to keep the settings in the proper order,
 # as the dictionary will not contain insertion order.
 settingsList = []
 
-# Currently selected machine (by index) Cura support multiple machines in the same preferences and can switch between them.
+# Currently selected machine (by index) Cura support multiple machines
+# in the same preferences and can switch between them.
 # Each machine has it's own index and unique name.
 _selectedMachineIndex = 0
 
@@ -38,13 +40,15 @@ _selectedMachineIndex = 0
 class setting(object):
 
     """
-            A setting object contains a configuration setting. These are globally accessible trough the quick access functions
+            A setting object contains a configuration setting.
+            These are globally accessible trough the quick access functions
             and trough the settingsDictionary function.
             Settings can be:
             * profile settings (settings that effect the scan process and the scan result)
             * preferences (settings that effect how horus works and acts)
             * machine settings (settings that relate to the physical configuration of your machine)
-            Settings have validators that check if the value is valid, but do not prevent invalid values!
+            Settings have validators that check if the value is valid,
+            but do not prevent invalid values!
             Settings have conditions that enable/disable this setting depending on other settings.
     """
 
@@ -304,8 +308,9 @@ setting('machine_depth', '200', float, 'machine', 'hidden').setLabel(
     _("Maximum depth (mm)"), _("Size of the machine in mm"))
 setting('machine_height', '200', float, 'machine', 'hidden').setLabel(
     _("Maximum height (mm)"), _("Size of the machine in mm"))
-setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(_("Machine center 0,0"), _(
-    "Machines firmware defines the center of the bed as 0,0 instead of the front left corner."))
+setting('machine_center_is_zero', 'True', bool, 'machine', 'hidden').setLabel(
+    _("Machine center 0,0"), _("Machines firmware defines the center of the bed "
+                               "as 0,0 instead of the front left corner."))
 setting('machine_shape', 'Circular', ['Square', 'Circular'], 'machine', 'hidden').setLabel(
     _("Build area shape"), _("The shape of machine build area."))
 
@@ -318,8 +323,9 @@ setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language
 _('Control workbench')
 _('Calibration workbench')
 _('Scanning workbench')
-setting('workbench', 'Scanning workbench', [
-        'Control workbench', 'Calibration workbench', 'Scanning workbench'], 'preference', 'hidden')
+setting('workbench', 'Scanning workbench',
+        ['Control workbench', 'Calibration workbench', 'Scanning workbench'],
+        'preference', 'hidden')
 setting('show_welcome', True, bool, 'preference', 'hidden')
 setting('check_for_updates', True, bool, 'preference', 'hidden')
 setting('basic_mode', False, bool, 'preference', 'hidden')
@@ -333,8 +339,10 @@ setting('view_scanning_scene', True, bool, 'preference', 'hidden')
 
 # TODO: change default last file
 setting('last_files', [], str, 'preference', 'hidden')
-setting('last_file', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                   '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
+setting('last_file',
+        os.path.normpath(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..', 'resources', 'example', 'default.stl')), str, 'preference', 'hidden')
 setting('last_profile', os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(
     __file__)), '..', 'resources', 'example', 'default.ini')), str, 'preference', 'hidden')
 
@@ -362,7 +370,8 @@ def getSubCategoriesFor(category):
 def getSettingsForCategory(category, subCategory=None):
     ret = []
     for s in settingsList:
-        if s.getCategory() == category and (subCategory is None or s.getSubCategory() == subCategory) and s.checkConditions():
+        if s.getCategory() == category and \
+                (subCategory is None or s.getSubCategory() == subCategory) and s.checkConditions():
             ret.append(s)
     return ret
 
@@ -371,7 +380,8 @@ def getSettingsForCategory(category, subCategory=None):
 
 def getBasePath():
     """
-    :return: The path in which the current configuration files are stored. This depends on the used OS.
+    :return: The path in which the current configuration files are stored.
+    This depends on the used OS.
     """
     if system.isWindows():
         basePath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -390,23 +400,27 @@ def getBasePath():
 
 def getAlternativeBasePaths():
     """
-    Search for alternative installations of Horus and their preference files. Used to load configuration from older versions of Horus.
+    Search for alternative installations of Horus and their preference files.
+    Used to load configuration from older versions of Horus.
     """
     paths = []
     basePath = os.path.normpath(os.path.join(getBasePath(), '..'))
     for subPath in os.listdir(basePath):
         path = os.path.join(basePath, subPath)
-        if os.path.isdir(path) and os.path.isfile(os.path.join(path, 'preferences.ini')) and path != getBasePath():
+        if os.path.isdir(path) and os.path.isfile(os.path.join(path, 'preferences.ini')) and  \
+                path != getBasePath():
             paths.append(path)
         path = os.path.join(basePath, subPath, 'Horus')
-        if os.path.isdir(path) and os.path.isfile(os.path.join(path, 'preferences.ini')) and path != getBasePath():
+        if os.path.isdir(path) and os.path.isfile(os.path.join(path, 'preferences.ini')) and \
+                path != getBasePath():
             paths.append(path)
     return paths
 
 
 def getDefaultProfilePath():
     """
-    :return: The default path where the currently used profile is stored and loaded on open and close of Horus.
+    :return: The default path where the currently used profile is stored
+    and loaded on open and close of Horus.
     """
     return os.path.join(getBasePath(), 'current_profile.ini')
 
@@ -415,7 +429,8 @@ def loadProfile(filename, allMachines=False):
     """
             Read a profile file as active profile settings.
     :param filename:    The ini filename to save the profile in.
-    :param allMachines: When False only the current active profile is saved. If True all profiles for all machines are saved.
+    :param allMachines: When False only the current active profile is saved.
+    If True all profiles for all machines are saved.
     """
     global settingsList
     profileParser = ConfigParser.ConfigParser()
@@ -448,7 +463,8 @@ def saveProfile(filename, allMachines=False):
     """
             Save the current profile to an ini file.
     :param filename:    The ini filename to save the profile in.
-    :param allMachines: When False only the current active profile is saved. If True all profiles for all machines are saved.
+    :param allMachines: When False only the current active profile is saved.
+    If True all profiles for all machines are saved.
     """
     global settingsList
     profileParser = ConfigParser.ConfigParser()
@@ -513,7 +529,8 @@ def setProfileFromString(options):
 def getProfileString():
     """
     Get an encoded string which contains all profile settings.
-    Used in combination with setProfileFromString to share settings in files, forums or other text based ways.
+    Used in combination with setProfileFromString to share settings in files,
+    forums or other text based ways.
     """
     p = []
     alt = []
@@ -675,10 +692,13 @@ def getPreferenceBool(name):
 
 def getPreferenceColor(name):
     """
-    Get a preference setting value as a color array. The color is stored as #RRGGBB hex string in the setting.
+    Get a preference setting value as a color array.
+    The color is stored as #RRGGBB hex string in the setting.
     """
     colorString = getPreference(name)
-    return [float(int(colorString[1:3], 16)) / 255, float(int(colorString[3:5], 16)) / 255, float(int(colorString[5:7], 16)) / 255, 1.0]
+    return [float(int(colorString[1:3], 16)) / 255,
+            float(int(colorString[3:5], 16)) / 255,
+            float(int(colorString[5:7], 16)) / 255, 1.0]
 
 
 def loadPreferences(filename):
@@ -704,7 +724,8 @@ def loadPreferences(filename):
             if set.isMachineSetting():
                 if profileParser.has_option('machine_%d' % (n), set.getName()):
                     set.setValue(
-                        unicode(profileParser.get('machine_%d' % (n), set.getName()), 'utf-8', 'replace'), n)
+                        unicode(profileParser.get('machine_%d' % (n), set.getName()),
+                                'utf-8', 'replace'), n)
         n += 1
 
 
@@ -807,7 +828,8 @@ def isMachineSetting(name):
 def getMachineCenterCoords():
     if getMachineSetting('machine_center_is_zero') == 'True':
         return [0, 0]
-    return [getMachineSettingFloat('machine_width') / 2, getMachineSettingFloat('machine_depth') / 2]
+    return [getMachineSettingFloat('machine_width') / 2,
+            getMachineSettingFloat('machine_depth') / 2]
 
 # Returns a list of convex polygons, first polygon is the allowed area of the machine,
 # the rest of the polygons are the dis-allowed areas of the machine.
@@ -832,13 +854,21 @@ def getSizePolygons(size):
     if getMachineSetting('machine_type') == 'ciclop':
         w = 20
         h = 20
-        ret.append(numpy.array([[-size[0] / 2, -size[1] / 2], [-size[0] / 2 + w + 2, -size[1] / 2],
-                                [-size[0] / 2 + w, -size[1] / 2 + h], [-size[0] / 2, -size[1] / 2 + h]], numpy.float32))
-        ret.append(numpy.array([[size[0] / 2 - w - 2, -size[1] / 2], [size[0] / 2, -size[1] / 2],
-                                [size[0] / 2, -size[1] / 2 + h], [size[0] / 2 - w, -size[1] / 2 + h]], numpy.float32))
-        ret.append(numpy.array([[-size[0] / 2 + w + 2, size[1] / 2], [-size[0] / 2, size[1] / 2],
-                                [-size[0] / 2, size[1] / 2 - h], [-size[0] / 2 + w, size[1] / 2 - h]], numpy.float32))
-        ret.append(numpy.array([[size[0] / 2, size[1] / 2], [size[0] / 2 - w - 2, size[1] / 2],
-                                [size[0] / 2 - w, size[1] / 2 - h], [size[0] / 2, size[1] / 2 - h]], numpy.float32))
+        ret.append(numpy.array([[-size[0] / 2, -size[1] / 2],
+                                [-size[0] / 2 + w + 2, -size[1] / 2],
+                                [-size[0] / 2 + w, -size[1] / 2 + h],
+                                [-size[0] / 2, -size[1] / 2 + h]], numpy.float32))
+        ret.append(numpy.array([[size[0] / 2 - w - 2, -size[1] / 2],
+                                [size[0] / 2, -size[1] / 2],
+                                [size[0] / 2, -size[1] / 2 + h],
+                                [size[0] / 2 - w, -size[1] / 2 + h]], numpy.float32))
+        ret.append(numpy.array([[-size[0] / 2 + w + 2, size[1] / 2],
+                                [-size[0] / 2, size[1] / 2],
+                                [-size[0] / 2, size[1] / 2 - h],
+                                [-size[0] / 2 + w, size[1] / 2 - h]], numpy.float32))
+        ret.append(numpy.array([[size[0] / 2, size[1] / 2],
+                                [size[0] / 2 - w - 2, size[1] / 2],
+                                [size[0] / 2 - w, size[1] / 2 - h],
+                                [size[0] / 2, size[1] / 2 - h]], numpy.float32))
 
     return ret

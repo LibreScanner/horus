@@ -12,17 +12,21 @@ import webbrowser
 
 from horus.util import resources, system as sys
 
+
 def getVersion(_type='local'):
     return _getVersionData(0, _type)
+
 
 def getBuild(_type='local'):
     return _getVersionData(1, _type)
 
+
 def getGitHub(_type='local'):
     return _getVersionData(2, _type)
 
+
 def _getVersionData(index, _type='local'):
-    ## Version Build GitHub
+    # Version Build GitHub
     try:
         if _type is 'local':
             if os.path.isfile(resources.getPathForVersion()):
@@ -36,10 +40,12 @@ def _getVersionData(index, _type='local'):
     except:
         return ''
 
+
 def checkForUpdates():
     return getVersion('remote') >= getVersion('local') and \
-           getBuild('local') is not '' and \
-           getBuild('remote') > getBuild('local')
+        getBuild('local') is not '' and \
+        getBuild('remote') > getBuild('local')
+
 
 def _getExecutableUrl(version):
     url = None
@@ -47,8 +53,8 @@ def _getExecutableUrl(version):
     if sys.isLinux():
         url = "https://launchpad.net/~bqopensource/+archive/ubuntu/horus/+files/"
         url += "horus_"
-        url += version+"-bq1~"
-        url += platform.linux_distribution()[2]+"1_"
+        url += version + "-bq1~"
+        url += platform.linux_distribution()[2] + "1_"
         if platform.architecture()[0] == '64bit':
             url += "amd64.deb"
         elif platform.architecture()[0] == '32bit':
@@ -56,18 +62,20 @@ def _getExecutableUrl(version):
     elif sys.isWindows():
         url = "storage.googleapis.com/bq-horus/releases/"
         url += "Horus_"
-        url += version+".exe"
+        url += version + ".exe"
     elif sys.isDarwin():
         url = "https://storage.googleapis.com/bq-horus/releases/"
         url += "Horus_"
-        url += version+".dmg"
+        url += version + ".dmg"
     del platform
     return url
+
 
 def _downloadVersion(version):
     url = _getExecutableUrl(version)
     if url is not None:
         webbrowser.open(url)
+
 
 def downloadLatestVersion():
     _downloadVersion(getVersion('remote'))

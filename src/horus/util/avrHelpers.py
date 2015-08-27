@@ -17,22 +17,26 @@ from subprocess import Popen, PIPE, STDOUT
 from pathHelpers import path
 from serialDevice import SerialDevice
 
+
 class FirmwareError(Exception):
     pass
 
+
 class AvrDude(SerialDevice):
-    def __init__(self, protocol="arduino", microcontroller="atmega328p", baudRate="19200", confPath=None, port=None):
+
+    def __init__(self, protocol="arduino", microcontroller="atmega328p",
+                 baudRate="19200", confPath=None, port=None):
         self.protocol = protocol
         self.microcontroller = microcontroller
         self.baudRate = baudRate
 
         if sys.isWindows():
-        	self.avrdude = path(resources.getPathForTools("avrdude.exe")).abspath()
+            self.avrdude = path(resources.getPathForTools("avrdude.exe")).abspath()
         elif sys.isDarwin():
             self.avrdude = path(resources.getPathForTools("avrdude")).abspath()
         else:
             self.avrdude = 'avrdude'
-        
+
         if self.avrdude is None:
             raise FirmwareError('avrdude not installed')
 
@@ -40,7 +44,7 @@ class AvrDude(SerialDevice):
             self.avrconf = path(resources.getPathForTools("avrdude.conf")).abspath()
         else:
             self.avrconf = path(confPath).abspath()
-        
+
         if port:
             self.port = port
         else:
