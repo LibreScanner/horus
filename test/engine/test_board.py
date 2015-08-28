@@ -6,7 +6,7 @@ __copyright__ = "Copyright (C) 2015 Mundo Reader S.L. - Released under terms of 
 
 
 import unittest
-from horus.engine.board import Board
+from horus.engine.driver.board import Board
 
 
 class BoardTest(unittest.TestCase):
