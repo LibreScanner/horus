@@ -21,6 +21,8 @@ from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidV
 from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.autocheck import Autocheck, PatternNotDetected, \
     WrongMotorDirection, LaserNotDetected
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
 
 
 class ConnectionPage(WizardPage):
@@ -34,6 +36,8 @@ class ConnectionPage(WizardPage):
         self.parent = parent
         self.driver = Driver()
         self.autocheck = Autocheck()
+        self.image_capture = ImageCapture()
+        self.image_detection = ImageDetection()
 
         self.connectButton = wx.Button(self.panel, label=_("Connect"))
         self.settingsButton = wx.Button(self.panel, label=_("Edit settings"))
@@ -76,8 +80,8 @@ class ConnectionPage(WizardPage):
         self.autoCheckButton.Bind(wx.EVT_BUTTON, self.onAutoCheckButtonClicked)
         self.Bind(wx.EVT_SHOW, self.onShow)
 
-        self.videoView.setMilliseconds(20)
-        self.videoView.setCallback(self.getDetectChessboardFrame)
+        self.videoView.setMilliseconds(10)
+        self.videoView.setCallback(self.get_image)
         self.updateStatus(self.driver.is_connected)
 
     def onShow(self, event):
@@ -89,15 +93,13 @@ class ConnectionPage(WizardPage):
             except:
                 pass
 
-    def getFrame(self):
-        return self.driver.camera.capture_image()
-
-    def getDetectChessboardFrame(self):
-        frame = self.autocheck.image
-        if frame is None:
-            frame = self.driver.camera.capture_image()
-        _,frame,_ = self.autocheck.draw_chessboard(frame)
-        return frame
+    def get_image(self):
+        if self.autocheck._is_calibrating:
+            image = self.autocheck.image
+        else:
+            image = self.image_capture.capture_pattern()
+            image = self.image_detection.detect_pattern(image)
+        return image
 
     def onUnplugged(self):
         self.videoView.stop()
@@ -129,8 +131,9 @@ class ConnectionPage(WizardPage):
         if not ret:
             if isinstance(result, WrongFirmware):
                 dlg = wx.MessageDialog(
-                    self, _(
-                        "Board has a wrong firmware or an invalid Baud Rate.\nPlease select your Board and press Upload Firmware"),
+                    self,
+                    _("Board has a wrong firmware or an invalid Baud Rate.\n"
+                      "Please select your Board and press Upload Firmware"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -138,8 +141,9 @@ class ConnectionPage(WizardPage):
                 self.GetParent().parent.onPreferences(None)
             elif isinstance(result, BoardNotConnected):
                 dlg = wx.MessageDialog(
-                    self, _(
-                        "Board is not connected.\nPlease connect your board and select a valid Serial Name"),
+                    self,
+                    _("Board is not connected.\n"
+                      "Please connect your board and select a valid Serial Name"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -147,8 +151,9 @@ class ConnectionPage(WizardPage):
                 self.GetParent().parent.onPreferences(None)
             elif isinstance(result, WrongCamera):
                 dlg = wx.MessageDialog(
-                    self, _(
-                        "You probably have selected a wrong camera.\nPlease select other Camera Id"),
+                    self,
+                    _("You probably have selected a wrong camera.\n"
+                      "Please select other Camera Id"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -177,13 +182,14 @@ class ConnectionPage(WizardPage):
         if profile.getProfileSettingBool('adjust_laser'):
             profile.putProfileSetting('adjust_laser', False)
             dlg = wx.MessageDialog(
-                self, _(
-                    "It is recomended to adjust line lasers vertically.\nYou need to use the allen wrench.\nDo you want to adjust it now?"),
+                self,
+                _("It is recomended to adjust line lasers vertically.\n"
+                  "You need to use the allen wrench.\nDo you want to adjust it now?"),
                 _("Manual laser adjustment"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
-                self.driver.board.laser_on()
+                self.driver.board.lasers_on()
         else:
             # Perform auto check
             self.autocheck.set_callbacks(lambda: wx.CallAfter(self.beforeAutoCheck),
@@ -244,11 +250,6 @@ class ConnectionPage(WizardPage):
         else:
             self.skipButton.Disable()
             self.nextButton.Enable()
-
-        # self.videoView.setMilliseconds(20)
-        # self.videoView.setCallback(self.getFrame)
-        # self.videoView.setMilliseconds(50)
-        # self.videoView.setCallback(self.getDetectChessboardFrame)
 
         self.settingsButton.Enable()
         self.breadcrumbs.Enable()
@@ -313,7 +314,8 @@ class SettingsWindow(wx.Dialog):
         self.luminosityDict = dict(zip(_choices, choices))
         self.luminosityText = wx.StaticText(self, label=_('Luminosity'))
         self.luminosityText.SetToolTip(wx.ToolTip(
-            _('Change the luminosity until colored lines appear over the chess pattern in the video')))
+            _('Change the luminosity until colored lines appear '
+              'over the chess pattern in the video')))
         self.luminosityComboBox = wx.ComboBox(self, wx.ID_ANY,
                                               value=_(self.initLuminosity),
                                               choices=_choices,
@@ -321,8 +323,8 @@ class SettingsWindow(wx.Dialog):
         invert = profile.getProfileSettingBool('invert_motor')
         self.invertMotorCheckBox = wx.CheckBox(self, label=_("Invert the motor direction"))
         self.invertMotorCheckBox.SetValue(invert)
-        tooltip = _(
-            "Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface")
+        tooltip = _("Minimum distance between the origin of the pattern (bottom-left corner) "
+                    "and the pattern's base surface")
         self.image = wx.Image(
             resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
 

@@ -19,6 +19,9 @@ class PlatformExtrinsicsError(Exception):
         Exception.__init__(self, _("PlatformExtrinsicsError"))
 
 
+estimated_t = [5, 90, 320]
+
+
 @Singleton
 class PlatformExtrinsics(MovingCalibration):
 
@@ -32,7 +35,6 @@ class PlatformExtrinsics(MovingCalibration):
         self.image = None
         self.has_image = False
         MovingCalibration.__init__(self)
-        self._estimated_t = [5, 90, 320]
 
     def _initialize(self):
         self.image = None
@@ -76,7 +78,7 @@ class PlatformExtrinsics(MovingCalibration):
             t = center - self.pattern.distance * np.array(normal)
 
         if self._is_calibrating and t is not None and \
-           np.linalg.norm(t - self._estimated_t) < 100:
+           np.linalg.norm(t - estimated_t) < 100:
             response = (True, (R, t, center, point, normal, [self.x, self.y, self.z], circle))
         else:
             if self._is_calibrating:

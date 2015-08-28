@@ -40,7 +40,7 @@ class MovingCalibration(Calibration):
             # Setup scanner
             self.driver.board.lasers_off()
             self.driver.board.motor_enable()
-            self.driver.board.motor_speed(300)
+            self.driver.board.motor_speed(200)
             self.driver.board.motor_acceleration(300)
 
             # Move to origin

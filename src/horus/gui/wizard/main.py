@@ -18,18 +18,25 @@ from horus.gui.wizard.scanningPage import ScanningPage
 
 
 class Wizard(wx.Dialog):
+
     def __init__(self, parent):
-        super(Wizard, self).__init__(parent, title="", size=(640+120,480+40))
+        super(Wizard, self).__init__(parent, title="", size=(760, 520))
 
         self.parent = parent
 
         self.driver = Driver()
 
         self.currentWorkbench = profile.getPreference('workbench')
- 
-        self.connectionPage = ConnectionPage(self, buttonPrevCallback=self.onConnectionPagePrevClicked, buttonNextCallback=self.onConnectionPageNextClicked)
-        self.calibrationPage = CalibrationPage(self, buttonPrevCallback=self.onCalibrationPagePrevClicked, buttonNextCallback=self.onCalibrationPageNextClicked)
-        self.scanningPage = ScanningPage(self, buttonPrevCallback=self.onScanningPagePrevClicked, buttonNextCallback=self.onScanningPageNextClicked)
+
+        self.connectionPage = ConnectionPage(
+            self, buttonPrevCallback=self.onConnectionPagePrevClicked,
+            buttonNextCallback=self.onConnectionPageNextClicked)
+        self.calibrationPage = CalibrationPage(
+            self, buttonPrevCallback=self.onCalibrationPagePrevClicked,
+            buttonNextCallback=self.onCalibrationPageNextClicked)
+        self.scanningPage = ScanningPage(
+            self, buttonPrevCallback=self.onScanningPagePrevClicked,
+            buttonNextCallback=self.onScanningPageNextClicked)
 
         pages = [self.connectionPage, self.calibrationPage, self.scanningPage]
 
@@ -45,9 +52,9 @@ class Wizard(wx.Dialog):
         self.driver.camera.set_unplug_callback(lambda: wx.CallAfter(self.onCameraUnplugged))
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.connectionPage, 1, wx.ALL|wx.EXPAND, 0)
-        hbox.Add(self.calibrationPage, 1, wx.ALL|wx.EXPAND, 0)
-        hbox.Add(self.scanningPage, 1, wx.ALL|wx.EXPAND, 0)
+        hbox.Add(self.connectionPage, 1, wx.ALL | wx.EXPAND, 0)
+        hbox.Add(self.calibrationPage, 1, wx.ALL | wx.EXPAND, 0)
+        hbox.Add(self.scanningPage, 1, wx.ALL | wx.EXPAND, 0)
 
         self.SetSizer(hbox)
 
@@ -82,7 +89,9 @@ class Wizard(wx.Dialog):
     def onExit(self):
         self.driver.board.lasers_off()
         profile.putPreference('workbench', self.currentWorkbench)
-        dlg = wx.MessageDialog(self, _("Do you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(
+            self, _("Do you really want to exit?"),
+            _("Exit wizard"), wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
         if result:
@@ -119,7 +128,10 @@ class Wizard(wx.Dialog):
     def onScanningPageNextClicked(self):
         self.driver.board.lasers_off()
         profile.saveProfile(os.path.join(profile.getBasePath(), 'current-profile.ini'))
-        dlg = wx.MessageDialog(self, _("You have finished the wizard.\nPress Play button to start scanning."), _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(
+            self,
+            _("You have finished the wizard.\nPress Play button to start scanning."),
+            _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
         if result:
@@ -127,7 +139,6 @@ class Wizard(wx.Dialog):
             self.calibrationPage.videoView.stop()
             self.scanningPage.videoView.stop()
             profile.putPreference('workbench', 'Scanning workbench')
-            self.parent.updatePCGProfile()
             self.parent.updateCalibrationProfile()
             self.parent.workbenchUpdate()
             self.EndModal(wx.ID_OK)

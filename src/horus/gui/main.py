@@ -654,6 +654,9 @@ Suite 330, Boston, MA  02111-1307  USA""")
         pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
         pattern.distance = profile.getProfileSettingFloat('pattern_origin_distance')
 
+        self.updateCalibrationProfile()
+
+    def updateCalibrationProfile(self):
         resolution = profile.getProfileSetting('resolution').split('x')
         driver.camera.set_frame_rate(int(profile.getProfileSetting('frame_rate')))
         calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))

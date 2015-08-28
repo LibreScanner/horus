@@ -39,10 +39,3 @@ class CurrentVideo(object):
             image = self.image_capture.capture_lasers()
             image = self.laser_segmentation.compute_line_segmentation(image)
             return cv2.merge((image, image, image))
-
-        #if self.mode == 'Line':
-        #    image = self.image_capture.capture_lasers()
-        #    u, v = self.laser_segmentation.compute_2d_points(image)
-        #    img = np.zeros_like(image[:, :, 0])
-        #    img[v.astype(int), u.astype(int)] = 255.0
-        #    return cv2.merge((img, img, img))

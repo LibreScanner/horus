@@ -5,10 +5,18 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import numpy as np
+
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 from horus.engine.calibration import laser_triangulation, platform_extrinsics
+
+
+class ComboCalibrationError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("ComboCalibrationError"))
 
 
 @Singleton
@@ -52,7 +60,7 @@ class ComboCalibration(MovingCalibration):
                     image = self.image_capture.capture_laser(i)
                     image = self.image_detection.pattern_mask(image, corners)
                     self.image = image
-                    points_2d = self.laser_segmentation.compute_2d_points(image)
+                    points_2d, _ = self.laser_segmentation.compute_2d_points(image)
                     point_3d = self.point_cloud_generation.compute_camera_point_cloud(
                         points_2d, d, n)
                     if self._point_cloud[i] is None:
@@ -84,7 +92,7 @@ class ComboCalibration(MovingCalibration):
         # Laser triangulation
         # Save point clouds
         for i in xrange(2):
-            self.save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
+            laser_triangulation.save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
         # TODO: use arrays
         # Compute planes
         dL, nL, stdL = laser_triangulation.compute_plane(self._point_cloud[0])
@@ -92,19 +100,23 @@ class ComboCalibration(MovingCalibration):
 
         # Return response
 
+        result = True
         if self._is_calibrating:
-            if t is not None and np.linalg.norm(t - self._estimated_t) < 100:
+            if t is not None and np.linalg.norm(t - platform_extrinsics.estimated_t) < 100:
                 response_platform_extrinsics = (
                     R, t, center, point, normal, [self.x, self.y, self.z], circle)
             else:
-                response_platform_extrinsics = (False, platform_extrinsics.PlatformExtrinsicsError)
+                result = False
+                response = ComboCalibrationError
 
             if nL is not None and nR is not None:
                 response_laser_triangulation = ((dL, nL, stdL), (dR, nR, stdR))
             else:
-                response_laser_triangulation = (False, laser_triangulation.LaserTriangulationError)
+                result = False
+                response = ComboCalibrationError
 
-            response = (True, response_platform_extrinsics, response_laser_triangulation)
+            if result:
+                response = (True, (response_platform_extrinsics, response_laser_triangulation))
         else:
             response = (False, CalibrationCancel)
 
