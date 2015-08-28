@@ -34,6 +34,12 @@ system = platform.system()
 """
 
 
+class CalibrationCancel(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, _("CalibrationCancel"))
+
+
 class Calibration(object):
 
     """Generic class for threading calibration"""

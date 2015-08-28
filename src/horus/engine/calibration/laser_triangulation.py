@@ -11,6 +11,7 @@ import numpy as np
 from scipy.sparse import linalg
 
 from horus import Singleton
+from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
 
@@ -18,12 +19,6 @@ class LaserTriangulationError(Exception):
 
     def __init__(self):
         Exception.__init__(self, _("LaserTriangulationError"))
-
-
-class LaserTriangulationCancel(Exception):
-
-    def __init__(self):
-        Exception.__init__(self, _("LaserTriangulationCancel"))
 
 
 @Singleton
@@ -49,7 +44,8 @@ class LaserTriangulation(MovingCalibration):
 
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
-        ret = self.image_detection.detect_pattern_plane(image)
+        pose = self.image_detection.detect_pose(image)
+        ret = self.image_detection.detect_pattern_plane(pose)
         if ret is None:
             self.image = image
         else:
@@ -58,7 +54,7 @@ class LaserTriangulation(MovingCalibration):
                 image = self.image_capture.capture_laser(i)
                 image = self.image_detection.pattern_mask(image, corners)
                 self.image = image
-                points_2d = self.laser_segmentation.compute_2d_points(image)
+                points_2d, image = self.laser_segmentation.compute_2d_points(image)
                 point_3d = self.point_cloud_generation.compute_camera_point_cloud(points_2d, d, n)
                 if self._point_cloud[i] is None:
                     self._point_cloud[i] = point_3d.T
@@ -71,12 +67,12 @@ class LaserTriangulation(MovingCalibration):
 
         # Save point clouds
         for i in xrange(2):
-            self.save_point_cloud('PC'+str(i)+'.ply', self._point_cloud[i])
+            save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
 
         # TODO: use arrays
         # Compute planes
-        dL, nL, stdL = self.compute_plane(self._point_cloud[0])
-        dR, nR, stdR = self.compute_plane(self._point_cloud[1])
+        dL, nL, stdL = compute_plane(self._point_cloud[0])
+        dR, nR, stdR = compute_plane(self._point_cloud[1])
 
         if self._is_calibrating and nL is not None and nR is not None:
             response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
@@ -84,72 +80,75 @@ class LaserTriangulation(MovingCalibration):
             if self._is_calibrating:
                 response = (False, LaserTriangulationError)
             else:
-                response = (False, LaserTriangulationCancel)
+                response = (False, CalibrationCancel)
 
         self._is_calibrating = False
 
         return response
 
-    def compute_plane(self, X):
-        if X is not None:
-            X = np.matrix(X).T
-            n = X.shape[1]
-            std = 0
-            if n > 3:
-                final_points = []
 
-                for trials in xrange(30):
-                    X = np.matrix(X)
-                    n = X.shape[1]
-                    Xm = X.sum(axis=1) / n
-                    M = np.array(X - Xm)
-                    U = linalg.svds(M, k=2)[0]
-                    s, t = U.T
-                    normal = np.cross(s, t)
-                    if normal[2] < 0:
-                        normal *= -1
-                    distance = np.dot(normal, np.array(Xm))[0]
-                    error_vector = np.dot(M.T, normal)
+def compute_plane(X):
+    if X is not None:
+        X = np.matrix(X).T
+        n = X.shape[1]
+        std = 0
+        if n > 3:
+            final_points = []
 
-                    # If last std is equal to current std, break loop
-                    if std == error_vector.std():
-                        break
+            for trials in xrange(30):
+                X = np.matrix(X)
+                n = X.shape[1]
+                Xm = X.sum(axis=1) / n
+                M = np.array(X - Xm)
+                U = linalg.svds(M, k=2)[0]
+                s, t = U.T
+                normal = np.cross(s, t)
+                if normal[2] < 0:
+                    normal *= -1
+                distance = np.dot(normal, np.array(Xm))[0]
+                error_vector = np.dot(M.T, normal)
 
-                    std = error_vector.std()
+                # If last std is equal to current std, break loop
+                if std == error_vector.std():
+                    break
 
-                    final_points = np.where(abs(error_vector) < abs(2 * std))[0]
+                std = error_vector.std()
 
-                    X = X[:, final_points]
+                final_points = np.where(abs(error_vector) < abs(2 * std))[0]
 
-                    if std < 0.1 or len(final_points) < 1000:
-                        break
+                X = X[:, final_points]
 
-                return distance, normal, std
-            else:
-                return None, None, None
+                if std < 0.1 or len(final_points) < 1000:
+                    break
+
+            return distance, normal, std
         else:
             return None, None, None
+    else:
+        return None, None, None
 
-    def save_point_cloud(self, filename, point_cloud):
-        if point_cloud is not None:
-            f = open(filename, 'wb')
-            self.save_point_cloud_stream(f, point_cloud)
-            f.close()
 
-    def save_point_cloud_stream(self, stream, point_cloud):
-        frame = "ply\n"
-        frame += "format binary_little_endian 1.0\n"
-        frame += "comment Generated by Horus software\n"
-        frame += "element vertex {0}\n".format(len(point_cloud))
-        frame += "property float x\n"
-        frame += "property float y\n"
-        frame += "property float z\n"
-        frame += "property uchar red\n"
-        frame += "property uchar green\n"
-        frame += "property uchar blue\n"
-        frame += "element face 0\n"
-        frame += "property list uchar int vertex_indices\n"
-        frame += "end_header\n"
-        for point in point_cloud:
-            frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
-        stream.write(frame)
+def save_point_cloud(filename, point_cloud):
+    if point_cloud is not None:
+        f = open(filename, 'wb')
+        save_point_cloud_stream(f, point_cloud)
+        f.close()
+
+
+def save_point_cloud_stream(stream, point_cloud):
+    frame = "ply\n"
+    frame += "format binary_little_endian 1.0\n"
+    frame += "comment Generated by Horus software\n"
+    frame += "element vertex {0}\n".format(len(point_cloud))
+    frame += "property float x\n"
+    frame += "property float y\n"
+    frame += "property float z\n"
+    frame += "property uchar red\n"
+    frame += "property uchar green\n"
+    frame += "property uchar blue\n"
+    frame += "element face 0\n"
+    frame += "property list uchar int vertex_indices\n"
+    frame += "end_header\n"
+    for point in point_cloud:
+        frame += struct.pack("<fffBBB", point[0], point[1], point[2], 255, 0, 0)
+    stream.write(frame)

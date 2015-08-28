@@ -48,12 +48,11 @@ class ImageDetection(object):
             if ret:
                 return (cv2.Rodrigues(rvecs)[0], tvecs, corners)
 
-    def detect_pattern_plane(self, image):
-        ret = self.detect_pose(image)
-        if ret is not None:
-            R = ret[0]
-            t = ret[1].T[0]
-            c = ret[2]
+    def detect_pattern_plane(self, pose):
+        if pose is not None:
+            R = pose[0]
+            t = pose[1].T[0]
+            c = pose[2]
             n = R.T[2]
             d = -np.dot(n, t)
             return (d, n, c)

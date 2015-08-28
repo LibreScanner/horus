@@ -23,13 +23,13 @@ class MovingCalibration(Calibration):
         self.step = 5
 
     def _initialize(self):
-        pass
+        raise NotImplementedError
 
     def _capture(self, angle):
-        pass
+        raise NotImplementedError
 
     def _calibrate(self):
-        pass
+        raise NotImplementedError
 
     def _start(self):
         if self.driver.is_connected:

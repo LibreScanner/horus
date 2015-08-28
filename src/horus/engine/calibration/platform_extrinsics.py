@@ -9,6 +9,7 @@ import numpy as np
 from scipy import optimize
 
 from horus import Singleton
+from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
 
@@ -16,12 +17,6 @@ class PlatformExtrinsicsError(Exception):
 
     def __init__(self):
         Exception.__init__(self, _("PlatformExtrinsicsError"))
-
-
-class PlatformExtrinsicsCancel(Exception):
-
-    def __init__(self):
-        Exception.__init__(self, _("PlatformExtrinsicsCancel"))
 
 
 @Singleton
@@ -48,11 +43,18 @@ class PlatformExtrinsics(MovingCalibration):
         self.z = []
 
     def _capture(self, angle):
-        t = self.compute_pattern_position()
-        if t is not None:
-            self.x += [t[0][0]]
-            self.y += [t[1][0]]
-            self.z += [t[2][0]]
+        image = self.image_capture.capture_pattern()
+        pose = self.image_detection.detect_pose(image)
+        if pose is not None:
+            self.image = self.image_detection.draw_pattern(image, pose[2])
+            t = compute_pattern_position(
+                pose, (self.pattern.rows - 1) * self.pattern.square_width)
+            if t is not None:
+                self.x += [t[0][0]]
+                self.y += [t[1][0]]
+                self.z += [t[2][0]]
+        else:
+            self.image = image
 
     def _calibrate(self):
         self.has_image = False
@@ -65,11 +67,11 @@ class PlatformExtrinsics(MovingCalibration):
 
         if len(points) > 4:
             # Fitting a plane
-            point, normal = self.fit_plane(points)
+            point, normal = fit_plane(points)
             if normal[1] > 0:
                 normal = -normal
             # Fitting a circle inside the plane
-            center, R, circle = self.fit_circle(point, normal, points)
+            center, R, circle = fit_circle(point, normal, points)
             # Get real origin
             t = center - self.pattern.distance * np.array(normal)
 
@@ -80,78 +82,76 @@ class PlatformExtrinsics(MovingCalibration):
             if self._is_calibrating:
                 response = (False, PlatformExtrinsicsError)
             else:
-                response = (False, PlatformExtrinsicsCancel)
+                response = (False, CalibrationCancel)
 
         self._is_calibrating = False
 
         return response
 
-    def compute_pattern_position(self):
-        point = None
-        image = self.image_capture.capture_pattern()
-        pose = self.image_detection.detect_pose(image)
-        if pose is not None:
-            # Compute point coordinates
-            rotation, origin, corners = pose
-            self.image = self.image_detection.draw_pattern(image, corners)
-            dist = (self.pattern.rows - 1) * self.pattern.square_width
-            point = origin + np.matrix(rotation) * np.matrix([[0], [dist], [0]])
-            point = np.array(point)
-        else:
-            self.image = image
-        return point
 
-    def distance2plane(self, p0, n0, p):
-        return np.dot(np.array(n0), np.array(p) - np.array(p0))
+def compute_pattern_position(pose, distance):
+    # Compute point coordinates
+    rotation, origin, corners = pose
+    point = origin + np.matrix(rotation) * np.matrix([[0], [distance], [0]])
+    point = np.array(point)
+    return point
 
-    def residuals_plane(self, parameters, data_point):
-        px, py, pz, theta, phi = parameters
-        nx, ny, nz = np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)
-        distances = [self.distance2plane(
-            [px, py, pz], [nx, ny, nz], [x, y, z]) for x, y, z in data_point]
-        return distances
 
-    def fit_plane(self, data):
-        estimate = [0, 0, 0, 0, 0]  # px,py,pz and zeta, phi
-        # you may automize this by using the center of mass data
-        # note that the normal vector is given in polar coordinates
-        best_fit_values, ier = optimize.leastsq(self.residuals_plane, estimate, args=(data))
-        xF, yF, zF, tF, pF = best_fit_values
+def distance2plane(p0, n0, p):
+    return np.dot(np.array(n0), np.array(p) - np.array(p0))
 
-        #self.point  = [xF,yF,zF]
-        self.point = data[0]
-        self.normal = -np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
 
-        return self.point, self.normal
+def residuals_plane(parameters, data_point):
+    px, py, pz, theta, phi = parameters
+    nx, ny, nz = np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)
+    distances = [distance2plane(
+        [px, py, pz], [nx, ny, nz], [x, y, z]) for x, y, z in data_point]
+    return distances
 
-    def residuals_circle(self, parameters, data_point):
-        r, s, Ri = parameters
-        plane_point = s * self.s + r * self.r + np.array(self.point)
-        distance = [np.linalg.norm(plane_point - np.array([x, y, z])) for x, y, z in data_point]
-        res = [(Ri - dist) for dist in distance]
-        return res
 
-    def fit_circle(self, point, normal, data):
-        # creating two inplane vectors
-        # assuming that normal not parallel x!
-        self.s = np.cross(np.array([1, 0, 0]), np.array(normal))
-        self.s = self.s / np.linalg.norm(self.s)
-        self.r = np.cross(np.array(normal), self.s)
-        self.r = self.r / np.linalg.norm(self.r)  # should be normalized already, but anyhow
+def fit_plane(data):
+    estimate = [0, 0, 0, 0, 0]  # px,py,pz and zeta, phi
+    # you may automize this by using the center of mass data
+    # note that the normal vector is given in polar coordinates
+    best_fit_values, ier = optimize.leastsq(residuals_plane, estimate, args=(data))
+    xF, yF, zF, tF, pF = best_fit_values
 
-        # Define rotation
-        R = np.array([self.s, self.r, normal]).T
+    #point  = [xF,yF,zF]
+    point = data[0]
+    normal = -np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
 
-        estimate_circle = [0, 0, 0]  # px,py,pz and zeta, phi
-        best_circle_fit_values, ier = optimize.leastsq(
-            self.residuals_circle, estimate_circle, args=(data))
+    return point, normal
 
-        rF, sF, RiF = best_circle_fit_values
 
-        # Synthetic Data
-        center_point = sF * self.s + rF * self.r + np.array(self.point)
-        synthetic = [list(center_point + RiF * np.cos(phi) * self.r + RiF * np.sin(phi) * self.s)
-                     for phi in np.linspace(0, 2 * np.pi, 50)]
-        [cxTupel, cyTupel, czTupel] = [x for x in zip(*synthetic)]
+def residuals_circle(parameters, points, s, r, point):
+    r_, s_, Ri = parameters
+    plane_point = s_ * s + r_ * r + np.array(point)
+    distance = [np.linalg.norm(plane_point - np.array([x, y, z])) for x, y, z in points]
+    res = [(Ri - dist) for dist in distance]
+    return res
 
-        return center_point, R, [cxTupel, cyTupel, czTupel]
+
+def fit_circle(point, normal, points):
+    # creating two inplane vectors
+    # assuming that normal not parallel x!
+    s = np.cross(np.array([1, 0, 0]), np.array(normal))
+    s = s / np.linalg.norm(s)
+    r = np.cross(np.array(normal), s)
+    r = r / np.linalg.norm(r)  # should be normalized already, but anyhow
+
+    # Define rotation
+    R = np.array([s, r, normal]).T
+
+    estimate_circle = [0, 0, 0]  # px,py,pz and zeta, phi
+    best_circle_fit_values, ier = optimize.leastsq(
+        residuals_circle, estimate_circle, args=(points, s, r, point))
+
+    rF, sF, RiF = best_circle_fit_values
+
+    # Synthetic Data
+    center_point = sF * s + rF * r + np.array(point)
+    synthetic = [list(center_point + RiF * np.cos(phi) * r + RiF * np.sin(phi) * s)
+                 for phi in np.linspace(0, 2 * np.pi, 50)]
+    [cxTupel, cyTupel, czTupel] = [x for x in zip(*synthetic)]
+
+    return center_point, R, [cxTupel, cyTupel, czTupel]
