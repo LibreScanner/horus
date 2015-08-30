@@ -1,38 +1,16 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: October 2014                                                    #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import os
 import wx._core
 
 from horus.util import profile
 
-from horus.engine.driver import Driver
+from horus.engine.driver.driver import Driver
 
 from horus.gui.wizard.connectionPage import ConnectionPage
 from horus.gui.wizard.calibrationPage import CalibrationPage
@@ -40,18 +18,27 @@ from horus.gui.wizard.scanningPage import ScanningPage
 
 
 class Wizard(wx.Dialog):
+
     def __init__(self, parent):
-        super(Wizard, self).__init__(parent, title="", size=(640+120,480+40))
+        super(Wizard, self).__init__(parent, title="", size=(760, 520))
 
         self.parent = parent
-
-        self.driver = Driver.Instance()
+        self.driver = Driver()
 
         self.currentWorkbench = profile.settings['workbench']
- 
-        self.connectionPage = ConnectionPage(self, buttonPrevCallback=self.onConnectionPagePrevClicked, buttonNextCallback=self.onConnectionPageNextClicked)
-        self.calibrationPage = CalibrationPage(self, buttonPrevCallback=self.onCalibrationPagePrevClicked, buttonNextCallback=self.onCalibrationPageNextClicked)
-        self.scanningPage = ScanningPage(self, buttonPrevCallback=self.onScanningPagePrevClicked, buttonNextCallback=self.onScanningPageNextClicked)
+
+        self.connectionPage = ConnectionPage(
+            self,
+            buttonPrevCallback=self.onConnectionPagePrevClicked,
+            buttonNextCallback=self.onConnectionPageNextClicked)
+        self.calibrationPage = CalibrationPage(
+            self,
+            buttonPrevCallback=self.onCalibrationPagePrevClicked,
+            buttonNextCallback=self.onCalibrationPageNextClicked)
+        self.scanningPage = ScanningPage(
+            self,
+            buttonPrevCallback=self.onScanningPagePrevClicked,
+            buttonNextCallback=self.onScanningPageNextClicked)
 
         pages = [self.connectionPage, self.calibrationPage, self.scanningPage]
 
@@ -63,13 +50,13 @@ class Wizard(wx.Dialog):
         self.calibrationPage.Hide()
         self.scanningPage.Hide()
 
-        self.driver.board.setUnplugCallback(lambda: wx.CallAfter(self.onBoardUnplugged))
-        self.driver.camera.setUnplugCallback(lambda: wx.CallAfter(self.onCameraUnplugged))
+        self.driver.board.set_unplug_callback(lambda: wx.CallAfter(self.onBoardUnplugged))
+        self.driver.camera.set_unplug_callback(lambda: wx.CallAfter(self.onCameraUnplugged))
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.connectionPage, 1, wx.ALL|wx.EXPAND, 0)
-        hbox.Add(self.calibrationPage, 1, wx.ALL|wx.EXPAND, 0)
-        hbox.Add(self.scanningPage, 1, wx.ALL|wx.EXPAND, 0)
+        hbox.Add(self.connectionPage, 1, wx.ALL | wx.EXPAND, 0)
+        hbox.Add(self.calibrationPage, 1, wx.ALL | wx.EXPAND, 0)
+        hbox.Add(self.scanningPage, 1, wx.ALL | wx.EXPAND, 0)
 
         self.SetSizer(hbox)
 
@@ -102,10 +89,11 @@ class Wizard(wx.Dialog):
         self.scanningPage.Hide()
 
     def onExit(self):
-        self.driver.board.setLeftLaserOff()
-        self.driver.board.setRightLaserOff()
+        self.driver.board.lasers_off()
         profile.settings['workbench'] = self.currentWorkbench
-        dlg = wx.MessageDialog(self, _("Do you really want to exit?"), _("Exit wizard"), wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(
+            self, _("Do you really want to exit?"),
+            _("Exit wizard"), wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
         if result:
@@ -140,10 +128,12 @@ class Wizard(wx.Dialog):
         self.Layout()
 
     def onScanningPageNextClicked(self):
-        self.driver.board.setLeftLaserOff()
-        self.driver.board.setRightLaserOff()
+        self.driver.board.lasers_off()
         profile.settings.saveSettings(categories=["scan_settings"])
-        dlg = wx.MessageDialog(self, _("You have finished the wizard.\nPress Play button to start scanning."), _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(
+            self,
+            _("You have finished the wizard.\nPress Play button to start scanning."),
+            _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         result = dlg.ShowModal() == wx.ID_OK
         dlg.Destroy()
         if result:
@@ -151,7 +141,6 @@ class Wizard(wx.Dialog):
             self.calibrationPage.videoView.stop()
             self.scanningPage.videoView.stop()
             profile.settings['workbench'] = u'Scanning workbench'
-            self.parent.updatePCGProfile()
             self.parent.updateCalibrationProfile()
             self.parent.workbenchUpdate()
             self.EndModal(wx.ID_OK)

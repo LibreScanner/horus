@@ -1,29 +1,9 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: July, October 2014                                              #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
-#         Álvaro Velad Galván <alvaro.velad@bq.com>                     #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
+
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 ##                    ##
 ##-- TODO: refactor --##
@@ -37,22 +17,26 @@ from subprocess import Popen, PIPE, STDOUT
 from pathHelpers import path
 from serialDevice import SerialDevice
 
+
 class FirmwareError(Exception):
     pass
 
+
 class AvrDude(SerialDevice):
-    def __init__(self, protocol="arduino", microcontroller="atmega328p", baudRate="19200", confPath=None, port=None):
+
+    def __init__(self, protocol="arduino", microcontroller="atmega328p",
+                 baudRate="19200", confPath=None, port=None):
         self.protocol = protocol
         self.microcontroller = microcontroller
         self.baudRate = baudRate
 
         if sys.isWindows():
-        	self.avrdude = path(resources.getPathForTools("avrdude.exe")).abspath()
+            self.avrdude = path(resources.getPathForTools("avrdude.exe")).abspath()
         elif sys.isDarwin():
             self.avrdude = path(resources.getPathForTools("avrdude")).abspath()
         else:
             self.avrdude = 'avrdude'
-        
+
         if self.avrdude is None:
             raise FirmwareError('avrdude not installed')
 
@@ -60,7 +44,7 @@ class AvrDude(SerialDevice):
             self.avrconf = path(resources.getPathForTools("avrdude.conf")).abspath()
         else:
             self.avrconf = path(confPath).abspath()
-        
+
         if port:
             self.port = port
         else:

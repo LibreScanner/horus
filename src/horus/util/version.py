@@ -1,32 +1,10 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-# Copyright (C) 2013 David Braam from Cura Project                      #
-#                                                                       #
-# Date: May 2015                                                        #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.\
+                 Copyright (C) 2013 David Braam from Cura Project'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import os
 import urllib2
@@ -34,17 +12,21 @@ import webbrowser
 
 from horus.util import resources, system as sys
 
+
 def getVersion(_type='local'):
     return _getVersionData(0, _type)
+
 
 def getBuild(_type='local'):
     return _getVersionData(1, _type)
 
+
 def getGitHub(_type='local'):
     return _getVersionData(2, _type)
 
+
 def _getVersionData(index, _type='local'):
-    ## Version Build GitHub
+    # Version Build GitHub
     try:
         if _type is 'local':
             if os.path.isfile(resources.getPathForVersion()):
@@ -58,10 +40,12 @@ def _getVersionData(index, _type='local'):
     except:
         return ''
 
+
 def checkForUpdates():
     return getVersion('remote') >= getVersion('local') and \
-           getBuild('local') is not '' and \
-           getBuild('remote') > getBuild('local')
+        getBuild('local') is not '' and \
+        getBuild('remote') > getBuild('local')
+
 
 def _getExecutableUrl(version):
     url = None
@@ -69,8 +53,8 @@ def _getExecutableUrl(version):
     if sys.isLinux():
         url = "https://launchpad.net/~bqopensource/+archive/ubuntu/horus/+files/"
         url += "horus_"
-        url += version+"-bq1~"
-        url += platform.linux_distribution()[2]+"1_"
+        url += version + "-bq1~"
+        url += platform.linux_distribution()[2] + "1_"
         if platform.architecture()[0] == '64bit':
             url += "amd64.deb"
         elif platform.architecture()[0] == '32bit':
@@ -78,18 +62,20 @@ def _getExecutableUrl(version):
     elif sys.isWindows():
         url = "storage.googleapis.com/bq-horus/releases/"
         url += "Horus_"
-        url += version+".exe"
+        url += version + ".exe"
     elif sys.isDarwin():
         url = "https://storage.googleapis.com/bq-horus/releases/"
         url += "Horus_"
-        url += version+".dmg"
+        url += version + ".dmg"
     del platform
     return url
+
 
 def _downloadVersion(version):
     url = _getExecutableUrl(version)
     if url is not None:
         webbrowser.open(url)
+
 
 def downloadLatestVersion():
     _downloadVersion(getVersion('remote'))

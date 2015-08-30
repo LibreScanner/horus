@@ -1,31 +1,9 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: August, November 2014                                           #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
 import wx._core
@@ -36,928 +14,737 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
-import horus.util.error as Error
 from horus.util import profile, resources
 
 from horus.gui.util.imageView import ImageView, VideoView
 
 from horus.gui.workbench.calibration.page import Page
+from horus.gui.workbench.calibration.current_video import CurrentVideo
 
-from horus.engine.driver import Driver
-from horus.engine import calibration
+from horus.engine.driver.driver import Driver
+from horus.engine.calibration.pattern import Pattern
+from horus.engine.calibration.camera_intrinsics import CameraIntrinsics, \
+    CameraIntrinsicsError
+from horus.engine.calibration.laser_triangulation import LaserTriangulation, \
+    LaserTriangulationError
+from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics, \
+    PlatformExtrinsicsError
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
+
+driver = Driver()
+pattern = Pattern()
+camera_intrinsics = CameraIntrinsics()
+laser_triangulation = LaserTriangulation()
+platform_extrinsics = PlatformExtrinsics()
+image_capture = ImageCapture()
+image_detection = ImageDetection()
+current_video = CurrentVideo()
+
 
 class CameraIntrinsicsMainPage(Page):
 
-	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
-		Page.__init__(self, parent,
-							title=_("Camera Intrinsics"),
-							subTitle=_("Press space bar to perform captures"),
-							left=_("Cancel"),
-							right=_("Calibrate"),
-							buttonLeftCallback=self.onCancel,
-							buttonRightCallback=self.onCalibrate,
-							panelOrientation=wx.HORIZONTAL,
-							viewProgress=True)
+    def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
+        Page.__init__(self, parent,
+                      title=_("Camera Intrinsics"),
+                      subTitle=_("Press space bar to perform captures"),
+                      left=_("Cancel"),
+                      right=_("Calibrate"),
+                      buttonLeftCallback=self.onCancel,
+                      buttonRightCallback=self.onCalibrate,
+                      panelOrientation=wx.HORIZONTAL,
+                      viewProgress=True)
 
-		self.driver = Driver.Instance()
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+        self.afterCancelCallback = afterCancelCallback
+        self.afterCalibrationCallback = afterCalibrationCallback
 
-		self.afterCancelCallback = afterCancelCallback
-		self.afterCalibrationCallback = afterCalibrationCallback
+        # Video View
+        self.videoView = VideoView(self._panel, self.get_image, 10)
+        self.videoView.SetBackgroundColour(wx.BLACK)
 
-		#-- Video View
-		self.videoView = VideoView(self._panel, self.getFrame, 50)
-		self.videoView.SetBackgroundColour(wx.BLACK)
+        # Image Grid Panel
+        self.imageGridPanel = wx.Panel(self._panel)
+        self.rows, self.columns = 3, 5
+        self.panelGrid = []
+        self.gridSizer = wx.GridSizer(self.rows, self.columns, 3, 3)
+        for panel in xrange(self.rows * self.columns):
+            self.panelGrid.append(ImageView(self.imageGridPanel))
+            self.panelGrid[panel].Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
+            self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
+            self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
+            self.gridSizer.Add(self.panelGrid[panel], 0, wx.ALL | wx.EXPAND)
+        self.imageGridPanel.SetSizer(self.gridSizer)
 
-		#-- Image Grid Panel
-		self.imageGridPanel = wx.Panel(self._panel)
-		self.rows, self.columns = 2, 6
-		self.panelGrid = []
-		self.gridSizer = wx.GridSizer(self.rows, self.columns, 3, 3)
-		for panel in xrange(self.rows*self.columns):
-			self.panelGrid.append(ImageView(self.imageGridPanel))
-			self.panelGrid[panel].Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
-			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
-			self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
-			self.gridSizer.Add(self.panelGrid[panel], 0, wx.ALL|wx.EXPAND)
-		self.imageGridPanel.SetSizer(self.gridSizer)
+        # Layout
+        self.addToPanel(self.videoView, 1)
+        self.addToPanel(self.imageGridPanel, 3)
 
-		#-- Layout
-		self.addToPanel(self.videoView, 1)
-		self.addToPanel(self.imageGridPanel, 3)
+        # Events
+        self.Bind(wx.EVT_SHOW, self.onShow)
+        self.videoView.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
+        self.imageGridPanel.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
-		self.videoView.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
-		self.imageGridPanel.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
-		
-		self.videoView.SetFocus()
-		self.Layout()
+        self.videoView.SetFocus()
+        self.Layout()
 
-	def initialize(self):
-		self._rightButton.Hide()
-		self.subTitleText.SetLabel(_("Press space bar to perform captures"))
-		self.currentGrid = 0
-		self.gauge.SetValue(0)
-		for panel in xrange(self.rows*self.columns):
-			self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
-			self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
+    def initialize(self):
+        self._rightButton.Hide()
+        self.subTitleText.SetLabel(_("Press space bar to perform captures"))
+        self.currentGrid = 0
+        self.gauge.SetValue(0)
+        for panel in xrange(self.rows * self.columns):
+            self.panelGrid[panel].SetBackgroundColour((221, 221, 221))
+            self.panelGrid[panel].setImage(wx.Image(resources.getPathForImage("void.png")))
 
-	def onShow(self, event):
-		if event.GetShow():
-			self.gauge.SetValue(0)
-			self.videoView.play()
-			calibration.CameraIntrinsics.Instance().clearImageStack()
-			self.GetParent().Layout()
-			self.Layout()
-		else:
-			try:
-				self.initialize()
-				self.videoView.stop()
-			except:
-				pass
+    def onShow(self, event):
+        if event.GetShow():
+            self.gauge.SetValue(0)
+            self.videoView.play()
+            camera_intrinsics.reset()
+            self.GetParent().Layout()
+            self.Layout()
+        else:
+            try:
+                self.initialize()
+                self.videoView.stop()
+            except:
+                pass
 
-	def getFrame(self):
-		frame = self.driver.camera.captureImage(mirror=True)
-		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
-			if retval:
-				self.videoView.SetBackgroundColour((45,178,0))
-			else:
-				self.videoView.SetBackgroundColour((217,0,0))
-		return frame
+    def get_image(self):
+        image = image_capture.capture_pattern()
+        chessboard = image_detection.detect_pattern(image)
+        if image is chessboard:
+            self.videoView.SetBackgroundColour((217, 0, 0))
+        else:
+            self.videoView.SetBackgroundColour((45, 178, 0))
+        return chessboard
 
-	def onKeyPress(self, event):
-		if event.GetKeyCode() == 32: #-- spacebar
-			if self.driver.isConnected:
-				self.videoView.pause()
-				frame = self.driver.camera.captureImage(mirror=False, flush=True)
-				if frame is not None:
-					retval, frame = self.cameraIntrinsics.detectChessboard(frame, capture=True)
-					frame = cv2.flip(frame, 1) #-- Mirror
-					self.addFrameToGrid(retval, frame)
-					self.gauge.SetValue(7*self.currentGrid)
-				self.videoView.play()
+    def onKeyPress(self, event):
+        if event.GetKeyCode() == 32:  # spacebar
+            self.videoView.pause()
+            image = camera_intrinsics.capture()
+            if image is not None:
+                self.addFrameToGrid(image)
+                if self.currentGrid <= self.rows * self.columns:
+                    self.gauge.SetValue(self.currentGrid * 100.0 / self.rows / self.columns)
+            self.videoView.play()
 
-	def addFrameToGrid(self, retval, image):
-		if self.currentGrid < (self.columns*self.rows):
-			if retval:
-				self.panelGrid[self.currentGrid].setFrame(image)
-				self.panelGrid[self.currentGrid].SetBackgroundColour((45,178,0))
-				self.currentGrid += 1
-			else:
-				self.panelGrid[self.currentGrid].setFrame(image)
-				self.panelGrid[self.currentGrid].SetBackgroundColour((217,0,0))
+    def addFrameToGrid(self, image):
+        if self.currentGrid < (self.columns * self.rows):
+            self.panelGrid[self.currentGrid].setFrame(image)
+            self.currentGrid += 1
+        if self.currentGrid is (self.columns * self.rows):
+            self.subTitleText.SetLabel(_("Press Calibrate to continue"))
+            self.buttonRightCallback()
+            # self._rightButton.Enable()
 
-		if self.currentGrid is (self.columns*self.rows):
-			self.subTitleText.SetLabel(_("Press Calibrate to continue"))
-			self.buttonRightCallback()
-			# self._rightButton.Enable()
+    def onCalibrate(self):
+        camera_intrinsics.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+                                        None,
+                                        lambda r: wx.CallAfter(self.afterCalibration, r))
+        camera_intrinsics.start()
 
-	def onCalibrate(self):
-		self.cameraIntrinsics.setCallbacks(self.beforeCalibration,
-										   lambda p: wx.CallAfter(self.progressCalibration,p),
-										   lambda r: wx.CallAfter(self.afterCalibration,r))
-		self.cameraIntrinsics.start()
+    def beforeCalibration(self):
+        self.videoView.pause()
+        self._rightButton.Disable()
+        if not hasattr(self, 'waitCursor'):
+            self.waitCursor = wx.BusyCursor()
 
-	def beforeCalibration(self):
-		self.videoView.pause()
-		self._rightButton.Disable()
-		self.gauge.SetValue(95)
-		if not hasattr(self, 'waitCursor'):
-			self.waitCursor = wx.BusyCursor()
+    def afterCalibration(self, result):
+        self._rightButton.Enable()
+        if self.afterCalibrationCallback is not None:
+            self.afterCalibrationCallback(result)
+        if hasattr(self, 'waitCursor'):
+            del self.waitCursor
 
-	def progressCalibration(self, progress):
-		self.gauge.SetValue(max(95, progress))
-
-	def afterCalibration(self, result):
-		self._rightButton.Enable()
-		if self.afterCalibrationCallback is not None:
-			self.afterCalibrationCallback(result)
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
-
-	def onCancel(self):
-		boardUnplugCallback = self.driver.board.unplugCallback
-		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
-		self.driver.camera.setUnplugCallback(None)
-		if not hasattr(self, 'waitCursor'):
-			self.waitCursor = wx.BusyCursor()
-		self.onCalibration = False
-		self.cameraIntrinsics.cancel()
-		if self.afterCancelCallback is not None:
-			self.afterCancelCallback()
-		del self.waitCursor
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
+    def onCancel(self):
+        boardUnplugCallback = driver.board.unplug_callback
+        cameraUnplugCallback = driver.camera.unplug_callback
+        driver.board.set_unplug_callback(None)
+        driver.camera.set_unplug_callback(None)
+        if not hasattr(self, 'waitCursor'):
+            self.waitCursor = wx.BusyCursor()
+        self.onCalibration = False
+        camera_intrinsics.cancel()
+        if self.afterCancelCallback is not None:
+            self.afterCancelCallback()
+        del self.waitCursor
+        driver.board.set_unplug_callback(boardUnplugCallback)
+        driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class CameraIntrinsicsResultPage(Page):
 
-	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
-		Page.__init__(self, parent,
-							title=_("Camera Intrinsics"),
-							left=_("Reject"),
-							right=_("Accept"),
-							buttonLeftCallback=buttonRejectCallback,
-							buttonRightCallback=buttonAcceptCallback,
-							panelOrientation=wx.HORIZONTAL)
+    def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
+        Page.__init__(self, parent,
+                      title=_("Camera Intrinsics"),
+                      left=_("Reject"),
+                      right=_("Accept"),
+                      buttonLeftCallback=buttonRejectCallback,
+                      buttonRightCallback=buttonAcceptCallback,
+                      panelOrientation=wx.HORIZONTAL)
 
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
+        # 3D Plot Panel
+        self.plotPanel = CameraIntrinsics3DPlot(self._panel)
 
-		#-- 3D Plot Panel
-		self.plotPanel = CameraIntrinsics3DPlot(self._panel)
+        # Layout
+        self.addToPanel(self.plotPanel, 2)
 
-		#-- Layout
-		self.addToPanel(self.plotPanel, 2)
+        # Events
+        self.Bind(wx.EVT_SHOW, self.onShow)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
+    def onShow(self, event):
+        if event.GetShow():
+            self.GetParent().Layout()
+            self.Layout()
 
-	def onShow(self, event):
-		if event.GetShow():
-			self.GetParent().Layout()
-			self.Layout()
+    def processCalibration(self, response):
+        self.plotPanel.Hide()
+        self.plotPanel.clear()
+        ret, result = response
 
-	def processCalibration(self, response):
-		self.plotPanel.Hide()
-		self.plotPanel.clear()
-		ret, result = response
-
-		if ret:
-			mtx, dist, rvecs, tvecs = result
-			self.GetParent().GetParent().controls.panels['camera_intrinsics_panel'].setParameters((mtx, dist))
-			self.plotPanel.add(rvecs, tvecs)
-			self.plotPanel.Show()
-			self.Layout()
-		else:
-			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Camera Intrinsics Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
-				dlg.ShowModal()
-				dlg.Destroy()
+        if ret:
+            error, mtx, dist, rvecs, tvecs = result
+            self.GetParent().GetParent().controls.panels[
+                'camera_intrinsics_panel'].setParameters((mtx, dist))
+            self.plotPanel.add(error, rvecs, tvecs)
+            self.plotPanel.Show()
+            self.Layout()
+        else:
+            if isinstance(result, CameraIntrinsicsError):
+                dlg = wx.MessageDialog(
+                    self, _("Camera Intrinsics Calibration has failed. Please try again."),
+                    _(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
 
 
 class CameraIntrinsics3DPlot(wx.Panel):
-	def __init__(self, parent):
-		wx.Panel.__init__(self, parent)
 
-		self.initialize()
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
 
-	def initialize(self):
-		self.fig = Figure(facecolor=(0.7490196,0.7490196,0.7490196,1), tight_layout=True)
-		self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
-		self.canvas.SetExtraStyle(wx.EXPAND)
+        self.initialize()
 
-		self.ax = self.fig.gca(projection='3d', axisbg=(0.7490196,0.7490196,0.7490196,1))
+    def initialize(self):
+        self.fig = Figure(facecolor=(0.7490196, 0.7490196, 0.7490196, 1), tight_layout=True)
+        self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
+        self.canvas.SetExtraStyle(wx.EXPAND)
 
-		# Parameters of the pattern
-		self.rows = profile.settings['pattern_rows']
-		self.columns = profile.settings['pattern_columns']
-		self.squareWidth = profile.settings['square_width']
-		
-		self.printCanvas()
+        self.ax = self.fig.gca(projection='3d', axisbg=(0.7490196, 0.7490196, 0.7490196, 1))
 
-		self.Bind(wx.EVT_SIZE, self.onSize)
-		self.Layout()
+        self.printCanvas()
 
-	def onSize(self,event):
-		self.canvas.SetClientSize(self.GetClientSize())
-		self.Layout()
-		event.Skip()
+        self.Bind(wx.EVT_SIZE, self.onSize)
+        self.Layout()
 
-	def printCanvas(self):
-		self.ax.plot([0,50], [0,0], [0,0], linewidth=2.0, color='red')
-		self.ax.plot([0,0], [0,0], [0,50], linewidth=2.0, color='green')
-		self.ax.plot([0,0], [0,50], [0,0], linewidth=2.0, color='blue')
+    def onSize(self, event):
+        self.canvas.SetClientSize(self.GetClientSize())
+        self.Layout()
+        event.Skip()
 
-		self.ax.set_xlabel('X')
-		self.ax.set_ylabel('Z')
-		self.ax.set_zlabel('Y')
-		self.ax.set_xlim(-150, 150)
-		self.ax.set_ylim(0, 500)
-		self.ax.set_zlim(-150, 150)
-		self.ax.invert_xaxis()
-		self.ax.invert_yaxis()
-		self.ax.invert_zaxis()
+    def printCanvas(self):
+        self.ax.plot([0, 50], [0, 0], [0, 0], linewidth=2.0, color='red')
+        self.ax.plot([0, 0], [0, 0], [0, 50], linewidth=2.0, color='green')
+        self.ax.plot([0, 0], [0, 50], [0, 0], linewidth=2.0, color='blue')
 
-	def add(self, rvecs, tvecs):
-		h = self.columns * self.squareWidth 
-		w = self.rows * self.squareWidth
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Z')
+        self.ax.set_zlabel('Y')
+        self.ax.set_xlim(-150, 150)
+        self.ax.set_ylim(0, 500)
+        self.ax.set_zlim(-150, 150)
+        self.ax.invert_xaxis()
+        self.ax.invert_yaxis()
+        self.ax.invert_zaxis()
 
-		p = np.array([[0,0,0],[w,0,0],[w,h,0],[0,h,0],[0,0,0]])
-		n = np.array([[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]])
+    def add(self, error, rvecs, tvecs):
+        w = pattern.columns * pattern.square_width
+        h = pattern.rows * pattern.square_width
 
-		c = np.array([[30,0,0],[0,30,0],[0,0,30]])
+        p = np.array([[0, 0, 0], [w, 0, 0], [w, h, 0], [0, h, 0], [0, 0, 0]])
+        n = np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]])
 
-		for ind, transvector in enumerate(rvecs):
+        c = np.array([[30, 0, 0], [0, 30, 0], [0, 0, -30]])
 
-			R = cv2.Rodrigues(transvector)[0]
-			t = tvecs[ind]
+        self.ax.text(-100, 200, 0, str(round(error, 5)), fontsize=15)
 
-			points = (np.dot(R, p.T) + np.array([t,t,t,t,t]).T)[0]
-			normals = np.dot(R, n.T)
+        for ind, transvector in enumerate(rvecs):
 
-			X = np.array([points[0], normals[0]])
-			Y = np.array([points[1], normals[1]])
-			Z = np.array([points[2], normals[2]])
+            R = cv2.Rodrigues(transvector)[0]
+            t = tvecs[ind]
 
-			coords = (np.dot(R, c.T) + np.array([t,t,t]).T)[0]
+            points = (np.dot(R, p.T) + np.array([t, t, t, t, t]).T)[0]
+            normals = np.dot(R, n.T)
 
-			CX = coords[0]
-			CY = coords[1]
-			CZ = coords[2]
+            X = np.array([points[0], normals[0]])
+            Y = np.array([points[1], normals[1]])
+            Z = np.array([points[2], normals[2]])
 
-			color = (random.random(),random.random(),random.random(), 0.8)
+            coords = (np.dot(R, c.T) + np.array([t, t, t]).T)[0]
 
-			self.ax.plot_surface(X, Z, Y, linewidth=0, color=color)
+            CX = coords[0]
+            CY = coords[1]
+            CZ = coords[2]
 
-			self.ax.plot([t[0][0],CX[0]], [t[2][0],CZ[0]], [t[1][0],CY[0]], linewidth=1.0, color='red')
-			self.ax.plot([t[0][0],CX[1]], [t[2][0],CZ[1]], [t[1][0],CY[1]], linewidth=1.0, color='green')
-			self.ax.plot([t[0][0],CX[2]], [t[2][0],CZ[2]], [t[1][0],CY[2]], linewidth=1.0, color='blue')
-			self.canvas.draw()
-		
-		self.Layout()
+            color = (random.random(), random.random(), random.random(), 0.8)
 
-	def clear(self):
-		self.ax.cla()
-		self.printCanvas()
+            self.ax.plot_surface(X, Z, Y, linewidth=0, color=color)
+
+            self.ax.plot([t[0][0], CX[0]], [t[2][0], CZ[0]],
+                         [t[1][0], CY[0]], linewidth=1.0, color='green')
+            self.ax.plot([t[0][0], CX[1]], [t[2][0], CZ[1]],
+                         [t[1][0], CY[1]], linewidth=1.0, color='red')
+            self.ax.plot([t[0][0], CX[2]], [t[2][0], CZ[2]],
+                         [t[1][0], CY[2]], linewidth=1.0, color='blue')
+            self.canvas.draw()
+
+        self.Layout()
+
+    def clear(self):
+        self.ax.cla()
+        self.printCanvas()
 
 
 class LaserTriangulationMainPage(Page):
 
-	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
-		Page.__init__(self, parent,
-							title=_("Laser Triangulation"),
-							subTitle=_("Put the pattern on the platform as shown in the picture and press Calibrate to continue"),
-							left=_("Cancel"),
-							right=_("Calibrate"),
-							buttonLeftCallback=self.onCancel,
-							buttonRightCallback=self.onCalibrate,
-							panelOrientation=wx.HORIZONTAL,
-							viewProgress=True)
+    def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
+        Page.__init__(self, parent,
+                      title=_("Laser Triangulation"),
+                      subTitle=_("Put the pattern on the platform as shown in the "
+                                 "picture and press Calibrate to continue"),
+                      left=_("Cancel"),
+                      right=_("Calibrate"),
+                      buttonLeftCallback=self.onCancel,
+                      buttonRightCallback=self.onCalibrate,
+                      panelOrientation=wx.HORIZONTAL,
+                      viewProgress=True)
 
-		self.driver = Driver.Instance()
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.laserTriangulation = calibration.LaserTriangulation.Instance()
+        self.afterCancelCallback = afterCancelCallback
+        self.afterCalibrationCallback = afterCalibrationCallback
 
+        # Image View
+        imageView = ImageView(self._panel)
+        imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
 
-		self.onCalibration=False
+        # Video View
+        self.videoView = VideoView(self._panel, self.get_image, 10)
+        self.videoView.SetBackgroundColour(wx.BLACK)
 
-		self.afterCancelCallback = afterCancelCallback
-		self.afterCalibrationCallback = afterCalibrationCallback
+        # Layout
+        self.addToPanel(imageView, 3)
+        self.addToPanel(self.videoView, 2)
 
-		#-- Image View
-		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
+        # Events
+        self.Bind(wx.EVT_SHOW, self.onShow)
 
-		#-- Video View
-		self.videoView = VideoView(self._panel, self.getFrame, 50)
-		self.videoView.SetBackgroundColour(wx.BLACK)
+        self.Layout()
 
-		#-- Layout
-		self.addToPanel(imageView, 3)
-		self.addToPanel(self.videoView, 2)
+    def initialize(self):
+        self.gauge.SetValue(0)
+        self._rightButton.Enable()
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
+    def onShow(self, event):
+        if event.GetShow():
+            self.videoView.play()
+            self.GetParent().Layout()
+            self.Layout()
+        else:
+            try:
+                self.initialize()
+                self.videoView.stop()
+            except:
+                pass
 
-		self.Layout()
+    def get_image(self):
+        if laser_triangulation.has_image:
+            image = laser_triangulation.image
+        else:
+            image = image_capture.capture_pattern()
+            if not laser_triangulation._is_calibrating:
+                image = image_detection.detect_pattern(image)
+        return image
 
-	def initialize(self):
-		self.gauge.SetValue(0)
-		self._rightButton.Enable()
+    def onCalibrate(self):
+        laser_triangulation.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+                                          lambda p: wx.CallAfter(self.progressCalibration, p),
+                                          lambda r: wx.CallAfter(self.afterCalibration, r))
+        laser_triangulation.start()
 
-	def onShow(self, event):
-		if event.GetShow():
-			self.videoView.play()
-			self.GetParent().Layout()
-			self.Layout()
-		else:
-			try:
-				self.initialize()
-				self.videoView.stop()
-			except:
-				pass
+    def beforeCalibration(self):
+        self._rightButton.Disable()
+        self.waitCursor = wx.BusyCursor()
 
-	def getFrame(self):
-		if self.onCalibration:
-			frame = self.laserTriangulation.getImage()
-		else:
-			frame = self.driver.camera.captureImage()
+    def progressCalibration(self, progress):
+        self.gauge.SetValue(progress)
 
-		#if frame is not None:
-		#	retval, frame = self.cameraIntrinsics.detectChessboard(frame)
-		return frame
+    def afterCalibration(self, result):
+        self.onCalibrationFinished(result)
 
-	def onCalibrate(self):
-		self.onCalibration=True
-		self.laserTriangulation.setImage(self.driver.camera.captureImage())
+    def onCalibrationFinished(self, result):
+        self._rightButton.Enable()
+        if self.afterCalibrationCallback is not None:
+            self.afterCalibrationCallback(result)
+        if hasattr(self, 'waitCursor'):
+            del self.waitCursor
 
-		self.laserTriangulation.setCallbacks(self.beforeCalibration,
-											 lambda p: wx.CallAfter(self.progressCalibration,p),
-											 lambda r: wx.CallAfter(self.afterCalibration,r))
-		self.laserTriangulation.start()
-
-	def beforeCalibration(self):
-		self._rightButton.Disable()
-		self.gauge.SetValue(0)
-		self.waitCursor = wx.BusyCursor()
-
-	def progressCalibration(self, progress):
-		self.gauge.SetValue(progress)
-
-	def afterCalibration(self, result):
-		self.onCalibrationFinished(result)
-		self.onCalibration=False
-
-	def onCalibrationFinished(self, result):
-		self._rightButton.Enable()
-		if self.afterCalibrationCallback is not None:
-			self.afterCalibrationCallback(result)
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
-
-	def onCancel(self):
-		boardUnplugCallback = self.driver.board.unplugCallback
-		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
-		self.driver.camera.setUnplugCallback(None)
-		if not hasattr(self, 'waitCursor'):
-			self.waitCursor = wx.BusyCursor()
-		self.onCalibration = False
-		self.laserTriangulation.cancel()
-		if self.afterCancelCallback is not None:
-			self.afterCancelCallback()
-		del self.waitCursor
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
+    def onCancel(self):
+        boardUnplugCallback = driver.board.unplug_callback
+        cameraUnplugCallback = driver.camera.unplug_callback
+        driver.board.set_unplug_callback(None)
+        driver.camera.set_unplug_callback(None)
+        if not hasattr(self, 'waitCursor'):
+            self.waitCursor = wx.BusyCursor()
+        laser_triangulation.cancel()
+        if self.afterCancelCallback is not None:
+            self.afterCancelCallback()
+        del self.waitCursor
+        driver.board.set_unplug_callback(boardUnplugCallback)
+        driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class LaserTriangulationResultPage(Page):
 
-	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
-		Page.__init__(self, parent,
-							title=_("Laser Triangulation"),
-							left=_("Reject"),
-							right=_("Accept"),
-							buttonLeftCallback=buttonRejectCallback,
-							buttonRightCallback=buttonAcceptCallback,
-							panelOrientation=wx.HORIZONTAL)
+    def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
+        Page.__init__(self, parent,
+                      title=_("Laser Triangulation"),
+                      left=_("Reject"),
+                      right=_("Accept"),
+                      buttonLeftCallback=buttonRejectCallback,
+                      buttonRightCallback=buttonAcceptCallback,
+                      panelOrientation=wx.HORIZONTAL)
 
-		vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
 
-		self.laserTriangulation = calibration.LaserTriangulation.Instance()
-		self.plotPanel = LaserTriangulation3DPlot(self._panel)
+        self.plotPanel = LaserTriangulation3DPlot(self._panel)
 
-		#-- Layout
-		self.addToPanel(self.plotPanel, 3)
+        # Layout
+        self.addToPanel(self.plotPanel, 3)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
+        # Events
+        self.Bind(wx.EVT_SHOW, self.onShow)
 
-	def onShow(self, event):
-		if event.GetShow():
-			self.GetParent().Layout()
-			self.Layout()
+    def onShow(self, event):
+        if event.GetShow():
+            self.GetParent().Layout()
+            self.Layout()
 
-	def processCalibration(self, response):
-		ret, result = response
+    def processCalibration(self, response):
+        ret, result = response
 
-		if ret:
-			dL = result[0][0]
-			nL = result[0][1]
-			stdL = result[0][2]
-			dR = result[1][0]
-			nR = result[1][1]
-			stdR = result[1][2]
+        if ret:
+            dL = result[0][0]
+            nL = result[0][1]
+            stdL = result[0][2]
+            dR = result[1][0]
+            nR = result[1][1]
+            stdR = result[1][2]
 
-			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((dL, nL, dR, nR))
-			self.plotPanel.clear()
-			self.plotPanel.add((dL, nL,stdL, dR, nR,stdR))
-			self.plotPanel.Show()
-			self.Layout()
-		else:
-			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
-				dlg.ShowModal()
-				dlg.Destroy()
+            self.GetParent().GetParent().controls.panels[
+                'laser_triangulation_panel'].setParameters((dL, nL, dR, nR))
+            self.plotPanel.clear()
+            self.plotPanel.add((dL, nL, stdL, dR, nR, stdR))
+            self.plotPanel.Show()
+            self.Layout()
+        else:
+            if isinstance(result, LaserTriangulationError):
+                dlg = wx.MessageDialog(
+                    self, _("Laser Triangulation Calibration has failed. Please try again."),
+                    _(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
 
 
 class LaserTriangulation3DPlot(wx.Panel):
 
-	def __init__(self, parent):
-		wx.Panel.__init__(self, parent)
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
 
-		self.initialize()
+        self.initialize()
 
-	def initialize(self):
-		fig = Figure(facecolor=(0.7490196,0.7490196,0.7490196,1), tight_layout=True)
-		self.canvas = FigureCanvasWxAgg(self, -1, fig)
-		self.canvas.SetExtraStyle(wx.EXPAND)
-		self.ax = fig.gca(projection='3d', axisbg=(0.7490196,0.7490196,0.7490196,1))
+    def initialize(self):
+        fig = Figure(facecolor=(0.7490196, 0.7490196, 0.7490196, 1), tight_layout=True)
+        self.canvas = FigureCanvasWxAgg(self, -1, fig)
+        self.canvas.SetExtraStyle(wx.EXPAND)
+        self.ax = fig.gca(projection='3d', axisbg=(0.7490196, 0.7490196, 0.7490196, 1))
 
-		self.Bind(wx.EVT_SIZE, self.onSize)
-		self.Layout()
+        self.Bind(wx.EVT_SIZE, self.onSize)
+        self.Layout()
 
-	def onSize(self,event):
-		self.canvas.SetClientSize(self.GetClientSize())
-		self.canvas.draw()
-		self.Layout()
+    def onSize(self, event):
+        self.canvas.SetClientSize(self.GetClientSize())
+        self.canvas.draw()
+        self.Layout()
 
-	def add(self, args):
-		dL, nL, stdL, dR, nR, stdR = args
+    def add(self, args):
+        dL, nL, stdL, dR, nR, stdR = args
 
-		rL = np.cross(np.array([0,0,1]), nL)
-		sL = np.cross(rL, nL)
-		RL = np.array([rL, sL, nL])
+        rL = np.cross(np.array([0, 0, 1]), nL)
+        sL = np.cross(rL, nL)
+        RL = np.array([rL, sL, nL])
 
-		rR = np.cross(np.array([0,0,1]), nR)
-		sR = np.cross(rR, nR)
-		RR = np.array([rR, sR, nR])
+        rR = np.cross(np.array([0, 0, 1]), nR)
+        sR = np.cross(rR, nR)
+        RR = np.array([rR, sR, nR])
 
-		self.addPlane(RL, dL*nL)
-		self.addPlane(RR, dR*nR)
+        self.addPlane(RL, dL * nL)
+        self.addPlane(RR, dR * nR)
 
-		self.ax.plot([0,50], [0,0], [0,0], linewidth=2.0, color='red')
-		self.ax.plot([0,0], [0,0], [0,50], linewidth=2.0, color='green')
-		self.ax.plot([0,0], [0,50], [0,0], linewidth=2.0, color='blue')
+        self.ax.plot([0, 50], [0, 0], [0, 0], linewidth=2.0, color='red')
+        self.ax.plot([0, 0], [0, 0], [0, 50], linewidth=2.0, color='green')
+        self.ax.plot([0, 0], [0, 50], [0, 0], linewidth=2.0, color='blue')
 
-		self.ax.set_xlabel('X')
-		self.ax.set_ylabel('Z')
-		self.ax.set_zlabel('Y')
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Z')
+        self.ax.set_zlabel('Y')
 
-		self.ax.text(-100,0,0, str(round(stdL, 5)), fontsize=15)
-		self.ax.text(100,0,0, str(round(stdR, 5)), fontsize=15)
+        self.ax.text(-100, 0, 0, str(round(stdL, 5)), fontsize=15)
+        self.ax.text(100, 0, 0, str(round(stdR, 5)), fontsize=15)
 
-		self.ax.set_xlim(-150, 150)
-		self.ax.set_ylim(0, 400)
-		self.ax.set_zlim(-150, 150)
+        self.ax.set_xlim(-150, 150)
+        self.ax.set_ylim(0, 400)
+        self.ax.set_zlim(-150, 150)
 
-		self.ax.invert_xaxis()
-		self.ax.invert_yaxis()
-		self.ax.invert_zaxis()
+        self.ax.invert_xaxis()
+        self.ax.invert_yaxis()
+        self.ax.invert_zaxis()
 
-		self.canvas.draw()
-		self.Layout()
+        self.canvas.draw()
+        self.Layout()
 
-	def addPlane(self, R, t):
-		w = 200
-		h = 300
+    def addPlane(self, R, t):
+        w = 200
+        h = 300
 
-		p = np.array([[-w/2,-h/2,0],[-w/2,h/2,0],[w/2,h/2,0],[w/2,-h/2,0],[-w/2,-h/2,0]])
-		n = np.array([[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]])
+        p = np.array([[-w / 2, -h / 2, 0], [-w / 2, h / 2, 0],
+                      [w / 2, h / 2, 0], [w / 2, -h / 2, 0], [-w / 2, -h / 2, 0]])
+        n = np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]])
 
-		self.ax.plot([0,t[0]], [0,t[2]], [0,t[1]], linewidth=2.0, color='yellow')
+        self.ax.plot([0, t[0]], [0, t[2]], [0, t[1]], linewidth=2.0, color='yellow')
 
-		points = np.dot(R.T, p.T) + np.array([t,t,t,t,t]).T 
-		normals = np.dot(R.T, n.T)
+        points = np.dot(R.T, p.T) + np.array([t, t, t, t, t]).T
+        normals = np.dot(R.T, n.T)
 
-		X = np.array([points[0], normals[0]])
-		Y = np.array([points[1], normals[1]])
-		Z = np.array([points[2], normals[2]])
+        X = np.array([points[0], normals[0]])
+        Y = np.array([points[1], normals[1]])
+        Z = np.array([points[2], normals[2]])
 
-		self.ax.plot_surface(X, Z, Y, linewidth=0, color=(1,0,0,0.8))
+        self.ax.plot_surface(X, Z, Y, linewidth=0, color=(1, 0, 0, 0.8))
 
-		self.canvas.draw()
+        self.canvas.draw()
 
-	def clear(self):
-		self.ax.cla()
-
-
-class SimpleLaserTriangulationMainPage(Page):
-
-	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
-		Page.__init__(self, parent,
-							title=_("Simple Laser Triangulation"),
-							subTitle=_("Put the pattern on the platform as shown in the picture and press Calibrate to continue"),
-							left=_("Cancel"),
-							right=_("Calibrate"),
-							buttonLeftCallback=self.onCancel,
-							buttonRightCallback=self.onCalibrate,
-							panelOrientation=wx.HORIZONTAL,
-							viewProgress=True)
-
-		self.driver = Driver.Instance()
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.laserTriangulation = calibration.LaserTriangulation.Instance()
-
-		self.afterCancelCallback = afterCancelCallback
-		self.afterCalibrationCallback = afterCalibrationCallback
-
-		#-- Image View
-		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
-
-		#-- Video View
-		self.videoView = VideoView(self._panel, self.getFrame, 50)
-		self.videoView.SetBackgroundColour(wx.BLACK)
-
-		#-- Layout
-		self.addToPanel(imageView, 3)
-		self.addToPanel(self.videoView, 2)
-
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
-		self.Layout()
-
-	def initialize(self):
-		self.gauge.SetValue(0)
-		self._rightButton.Enable()
-
-	def onShow(self, event):
-		if event.GetShow():
-			self.videoView.play()
-			self.GetParent().Layout()
-			self.Layout()
-		else:
-			try:
-				self.initialize()
-				self.videoView.stop()
-			except:
-				pass
-
-	def getFrame(self):
-		frame = self.driver.camera.captureImage()
-		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
-		return frame
-
-	def onCalibrate(self):
-		self.laserTriangulation.setCallbacks(self.beforeCalibration,
-											 lambda p: wx.CallAfter(self.progressCalibration,p),
-											 lambda r: wx.CallAfter(self.afterCalibration,r))
-		self.laserTriangulation.start()
-
-	def beforeCalibration(self):
-		self._rightButton.Disable()
-		self.gauge.SetValue(0)
-		if not hasattr(self, 'waitCursor'):
-			self.waitCursor = wx.BusyCursor()
-
-	def progressCalibration(self, progress):
-		self.gauge.SetValue(progress)
-
-	def afterCalibration(self, result):
-		self._rightButton.Enable()
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
-		if self.afterCalibrationCallback is not None:
-			self.afterCalibrationCallback(result)
-
-	def onCancel(self):
-		boardUnplugCallback = self.driver.board.unplugCallback
-		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
-		self.driver.camera.setUnplugCallback(None)
-		if not hasattr(self, 'waitCursor'):
-			self.waitCursor = wx.BusyCursor()
-		self.onCalibration = False
-		self.laserTriangulation.cancel()
-		if self.afterCancelCallback is not None:
-			self.afterCancelCallback()
-		del self.waitCursor
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
-
-
-class SimpleLaserTriangulationResultPage(Page):
-
-	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
-		Page.__init__(self, parent,
-							title=_("Laser Triangulation"),
-							left=_("Reject"),
-							right=_("Accept"),
-							buttonLeftCallback=buttonRejectCallback,
-							buttonRightCallback=buttonAcceptCallback,
-							panelOrientation=wx.HORIZONTAL)
-
-		vbox = wx.BoxSizer(wx.VERTICAL)
-
-		self.laserTriangulation = calibration.LaserTriangulation.Instance()
-
-		self.leftLaserImageSequence = SimpleLaserTriangulationImageSequence(self._panel, "Left Laser Image Sequence")
-		self.rightLaserImageSequence = SimpleLaserTriangulationImageSequence(self._panel, "Right Laser Image Sequence")
-
-		#-- Layout
-		vbox.Add(self.leftLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
-		vbox.Add(self.rightLaserImageSequence, 1, wx.ALL|wx.EXPAND, 3)
-
-		self.addToPanel(vbox, 3)
-
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
-
-	def onShow(self, event):
-		if event.GetShow():
-			self.GetParent().Layout()
-			self.Layout()
-
-	def processCalibration(self, response):
-		ret, result = response
-
-		if ret:
-			vectors, parameters, images = result
-			self.GetParent().GetParent().controls.panels['laser_triangulation_panel'].setParameters((parameters, vectors[0], vectors[1]))
-			self.leftLaserImageSequence.imageLas.setFrame(images[0][0])
-			self.leftLaserImageSequence.imageGray.setFrame(images[0][1])
-			self.leftLaserImageSequence.imageBin.setFrame(images[0][2])
-			self.leftLaserImageSequence.imageLine.setFrame(images[0][3])
-			self.rightLaserImageSequence.imageLas.setFrame(images[1][0])
-			self.rightLaserImageSequence.imageGray.setFrame(images[1][1])
-			self.rightLaserImageSequence.imageBin.setFrame(images[1][2])
-			self.rightLaserImageSequence.imageLine.setFrame(images[1][3])
-			self.Layout()
-		else:
-			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Laser Triangulation Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
-				dlg.ShowModal()
-				dlg.Destroy()
-
-
-class SimpleLaserTriangulationImageSequence(wx.Panel):
-
-	def __init__(self, parent, title="Title"):
-		wx.Panel.__init__(self, parent)
-
-		vbox = wx.BoxSizer(wx.VERTICAL)
-		hbox = wx.BoxSizer(wx.HORIZONTAL)
-
-		titleText = wx.StaticText(self, label=title)
-		titleText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-
-		panel = wx.Panel(self)
-		self.imageLas = ImageView(panel)
-		self.imageGray = ImageView(panel)
-		self.imageBin = ImageView(panel)
-		self.imageLine = ImageView(panel)
-
-		self.imageLas.SetBackgroundColour('#AAAAAA')
-		self.imageGray.SetBackgroundColour('#AAAAAA')
-		self.imageBin.SetBackgroundColour('#AAAAAA')
-		self.imageLine.SetBackgroundColour('#AAAAAA')
-
-		#-- Layout
-		vbox.Add(titleText, 0, wx.ALL|wx.EXPAND, 5)
-		hbox.Add(self.imageLas, 1, wx.ALL|wx.EXPAND, 3)
-		hbox.Add(self.imageGray, 1, wx.ALL|wx.EXPAND, 3)
-		hbox.Add(self.imageBin, 1, wx.ALL|wx.EXPAND, 3)
-		hbox.Add(self.imageLine, 1, wx.ALL|wx.EXPAND, 3)
-		panel.SetSizer(hbox)
-		vbox.Add(panel, 1, wx.ALL|wx.EXPAND, 3)
-
-		self.SetSizer(vbox)
-		self.Layout()
+    def clear(self):
+        self.ax.cla()
 
 
 class PlatformExtrinsicsMainPage(Page):
 
-	def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
-		Page.__init__(self, parent,
-							title=_("Platform Extrinsics"),
-							subTitle=_("Put the pattern on the platform as shown in the picture and press Calibrate to continue"),
-							left=_("Cancel"),
-							right=_("Calibrate"),
-							buttonLeftCallback=self.onCancel,
-							buttonRightCallback=self.onCalibrate,
-							panelOrientation=wx.HORIZONTAL,
-							viewProgress=True)
+    def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
+        Page.__init__(self, parent,
+                      title=_("Platform Extrinsics"),
+                      subTitle=_("Put the pattern on the platform as shown "
+                                 "in the picture and press Calibrate to continue"),
+                      left=_("Cancel"),
+                      right=_("Calibrate"),
+                      buttonLeftCallback=self.onCancel,
+                      buttonRightCallback=self.onCalibrate,
+                      panelOrientation=wx.HORIZONTAL,
+                      viewProgress=True)
 
-		self.driver = Driver.Instance()
-		self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+        self.onCalibration = False
 
-		self.onCalibration=False
+        self.afterCancelCallback = afterCancelCallback
+        self.afterCalibrationCallback = afterCalibrationCallback
 
-		self.afterCancelCallback = afterCancelCallback
-		self.afterCalibrationCallback = afterCalibrationCallback
+        # Image View
+        imageView = ImageView(self._panel)
+        imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
 
-		#-- Image View
-		imageView = ImageView(self._panel)
-		imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
+        # Video View
+        self.videoView = VideoView(self._panel, self.get_image, 10)
+        self.videoView.SetBackgroundColour(wx.BLACK)
 
-		#-- Video View
-		self.videoView = VideoView(self._panel, self.getFrame, 50)
-		self.videoView.SetBackgroundColour(wx.BLACK)
+        # Layout
+        self.addToPanel(imageView, 3)
+        self.addToPanel(self.videoView, 2)
 
-		#-- Layout
-		self.addToPanel(imageView, 3)
-		self.addToPanel(self.videoView, 2)
+        # Events
+        self.Bind(wx.EVT_SHOW, self.onShow)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
+        self.Layout()
 
-		self.Layout()
+    def initialize(self):
+        self.gauge.SetValue(0)
+        self._rightButton.Enable()
 
-	def initialize(self):
-		self.gauge.SetValue(0)
-		self._rightButton.Enable()
+    def onShow(self, event):
+        if event.GetShow():
+            self.videoView.play()
+            self.GetParent().Layout()
+            self.Layout()
+        else:
+            try:
+                self.initialize()
+                self.videoView.stop()
+            except:
+                pass
 
-	def onShow(self, event):
-		if event.GetShow():
-			self.videoView.play()
-			self.GetParent().Layout()
-			self.Layout()
-		else:
-			try:
-				self.initialize()
-				self.videoView.stop()
-			except:
-				pass
+    def get_image(self):
+        if platform_extrinsics.has_image:
+            image = platform_extrinsics.image
+        else:
+            image = image_capture.capture_pattern()
+            if not platform_extrinsics._is_calibrating:
+                image = image_detection.detect_pattern(image)
+        return image
 
-	def getFrame(self):
-		if self.onCalibration:
-			frame = self.platformExtrinsics.getImage()
-		else:
-			frame = self.driver.camera.captureImage()
-		if frame is not None:
-			retval, frame = self.cameraIntrinsics.detectChessboard(frame)
+    def onCalibrate(self):
+        self.onCalibration = True
+        platform_extrinsics.image = driver.camera.capture_image()
 
-		return frame
+        platform_extrinsics.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+                                          lambda p: wx.CallAfter(self.progressCalibration, p),
+                                          lambda r: wx.CallAfter(self.afterCalibration, r))
+        platform_extrinsics.start()
 
-	def onCalibrate(self):
-		self.onCalibration=True
-		self.platformExtrinsics.setImage(self.driver.camera.captureImage())
+    def beforeCalibration(self):
+        self._rightButton.Disable()
+        self.gauge.SetValue(0)
+        self.waitCursor = wx.BusyCursor()
 
-		self.platformExtrinsics.setCallbacks(self.beforeCalibration,
-											 lambda p: wx.CallAfter(self.progressCalibration,p),
-											 lambda r: wx.CallAfter(self.afterCalibration,r))
-		self.platformExtrinsics.start()
+    def progressCalibration(self, progress):
+        self.gauge.SetValue(progress)
 
-	def beforeCalibration(self):
-		self._rightButton.Disable()
-		self.gauge.SetValue(0)
-		self.waitCursor = wx.BusyCursor()
+    def afterCalibration(self, result):
+        self.onCalibrationFinished(result)
+        self.onCalibration = False
 
-	def progressCalibration(self, progress):
-		self.gauge.SetValue(progress)
+    def onCalibrationFinished(self, result):
+        self._rightButton.Enable()
+        if self.afterCalibrationCallback is not None:
+            self.afterCalibrationCallback(result)
+        if hasattr(self, 'waitCursor'):
+            del self.waitCursor
 
-	def afterCalibration(self, result):
-		self.onCalibrationFinished(result)
-		self.onCalibration=False
-
-	def onCalibrationFinished(self, result):
-		self._rightButton.Enable()
-		if self.afterCalibrationCallback is not None:
-			self.afterCalibrationCallback(result)
-		if hasattr(self, 'waitCursor'):
-			del self.waitCursor
-
-	def onCancel(self):
-		boardUnplugCallback = self.driver.board.unplugCallback
-		cameraUnplugCallback = self.driver.camera.unplugCallback
-		self.driver.board.setUnplugCallback(None)
-		self.driver.camera.setUnplugCallback(None)
-		if not hasattr(self, 'waitCursor'):
-			self.waitCursor = wx.BusyCursor()
-		self.onCalibration = False
-		self.platformExtrinsics.cancel()
-		if self.afterCancelCallback is not None:
-			self.afterCancelCallback()
-		del self.waitCursor
-		self.driver.board.setUnplugCallback(boardUnplugCallback)
-		self.driver.camera.setUnplugCallback(cameraUnplugCallback)
+    def onCancel(self):
+        boardUnplugCallback = driver.board.unplug_callback
+        cameraUnplugCallback = driver.camera.unplug_callback
+        driver.board.set_unplug_callback(None)
+        driver.camera.set_unplug_callback(None)
+        if not hasattr(self, 'waitCursor'):
+            self.waitCursor = wx.BusyCursor()
+        self.onCalibration = False
+        platform_extrinsics.cancel()
+        if self.afterCancelCallback is not None:
+            self.afterCancelCallback()
+        del self.waitCursor
+        driver.board.set_unplug_callback(boardUnplugCallback)
+        driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class PlatformExtrinsicsResultPage(Page):
 
-	def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
-		Page.__init__(self, parent,
-							title=_("Platform Extrinsics"),
-							left=_("Reject"),
-							right=_("Accept"),
-							buttonLeftCallback=buttonRejectCallback,
-							buttonRightCallback=buttonAcceptCallback,
-							panelOrientation=wx.HORIZONTAL)
+    def __init__(self, parent, buttonRejectCallback=None, buttonAcceptCallback=None):
+        Page.__init__(self, parent,
+                      title=_("Platform Extrinsics"),
+                      left=_("Reject"),
+                      right=_("Accept"),
+                      buttonLeftCallback=buttonRejectCallback,
+                      buttonRightCallback=buttonAcceptCallback,
+                      panelOrientation=wx.HORIZONTAL)
 
-		vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
 
-		self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
-		self.plotPanel = PlatformExtrinsics3DPlot(self._panel)
+        self.plotPanel = PlatformExtrinsics3DPlot(self._panel)
 
-		#-- Layout
-		self.addToPanel(self.plotPanel, 3)
+        # Layout
+        self.addToPanel(self.plotPanel, 3)
 
-		#-- Events
-		self.Bind(wx.EVT_SHOW, self.onShow)
+        # Events
+        self.Bind(wx.EVT_SHOW, self.onShow)
 
-	def onShow(self, event):
-		if event.GetShow():
-			self.GetParent().Layout()
-			self.Layout()
+    def onShow(self, event):
+        if event.GetShow():
+            self.GetParent().Layout()
+            self.Layout()
 
-	def processCalibration(self, response):
-		ret, result = response
+    def processCalibration(self, response):
+        ret, result = response
 
-		if ret:
-			R = result[0]
-			t = result[1]
-			self.GetParent().GetParent().controls.panels['platform_extrinsics_panel'].setParameters((R, t))
-			self.plotPanel.clear()
-			self.plotPanel.add(result)
-			self.plotPanel.Show()
-			self.Layout()
-		else:
-			if result == Error.CalibrationError:
-				dlg = wx.MessageDialog(self, _("Platform Extrinsics Calibration has failed. Please try again."), _(result), wx.OK|wx.ICON_ERROR)
-				dlg.ShowModal()
-				dlg.Destroy()
+        if ret:
+            R = result[0]
+            t = result[1]
+            self.GetParent().GetParent().controls.panels[
+                'platform_extrinsics_panel'].setParameters((R, t))
+            self.plotPanel.clear()
+            self.plotPanel.add(result)
+            self.plotPanel.Show()
+            self.Layout()
+        else:
+            if isinstance(result, PlatformExtrinsicsError):
+                dlg = wx.MessageDialog(
+                    self, _("Platform Extrinsics Calibration has failed. Please try again."),
+                    _(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
 
 
 class PlatformExtrinsics3DPlot(wx.Panel):
 
-	def __init__(self, parent):
-		wx.Panel.__init__(self, parent)
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
 
-		self.initialize()
+        self.initialize()
 
-	def initialize(self):
-		fig = Figure(facecolor=(0.7490196,0.7490196,0.7490196,1), tight_layout=True)
-		self.canvas = FigureCanvasWxAgg(self, -1, fig)
-		self.canvas.SetExtraStyle(wx.EXPAND)
-		self.ax = fig.gca(projection='3d', axisbg=(0.7490196,0.7490196,0.7490196,1))
+    def initialize(self):
+        fig = Figure(facecolor=(0.7490196, 0.7490196, 0.7490196, 1), tight_layout=True)
+        self.canvas = FigureCanvasWxAgg(self, -1, fig)
+        self.canvas.SetExtraStyle(wx.EXPAND)
+        self.ax = fig.gca(projection='3d', axisbg=(0.7490196, 0.7490196, 0.7490196, 1))
 
-		self.Bind(wx.EVT_SIZE, self.onSize)
-		self.Layout()
+        self.Bind(wx.EVT_SIZE, self.onSize)
+        self.Layout()
 
-	def onSize(self,event):
-		self.canvas.SetClientSize(self.GetClientSize())
-		self.canvas.draw()
-		self.Layout()
+    def onSize(self, event):
+        self.canvas.SetClientSize(self.GetClientSize())
+        self.canvas.draw()
+        self.Layout()
 
-	def add(self, args):
-		R, t, center, point, normal, [x,y,z], circle = args
+    def add(self, args):
+        R, t, center, point, normal, [x, y, z], circle = args
 
-		# plot the surface, data, and synthetic circle
-		self.ax.scatter(x, z, y, c='b', marker='o')
-		#self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
-		self.ax.plot(circle[0], circle[2], circle[1], c='r')
+        # plot the surface, data, and synthetic circle
+        self.ax.scatter(x, z, y, c='b', marker='o')
+        #self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
+        self.ax.plot(circle[0], circle[2], circle[1], c='r')
 
-		d = profile.settings['pattern_distance']
+        d = pattern.distance
 
-		self.ax.plot([t[0],t[0]+50*R[0][0]], [t[2],t[2]+50*R[2][0]], [t[1],t[1]+50*R[1][0]], linewidth=2.0, color='red')
-		self.ax.plot([t[0],t[0]+50*R[0][1]], [t[2],t[2]+50*R[2][1]], [t[1],t[1]+50*R[1][1]], linewidth=2.0, color='green')
-		self.ax.plot([t[0],t[0]+d*R[0][2]], [t[2],t[2]+d*R[2][2]], [t[1],t[1]+d*R[1][2]], linewidth=2.0, color='blue')
+        self.ax.plot([t[0], t[0] + 50 * R[0][0]], [t[2], t[2] + 50 * R[2][0]],
+                     [t[1], t[1] + 50 * R[1][0]], linewidth=2.0, color='red')
+        self.ax.plot([t[0], t[0] + 50 * R[0][1]], [t[2], t[2] + 50 * R[2][1]],
+                     [t[1], t[1] + 50 * R[1][1]], linewidth=2.0, color='green')
+        self.ax.plot([t[0], t[0] + d * R[0][2]], [t[2], t[2] + d * R[2][2]],
+                     [t[1], t[1] + d * R[1][2]], linewidth=2.0, color='blue')
 
-		self.ax.plot([0,50], [0,0], [0,0], linewidth=2.0, color='red')
-		self.ax.plot([0,0], [0,0], [0,50], linewidth=2.0, color='green')
-		self.ax.plot([0,0], [0,50], [0,0], linewidth=2.0, color='blue')
+        self.ax.plot([0, 50], [0, 0], [0, 0], linewidth=2.0, color='red')
+        self.ax.plot([0, 0], [0, 0], [0, 50], linewidth=2.0, color='green')
+        self.ax.plot([0, 0], [0, 50], [0, 0], linewidth=2.0, color='blue')
 
-		self.ax.set_xlabel('X')
-		self.ax.set_ylabel('Z')
-		self.ax.set_zlabel('Y')
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Z')
+        self.ax.set_zlabel('Y')
 
-		self.ax.set_xlim(-150, 150)
-		self.ax.set_ylim(0, 400)
-		self.ax.set_zlim(-150, 150)
+        self.ax.set_xlim(-150, 150)
+        self.ax.set_ylim(0, 400)
+        self.ax.set_zlim(-150, 150)
 
-		self.ax.invert_xaxis()
-		self.ax.invert_yaxis()
-		self.ax.invert_zaxis()
+        self.ax.invert_xaxis()
+        self.ax.invert_yaxis()
+        self.ax.invert_zaxis()
 
-		self.canvas.draw()
-		self.Layout()
+        self.canvas.draw()
+        self.Layout()
 
-	def clear(self):
-		self.ax.cla()
+    def clear(self):
+        self.ax.cla()

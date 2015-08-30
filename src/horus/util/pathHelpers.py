@@ -45,7 +45,16 @@ This module requires Python 2.3 or later.
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib, errno, re
+import sys
+import warnings
+import os
+import fnmatch
+import glob
+import shutil
+import codecs
+import hashlib
+import errno
+import re
 try:
     import cPickle as pickle
 except ImportError:
@@ -87,10 +96,13 @@ _textmode = 'U'
 if hasattr(__builtins__, 'file') and not hasattr(file, 'newlines'):
     _textmode = 'r'
 
+
 class TreeWalkWarning(Warning):
     pass
 
+
 class path(_base):
+
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
@@ -106,7 +118,7 @@ class path(_base):
     def __add__(self, more):
         try:
             resultStr = _base.__add__(self, more)
-        except TypeError:  #Python bug
+        except TypeError:  # Python bug
             resultStr = NotImplemented
         if resultStr is NotImplemented:
             return resultStr
@@ -135,17 +147,31 @@ class path(_base):
         return cls(_getcwd())
     getcwd = classmethod(getcwd)
 
-
     # --- Operations on path strings.
 
-    def abspath(self):       return self.__class__(os.path.abspath(self))
-    def normcase(self):      return self.__class__(os.path.normcase(self))
-    def normpath(self):      return self.__class__(os.path.normpath(self))
-    def realpath(self):      return self.__class__(os.path.realpath(self))
-    def expanduser(self):    return self.__class__(os.path.expanduser(self))
-    def expandvars(self):    return self.__class__(os.path.expandvars(self))
-    def dirname(self):       return self.__class__(os.path.dirname(self))
-    def basename(self):      return self.__class__(os.path.basename(self))
+    def abspath(self):
+        return self.__class__(os.path.abspath(self))
+
+    def normcase(self):
+        return self.__class__(os.path.normcase(self))
+
+    def normpath(self):
+        return self.__class__(os.path.normpath(self))
+
+    def realpath(self):
+        return self.__class__(os.path.realpath(self))
+
+    def expanduser(self):
+        return self.__class__(os.path.expanduser(self))
+
+    def expandvars(self):
+        return self.__class__(os.path.expandvars(self))
+
+    def dirname(self):
+        return self.__class__(os.path.dirname(self))
+
+    def basename(self):
+        return self.__class__(os.path.basename(self))
 
     def expand(self):
         """ Clean up a filename by calling expandvars(),
@@ -365,7 +391,7 @@ class path(_base):
         whose names match the given pattern.  For example,
         d.files('*.pyc').
         """
-        
+
         return [p for p in self.listdir(pattern) if p.isfile()]
 
     def walk(self, pattern=None, errors='strict'):
@@ -563,7 +589,6 @@ class path(_base):
         """
         cls = self.__class__
         return [cls(s) for s in glob.glob(_base(self / pattern))]
-
 
     # --- Reading or writing an entire file at once.
 
@@ -864,33 +889,49 @@ class path(_base):
     # (e.g. isdir on Windows, Python 3.2.2), and compiled functions don't get
     # bound. Playing it safe and wrapping them all in method calls.
 
-    def isabs(self): return os.path.isabs(self)
-    def exists(self): return os.path.exists(self)
-    def isdir(self): return os.path.isdir(self)
-    def isfile(self): return os.path.isfile(self)
-    def islink(self): return os.path.islink(self)
-    def ismount(self): return os.path.ismount(self)
+    def isabs(self):
+        return os.path.isabs(self)
+
+    def exists(self):
+        return os.path.exists(self)
+
+    def isdir(self):
+        return os.path.isdir(self)
+
+    def isfile(self):
+        return os.path.isfile(self)
+
+    def islink(self):
+        return os.path.islink(self)
+
+    def ismount(self):
+        return os.path.ismount(self)
 
     if hasattr(os.path, 'samefile'):
-        def samefile(self): return os.path.samefile(self)
+        def samefile(self):
+            return os.path.samefile(self)
 
-    def getatime(self): return os.path.getatime(self)
+    def getatime(self):
+        return os.path.getatime(self)
     atime = property(
         getatime, None, None,
         """ Last access time of the file. """)
 
-    def getmtime(self): return os.path.getmtime(self)
+    def getmtime(self):
+        return os.path.getmtime(self)
     mtime = property(
         getmtime, None, None,
         """ Last-modified time of the file. """)
 
     if hasattr(os.path, 'getctime'):
-        def getctime(self): return os.path.getctime(self)
+        def getctime(self):
+            return os.path.getctime(self)
         ctime = property(
             getctime, None, None,
             """ Creation time of the file. """)
 
-    def getsize(self): return os.path.getsize(self)
+    def getsize(self):
+        return os.path.getsize(self)
     size = property(
         getsize, None, None,
         """ Size of the file, in bytes. """)
@@ -946,7 +987,6 @@ class path(_base):
         def pathconf(self, name):
             return os.pathconf(self, name)
 
-
     # --- Modifying operations on files and directories
 
     def utime(self, times):
@@ -965,7 +1005,6 @@ class path(_base):
 
     def renames(self, new):
         os.renames(self, new)
-
 
     # --- Create/delete operations on directories
 
@@ -1066,7 +1105,6 @@ class path(_base):
             else:
                 return (self.parent / p).abspath()
 
-
     # --- High-level functions from shutil
 
     copyfile = shutil.copyfile
@@ -1078,7 +1116,6 @@ class path(_base):
     if hasattr(shutil, 'move'):
         move = shutil.move
     rmtree = shutil.rmtree
-
 
     # --- Special stuff from os
 

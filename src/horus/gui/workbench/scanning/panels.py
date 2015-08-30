@@ -1,281 +1,121 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: November 2014                                                   #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 
 import wx._core
 
-from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
-                                        CheckBox, Button, TextBox
+from horus.gui.util.customPanels import ExpandablePanel, Slider, CheckBox, ComboBox, \
+    Button, TextBox
 
 from horus.util import profile, system as sys
-from horus.gui.util.resolutionWindow import ResolutionWindow
 
-from horus.engine.driver import Driver
-from horus.engine.scan import SimpleScan, TextureScan, PointCloudGenerator
+from horus.engine.scan.ciclop_scan import CiclopScan
+from horus.engine.scan.current_video import CurrentVideo
+from horus.engine.algorithms.point_cloud_roi import PointCloudROI
+
+ciclop_scan = CiclopScan()
+current_video = CurrentVideo()
+point_cloud_roi = PointCloudROI()
 
 
 class ScanParameters(ExpandablePanel):
-    """"""
+
     def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Scan Parameters"), hasUndo=False, hasRestore=False)
-        
-        self.driver = Driver.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.textureScan = TextureScan.Instance()
-        self.pcg = PointCloudGenerator.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
+        ExpandablePanel.__init__(
+            self, parent, _("Scan Parameters"), hasUndo=False, hasRestore=False)
+
         self.parent = parent
-        self.lastScan = profile.settings['scan_type']
 
         self.clearSections()
         section = self.createSection('scan_parameters')
-        section.addItem(ComboBox, 'scan_type', tooltip=_("Simple Scan algorithm captures only the geometry using one image. Texture Scan algorithm captures also the texture using two images"))
+        section.addItem(CheckBox, 'capture_texture')
         section.addItem(ComboBox, 'use_laser')
-        if not sys.isWindows() and not sys.isDarwin():
-            section.addItem(CheckBox, 'fast_scan')
 
     def updateCallbacks(self):
         section = self.sections['scan_parameters']
-        section.updateCallback('scan_type', self.setCurrentScan)
-        section.updateCallback('use_laser', self.setUseLaser)
-        if not sys.isWindows() and not sys.isDarwin():
-            section.updateCallback('fast_scan', self.setFastScan)
+        section.updateCallback('capture_texture', ciclop_scan.set_capture_texture)
+        section.updateCallback('use_laser', self.set_use_laser)
 
-    def setCurrentScan(self, value):
-        if self.lastScan != value:
-            self.lastScan = value
-            self.parent.updateProfile()
-
-        if not self.main.currentScan.run or self.main.currentScan.inactive:
-            if value == 'Simple Scan':
-                self.main.currentScan = self.simpleScan
-                self.driver.camera.setExposure(profile.settings['laser_exposure_scanning'])
-            elif value == 'Texture Scan':
-                self.main.currentScan = self.textureScan
-                self.driver.camera.setExposure(profile.settings['color_exposure_scanning'])
-        else:
-            print "Error: Can not change Scan Type"
-
-    def setUseLaser(self, value):
-        self.pcg.setUseLaser(value == 'Left' or value == 'Both',
-                             value == 'Right' or value == 'Both')
-
-    def setFastScan(self, value):
-        self.simpleScan.setFastScan(bool(value))
-        self.textureScan.setFastScan(bool(value))
+    def set_use_laser(self, value):
+        ciclop_scan.set_use_left_laser(value == 'Left' or value == 'Both')
+        ciclop_scan.set_use_right_laser(value == 'Right' or value == 'Both')
 
 
-class RotativePlatform(ExpandablePanel):
-    """"""
+class RotatingPlatform(ExpandablePanel):
+
     def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Rotative Platform"), hasUndo=False)
-        
-        self.driver = Driver.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.textureScan = TextureScan.Instance()
-        self.pcg = PointCloudGenerator.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
+        ExpandablePanel.__init__(self, parent, _("Rotating platform"), hasUndo=False)
 
         self.clearSections()
-        section = self.createSection('motor_scanning')
-        section.addItem(TextBox, 'step_degrees_scanning')
-        section.addItem(TextBox, 'feed_rate_scanning')
-        section.addItem(TextBox, 'acceleration_scanning')
+        section = self.createSection('rotating_platform')
+        section.addItem(TextBox, 'motor_step_scanning')
+        section.addItem(TextBox, 'motor_speed_scanning')
+        section.addItem(TextBox, 'motor_acceleration_scanning')
 
     def updateCallbacks(self):
-        section = self.sections['motor_scanning']
-        section.updateCallback('step_degrees_scanning', self.setDegrees)
-        section.updateCallback('feed_rate_scanning', self.setFeedRate)
-        section.updateCallback('acceleration_scanning', self.setAcceleration)
+        section = self.sections['rotating_platform']
+        section.updateCallback(
+            'motor_step_scanning', lambda v: ciclop_scan.set_motor_step(self.to_float(v)))
+        section.updateCallback(
+            'motor_speed_scanning', lambda v: ciclop_scan.set_motor_speed(self.to_int(v)))
+        section.updateCallback(
+            'motor_acceleration_scanning',
+            lambda v: ciclop_scan.set_motor_acceleration(self.to_float(v)))
 
-    def setDegrees(self, value):
-        self.driver.board.setRelativePosition(self.getValueFloat(value))
-        self.pcg.setDegrees(self.getValueFloat(value))
-
-    def setFeedRate(self, value):
-        self.driver.board.setSpeedMotor(self.getValueInteger(value))
-        self.simpleScan.setSpeedMotor(self.getValueInteger(value))
-        self.textureScan.setSpeedMotor(self.getValueInteger(value))
-
-    def setAcceleration(self, value):
-        self.driver.board.setAccelerationMotor(self.getValueInteger(value))
-        self.simpleScan.setAccelerationMotor(self.getValueInteger(value))
-        self.textureScan.setAccelerationMotor(self.getValueInteger(value))
-
-    #TODO: move
-    def getValueInteger(self, value):
+    # TODO: move
+    def to_int(self, value):
         try:
             return int(eval(value, {}, {}))
         except:
             return 0
 
-    def getValueFloat(self, value): 
+    def to_float(self, value):
         try:
             return float(eval(value.replace(',', '.'), {}, {}))
         except:
             return 0.0
 
 
-class ImageAcquisition(ExpandablePanel):
-    """"""
+class PointCloudROI(ExpandablePanel):
+
     def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Image Acquisition"))
+        ExpandablePanel.__init__(self, parent, _("Point cloud ROI"))
 
-        self.driver = Driver.Instance()
-        self.pcg = PointCloudGenerator.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.textureScan = TextureScan.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
-        self.last_resolution = profile.settings['resolution_scanning']
-        
-        self.clearSections()
-        section = self.createSection('camera_scanning')
-        section.addItem(Slider, 'brightness_scanning', tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
-        section.addItem(Slider, 'contrast_scanning', tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
-        section.addItem(Slider, 'saturation_scanning', tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
-        section.addItem(Slider, 'laser_exposure_scanning', tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
-        section.addItem(Slider, 'color_exposure_scanning', tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
-        section.addItem(ComboBox, 'framerate_scanning', tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
-        section.addItem(ComboBox, 'resolution_scanning', tooltip=_('Size of the video. Maximum resolution is recommended'))
-        section.addItem(CheckBox, 'use_distortion_scanning', tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
-
-        if sys.isDarwin():
-            section = self.sections['camera_scanning'].disable('framerate_scanning')
-            section = self.sections['camera_scanning'].disable('resolution_scanning')
-
-    def updateCallbacks(self):
-        section = self.sections['camera_scanning']
-        section.updateCallback('brightness_scanning', self.driver.camera.setBrightness)
-        section.updateCallback('contrast_scanning', self.driver.camera.setContrast)
-        section.updateCallback('saturation_scanning', self.driver.camera.setSaturation)
-        section.updateCallback('laser_exposure_scanning', self.setLaserExposure)
-        section.updateCallback('color_exposure_scanning', self.setColorExposure)
-        section.updateCallback('framerate_scanning', lambda v: self.driver.camera.setFrameRate(int(v)))
-        section.updateCallback('resolution_scanning', lambda v: self.setResolution(v))
-        section.updateCallback('use_distortion_scanning', lambda v: self.driver.camera.setUseDistortion(v))
-
-    def setResolution(self, value):
-        if value != self.last_resolution:
-            ResolutionWindow(self)
-        self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
-        self.last_resolution = profile.settings['resolution_scanning']
-
-    def setLaserExposure(self, value):
-        if self.main.currentScan is self.simpleScan:
-            self.driver.camera.setExposure(value)
-
-    def setColorExposure(self, value):
-        if self.main.currentScan is self.textureScan:
-            self.driver.camera.setExposure(value)
-
-
-class ImageSegmentation(ExpandablePanel):
-    """"""
-    def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Image Segmentation"))
-        
-        self.driver = Driver.Instance()
-        self.pcg = PointCloudGenerator.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.textureScan = TextureScan.Instance()
-
-        self.clearSections()
-        section = self.createSection('image_segmentation_simple', None, tag='Simple Scan')
-        section.addItem(CheckBox, 'use_cr_threshold', tooltip=_("Threshold is a function used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value"))
-        section.addItem(Slider, 'cr_threshold_value')
-        section = self.createSection('image_segmentation_texture', None, tag='Texture Scan')
-        section.addItem(CheckBox, 'use_open', tooltip=_("Open is an operation used to remove the noise when scanning. The higher its value, the lower the noise but also the lower the detail in the image"))
-        section.addItem(Slider, 'open_value')
-        section.addItem(CheckBox, 'use_threshold', tooltip=_("Threshold is a function used to remove the noise when scanning. It removes a pixel if its intensity is less than the threshold value"))
-        section.addItem(Slider, 'threshold_value')
-
-    def updateCallbacks(self):
-        section = self.sections['image_segmentation_simple']
-        section.updateCallback('use_cr_threshold', lambda v: self.simpleScan.setUseThreshold(bool(v)))
-        section.updateCallback('cr_threshold_value', lambda v: self.simpleScan.setThresholdValue(int(v)))
-
-        section = self.sections['image_segmentation_texture']
-        section.updateCallback('use_open', lambda v: self.textureScan.setUseOpen(bool(v)))
-        section.updateCallback('open_value', lambda v: self.textureScan.setOpenValue(int(v)))
-        section.updateCallback('use_threshold', lambda v: self.textureScan.setUseThreshold(bool(v)))
-        section.updateCallback('threshold_value', lambda v: self.textureScan.setThresholdValue(int(v)))
-
-
-class PointCloudGeneration(ExpandablePanel):
-    """"""
-    def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Point Cloud Generation"))
-        
-        self.driver = Driver.Instance()
-        self.simpleScan = SimpleScan.Instance()
-        self.pcg = PointCloudGenerator.Instance()
         self.main = self.GetParent().GetParent().GetParent().GetParent()
 
         self.clearSections()
-        section = self.createSection('point_cloud_generation')
-        section.addItem(CheckBox, 'view_roi', tooltip=_("View the Region Of Interest (ROI). This region is the one being scanned. All information outside won't be taken into account during the scanning process"))
+        section = self.createSection('point_cloud_roi')
+        section.addItem(CheckBox, 'roi_view',
+                        tooltip=_("View the Region Of Interest (ROI). "
+                                  "This cylindrical region is the one being scanned. "
+                                  "All information outside won't be taken into account "
+                                  "during the scanning process"))
         section.addItem(Slider, 'roi_diameter')
         section.addItem(Slider, 'roi_width')
         section.addItem(Slider, 'roi_height')
         section.addItem(Slider, 'roi_depth')
-        section.addItem(Button, 'point_cloud_color')
 
     def updateCallbacks(self):
-        section = self.sections['point_cloud_generation']
-        section.updateCallback('view_roi', lambda v: (self.pcg.setViewROI(bool(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('roi_diameter', lambda v: (self.pcg.setROIDiameter(int(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('roi_width', lambda v: (self.pcg.setROIWidth(int(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('roi_height', lambda v: (self.pcg.setROIHeight(int(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('roi_depth', lambda v: (self.pcg.setROIDepth(int(v)), self.main.sceneView.QueueRefresh()))
-        section.updateCallback('point_cloud_color', self.onColorPicker)
-
-    def onColorPicker(self):
-        data = wx.ColourData()
-        data.SetColour(self.simpleScan.color)
-        dialog = wx.ColourDialog(self, data)
-        dialog.GetColourData().SetChooseFull(True)
-        if dialog.ShowModal() == wx.ID_OK:
-            data = dialog.GetColourData()
-            color = data.GetColour().Get()
-            self.simpleScan.setColor(color)
-            profile.settings['point_cloud_color'] = unicode("".join(map(chr, color)).encode('hex'))
-        dialog.Destroy()
+        section = self.sections['point_cloud_roi']
+        section.updateCallback('roi_view', lambda v: (
+            current_video.set_roi_view(v), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_diameter', lambda v: (
+            point_cloud_roi.set_diameter(int(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_width', lambda v: (
+            point_cloud_roi.set_width(int(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_height', lambda v: (
+            point_cloud_roi.set_height(int(v)), self.main.sceneView.QueueRefresh()))
+        section.updateCallback('roi_depth', lambda v: (
+            point_cloud_roi.set_depth(int(v)), self.main.sceneView.QueueRefresh()))
 
     # Overwrites ExpandablePanel method
     def updateProfile(self):
-        section = self.sections['point_cloud_generation']
-        section.items['view_roi'][0].updateProfile()
+        section = self.sections['point_cloud_roi']
+        section.items['roi_view'][0].updateProfile()
         section.items['roi_diameter'].updateProfile()
         section.items['roi_width'].updateProfile()
         section.items['roi_height'].updateProfile()
@@ -289,3 +129,30 @@ class PointCloudGeneration(ExpandablePanel):
             section.hideItem('roi_depth')
             section.showItem('roi_diameter')
         self.GetParent().GetParent().Layout()
+
+
+class PointCloudColor(ExpandablePanel):
+
+    def __init__(self, parent):
+        ExpandablePanel.__init__(
+            self, parent, _("Point cloud color"), hasUndo=False, hasRestore=False)
+        self.clearSections()
+
+        section = self.createSection('point_cloud_color')
+        section.addItem(Button, 'point_cloud_color')
+
+    def updateCallbacks(self):
+        section = self.sections['point_cloud_color']
+        section.updateCallback('point_cloud_color', self.onColorPicker)
+
+    def onColorPicker(self):
+        data = wx.ColourData()
+        data.SetColour(ciclop_scan.color)
+        dialog = wx.ColourDialog(self, data)
+        dialog.GetColourData().SetChooseFull(True)
+        if dialog.ShowModal() == wx.ID_OK:
+            data = dialog.GetColourData()
+            color = data.GetColour().Get()
+            ciclop_scan.color = color
+            profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
+        dialog.Destroy()

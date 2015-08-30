@@ -1,32 +1,10 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-# Copyright (C) 2013 David Braam from Cura Project                      #
-#                                                                       #
-# Date: June 2014                                                       #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.\
+                 Copyright (C) 2013 David Braam from Cura Project'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import os
 import sys
@@ -37,23 +15,29 @@ from horus.util import system
 
 resourceBasePath = ''
 
+
 def setBasePath(path):
     global resourceBasePath
     resourceBasePath = path
+
 
 def getPathForResource(dir, subdir, resource_name):
     assert os.path.isdir(dir), "{p} is not a directory".format(p=dir)
     path = os.path.normpath(os.path.join(dir, subdir, resource_name))
     return path
 
+
 def getPathForVersion(name='version'):
-	return getPathForResource(resourceBasePath, '.', name)
+    return getPathForResource(resourceBasePath, '.', name)
+
 
 def getPathForImage(name):
     return getPathForResource(resourceBasePath, 'images', name)
 
+
 def getPathForFirmware(name):
     return getPathForResource(resourceBasePath, 'firmware', name)
+
 
 def getPathForTools(name):
     if system.isWindows():
@@ -64,6 +48,7 @@ def getPathForTools(name):
         path = getPathForResource(resourceBasePath, 'tools/linux', name)
     return path
 
+
 def getPathForMesh(name):
     return getPathForResource(resourceBasePath, 'meshes', name)
 
@@ -71,8 +56,9 @@ def getPathForMesh(name):
     path = os.path.normpath(os.path.join(resourceBasePath, 'machine_profiles', '*.ini'))
     return glob.glob(path)"""
 
-def setupLocalization(selectedLanguage = None):
-    #Default to english
+
+def setupLocalization(selectedLanguage=None):
+    # Default to english
     languages = ['en']
 
     if selectedLanguage is not None:
@@ -83,6 +69,7 @@ def setupLocalization(selectedLanguage = None):
     locale_path = os.path.normpath(os.path.join(resourceBasePath, 'locale'))
     translation = gettext.translation('horus', locale_path, languages, fallback=True)
     translation.install(unicode=True)
+
 
 def getLanguageOptions():
     return [

@@ -1,156 +1,279 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: August, November 2014                                           #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
 import numpy as np
 
+from horus.gui.workbench.calibration.current_video import CurrentVideo
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
-                                        CheckBox, ToggleButton, Button, TextBox
-from horus.gui.util.resolutionWindow import ResolutionWindow
+    CheckBox, ToggleButton, Button, TextBox
 
 from horus.util import profile, system as sys
 
-from horus.engine.driver import Driver
-from horus.engine import scan, calibration
+from horus.engine.driver.driver import Driver
+from horus.engine.calibration.pattern import Pattern
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
+from horus.engine.algorithms.laser_segmentation import LaserSegmentation
+from horus.engine.calibration.autocheck import Autocheck, PatternNotDetected, \
+    WrongMotorDirection, LaserNotDetected
 
 
-class CameraSettingsPanel(ExpandablePanel):
+driver = Driver()
+pattern = Pattern()
+image_capture = ImageCapture()
+image_detection = ImageDetection()
+laser_segmentation = LaserSegmentation()
+current_video = CurrentVideo()
+
+
+class ImageDetectionPanel(ExpandablePanel):
+
     def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Camera Settings"))
-
-        self.driver = Driver.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
-        self.last_resolution = profile.settings['resolution_calibration']
+        ExpandablePanel.__init__(self, parent, _("Image capture"), callback=self.callback)
 
         self.clearSections()
-        section = self.createSection('camera_calibration')
-        section.addItem(Slider, 'brightness_calibration', tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
-        section.addItem(Slider, 'contrast_calibration', tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
-        section.addItem(Slider, 'saturation_calibration', tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
-        section.addItem(Slider, 'exposure_calibration', tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
-        section.addItem(ComboBox, 'framerate_calibration', tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
-        section.addItem(ComboBox, 'resolution_calibration', tooltip=_('Size of the video. Maximum resolution is recommended'))
-        section.addItem(CheckBox, 'use_distortion_calibration', tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
+        section = self.createSection('image_capture')
+        section.addItem(ComboBox, 'capture_mode')
 
-        if sys.isDarwin():
-            section = self.sections['camera_calibration'].disable('framerate_calibration')
-            section = self.sections['camera_calibration'].disable('resolution_calibration')
-        
+        section = self.createSection('pattern_mode')
+        section.addItem(Slider, 'brightness_pattern', tooltip=_(
+            "Image luminosity. Low values are better for environments with high "
+            "ambient light conditions. High values are recommended for poorly lit places"))
+        section.addItem(Slider, 'contrast_pattern', tooltip=_(
+            "Relative difference in intensity between an image point and its surroundings. "
+            "Low values are recommended for black or very dark colored objects. "
+            "High values are better for very light colored objects"))
+        section.addItem(Slider, 'saturation_pattern', tooltip=_(
+            "Purity of color. Low values will cause colors to disappear from the image. "
+            "High values will show an image with very intense colors"))
+        section.addItem(Slider, 'exposure_pattern', tooltip=_(
+            "Amount of light per unit area. It is controlled by the time the camera sensor is "
+            "exposed during a frame capture. High values are recommended for poorly lit places"))
+
+        section = self.createSection('laser_mode')
+        section.addItem(Slider, 'brightness_laser', tooltip=_(
+            "Image luminosity. Low values are better for environments with high "
+            "ambient light conditions. High values are recommended for poorly lit places"))
+        section.addItem(Slider, 'contrast_laser', tooltip=_(
+            "Relative difference in intensity between an image point and its surroundings. "
+            "Low values are recommended for black or very dark colored objects. "
+            "High values are better for very light colored objects"))
+        section.addItem(Slider, 'saturation_laser', tooltip=_(
+            "Purity of color. Low values will cause colors to disappear from the image. "
+            "High values will show an image with very intense colors"))
+        section.addItem(Slider, 'exposure_laser', tooltip=_(
+            "Amount of light per unit area. It is controlled by the time the camera sensor is "
+            "exposed during a frame capture. High values are recommended for poorly lit places"))
+        section.addItem(CheckBox, 'remove_background')
+
+        section = self.createSection('texture_mode')
+        section.addItem(Slider, 'brightness_texture', tooltip=_(
+            "Image luminosity. Low values are better for environments with high "
+            "ambient light conditions. High values are recommended for poorly lit places"))
+        section.addItem(Slider, 'contrast_texture', tooltip=_(
+            "Relative difference in intensity between an image point and its surroundings. "
+            "Low values are recommended for black or very dark colored objects. "
+            "High values are better for very light colored objects"))
+        section.addItem(Slider, 'saturation_texture', tooltip=_(
+            "Purity of color. Low values will cause colors to disappear from the image. "
+            "High values will show an image with very intense colors"))
+        section.addItem(Slider, 'exposure_texture', tooltip=_(
+            "Amount of light per unit area. It is controlled by the time the camera sensor is "
+            "exposed during a frame capture. High values are recommended for poorly lit places"))
+
+    def callback(self):
+        self.setCameraMode(profile.getProfileSetting('capture_mode'))
+
     def updateCallbacks(self):
-        section = self.sections['camera_calibration']
-        section.updateCallback('brightness_calibration', self.driver.camera.setBrightness)
-        section.updateCallback('contrast_calibration', self.driver.camera.setContrast)
-        section.updateCallback('saturation_calibration', self.driver.camera.setSaturation)
-        section.updateCallback('exposure_calibration', self.driver.camera.setExposure)
-        section.updateCallback('framerate_calibration', lambda v: self.driver.camera.setFrameRate(int(v)))
-        section.updateCallback('resolution_calibration', lambda v: self.setResolution(v))
-        section.updateCallback('use_distortion_calibration', lambda v: self.driver.camera.setUseDistortion(v))
+        section = self.sections['image_capture']
+        section.updateCallback('capture_mode', lambda v: self.setCameraMode(v))
 
-    def setResolution(self, value):
-        if value != self.last_resolution:
-            ResolutionWindow(self)
-        self.driver.camera.setResolution(int(value.split('x')[0]), int(value.split('x')[1]))
-        self.last_resolution = profile.settings['resolution_calibration']
+        mode = image_capture.pattern_mode
+        section = self.sections['pattern_mode']
+        section.updateCallback('brightness_pattern', mode.set_brightness)
+        section.updateCallback('contrast_pattern', mode.set_contrast)
+        section.updateCallback('saturation_pattern', mode.set_saturation)
+        section.updateCallback('exposure_pattern', mode.set_exposure)
+
+        mode = image_capture.laser_mode
+        section = self.sections['laser_mode']
+        section.updateCallback('brightness_laser', mode.set_brightness)
+        section.updateCallback('contrast_laser', mode.set_contrast)
+        section.updateCallback('saturation_laser', mode.set_saturation)
+        section.updateCallback('exposure_laser', mode.set_exposure)
+        section.updateCallback('remove_background', image_capture.set_remove_background)
+
+        mode = image_capture.texture_mode
+        section = self.sections['texture_mode']
+        section.updateCallback('brightness_texture', mode.set_brightness)
+        section.updateCallback('contrast_texture', mode.set_contrast)
+        section.updateCallback('saturation_texture', mode.set_saturation)
+        section.updateCallback('exposure_texture', mode.set_exposure)
+
+    def setCameraMode(self, mode):
+        if mode == 'Pattern':
+            self.sections['pattern_mode'].Show()
+            self.sections['laser_mode'].Hide()
+            self.sections['texture_mode'].Hide()
+        elif mode == 'Laser':
+            self.sections['pattern_mode'].Hide()
+            self.sections['laser_mode'].Show()
+            self.sections['texture_mode'].Hide()
+        elif mode == 'Texture':
+            self.sections['pattern_mode'].Hide()
+            self.sections['laser_mode'].Hide()
+            self.sections['texture_mode'].Show()
+        current_video.mode = mode
+        self.GetParent().Layout()
+
+
+class LaserSegmentation(ExpandablePanel):
+
+    def __init__(self, parent):
+        ExpandablePanel.__init__(self, parent, _("Laser segmentation"), callback=self.callback)
+
+        self.clearSections()
+        section = self.createSection('laser_segmentation', None)
+        section.addItem(ComboBox, 'red_channel')
+        section.addItem(Slider, 'open_value')
+        section.addItem(CheckBox, 'open_enable', tooltip=_(
+            "Open is an operation used to remove the noise when scanning. The higher its value, "
+            "the lower the noise but also the lower the detail in the image"))
+        section.addItem(Slider, 'threshold_value')
+        section.addItem(CheckBox, 'threshold_enable', tooltip=_(
+            "Threshold is a function used to remove the noise when scanning. "
+            "It removes a pixel if its intensity is less than the threshold value"))
+
+    def callback(self):
+        current_video.mode = 'Gray'
+
+    def updateCallbacks(self):
+        section = self.sections['laser_segmentation']
+        section.updateCallback('red_channel', laser_segmentation.set_red_channel)
+        section.updateCallback('open_value', laser_segmentation.set_open_value)
+        section.updateCallback('open_enable', laser_segmentation.set_open_enable)
+        section.updateCallback(
+            'threshold_value', laser_segmentation.set_threshold_value)
+        section.updateCallback(
+            'threshold_enable', laser_segmentation.set_threshold_enable)
 
 
 class PatternSettingsPanel(ExpandablePanel):
-    def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Pattern Settings"), hasUndo=False)
 
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.simpleLaserTriangulation = calibration.SimpleLaserTriangulation.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
-        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+    def __init__(self, parent):
+        ExpandablePanel.__init__(
+            self, parent, _("Pattern settings"), callback=self.callback, hasUndo=False)
 
         self.clearSections()
         section = self.createSection('pattern_settings')
-        section.addItem(TextBox, 'square_width')
         section.addItem(TextBox, 'pattern_rows', tooltip=_('Number of corner rows in the pattern'))
-        section.addItem(TextBox, 'pattern_columns', tooltip=_('Number of corner columns in the pattern'))
-        section.addItem(TextBox, 'pattern_distance', tooltip=_("Minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface"))
+        section.addItem(TextBox, 'pattern_columns', tooltip=_(
+            'Number of corner columns in the pattern'))
+        section.addItem(TextBox, 'pattern_square_width')
+        section.addItem(TextBox, 'pattern_origin_distance', tooltip=_(
+            "Minimum distance between the origin of the pattern (bottom-left corner) "
+            "and the pattern's base surface"))
+
+    def callback(self):
+        current_video.mode = 'Pattern'
 
     def updateCallbacks(self):
         section = self.sections['pattern_settings']
-        section.updateCallback('square_width', lambda v: self.updatePatternParameters())
         section.updateCallback('pattern_rows', lambda v: self.updatePatternParameters())
         section.updateCallback('pattern_columns', lambda v: self.updatePatternParameters())
-        section.updateCallback('pattern_distance', lambda v: self.updatePatternParameters())
+        section.updateCallback('pattern_square_width', lambda v: self.updatePatternParameters())
+        section.updateCallback('pattern_origin_distance', lambda v: self.updatePatternParameters())
 
     def updatePatternParameters(self):
-        self.cameraIntrinsics.setPatternParameters(profile.settings['pattern_rows'],
-                                                   profile.settings['pattern_columns'],
-                                                   profile.settings['square_width'],
-                                                   profile.settings['pattern_distance'])
-
-        self.simpleLaserTriangulation.setPatternParameters(profile.settings['pattern_rows'],
-                                                           profile.settings['pattern_columns'],
-                                                           profile.settings['square_width'],
-                                                           profile.settings['pattern_distance'])
-
-        self.laserTriangulation.setPatternParameters(profile.settings['pattern_rows'],
-                                                     profile.settings['pattern_columns'],
-                                                     profile.settings['square_width'],
-                                                     profile.settings['pattern_distance'])
-        self.platformExtrinsics.setPatternParameters(profile.settings['pattern_rows'],
-                                                     profile.settings['pattern_columns'],
-                                                     profile.settings['square_width'],
-                                                     profile.settings['pattern_distance'])
+        pattern.rows = profile.getProfileSettingInteger('pattern_rows')
+        pattern.columns = profile.getProfileSettingInteger('pattern_columns')
+        pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
+        pattern.distance = profile.getProfileSettingInteger('pattern_origin_distance')
 
 
-class LaserSettingsPanel(ExpandablePanel):
-    def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Laser Settings"), hasUndo=False, hasRestore=False)
+class AutocheckPanel(ExpandablePanel):
 
-        self.driver = Driver.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
+    def __init__(self, parent, buttonStartCallback=None, buttonStopCallback=None):
+        ExpandablePanel.__init__(
+            self, parent, _("Scanner autocheck"),
+            callback=self.callback, hasUndo=False, hasRestore=False)
+
+        self.autocheck = Autocheck()
+        self.buttonStartCallback = buttonStartCallback
+        self.buttonStopCallback = buttonStopCallback
 
         self.clearSections()
-        section = self.createSection('laser_settings')
-        # section.addItem(Slider, 'laser_threshold_value', self.laserTriangulation.setThreshold)
-        section.addItem(ToggleButton, 'left_button')
-        section.addItem(ToggleButton, 'right_button')
+        section = self.createSection('scanner_autocheck')
+        section.addItem(Button, 'autocheck_button')
+
+    def callback(self):
+        current_video.mode = 'Pattern'
 
     def updateCallbacks(self):
-        section = self.sections['laser_settings']
-        section.updateCallback('left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
-        section.updateCallback('right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
+        section = self.sections['scanner_autocheck']
+        section.updateCallback('autocheck_button', self.performAutocheck)
+
+    def performAutocheck(self):
+        # Perform auto check
+        self.autocheck.set_callbacks(lambda: wx.CallAfter(self.beforeAutocheck),
+                                     None, lambda r: wx.CallAfter(self.afterAutocheck, r))
+        self.autocheck.start()
+
+    def beforeAutocheck(self):
+        section = self.sections['scanner_autocheck'].items['autocheck_button'].Disable()
+        if self.buttonStartCallback is not None:
+            self.buttonStartCallback()
+        self.waitCursor = wx.BusyCursor()
+
+    def afterAutocheck(self, result):
+        section = self.sections['scanner_autocheck'].items['autocheck_button'].Enable()
+        if isinstance(result, PatternNotDetected):
+            dlg = wx.MessageDialog(
+                self, _("Please, put the pattern on the platform"),
+                _(result), wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+        elif isinstance(result, WrongMotorDirection):
+            dlg = wx.MessageDialog(
+                self, _('Please, go to "Prefecences" and select "Invert the motor direction"'),
+                _(result), wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+        elif isinstance(result, LaserNotDetected):
+            dlg = wx.MessageDialog(
+                self, _("Please, check the lasers connection"),
+                _(result), wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+        elif result is not None:
+            dlg = wx.MessageDialog(
+                self, _(result), _("Exception"), wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+        else:
+            dlg = wx.MessageDialog(
+                self, _("Autocheck executed correctly"),
+                _("Success!"), wx.OK | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+        if self.buttonStopCallback is not None:
+            self.buttonStopCallback()
+        if hasattr(self, 'waitCursor'):
+            del self.waitCursor
 
 
-## TODO: Use TextBoxArray
+# TODO: Use TextBoxArray
 
 class CalibrationPanel(ExpandablePanel):
 
-    def __init__(self, parent, titleText="Workbench", buttonStartCallback=None, description="_(Workbench description)"):
-        ExpandablePanel.__init__(self, parent, titleText, hasUndo=False, hasRestore=False)
+    def __init__(self, parent, titleText="", buttonStartCallback=None, description=""):
+        ExpandablePanel.__init__(
+            self, parent, titleText, callback=self.callback, hasUndo=False, hasRestore=False)
 
         self.buttonStartCallback = buttonStartCallback
         self.description = description
@@ -165,18 +288,23 @@ class CalibrationPanel(ExpandablePanel):
 
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.buttonEdit, 1, wx.RIGHT, 4)
-        self.hbox.Add(self.buttonDefault, 1, wx.LEFT|wx.RIGHT, 4)
+        self.hbox.Add(self.buttonDefault, 1, wx.LEFT | wx.RIGHT, 4)
         self.hbox.Add(self.buttonStart, 1, wx.LEFT, 4)
         self.buttonsPanel.SetSizer(self.hbox)
 
-        self.contentBox.Add(self.parametersBox, 0, wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5)
-        self.contentBox.Add(self.buttonsPanel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 7)
+        self.contentBox.Add(
+            self.parametersBox, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 5)
+        self.contentBox.Add(
+            self.buttonsPanel, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 7)
 
         self.buttonEdit.Bind(wx.EVT_TOGGLEBUTTON, self.onButtonEditPressed)
         self.buttonDefault.Bind(wx.EVT_BUTTON, self.onButtonDefaultPressed)
         self.buttonStart.Bind(wx.EVT_BUTTON, self.onButtonStartPressed)
 
         self.Layout()
+
+    def callback(self):
+        current_video.mode = 'Pattern'
 
     def onButtonEditPressed(self, event):
         pass
@@ -192,14 +320,11 @@ class CalibrationPanel(ExpandablePanel):
 class CameraIntrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Camera Intrinsics"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration acquires the camera intrinsic parameters (focal lenghts and optical centers) and the lens distortion"))
-
-        self.driver = Driver.Instance()
-        self.pcg = scan.PointCloudGenerator.Instance()
-        self.cameraIntrinsics = calibration.CameraIntrinsics.Instance()
-        self.laserTriangulation = calibration.LaserTriangulation.Instance()
-        self.platformExtrinsics = calibration.PlatformExtrinsics.Instance()
+        CalibrationPanel.__init__(
+            self, parent,
+            titleText=_("Camera intrinsics"), buttonStartCallback=buttonStartCallback,
+            description=_("This calibration acquires the camera intrinsic parameters "
+                          "(focal lenghts and optical centers) and the lens distortion"))
 
         cameraPanel = wx.Panel(self.content)
         distortionPanel = wx.Panel(self.content)
@@ -208,7 +333,7 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         cameraText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.cameraTexts = [[0.0 for j in range(3)] for i in range(3)]
-        self.cameraValues = np.zeros((3,3))
+        self.cameraValues = np.zeros((3, 3))
 
         cameraBox = wx.BoxSizer(wx.VERTICAL)
         cameraPanel.SetSizer(cameraBox)
@@ -219,26 +344,27 @@ class CameraIntrinsicsPanel(CalibrationPanel):
                 self.cameraTexts[i][j].SetEditable(False)
                 self.cameraTexts[i][j].Disable()
                 ibox.Add(self.cameraTexts[i][j], 1, wx.ALL, 2)
-            cameraBox.Add(ibox, 0, wx.ALL|wx.EXPAND, 2)
+            cameraBox.Add(ibox, 0, wx.ALL | wx.EXPAND, 2)
 
         distortionText = wx.StaticText(self.content, label=_("Distortion vector"))
-        distortionText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+        distortionText.SetFont(
+            (wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
-        self.distortionTexts = [0]*5
+        self.distortionTexts = [0] * 5
         self.distortionValues = np.zeros(5)
 
         distortionBox = wx.BoxSizer(wx.HORIZONTAL)
         distortionPanel.SetSizer(distortionBox)
         for i in range(5):
-            self.distortionTexts[i] = wx.TextCtrl(distortionPanel, wx.ID_ANY, "", size=(20,-1))
+            self.distortionTexts[i] = wx.TextCtrl(distortionPanel, wx.ID_ANY, "", size=(20, -1))
             self.distortionTexts[i].SetEditable(False)
             self.distortionTexts[i].Disable()
             distortionBox.Add(self.distortionTexts[i], 1, wx.ALL, 2)
 
-        self.parametersBox.Add(cameraText, 0, wx.ALL|wx.EXPAND, 8)
-       	self.parametersBox.Add(cameraPanel, 0, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(distortionText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(distortionPanel, 0, wx.ALL|wx.EXPAND, 4)
+        self.parametersBox.Add(cameraText, 0, wx.ALL | wx.EXPAND, 8)
+        self.parametersBox.Add(cameraPanel, 0, wx.ALL | wx.EXPAND, 2)
+        self.parametersBox.Add(distortionText, 0, wx.ALL | wx.EXPAND, 8)
+        self.parametersBox.Add(distortionPanel, 0, wx.ALL | wx.EXPAND, 4)
 
         cameraText.SetToolTip(wx.ToolTip(self.description))
         cameraPanel.SetToolTip(wx.ToolTip(self.description))
@@ -271,9 +397,14 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.buttonEdit.SetLabel(_("OK"))
         else:
             self.buttonEdit.SetLabel(_("Edit"))
+            self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset camera intrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self, _("This will reset camera intrinsics profile settings to defaults.\n"
+                    "Unless you have saved your current profile, all settings will be lost! "
+                    "Do you really want to reset?"),
+            _("Camera Intrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -307,16 +438,8 @@ class CameraIntrinsicsPanel(CalibrationPanel):
             self.distortionTexts[i].SetValue(str(self.distortionValues[i]))
 
     def updateEngine(self):
-        if hasattr(self, 'driver'):
-            self.driver.camera.setIntrinsics(self.cameraValues, self.distortionValues)
-        if hasattr(self, 'cameraIntrinsics'):
-            self.cameraIntrinsics.setIntrinsics(self.cameraValues, self.distortionValues)
-        if hasattr(self, 'laserTriangulation'):
-            self.laserTriangulation.setIntrinsics(self.cameraValues, self.distortionValues)
-        if hasattr(self, 'platformExtrinsics'):
-            self.platformExtrinsics.setIntrinsics(self.cameraValues, self.distortionValues)
-        if hasattr(self, 'pcg'):
-            self.pcg.setCameraIntrinsics(self.cameraValues, self.distortionValues)
+        driver.camera.camera_matrix = self.cameraValues
+        driver.camera.distortion_vector = self.distortionValues
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -327,8 +450,8 @@ class CameraIntrinsicsPanel(CalibrationPanel):
         self.putProfileSettings()
         self.updateEngine()
 
-    #TODO: move
-    def getValueFloat(self, value): 
+    # TODO: move
+    def getValueFloat(self, value):
         try:
             return float(eval(value.replace(',', '.'), {}, {}))
         except:
@@ -338,18 +461,20 @@ class CameraIntrinsicsPanel(CalibrationPanel):
 class LaserTriangulationPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Laser Triangulation"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration determines the lasers' planes relative to the camera's coordinate system"))
-
-        self.pcg = scan.PointCloudGenerator.Instance()
+        CalibrationPanel.__init__(
+            self, parent,
+            titleText=_("Laser triangulation"), buttonStartCallback=buttonStartCallback,
+            description=_("This calibration determines the lasers' planes "
+                          "relative to the ""camera's coordinate system"))
 
         distanceLeftPanel = wx.Panel(self.content)
         normalLeftPanel = wx.Panel(self.content)
         distanceRightPanel = wx.Panel(self.content)
         normalRightPanel = wx.Panel(self.content)
 
-        laserLeftText = wx.StaticText(self.content, label=_("Left Laser Plane"))
-        laserLeftText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+        laserLeftText = wx.StaticText(self.content, label=_("Left laser plane"))
+        laserLeftText.SetFont(
+            (wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.distanceLeftValue = 0
 
@@ -360,7 +485,7 @@ class LaserTriangulationPanel(CalibrationPanel):
         self.distanceLeftText.Disable()
         distanceLeftBox.Add(self.distanceLeftText, 1, wx.ALL, 4)
 
-        self.normalLeftTexts = [0]*3
+        self.normalLeftTexts = [0] * 3
         self.normalLeftValues = np.zeros(3)
 
         normalLeftBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -371,20 +496,21 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.normalLeftTexts[i].Disable()
             normalLeftBox.Add(self.normalLeftTexts[i], 1, wx.ALL, 2)
 
-        laserRightText = wx.StaticText(self.content, label=_("Right Laser Plane"))
-        laserRightText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+        laserRightText = wx.StaticText(self.content, label=_("Right laser plane"))
+        laserRightText.SetFont(
+            (wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.distanceRightValue = 0
 
         distanceRightBox = wx.BoxSizer(wx.HORIZONTAL)
         distanceRightPanel.SetSizer(distanceRightBox)
         self.distanceRightText = wx.TextCtrl(distanceRightPanel, wx.ID_ANY, "")
-        self.distanceRightText.SetMinSize((0,-1))
+        self.distanceRightText.SetMinSize((0, -1))
         self.distanceRightText.SetEditable(False)
         self.distanceRightText.Disable()
         distanceRightBox.Add(self.distanceRightText, 1, wx.ALL, 4)
 
-        self.normalRightTexts = [0]*3
+        self.normalRightTexts = [0] * 3
         self.normalRightValues = np.zeros(3)
 
         normalRightBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -396,12 +522,12 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.normalRightTexts[i].Disable()
             normalRightBox.Add(self.normalRightTexts[i], 1, wx.ALL, 2)
 
-        self.parametersBox.Add(laserLeftText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(distanceLeftPanel, 0, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(normalLeftPanel, 0, wx.ALL|wx.EXPAND, 4)
-        self.parametersBox.Add(laserRightText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(distanceRightPanel, 0, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(normalRightPanel, 0, wx.ALL|wx.EXPAND, 4)
+        self.parametersBox.Add(laserLeftText, 0, wx.ALL | wx.EXPAND, 8)
+        self.parametersBox.Add(distanceLeftPanel, 0, wx.ALL | wx.EXPAND, 2)
+        self.parametersBox.Add(normalLeftPanel, 0, wx.ALL | wx.EXPAND, 4)
+        self.parametersBox.Add(laserRightText, 0, wx.ALL | wx.EXPAND, 8)
+        self.parametersBox.Add(distanceRightPanel, 0, wx.ALL | wx.EXPAND, 2)
+        self.parametersBox.Add(normalRightPanel, 0, wx.ALL | wx.EXPAND, 4)
 
         laserLeftText.SetToolTip(wx.ToolTip(self.description))
         distanceLeftPanel.SetToolTip(wx.ToolTip(self.description))
@@ -452,7 +578,11 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self, _("This will reset laser triangulation profile settings to defaults.\n"
+                    "Unless you have saved your current profile, all settings will be lost! "
+                    "Do you really want to reset?"),
+            _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -463,7 +593,8 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.updateProfile()
 
     def getParameters(self):
-        return self.distanceLeftValue, self.normalLeftValues, self.distanceLeftValue, self.normalRightValues
+        return self.distanceLeftValue, self.normalLeftValues, \
+            self.distanceLeftValue, self.normalRightValues
 
     def setParameters(self, params):
         self.distanceLeftValue = params[0]
@@ -500,8 +631,10 @@ class LaserTriangulationPanel(CalibrationPanel):
             self.normalRightTexts[i].SetValue(str(self.normalRightValues[i]))
 
     def updateEngine(self):
-        if hasattr(self, 'pcg'):
-            self.pcg.setLaserTriangulation(self.distanceLeftValue, self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
+        pass
+        # if hasattr(self, 'pcg'):
+        #    self.pcg.setLaserTriangulation(self.distanceLeftValue,
+        #    self.normalLeftValues, self.distanceRightValue, self.normalRightValues)
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -512,188 +645,8 @@ class LaserTriangulationPanel(CalibrationPanel):
         self.putProfileSettings()
         self.updateEngine()
 
-    #TODO: move
-    def getValueFloat(self, value): 
-        try:
-            return float(eval(value.replace(',', '.'), {}, {}))
-        except:
-            return 0.0
-
-
-class SimpleLaserTriangulationPanel(CalibrationPanel):
-
-    def __init__(self, parent, buttonStartCallback):
-
-        CalibrationPanel.__init__(self, parent, titleText=_("Laser Simple Triangulation Calibration"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration determines the depth of the intersection camera-laser considering the inclination of the lasers"))
-
-        self.pcg = scan.PointCloudGenerator.Instance()
-
-        coordinatesPanel = wx.Panel(self.content)
-        originPanel = wx.Panel(self.content)
-        normalPanel = wx.Panel(self.content)
-
-        coordinatesText = wx.StaticText(self.content, label=_("Coordinates"))
-        coordinatesText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-
-        self.coordinatesTexts = [[0 for j in range(2)] for i in range(2)]
-        self.coordinatesValues = np.zeros((2,2))
-
-        coordinatesBox = wx.BoxSizer(wx.VERTICAL)
-        coordinatesPanel.SetSizer(coordinatesBox)
-        for i in range(2):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
-            for j in range(2):
-                jbox = wx.BoxSizer(wx.VERTICAL)
-                self.coordinatesTexts[i][j] = wx.TextCtrl(coordinatesPanel, wx.ID_ANY, "")
-                self.coordinatesTexts[i][j].SetMinSize((0,-1))
-                self.coordinatesTexts[i][j].SetEditable(False)
-                self.coordinatesTexts[i][j].Disable()
-                jbox.Add(self.coordinatesTexts[i][j], 1, wx.ALL|wx.EXPAND, 2)
-                ibox.Add(jbox, 1, wx.ALL|wx.EXPAND, 2)
-            coordinatesBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
-
-        originText = wx.StaticText(self.content, label=_("Origin"))
-        originText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-
-        self.originTexts = [0]*3
-        self.originValues = np.zeros(3)
-
-        originBox = wx.BoxSizer(wx.HORIZONTAL)
-        originPanel.SetSizer(originBox)
-        for i in range(3):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
-            self.originTexts[i] = wx.TextCtrl(originPanel, wx.ID_ANY, "")
-            self.originTexts[i].SetMinSize((0,-1))
-            self.originTexts[i].SetEditable(False)
-            self.originTexts[i].Disable()
-            ibox.Add(self.originTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            originBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
-
-        normalText = wx.StaticText(self.content, label=_("Normal"))
-        normalText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
-
-        self.normalTexts = [0]*3
-        self.normalValues = np.zeros(3)
-
-        normalBox = wx.BoxSizer(wx.HORIZONTAL)
-        normalPanel.SetSizer(normalBox)
-        for i in range(3):
-            ibox = wx.BoxSizer(wx.HORIZONTAL)
-            self.normalTexts[i] = wx.TextCtrl(normalPanel, wx.ID_ANY, "")
-            self.normalTexts[i].SetMinSize((0,-1))
-            self.normalTexts[i].SetEditable(False)
-            self.normalTexts[i].Disable()
-            ibox.Add(self.normalTexts[i], 1, wx.ALL|wx.EXPAND, 2)
-            normalBox.Add(ibox, 1, wx.ALL|wx.EXPAND, 2)
-
-        self.parametersBox.Add(coordinatesText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(coordinatesPanel, 0, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(originText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(originPanel, 0, wx.ALL|wx.EXPAND, 2)
-        self.parametersBox.Add(normalText, 0, wx.ALL|wx.EXPAND, 8)
-        self.parametersBox.Add(normalPanel, 0, wx.ALL|wx.EXPAND, 2)
-
-        coordinatesText.SetToolTip(wx.ToolTip(self.description))
-        coordinatesPanel.SetToolTip(wx.ToolTip(self.description))
-        originText.SetToolTip(wx.ToolTip(self.description))
-        originPanel.SetToolTip(wx.ToolTip(self.description))
-        normalText.SetToolTip(wx.ToolTip(self.description))
-        normalPanel.SetToolTip(wx.ToolTip(self.description))
-
-        self.Layout()
-
-    def onButtonEditPressed(self, event):
-        enable = self.buttonEdit.GetValue()
-        for i in range(2):
-            for j in range(2):
-                self.coordinatesTexts[i][j].SetEditable(enable)
-                if enable:
-                    self.coordinatesTexts[i][j].Enable()
-                else:
-                    self.coordinatesTexts[i][j].Disable()
-                    self.coordinatesValues[i][j] = self.getValueFloat(self.coordinatesTexts[i][j].GetValue())
-
-        for i in range(3):
-            self.originTexts[i].SetEditable(enable)
-            if enable:
-                self.originTexts[i].Enable()
-            else:
-                self.originTexts[i].Disable()
-                self.originValues[i] = self.getValueFloat(self.originTexts[i].GetValue())
-
-        for i in range(3):
-            self.normalTexts[i].SetEditable(enable)
-            if enable:
-                self.normalTexts[i].Enable()
-            else:
-                self.normalTexts[i].Disable()
-                self.normalValues[i] = self.getValueFloat(self.normalTexts[i].GetValue())
-
-        if enable:
-            self.buttonEdit.SetLabel(_("OK"))
-        else:
-            self.buttonEdit.SetLabel(_("Edit"))
-            self.updateAllControlsToProfile()
-
-    def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset simple laser triangulation profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Laser Triangulation reset"), wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal() == wx.ID_YES
-        dlg.Destroy()
-        if result:
-            profile.settings.resetToDefault('laser_coordinates')
-            profile.settings.resetToDefault('laser_origin')
-            profile.settings.resetToDefault('laser_normal')
-            self.updateProfile()
-
-    def getParameters(self):
-        return self.coordinatesValues, self.originValues, self.normalValues
-
-    def setParameters(self, params):
-        self.coordinatesValues = params[0]
-        self.originValues = params[1]
-        self.normalValues = params[2]
-        self.updateAllControls()
-
-    def getProfileSettings(self):
-        self.coordinatesValues = profile.settings['laser_coordinates']
-        self.originValues = profile.settings['laser_origin']
-        self.normalValues = profile.settings['laser_normal']
-
-    def putProfileSettings(self):
-        profile.settings['laser_coordinates'] = self.coordinatesValues
-        profile.settings['laser_origin'] = self.originValues
-        profile.settings['laser_normal'] = self.normalValues
-
-    def updateAllControls(self):
-        for i in range(2):
-            for j in range(2):
-                self.coordinatesValues[i][j] = round(self.coordinatesValues[i][j], 3)
-                self.coordinatesTexts[i][j].SetValue(str(self.coordinatesValues[i][j]))
-
-        for i in range(3):
-            self.originValues[i] = round(self.originValues[i], 4)
-            self.originTexts[i].SetValue(str(self.originValues[i]))
-
-        for i in range(3):
-            self.normalValues[i] = round(self.normalValues[i], 6)
-            self.normalTexts[i].SetValue(str(self.normalValues[i]))
-
-    def updateEngine(self):
-        if hasattr(self, 'pcg'):
-            pass
-
-    def updateProfile(self):
-        self.getProfileSettings()
-        self.updateAllControls()
-        self.updateEngine()
-
-    def updateAllControlsToProfile(self):
-        self.putProfileSettings()
-        self.updateEngine()
-
-    #TODO: move
-    def getValueFloat(self, value): 
+    # TODO: move
+    def getValueFloat(self, value):
         try:
             return float(eval(value.replace(',', '.'), {}, {}))
         except:
@@ -703,10 +656,13 @@ class SimpleLaserTriangulationPanel(CalibrationPanel):
 class PlatformExtrinsicsPanel(CalibrationPanel):
 
     def __init__(self, parent, buttonStartCallback):
-        CalibrationPanel.__init__(self, parent, titleText=_("Platform Extrinsics"), buttonStartCallback=buttonStartCallback,
-                                  description=_("This calibration determines the position and orientation of the rotating platform relative to the camera's coordinate system"))
+        CalibrationPanel.__init__(
+            self, parent,
+            titleText=_("Platform extrinsics"), buttonStartCallback=buttonStartCallback,
+            description=_("This calibration determines the position and orientation of "
+                          "the rotating platform relative to the camera's coordinate system"))
 
-        self.pcg = scan.PointCloudGenerator.Instance()
+        self.pcg = None
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -717,7 +673,7 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         rotationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         self.rotationTexts = [[0 for j in range(3)] for i in range(3)]
-        self.rotationValues = np.zeros((3,3))
+        self.rotationValues = np.zeros((3, 3))
 
         rotationBox = wx.BoxSizer(wx.VERTICAL)
         rotationPanel.SetSizer(rotationBox)
@@ -728,12 +684,13 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
                 self.rotationTexts[i][j].SetEditable(False)
                 self.rotationTexts[i][j].Disable()
                 ibox.Add(self.rotationTexts[i][j], 1, wx.ALL, 2)
-            rotationBox.Add(ibox, 0, wx.ALL|wx.EXPAND, 2)
+            rotationBox.Add(ibox, 0, wx.ALL | wx.EXPAND, 2)
 
         translationText = wx.StaticText(self.content, label=_("Translation vector"))
-        translationText.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+        translationText.SetFont(
+            (wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
-        self.translationTexts = [0]*3
+        self.translationTexts = [0] * 3
         self.translationValues = np.zeros(3)
 
         translationBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -745,9 +702,9 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
             translationBox.Add(self.translationTexts[i], 1, wx.ALL, 2)
 
         self.parametersBox.Add(rotationText, 0, wx.ALL, 8)
-        self.parametersBox.Add(rotationPanel, 0, wx.ALL|wx.EXPAND, 2)
+        self.parametersBox.Add(rotationPanel, 0, wx.ALL | wx.EXPAND, 2)
         self.parametersBox.Add(translationText, 0, wx.ALL, 8)
-        self.parametersBox.Add(translationPanel, 0, wx.ALL|wx.EXPAND, 4)
+        self.parametersBox.Add(translationPanel, 0, wx.ALL | wx.EXPAND, 4)
 
         rotationText.SetToolTip(wx.ToolTip(self.description))
         rotationPanel.SetToolTip(wx.ToolTip(self.description))
@@ -765,7 +722,8 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
                     self.rotationTexts[i][j].Enable()
                 else:
                     self.rotationTexts[i][j].Disable()
-                    self.rotationValues[i][j] = self.getValueFloat(self.rotationTexts[i][j].GetValue())
+                    self.rotationValues[i][j] = self.getValueFloat(
+                        self.rotationTexts[i][j].GetValue())
         for i in range(3):
             self.translationTexts[i].SetEditable(enable)
             if enable:
@@ -781,7 +739,11 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
             self.updateAllControlsToProfile()
 
     def onButtonDefaultPressed(self, event):
-        dlg = wx.MessageDialog(self, _("This will reset platform extrinsics profile settings to defaults.\nUnless you have saved your current profile, all settings will be lost! Do you really want to reset?"), _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
+        dlg = wx.MessageDialog(
+            self, _("This will reset platform extrinsics profile settings to defaults.\n"
+                    "Unless you have saved your current profile, all settings will be lost! "
+                    "Do you really want to reset?"),
+            _("Platform Extrinsics reset"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -816,8 +778,9 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
             self.translationTexts[i].SetValue(str(self.translationValues[i]))
 
     def updateEngine(self):
-        if hasattr(self, 'pcg'):
-            self.pcg.setPlatformExtrinsics(self.rotationValues, self.translationValues)
+        pass
+        # if hasattr(self, 'pcg'):
+        #    self.pcg.setPlatformExtrinsics(self.rotationValues, self.translationValues)
 
     def updateProfile(self):
         self.getProfileSettings()
@@ -828,8 +791,8 @@ class PlatformExtrinsicsPanel(CalibrationPanel):
         self.putProfileSettings()
         self.updateEngine()
 
-    #TODO: move
-    def getValueFloat(self, value): 
+    # TODO: move
+    def getValueFloat(self, value):
         try:
             return float(eval(value.replace(',', '.'), {}, {}))
         except:

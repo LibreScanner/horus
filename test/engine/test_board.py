@@ -6,16 +6,16 @@ __copyright__ = "Copyright (C) 2015 Mundo Reader S.L. - Released under terms of 
 
 
 import unittest
+from horus.engine.driver.board import Board
 
-from horus.engine.board import Board
 
 class BoardTest(unittest.TestCase):
 
-	def setUp(self):
-		self.board = Board()
+    def setUp(self):
+        self.board = Board()
 
-	def test_serial_name(self):
-		self.assertEqual(self.board.serialName, '/dev/ttyUSB0')
+    def test_serial_name(self):
+        self.assertEqual(self.board.serial_name, '/dev/ttyUSB0')
 
-	def test_baud_rate(self):
-		self.assertEqual(self.board.baudRate, 115200)
+    def test_baud_rate(self):
+        self.assertEqual(self.board.baud_rate, 115200)

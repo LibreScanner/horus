@@ -1,102 +1,103 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: August, November 2014                                           #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>                    #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
 
-from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
-                                        CheckBox, Button, TextBox, ToggleButton, CallbackButton
-
 from horus.util import profile, system as sys
-
-from horus.engine.driver import Driver
+from horus.engine.driver.driver import Driver
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.calibration.calibration_data import CalibrationData
+from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
+    CheckBox, Button, TextBox, ToggleButton, CallbackButton
 
 
 class CameraControl(ExpandablePanel):
-    """"""
+
     def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Camera Control"))
-        
-        self.driver = Driver.Instance()
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
+        ExpandablePanel.__init__(self, parent, _("Camera control"))
+
+        self.driver = Driver()
+        self.image_capture = ImageCapture()
+        self.calibration_data = CalibrationData()
 
         self.clearSections()
         section = self.createSection('camera_control')
-        section.addItem(Slider, 'brightness_control', tooltip=_('Image luminosity. Low values are better for environments with high ambient light conditions. High values are recommended for poorly lit places'))
-        section.addItem(Slider, 'contrast_control', tooltip=_('Relative difference in intensity between an image point and its surroundings. Low values are recommended for black or very dark colored objects. High values are better for very light colored objects'))
-        section.addItem(Slider, 'saturation_control', tooltip=_('Purity of color. Low values will cause colors to disappear from the image. High values will show an image with very intense colors'))
-        section.addItem(Slider, 'exposure_control', tooltip=_('Amount of light per unit area. It is controlled by the time the camera sensor is exposed during a frame capture. High values are recommended for poorly lit places'))
-        section.addItem(ComboBox, 'framerate_control', tooltip=_('Number of frames captured by the camera every second. Maximum frame rate is recommended'))
-        section.addItem(ComboBox, 'resolution_control', tooltip=_('Size of the video. Maximum resolution is recommended'))
-        section.addItem(CheckBox, 'use_distortion_control', tooltip=_("This option applies lens distortion correction to the video. This process slows the video feed from the camera"))
+        section.addItem(Slider, 'brightness_control', tooltip=_(
+            "Image luminosity. Low values are better for environments with high "
+            "ambient light conditions. High values are recommended for poorly lit places"))
+        section.addItem(Slider, 'contrast_control', tooltip=_(
+            "Relative difference in intensity between an image point and its surroundings. "
+            "Low values are recommended for black or very dark colored objects. "
+            "High values are better for very light colored objects"))
+        section.addItem(Slider, 'saturation_control', tooltip=_(
+            "Purity of color. Low values will cause colors to disappear from the image. "
+            "High values will show an image with very intense colors"))
+        section.addItem(Slider, 'exposure_control', tooltip=_(
+            "Amount of light per unit area. It is controlled by the time the camera sensor "
+            "is exposed during a frame capture. "
+            "High values are recommended for poorly lit places"))
+        section.addItem(ComboBox, 'frame_rate', tooltip=_(
+            "Number of frames captured by the camera every second. "
+            "Maximum frame rate is recommended"))
+        section.addItem(ComboBox, 'resolution', tooltip=_(
+            "Size of the video. Maximum resolution is recommended"))
+        section.addItem(CheckBox, 'use_distortion', tooltip=_(
+            "This option applies lens distortion correction to the video. "
+            "This process slows the video feed from the camera"))
 
         if sys.isDarwin():
-            section = self.sections['camera_control'].disable('framerate_control')
-            section = self.sections['camera_control'].disable('resolution_control')
+            section = self.sections['camera_control'].disable('frame_rate')
+            section = self.sections['camera_control'].disable('resolution')
 
     def updateCallbacks(self):
         section = self.sections['camera_control']
-        section.updateCallback('brightness_control', self.driver.camera.setBrightness)
-        section.updateCallback('contrast_control', self.driver.camera.setContrast)
-        section.updateCallback('saturation_control', self.driver.camera.setSaturation)
-        section.updateCallback('exposure_control', self.driver.camera.setExposure)
-        section.updateCallback('framerate_control', lambda v: self.driver.camera.setFrameRate(int(v)))
-        section.updateCallback('resolution_control', lambda v: self.driver.camera.setResolution(int(v.split('x')[0]), int(v.split('x')[1])))
-        section.updateCallback('use_distortion_control', lambda v: self.driver.camera.setUseDistortion(v))
+        section.updateCallback('brightness_control', self.driver.camera.set_brightness)
+        section.updateCallback('contrast_control', self.driver.camera.set_contrast)
+        section.updateCallback('saturation_control', self.driver.camera.set_saturation)
+        section.updateCallback('exposure_control', self.driver.camera.set_exposure)
+        section.updateCallback(
+            'frame_rate', lambda v: self.driver.camera.set_frame_rate(int(v)))
+        section.updateCallback('resolution', lambda v: self.set_resolution(
+            int(v.split('x')[0]), int(v.split('x')[1])))
+        section.updateCallback(
+            'use_distortion', lambda v: self.image_capture.set_use_distortion(v))
+
+    def set_resolution(self, width, height):
+        self.driver.camera.set_resolution(width, height)
+        self.calibration_data.set_resolution(height, width)
 
 
 class LaserControl(ExpandablePanel):
-    """"""
+
     def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Laser Control"), hasUndo=False, hasRestore=False)
-        
-        self.driver = Driver.Instance()
+        ExpandablePanel.__init__(self, parent, _("Laser control"), hasUndo=False, hasRestore=False)
+
+        self.driver = Driver()
 
         self.clearSections()
-        section = self.createSection('laser_control')
-        section.addItem(ToggleButton, 'left_button')
-        section.addItem(ToggleButton, 'right_button')
+        self.section = self.createSection('laser_control')
+        self.section.addItem(ToggleButton, 'left_button')
+        self.section.addItem(ToggleButton, 'right_button')
 
     def updateCallbacks(self):
-        section = self.sections['laser_control']
-        section.updateCallback('left_button', (self.driver.board.setLeftLaserOn, self.driver.board.setLeftLaserOff))
-        section.updateCallback('right_button', (self.driver.board.setRightLaserOn, self.driver.board.setRightLaserOff))
+        self.section.updateCallback(
+            'left_button', (lambda i=0: self.driver.board.laser_on(i),
+                            lambda i=0: self.driver.board.laser_off(i)))
+        self.section.updateCallback(
+            'right_button', (lambda i=1: self.driver.board.laser_on(i),
+                             lambda i=1: self.driver.board.laser_off(i)))
 
 
 class LDRControl(ExpandablePanel):
-    """"""
+
     def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("LDR Control"), hasUndo=False, hasRestore=False)
-        
-        self.driver = Driver.Instance()
+        ExpandablePanel.__init__(self, parent, _("LDR control"), hasUndo=False, hasRestore=False)
+
+        self.driver = Driver()
 
         self.clearSections()
         section = self.createSection('ldr_control')
@@ -104,42 +105,41 @@ class LDRControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['ldr_control']
-        section.updateCallback('ldr_value', lambda id: self.driver.board.getLDRSensor(id))
+        section.updateCallback('ldr_value', lambda id: self.driver.board.ldr_sensor(id))
+
 
 class LDRSection(SectionItem):
+
     def __init__(self, parent, name, engineCallback=None):
-        """"""
         SectionItem.__init__(self, parent, name, engineCallback)
 
-        #-- Elements
-        self.LDR0Button = wx.Button(self, label='LDR 0', size=(140,-1))
-        self.LDR1Button = wx.Button(self, label='LDR 1', size=(140,-1))
-
+        # Elements
+        self.LDR0Button = wx.Button(self, label='LDR 0', size=(140, -1))
+        self.LDR1Button = wx.Button(self, label='LDR 1', size=(140, -1))
         self.LDR0Label = wx.StaticText(self, label='0')
         self.LDR1Label = wx.StaticText(self, label='0')
 
-        #-- Layout
-        vbox =wx.BoxSizer(wx.VERTICAL)
+        # Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.LDR0Button, 0, wx.ALIGN_CENTER_VERTICAL)
         hbox.AddStretchSpacer()
-        hbox.Add(self.LDR0Label, 1, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
+        hbox.Add(self.LDR0Label, 1, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.LDR1Button, 0, wx.ALIGN_CENTER_VERTICAL)
         hbox.AddStretchSpacer()
-        hbox.Add(self.LDR1Label, 1, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.TOP|wx.BOTTOM|wx.EXPAND, 5)
+        hbox.Add(self.LDR1Label, 1, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
 
         self.SetSizer(vbox)
         self.Layout()
 
-        #-- Events
+        # Events
         self.LDR0Button.Bind(wx.EVT_BUTTON, self.onButton0Clicked)
         self.LDR1Button.Bind(wx.EVT_BUTTON, self.onButton1Clicked)
-
 
     def onButton0Clicked(self, event):
         self.onLDRButtonClicked(self.LDR0Button, self.LDR0Label, '0')
@@ -155,11 +155,11 @@ class LDRSection(SectionItem):
         wx.CallAfter(_object.Enable)
         if ret is not None:
             wx.CallAfter(lambda: _label.SetLabel(str(ret)))
-        if hasattr(self,'waitCursor'):
+        if hasattr(self, 'waitCursor'):
             del self.waitCursor
 
     def updateProfile(self):
-        if hasattr(self,'control'):
+        if hasattr(self, 'control'):
             self.update(None)
 
     def update(self, value):
@@ -170,37 +170,42 @@ class LDRSection(SectionItem):
 
 
 class MotorControl(ExpandablePanel):
-    """"""
+
     def __init__(self, parent):
-        """"""
-        ExpandablePanel.__init__(self, parent, _("Motor Control"), hasUndo=False)
-        
-        self.driver = Driver.Instance()
+        ExpandablePanel.__init__(self, parent, _("Motor control"), hasUndo=False)
+
+        self.driver = Driver()
 
         self.clearSections()
         section = self.createSection('motor_control')
-        section.addItem(TextBox, 'step_degrees_control')
-        section.addItem(TextBox, 'feed_rate_control')
-        section.addItem(TextBox, 'acceleration_control')
+        section.addItem(TextBox, 'motor_step_control')
+        section.addItem(TextBox, 'motor_speed_control')
+        section.addItem(TextBox, 'motor_acceleration_control')
         section.addItem(CallbackButton, 'move_button')
         section.addItem(ToggleButton, 'enable_button')
 
     def updateCallbacks(self):
         section = self.sections['motor_control']
-        section.updateCallback('step_degrees_control', lambda v: self.driver.board.setRelativePosition(self.getValueFloat(v)))
-        section.updateCallback('feed_rate_control', lambda v: self.driver.board.setSpeedMotor(self.getValueInteger(v)))
-        section.updateCallback('acceleration_control', lambda v: self.driver.board.setAccelerationMotor(self.getValueInteger(v)))
-        section.updateCallback('move_button', lambda c: self.driver.board.moveMotor(nonblocking=True, callback=c))
-        section.updateCallback('enable_button', (self.driver.board.enableMotor, self.driver.board.disableMotor))
+        section.updateCallback(
+            'motor_step_control', lambda v: self.driver.board.motor_relative(self.to_float(v)))
+        section.updateCallback(
+            'motor_speed_control', lambda v: self.driver.board.motor_speed(self.to_float(v)))
+        section.updateCallback(
+            'motor_acceleration_control',
+            lambda v: self.driver.board.motor_acceleration(self.to_int(v)))
+        section.updateCallback(
+            'move_button', lambda c: self.driver.board.motor_move(nonblocking=True, callback=c))
+        section.updateCallback(
+            'enable_button', (self.driver.board.motor_enable, self.driver.board.motor_disable))
 
-    #TODO: move
-    def getValueInteger(self, value):
+    # TODO: move
+    def to_int(self, value):
         try:
             return int(eval(value, {}, {}))
         except:
             return 0
 
-    def getValueFloat(self, value): 
+    def to_float(self, value):
         try:
             return float(eval(value.replace(',', '.'), {}, {}))
         except:
@@ -208,12 +213,11 @@ class MotorControl(ExpandablePanel):
 
 
 class GcodeControl(ExpandablePanel):
-    """"""
+
     def __init__(self, parent):
-        """"""
         ExpandablePanel.__init__(self, parent, _("Gcode Control"), hasUndo=False, hasRestore=False)
-        
-        self.driver = Driver.Instance()
+
+        self.driver = Driver()
 
         self.clearSections()
         section = self.createSection('gcode_control')
@@ -221,47 +225,60 @@ class GcodeControl(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['gcode_control']
-        section.updateCallback('gcode_gui', lambda v, c: self.driver.board.sendRequest(v, callback=c, readLines=True))
+        section.updateCallback(
+            'gcode_gui',
+            lambda v, c: self.driver.board._send_command(v, callback=c, read_lines=True))
+
 
 class GcodeSection(SectionItem):
+
     def __init__(self, parent, name, engineCallback=None):
-        """"""
         SectionItem.__init__(self, parent, name, engineCallback)
 
-        #-- Elements
+        # Elements
         self.request = wx.TextCtrl(self)
-        self.control = wx.Button(self, label=self.setting._label, size=(80,-1))
-        self.response = wx.TextCtrl(self, size=(-1,250), style=wx.TE_MULTILINE)
+        self.control = wx.Button(self, label=self.setting._label, size=(80, -1))
+        self.response = wx.TextCtrl(self, size=(-1, 250), style=wx.TE_MULTILINE)
 
-        #-- Layout
+        # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.request, 1, wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5)
-        hbox.Add(self.control, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        hbox.Add(self.request, 1, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         vbox.Add(hbox, 0, wx.EXPAND)
-        vbox.Add(self.response, 1, wx.TOP|wx.EXPAND, 8)
+        vbox.Add(self.response, 1, wx.TOP | wx.EXPAND, 8)
 
         self.SetSizer(vbox)
         self.Layout()
 
-        #-- Events
+        # Events
+        self.request.Bind(wx.wx.EVT_KEY_DOWN, self.onKeyPressed)
         self.control.Bind(wx.EVT_BUTTON, self.onButtonClicked)
 
+    def onKeyPressed(self, event):
+        if event.GetKeyCode() is wx.WXK_RETURN:
+            self.sendRequest()
+        event.Skip()
+
     def onButtonClicked(self, event):
+        self.sendRequest()
+
+    def sendRequest(self):
         self.control.Disable()
         self.waitCursor = wx.BusyCursor()
         if self.engineCallback is not None:
-            ret = self.engineCallback(str(self.request.GetValue()), self.onFinishCallback)
+            ret = self.engineCallback(
+                str(self.request.GetValue()), lambda r: wx.CallAfter(self.onFinishCallback, r))
 
     def onFinishCallback(self, ret):
-        wx.CallAfter(self.control.Enable)
+        self.control.Enable()
         if ret is not None:
-            wx.CallAfter(lambda: self.response.SetValue(ret))
-        if hasattr(self,'waitCursor'):
+            self.response.SetValue(ret)
+        if hasattr(self, 'waitCursor'):
             del self.waitCursor
 
     def updateProfile(self):
-        if hasattr(self,'control'):
+        if hasattr(self, 'control'):
             self.update(None)
 
     def update(self, value):

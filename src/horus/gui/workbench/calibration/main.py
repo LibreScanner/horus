@@ -1,50 +1,35 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------#
-#                                                                       #
-# This file is part of the Horus Project                                #
-#                                                                       #
-# Copyright (C) 2014-2015 Mundo Reader S.L.                             #
-#                                                                       #
-# Date: August, November 2014                                           #
-# Author: Jesús Arroyo Torrens <jesus.arroyo@bq.com>   	                #
-#                                                                       #
-# This program is free software: you can redistribute it and/or modify  #
-# it under the terms of the GNU General Public License as published by  #
-# the Free Software Foundation, either version 2 of the License, or     #
-# (at your option) any later version.                                   #
-#                                                                       #
-# This program is distributed in the hope that it will be useful,       #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-# GNU General Public License for more details.                          #
-#                                                                       #
-# You should have received a copy of the GNU General Public License     #
-# along with this program. If not, see <http://www.gnu.org/licenses/>.  #
-#                                                                       #
-#-----------------------------------------------------------------------#
+# This file is part of the Horus Project
 
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl.html"
+__author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
+__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx.lib.scrolledpanel
 
 from horus.util import resources, profile
 
-from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
+from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.calibration.panels import CameraSettingsPanel, PatternSettingsPanel, \
-                                                   LaserSettingsPanel, CameraIntrinsicsPanel, \
-                                                   LaserTriangulationPanel, PlatformExtrinsicsPanel
-from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, CameraIntrinsicsResultPage, \
-                                                  LaserTriangulationMainPage, LaserTriangulationResultPage, \
-                                                  PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
-from horus.engine.driver import Driver
-from horus.engine.calibration import CameraIntrinsics
+from horus.gui.workbench.calibration.current_video import CurrentVideo
+from horus.gui.workbench.calibration.panels import PatternSettingsPanel, ImageDetectionPanel, \
+    LaserSegmentation, AutocheckPanel, CameraIntrinsicsPanel, \
+    LaserTriangulationPanel, PlatformExtrinsicsPanel
+
+from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
+    CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
+    PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
+
+from horus.engine.driver.driver import Driver
+from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
+from horus.engine.calibration.autocheck import Autocheck
+from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
+
 
 class CalibrationWorkbench(WorkbenchConnection):
 
@@ -53,53 +38,69 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.calibrating = False
 
-        self.load()
+        self.driver = Driver()
+        self.camera_intrinsics = CameraIntrinsics()
+        self.autocheck = Autocheck()
+        self.image_capture = ImageCapture()
+        self.image_detection = ImageDetection()
+        self.current_video = CurrentVideo()
 
-    def load(self):
-        #-- Toolbar Configuration
         self.toolbar.Realize()
 
-        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(310,-1))
+        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(310, -1))
         self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
         self.scrollPanel.SetAutoLayout(1)
 
         self.controls = ExpandableControl(self.scrollPanel)
 
-        self.videoView = VideoView(self._panel, self.getFrame, 10)
+        self.video_image = None
+        self.videoView = VideoView(self._panel, self.get_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
-        #-- Add Scroll Panels
-        self.controls.addPanel('camera_settings', CameraSettingsPanel(self.controls))
+        # Add Scroll Panels
+        self.controls.addPanel('image_detection', ImageDetectionPanel(self.controls))
+        self.controls.addPanel('laser_segmentation', LaserSegmentation(self.controls))
         self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
-        self.controls.addPanel('laser_settings', LaserSettingsPanel(self.controls))
-        self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
-        self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
-        self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
+        self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
+            self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
+        self.controls.addPanel('scanner_autocheck', AutocheckPanel(
+            self.controls, buttonStartCallback=self.onAutocheckStartCallback,
+            buttonStopCallback=self.onCancelCallback))
+        self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(
+            self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
+        self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(
+            self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
 
-        #-- Add Calibration Pages
-        self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(self._panel,
-                                                                 afterCancelCallback=self.onCancelCallback,
-                                                                 afterCalibrationCallback=self.onCameraIntrinsicsAfterCalibrationCallback)
+        # Add Calibration Pages
+        self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(
+            self._panel,
+            afterCancelCallback=self.onCancelCallback,
+            afterCalibrationCallback=self.onCameraIntrinsicsAfterCalibrationCallback)
 
-        self.cameraIntrinsicsResultPage = CameraIntrinsicsResultPage(self._panel,
-                                                                     buttonRejectCallback=self.onCancelCallback,
-                                                                     buttonAcceptCallback=self.onCameraIntrinsicsAcceptCallback)
+        self.cameraIntrinsicsResultPage = CameraIntrinsicsResultPage(
+            self._panel,
+            buttonRejectCallback=self.onCancelCallback,
+            buttonAcceptCallback=self.onCameraIntrinsicsAcceptCallback)
 
-        self.laserTriangulationMainPage = LaserTriangulationMainPage(self._panel,
-                                                                     afterCancelCallback=self.onCancelCallback,
-                                                                     afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
+        self.laserTriangulationMainPage = LaserTriangulationMainPage(
+            self._panel,
+            afterCancelCallback=self.onCancelCallback,
+            afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
 
-        self.laserTriangulationResultPage = LaserTriangulationResultPage(self._panel,
-                                                                         buttonRejectCallback=self.onCancelCallback,
-                                                                         buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
+        self.laserTriangulationResultPage = LaserTriangulationResultPage(
+            self._panel,
+            buttonRejectCallback=self.onCancelCallback,
+            buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
 
-        self.platformExtrinsicsMainPage = PlatformExtrinsicsMainPage(self._panel,
-                                                                     afterCancelCallback=self.onCancelCallback,
-                                                                     afterCalibrationCallback=self.onPlatformExtrinsicsAfterCalibrationCallback)
+        self.platformExtrinsicsMainPage = PlatformExtrinsicsMainPage(
+            self._panel,
+            afterCancelCallback=self.onCancelCallback,
+            afterCalibrationCallback=self.onPlatformExtrinsicsAfterCalibrationCallback)
 
-        self.platformExtrinsicsResultPage = PlatformExtrinsicsResultPage(self._panel,
-                                                                         buttonRejectCallback=self.onCancelCallback,
-                                                                         buttonAcceptCallback=self.onPlatformExtrinsicsAcceptCallback)
+        self.platformExtrinsicsResultPage = PlatformExtrinsicsResultPage(
+            self._panel,
+            buttonRejectCallback=self.onCancelCallback,
+            buttonAcceptCallback=self.onPlatformExtrinsicsAcceptCallback)
 
         self.cameraIntrinsicsMainPage.Hide()
         self.cameraIntrinsicsResultPage.Hide()
@@ -108,9 +109,9 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
 
-        #-- Layout
+        # Layout
         vsbox = wx.BoxSizer(wx.VERTICAL)
-        vsbox.Add(self.controls, 0, wx.ALL|wx.EXPAND, 0)
+        vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
 
@@ -130,12 +131,12 @@ class CalibrationWorkbench(WorkbenchConnection):
     def updateCallbacks(self):
         self.controls.updateCallbacks()
 
-    def getFrame(self):
-        frame = Driver.Instance().camera.captureImage()
-        self.cameraIntrinsics = CameraIntrinsics.Instance()
-        if frame is not None:
-            retval, frame = self.cameraIntrinsics.detectChessboard(frame)
-        return frame
+    def get_image(self):
+        if self.autocheck._is_calibrating:
+            image = self.autocheck.image
+        else:
+            image = self.current_video.capture()
+        return image
 
     def enableMenus(self, value):
         main = self.GetParent()
@@ -147,6 +148,14 @@ class CalibrationWorkbench(WorkbenchConnection):
         main.menuEdit.Enable(main.menuPreferences.GetId(), value)
         main.menuHelp.Enable(main.menuWelcome.GetId(), value)
         main.Layout()
+
+    def onAutocheckStartCallback(self):
+        self.calibrating = True
+        self.enableLabelTool(self.disconnectTool, False)
+        self.controls.setExpandable(False)
+        self.combo.Disable()
+        self.enableMenus(False)
+        self.Layout()
 
     def onCameraIntrinsicsStartCallback(self):
         self.calibrating = True
@@ -174,7 +183,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onPlatformExtrinsicsStartCallback(self):
-        if profile.settings['pattern_distance'] == 0:
+        if profile.settings['pattern_origin_distance'] == 0:
             PatternDistanceWindow(self)
             self.updateProfileToAllControls()
         else:
@@ -205,6 +214,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationResultPage.Hide()
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
+        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -219,15 +229,17 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onCameraIntrinsicsAcceptCallback(self):
-        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
         self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
         self.controls.panels['camera_intrinsics_panel'].updateAllControlsToProfile()
+        self.camera_intrinsics.accept()
         self.combo.Enable()
         self.enableMenus(True)
         self.cameraIntrinsicsResultPage.Hide()
+        self.current_video.mode = 'Pattern'
+        self.videoView.play()
         self.videoView.Show()
         self.Layout()
 
@@ -241,7 +253,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onLaserTriangulationAcceptCallback(self):
-        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -250,6 +261,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.laserTriangulationResultPage.Hide()
+        self.current_video.mode = 'Pattern'
+        self.videoView.play()
         self.videoView.Show()
         self.Layout()
 
@@ -263,7 +276,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.Layout()
 
     def onPlatformExtrinsicsAcceptCallback(self):
-        self.videoView.play()
         self.calibrating = False
         self.enableLabelTool(self.disconnectTool, True)
         self.controls.setExpandable(True)
@@ -272,6 +284,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.platformExtrinsicsResultPage.Hide()
+        self.current_video.mode = 'Pattern'
+        self.videoView.play()
         self.videoView.Show()
         self.Layout()
 
