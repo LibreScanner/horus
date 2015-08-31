@@ -8,6 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import cv2
 import math
 import time
+import glob
 import platform
 
 system = platform.system()
@@ -285,3 +286,26 @@ class Camera(object):
             if (imax - imin) != 0:
                 ret = int((value - imin) * (omax - omin) / (imax - imin) + omin)
         return ret
+
+    def _count_cameras(self):
+        for i in xrange(5):
+            cap = cv2.VideoCapture(i)
+            res = not cap.isOpened()
+            cap.release()
+            if res:
+                return i
+        return 5
+
+    def get_video_list(self):
+        baselist = []
+        if system == 'Windws':
+            count = self._count_cameras()
+            for i in xrange(count):
+                baselist.append(str(i))
+        elif system == 'Darwin':
+            for device in uvc.mac.Camera_List():
+                baselist.append(str(device.src_id))
+        else:
+            for device in ['/dev/video*']:
+                baselist = baselist + glob.glob(device)
+        return baselist

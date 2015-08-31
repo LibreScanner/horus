@@ -7,8 +7,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import gc
 import os
-import cv2
-import glob
 import time
 import struct
 import wx._core
@@ -38,9 +36,6 @@ from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 from horus.util import profile, resources, meshLoader, version, system as sys
 
-if sys.isDarwin():
-    from horus.engine.uvc.mac import Camera_List
-
 driver = Driver()
 ciclop_scan = CiclopScan()
 current_video = CurrentVideo()
@@ -66,14 +61,14 @@ class MainWindow(wx.Frame):
         self.SetMinSize((600, 450))
 
         # Serial Name initialization
-        serialList = self.serialList()
+        serialList = driver.board.get_serial_list()
         currentSerial = profile.settings['serial_name']
         if len(serialList) > 0:
             if currentSerial not in serialList:
                 profile.settings['serial_name'] = serialList[0]
 
         # Video Id initialization
-        videoList = self.videoList()
+        videoList = driver.camera.get_video_list()
         currentVideoId = profile.settings['camera_id']
         if len(videoList) > 0:
             if currentVideoId not in videoList:
@@ -726,60 +721,3 @@ Suite 330, Boston, MA  02111-1307  USA""")
         del waitCursor
 
         gc.collect()
-
-    # TODO: move to util
-
-    def serialList(self):
-        baselist = []
-        if sys.isWindows():
-            import _winreg
-            try:
-                key = _winreg.OpenKey(
-                    _winreg.HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM")
-                i = 0
-                while True:
-                    try:
-                        values = _winreg.EnumValue(key, i)
-                    except:
-                        return baselist
-                    if 'USBSER' in values[0] or \
-                       'VCP' in values[0] or \
-                       '\Device\Serial' in values[0]:
-                        baselist.append(values[1])
-                    i += 1
-            except:
-                return baselist
-        else:
-            for device in ['/dev/ttyACM*', '/dev/ttyUSB*', '/dev/tty.usb*', '/dev/tty.wchusb*',
-                           '/dev/cu.*', '/dev/rfcomm*']:
-                baselist = baselist + glob.glob(device)
-        return baselist
-
-    def baudRateList(self):
-        baselist = ['9600', '14400', '19200', '38400', '57600', '115200']
-        return baselist
-
-    def countCameras(self):
-        for i in xrange(5):
-            cap = cv2.VideoCapture(i)
-            res = not cap.isOpened()
-            cap.release()
-            if res:
-                return i
-        return 5
-
-    def videoList(self):
-        baselist = []
-        if sys.isWindows():
-            count = self.countCameras()
-            for i in xrange(count):
-                baselist.append(str(i))
-        elif sys.isDarwin():
-            for device in Camera_List():
-                baselist.append(str(device.src_id))
-        else:
-            for device in ['/dev/video*']:
-                baselist = baselist + glob.glob(device)
-        return baselist
-
-    # END TODO

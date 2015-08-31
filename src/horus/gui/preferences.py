@@ -8,29 +8,30 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 import threading
 
+from horus.engine.driver.driver import Driver
 from horus.util import profile, resources
 from horus.util.avrHelpers import AvrDude
 
 
 class PreferencesDialog(wx.Dialog):
 
-    def __init__(self, parent):
+    def __init__(self):
         super(PreferencesDialog, self).__init__(None, title=_("Preferences"))
 
-        self.main = parent
+        self.driver = Driver()
 
         # Graphic elements
         self.conParamsStaticText = wx.StaticText(
             self, label=_("Connection Parameters"), style=wx.ALIGN_CENTRE)
         self.serialNameLabel = wx.StaticText(self, label=_("Serial Name"))
-        self.serialNames = self.main.serialList()
+        self.serialNames = self.driver.board.get_serial_list()
         self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(170, -1))
         self.baudRateLabel = wx.StaticText(self, label=_("Baud Rate"))
-        self.baudRates = self.main.baudRateList()
+        self.baudRates = profile.settings['baud_rate'].getPossibleValues()
         self.baudRateCombo = wx.ComboBox(
             self, choices=self.baudRates, size=(170, -1), style=wx.CB_READONLY)
         self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id"))
-        self.cameraIdNames = self.main.videoList()
+        self.cameraIdNames = self.driver.camera.get_video_list()
         self.cameraIdCombo = wx.ComboBox(
             self, choices=self.cameraIdNames, size=(170, -1), style=wx.CB_READONLY)
 

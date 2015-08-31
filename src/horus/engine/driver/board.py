@@ -6,8 +6,12 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import time
+import glob
 import serial
 import threading
+import platform
+
+system = platform.system()
 
 
 class WrongFirmware(Exception):
@@ -142,12 +146,12 @@ class Board(object):
 
     def laser_on(self, index):
         if not self._laser_enabled[index]:
-            if self._send_command("M71T"+str(index+1)) != '':
+            if self._send_command("M71T" + str(index + 1)) != '':
                 self._laser_enabled[index] = True
 
     def laser_off(self, index):
         if self._laser_enabled[index]:
-            if self._send_command("M70T"+str(index+1)) != '':
+            if self._send_command("M70T" + str(index + 1)) != '':
                 self._laser_enabled[index] = False
 
     def lasers_on(self):
@@ -215,3 +219,30 @@ class Board(object):
         self._serial_port.flushOutput()
         self._serial_port.write("\x18\r\n")  # Ctrl-x
         self._serial_port.readline()
+
+    def get_serial_list(self):
+        """Obtain list of serial devices"""
+        baselist = []
+        if system == 'Windows':
+            import _winreg
+            try:
+                key = _winreg.OpenKey(
+                    _winreg.HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM")
+                i = 0
+                while True:
+                    try:
+                        values = _winreg.EnumValue(key, i)
+                    except:
+                        return baselist
+                    if 'USBSER' in values[0] or \
+                       'VCP' in values[0] or \
+                       '\Device\Serial' in values[0]:
+                        baselist.append(values[1])
+                    i += 1
+            except:
+                return baselist
+        else:
+            for device in ['/dev/ttyACM*', '/dev/ttyUSB*', '/dev/tty.usb*', '/dev/tty.wchusb*',
+                           '/dev/cu.*', '/dev/rfcomm*']:
+                baselist = baselist + glob.glob(device)
+        return baselist
