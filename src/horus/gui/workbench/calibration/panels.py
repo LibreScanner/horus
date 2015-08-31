@@ -171,7 +171,8 @@ class PatternSettingsPanel(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('pattern_settings')
-        section.addItem(Slider, 'pattern_rows', tooltip=_('Number of corner rows in the pattern'))
+        section.addItem(Slider, 'pattern_rows', tooltip=_(
+            'Number of corner rows in the pattern'))
         section.addItem(Slider, 'pattern_columns', tooltip=_(
             'Number of corner columns in the pattern'))
         section.addItem(Slider, 'pattern_square_width')

@@ -41,7 +41,7 @@ class PreferencesDialog(wx.Dialog):
 
         self.boards = profile.settings.getPossibleValues('board')
         self.boardsCombo = wx.ComboBox(
-            self, choices=self.boards, value=board, size=(168, -1), style=wx.CB_READONLY)
+            self, choices=self.boards, size=(168, -1), style=wx.CB_READONLY)
 
         self.hexLabel = wx.StaticText(self, label=_("Binary file"))
         self.hexCombo = wx.ComboBox(self, choices=[_("Default"), _("External file...")], value=_(
@@ -63,8 +63,6 @@ class PreferencesDialog(wx.Dialog):
         self.saveButton = wx.Button(self, label=_("Save"), size=(110, -1))
 
         # Events
-        self.boardsCombo.Bind(wx.EVT_COMBOBOX, self.onBoardsComboChanged)
-
         self.hexCombo.Bind(wx.EVT_COMBOBOX, self.onHexComboChanged)
         self.uploadFirmwareButton.Bind(wx.EVT_BUTTON, self.onUploadFirmware)
         self.languageCombo.Bind(wx.EVT_COMBOBOX, self.onLanguageComboChanged)

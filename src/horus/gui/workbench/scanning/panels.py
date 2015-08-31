@@ -52,9 +52,9 @@ class RotatingPlatform(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('rotating_platform')
-        section.addItem(TextBox, 'motor_step_scanning')
-        section.addItem(TextBox, 'motor_speed_scanning')
-        section.addItem(TextBox, 'motor_acceleration_scanning')
+        section.addItem(Slider, 'motor_step_scanning')
+        section.addItem(Slider, 'motor_speed_scanning')
+        section.addItem(Slider, 'motor_acceleration_scanning')
 
     def updateCallbacks(self):
         section = self.sections['rotating_platform']
@@ -154,5 +154,5 @@ class PointCloudColor(ExpandablePanel):
             data = dialog.GetColourData()
             color = data.GetColour().Get()
             ciclop_scan.color = color
-            profile.putProfileSetting('point_cloud_color', "".join(map(chr, color)).encode('hex'))
+            profile.settings['point_cloud_color'] = unicode("".join(map(chr, color)).encode('hex'))
         dialog.Destroy()

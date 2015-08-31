@@ -60,7 +60,7 @@ class ScanningWorkbench(WorkbenchConnection):
         self.Bind(wx.EVT_TOOL, self.onStopToolClicked, self.stopTool)
         self.Bind(wx.EVT_TOOL, self.onPauseToolClicked, self.pauseTool)
 
-        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(290, -1))
+        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
         self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
         self.scrollPanel.SetAutoLayout(1)
 
@@ -94,6 +94,9 @@ class ScanningWorkbench(WorkbenchConnection):
         vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
+        self.scrollPanel.SetMinSize((self.scrollPanel.GetSize()[0], -1))
+
+        self.controls.initPanels()
 
         self.addToPanel(self.scrollPanel, 0)
         self.addToPanel(self.splitterWindow, 1)

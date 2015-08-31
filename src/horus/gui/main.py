@@ -406,7 +406,7 @@ class MainWindow(wx.Frame):
             except:
                 pass
             profile.settings.saveSettings(categories=["machine_settings"])
-            self.scanningWorkbench.controls.panels["point_cloud_generation"].updateProfile()
+            self.scanningWorkbench.controls.panels["point_cloud_roi"].updateProfile()
 
         self.controlWorkbench.updateCallbacks()
         self.calibrationWorkbench.updateCallbacks()

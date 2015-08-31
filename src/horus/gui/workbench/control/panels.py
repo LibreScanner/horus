@@ -178,9 +178,9 @@ class MotorControl(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('motor_control')
-        section.addItem(TextBox, 'motor_step_control')
-        section.addItem(TextBox, 'motor_speed_control')
-        section.addItem(TextBox, 'motor_acceleration_control')
+        section.addItem(Slider, 'motor_step_control')
+        section.addItem(Slider, 'motor_speed_control')
+        section.addItem(Slider, 'motor_acceleration_control')
         section.addItem(CallbackButton, 'move_button')
         section.addItem(ToggleButton, 'enable_button')
 

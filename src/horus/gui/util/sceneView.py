@@ -651,7 +651,7 @@ class SceneView(openglGui.glGuiPanel):
                                 profile.settings['roi_depth'],
                                 profile.settings['roi_height']], numpy.float32)
 
-        if profile.settings['view_roi']:
+        if profile.settings['roi_view']:
             polys = profile.getSizePolygons(size, machine_shape)
             height = profile.settings['roi_height']
 

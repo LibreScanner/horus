@@ -47,7 +47,7 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.toolbar.Realize()
 
-        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(310, -1))
+        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
         self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
         self.scrollPanel.SetAutoLayout(1)
 
@@ -114,6 +114,9 @@ class CalibrationWorkbench(WorkbenchConnection):
         vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
+        self.scrollPanel.SetMinSize((self.scrollPanel.GetSize()[0], -1))
+
+        self.controls.initPanels()
 
         self.addToPanel(self.scrollPanel, 0)
         self.addToPanel(self.videoView, 1)

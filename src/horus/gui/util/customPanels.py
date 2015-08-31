@@ -27,21 +27,28 @@ class ExpandableControl(wx.Panel):
 
     def addPanel(self, name, panel):
         self.panels.update({name: panel})
-        self.vbox.Add(panel, 0, wx.ALL | wx.EXPAND, 0)
+        self.vbox.Add(panel, 0, wx.EXPAND, 0)
         panel.titleText.title.Bind(wx.EVT_LEFT_DOWN, self._onTitleClicked)
-        if len(self.panels) == 1:
-            panel.content.Show()
-            if panel.hasUndo:
-                panel.undoButton.Show()
-            if panel.hasRestore:
-                panel.restoreButton.Show()
-        else:
-            panel.content.Hide()
-            if panel.hasUndo:
-                panel.undoButton.Hide()
-            if panel.hasRestore:
-                panel.restoreButton.Hide()
-        self.Layout()
+        panel.content.Show()
+        if panel.hasUndo:
+            panel.undoButton.Show()
+        if panel.hasRestore:
+            panel.restoreButton.Show()
+
+    def initPanels(self):
+        for i, panel in enumerate(self.panels.values()):
+            if i == 0:
+                panel.content.Show()
+                if panel.hasUndo:
+                    panel.undoButton.Show()
+                if panel.hasRestore:
+                    panel.restoreButton.Show()
+            else:
+                panel.content.Hide()
+                if panel.hasUndo:
+                    panel.undoButton.Hide()
+                if panel.hasRestore:
+                    panel.restoreButton.Hide()
 
     def setExpandable(self, value):
         self.isExpandable = value
@@ -91,7 +98,7 @@ class ExpandableControl(wx.Panel):
 class ExpandablePanel(wx.Panel):
 
     def __init__(self, parent, title="", callback=None, hasUndo=True, hasRestore=True):
-        wx.Panel.__init__(self, parent, size=(275, -1))
+        wx.Panel.__init__(self, parent, size=(-1,-1))
 
         # Elements
         self.callback = callback
@@ -233,7 +240,7 @@ class SectionPanel(wx.Panel):
         # Layout
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         if title is not None:
-            self.vbox.Add(self.title, 0, wx.BOTTOM | wx.RIGHT | wx.EXPAND, 5)
+            self.vbox.Add(self.title, 0, wx.BOTTOM | wx.TOP | wx.RIGHT | wx.EXPAND, 5)
         self.SetSizer(self.vbox)
         self.Layout()
 
@@ -246,7 +253,7 @@ class SectionPanel(wx.Panel):
             self.items.update({_name: item})
         else:
             self.items.update({_name: (item, tooltip)})
-        self.vbox.Add(item, 0, wx.ALL | wx.EXPAND, 1)
+        self.vbox.Add(item, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
         self.Layout()
         return self
 
@@ -382,8 +389,12 @@ class TitleText(wx.Panel):
         self.Layout()
 
 
-class Slider(SectionItem):
+class FloatSlider(wx.Slider):
+    def GetValue(self):
+        return (float(wx.Slider.GetValue(self)))/self.GetMax()
 
+
+class Slider(SectionItem):
     def __init__(self, parent, name, engineCallback=None):
         SectionItem.__init__(self, parent, name, engineCallback)
 
@@ -391,11 +402,19 @@ class Slider(SectionItem):
 
         # Elements
         self.label = wx.StaticText(self, label=self.setting._label)
-        self.control = wx.Slider(self, wx.ID_ANY,
-                                 profile.settings[name],
-                                 profile.settings.getMinValue(name),
-                                 profile.settings.getMaxValue(name),
-                                 size=(160, -1))
+
+        if profile.settings.getSetting(name)._type == float:
+            self.control = FloatSlider(self, wx.ID_ANY,
+                                     profile.settings[name],
+                                     profile.settings.getMinValue(name),
+                                     profile.settings.getMaxValue(name),
+                                     size=(150, -1))
+        else:
+            self.control = wx.Slider(self, wx.ID_ANY,
+                                     profile.settings[name],
+                                     profile.settings.getMinValue(name),
+                                     profile.settings.getMaxValue(name),
+                                     size=(150, -1))
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -462,7 +481,7 @@ class ComboBox(SectionItem):
         self.control = wx.ComboBox(self, wx.ID_ANY,
                                    value=_(profile.settings[self.name]),
                                    choices=_choices,
-                                   size=(130, -1),
+                                   size=(150, -1),
                                    style=wx.CB_READONLY)
 
         # Layout

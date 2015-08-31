@@ -208,7 +208,7 @@ class Settings(collections.MutableMapping):
 
         self._addSetting(
             Setting('motor_step_control', _(u'Step (º)'), 'scan_settings',
-                    float, 90.0, min_value=0.01))
+                    float, 90.0, min_value=0.01, max_value=360.0))
         self._addSetting(
             Setting('motor_speed_control', _(u'Speed (º/s)'), 'scan_settings',
                     int, 200, min_value=1, max_value=1000))
@@ -291,7 +291,7 @@ class Settings(collections.MutableMapping):
 
         self._addSetting(
             Setting('motor_step_scanning', _(u'Step (º)'), 'scan_settings',
-                    float, 0.45, min_value=0.01))
+                    float, 0.45, min_value=0.01, max_value=360.0))
         self._addSetting(
             Setting('motor_speed_scanning', _(u'Speed (º/s)'), 'scan_settings',
                     int, 200, min_value=1, max_value=1000))
