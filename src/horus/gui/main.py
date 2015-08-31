@@ -679,7 +679,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateCalibrationProfile(self):
         resolution = profile.settings['resolution'].split('x')
-        driver.camera.set_frame_rate(int(profile.settings['frame_rate']))
+        driver.camera.set_frame_rate(int(profile.settings['framerate']))
         calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
         calibration_data.camera_matrix = profile.settings['camera_matrix']
         calibration_data.distortion_vector = profile.settings['distortion_vector']

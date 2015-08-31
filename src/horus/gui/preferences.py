@@ -219,7 +219,7 @@ class PreferencesDialog(wx.Dialog):
             return 19200
 
     def loadFirmware(self, hexBaudRate, clearEEPROM):
-        avr_dude = AvrDude(port=profile.getProfileSetting('serial_name'), baudRate=hexBaudRate)
+        avr_dude = AvrDude(port=profile.settings['serial_name'], baudRate=hexBaudRate)
         extraFlags = []
         if clearEEPROM:
             extraFlags = ["-D"]

@@ -311,7 +311,7 @@ class SectionItem(wx.Panel):
         self.control = None
 
         self.name = name
-        self.setting = profile.settings[self.name]
+        self.setting = profile.settings.getSetting(self.name)
 
     def setEngineCallback(self, engineCallback=None):
         self.engineCallback = engineCallback

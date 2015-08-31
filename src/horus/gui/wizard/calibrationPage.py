@@ -98,7 +98,7 @@ class CalibrationPage(WizardPage):
             lambda: wx.CallAfter(self.beforeCalibration),
             lambda p: wx.CallAfter(self.progressCalibration, p),
             lambda r: wx.CallAfter(self.afterCalibration, r))
-        if profile.getProfileSettingFloat('pattern_origin_distance') == 0:
+        if profile.settings['pattern_origin_distance'] == 0.0:
             PatternDistanceWindow(self)
         else:
             self.combo_calibration.start()

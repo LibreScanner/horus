@@ -87,7 +87,7 @@ class ImageDetectionPanel(ExpandablePanel):
             "exposed during a frame capture. High values are recommended for poorly lit places"))
 
     def callback(self):
-        self.setCameraMode(profile.getProfileSetting('capture_mode'))
+        self.setCameraMode(profile.settings['capture_mode'])
 
     def updateCallbacks(self):
         section = self.sections['image_capture']
@@ -171,11 +171,11 @@ class PatternSettingsPanel(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('pattern_settings')
-        section.addItem(TextBox, 'pattern_rows', tooltip=_('Number of corner rows in the pattern'))
-        section.addItem(TextBox, 'pattern_columns', tooltip=_(
+        section.addItem(Slider, 'pattern_rows', tooltip=_('Number of corner rows in the pattern'))
+        section.addItem(Slider, 'pattern_columns', tooltip=_(
             'Number of corner columns in the pattern'))
-        section.addItem(TextBox, 'pattern_square_width')
-        section.addItem(TextBox, 'pattern_origin_distance', tooltip=_(
+        section.addItem(Slider, 'pattern_square_width')
+        section.addItem(Slider, 'pattern_origin_distance', tooltip=_(
             "Minimum distance between the origin of the pattern (bottom-left corner) "
             "and the pattern's base surface"))
 
@@ -190,10 +190,10 @@ class PatternSettingsPanel(ExpandablePanel):
         section.updateCallback('pattern_origin_distance', lambda v: self.updatePatternParameters())
 
     def updatePatternParameters(self):
-        pattern.rows = profile.getProfileSettingInteger('pattern_rows')
-        pattern.columns = profile.getProfileSettingInteger('pattern_columns')
-        pattern.square_width = profile.getProfileSettingInteger('pattern_square_width')
-        pattern.distance = profile.getProfileSettingInteger('pattern_origin_distance')
+        pattern.rows = profile.settings['pattern_rows']
+        pattern.columns = profile.settings['pattern_columns']
+        pattern.square_width = profile.settings['pattern_square_width']
+        pattern.distance = profile.settings['pattern_origin_distance']
 
 
 class AutocheckPanel(ExpandablePanel):

@@ -189,7 +189,7 @@ class SceneView(openglGui.glGuiPanel):
         self._machineSize = numpy.array([profile.settings['machine_width'],
                                          profile.settings['machine_depth'],
                                          profile.settings['machine_height']])
-        self._objColor = profile.settings['model_color']
+        self._objColor = profile.settings['point_cloud_color']
 
     def ShaderUpdate(self, v, f):
         s = openglHelpers.GLShader(v, f)

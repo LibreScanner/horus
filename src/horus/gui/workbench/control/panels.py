@@ -27,8 +27,8 @@ class CameraControl(ExpandablePanel):
         self.clearSections()
         section = self.createSection('camera_control')
         section.addItem(Slider, 'brightness_control', tooltip=_(
-            "Image luminosity. Low values are better for environments with high "
-            "ambient light conditions. High values are recommended for poorly lit places"))
+            "Image luminosity. Low values are better for environments with high ambient "
+            "light conditions. High values are recommended for poorly lit places"))
         section.addItem(Slider, 'contrast_control', tooltip=_(
             "Relative difference in intensity between an image point and its surroundings. "
             "Low values are recommended for black or very dark colored objects. "
@@ -40,7 +40,7 @@ class CameraControl(ExpandablePanel):
             "Amount of light per unit area. It is controlled by the time the camera sensor "
             "is exposed during a frame capture. "
             "High values are recommended for poorly lit places"))
-        section.addItem(ComboBox, 'frame_rate', tooltip=_(
+        section.addItem(ComboBox, 'framerate', tooltip=_(
             "Number of frames captured by the camera every second. "
             "Maximum frame rate is recommended"))
         section.addItem(ComboBox, 'resolution', tooltip=_(
@@ -50,7 +50,7 @@ class CameraControl(ExpandablePanel):
             "This process slows the video feed from the camera"))
 
         if sys.isDarwin():
-            section = self.sections['camera_control'].disable('frame_rate')
+            section = self.sections['camera_control'].disable('framerate')
             section = self.sections['camera_control'].disable('resolution')
 
     def updateCallbacks(self):
@@ -60,7 +60,7 @@ class CameraControl(ExpandablePanel):
         section.updateCallback('saturation_control', self.driver.camera.set_saturation)
         section.updateCallback('exposure_control', self.driver.camera.set_exposure)
         section.updateCallback(
-            'frame_rate', lambda v: self.driver.camera.set_frame_rate(int(v)))
+            'framerate', lambda v: self.driver.camera.set_frame_rate(int(v)))
         section.updateCallback('resolution', lambda v: self.set_resolution(
             int(v.split('x')[0]), int(v.split('x')[1])))
         section.updateCallback(
