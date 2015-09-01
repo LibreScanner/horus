@@ -35,7 +35,7 @@ class ScanningPage(WizardPage):
             value = _("Medium")
         else:
             value = _("High")
-        self.resolutionLabel = wx.StaticText(self.panel, label=_(u"Resolution (º)"))
+        self.resolutionLabel = wx.StaticText(self.panel, label=_("Resolution"))
         self.resolutionComboBox = wx.ComboBox(self.panel, wx.ID_ANY,
                                               value=value,
                                               choices=[_("High"), _("Medium"), _("Low")],

@@ -18,7 +18,7 @@ class PatternDistanceWindow(wx.Dialog):
             parent, title=_('Pattern distance'),
             size=(420, -1), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
 
-        self.value = float(profile.settings('pattern_origin_distance'))
+        self.value = float(profile.settings['pattern_origin_distance'])
         self.pattern = Pattern()
 
         # Elements

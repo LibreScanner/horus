@@ -208,7 +208,7 @@ class Settings(collections.MutableMapping):
 
         self._addSetting(
             Setting('motor_step_control', _(u'Step (º)'), 'scan_settings',
-                    float, 90.0, min_value=0.01, max_value=360.0))
+                    float, 90.0))
         self._addSetting(
             Setting('motor_speed_control', _(u'Speed (º/s)'), 'scan_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
@@ -291,7 +291,7 @@ class Settings(collections.MutableMapping):
 
         self._addSetting(
             Setting('motor_step_scanning', _(u'Step (º)'), 'scan_settings',
-                    float, 0.45, min_value=0.01, max_value=360.0))
+                    float, 0.45))
         self._addSetting(
             Setting('motor_speed_scanning', _(u'Speed (º/s)'), 'scan_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
@@ -331,10 +331,10 @@ class Settings(collections.MutableMapping):
                     int, 11, min_value=2, max_value=50))
         self._addSetting(
             Setting('pattern_square_width', _('Square width (mm)'), 'calibration_settings',
-                    float, 13.0, min_value=1.0, max_value=100.0))
+                    float, 13.0, min_value=1.0))
         self._addSetting(
             Setting('pattern_origin_distance', _('Origin distance (mm)'), 'calibration_settings',
-                    float, 0.0, min_value=0.0, max_value=100.0))
+                    float, 0.0, min_value=0.0))
 
         self._addSetting(
             Setting('adjust_laser', _('Adjust Laser'), 'calibration_settings', bool, True))

@@ -12,7 +12,6 @@ from horus.gui.util.imageView import ImageView
 
 from horus.gui.wizard.wizardPage import WizardPage
 
-import horus.util.error as Error
 from horus.util import profile, resources
 
 from horus.engine.driver.driver import Driver

@@ -161,7 +161,7 @@ class OpenRecent(wx.Panel):
 
     def onButtonPressed(self, event):
         button = event.GetEventObject()
-        profile.settings['workbench'] = 'Scanning workbench'
+        profile.settings['workbench'] = u'Scanning workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().parent.appendLastFile(button.GetName())
         self.GetParent().GetParent().parent.scanningWorkbench.sceneView.loadFile(button.GetName())
