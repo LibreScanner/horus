@@ -369,7 +369,7 @@ class MainWindow(wx.Frame):
             driver.disconnect()
             waitCursor = wx.BusyCursor()
 
-        prefDialog = PreferencesDialog(self)
+        prefDialog = PreferencesDialog()
         prefDialog.ShowModal()
 
         self.updateDriverProfile()

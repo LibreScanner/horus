@@ -266,9 +266,9 @@ class ConnectionPage(WizardPage):
 
     def updateStatus(self, status):
         if status:
-            self.driver.board.setUnplugCallback(
+            self.driver.board.set_unplug_callback(
                 lambda: wx.CallAfter(self.parent.onBoardUnplugged))
-            self.driver.camera.setUnplugCallback(
+            self.driver.camera.set_unplug_callback(
                 lambda: wx.CallAfter(self.parent.onCameraUnplugged))
             # if profile.settings['workbench'] != u'Calibration workbench':
             profile.settings['workbench'] = u'Calibration workbench'

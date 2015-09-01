@@ -27,7 +27,7 @@ class PreferencesDialog(wx.Dialog):
         self.serialNames = self.driver.board.get_serial_list()
         self.serialNameCombo = wx.ComboBox(self, choices=self.serialNames, size=(170, -1))
         self.baudRateLabel = wx.StaticText(self, label=_("Baud Rate"))
-        self.baudRates = profile.settings['baud_rate'].getPossibleValues()
+        self.baudRates = [str(b) for b in profile.settings.getPossibleValues('baud_rate')]
         self.baudRateCombo = wx.ComboBox(
             self, choices=self.baudRates, size=(170, -1), style=wx.CB_READONLY)
         self.cameraIdLabel = wx.StaticText(self, label=_("Camera Id"))
@@ -78,8 +78,8 @@ class PreferencesDialog(wx.Dialog):
             else:
                 self.serialNameCombo.SetValue(currentSerial)
 
-        currentBaudRate = profile.settings['baud_rate']
-        self.baudRateCombo.SetValue(str(currentBaudRate))
+        currentBaudRate = str(profile.settings['baud_rate'])
+        self.baudRateCombo.SetValue(currentBaudRate)
 
         currentVideoId = profile.settings['camera_id']
         if len(self.cameraIdNames) > 0:
