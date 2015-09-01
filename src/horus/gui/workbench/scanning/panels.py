@@ -9,7 +9,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 
 from horus.gui.util.customPanels import ExpandablePanel, Slider, CheckBox, ComboBox, \
-    Button, TextBox
+    Button, TextBox, FloatTextBox
 
 from horus.util import profile, system as sys
 
@@ -52,16 +52,16 @@ class RotatingPlatform(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('rotating_platform')
-        section.addItem(Slider, 'motor_step_scanning')
-        section.addItem(Slider, 'motor_speed_scanning')
-        section.addItem(Slider, 'motor_acceleration_scanning')
+        section.addItem(FloatTextBox, 'motor_step_scanning')
+        section.addItem(FloatTextBox, 'motor_speed_scanning')
+        section.addItem(FloatTextBox, 'motor_acceleration_scanning')
 
     def updateCallbacks(self):
         section = self.sections['rotating_platform']
         section.updateCallback(
             'motor_step_scanning', lambda v: ciclop_scan.set_motor_step(self.to_float(v)))
         section.updateCallback(
-            'motor_speed_scanning', lambda v: ciclop_scan.set_motor_speed(self.to_int(v)))
+            'motor_speed_scanning', lambda v: ciclop_scan.set_motor_speed(self.to_float(v)))
         section.updateCallback(
             'motor_acceleration_scanning',
             lambda v: ciclop_scan.set_motor_acceleration(self.to_float(v)))

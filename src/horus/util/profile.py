@@ -211,10 +211,10 @@ class Settings(collections.MutableMapping):
                     float, 90.0, min_value=0.01, max_value=360.0))
         self._addSetting(
             Setting('motor_speed_control', _(u'Speed (º/s)'), 'scan_settings',
-                    int, 200, min_value=1, max_value=1000))
+                    float, 200.0, min_value=1.0, max_value=1000.0))
         self._addSetting(
             Setting('motor_acceleration_control', _(u'Acceleration (º/s²)'), 'scan_settings',
-                    int, 200, min_value=1, max_value=1000))
+                    float, 200.0, min_value=1.0, max_value=1000.0))
 
         # Hack to translate combo boxes:
         _('Texture')
@@ -294,10 +294,10 @@ class Settings(collections.MutableMapping):
                     float, 0.45, min_value=0.01, max_value=360.0))
         self._addSetting(
             Setting('motor_speed_scanning', _(u'Speed (º/s)'), 'scan_settings',
-                    int, 200, min_value=1, max_value=1000))
+                    float, 200.0, min_value=1.0, max_value=1000.0))
         self._addSetting(
             Setting('motor_acceleration_scanning', _(u'Acceleration (º/s²)'), 'scan_settings',
-                    int, 300, min_value=1, max_value=1000))
+                    float, 300.0, min_value=1.0, max_value=1000.0))
 
         self._addSetting(
             Setting('point_cloud_color', _('Choose Point Cloud Color'), 'scan_settings',

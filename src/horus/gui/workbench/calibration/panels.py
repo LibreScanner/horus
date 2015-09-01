@@ -10,7 +10,7 @@ import numpy as np
 
 from horus.gui.workbench.calibration.current_video import CurrentVideo
 from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
-    CheckBox, ToggleButton, Button, TextBox
+    CheckBox, ToggleButton, Button, TextBox, FloatTextBox
 
 from horus.util import profile, system as sys
 
@@ -175,8 +175,8 @@ class PatternSettingsPanel(ExpandablePanel):
             'Number of corner rows in the pattern'))
         section.addItem(Slider, 'pattern_columns', tooltip=_(
             'Number of corner columns in the pattern'))
-        section.addItem(Slider, 'pattern_square_width')
-        section.addItem(Slider, 'pattern_origin_distance', tooltip=_(
+        section.addItem(FloatTextBox, 'pattern_square_width')
+        section.addItem(FloatTextBox, 'pattern_origin_distance', tooltip=_(
             "Minimum distance between the origin of the pattern (bottom-left corner) "
             "and the pattern's base surface"))
 

@@ -12,7 +12,7 @@ from horus.engine.driver.driver import Driver
 from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.calibration.calibration_data import CalibrationData
 from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
-    CheckBox, Button, TextBox, ToggleButton, CallbackButton
+    CheckBox, Button, TextBox, ToggleButton, CallbackButton, FloatTextBox
 
 
 class CameraControl(ExpandablePanel):
@@ -178,9 +178,9 @@ class MotorControl(ExpandablePanel):
 
         self.clearSections()
         section = self.createSection('motor_control')
-        section.addItem(Slider, 'motor_step_control')
-        section.addItem(Slider, 'motor_speed_control')
-        section.addItem(Slider, 'motor_acceleration_control')
+        section.addItem(FloatTextBox, 'motor_step_control')
+        section.addItem(FloatTextBox, 'motor_speed_control')
+        section.addItem(FloatTextBox, 'motor_acceleration_control')
         section.addItem(CallbackButton, 'move_button')
         section.addItem(ToggleButton, 'enable_button')
 
@@ -192,7 +192,7 @@ class MotorControl(ExpandablePanel):
             'motor_speed_control', lambda v: self.driver.board.motor_speed(self.to_float(v)))
         section.updateCallback(
             'motor_acceleration_control',
-            lambda v: self.driver.board.motor_acceleration(self.to_int(v)))
+            lambda v: self.driver.board.motor_acceleration(self.to_float(v)))
         section.updateCallback(
             'move_button', lambda c: self.driver.board.motor_move(nonblocking=True, callback=c))
         section.updateCallback(

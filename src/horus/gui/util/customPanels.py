@@ -389,11 +389,6 @@ class TitleText(wx.Panel):
         self.Layout()
 
 
-class FloatSlider(wx.Slider):
-    def GetValue(self):
-        return (float(wx.Slider.GetValue(self)))/self.GetMax()
-
-
 class Slider(SectionItem):
     def __init__(self, parent, name, engineCallback=None):
         SectionItem.__init__(self, parent, name, engineCallback)
@@ -403,18 +398,11 @@ class Slider(SectionItem):
         # Elements
         self.label = wx.StaticText(self, label=self.setting._label)
 
-        if profile.settings.getSetting(name)._type == float:
-            self.control = FloatSlider(self, wx.ID_ANY,
-                                     profile.settings[name],
-                                     profile.settings.getMinValue(name),
-                                     profile.settings.getMaxValue(name),
-                                     size=(150, -1))
-        else:
-            self.control = wx.Slider(self, wx.ID_ANY,
-                                     profile.settings[name],
-                                     profile.settings.getMinValue(name),
-                                     profile.settings.getMaxValue(name),
-                                     size=(150, -1))
+        self.control = wx.Slider(self, wx.ID_ANY,
+                                 profile.settings[name],
+                                 profile.settings.getMinValue(name),
+                                 profile.settings.getMaxValue(name),
+                                 size=(150, -1))
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -611,6 +599,47 @@ class TextBox(SectionItem):
         if hasattr(self, 'control'):
             value = profile.settings[self.name]
             self.update(value)
+
+
+class FloatTextBox(SectionItem):
+
+    def __init__(self, parent, name, engineCallback=None):
+        SectionItem.__init__(self, parent, name, engineCallback)
+
+        # Elements
+        self.label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
+        self.control = wx.TextCtrl(self, size=(120, -1), style=wx.TE_RIGHT)
+
+        # Layout
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.AddStretchSpacer()
+        hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        self.SetSizer(hbox)
+        self.Layout()
+
+        # Events
+        self.control.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
+
+    def onTextBoxChanged(self, event):
+        self.undoValues.append(profile.settings[self.name])
+        try:
+            value = float(self.control.GetValue())
+        except:
+            self.updateProfile()
+            return
+        profile.settings[self.name] = value
+        self._updateEngine(value)
+        if self.appendUndoCallback is not None:
+            self.appendUndoCallback(self)
+        if self.releaseUndoCallback is not None:
+            self.releaseUndoCallback()
+
+    def updateProfile(self):
+        if hasattr(self, 'control'):
+            value = profile.settings[self.name]
+            self.update(str(value))
+
 
 # TODO: Create TextBoxArray
 
