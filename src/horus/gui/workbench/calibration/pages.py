@@ -324,8 +324,8 @@ class LaserTriangulationMainPage(Page):
         self.afterCalibrationCallback = afterCalibrationCallback
 
         # Image View
-        imageView = ImageView(self._panel)
-        imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
+        imageView = ImageView(self._panel, quality=wx.IMAGE_QUALITY_HIGH)
+        imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.png")))
 
         # Video View
         self.videoView = VideoView(self._panel, self.get_image, 10)
@@ -557,8 +557,8 @@ class PlatformExtrinsicsMainPage(Page):
         self.afterCalibrationCallback = afterCalibrationCallback
 
         # Image View
-        imageView = ImageView(self._panel)
-        imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-left.jpg")))
+        imageView = ImageView(self._panel, quality=wx.IMAGE_QUALITY_HIGH)
+        imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.png")))
 
         # Video View
         self.videoView = VideoView(self._panel, self.get_image, 10)

@@ -44,8 +44,8 @@ class ConnectionPage(WizardPage):
         self.patternLabel = wx.StaticText(self.panel, label=_(
             "Put the pattern on the platform as shown in the picture and press \"Auto check\""))
         self.patternLabel.Wrap(400)
-        self.imageView = ImageView(self.panel)
-        self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position-right.jpg")))
+        self.imageView = ImageView(self.panel, quality=wx.IMAGE_QUALITY_HIGH)
+        self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.png")))
         self.autoCheckButton = wx.Button(self.panel, label=_("Auto check"))
         self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
         self.resultLabel = wx.StaticText(self.panel, size=(-1, 30))

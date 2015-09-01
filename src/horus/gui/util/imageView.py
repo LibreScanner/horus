@@ -12,11 +12,12 @@ from horus.util import resources, system as sys
 
 class ImageView(wx.Panel):
 
-    def __init__(self, parent, resize=True, size=(-1, -1)):
+    def __init__(self, parent, resize=True, quality=wx.IMAGE_QUALITY_NORMAL, size=(-1, -1)):
         wx.Panel.__init__(self, parent, size=size)  # , style=wx.SIMPLE_BORDER)
 
         self.xOffset = 0
         self.yOffset = 0
+        self.quality = quality
 
         self.defaultImage = wx.Image(resources.getPathForImage("nusb.png"))
         self.image = self.defaultImage
@@ -62,7 +63,7 @@ class ImageView(wx.Panel):
     def refreshBitmap(self):
         (w, h, self.xOffset, self.yOffset) = self.getBestSize()
         if w > 0 and h > 0:
-            self.bitmap = wx.BitmapFromImage(self.image.Scale(w, h))
+            self.bitmap = wx.BitmapFromImage(self.image.Scale(w, h, self.quality))
             self.Refresh()
 
     def getBestSize(self):
