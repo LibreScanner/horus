@@ -98,10 +98,19 @@ class MainWindow(wx.Frame):
         self.menuSaveModel = self.menuFile.Append(wx.NewId(), _("Save Model"))
         self.menuClearModel = self.menuFile.Append(wx.NewId(), _("Clear Model"))
         self.menuFile.AppendSeparator()
-        self.menuOpenProfile = self.menuFile.Append(
-            wx.NewId(), _("Open Profile"), _("Opens Profile .ini"))
-        self.menuSaveProfile = self.menuFile.Append(wx.NewId(), _("Save Profile"))
-        self.menuResetProfile = self.menuFile.Append(wx.NewId(), _("Reset Profile"))
+        self.menuOpenCalibrationProfile = self.menuFile.Append(
+            wx.NewId(), _("Open Calibration Profile"), _("Opens Calibration profile .json"))
+        self.menuSaveCalibrationProfile = self.menuFile.Append(
+            wx.NewId(), _("Save Calibration Profile"), _("Saves Calibration profile .json"))
+        self.menuResetCalibrationProfile = self.menuFile.Append(
+            wx.NewId(), _("Reset Calibration Profile"), _("Resets Calibration default values"))
+        self.menuFile.AppendSeparator()
+        self.menuOpenScanProfile = self.menuFile.Append(
+            wx.NewId(), _("Open Scan Profile"), _("Opens Scan profile .json"))
+        self.menuSaveScanProfile = self.menuFile.Append(
+            wx.NewId(), _("Save Scan Profile"), _("Saves Scan profile .json"))
+        self.menuResetScanProfile = self.menuFile.Append(
+            wx.NewId(), _("Reset Scan Profile"), _("Resets Scan default values"))
         self.menuFile.AppendSeparator()
         self.menuExit = self.menuFile.Append(wx.ID_EXIT, _("Exit"))
         self.menuBar.Append(self.menuFile, _("File"))
@@ -171,11 +180,13 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
         self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
         self.Bind(wx.EVT_MENU, self.onClearModel, self.menuClearModel)
-        self.Bind(wx.EVT_MENU, self.onOpenProfile, self.menuOpenProfile)
-        self.Bind(wx.EVT_MENU, self.onSaveProfile, self.menuSaveProfile)
-        self.Bind(wx.EVT_MENU, self.onResetProfile, self.menuResetProfile)
+        self.Bind(wx.EVT_MENU, lambda e: self.onOpenProfile("calibration_settings"), self.menuOpenCalibrationProfile)
+        self.Bind(wx.EVT_MENU, lambda e: self.onSaveProfile("calibration_settings"), self.menuSaveCalibrationProfile)
+        self.Bind(wx.EVT_MENU, lambda e: self.onResetProfile("calibration_settings"), self.menuResetCalibrationProfile)
+        self.Bind(wx.EVT_MENU, lambda e: self.onOpenProfile("scan_settings"), self.menuOpenScanProfile)
+        self.Bind(wx.EVT_MENU, lambda e: self.onSaveProfile("scan_settings"), self.menuSaveScanProfile)
+        self.Bind(wx.EVT_MENU, lambda e: self.onResetProfile("scan_settings"), self.menuResetScanProfile)
         self.Bind(wx.EVT_MENU, self.onExit, self.menuExit)
-
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
         self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
@@ -278,29 +289,29 @@ class MainWindow(wx.Frame):
             if result:
                 self.scanningWorkbench.sceneView._clearScene()
 
-    def onOpenProfile(self, event):
-        dlg = wx.FileDialog(self, _("Select profile file to load"), os.path.split(
-            profile.settings['last_profile'])[0], style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+    def onOpenProfile(self, category):
+        dlg = wx.FileDialog(self, _("Select profile file to load"), profile.getBasePath(),
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
-            profile.settings.loadSettings(profileFile, categories=["scan_settings"])
+            profile.settings.loadSettings(profileFile, categories=[category])
             self.updateProfileToAllControls()
         dlg.Destroy()
 
-    def onSaveProfile(self, event):
-        dlg = wx.FileDialog(self, _("Select profile file to save"), os.path.split(
-            profile.settings['last_profile'])[0], style=wx.FD_SAVE)
+    def onSaveProfile(self, category):
+        dlg = wx.FileDialog(self, _("Select profile file to save"), profile.getBasePath(),
+            style=wx.FD_SAVE)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
             if not profileFile.endswith('.json'):
                 if sys.isLinux():  # hack for linux, as for some reason the .json is not appended.
                     profileFile += '.json'
-            profile.settings.saveSettings(profileFile, categories=["scan_settings"])
+            profile.settings.saveSettings(profileFile, categories=[category])
         dlg.Destroy()
 
-    def onResetProfile(self, event):
+    def onResetProfile(self, category):
         dlg = wx.MessageDialog(
             self,
             _("This will reset all profile settings to defaults.\n"
@@ -310,7 +321,7 @@ class MainWindow(wx.Frame):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.settings.resetToDefault(categories=["scan_settings"])
+            profile.settings.resetToDefault(categories=[category])
             self.updateProfileToAllControls()
 
     def onExit(self, event):
