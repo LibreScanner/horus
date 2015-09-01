@@ -584,7 +584,7 @@ class TextBox(SectionItem):
         self.Layout()
 
         # Events
-        self.control.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
+        self.control.Bind(wx.EVT_KILL_FOCUS, self.onTextBoxChanged)
 
     def onTextBoxChanged(self, event):
         self.undoValues.append(profile.settings[self.name])
@@ -620,21 +620,22 @@ class FloatTextBox(SectionItem):
         self.Layout()
 
         # Events
-        self.control.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
+        self.control.Bind(wx.EVT_KILL_FOCUS, self.onTextBoxLostFocus)
 
-    def onTextBoxChanged(self, event):
+    def onTextBoxLostFocus(self, event):
         self.undoValues.append(profile.settings[self.name])
         try:
             value = float(self.control.GetValue())
         except:
             self.updateProfile()
-            return
-        profile.settings[self.name] = value
-        self._updateEngine(value)
-        if self.appendUndoCallback is not None:
-            self.appendUndoCallback(self)
-        if self.releaseUndoCallback is not None:
-            self.releaseUndoCallback()
+        else:
+            self.control.SetValue(str(value))
+            profile.settings[self.name] = value
+            self._updateEngine(value)
+            if self.appendUndoCallback is not None:
+                self.appendUndoCallback(self)
+            if self.releaseUndoCallback is not None:
+                self.releaseUndoCallback()
 
     def updateProfile(self):
         if hasattr(self, 'control'):
