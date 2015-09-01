@@ -187,29 +187,16 @@ class MotorControl(ExpandablePanel):
     def updateCallbacks(self):
         section = self.sections['motor_control']
         section.updateCallback(
-            'motor_step_control', lambda v: self.driver.board.motor_relative(self.to_float(v)))
+            'motor_step_control', lambda v: self.driver.board.motor_relative(v))
         section.updateCallback(
-            'motor_speed_control', lambda v: self.driver.board.motor_speed(self.to_float(v)))
+            'motor_speed_control', lambda v: self.driver.board.motor_speed(v))
         section.updateCallback(
             'motor_acceleration_control',
-            lambda v: self.driver.board.motor_acceleration(self.to_float(v)))
+            lambda v: self.driver.board.motor_acceleration(v))
         section.updateCallback(
             'move_button', lambda c: self.driver.board.motor_move(nonblocking=True, callback=c))
         section.updateCallback(
             'enable_button', (self.driver.board.motor_enable, self.driver.board.motor_disable))
-
-    # TODO: move
-    def to_int(self, value):
-        try:
-            return int(eval(value, {}, {}))
-        except:
-            return 0
-
-    def to_float(self, value):
-        try:
-            return float(eval(value.replace(',', '.'), {}, {}))
-        except:
-            return 0.0
 
 
 class GcodeControl(ExpandablePanel):

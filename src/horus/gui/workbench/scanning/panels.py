@@ -59,25 +59,11 @@ class RotatingPlatform(ExpandablePanel):
     def updateCallbacks(self):
         section = self.sections['rotating_platform']
         section.updateCallback(
-            'motor_step_scanning', lambda v: ciclop_scan.set_motor_step(self.to_float(v)))
+            'motor_step_scanning', lambda v: ciclop_scan.set_motor_step(v))
         section.updateCallback(
-            'motor_speed_scanning', lambda v: ciclop_scan.set_motor_speed(self.to_float(v)))
+            'motor_speed_scanning', lambda v: ciclop_scan.set_motor_speed(v))
         section.updateCallback(
-            'motor_acceleration_scanning',
-            lambda v: ciclop_scan.set_motor_acceleration(self.to_float(v)))
-
-    # TODO: move
-    def to_int(self, value):
-        try:
-            return int(eval(value, {}, {}))
-        except:
-            return 0
-
-    def to_float(self, value):
-        try:
-            return float(eval(value.replace(',', '.'), {}, {}))
-        except:
-            return 0.0
+            'motor_acceleration_scanning', lambda v: ciclop_scan.set_motor_acceleration(v))
 
 
 class PointCloudROI(ExpandablePanel):
