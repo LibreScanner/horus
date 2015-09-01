@@ -24,6 +24,8 @@ class CameraControl(ExpandablePanel):
         self.image_capture = ImageCapture()
         self.calibration_data = CalibrationData()
 
+        self.current_framerate = None
+
         self.clearSections()
         section = self.createSection('camera_control')
         section.addItem(Slider, 'brightness_control', tooltip=_(
@@ -59,12 +61,16 @@ class CameraControl(ExpandablePanel):
         section.updateCallback('contrast_control', self.driver.camera.set_contrast)
         section.updateCallback('saturation_control', self.driver.camera.set_saturation)
         section.updateCallback('exposure_control', self.driver.camera.set_exposure)
-        section.updateCallback(
-            'framerate', lambda v: self.driver.camera.set_frame_rate(int(v)))
+        section.updateCallback('framerate', lambda v: self.set_framerate(int(v)))
         section.updateCallback('resolution', lambda v: self.set_resolution(
             int(v.split('x')[0]), int(v.split('x')[1])))
         section.updateCallback(
             'use_distortion', lambda v: self.image_capture.set_use_distortion(v))
+
+    def set_framerate(self, v):
+        if self.current_framerate != v:
+            self.current_framerate = v
+            self.driver.camera.set_frame_rate(v)
 
     def set_resolution(self, width, height):
         self.driver.camera.set_resolution(width, height)
