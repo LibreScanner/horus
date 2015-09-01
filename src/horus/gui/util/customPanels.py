@@ -402,7 +402,8 @@ class Slider(SectionItem):
                                  profile.settings[name],
                                  profile.settings.getMinValue(name),
                                  profile.settings.getMaxValue(name),
-                                 size=(150, -1))
+                                 size=(150, -1),
+                                 style=wx.SL_LABELS)
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
