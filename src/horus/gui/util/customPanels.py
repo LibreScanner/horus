@@ -630,7 +630,7 @@ class FloatTextBox(SectionItem):
     def SetValue_overwrite(self, value):
         self.control.SetValue_original(str(value))
 
-    def GetValue_overwrite(self, value):
+    def GetValue_overwrite(self):
         return float(self.control.GetValue_original())
 
     def onTextBoxLostFocus(self, event):
