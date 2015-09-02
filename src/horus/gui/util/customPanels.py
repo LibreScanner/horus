@@ -613,6 +613,8 @@ class FloatTextBox(SectionItem):
 
         self.control.SetValue_original = self.control.SetValue
         self.control.SetValue = self.SetValue_overwrite
+        self.control.GetValue_original = self.control.GetValue
+        self.control.GetValue = self.GetValue_overwrite
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -626,17 +628,19 @@ class FloatTextBox(SectionItem):
         self.control.Bind(wx.EVT_KILL_FOCUS, self.onTextBoxLostFocus)
 
     def SetValue_overwrite(self, value):
-        # Overwrite to cast to string before setting value
         self.control.SetValue_original(str(value))
+
+    def GetValue_overwrite(self, value):
+        return float(self.control.GetValue_original())
 
     def onTextBoxLostFocus(self, event):
         self.undoValues.append(profile.settings[self.name])
         try:
-            value = float(self.control.GetValue())
+            value = self.control.GetValue()
         except:
-            self.updateProfile()
+            self.control.SetValue(profile.settings[self.name])
         else:
-            self.control.SetValue(str(value))
+            self.control.SetValue(value)
             profile.settings[self.name] = value
             self._updateEngine(value)
             if self.appendUndoCallback is not None:
