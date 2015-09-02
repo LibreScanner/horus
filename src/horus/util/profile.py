@@ -103,7 +103,6 @@ class Settings(collections.MutableMapping):
 
     def _loadJsonDict(self, json_dict, categories):
         for category in json_dict.keys():
-            # import pdb; pdb.set_trace()
             if category == "settings_version":
                 continue
             if categories is None or category in categories:

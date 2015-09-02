@@ -611,6 +611,9 @@ class FloatTextBox(SectionItem):
         self.label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
         self.control = wx.TextCtrl(self, size=(120, -1), style=wx.TE_RIGHT)
 
+        self.control.SetValue_original = self.control.SetValue
+        self.control.SetValue = self.SetValue_overwrite
+
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
@@ -621,6 +624,10 @@ class FloatTextBox(SectionItem):
 
         # Events
         self.control.Bind(wx.EVT_KILL_FOCUS, self.onTextBoxLostFocus)
+
+    def SetValue_overwrite(self, value):
+        # Overwrite to cast to string before setting value
+        self.control.SetValue_original(str(value))
 
     def onTextBoxLostFocus(self, event):
         self.undoValues.append(profile.settings[self.name])
@@ -640,7 +647,7 @@ class FloatTextBox(SectionItem):
     def updateProfile(self):
         if hasattr(self, 'control'):
             value = profile.settings[self.name]
-            self.update(str(value))
+            self.update(float(value))
 
 
 # TODO: Create TextBoxArray
