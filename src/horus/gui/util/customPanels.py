@@ -263,6 +263,9 @@ class SectionPanel(wx.Panel):
         else:
             self.items[_name].setEngineCallback(_callback)
 
+    def getItem(self, _name):
+        return self.items[_name]
+
     def resetProfile(self):
         for item in self.items.values():
             if isinstance(item, tuple):

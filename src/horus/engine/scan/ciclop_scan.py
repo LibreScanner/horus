@@ -178,13 +178,7 @@ class CiclopScan(Scan):
                                 # Compute point cloud texture
                                 u, v = points_2d
                                 texture = capture.texture[v, u.astype(int)].T
-                                # Filter point cloud
-                                point_cloud_mask = self.point_cloud_roi.mask_point_cloud(
-                                    point_cloud, texture)
-                                if point_cloud_mask is not None:
-                                    # Put point cloud into queue
-                                    point_cloud, texture = point_cloud_mask
-                                    self._point_cloud_queue.put((point_cloud, texture))
+                                self._point_cloud_queue.put((point_cloud, texture))
 
                         # Set current video images
                         self.current_video.set_gray(images)
