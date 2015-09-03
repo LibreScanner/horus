@@ -134,10 +134,11 @@ class SceneView(openglGui.glGuiPanel):
         del color
 
     def updatePointCloud(self):
-        self._clearScene()
-        self.createDefaultObject()
-        for point, texture in zip(self._objectPointCloud, self._objectTexture):
-            self.appendPointCloud(*self.point_cloud_roi.mask_point_cloud(point, texture))
+        if self._object is not None:
+            self._clearScene()
+            self.createDefaultObject()
+            for point, texture in zip(self._objectPointCloud, self._objectTexture):
+                self.appendPointCloud(*self.point_cloud_roi.mask_point_cloud(point, texture))
 
     def loadFile(self, filename):
         # Only one STL / PLY file can be active
