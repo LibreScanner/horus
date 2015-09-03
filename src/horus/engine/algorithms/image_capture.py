@@ -154,5 +154,5 @@ class ImageCapture(object):
                                       None,
                                       self.calibration_data.dist_camera_matrix)
                 x, y, w, h = self.calibration_data.roi
-                image = image[y:y + h, x:x + w]
+                image = image[y:y + h + 1, x:x + w + 1]
         return image
