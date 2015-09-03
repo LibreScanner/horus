@@ -85,6 +85,11 @@ class PointCloudROI(ExpandablePanel):
         section.addItem(Slider, 'roi_height')
         section.addItem(Slider, 'roi_depth')
 
+        section.getItem('roi_diameter').control.Bind(wx.EVT_SCROLL_CHANGED, self.onRoiSliderChange)
+        #section.getItem('roi_diameter').control.Bind(wx.EVT_SLIDER, self.onRoiSliderChanging)
+        section.getItem('roi_height').control.Bind(wx.EVT_SCROLL_CHANGED, self.onRoiSliderChange)
+        #section.getItem('roi_height').control.Bind(wx.EVT_SLIDER, self.onRoiSliderChanging)
+
     def updateCallbacks(self):
         section = self.sections['point_cloud_roi']
         section.updateCallback('roi_view', lambda v: (
@@ -97,6 +102,10 @@ class PointCloudROI(ExpandablePanel):
             point_cloud_roi.set_height(int(v)), self.main.sceneView.QueueRefresh()))
         section.updateCallback('roi_depth', lambda v: (
             point_cloud_roi.set_depth(int(v)), self.main.sceneView.QueueRefresh()))
+
+    def onRoiSliderChange(self, e):
+        # Update the point cloud with the new ROI
+        self.main.sceneView.updatePointCloud()
 
     # Overwrites ExpandablePanel method
     def updateProfile(self):

@@ -174,6 +174,7 @@ class ScanningWorkbench(WorkbenchConnection):
         if pointCloud is not None:
             if pointCloud[0] is not None and pointCloud[1] is not None:
                 if len(pointCloud[0]) > 0:
+                    pointCloud = self.point_cloud_roi.mask_point_cloud(*pointCloud)
                     self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
     def onPlayToolClicked(self, event):

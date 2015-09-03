@@ -26,6 +26,7 @@ from horus.gui.util import openglHelpers, openglGui
 
 # TODO
 from horus.engine.driver.driver import Driver
+from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 
 class SceneView(openglGui.glGuiPanel):
@@ -35,6 +36,7 @@ class SceneView(openglGui.glGuiPanel):
 
         # TODO
         self.driver = Driver()
+        self.point_cloud_roi = PointCloudROI()
 
         self._yaw = 30
         self._pitch = 60
@@ -65,6 +67,9 @@ class SceneView(openglGui.glGuiPanel):
 
         self._zOffset = 0
         self._hOffset = 20
+
+        self._objectPointCloud = []
+        self._objectTexture = []
 
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
@@ -108,6 +113,8 @@ class SceneView(openglGui.glGuiPanel):
         self._object._mesh._prepareVertexCount(4000000)
 
     def appendPointCloud(self, point, color):
+        self._objectPointCloud.append(point)
+        self._objectTexture.append(color)
         # TODO: optimize
         if self._object is not None:
             if self._object._mesh is not None:
@@ -125,6 +132,13 @@ class SceneView(openglGui.glGuiPanel):
         # Delete objects
         del point
         del color
+
+    def updatePointCloud(self):
+        if self._object is not None:
+            self._clearScene()
+            self.createDefaultObject()
+            for point, texture in zip(self._objectPointCloud, self._objectTexture):
+                self.appendPointCloud(*self.point_cloud_roi.mask_point_cloud(point, texture))
 
     def loadFile(self, filename):
         # Only one STL / PLY file can be active
