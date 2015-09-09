@@ -592,7 +592,7 @@ def getBasePath():
     This depends on the used OS.
     """
     if system.isWindows():
-        Path = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+        basePath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
         # If we have a frozen python install, we need to step out of the library.zip
         if hasattr(sys, 'frozen'):
             basePath = os.path.normpath(os.path.join(basePath, ".."))
