@@ -390,22 +390,21 @@ class MainWindow(wx.Frame):
 
     def onMachineSettings(self, event):
         if sys.isWindows():
-            self.simpleScan.stop()
-            self.textureScan.stop()
-            self.laserTriangulation.cancel()
-            self.platformExtrinsics.cancel()
+            ciclop_scan.stop()
+            laser_triangulation.cancel()
+            platform_extrinsics.cancel()
             self.controlWorkbench.videoView.stop()
             self.calibrationWorkbench.videoView.stop()
             self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
             self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
             self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
             self.scanningWorkbench.videoView.stop()
-            self.driver.board.setUnplugCallback(None)
-            self.driver.camera.setUnplugCallback(None)
+            driver.board.set_unplug_callback(None)
+            driver.camera.set_unplug_callback(None)
             self.controlWorkbench.updateStatus(False)
             self.calibrationWorkbench.updateStatus(False)
             self.scanningWorkbench.updateStatus(False)
-            self.driver.disconnect()
+            driver.disconnect()
             waitCursor = wx.BusyCursor()
 
         MachineDialog = MachineSettingsDialog(self)
