@@ -114,7 +114,9 @@ class CalibrationWorkbench(WorkbenchConnection):
         vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
-        self.scrollPanel.SetMinSize((self.scrollPanel.GetSize()[0], -1))
+        panel_size = self.scrollPanel.GetSize()[0] + \
+                     wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.scrollPanel.SetMinSize((panel_size, -1))
 
         self.controls.initPanels()
 

@@ -28,9 +28,10 @@ class ControlWorkbench(WorkbenchConnection):
         # Elements
         self.toolbar.Realize()
 
-        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
+        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel,
+                                                              size=(-1, -1))
         self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
-        self.scrollPanel.SetAutoLayout(True)
+        self.scrollPanel.SetAutoLayout(1)
 
         self.controls = ExpandableControl(self.scrollPanel)
         self.controls.addPanel('camera_control', CameraControl(self.controls))
@@ -39,7 +40,8 @@ class ControlWorkbench(WorkbenchConnection):
         self.controls.addPanel('motor_control', MotorControl(self.controls))
         self.controls.addPanel('gcode_control', GcodeControl(self.controls))
 
-        self.videoView = VideoView(self._panel, self.image_capture.capture_image, 10)
+        self.videoView = VideoView(self._panel,
+                                   self.image_capture.capture_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Layout
@@ -47,7 +49,9 @@ class ControlWorkbench(WorkbenchConnection):
         vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
-        self.scrollPanel.SetMinSize((self.scrollPanel.GetSize()[0], -1))
+        panel_size = self.scrollPanel.GetSize()[0] + \
+                     wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.scrollPanel.SetMinSize((panel_size, -1))
 
         self.controls.initPanels()
 

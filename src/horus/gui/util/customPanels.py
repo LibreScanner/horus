@@ -399,12 +399,12 @@ class Slider(SectionItem):
         self.flagFirstMove = True
 
         # Elements
-        self.label = wx.StaticText(self, label=self.setting._label)
+        self.label = wx.StaticText(self, label=self.setting._label,
+                                   size=(130, -1))
 
-        self.control = wx.Slider(self, wx.ID_ANY,
-                                 profile.settings[name],
-                                 profile.settings.getMinValue(name),
-                                 profile.settings.getMaxValue(name),
+        self.control = wx.Slider(self, value=profile.settings[name],
+                                 minValue=profile.settings.getMinValue(name),
+                                 maxValue=profile.settings.getMaxValue(name),
                                  size=(150, -1),
                                  style=wx.SL_LABELS)
 
@@ -504,8 +504,9 @@ class CheckBox(SectionItem):
         SectionItem.__init__(self, parent, name, engineCallback)
 
         # Elements
-        self.label = wx.StaticText(self, label=self.setting._label)
-        self.control = wx.CheckBox(self)
+        self.label = wx.StaticText(self, label=self.setting._label,
+                                   size=(130, -1))
+        self.control = wx.CheckBox(self, size=(150, -1))
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
