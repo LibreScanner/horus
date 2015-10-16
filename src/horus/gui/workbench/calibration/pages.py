@@ -14,12 +14,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
-from horus.util import profile, resources
+from horus.util import resources
 
 from horus.gui.util.imageView import ImageView, VideoView
 
 from horus.gui.workbench.calibration.page import Page
-from horus.gui.workbench.calibration.current_video import CurrentVideo
 
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.pattern import Pattern
@@ -39,7 +38,6 @@ laser_triangulation = LaserTriangulation()
 platform_extrinsics = PlatformExtrinsics()
 image_capture = ImageCapture()
 image_detection = ImageDetection()
-current_video = CurrentVideo()
 
 
 class CameraIntrinsicsMainPage(Page):
@@ -414,8 +412,6 @@ class LaserTriangulationResultPage(Page):
                       buttonRightCallback=buttonAcceptCallback,
                       panelOrientation=wx.HORIZONTAL)
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
-
         self.plotPanel = LaserTriangulation3DPlot(self._panel)
 
         # Layout
@@ -653,8 +649,6 @@ class PlatformExtrinsicsResultPage(Page):
                       buttonRightCallback=buttonAcceptCallback,
                       panelOrientation=wx.HORIZONTAL)
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
-
         self.plotPanel = PlatformExtrinsics3DPlot(self._panel)
 
         # Layout
@@ -715,7 +709,7 @@ class PlatformExtrinsics3DPlot(wx.Panel):
 
         # plot the surface, data, and synthetic circle
         self.ax.scatter(x, z, y, c='b', marker='o')
-        #self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
+        # self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
         self.ax.plot(circle[0], circle[2], circle[1], c='r')
 
         d = pattern.distance

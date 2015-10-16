@@ -9,38 +9,48 @@ import wx.lib.scrolledpanel
 
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
+
 from horus.gui.workbench.workbench import WorkbenchConnection
-from horus.gui.workbench.control.panels import CameraControl, LaserControl, \
-    LDRControl, MotorControl, GcodeControl
 
+from horus.gui.workbench.adjustment.current_video import CurrentVideo
+from horus.gui.workbench.adjustment.panels import ScanCapturePanel, ScanSegmentationPanel, \
+    CalibrationCapturePanel, CalibrationSegmentationPanel
+
+from horus.engine.driver.driver import Driver
 from horus.engine.algorithms.image_capture import ImageCapture
+from horus.engine.algorithms.image_detection import ImageDetection
 
 
-class ControlWorkbench(WorkbenchConnection):
+class AdjustmentWorkbench(WorkbenchConnection):
 
     def __init__(self, parent):
         WorkbenchConnection.__init__(self, parent)
 
-        self.image_capture = ImageCapture()
+        self.calibrating = False
 
-        # Elements
+        self.driver = Driver()
+        self.image_capture = ImageCapture()
+        self.image_detection = ImageDetection()
+        self.current_video = CurrentVideo()
+
         self.toolbar.Realize()
 
-        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel,
-                                                              size=(-1, -1))
+        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
         self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
         self.scrollPanel.SetAutoLayout(1)
 
         self.controls = ExpandableControl(self.scrollPanel)
-        self.controls.addPanel('camera_control', CameraControl(self.controls))
-        self.controls.addPanel('laser_control', LaserControl(self.controls))
-        self.controls.addPanel('ldr_value', LDRControl(self.controls))
-        self.controls.addPanel('motor_control', MotorControl(self.controls))
-        self.controls.addPanel('gcode_control', GcodeControl(self.controls))
 
-        self.videoView = VideoView(self._panel,
-                                   self.image_capture.capture_image, 10)
+        self.video_image = None
+        self.videoView = VideoView(self._panel, self.get_image, 10)
         self.videoView.SetBackgroundColour(wx.BLACK)
+
+        # Add Scroll Panels
+        self.controls.addPanel('scan_capture', ScanCapturePanel(self.controls))
+        self.controls.addPanel('scan_segmentation', ScanSegmentationPanel(self.controls))
+        self.controls.addPanel('calibration_capture', CalibrationCapturePanel(self.controls))
+        self.controls.addPanel('calibration_segmentation',
+                               CalibrationSegmentationPanel(self.controls))
 
         # Layout
         vsbox = wx.BoxSizer(wx.VERTICAL)
@@ -61,18 +71,19 @@ class ControlWorkbench(WorkbenchConnection):
     def updateCallbacks(self):
         self.controls.updateCallbacks()
 
+    def get_image(self):
+        return self.current_video.capture()
+
     def updateToolbarStatus(self, status):
         if status:
             if self.IsShown():
                 self.videoView.play()
-                self.controls.panels['laser_control'].section.items[
-                    'left_button'].control.SetValue(False)
-                self.controls.panels['laser_control'].section.items[
-                    'right_button'].control.SetValue(False)
             self.controls.enableContent()
         else:
             self.videoView.stop()
             self.controls.disableContent()
+            self.combo.Enable()
+            self.controls.setExpandable(True)
 
     def updateProfileToAllControls(self):
         self.controls.updateProfile()

@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx.lib.scrolledpanel
 
-from horus.util import resources, profile
+from horus.util import profile
 
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
@@ -15,10 +15,8 @@ from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
 
 from horus.gui.workbench.workbench import WorkbenchConnection
 
-from horus.gui.workbench.calibration.current_video import CurrentVideo
-from horus.gui.workbench.calibration.panels import PatternSettingsPanel, ImageDetectionPanel, \
-    LaserSegmentation, AutocheckPanel, CameraIntrinsicsPanel, \
-    LaserTriangulationPanel, PlatformExtrinsicsPanel
+from horus.gui.workbench.calibration.panels import PatternSettingsPanel, AutocheckPanel, \
+    CameraIntrinsicsPanel, LaserTriangulationPanel, PlatformExtrinsicsPanel
 
 from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
     CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
@@ -43,7 +41,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.autocheck = Autocheck()
         self.image_capture = ImageCapture()
         self.image_detection = ImageDetection()
-        self.current_video = CurrentVideo()
 
         self.toolbar.Realize()
 
@@ -58,8 +55,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.videoView.SetBackgroundColour(wx.BLACK)
 
         # Add Scroll Panels
-        self.controls.addPanel('image_detection', ImageDetectionPanel(self.controls))
-        self.controls.addPanel('laser_segmentation', LaserSegmentation(self.controls))
         self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
         self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
             self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
@@ -114,8 +109,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
         self.scrollPanel.SetSizer(vsbox)
         vsbox.Fit(self.scrollPanel)
-        panel_size = self.scrollPanel.GetSize()[0] + \
-                     wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        panel_size = self.scrollPanel.GetSize()[0] + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
         self.scrollPanel.SetMinSize((panel_size, -1))
 
         self.controls.initPanels()
@@ -140,7 +134,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         if self.autocheck._is_calibrating:
             image = self.autocheck.image
         else:
-            image = self.current_video.capture()
+            image = self.image_capture.capture_pattern()
+            image = self.image_detection.detect_pattern(image)
         return image
 
     def enableMenus(self, value):
@@ -222,7 +217,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.laserTriangulationResultPage.Hide()
         self.platformExtrinsicsMainPage.Hide()
         self.platformExtrinsicsResultPage.Hide()
-        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -246,7 +240,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.cameraIntrinsicsResultPage.Hide()
-        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -269,7 +262,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.laserTriangulationResultPage.Hide()
-        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -292,7 +284,6 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.combo.Enable()
         self.enableMenus(True)
         self.platformExtrinsicsResultPage.Hide()
-        self.current_video.mode = 'Pattern'
         self.videoView.play()
         self.videoView.Show()
         self.Layout()
@@ -320,7 +311,6 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.laserTriangulationResultPage.Hide()
             self.platformExtrinsicsMainPage.Hide()
             self.platformExtrinsicsResultPage.Hide()
-            self.videoView.Show()
 
     def updateProfileToAllControls(self):
         self.controls.updateProfile()

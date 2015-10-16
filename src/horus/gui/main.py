@@ -13,8 +13,9 @@ import wx._core
 import webbrowser
 
 from horus.gui.workbench.control.main import ControlWorkbench
-from horus.gui.workbench.scanning.main import ScanningWorkbench
+from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
 from horus.gui.workbench.calibration.main import CalibrationWorkbench
+from horus.gui.workbench.scanning.main import ScanningWorkbench
 from horus.gui.preferences import PreferencesDialog
 from horus.gui.machineSettings import MachineSettingsDialog
 from horus.gui.welcome import WelcomeWindow
@@ -55,8 +56,7 @@ class MainWindow(wx.Frame):
     size = (640 + 340, 480 + 155)
 
     def __init__(self):
-        super(MainWindow, self).__init__(
-            None, title=_("Horus 0.2 BETA"), size=self.size)
+        super(MainWindow, self).__init__(None, title=_("Horus 0.2 BETA"), size=self.size)
 
         self.SetMinSize((600, 450))
 
@@ -127,6 +127,10 @@ class MainWindow(wx.Frame):
         self.menuControlPanel = self.menuControl.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuControlVideo = self.menuControl.AppendCheckItem(wx.NewId(), _("Video"))
         self.menuView.AppendMenu(wx.NewId(), _("Control"), self.menuControl)
+        self.menuAdjustment = wx.Menu()
+        self.menuAdjustmentPanel = self.menuAdjustment.AppendCheckItem(wx.NewId(), _("Panel"))
+        self.menuAdjustmentVideo = self.menuAdjustment.AppendCheckItem(wx.NewId(), _("Video"))
+        self.menuView.AppendMenu(wx.NewId(), _("Adjustment"), self.menuAdjustment)
         self.menuCalibration = wx.Menu()
         self.menuCalibrationPanel = self.menuCalibration.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menuCalibrationVideo = self.menuCalibration.AppendCheckItem(wx.NewId(), _("Video"))
@@ -153,9 +157,11 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(self.menuBar)
 
         # Create Workbenchs
-        self.controlWorkbench = ControlWorkbench(self)
-        self.scanningWorkbench = ScanningWorkbench(self)
-        self.calibrationWorkbench = CalibrationWorkbench(self)
+        self.workbench = {}
+        self.workbench['control'] = ControlWorkbench(self)
+        self.workbench['adjustment'] = AdjustmentWorkbench(self)
+        self.workbench['calibration'] = CalibrationWorkbench(self)
+        self.workbench['scanning'] = ScanningWorkbench(self)
 
         _choices = []
         choices = profile.settings.getPossibleValues('workbench')
@@ -163,16 +169,16 @@ class MainWindow(wx.Frame):
             _choices.append(_(i))
         self.workbenchDict = dict(zip(_choices, choices))
 
-        for workbench in [self.controlWorkbench, self.calibrationWorkbench,
-                          self.scanningWorkbench]:
-            workbench.combo.Clear()
+        for w in self.workbench.values():
+            w.combo.Clear()
             for i in choices:
-                workbench.combo.Append(_(i))
+                w.combo.Append(_(i))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.controlWorkbench, 1, wx.ALL | wx.EXPAND)
-        sizer.Add(self.calibrationWorkbench, 1, wx.ALL | wx.EXPAND)
-        sizer.Add(self.scanningWorkbench, 1, wx.ALL | wx.EXPAND)
+        sizer.Add(self.workbench['control'], 1, wx.ALL | wx.EXPAND)
+        sizer.Add(self.workbench['adjustment'], 1, wx.ALL | wx.EXPAND)
+        sizer.Add(self.workbench['calibration'], 1, wx.ALL | wx.EXPAND)
+        sizer.Add(self.workbench['scanning'], 1, wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
 
         # Events
@@ -180,12 +186,21 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
         self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
         self.Bind(wx.EVT_MENU, self.onClearModel, self.menuClearModel)
-        self.Bind(wx.EVT_MENU, lambda e: self.onOpenProfile("calibration_settings"), self.menuOpenCalibrationProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onSaveProfile("calibration_settings"), self.menuSaveCalibrationProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onResetProfile("calibration_settings"), self.menuResetCalibrationProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onOpenProfile("scan_settings"), self.menuOpenScanProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onSaveProfile("scan_settings"), self.menuSaveScanProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onResetProfile("scan_settings"), self.menuResetScanProfile)
+        self.Bind(wx.EVT_MENU,
+                  lambda e: self.onOpenProfile("calibration_settings"),
+                  self.menuOpenCalibrationProfile)
+        self.Bind(wx.EVT_MENU,
+                  lambda e: self.onSaveProfile("calibration_settings"),
+                  self.menuSaveCalibrationProfile)
+        self.Bind(wx.EVT_MENU,
+                  lambda e: self.onResetProfile("calibration_settings"),
+                  self.menuResetCalibrationProfile)
+        self.Bind(wx.EVT_MENU,
+                  lambda e: self.onOpenProfile("scan_settings"), self.menuOpenScanProfile)
+        self.Bind(wx.EVT_MENU,
+                  lambda e: self.onSaveProfile("scan_settings"), self.menuSaveScanProfile)
+        self.Bind(wx.EVT_MENU,
+                  lambda e: self.onResetProfile("scan_settings"), self.menuResetScanProfile)
         self.Bind(wx.EVT_MENU, self.onExit, self.menuExit)
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
@@ -194,6 +209,8 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
         self.Bind(wx.EVT_MENU, self.onControlVideoClicked, self.menuControlVideo)
+        self.Bind(wx.EVT_MENU, self.onAdjustmentPanelClicked, self.menuAdjustmentPanel)
+        self.Bind(wx.EVT_MENU, self.onAdjustmentVideoClicked, self.menuAdjustmentVideo)
         self.Bind(wx.EVT_MENU, self.onCalibrationPanelClicked, self.menuCalibrationPanel)
         self.Bind(wx.EVT_MENU, self.onCalibrationVideoClicked, self.menuCalibrationVideo)
         self.Bind(wx.EVT_MENU, self.onScanningPanelClicked, self.menuScanningPanel)
@@ -213,10 +230,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
             'https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menuForum)
 
-        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.controlWorkbench.combo)
-        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected,
-                  self.calibrationWorkbench.combo)
-        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.scanningWorkbench.combo)
+        for key in self.workbench.keys():
+            self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.workbench[key].combo)
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
@@ -228,19 +243,19 @@ class MainWindow(wx.Frame):
         self.SetPosition((x + (w - ws) / 2., y + (h - hs) / 2.))
 
     def onLaunchWizard(self, event):
-        self.controlWorkbench.videoView.stop()
-        self.calibrationWorkbench.videoView.stop()
-        self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
-        self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
-        self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
-        self.scanningWorkbench.videoView.stop()
-        self.controlWorkbench.Disable()
-        self.calibrationWorkbench.Disable()
-        self.scanningWorkbench.Disable()
-        wizard = Wizard(self)
-        self.controlWorkbench.Enable()
-        self.calibrationWorkbench.Enable()
-        self.scanningWorkbench.Enable()
+        self.workbench['control'].videoView.stop()
+        self.workbench['calibration'].videoView.stop()
+        self.workbench['calibration'].cameraIntrinsicsMainPage.videoView.stop()
+        self.workbench['calibration'].laserTriangulationMainPage.videoView.stop()
+        self.workbench['calibration'].platformExtrinsicsMainPage.videoView.stop()
+        self.workbench['scanning'].videoView.stop()
+        self.workbench['control'].Disable()
+        self.workbench['calibration'].Disable()
+        self.workbench['scanning'].Disable()
+        Wizard(self)
+        self.workbench['control'].Enable()
+        self.workbench['calibration'].Enable()
+        self.workbench['scanning'].Enable()
 
     def onLoadModel(self, event):
         lastFile = os.path.split(profile.settings['last_file'])[0]
@@ -255,12 +270,12 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if filename is not None:
-                self.scanningWorkbench.sceneView.loadFile(filename)
+                self.workbench['scanning'].sceneView.loadFile(filename)
                 self.appendLastFile(filename)
         dlg.Destroy()
 
     def onSaveModel(self, event):
-        if self.scanningWorkbench.sceneView._object is None:
+        if self.workbench['scanning'].sceneView._object is None:
             return
         dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(
             profile.settings['last_file'])[0], style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
@@ -274,12 +289,12 @@ class MainWindow(wx.Frame):
             if not filename.endswith('.ply'):
                 if sys.isLinux():  # hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
-            meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
+            meshLoader.saveMesh(filename, self.workbench['scanning'].sceneView._object)
             self.appendLastFile(filename)
         dlg.Destroy()
 
     def onClearModel(self, event):
-        if self.scanningWorkbench.sceneView._object is not None:
+        if self.workbench['scanning'].sceneView._object is not None:
             dlg = wx.MessageDialog(
                 self,
                 _("Your current model will be erased.\nDo you really want to do it?"),
@@ -287,11 +302,11 @@ class MainWindow(wx.Frame):
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
-                self.scanningWorkbench.sceneView._clearScene()
+                self.workbench['scanning'].sceneView._clearScene()
 
     def onOpenProfile(self, category):
         dlg = wx.FileDialog(self, _("Select profile file to load"), profile.getBasePath(),
-            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
@@ -301,7 +316,7 @@ class MainWindow(wx.Frame):
 
     def onSaveProfile(self, category):
         dlg = wx.FileDialog(self, _("Select profile file to save"), profile.getBasePath(),
-            style=wx.FD_SAVE)
+                            style=wx.FD_SAVE)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
@@ -335,12 +350,12 @@ class MainWindow(wx.Frame):
             if ciclop_scan.is_scanning:
                 ciclop_scan.stop()
                 time.sleep(0.5)
-            self.controlWorkbench.videoView.stop()
-            self.calibrationWorkbench.videoView.stop()
-            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
-            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
-            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
-            self.scanningWorkbench.videoView.stop()
+            self.workbench['control'].videoView.stop()
+            self.workbench['calibration'].videoView.stop()
+            self.workbench['calibration'].cameraIntrinsicsMainPage.videoView.stop()
+            self.workbench['calibration'].laserTriangulationMainPage.videoView.stop()
+            self.workbench['calibration'].platformExtrinsicsMainPage.videoView.stop()
+            self.workbench['scanning'].videoView.stop()
         except:
             pass
         event.Skip()
@@ -356,9 +371,10 @@ class MainWindow(wx.Frame):
 
     def onModeChanged(self, event):
         # profile.settings['basic_mode'] = self.menuBasicMode.IsChecked()
-        self.controlWorkbench.updateProfileToAllControls()
-        self.calibrationWorkbench.updateProfileToAllControls()
-        self.scanningWorkbench.updateProfileToAllControls()
+        self.workbench['control'].updateProfileToAllControls()
+        self.workbench['adjustment'].updateProfileToAllControls()
+        self.workbench['calibration'].updateProfileToAllControls()
+        self.workbench['scanning'].updateProfileToAllControls()
         self.Layout()
 
     def onPreferences(self, event):
@@ -366,61 +382,63 @@ class MainWindow(wx.Frame):
             ciclop_scan.stop()
             laser_triangulation.cancel()
             platform_extrinsics.cancel()
-            self.controlWorkbench.videoView.stop()
-            self.calibrationWorkbench.videoView.stop()
-            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
-            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
-            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
-            self.scanningWorkbench.videoView.stop()
+            self.workbench['control'].videoView.stop()
+            self.workbench['calibration'].videoView.stop()
+            self.workbench['calibration'].cameraIntrinsicsMainPage.videoView.stop()
+            self.workbench['calibration'].laserTriangulationMainPage.videoView.stop()
+            self.workbench['calibration'].platformExtrinsicsMainPage.videoView.stop()
+            self.workbench['scanning'].videoView.stop()
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
-            self.controlWorkbench.updateStatus(False)
-            self.calibrationWorkbench.updateStatus(False)
-            self.scanningWorkbench.updateStatus(False)
+            self.workbench['control'].updateStatus(False)
+            self.workbench['calibration'].updateStatus(False)
+            self.workbench['scanning'].updateStatus(False)
             driver.disconnect()
-            waitCursor = wx.BusyCursor()
+            # waitCursor = wx.BusyCursor()
 
         prefDialog = PreferencesDialog()
         prefDialog.ShowModal()
 
         self.updateDriverProfile()
-        self.controlWorkbench.updateCallbacks()
-        self.calibrationWorkbench.updateCallbacks()
-        self.scanningWorkbench.updateCallbacks()
+        self.workbench['control'].updateCallbacks()
+        self.workbench['adjustment'].updateCallbacks()
+        self.workbench['calibration'].updateCallbacks()
+        self.workbench['scanning'].updateCallbacks()
 
     def onMachineSettings(self, event):
         if sys.isWindows():
             ciclop_scan.stop()
             laser_triangulation.cancel()
             platform_extrinsics.cancel()
-            self.controlWorkbench.videoView.stop()
-            self.calibrationWorkbench.videoView.stop()
-            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
-            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
-            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
-            self.scanningWorkbench.videoView.stop()
+            self.workbench['control'].videoView.stop()
+            self.workbench['calibration'].videoView.stop()
+            self.workbench['calibration'].cameraIntrinsicsMainPage.videoView.stop()
+            self.workbench['calibration'].laserTriangulationMainPage.videoView.stop()
+            self.workbench['calibration'].platformExtrinsicsMainPage.videoView.stop()
+            self.workbench['scanning'].videoView.stop()
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
-            self.controlWorkbench.updateStatus(False)
-            self.calibrationWorkbench.updateStatus(False)
-            self.scanningWorkbench.updateStatus(False)
+            self.workbench['control'].updateStatus(False)
+            self.workbench['calibration'].updateStatus(False)
+            self.workbench['scanning'].updateStatus(False)
             driver.disconnect()
-            waitCursor = wx.BusyCursor()
+            # waitCursor = wx.BusyCursor()
 
         MachineDialog = MachineSettingsDialog(self)
         ret = MachineDialog.ShowModal()
 
         if ret == wx.ID_OK:
             try:  # TODO: Fix this. If not in the Scanning workbench, _drawMachine() fails.
-                self.scanningWorkbench.sceneView._drawMachine()
+                self.workbench['scanning'].sceneView._drawMachine()
             except:
                 pass
             profile.settings.saveSettings(categories=["machine_settings"])
-            self.scanningWorkbench.controls.panels["point_cloud_roi"].updateProfile()
+            self.workbench['scanning'].controls.panels["point_cloud_roi"].updateProfile()
 
-        self.controlWorkbench.updateCallbacks()
-        self.calibrationWorkbench.updateCallbacks()
-        self.scanningWorkbench.updateCallbacks()
+        self.workbench['control'].updateCallbacks()
+        self.workbench['adjustment'].updateCallbacks()
+        self.workbench['calibration'].updateCallbacks()
+        self.workbench['scanning'].updateCallbacks()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.settings[key] = checked
@@ -435,56 +453,66 @@ class MainWindow(wx.Frame):
     def onControlPanelClicked(self, event):
         self.onMenuViewClicked('view_control_panel',
                                self.menuControlPanel.IsChecked(),
-                               self.controlWorkbench.scrollPanel)
+                               self.workbench['control'].scrollPanel)
 
     def onControlVideoClicked(self, event):
         self.onMenuViewClicked('view_control_video',
                                self.menuControlVideo.IsChecked(),
-                               self.controlWorkbench.videoView)
+                               self.workbench['control'].videoView)
+
+    def onAdjustmentPanelClicked(self, event):
+        self.onMenuViewClicked('view_adjustment_panel',
+                               self.menuAdjustmentPanel.IsChecked(),
+                               self.workbench['adjustment'].scrollPanel)
+
+    def onAdjustmentVideoClicked(self, event):
+        self.onMenuViewClicked('view_adjustment_video',
+                               self.menuAdjustmentVideo.IsChecked(),
+                               self.workbench['adjustment'].videoView)
 
     def onCalibrationPanelClicked(self, event):
         self.onMenuViewClicked('view_calibration_panel',
                                self.menuCalibrationPanel.IsChecked(),
-                               self.calibrationWorkbench.scrollPanel)
+                               self.workbench['calibration'].scrollPanel)
 
     def onCalibrationVideoClicked(self, event):
         self.onMenuViewClicked('view_calibration_video',
                                self.menuCalibrationVideo.IsChecked(),
-                               self.calibrationWorkbench.videoView)
+                               self.workbench['calibration'].videoView)
 
     def onScanningPanelClicked(self, event):
         self.onMenuViewClicked('view_scanning_panel',
                                self.menuScanningPanel.IsChecked(),
-                               self.scanningWorkbench.scrollPanel)
+                               self.workbench['scanning'].scrollPanel)
 
     def onScanningVideoSceneClicked(self, event):
         checkedVideo = self.menuScanningVideo.IsChecked()
         checkedScene = self.menuScanningScene.IsChecked()
         profile.settings['view_scanning_video'] = checkedVideo
         profile.settings['view_scanning_scene'] = checkedScene
-        self.scanningWorkbench.splitterWindow.Unsplit()
+        self.workbench['scanning'].splitterWindow.Unsplit()
         if checkedVideo:
-            self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(
-                self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
+            self.workbench['scanning'].videoView.Show()
+            self.workbench['scanning'].splitterWindow.SplitVertically(
+                self.workbench['scanning'].videoView, self.workbench['scanning'].scenePanel)
             if checkedScene:
-                self.scanningWorkbench.scenePanel.Show()
+                self.workbench['scanning'].scenePanel.Show()
             else:
-                self.scanningWorkbench.scenePanel.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scenePanel.Hide()
+                self.workbench['scanning'].splitterWindow.Unsplit()
         else:
-            self.scanningWorkbench.videoView.Hide()
+            self.workbench['scanning'].videoView.Hide()
             if checkedScene:
-                self.scanningWorkbench.scenePanel.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(
-                    self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scenePanel.Show()
+                self.workbench['scanning'].splitterWindow.SplitVertically(
+                    self.workbench['scanning'].scenePanel, self.workbench['scanning'].videoView)
+                self.workbench['scanning'].splitterWindow.Unsplit()
             else:
-                self.scanningWorkbench.scenePanel.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scenePanel.Hide()
+                self.workbench['scanning'].splitterWindow.Unsplit()
 
-        self.scanningWorkbench.splitterWindow.Layout()
-        self.scanningWorkbench.Layout()
+        self.workbench['scanning'].splitterWindow.Layout()
+        self.workbench['scanning'].Layout()
         self.Layout()
 
     def onComboBoxWorkbenchSelected(self, event):
@@ -557,9 +585,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
         ciclop_scan.stop()
         laser_triangulation.cancel()
         platform_extrinsics.cancel()
-        self.controlWorkbench.updateStatus(False)
-        self.calibrationWorkbench.updateStatus(False)
-        self.scanningWorkbench.updateStatus(False)
+        self.workbench['control'].updateStatus(False)
+        self.workbench['adjustment'].updateStatus(False)
+        self.workbench['calibration'].updateStatus(False)
+        self.workbench['scanning'].updateStatus(False)
         driver.disconnect()
         dlg = wx.MessageDialog(self, description, title, wx.OK | wx.ICON_ERROR)
         dlg.ShowModal()
@@ -567,38 +596,52 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def updateProfileToAllControls(self):
         if profile.settings['view_control_panel']:
-            self.controlWorkbench.scrollPanel.Show()
+            self.workbench['control'].scrollPanel.Show()
             self.menuControlPanel.Check(True)
         else:
-            self.controlWorkbench.scrollPanel.Hide()
+            self.workbench['control'].scrollPanel.Hide()
             self.menuControlPanel.Check(False)
 
         if profile.settings['view_control_video']:
-            self.controlWorkbench.videoView.Show()
+            self.workbench['control'].videoView.Show()
             self.menuControlVideo.Check(True)
         else:
-            self.controlWorkbench.videoView.Hide()
+            self.workbench['control'].videoView.Hide()
             self.menuControlVideo.Check(False)
 
+        if profile.settings['view_adjustment_panel']:
+            self.workbench['adjustment'].scrollPanel.Show()
+            self.menuAdjustmentPanel.Check(True)
+        else:
+            self.workbench['adjustment'].scrollPanel.Hide()
+            self.menuAdjustmentPanel.Check(False)
+
+        if profile.settings['view_adjustment_video']:
+            self.workbench['adjustment'].videoView.Show()
+            self.menuAdjustmentVideo.Check(True)
+        else:
+            self.workbench['adjustment'].videoView.Hide()
+            self.menuAdjustmentVideo.Check(False)
+
         if profile.settings['view_calibration_panel']:
-            self.calibrationWorkbench.scrollPanel.Show()
+            self.workbench['calibration'].scrollPanel.Show()
             self.menuCalibrationPanel.Check(True)
         else:
-            self.calibrationWorkbench.scrollPanel.Hide()
+            self.workbench['calibration'].scrollPanel.Hide()
             self.menuCalibrationPanel.Check(False)
 
         if profile.settings['view_calibration_video']:
-            self.calibrationWorkbench.videoView.Show()
+            self.workbench['calibration'].videoView.Show()
             self.menuCalibrationVideo.Check(True)
         else:
-            self.calibrationWorkbench.videoView.Hide()
+            self.workbench['calibration'].videoView.Hide()
             self.menuCalibrationVideo.Check(False)
 
         if profile.settings['view_scanning_panel']:
-            self.scanningWorkbench.scrollPanel.Show()
+            self.workbench['scanning'].scrollPanel.Show()
             self.menuScanningPanel.Check(True)
         else:
-            self.scanningWorkbench.scrollPanel.Hide()
+            self.workbench['scanning'].scrollPanel.Hide()
             self.menuScanningPanel.Check(False)
 
         checkedVideo = profile.settings['view_scanning_video']
@@ -607,26 +650,26 @@ Suite 330, Boston, MA  02111-1307  USA""")
         self.menuScanningVideo.Check(checkedVideo)
         self.menuScanningScene.Check(checkedScene)
 
-        self.scanningWorkbench.splitterWindow.Unsplit()
+        self.workbench['scanning'].splitterWindow.Unsplit()
         if checkedVideo:
-            self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(
-                self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
+            self.workbench['scanning'].videoView.Show()
+            self.workbench['scanning'].splitterWindow.SplitVertically(
+                self.workbench['scanning'].videoView, self.workbench['scanning'].scenePanel)
             if checkedScene:
-                self.scanningWorkbench.scenePanel.Show()
+                self.workbench['scanning'].scenePanel.Show()
             else:
-                self.scanningWorkbench.scenePanel.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scenePanel.Hide()
+                self.workbench['scanning'].splitterWindow.Unsplit()
         else:
-            self.scanningWorkbench.videoView.Hide()
+            self.workbench['scanning'].videoView.Hide()
             if checkedScene:
-                self.scanningWorkbench.scenePanel.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(
-                    self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scenePanel.Show()
+                self.workbench['scanning'].splitterWindow.SplitVertically(
+                    self.workbench['scanning'].scenePanel, self.workbench['scanning'].videoView)
+                self.workbench['scanning'].splitterWindow.Unsplit()
             else:
-                self.scanningWorkbench.scenePanel.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scenePanel.Hide()
+                self.workbench['scanning'].splitterWindow.Unsplit()
 
         self.updateDriverProfile()
         self.updateProfile()
@@ -651,25 +694,25 @@ Suite 330, Boston, MA  02111-1307  USA""")
         ciclop_scan.color = struct.unpack(
             'BBB', profile.settings['point_cloud_color'].decode('hex'))
 
-        image_capture.pattern_mode.brightness = profile.settings['brightness_pattern']
-        image_capture.pattern_mode.contrast = profile.settings['contrast_pattern']
-        image_capture.pattern_mode.saturation = profile.settings['saturation_pattern']
-        image_capture.pattern_mode.exposure = profile.settings['exposure_pattern']
-        image_capture.laser_mode.brightness = profile.settings['brightness_laser']
-        image_capture.laser_mode.contrast = profile.settings['contrast_laser']
-        image_capture.laser_mode.saturation = profile.settings['saturation_laser']
-        image_capture.laser_mode.exposure = profile.settings['exposure_laser']
-        image_capture.texture_mode.brightness = profile.settings['brightness_texture']
-        image_capture.texture_mode.contrast = profile.settings['contrast_texture']
-        image_capture.texture_mode.saturation = profile.settings['saturation_texture']
-        image_capture.texture_mode.exposure = profile.settings['exposure_texture']
+        image_capture.pattern_mode.brightness = profile.settings['brightness_pattern_calibration']
+        image_capture.pattern_mode.contrast = profile.settings['contrast_pattern_calibration']
+        image_capture.pattern_mode.saturation = profile.settings['saturation_pattern_calibration']
+        image_capture.pattern_mode.exposure = profile.settings['exposure_pattern_calibration']
+        image_capture.laser_mode.brightness = profile.settings['brightness_laser_scanning']
+        image_capture.laser_mode.contrast = profile.settings['contrast_laser_scanning']
+        image_capture.laser_mode.saturation = profile.settings['saturation_laser_scanning']
+        image_capture.laser_mode.exposure = profile.settings['exposure_laser_scanning']
+        image_capture.texture_mode.brightness = profile.settings['brightness_texture_scanning']
+        image_capture.texture_mode.contrast = profile.settings['contrast_texture_scanning']
+        image_capture.texture_mode.saturation = profile.settings['saturation_texture_scanning']
+        image_capture.texture_mode.exposure = profile.settings['exposure_texture_scanning']
         image_capture.use_distortion = profile.settings['use_distortion']
 
-        laser_segmentation.red_channel = profile.settings['red_channel']
-        laser_segmentation.open_enable = profile.settings['open_enable']
-        laser_segmentation.open_value = profile.settings['open_value']
-        laser_segmentation.threshold_enable = profile.settings['threshold_enable']
-        laser_segmentation.threshold_value = profile.settings['threshold_value']
+        laser_segmentation.red_channel = profile.settings['red_channel_scanning']
+        laser_segmentation.open_enable = profile.settings['open_enable_scanning']
+        laser_segmentation.open_value = profile.settings['open_value_scanning']
+        laser_segmentation.threshold_enable = profile.settings['threshold_enable_scanning']
+        laser_segmentation.threshold_value = profile.settings['threshold_value_scanning']
 
         current_video.set_roi_view(profile.settings['roi_view'])
         point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
@@ -702,9 +745,10 @@ Suite 330, Boston, MA  02111-1307  USA""")
     def workbenchUpdate(self, layout=True):
         currentWorkbench = profile.settings['workbench']
 
-        wb = {'Control workbench': self.controlWorkbench,
-              'Calibration workbench': self.calibrationWorkbench,
-              'Scanning workbench': self.scanningWorkbench}
+        wb = {'Control workbench': self.workbench['control'],
+              'Adjustment workbench': self.workbench['adjustment'],
+              'Calibration workbench': self.workbench['calibration'],
+              'Scanning workbench': self.workbench['scanning']}
 
         waitCursor = wx.BusyCursor()
 

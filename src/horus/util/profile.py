@@ -8,7 +8,6 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.\
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import os
-import traceback
 import math
 import sys
 import collections
@@ -218,64 +217,103 @@ class Settings(collections.MutableMapping):
         # Hack to translate combo boxes:
         _('Texture')
         _('Laser')
-        _('Pattern')
         self._addSetting(
-            Setting('capture_mode', _('Capture mode'), 'scan_settings',
-                    unicode, u'Pattern', possible_values=(u'Texture', u'Laser', u'Pattern')))
+            Setting('capture_mode_scanning', _('Capture mode'), 'scan_settings',
+                    unicode, u'Texture', possible_values=(u'Texture', u'Laser')))
 
         self._addSetting(
-            Setting('brightness_pattern', _('Brightness'), 'scan_settings',
+            Setting('brightness_texture_scanning', _('Brightness'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
         self._addSetting(
-            Setting('contrast_pattern', _('Contrast'), 'scan_settings',
+            Setting('contrast_texture_scanning', _('Contrast'), 'scan_settings',
                     int, 32, min_value=0, max_value=255))
         self._addSetting(
-            Setting('saturation_pattern', _('Saturation'), 'scan_settings',
+            Setting('saturation_texture_scanning', _('Saturation'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
         self._addSetting(
-            Setting('exposure_pattern', _('Exposure'), 'scan_settings',
+            Setting('exposure_texture_scanning', _('Exposure'), 'scan_settings',
                     int, 16, min_value=1, max_value=512))
 
         self._addSetting(
-            Setting('brightness_laser', _('Brightness'), 'scan_settings',
+            Setting('brightness_laser_scanning', _('Brightness'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
         self._addSetting(
-            Setting('contrast_laser', _('Contrast'), 'scan_settings',
+            Setting('contrast_laser_scanning', _('Contrast'), 'scan_settings',
                     int, 20, min_value=0, max_value=255))
         self._addSetting(
-            Setting('saturation_laser', _('Saturation'), 'scan_settings',
+            Setting('saturation_laser_scanning', _('Saturation'), 'scan_settings',
                     int, 60, min_value=0, max_value=255))
         self._addSetting(
-            Setting('exposure_laser', _('Exposure'), 'scan_settings',
+            Setting('exposure_laser_scanning', _('Exposure'), 'scan_settings',
                     int, 6, min_value=1, max_value=512))
         self._addSetting(
-            Setting('remove_background', _('Remove background'), 'scan_settings', bool, True))
+            Setting('remove_background_scanning', _('Remove background'),
+                    'scan_settings', bool, True))
 
         self._addSetting(
-            Setting('brightness_texture', _('Brightness'), 'scan_settings',
-                    int, 100, min_value=0, max_value=255))
-        self._addSetting(
-            Setting('contrast_texture', _('Contrast'), 'scan_settings',
-                    int, 32, min_value=0, max_value=255))
-        self._addSetting(
-            Setting('saturation_texture', _('Saturation'), 'scan_settings',
-                    int, 60, min_value=0, max_value=255))
-        self._addSetting(
-            Setting('exposure_texture', _('Exposure'), 'scan_settings',
-                    int, 20, min_value=1, max_value=512))
-
-        self._addSetting(
-            Setting('red_channel', _('Red channel'), 'scan_settings',
+            Setting('red_channel_scanning', _('Red channel'), 'scan_settings',
                     unicode, u'R (RGB)', possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._addSetting(
-            Setting('open_enable', _('Enable open'), 'scan_settings', bool, True))
+            Setting('open_enable_scanning', _('Enable open'), 'scan_settings', bool, True))
         self._addSetting(
-            Setting('open_value', _('Open value'), 'scan_settings',
+            Setting('open_value_scanning', _('Open value'), 'scan_settings',
                     int, 2, min_value=1, max_value=10))
         self._addSetting(
-            Setting('threshold_enable', _('Enable threshold'), 'scan_settings', bool, True))
+            Setting('threshold_enable_scanning', _('Enable threshold'),
+                    'scan_settings', bool, True))
         self._addSetting(
-            Setting('threshold_value', _('Threshold value'), 'scan_settings',
+            Setting('threshold_value_scanning', _('Threshold value'), 'scan_settings',
+                    int, 6, min_value=0, max_value=255))
+
+        # Hack to translate combo boxes:
+        _('Pattern')
+        _('Laser')
+        self._addSetting(
+            Setting('capture_mode_calibration', _('Capture mode'), 'scan_settings',
+                    unicode, u'Pattern', possible_values=(u'Pattern', u'Laser')))
+
+        self._addSetting(
+            Setting('brightness_pattern_calibration', _('Brightness'), 'scan_settings',
+                    int, 100, min_value=0, max_value=255))
+        self._addSetting(
+            Setting('contrast_pattern_calibration', _('Contrast'), 'scan_settings',
+                    int, 32, min_value=0, max_value=255))
+        self._addSetting(
+            Setting('saturation_pattern_calibration', _('Saturation'), 'scan_settings',
+                    int, 100, min_value=0, max_value=255))
+        self._addSetting(
+            Setting('exposure_pattern_calibration', _('Exposure'), 'scan_settings',
+                    int, 16, min_value=1, max_value=512))
+
+        self._addSetting(
+            Setting('brightness_laser_calibration', _('Brightness'), 'scan_settings',
+                    int, 100, min_value=0, max_value=255))
+        self._addSetting(
+            Setting('contrast_laser_calibration', _('Contrast'), 'scan_settings',
+                    int, 20, min_value=0, max_value=255))
+        self._addSetting(
+            Setting('saturation_laser_calibration', _('Saturation'), 'scan_settings',
+                    int, 60, min_value=0, max_value=255))
+        self._addSetting(
+            Setting('exposure_laser_calibration', _('Exposure'), 'scan_settings',
+                    int, 6, min_value=1, max_value=512))
+        self._addSetting(
+            Setting('remove_background_calibration', _('Remove background'),
+                    'scan_settings', bool, True))
+
+        self._addSetting(
+            Setting('red_channel_calibration', _('Red channel'), 'scan_settings',
+                    unicode, u'R (RGB)', possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
+        self._addSetting(
+            Setting('open_enable_calibration', _('Enable open'), 'scan_settings', bool, True))
+        self._addSetting(
+            Setting('open_value_calibration', _('Open value'), 'scan_settings',
+                    int, 2, min_value=1, max_value=10))
+        self._addSetting(
+            Setting('threshold_enable_calibration', _('Enable threshold'),
+                    'scan_settings', bool, True))
+        self._addSetting(
+            Setting('threshold_value_calibration', _('Threshold value'), 'scan_settings',
                     int, 6, min_value=0, max_value=255))
 
         self._addSetting(
@@ -425,11 +463,13 @@ class Settings(collections.MutableMapping):
 
         # Hack to translate combo boxes:
         _('Control workbench')
+        _('Adjustment workbench')
         _('Calibration workbench')
         _('Scanning workbench')
         self._addSetting(
             Setting('workbench', _('Workbench'), 'preferences', unicode, u'Scanning workbench',
                     possible_values=(u'Control workbench',
+                                     u'Adjustment workbench',
                                      u'Calibration workbench',
                                      u'Scanning workbench')))
         self._addSetting(
@@ -442,6 +482,12 @@ class Settings(collections.MutableMapping):
             Setting('view_control_panel', _('View Control Panel'), 'preferences', bool, True))
         self._addSetting(
             Setting('view_control_video', _('View Control Panel'), 'preferences', bool, True))
+        self._addSetting(
+            Setting('view_adjustment_panel', _('View Adjustment Panel'),
+                    'preferences', bool, True))
+        self._addSetting(
+            Setting('view_adjustment_video', _('View Adjustment Video'),
+                    'preferences', bool, True))
         self._addSetting(
             Setting('view_calibration_panel', _('View Calibration Panel'),
                     'preferences', bool, True))
