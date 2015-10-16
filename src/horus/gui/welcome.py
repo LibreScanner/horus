@@ -88,18 +88,21 @@ class CreateNew(wx.Panel):
         wizardButton = wx.Button(self, label=_("Wizard mode (step by step)"))
         scanButton = wx.Button(self, label=_("Scan using recent settings"))
         advancedControlButton = wx.Button(self, label=_("Advanced Control"))
+        advancedAdjustmentButton = wx.Button(self, label=_("Advanced Adjustment"))
         advancedCalibrationButton = wx.Button(self, label=_("Advanced Calibration"))
 
         wizardButton.Bind(wx.EVT_BUTTON, self.onWizard)
         scanButton.Bind(wx.EVT_BUTTON, self.onScan)
         advancedControlButton.Bind(wx.EVT_BUTTON, self.onAdvancedControl)
+        advancedAdjustmentButton.Bind(wx.EVT_BUTTON, self.onAdvancedAdjustment)
         advancedCalibrationButton.Bind(wx.EVT_BUTTON, self.onAdvancedCalibration)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(titleText, 0, wx.BOTTOM | wx.CENTER, 10)
         vbox.Add(wizardButton, 1, wx.ALL | wx.EXPAND, 5)
         vbox.Add(scanButton, 1, wx.ALL | wx.EXPAND, 5)
-        vbox.Add(advancedControlButton, 1, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(advancedControlButton, 1, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
+        vbox.Add(advancedAdjustmentButton, 1, wx.ALL | wx.EXPAND, 5)
         vbox.Add(advancedCalibrationButton, 1, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(vbox)
@@ -107,16 +110,16 @@ class CreateNew(wx.Panel):
 
     def onWizard(self, event):
         self.GetParent().GetParent().Hide()
-        self.GetParent().GetParent().parent.controlWorkbench.videoView.stop()
-        self.GetParent().GetParent().parent.calibrationWorkbench.videoView.stop()
-        self.GetParent().GetParent().parent.scanningWorkbench.videoView.stop()
-        self.GetParent().GetParent().parent.controlWorkbench.Disable()
-        self.GetParent().GetParent().parent.calibrationWorkbench.Disable()
-        self.GetParent().GetParent().parent.scanningWorkbench.Disable()
-        wizard = Wizard(self.GetParent().GetParent().parent)
-        self.GetParent().GetParent().parent.controlWorkbench.Enable()
-        self.GetParent().GetParent().parent.calibrationWorkbench.Enable()
-        self.GetParent().GetParent().parent.scanningWorkbench.Enable()
+        self.GetParent().GetParent().parent.workbench['control'].videoView.stop()
+        self.GetParent().GetParent().parent.workbench['calibration'].videoView.stop()
+        self.GetParent().GetParent().parent.workbench['scanning'].videoView.stop()
+        self.GetParent().GetParent().parent.workbench['control'].Disable()
+        self.GetParent().GetParent().parent.workbench['calibration'].Disable()
+        self.GetParent().GetParent().parent.workbench['scanning'].Disable()
+        Wizard(self.GetParent().GetParent().parent)
+        self.GetParent().GetParent().parent.workbench['control'].Enable()
+        self.GetParent().GetParent().parent.workbench['calibration'].Enable()
+        self.GetParent().GetParent().parent.workbench['scanning'].Enable()
         self.GetParent().GetParent().Close()
 
     def onScan(self, event):
@@ -126,6 +129,11 @@ class CreateNew(wx.Panel):
 
     def onAdvancedControl(self, event):
         profile.settings['workbench'] = u'Control workbench'
+        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().Close()
+
+    def onAdvancedAdjustment(self, event):
+        profile.settings['workbench'] = u'Adjustment workbench'
         self.GetParent().GetParent().parent.workbenchUpdate()
         self.GetParent().GetParent().Close()
 
@@ -177,9 +185,9 @@ class Content(wx.Panel):
         openRecent = OpenRecent(self)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(createNew, 1, wx.ALL | wx.EXPAND, 20)
+        hbox.Add(createNew, 1, wx.ALL | wx.EXPAND, 10)
         hbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 20)
-        hbox.Add(openRecent, 1, wx.ALL | wx.EXPAND, 20)
+        hbox.Add(openRecent, 1, wx.ALL | wx.EXPAND, 10)
 
         self.SetSizer(hbox)
         self.Layout()
