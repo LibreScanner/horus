@@ -16,7 +16,7 @@ from horus.engine.calibration.moving_calibration import MovingCalibration
 class PlatformExtrinsicsError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("PlatformExtrinsicsError"))
+        Exception.__init__(self, "PlatformExtrinsicsError")
 
 
 estimated_t = [5, 90, 320]
@@ -118,7 +118,7 @@ def fit_plane(data):
     best_fit_values, ier = optimize.leastsq(residuals_plane, estimate, args=(data))
     xF, yF, zF, tF, pF = best_fit_values
 
-    #point  = [xF,yF,zF]
+    # point  = [xF,yF,zF]
     point = data[0]
     normal = -np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
 

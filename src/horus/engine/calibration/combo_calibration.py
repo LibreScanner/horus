@@ -16,7 +16,7 @@ from horus.engine.calibration import laser_triangulation, platform_extrinsics
 class ComboCalibrationError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("ComboCalibrationError"))
+        Exception.__init__(self, "ComboCalibrationError")
 
 
 @Singleton

@@ -17,13 +17,13 @@ system = platform.system()
 class WrongFirmware(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Wrong Firmware"))
+        Exception.__init__(self, "Wrong Firmware")
 
 
 class BoardNotConnected(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Board Not Connected"))
+        Exception.__init__(self, "Board Not Connected")
 
 
 class Board(object):

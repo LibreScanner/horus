@@ -7,12 +7,12 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.util import profile, system as sys
+from horus.util import system as sys
 from horus.engine.driver.driver import Driver
 from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.calibration.calibration_data import CalibrationData
 from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
-    CheckBox, Button, TextBox, ToggleButton, CallbackButton, FloatTextBox
+    CheckBox, ToggleButton, CallbackButton, FloatTextBox
 
 
 class CameraControl(ExpandablePanel):
@@ -231,7 +231,7 @@ class GcodeSection(SectionItem):
         # Elements
         self.request = wx.TextCtrl(self)
         self.control = wx.Button(self, label=self.setting._label, size=(80, -1))
-        self.response = wx.TextCtrl(self, size=(-1, 240), style=wx.TE_MULTILINE)
+        self.response = wx.TextCtrl(self, size=(-1, 260), style=wx.TE_MULTILINE)
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -239,7 +239,7 @@ class GcodeSection(SectionItem):
         hbox.Add(self.request, 1, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
         hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         vbox.Add(hbox, 0, wx.EXPAND)
-        vbox.Add(self.response, 1, wx.TOP | wx.EXPAND, 8)
+        vbox.Add(self.response, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 8)
 
         self.SetSizer(vbox)
         self.Layout()
@@ -260,7 +260,7 @@ class GcodeSection(SectionItem):
         self.control.Disable()
         self.waitCursor = wx.BusyCursor()
         if self.engineCallback is not None:
-            ret = self.engineCallback(
+            self.engineCallback(
                 str(self.request.GetValue()), lambda r: wx.CallAfter(self.onFinishCallback, r))
 
     def onFinishCallback(self, ret):

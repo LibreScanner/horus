@@ -20,19 +20,19 @@ if system == 'Darwin':
 class WrongCamera(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Wrong Camera"))
+        Exception.__init__(self, "Wrong Camera")
 
 
 class CameraNotConnected(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Camera Not Connected"))
+        Exception.__init__(self, "Camera Not Connected")
 
 
 class InvalidVideo(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Invalid Video"))
+        Exception.__init__(self, "Invalid Video")
 
 
 class Camera(object):

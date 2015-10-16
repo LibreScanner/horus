@@ -54,11 +54,11 @@ class LaserSegmentation(object):
         if image is not None:
             image = self.compute_line_segmentation(image)
             lines = cv2.HoughLines(image, 1, np.pi / 180, 200)
-            #if lines is not None:
-                #rho, theta = lines[0][0]
-                ## Calculate coordinates
-                #u1 = rho / np.cos(theta)
-                #u2 = u1 - height * np.tan(theta)
+            # if lines is not None:
+            #   rho, theta = lines[0][0]
+            #   ## Calculate coordinates
+            #   u1 = rho / np.cos(theta)
+            #   u2 = u1 - height * np.tan(theta)
             return lines
 
     def compute_line_segmentation(self, image, roi_mask=False):

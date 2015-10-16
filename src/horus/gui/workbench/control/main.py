@@ -7,8 +7,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx.lib.scrolledpanel
 
-from horus.util import resources
-
 from horus.gui.util.imageView import VideoView
 from horus.gui.util.customPanels import ExpandableControl
 from horus.gui.workbench.workbench import WorkbenchConnection

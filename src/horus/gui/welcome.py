@@ -34,7 +34,7 @@ class WelcomeWindow(wx.Dialog):
         checkBoxShow.Bind(wx.EVT_CHECKBOX, self.onCheckBoxChanged)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
-        #-- Layout
+        # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(header, 2, wx.ALL | wx.EXPAND, 1)
         vbox.Add(content, 3, wx.ALL | wx.EXPAND ^ wx.BOTTOM, 20)

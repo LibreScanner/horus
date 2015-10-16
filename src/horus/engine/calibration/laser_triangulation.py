@@ -5,7 +5,6 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-import cv2
 import struct
 import numpy as np
 from scipy.sparse import linalg
@@ -18,7 +17,7 @@ from horus.engine.calibration.moving_calibration import MovingCalibration
 class LaserTriangulationError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("LaserTriangulationError"))
+        Exception.__init__(self, "LaserTriangulationError")
 
 
 @Singleton

@@ -18,7 +18,7 @@ from horus.engine.scan.current_video import CurrentVideo
 class ScanError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("ScanError"))
+        Exception.__init__(self, "ScanError")
 
 
 @Singleton

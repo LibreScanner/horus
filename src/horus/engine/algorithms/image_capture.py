@@ -139,9 +139,6 @@ class ImageCapture(object):
         return image
 
     def capture_image(self, flush=0):
-        #image = None
-        #while not self._updating:
-        #    pass
         image = self.driver.camera.capture_image(flush=flush)
         if self.use_distortion:
             if self.calibration_data.camera_matrix is not None and \

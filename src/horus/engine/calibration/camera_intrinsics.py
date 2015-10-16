@@ -14,7 +14,7 @@ from horus.engine.calibration.calibration import Calibration
 class CameraIntrinsicsError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("CameraIntrinsicsError"))
+        Exception.__init__(self, "CameraIntrinsicsError")
 
 
 @Singleton

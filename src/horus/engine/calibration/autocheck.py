@@ -5,7 +5,6 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-import cv2
 import time
 import numpy as np
 
@@ -16,25 +15,25 @@ from horus.engine.calibration.calibration import Calibration
 class PatternNotDetected(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Pattern Not Detected"))
+        Exception.__init__(self, "Pattern Not Detected")
 
 
 class WrongMotorDirection(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Wrong Motor Direction"))
+        Exception.__init__(self, "Wrong Motor Direction")
 
 
 class LaserNotDetected(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Laser Not Detected"))
+        Exception.__init__(self, "Laser Not Detected")
 
 
 class WrongLaserPosition(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Wrong Laser Position"))
+        Exception.__init__(self, "Wrong Laser Position")
 
 
 @Singleton

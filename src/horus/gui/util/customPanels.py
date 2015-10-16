@@ -98,7 +98,7 @@ class ExpandableControl(wx.Panel):
 class ExpandablePanel(wx.Panel):
 
     def __init__(self, parent, title="", callback=None, hasUndo=True, hasRestore=True):
-        wx.Panel.__init__(self, parent, size=(-1,-1))
+        wx.Panel.__init__(self, parent, size=(-1, -1))
 
         # Elements
         self.callback = callback
@@ -142,7 +142,7 @@ class ExpandablePanel(wx.Panel):
         self.contentBox = wx.BoxSizer(wx.VERTICAL)
         self.content.SetSizer(self.contentBox)
 
-        self.vbox.Add(self.content, 0, wx.ALL | wx.EXPAND, 10)
+        self.vbox.Add(self.content, 0, wx.ALL ^ wx.TOP ^ wx.BOTTOM | wx.EXPAND, 10)
         self.SetSizer(self.vbox)
         self.Layout()
 
@@ -253,7 +253,7 @@ class SectionPanel(wx.Panel):
             self.items.update({_name: item})
         else:
             self.items.update({_name: (item, tooltip)})
-        self.vbox.Add(item, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
+        self.vbox.Add(item, 0, wx.BOTTOM | wx.EXPAND, 5)
         self.Layout()
         return self
 
