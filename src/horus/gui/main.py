@@ -13,50 +13,25 @@ import wx._core
 import webbrowser
 
 from horus.gui.workbench.control.main import ControlWorkbench
-from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
-from horus.gui.workbench.calibration.main import CalibrationWorkbench
-from horus.gui.workbench.scanning.main import ScanningWorkbench
+# from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
+# from horus.gui.workbench.calibration.main import CalibrationWorkbench
+# from horus.gui.workbench.scanning.main import ScanningWorkbench
 from horus.gui.preferences import PreferencesDialog
 from horus.gui.machineSettings import MachineSettingsDialog
 from horus.gui.welcome import WelcomeWindow
 from horus.gui.wizard.main import *
 from horus.gui.util.versionWindow import VersionWindow
 
-from horus.engine.driver.driver import Driver
-from horus.engine.scan.ciclop_scan import CiclopScan
-from horus.engine.scan.current_video import CurrentVideo
-from horus.engine.calibration.pattern import Pattern
-from horus.engine.calibration.calibration_data import CalibrationData
-from horus.engine.calibration.laser_triangulation import LaserTriangulation
-from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
-from horus.engine.algorithms.image_capture import ImageCapture
-from horus.engine.algorithms.image_detection import ImageDetection
-from horus.engine.algorithms.laser_segmentation import LaserSegmentation
-from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
-from horus.engine.algorithms.point_cloud_roi import PointCloudROI
+from horus.gui.engine import *
 
 from horus.util import profile, resources, meshLoader, version, system as sys
-
-driver = Driver()
-ciclop_scan = CiclopScan()
-current_video = CurrentVideo()
-pattern = Pattern()
-calibration_data = CalibrationData()
-laser_triangulation = LaserTriangulation()
-platform_extrinsics = PlatformExtrinsics()
-image_capture = ImageCapture()
-image_detection = ImageDetection()
-laser_segmentation = LaserSegmentation()
-point_cloud_generation = PointCloudGeneration()
-point_cloud_roi = PointCloudROI()
 
 
 class MainWindow(wx.Frame):
 
-    size = (640 + 340, 480 + 155)
-
     def __init__(self):
-        super(MainWindow, self).__init__(None, title=_("Horus 0.2 BETA"), size=self.size)
+        super(MainWindow, self).__init__(
+            None, title=_("Horus 0.2 BETA"), size=(640 + 340, 480 + 155))
 
         self.SetMinSize((600, 450))
 
@@ -74,14 +49,14 @@ class MainWindow(wx.Frame):
             if currentVideoId not in videoList:
                 profile.settings['camera_id'] = unicode(videoList[0])
 
-        self.lastFiles = profile.settings['last_files']
+        self.last_files = profile.settings['last_files']
 
-        print ">>> Horus " + version.getVersion() + " <<<"
+        print ">>> Horus " + version.get_version() + " <<<"
 
         # Initialize GUI
 
         # Set Icon
-        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
         # Status Bar
@@ -159,9 +134,9 @@ class MainWindow(wx.Frame):
         # Create Workbenchs
         self.workbench = {}
         self.workbench['control'] = ControlWorkbench(self)
-        self.workbench['adjustment'] = AdjustmentWorkbench(self)
-        self.workbench['calibration'] = CalibrationWorkbench(self)
-        self.workbench['scanning'] = ScanningWorkbench(self)
+        # self.workbench['adjustment'] = AdjustmentWorkbench(self)
+        # self.workbench['calibration'] = CalibrationWorkbench(self)
+        # self.workbench['scanning'] = ScanningWorkbench(self)
 
         _choices = []
         choices = profile.settings.getPossibleValues('workbench')
@@ -176,9 +151,9 @@ class MainWindow(wx.Frame):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.workbench['control'], 1, wx.ALL | wx.EXPAND)
-        sizer.Add(self.workbench['adjustment'], 1, wx.ALL | wx.EXPAND)
-        sizer.Add(self.workbench['calibration'], 1, wx.ALL | wx.EXPAND)
-        sizer.Add(self.workbench['scanning'], 1, wx.ALL | wx.EXPAND)
+        # sizer.Add(self.workbench['adjustment'], 1, wx.ALL | wx.EXPAND)
+        # sizer.Add(self.workbench['calibration'], 1, wx.ALL | wx.EXPAND)
+        # sizer.Add(self.workbench['scanning'], 1, wx.ALL | wx.EXPAND)
         self.SetSizer(sizer)
 
         # Events
@@ -204,7 +179,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onExit, self.menuExit)
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
         # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
-        self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
+        self.Bind(wx.EVT_MENU, self.on_preferences, self.menuPreferences)
         self.Bind(wx.EVT_MENU, self.onMachineSettings, self.menuMachineSettings)
 
         self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
@@ -360,69 +335,32 @@ class MainWindow(wx.Frame):
             pass
         event.Skip()
 
-    def appendLastFile(self, lastFile):
-        if lastFile in self.lastFiles:
-            self.lastFiles.remove(lastFile)
-        self.lastFiles.append(lastFile)
-        if len(self.lastFiles) > 4:
-            self.lastFiles = self.lastFiles[1:5]
-        profile.settings['last_file'] = lastFile
-        profile.settings['last_files'] = self.lastFiles
+    def appendLastFile(self, last_file):
+        if last_file in self.last_files:
+            self.last_files.remove(last_file)
+        self.last_files.append(last_file)
+        if len(self.last_files) > 4:
+            self.last_files = self.last_files[1:5]
+        profile.settings['last_file'] = last_file
+        profile.settings['last_files'] = self.last_files
 
     def onModeChanged(self, event):
-        # profile.settings['basic_mode'] = self.menuBasicMode.IsChecked()
         self.workbench['control'].updateProfileToAllControls()
-        self.workbench['adjustment'].updateProfileToAllControls()
-        self.workbench['calibration'].updateProfileToAllControls()
-        self.workbench['scanning'].updateProfileToAllControls()
+        # self.workbench['adjustment'].updateProfileToAllControls()
+        # self.workbench['calibration'].updateProfileToAllControls()
+        # self.workbench['scanning'].updateProfileToAllControls()
         self.Layout()
 
-    def onPreferences(self, event):
-        if sys.isWindows():
-            ciclop_scan.stop()
-            laser_triangulation.cancel()
-            platform_extrinsics.cancel()
-            self.workbench['control'].videoView.stop()
-            self.workbench['calibration'].videoView.stop()
-            self.workbench['calibration'].cameraIntrinsicsMainPage.videoView.stop()
-            self.workbench['calibration'].laserTriangulationMainPage.videoView.stop()
-            self.workbench['calibration'].platformExtrinsicsMainPage.videoView.stop()
-            self.workbench['scanning'].videoView.stop()
-            driver.board.set_unplug_callback(None)
-            driver.camera.set_unplug_callback(None)
-            self.workbench['control'].updateStatus(False)
-            self.workbench['calibration'].updateStatus(False)
-            self.workbench['scanning'].updateStatus(False)
+    def on_preferences(self, event):
+        if sys.is_windows():
             driver.disconnect()
-            # waitCursor = wx.BusyCursor()
 
         prefDialog = PreferencesDialog()
         prefDialog.ShowModal()
 
-        self.updateDriverProfile()
-        self.workbench['control'].updateCallbacks()
-        self.workbench['adjustment'].updateCallbacks()
-        self.workbench['calibration'].updateCallbacks()
-        self.workbench['scanning'].updateCallbacks()
-
     def onMachineSettings(self, event):
-        if sys.isWindows():
-            ciclop_scan.stop()
-            laser_triangulation.cancel()
-            platform_extrinsics.cancel()
-            self.workbench['control'].videoView.stop()
-            self.workbench['calibration'].videoView.stop()
-            self.workbench['calibration'].cameraIntrinsicsMainPage.videoView.stop()
-            self.workbench['calibration'].laserTriangulationMainPage.videoView.stop()
-            self.workbench['calibration'].platformExtrinsicsMainPage.videoView.stop()
-            self.workbench['scanning'].videoView.stop()
-            driver.board.set_unplug_callback(None)
-            driver.camera.set_unplug_callback(None)
-            self.workbench['control'].updateStatus(False)
-            self.workbench['calibration'].updateStatus(False)
-            self.workbench['scanning'].updateStatus(False)
+        if sys.is_windows():
             driver.disconnect()
-            # waitCursor = wx.BusyCursor()
 
         MachineDialog = MachineSettingsDialog(self)
         ret = MachineDialog.ShowModal()
@@ -434,11 +372,6 @@ class MainWindow(wx.Frame):
                 pass
             profile.settings.saveSettings(categories=["machine_settings"])
             self.workbench['scanning'].controls.panels["point_cloud_roi"].updateProfile()
-
-        self.workbench['control'].updateCallbacks()
-        self.workbench['adjustment'].updateCallbacks()
-        self.workbench['calibration'].updateCallbacks()
-        self.workbench['scanning'].updateCallbacks()
 
     def onMenuViewClicked(self, key, checked, panel):
         profile.settings[key] = checked
@@ -522,7 +455,7 @@ class MainWindow(wx.Frame):
 
     def onAbout(self, event):
         info = wx.AboutDialogInfo()
-        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
         info.SetVersion(version.getVersion())
@@ -564,7 +497,7 @@ Suite 330, Boston, MA  02111-1307  USA""")
 
     def onUpdates(self, event):
         if profile.settings['check_for_updates']:
-            if version.checkForUpdates():
+            if version.check_for_updates():
                 VersionWindow(self)
             else:
                 dlg = wx.MessageDialog(self, _("You are running the latest version of Horus!"), _(
@@ -572,16 +505,17 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 dlg.ShowModal()
                 dlg.Destroy()
 
-    def onBoardUnplugged(self):
-        self._onDeviceUnplugged(
+    def on_board_unplugged(self):
+        self._on_device_unplugged(
             _("Board unplugged"),
             _("Board has been unplugged. Please, plug it in and press connect"))
 
-    def onCameraUnplugged(self):
-        self._onDeviceUnplugged(_("Camera unplugged"), _(
-            "Camera has been unplugged. Please, plug it in and press connect"))
+    def on_camera_unplugged(self):
+        self._on_device_unplugged(
+            _("Camera unplugged"),
+            _("Camera has been unplugged. Please, plug it in and press connect"))
 
-    def _onDeviceUnplugged(self, title="", description=""):
+    def _on_device_unplugged(self, title="", description=""):
         ciclop_scan.stop()
         laser_triangulation.cancel()
         platform_extrinsics.cancel()

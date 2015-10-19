@@ -5,7 +5,6 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-import os
 import wx._core
 
 from horus.gui.main import MainWindow
@@ -21,43 +20,43 @@ class HorusApp(wx.App):
     def __init__(self):
         super(HorusApp, self).__init__(redirect=False)
 
-        if sys.isDarwin():
-            self.afterSplashCallback()
+        if sys.is_darwin():
+            self.after_splash_callback()
         else:
-            SplashScreen(self.afterSplashCallback)
+            SplashScreen(self.after_splash_callback)
 
-    def afterSplashCallback(self):
+    def after_splash_callback(self):
         # Load Settings
-        profile.loadSettings()
+        profile.load_settings()
 
         # Load Language
-        resources.setupLocalization(profile.settings['language'])
+        resources.setup_localization(profile.settings['language'])
 
         # Create Main Window
-        self.mainWindow = MainWindow()
+        self.main_window = MainWindow()
 
         # Check for updates
-        if profile.settings['check_for_updates'] and version.checkForUpdates():
-            v = VersionWindow(self.mainWindow)
+        if profile.settings['check_for_updates'] and version.check_for_updates():
+            v = VersionWindow(self.main_window)
             if v.download:
                 return
 
         # Show Main Window
-        self.SetTopWindow(self.mainWindow)
-        self.mainWindow.Show()
+        self.SetTopWindow(self.main_window)
+        self.main_window.Show()
 
         if profile.settings['show_welcome']:
             # Create Welcome Window
-            WelcomeWindow(self.mainWindow)
+            WelcomeWindow(self.main_window)
 
-        setFullScreenCapable(self.mainWindow)
+        setFullScreenCapable(self.main_window)
 
-        if sys.isDarwin():
+        if sys.is_darwin():
             wx.CallAfter(self.StupidMacOSWorkaround)
 
     def __del__(self):
         # Save Profile and Preferences
-        profile.settings.saveSettings()
+        profile.settings.save_settings()
 
     def MacReopenApp(self):
         self.GetTopWindow().Raise()
@@ -73,7 +72,7 @@ class HorusApp(wx.App):
         dlg.ShowModal()
         dlg.Destroy()
 
-if sys.isDarwin():  # Mac magic. Dragons live here. This sets full screen options.
+if sys.is_darwin():  # Mac magic. Dragons live here. This sets full screen options.
     try:
         import ctypes
         import objc

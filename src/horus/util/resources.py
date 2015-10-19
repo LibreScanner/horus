@@ -7,71 +7,65 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.\
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import os
-import sys
-import glob
 import gettext
 
 from horus.util import system
 
-resourceBasePath = ''
+resource_base_path = ''
 
 
-def setBasePath(path):
-    global resourceBasePath
-    resourceBasePath = path
+def set_base_path(path):
+    global resource_base_path
+    resource_base_path = path
 
 
-def getPathForResource(dir, subdir, resource_name):
-    assert os.path.isdir(dir), "{p} is not a directory".format(p=dir)
-    path = os.path.normpath(os.path.join(dir, subdir, resource_name))
+def get_path_for_resource(directory, resource_name):
+    assert os.path.isdir(resource_base_path), "{p} is not a directory".format(p=resource_base_path)
+    path = os.path.normpath(os.path.join(resource_base_path, directory, resource_name))
     return path
 
 
-def getPathForVersion(name='version'):
-    return getPathForResource(resourceBasePath, '.', name)
+def get_path_for_version(name='version'):
+    return get_path_for_resource('.', name)
 
 
-def getPathForImage(name):
-    return getPathForResource(resourceBasePath, 'images', name)
+def get_path_for_image(name):
+    return get_path_for_resource('images', name)
 
 
-def getPathForFirmware(name):
-    return getPathForResource(resourceBasePath, 'firmware', name)
+def get_path_for_firmware(name):
+    return get_path_for_resource('firmware', name)
 
 
-def getPathForTools(name):
-    if system.isWindows():
-        path = getPathForResource(resourceBasePath, 'tools/windows', name)
-    elif system.isDarwin():
-        path = getPathForResource(resourceBasePath, 'tools/darwin', name)
+def get_path_for_tools(name):
+    if system.is_windows():
+        path = get_path_for_resource('tools/windows', name)
+    elif system.is_darwin():
+        path = get_path_for_resource('tools/darwin', name)
     else:
-        path = getPathForResource(resourceBasePath, 'tools/linux', name)
+        path = get_path_for_resource('tools/linux', name)
     return path
 
 
-def getPathForMesh(name):
-    return getPathForResource(resourceBasePath, 'meshes', name)
-
-"""def getDefaultMachineProfiles():
-    path = os.path.normpath(os.path.join(resourceBasePath, 'machine_profiles', '*.ini'))
-    return glob.glob(path)"""
+def get_path_for_mesh(name):
+    return get_path_for_resource('meshes', name)
 
 
-def setupLocalization(selectedLanguage=None):
+def setup_localization(selected_language=None):
     # Default to english
     languages = ['en']
 
-    if selectedLanguage is not None:
-        for item in getLanguageOptions():
-            if item[1] == selectedLanguage and item[0] is not None:
+    if selected_language is not None:
+        for item in get_language_options():
+            if item[1] == selected_language and item[0] is not None:
                 languages = [item[0]]
 
-    locale_path = os.path.normpath(os.path.join(resourceBasePath, 'locale'))
+    locale_path = os.path.normpath(os.path.join(resource_base_path, 'locale'))
     translation = gettext.translation('horus', locale_path, languages, fallback=True)
     translation.install(unicode=True)
 
 
-def getLanguageOptions():
+def get_language_options():
     return [
         ['en', u'English'],
         ['es', u'Español'],

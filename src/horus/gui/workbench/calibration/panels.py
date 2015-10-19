@@ -68,19 +68,19 @@ class AutocheckPanel(ExpandablePanel):
 
     def updateCallbacks(self):
         section = self.sections['scanner_autocheck']
-        section.updateCallback('autocheck_button', self.performAutocheck)
+        section.updateCallback('autocheck_button', self.buttonStartCallback)
 
-    def performAutocheck(self):
-        # Perform auto check
-        self.autocheck.set_callbacks(lambda: wx.CallAfter(self.beforeAutocheck),
-                                     None, lambda r: wx.CallAfter(self.afterAutocheck, r))
-        self.autocheck.start()
+    # def performAutocheck(self):
+    #    # Perform auto check
+    #    self.autocheck.set_callbacks(lambda: wx.CallAfter(self.beforeAutocheck),
+    #                                 None, lambda r: wx.CallAfter(self.afterAutocheck, r))
+    #    self.autocheck.start()
 
-    def beforeAutocheck(self):
-        self.sections['scanner_autocheck'].items['autocheck_button'].Disable()
-        if self.buttonStartCallback is not None:
-            self.buttonStartCallback()
-        self.waitCursor = wx.BusyCursor()
+    # def beforeAutocheck(self):
+    #    self.sections['scanner_autocheck'].items['autocheck_button'].Disable()
+    #    if self.buttonStartCallback is not None:
+    #        self.buttonStartCallback()
+    #    self.waitCursor = wx.BusyCursor()
 
     def afterAutocheck(self, result):
         self.sections['scanner_autocheck'].items['autocheck_button'].Enable()

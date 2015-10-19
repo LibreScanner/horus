@@ -18,13 +18,12 @@ from horus.gui.workbench.workbench import WorkbenchConnection
 from horus.gui.workbench.calibration.panels import PatternSettingsPanel, AutocheckPanel, \
     CameraIntrinsicsPanel, LaserTriangulationPanel, PlatformExtrinsicsPanel
 
-from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
+from horus.gui.workbench.calibration.pages import AutocheckMainPage, CameraIntrinsicsMainPage, \
     CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
     PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
 
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
-from horus.engine.calibration.autocheck import Autocheck
 from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.algorithms.image_detection import ImageDetection
 
@@ -38,7 +37,6 @@ class CalibrationWorkbench(WorkbenchConnection):
 
         self.driver = Driver()
         self.camera_intrinsics = CameraIntrinsics()
-        self.autocheck = Autocheck()
         self.image_capture = ImageCapture()
         self.image_detection = ImageDetection()
 
@@ -58,7 +56,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
         self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
             self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
-        self.controls.addPanel('scanner_autocheck', AutocheckPanel(
+        self.controls.addPanel('autocheck_panel', AutocheckPanel(
             self.controls, buttonStartCallback=self.onAutocheckStartCallback,
             buttonStopCallback=self.onCancelCallback))
         self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(
@@ -67,6 +65,11 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
 
         # Add Calibration Pages
+        self.autocheckMainPage = AutocheckMainPage(
+            self._panel,
+            afterCancelCallback=self.onCancelCallback,
+            afterCalibrationCallback=self.onCancelCallback)
+
         self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(
             self._panel,
             afterCancelCallback=self.onCancelCallback,
@@ -97,6 +100,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             buttonRejectCallback=self.onCancelCallback,
             buttonAcceptCallback=self.onPlatformExtrinsicsAcceptCallback)
 
+        self.autocheckMainPage.Hide()
         self.cameraIntrinsicsMainPage.Hide()
         self.cameraIntrinsicsResultPage.Hide()
         self.laserTriangulationMainPage.Hide()
@@ -117,6 +121,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.addToPanel(self.scrollPanel, 0)
         self.addToPanel(self.videoView, 1)
 
+        self.addToPanel(self.autocheckMainPage, 1)
         self.addToPanel(self.cameraIntrinsicsMainPage, 1)
         self.addToPanel(self.cameraIntrinsicsResultPage, 1)
         self.addToPanel(self.laserTriangulationMainPage, 1)
@@ -131,11 +136,8 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.controls.updateCallbacks()
 
     def get_image(self):
-        if self.autocheck._is_calibrating:
-            image = self.autocheck.image
-        else:
-            image = self.image_capture.capture_pattern()
-            image = self.image_detection.detect_pattern(image)
+        image = self.image_capture.capture_pattern()
+        image = self.image_detection.detect_pattern(image)
         return image
 
     def enableMenus(self, value):
@@ -156,8 +158,12 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.calibrating = True
         self.enableLabelTool(self.disconnectTool, False)
         self.controls.setExpandable(False)
+        # self.controls.panels['autocheck_panel'].buttonsPanel.Disable()
         self.combo.Disable()
         self.enableMenus(False)
+        self.videoView.stop()
+        self.videoView.Hide()
+        self.autocheckMainPage.Show()
         self.Layout()
 
     def onCameraIntrinsicsStartCallback(self):
@@ -211,6 +217,7 @@ class CalibrationWorkbench(WorkbenchConnection):
         self.controls.updateProfile()
         self.combo.Enable()
         self.enableMenus(True)
+        self.autocheckMainPage.Hide()
         self.cameraIntrinsicsMainPage.Hide()
         self.cameraIntrinsicsResultPage.Hide()
         self.laserTriangulationMainPage.Hide()
@@ -305,6 +312,7 @@ class CalibrationWorkbench(WorkbenchConnection):
             self.calibrating = False
             self.combo.Enable()
             self.controls.setExpandable(True)
+            self.autocheckMainPage.Hide()
             self.cameraIntrinsicsMainPage.Hide()
             self.cameraIntrinsicsResultPage.Hide()
             self.laserTriangulationMainPage.Hide()

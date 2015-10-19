@@ -94,7 +94,7 @@ class Settings(collections.MutableMapping):
 
     # File management
 
-    def loadSettings(self, filepath=None, categories=None):
+    def load_settings(self, filepath=None, categories=None):
         if filepath is None:
             filepath = os.path.join(getBasePath(), 'settings.json')
         with open(filepath, 'r') as f:
@@ -114,7 +114,7 @@ class Settings(collections.MutableMapping):
         if self._settings_dict[key]._type == np.ndarray:
             json_dict['value'] = np.asarray(json_dict['value'])
 
-    def saveSettings(self, filepath=None, categories=None):
+    def save_settings(self, filepath=None, categories=None):
         if filepath is None:
             filepath = os.path.join(getBasePath(), 'settings.json')
 
@@ -424,7 +424,7 @@ class Settings(collections.MutableMapping):
                     unicode, u'Circular', possible_values=(u'Circular', u'Rectangular')))
         self._addSetting(
             Setting('machine_model_path', _('Machine Model'), 'machine_settings',
-                    unicode, unicode(resources.getPathForMesh('ciclop_platform.stl'))))
+                    unicode, unicode(resources.get_path_for_mesh('ciclop_platform.stl'))))
         self._addSetting(
             Setting('roi_view', _('View ROI'), 'machine_settings', bool, False))
         self._addSetting(
@@ -637,7 +637,7 @@ def getBasePath():
     :return: The path in which the current configuration files are stored.
     This depends on the used OS.
     """
-    if system.isWindows():
+    if system.is_windows():
         basePath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
         # If we have a frozen python install, we need to step out of the library.zip
         if hasattr(sys, 'frozen'):
@@ -653,9 +653,9 @@ def getBasePath():
 
 
 # Temporary function to migrate old settings (INI) into new ones (JSON)
-def loadSettings():
+def load_settings():
     if os.path.exists(os.path.join(getBasePath(), 'settings.json')):
-        settings.loadSettings()
+        settings.load_settings()
         return
     else:
         for setting_file in ('machine_settings.ini', 'current-profile.ini', 'preferences.ini'):

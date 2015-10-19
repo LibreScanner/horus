@@ -25,116 +25,116 @@ class ExpandableControl(wx.Panel):
         self.SetSizer(self.vbox)
         self.Layout()
 
-    def addPanel(self, name, panel):
-        self.panels.update({name: panel})
+    def add_panel(self, panel, name):
+        self.panels.update({name: panel(self)})
         self.vbox.Add(panel, 0, wx.EXPAND, 0)
-        panel.titleText.title.Bind(wx.EVT_LEFT_DOWN, self._onTitleClicked)
+        panel.titleText.title.Bind(wx.EVT_LEFT_DOWN, self._on_title_clicked)
         panel.content.Show()
-        if panel.hasUndo:
+        if panel.has_undo:
             panel.undoButton.Show()
-        if panel.hasRestore:
+        if panel.has_restore:
             panel.restoreButton.Show()
 
-    def initPanels(self):
+    def init_panels(self):
         for i, panel in enumerate(self.panels.values()):
             if i == 0:
                 panel.content.Show()
-                if panel.hasUndo:
+                if panel.has_undo:
                     panel.undoButton.Show()
-                if panel.hasRestore:
+                if panel.has_restore:
                     panel.restoreButton.Show()
             else:
                 panel.content.Hide()
-                if panel.hasUndo:
+                if panel.has_undo:
                     panel.undoButton.Hide()
-                if panel.hasRestore:
+                if panel.has_restore:
                     panel.restoreButton.Hide()
 
-    def setExpandable(self, value):
-        self.isExpandable = value
+    def set_expandable(self, value):
+        self.is_expandable = value
 
-    def _onTitleClicked(self, event):
+    def _on_title_clicked(self, event):
         if self.isExpandable:
             title = event.GetEventObject()
             for panel in self.panels.values():
                 if panel.titleText.title is title:
                     panel.show()
-                    if panel.hasUndo:
+                    if panel.has_undo:
                         panel.undoButton.Show()
-                    if panel.hasRestore:
+                    if panel.has_restore:
                         panel.restoreButton.Show()
                 else:
                     panel.content.Hide()
-                    if panel.hasUndo:
+                    if panel.has_undo:
                         panel.undoButton.Hide()
-                    if panel.hasRestore:
+                    if panel.has_restore:
                         panel.restoreButton.Hide()
                 panel.Layout()
             self.Layout()
             self.GetParent().Layout()
             self.GetParent().GetParent().Layout()
 
-    def updateCallbacks(self):
+    def update_callbacks(self):
         for panel in self.panels.values():
-            panel.updateCallbacks()
+            panel.update_callbacks()
 
-    def enableContent(self):
+    def enable_content(self):
         for panel in self.panels.values():
             panel.content.Enable()
 
-    def disableContent(self):
+    def disable_content(self):
         for panel in self.panels.values():
             panel.content.Disable()
 
-    def updateProfile(self):
+    def update_profile(self):
         for panel in self.panels.values():
             panel.updateProfile()
 
-    def enableRestore(self, value):
+    def enable_restore(self, value):
         for panel in self.panels.values():
             panel.enableRestore(value)
 
 
 class ExpandablePanel(wx.Panel):
 
-    def __init__(self, parent, title="", callback=None, hasUndo=True, hasRestore=True):
+    def __init__(self, parent, title="", callback=None, has_undo=True, has_restore=True):
         wx.Panel.__init__(self, parent, size=(-1, -1))
 
         # Elements
         self.callback = callback
-        self.hasUndo = hasUndo
-        self.hasRestore = hasRestore
+        self.has_undo = has_undo
+        self.has_restore = has_restore
         self.title = title
         self.titleText = TitleText(self, title, bold=True)
-        if self.hasUndo:
+        if self.has_undo:
             self.undoButton = wx.BitmapButton(
                 self, wx.NewId(),
-                wx.Bitmap(resources.getPathForImage("undo.png"), wx.BITMAP_TYPE_ANY))
-        if self.hasRestore:
+                wx.Bitmap(resources.get_path_for_image("undo.png"), wx.BITMAP_TYPE_ANY))
+        if self.has_restore:
             self.restoreButton = wx.BitmapButton(
                 self, wx.NewId(),
-                wx.Bitmap(resources.getPathForImage("restore.png"), wx.BITMAP_TYPE_ANY))
+                wx.Bitmap(resources.get_path_for_image("restore.png"), wx.BITMAP_TYPE_ANY))
         self.content = wx.Panel(self)
         self.sections = OrderedDict()
 
-        if self.hasUndo:
+        if self.has_undo:
             self.undoButton.Disable()
         self.content.Hide()
 
         # Events
-        if self.hasUndo:
+        if self.has_undo:
             self.undoButton.Bind(wx.EVT_BUTTON, self.onUndoButtonClicked)
-        if self.hasRestore:
+        if self.has_restore:
             self.restoreButton.Bind(wx.EVT_BUTTON, self.onRestoreButtonClicked)
 
         # Layout
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.titleText, 1, wx.ALIGN_CENTER_VERTICAL)
-        if self.hasUndo:
+        if self.has_undo:
             self.hbox.Add(
                 self.undoButton, 0, wx.RIGHT | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-        if self.hasRestore:
+        if self.has_restore:
             self.hbox.Add(
                 self.restoreButton, 0, wx.RIGHT | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
         self.vbox.Add(self.hbox, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
@@ -149,7 +149,7 @@ class ExpandablePanel(wx.Panel):
         # Undo
         self.undoObjects = []
 
-    def createSection(self, name, title=None, tag=None):
+    def create_section(self, name, title=None, tag=None):
         section = SectionPanel(self.content, title, tag=tag)
         section.setUndoCallbacks(self.appendUndo, self.releaseUndo)
         self.sections.update({name: section})
@@ -158,7 +158,7 @@ class ExpandablePanel(wx.Panel):
         self.GetParent().Layout()
         return section
 
-    def clearSections(self):
+    def clear_sections(self):
         self.sections.clear()
         self.contentBox.Clear()
 
@@ -190,18 +190,18 @@ class ExpandablePanel(wx.Panel):
         if result:
             self.resetProfile()
             self.restoreButton.Disable()
-            if self.hasUndo:
+            if self.has_undo:
                 del self.undoObjects[:]
                 self.undoButton.Disable()
 
     def appendUndo(self, _object):
-        if self.hasUndo:
+        if self.has_undo:
             self.undoObjects.append(_object)
 
     def releaseUndo(self):
-        if self.hasUndo:
+        if self.has_undo:
             self.undoButton.Enable()
-        if self.hasRestore:
+        if self.has_restore:
             self.restoreButton.Enable()
 
     def undo(self):
@@ -246,7 +246,7 @@ class SectionPanel(wx.Panel):
 
     # TODO: improve tooltip implementation
 
-    def addItem(self, _type, _name, tooltip=None):
+    def add_item(self, _type, _name, tooltip=None):
         item = _type(self, _name)
         item.setUndoCallbacks(self.appendUndoCallback, self.releaseUndoCallback)
         if tooltip is None:
@@ -257,11 +257,11 @@ class SectionPanel(wx.Panel):
         self.Layout()
         return self
 
-    def updateCallback(self, _name, _callback):
+    def update_callback(self, _name, _callback):
         if isinstance(self.items[_name], tuple):
-            self.items[_name][0].setEngineCallback(_callback)
+            self.items[_name][0].set_engine_callback(_callback)
         else:
-            self.items[_name].setEngineCallback(_callback)
+            self.items[_name].set_engine_callback(_callback)
 
     def getItem(self, _name):
         return self.items[_name]
@@ -310,9 +310,9 @@ class SectionPanel(wx.Panel):
 
 class SectionItem(wx.Panel):
 
-    def __init__(self, parent, name, engineCallback=None):
+    def __init__(self, parent, name, engine_callback=None):
         wx.Panel.__init__(self, parent)
-        self.engineCallback = engineCallback
+        self.engine_callback = engine_callback
         self.appendUndoCallback = None
         self.releaseUndoCallback = None
 
@@ -323,8 +323,8 @@ class SectionItem(wx.Panel):
         self.name = name
         self.setting = profile.settings.getSetting(self.name)
 
-    def setEngineCallback(self, engineCallback=None):
-        self.engineCallback = engineCallback
+    def set_engine_callback(self, engine_callback=None):
+        self.engine_callback = engine_callback
 
     def setUndoCallbacks(self, appendUndoCallback=None, releaseUndoCallback=None):
         self.appendUndoCallback = appendUndoCallback
@@ -350,8 +350,8 @@ class SectionItem(wx.Panel):
         self.GetParent().Layout()
 
     def _updateEngine(self, value):
-        if self.engineCallback is not None:
-            self.engineCallback(value)
+        if self.engine_callback is not None:
+            self.engine_callback(value)
 
     def undo(self):
         if len(self.undoValues) > 0:
@@ -393,8 +393,8 @@ class TitleText(wx.Panel):
 
 
 class Slider(SectionItem):
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         self.flagFirstMove = True
 
@@ -460,8 +460,8 @@ class Slider(SectionItem):
 
 class ComboBox(SectionItem):
 
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         choices = self.setting._possible_values
         _choices = [_(i) for i in choices]
@@ -500,8 +500,8 @@ class ComboBox(SectionItem):
 
 class CheckBox(SectionItem):
 
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.label = wx.StaticText(self, label=self.setting._label,
@@ -537,8 +537,8 @@ class CheckBox(SectionItem):
 
 class RadioButton(SectionItem):
 
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.label = wx.StaticText(self, label=self.setting._label)
@@ -572,8 +572,8 @@ class RadioButton(SectionItem):
 
 class TextBox(SectionItem):
 
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
@@ -608,8 +608,8 @@ class TextBox(SectionItem):
 
 class FloatTextBox(SectionItem):
 
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
@@ -663,8 +663,8 @@ class FloatTextBox(SectionItem):
 
 class Button(SectionItem):
 
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.control = wx.Button(self, label=self.setting._label)
@@ -679,8 +679,8 @@ class Button(SectionItem):
         self.control.Bind(wx.EVT_BUTTON, self.onButtonClicked)
 
     def onButtonClicked(self, event):
-        if self.engineCallback is not None:
-            self.engineCallback()
+        if self.engine_callback is not None:
+            self.engine_callback()
 
     def updateProfile(self):
         if hasattr(self, 'control'):
@@ -695,8 +695,8 @@ class Button(SectionItem):
 
 class CallbackButton(SectionItem):
 
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.control = wx.Button(self, label=self.setting._label)
@@ -711,10 +711,10 @@ class CallbackButton(SectionItem):
         self.control.Bind(wx.EVT_BUTTON, self.onButtonClicked)
 
     def onButtonClicked(self, event):
-        if self.engineCallback is not None:
+        if self.engine_callback is not None:
             self.control.Disable()
             self.waitCursor = wx.BusyCursor()
-            self.engineCallback(lambda r: wx.CallAfter(self.onFinishCallback, r))
+            self.engine_callback(lambda r: wx.CallAfter(self.onFinishCallback, r))
 
     def onFinishCallback(self, ret):
         self.control.Enable()
@@ -734,8 +734,8 @@ class CallbackButton(SectionItem):
 
 class ToggleButton(SectionItem):
 
-    def __init__(self, parent, name, engineCallback=None):
-        SectionItem.__init__(self, parent, name, engineCallback)
+    def __init__(self, parent, name, engine_callback=None):
+        SectionItem.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.control = wx.ToggleButton(self, label=self.setting._label)
@@ -750,14 +750,14 @@ class ToggleButton(SectionItem):
         self.control.Bind(wx.EVT_TOGGLEBUTTON, self.onButtonToggle)
 
     def onButtonToggle(self, event):
-        if self.engineCallback is not None:
+        if self.engine_callback is not None:
             if event.IsChecked():
                 function = 0
             else:
                 function = 1
 
-            if self.engineCallback[function] is not None:
-                self.engineCallback[function]()
+            if self.engine_callback[function] is not None:
+                self.engine_callback[function]()
 
     def updateProfile(self):
         if hasattr(self, 'control'):

@@ -22,6 +22,7 @@ from horus.gui.workbench.calibration.page import Page
 
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.pattern import Pattern
+from horus.engine.calibration.autocheck import Autocheck
 from horus.engine.calibration.camera_intrinsics import CameraIntrinsics, \
     CameraIntrinsicsError
 from horus.engine.calibration.laser_triangulation import LaserTriangulation, \
@@ -33,6 +34,7 @@ from horus.engine.algorithms.image_detection import ImageDetection
 
 driver = Driver()
 pattern = Pattern()
+autocheck = Autocheck()
 camera_intrinsics = CameraIntrinsics()
 laser_triangulation = LaserTriangulation()
 platform_extrinsics = PlatformExtrinsics()
@@ -302,6 +304,102 @@ class CameraIntrinsics3DPlot(wx.Panel):
     def clear(self):
         self.ax.cla()
         self.printCanvas()
+
+
+class AutocheckMainPage(Page):
+
+    def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):
+        Page.__init__(self, parent,
+                      title=_("Scanner autocheck"),
+                      subTitle=_("Put the pattern on the platform "
+                                 "and press Autocheck to continue"),
+                      left=_("Cancel"),
+                      right=_("Autocheck"),
+                      buttonLeftCallback=self.onCancel,
+                      buttonRightCallback=self.onAutocheck,
+                      panelOrientation=wx.HORIZONTAL,
+                      viewProgress=True)
+
+        self.afterCancelCallback = afterCancelCallback
+        self.afterCalibrationCallback = afterCalibrationCallback
+
+        # Image View
+        imageView = ImageView(self._panel, quality=wx.IMAGE_QUALITY_HIGH)
+        imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.png")))
+
+        # Video View
+        self.videoView = VideoView(self._panel, self.get_image, 10)
+        self.videoView.SetBackgroundColour(wx.BLACK)
+
+        # Layout
+        self.addToPanel(imageView, 3)
+        self.addToPanel(self.videoView, 2)
+
+        # Events
+        self.Bind(wx.EVT_SHOW, self.onShow)
+
+        self.Layout()
+
+    def initialize(self):
+        self.gauge.SetValue(0)
+        self._rightButton.Enable()
+
+    def onShow(self, event):
+        if event.GetShow():
+            self.videoView.play()
+            self.GetParent().Layout()
+            self.Layout()
+        else:
+            try:
+                self.initialize()
+                self.videoView.stop()
+            except:
+                pass
+
+    def get_image(self):
+        if autocheck._is_calibrating:
+            image = autocheck.image
+        else:
+            image = image_capture.capture_pattern()
+            image = image_detection.detect_pattern(image)
+        return image
+
+    def onAutocheck(self):
+        autocheck.set_callbacks(lambda: wx.CallAfter(self.beforeCalibration),
+                                lambda p: wx.CallAfter(self.progressCalibration, p),
+                                lambda r: wx.CallAfter(self.afterCalibration, r))
+        autocheck.start()
+
+    def beforeCalibration(self):
+        self._rightButton.Disable()
+        self.waitCursor = wx.BusyCursor()
+
+    def progressCalibration(self, progress):
+        self.gauge.SetValue(progress)
+
+    def afterCalibration(self, result):
+        self.onCalibrationFinished(result)
+
+    def onCalibrationFinished(self, result):
+        self._rightButton.Enable()
+        if self.afterCalibrationCallback is not None:
+            self.afterCalibrationCallback(result)
+        if hasattr(self, 'waitCursor'):
+            del self.waitCursor
+
+    def onCancel(self):
+        boardUnplugCallback = driver.board.unplug_callback
+        cameraUnplugCallback = driver.camera.unplug_callback
+        driver.board.set_unplug_callback(None)
+        driver.camera.set_unplug_callback(None)
+        if not hasattr(self, 'waitCursor'):
+            self.waitCursor = wx.BusyCursor()
+        autocheck.cancel()
+        if self.afterCancelCallback is not None:
+            self.afterCancelCallback()
+        del self.waitCursor
+        driver.board.set_unplug_callback(boardUnplugCallback)
+        driver.camera.set_unplug_callback(cameraUnplugCallback)
 
 
 class LaserTriangulationMainPage(Page):
