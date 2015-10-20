@@ -38,40 +38,40 @@ class Settings(collections.MutableMapping):
         else:
             return self._settings_dict[key].default
 
-    def getSetting(self, key):
+    def get_setting(self, key):
         return self._settings_dict[key]
 
-    def getLabel(self, key):
-        return self.getSetting(key)._label
+    def get_label(self, key):
+        return self.get_setting(key)._label
 
-    def getDefault(self, key):
-        return self.getSetting(key).default
+    def get_default(self, key):
+        return self.get_setting(key).default
 
-    def getMinValue(self, key):
-        return self.getSetting(key).min_value
+    def get_min_value(self, key):
+        return self.get_setting(key).min_value
 
-    def getMaxValue(self, key):
-        return self.getSetting(key).max_value
+    def get_max_value(self, key):
+        return self.get_setting(key).max_value
 
-    def getPossibleValues(self, key):
-        return self.getSetting(key)._possible_values
+    def get_possible_values(self, key):
+        return self.get_setting(key)._possible_values
 
     # Setters
 
     def __setitem__(self, key, value):
         # For convinience, this sets the Setting value and not a Setting object
-        self.getSetting(key).value = value
+        self.get_setting(key).value = value
 
-    def setMinValue(self, key, value):
-        self.getSetting(key).__min_value = value
+    def set_min_value(self, key, value):
+        self.get_setting(key).__min_value = value
 
-    def setMaxValue(self, key, value):
-        self.getSetting(key).__max_value = value
+    def set_max_value(self, key, value):
+        self.get_setting(key).__max_value = value
 
-    def castAndSet(self, key, value):
+    def cast_and_set(self, key, value):
         if len(value) == 0:
             return
-        setting_type = self.getSetting(key)._type
+        setting_type = self.get_setting(key)._type
         try:
             if setting_type == types.BooleanType:
                 value = bool(value)
@@ -96,31 +96,31 @@ class Settings(collections.MutableMapping):
 
     def load_settings(self, filepath=None, categories=None):
         if filepath is None:
-            filepath = os.path.join(getBasePath(), 'settings.json')
+            filepath = os.path.join(get_base_path(), 'settings.json')
         with open(filepath, 'r') as f:
-            self._loadJsonDict(json.loads(f.read()), categories)
+            self._load_json_dict(json.loads(f.read()), categories)
 
-    def _loadJsonDict(self, json_dict, categories):
+    def _load_json_dict(self, json_dict, categories):
         for category in json_dict.keys():
             if category == "settings_version":
                 continue
             if categories is None or category in categories:
                 for key in json_dict[category]:
                     if key in self._settings_dict:
-                        self._convertToType(key, json_dict[category][key])
-                        self.getSetting(key)._loadJsonDict(json_dict[category][key])
+                        self._convert_to_type(key, json_dict[category][key])
+                        self.get_setting(key)._load_json_dict(json_dict[category][key])
 
-    def _convertToType(self, key, json_dict):
+    def _convert_to_type(self, key, json_dict):
         if self._settings_dict[key]._type == np.ndarray:
             json_dict['value'] = np.asarray(json_dict['value'])
 
     def save_settings(self, filepath=None, categories=None):
         if filepath is None:
-            filepath = os.path.join(getBasePath(), 'settings.json')
+            filepath = os.path.join(get_base_path(), 'settings.json')
 
         # If trying to overwrite some categories of settings.json, first load it
         # to preserve the other values
-        if categories is not None and filepath == os.path.join(getBasePath(), 'settings.json'):
+        if categories is not None and filepath == os.path.join(get_base_path(), 'settings.json'):
             with open(filepath, 'r') as f:
                 initial_json = json.loads(f.read())
         else:
@@ -128,9 +128,9 @@ class Settings(collections.MutableMapping):
 
         with open(filepath, 'w') as f:
             f.write(
-                json.dumps(self._toJsonDict(categories, initial_json), sort_keys=True, indent=4))
+                json.dumps(self._to_json_dict(categories, initial_json), sort_keys=True, indent=4))
 
-    def _toJsonDict(self, categories, initial_json=None):
+    def _to_json_dict(self, categories, initial_json=None):
         if initial_json is None:
             json_dict = dict()
         else:
@@ -138,11 +138,11 @@ class Settings(collections.MutableMapping):
 
         json_dict["settings_version"] = self.settings_version
         for key in self._settings_dict.keys():
-            if categories is not None and self.getSetting(key)._category not in categories:
+            if categories is not None and self.get_setting(key)._category not in categories:
                 continue
-            if self.getSetting(key)._category not in json_dict:
-                json_dict[self.getSetting(key)._category] = dict()
-            json_dict[self.getSetting(key)._category][key] = self.getSetting(key)._toJsonDict()
+            if self.get_setting(key)._category not in json_dict:
+                json_dict[self.get_setting(key)._category] = dict()
+            json_dict[self.get_setting(key)._category][key] = self.get_setting(key)._to_json_dict()
         return json_dict
 
     # Other
@@ -156,19 +156,19 @@ class Settings(collections.MutableMapping):
     def __len__(self):
         return len(self._settings_dict)
 
-    def resetToDefault(self, key=None, categories=None):
+    def reset_to_default(self, key=None, categories=None):
         if key is not None:
-            self.__setitem__(key, self.getSetting(key).default)
+            self.__setitem__(key, self.get_setting(key).default)
         else:
             for key in self._settings_dict.keys():
-                if categories is not None and self.getSetting(key)._category not in categories:
+                if categories is not None and self.get_setting(key)._category not in categories:
                     continue
-                self.__setitem__(key, self.getSetting(key).default)
+                self.__setitem__(key, self.get_setting(key).default)
 
-    def _addSetting(self, setting):
+    def _add_setting(self, setting):
         self._settings_dict[setting._id] = setting
 
-    def _initializeSettings(self):
+    def _initialize_settings(self):
 
         # -- Scan Settings
 
@@ -176,167 +176,167 @@ class Settings(collections.MutableMapping):
         _('High')
         _('Medium')
         _('Low')
-        self._addSetting(
+        self._add_setting(
             Setting('luminosity', _('Luminosity'), 'scan_settings',
                     unicode, u'Medium', possible_values=(u'High', u'Medium', u'Low')))
-        self._addSetting(
+        self._add_setting(
             Setting('brightness_control', _('Brightness'), 'scan_settings',
                     int, 128, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('contrast_control', _('Contrast'), 'scan_settings',
                     int, 32, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('saturation_control', _('Saturation'), 'scan_settings',
                     int, 32, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('exposure_control', _('Exposure'), 'scan_settings',
                     int, 16, min_value=1, max_value=512))
-        self._addSetting(
+        self._add_setting(
             Setting('framerate', _('Framerate'), 'scan_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
-        self._addSetting(
+        self._add_setting(
             Setting('resolution', _('Resolution'), 'scan_settings',
                     unicode, u'1280x960', possible_values=(u'1280x960',
                                                            u'960x720',
                                                            u'800x600',
                                                            u'320x240',
                                                            u'160x120')))
-        self._addSetting(
+        self._add_setting(
             Setting('use_distortion', _('Use distortion'), 'scan_settings', bool, False))
 
-        self._addSetting(
+        self._add_setting(
             Setting('motor_step_control', _(u'Step (º)'), 'scan_settings',
                     float, 90.0))
-        self._addSetting(
+        self._add_setting(
             Setting('motor_speed_control', _(u'Speed (º/s)'), 'scan_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
-        self._addSetting(
+        self._add_setting(
             Setting('motor_acceleration_control', _(u'Acceleration (º/s²)'), 'scan_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
 
         # Hack to translate combo boxes:
         _('Texture')
         _('Laser')
-        self._addSetting(
+        self._add_setting(
             Setting('capture_mode_scanning', _('Capture mode'), 'scan_settings',
                     unicode, u'Texture', possible_values=(u'Texture', u'Laser')))
 
-        self._addSetting(
+        self._add_setting(
             Setting('brightness_texture_scanning', _('Brightness'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('contrast_texture_scanning', _('Contrast'), 'scan_settings',
                     int, 32, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('saturation_texture_scanning', _('Saturation'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('exposure_texture_scanning', _('Exposure'), 'scan_settings',
                     int, 16, min_value=1, max_value=512))
 
-        self._addSetting(
+        self._add_setting(
             Setting('brightness_laser_scanning', _('Brightness'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('contrast_laser_scanning', _('Contrast'), 'scan_settings',
                     int, 20, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('saturation_laser_scanning', _('Saturation'), 'scan_settings',
                     int, 60, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('exposure_laser_scanning', _('Exposure'), 'scan_settings',
                     int, 6, min_value=1, max_value=512))
-        self._addSetting(
+        self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'scan_settings', bool, True))
 
-        self._addSetting(
+        self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'scan_settings',
                     unicode, u'R (RGB)', possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
-        self._addSetting(
+        self._add_setting(
             Setting('open_enable_scanning', _('Enable open'), 'scan_settings', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('open_value_scanning', _('Open value'), 'scan_settings',
                     int, 2, min_value=1, max_value=10))
-        self._addSetting(
+        self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'scan_settings', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('threshold_value_scanning', _('Threshold value'), 'scan_settings',
                     int, 6, min_value=0, max_value=255))
 
         # Hack to translate combo boxes:
         _('Pattern')
         _('Laser')
-        self._addSetting(
+        self._add_setting(
             Setting('capture_mode_calibration', _('Capture mode'), 'scan_settings',
                     unicode, u'Pattern', possible_values=(u'Pattern', u'Laser')))
 
-        self._addSetting(
+        self._add_setting(
             Setting('brightness_pattern_calibration', _('Brightness'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('contrast_pattern_calibration', _('Contrast'), 'scan_settings',
                     int, 32, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('saturation_pattern_calibration', _('Saturation'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('exposure_pattern_calibration', _('Exposure'), 'scan_settings',
                     int, 16, min_value=1, max_value=512))
 
-        self._addSetting(
+        self._add_setting(
             Setting('brightness_laser_calibration', _('Brightness'), 'scan_settings',
                     int, 100, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('contrast_laser_calibration', _('Contrast'), 'scan_settings',
                     int, 20, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('saturation_laser_calibration', _('Saturation'), 'scan_settings',
                     int, 60, min_value=0, max_value=255))
-        self._addSetting(
+        self._add_setting(
             Setting('exposure_laser_calibration', _('Exposure'), 'scan_settings',
                     int, 6, min_value=1, max_value=512))
-        self._addSetting(
+        self._add_setting(
             Setting('remove_background_calibration', _('Remove background'),
                     'scan_settings', bool, True))
 
-        self._addSetting(
+        self._add_setting(
             Setting('red_channel_calibration', _('Red channel'), 'scan_settings',
                     unicode, u'R (RGB)', possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
-        self._addSetting(
+        self._add_setting(
             Setting('open_enable_calibration', _('Enable open'), 'scan_settings', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('open_value_calibration', _('Open value'), 'scan_settings',
                     int, 2, min_value=1, max_value=10))
-        self._addSetting(
+        self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'scan_settings', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('threshold_value_calibration', _('Threshold value'), 'scan_settings',
                     int, 6, min_value=0, max_value=255))
 
-        self._addSetting(
+        self._add_setting(
             Setting('capture_texture', _('Capture texture'), 'scan_settings', bool, True))
         # Hack to translate combo boxes:
         _('Left')
         _('Right')
         _('Both')
-        self._addSetting(
+        self._add_setting(
             Setting('use_laser', _('Use laser'), 'scan_settings',
                     unicode, u'Both', possible_values=(u'Left', u'Right', u'Both')))
 
-        self._addSetting(
+        self._add_setting(
             Setting('motor_step_scanning', _(u'Step (º)'), 'scan_settings',
                     float, 0.45))
-        self._addSetting(
+        self._add_setting(
             Setting('motor_speed_scanning', _(u'Speed (º/s)'), 'scan_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
-        self._addSetting(
+        self._add_setting(
             Setting('motor_acceleration_scanning', _(u'Acceleration (º/s²)'), 'scan_settings',
                     float, 300.0, min_value=1.0, max_value=1000.0))
 
-        self._addSetting(
+        self._add_setting(
             Setting('point_cloud_color', _('Choose Point Cloud Color'), 'scan_settings',
                     unicode, u'AAAAAA'))
 
@@ -345,116 +345,116 @@ class Settings(collections.MutableMapping):
         _('Laser')
         _('Gray')
         _('Line')
-        self._addSetting(
+        self._add_setting(
             Setting('video_scanning', _('Video'), 'scan_settings',
                     unicode, u'Laser', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
 
-        self._addSetting(Setting('left_button', _('Left'), 'scan_settings', unicode, u''))
-        self._addSetting(Setting('right_button', _('Right'), 'scan_settings', unicode, u''))
-        self._addSetting(Setting('move_button', _('Move'), 'scan_settings', unicode, u''))
-        self._addSetting(Setting('enable_button', _('Enable'), 'scan_settings', unicode, u''))
-        self._addSetting(Setting('gcode_gui', _('Send'), 'scan_settings', unicode, u''))
-        self._addSetting(Setting('ldr_value', _('Send'), 'scan_settings', unicode, u''))
-        self._addSetting(
+        self._add_setting(Setting('left_button', _('Left'), 'scan_settings', unicode, u''))
+        self._add_setting(Setting('right_button', _('Right'), 'scan_settings', unicode, u''))
+        self._add_setting(Setting('move_button', _('Move'), 'scan_settings', unicode, u''))
+        self._add_setting(Setting('enable_button', _('Enable'), 'scan_settings', unicode, u''))
+        self._add_setting(Setting('gcode_gui', _('Send'), 'scan_settings', unicode, u''))
+        self._add_setting(Setting('ldr_value', _('Send'), 'scan_settings', unicode, u''))
+        self._add_setting(
             Setting('autocheck_button', _('Perform autocheck'), 'scan_settings', unicode, u''))
 
         # -- Calibration Settings
 
-        self._addSetting(
+        self._add_setting(
             Setting('pattern_rows', _('Pattern rows'), 'calibration_settings',
                     int, 6, min_value=2, max_value=50))
-        self._addSetting(
+        self._add_setting(
             Setting('pattern_columns', _('Pattern columns'), 'calibration_settings',
                     int, 11, min_value=2, max_value=50))
-        self._addSetting(
+        self._add_setting(
             Setting('pattern_square_width', _('Square width (mm)'), 'calibration_settings',
                     float, 13.0, min_value=1.0))
-        self._addSetting(
+        self._add_setting(
             Setting('pattern_origin_distance', _('Origin distance (mm)'), 'calibration_settings',
                     float, 0.0, min_value=0.0))
 
-        self._addSetting(
+        self._add_setting(
             Setting('adjust_laser', _('Adjust Laser'), 'calibration_settings', bool, True))
 
-        self._addSetting(
+        self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
                                                                           [0.0, 1430.0, 640.0],
                                                                           [0.0, 0.0, 1.0]]))))
-        self._addSetting(
+        self._add_setting(
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(5,),
                                            buffer=np.array([0.0, 0.0, 0.0, 0.0, 0.0]))))
 
-        self._addSetting(
+        self._add_setting(
             Setting('distance_left', _('Distance'), 'calibration_settings', float, 0.0))
-        self._addSetting(
+        self._add_setting(
             Setting('normal_left', _('Normal'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
-        self._addSetting(
+        self._add_setting(
             Setting('distance_right', _('Distance'), 'calibration_settings', float, 0.0))
-        self._addSetting(
+        self._add_setting(
             Setting('normal_right', _('Normal'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
 
-        self._addSetting(
+        self._add_setting(
             Setting('rotation_matrix', _('Rotation matrix'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[0.0, 1.0, 0.0],
                                                                           [0.0, 0.0, -1.0],
                                                                           [-1.0, 0.0, 0.0]]))))
-        self._addSetting(
+        self._add_setting(
             Setting('translation_vector', _('Translation vector'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([5.0, 80.0, 320.0]))))
 
         # -- Machine Settings
 
-        self._addSetting(
+        self._add_setting(
             Setting('machine_diameter', _('Machine Diameter'), 'machine_settings', int, 200))
-        self._addSetting(
+        self._add_setting(
             Setting('machine_width', _('Machine Width'), 'machine_settings', int, 200))
-        self._addSetting(
+        self._add_setting(
             Setting('machine_height', _('Machine Height'), 'machine_settings', int, 200))
-        self._addSetting(
+        self._add_setting(
             Setting('machine_depth', _('Machine Depth'), 'machine_settings', int, 200))
         # Hack to translate combo boxes:
         _('Circular')
         _('Rectangular')
-        self._addSetting(
+        self._add_setting(
             Setting('machine_shape', _('Machine Shape'), 'machine_settings',
                     unicode, u'Circular', possible_values=(u'Circular', u'Rectangular')))
-        self._addSetting(
+        self._add_setting(
             Setting('machine_model_path', _('Machine Model'), 'machine_settings',
                     unicode, unicode(resources.get_path_for_mesh('ciclop_platform.stl'))))
-        self._addSetting(
+        self._add_setting(
             Setting('roi_view', _('View ROI'), 'machine_settings', bool, False))
-        self._addSetting(
+        self._add_setting(
             Setting('roi_diameter', _('Diameter (mm)'), 'machine_settings',
                     int, 200, min_value=0, max_value=250))
-        self._addSetting(
+        self._add_setting(
             Setting('roi_width', _('Width (mm)'), 'machine_settings',
                     int, 200, min_value=0, max_value=250))
-        self._addSetting(
+        self._add_setting(
             Setting('roi_height', _('Height (mm)'), 'machine_settings',
                     int, 200, min_value=0, max_value=250))
-        self._addSetting(
+        self._add_setting(
             Setting('roi_depth', _('Depth (mm)'), 'machine_settings',
                     int, 200, min_value=0, max_value=250))
 
         # -- Preferences
 
-        self._addSetting(
+        self._add_setting(
             Setting('serial_name', _('Serial Name'), 'preferences', unicode, u'/dev/ttyUSB0'))
-        self._addSetting(
+        self._add_setting(
             Setting('baud_rate', _('Baud rate'), 'preferences', int, 115200,
                     possible_values=(9600, 14400, 19200, 38400, 57600, 115200)))
-        self._addSetting(
+        self._add_setting(
             Setting('camera_id', _('Camera Id'), 'preferences', unicode, u'/dev/video0'))
-        self._addSetting(
+        self._add_setting(
             Setting('board', _('Board'), 'preferences', unicode, u'BT ATmega328',
                     possible_values=(u'Arduino Uno', u'BT ATmega328')))
-        self._addSetting(
+        self._add_setting(
             Setting('invert_motor', _('Invert motor'), 'preferences', bool, False))
-        self._addSetting(
+        self._add_setting(
             Setting('language', _('Language'), 'preferences', unicode, u'English',
                     possible_values=(u'English', u'Español', u'Français',
                                      u'Deutsch', u'Italiano', u'Português'),
@@ -466,48 +466,48 @@ class Settings(collections.MutableMapping):
         _('Adjustment workbench')
         _('Calibration workbench')
         _('Scanning workbench')
-        self._addSetting(
+        self._add_setting(
             Setting('workbench', _('Workbench'), 'preferences', unicode, u'Scanning workbench',
                     possible_values=(u'Control workbench',
                                      u'Adjustment workbench',
                                      u'Calibration workbench',
                                      u'Scanning workbench')))
-        self._addSetting(
+        self._add_setting(
             Setting('show_welcome', _('Show Welcome'), 'preferences', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('check_for_updates', _('Check for Updates'), 'preferences', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('basic_mode', _('Basic Mode'), 'preferences', bool, False))
-        self._addSetting(
+        self._add_setting(
             Setting('view_control_panel', _('View Control Panel'), 'preferences', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('view_control_video', _('View Control Panel'), 'preferences', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('view_adjustment_panel', _('View Adjustment Panel'),
                     'preferences', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('view_adjustment_video', _('View Adjustment Video'),
                     'preferences', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('view_calibration_panel', _('View Calibration Panel'),
                     'preferences', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('view_calibration_video', _('View Calibration Video'),
                     'preferences', bool, True))
-        self._addSetting(
+        self._add_setting(
             Setting('view_scanning_panel', _('View Scanning Panel'), 'preferences', bool, False))
-        self._addSetting(
+        self._add_setting(
             Setting('view_scanning_video', _('View Scanning Video'), 'preferences', bool, False))
-        self._addSetting(
+        self._add_setting(
             Setting('view_scanning_scene', _('View Scanning Scene'), 'preferences', bool, True))
 
-        self._addSetting(
+        self._add_setting(
             Setting('last_files', _('Last Files'), 'preferences', list, []))
         # TODO: Set this default value
-        self._addSetting(
+        self._add_setting(
             Setting('last_file', _('Last File'), 'preferences', unicode, u''))
         # TODO: Set this default value
-        self._addSetting(
+        self._add_setting(
             Setting('last_profile', _('Last Profile'), 'preferences', unicode, u''))
 
 
@@ -536,9 +536,9 @@ class Setting(object):
     def value(self, value):
         if value is None:
             return
-        self._checkType(value)
-        self._checkRange(value)
-        self._checkPossibleValues(value)
+        self._check_type(value)
+        self._check_range(value)
+        self._check_possible_values(value)
         self.__value = value
 
     @property
@@ -547,9 +547,9 @@ class Setting(object):
 
     @default.setter
     def default(self, value):
-        self._checkType(value)
-        self._checkRange(value)
-        self._checkPossibleValues(value)
+        self._check_type(value)
+        self._check_range(value)
+        self._check_possible_values(value)
         self.__default = value
 
     @property
@@ -559,7 +559,7 @@ class Setting(object):
     @min_value.setter
     def min_value(self, value):
         if value is not None:
-            self._checkType(value)
+            self._check_type(value)
         self.__min_value = value
 
     @property
@@ -569,15 +569,15 @@ class Setting(object):
     @max_value.setter
     def max_value(self, value):
         if value is not None:
-            self._checkType(value)
+            self._check_type(value)
         self.__max_value = value
 
-    def _checkType(self, value):
+    def _check_type(self, value):
         if not isinstance(value, self._type):
             raise TypeError("Error when setting %s.\n%s (%s) is not of type %s." %
                             (self._id, value, type(value), self._type))
 
-    def _checkRange(self, value):
+    def _check_range(self, value):
         if self.min_value is not None and value < self.min_value:
             # raise ValueError('Error when setting %s.\n%s is below min value %s.' %
             # (self._id, value, self.min_value))
@@ -589,18 +589,18 @@ class Setting(object):
             print 'Warning: For setting %s.\n%s is above max value %s.' % \
                 (self._id, value, self.max_value)
 
-    def _checkPossibleValues(self, value):
+    def _check_possible_values(self, value):
         if self._possible_values is not None and value not in self._possible_values:
             raise ValueError('Error when setting %s.\n%s is not within the possible values %s.' % (
                 self._id, value, self._possible_values))
 
-    def _loadJsonDict(self, json_dict):
+    def _load_json_dict(self, json_dict):
         # Only load configurable fields (__value, __min_value, __max_value)
         self.value = json_dict['value']
         self.min_value = json_dict['min_value']
         self.max_value = json_dict['max_value']
 
-    def _toJsonDict(self):
+    def _to_json_dict(self):
         # Convert only configurable fields
         json_dict = dict()
 
@@ -626,13 +626,13 @@ def _(n):
     return n
 
 settings = Settings()
-settings._initializeSettings()
+settings._initialize_settings()
 
 # Remove fake defined _() because later the localization will define a global _()
 del _
 
 
-def getBasePath():
+def get_base_path():
     """
     :return: The path in which the current configuration files are stored.
     This depends on the used OS.
@@ -654,13 +654,13 @@ def getBasePath():
 
 # Temporary function to migrate old settings (INI) into new ones (JSON)
 def load_settings():
-    if os.path.exists(os.path.join(getBasePath(), 'settings.json')):
+    if os.path.exists(os.path.join(get_base_path(), 'settings.json')):
         settings.load_settings()
         return
     else:
         for setting_file in ('machine_settings.ini', 'current-profile.ini', 'preferences.ini'):
             try:
-                loadOldSettings(os.path.join(getBasePath(), setting_file))
+                load_old_settings(os.path.join(get_base_path(), setting_file))
             except:
                 pass  # Setting file might not exist
         settings.saveSettings()
@@ -668,7 +668,7 @@ def load_settings():
 # Temporary function to migrate old settings (INI) into new ones (JSON)
 
 
-def loadOldSettings(filename):
+def load_old_settings(filename):
     profileParser = ConfigParser.ConfigParser()
     try:
         profileParser.read(filename)
@@ -678,7 +678,7 @@ def loadOldSettings(filename):
 
     for key in settings:
         if profileParser.has_option(section, key):
-            setting_type = settings.getSetting(key)._type
+            setting_type = settings.get_setting(key)._type
             if setting_type == types.BooleanType:
                 settings[key] = bool(profileParser.get(section, key))
             elif setting_type == types.IntType:
@@ -702,7 +702,7 @@ def loadOldSettings(filename):
 
 # Returns a list of convex polygons, first polygon is the allowed area of the machine,
 # the rest of the polygons are the dis-allowed areas of the machine.
-def getMachineSizePolygons(machine_shape):
+def get_machine_size_polygons(machine_shape):
     if machine_shape == "Circular":
         size = np.array(
             [settings['machine_diameter'],
@@ -712,10 +712,10 @@ def getMachineSizePolygons(machine_shape):
         size = np.array([settings['machine_width'],
                          settings['machine_depth'],
                          settings['machine_height']], np.float32)
-    return getSizePolygons(size, machine_shape)
+    return get_size_polygons(size, machine_shape)
 
 
-def getSizePolygons(size, machine_shape):
+def get_size_polygons(size, machine_shape):
     ret = []
     if machine_shape == 'Circular':
         circle = []

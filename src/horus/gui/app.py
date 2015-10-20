@@ -9,7 +9,7 @@ import wx._core
 
 from horus.gui.main import MainWindow
 from horus.gui.splash import SplashScreen
-from horus.gui.welcome import WelcomeWindow
+from horus.gui.welcome import WelcomeDialog
 
 from horus.util import profile, resources, version, system as sys
 from horus.gui.util.versionWindow import VersionWindow
@@ -36,18 +36,19 @@ class HorusApp(wx.App):
         self.main_window = MainWindow()
 
         # Check for updates
-        if profile.settings['check_for_updates'] and version.check_for_updates():
+        """if profile.settings['check_for_updates'] and version.check_for_updates():
             v = VersionWindow(self.main_window)
             if v.download:
-                return
+                return"""
 
         # Show Main Window
         self.SetTopWindow(self.main_window)
         self.main_window.Show()
 
-        if profile.settings['show_welcome']:
+        """if profile.settings['show_welcome']:
             # Create Welcome Window
-            WelcomeWindow(self.main_window)
+
+            WelcomeDialog(self.main_window)"""
 
         setFullScreenCapable(self.main_window)
 

@@ -11,28 +11,24 @@ import wx._core
 from horus.util import profile, resources
 
 from horus.gui.wizard.main import Wizard
-from horus.gui.util.imageView import ImageView
+from horus.gui.util.image_view import ImageView
 
 
-class WelcomeWindow(wx.Dialog):
+class WelcomeDialog(wx.Dialog):
 
     def __init__(self, parent):
-        super(WelcomeWindow, self).__init__(
-            parent, size=(640 + 120, 480 + 40), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
+        wx.Dialog.__init__(self, parent, size=(640 + 120, 480 + 40),
+                           style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
 
         self.parent = parent
+        self.last_files = profile.settings['last_files']
 
-        self.lastFiles = profile.settings['last_files']
-
+        # Elements
         header = Header(self)
         content = Content(self)
-
-        checkBoxShow = wx.CheckBox(
+        check_box_show = wx.CheckBox(
             self, label=_("Don't show this dialog again"), style=wx.ALIGN_LEFT)
-        checkBoxShow.SetValue(not profile.settings['show_welcome'])
-
-        checkBoxShow.Bind(wx.EVT_CHECKBOX, self.onCheckBoxChanged)
-        self.Bind(wx.EVT_CLOSE, self.onClose)
+        check_box_show.SetValue(not profile.settings['show_welcome'])
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -40,17 +36,21 @@ class WelcomeWindow(wx.Dialog):
         vbox.Add(content, 3, wx.ALL | wx.EXPAND ^ wx.BOTTOM, 20)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add((0, 0), 1, wx.ALL | wx.EXPAND, 0)
-        hbox.Add(checkBoxShow, 0, wx.ALL, 0)
+        hbox.Add(check_box_show, 0, wx.ALL, 0)
         vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 15)
         self.SetSizer(vbox)
-
         self.Centre()
+
+        # Events
+        check_box_show.Bind(wx.EVT_CHECKBOX, self.on_check_box_changed)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
         self.ShowModal()
 
-    def onCheckBoxChanged(self, event):
+    def on_check_box_changed(self, event):
         profile.settings['show_welcome'] = not event.Checked()
 
-    def onClose(self, event):
+    def on_close(self, event):
         self.EndModal(wx.ID_OK)
         self.Destroy()
 
@@ -60,15 +60,17 @@ class Header(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
+        # Elements
         logo = ImageView(self)
-        logo.setImage(wx.Image(resources.getPathForImage("logo.png")))
-        titleText = wx.StaticText(self, label=_("3D Scanning for everyone"))
-        titleText.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+        logo.set_image(wx.Image(resources.get_path_for_image("logo.png")))
+        title_text = wx.StaticText(self, label=_("3D Scanning for everyone"))
+        title_text.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
         separator = wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL)
 
+        # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(logo, 10, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 30)
-        vbox.Add(titleText, 0, wx.TOP | wx.CENTER, 20)
+        vbox.Add(title_text, 0, wx.TOP | wx.CENTER, 20)
         vbox.Add((0, 0), 1, wx.ALL | wx.EXPAND, 0)
         vbox.Add(separator, 0, wx.ALL | wx.EXPAND, 10)
         self.SetSizer(vbox)
@@ -80,66 +82,58 @@ class CreateNew(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        titleText = wx.StaticText(self, label=_("Create new"))
-        titleText.SetFont(
+        # Elements
+        title_text = wx.StaticText(self, label=_("Create new"))
+        title_text.SetFont(
             (wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(),
                      wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+        wizard_button = wx.Button(self, label=_("Wizard mode (step by step)"))
+        scan_button = wx.Button(self, label=_("Scan using recent settings"))
+        advanced_control_button = wx.Button(self, label=_("Advanced Control"))
+        advanced_adjustment_button = wx.Button(self, label=_("Advanced Adjustment"))
+        advanced_calibration_button = wx.Button(self, label=_("Advanced Calibration"))
 
-        wizardButton = wx.Button(self, label=_("Wizard mode (step by step)"))
-        scanButton = wx.Button(self, label=_("Scan using recent settings"))
-        advancedControlButton = wx.Button(self, label=_("Advanced Control"))
-        advancedAdjustmentButton = wx.Button(self, label=_("Advanced Adjustment"))
-        advancedCalibrationButton = wx.Button(self, label=_("Advanced Calibration"))
-
-        wizardButton.Bind(wx.EVT_BUTTON, self.onWizard)
-        scanButton.Bind(wx.EVT_BUTTON, self.onScan)
-        advancedControlButton.Bind(wx.EVT_BUTTON, self.onAdvancedControl)
-        advancedAdjustmentButton.Bind(wx.EVT_BUTTON, self.onAdvancedAdjustment)
-        advancedCalibrationButton.Bind(wx.EVT_BUTTON, self.onAdvancedCalibration)
-
+        # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(titleText, 0, wx.BOTTOM | wx.CENTER, 10)
-        vbox.Add(wizardButton, 1, wx.ALL | wx.EXPAND, 5)
-        vbox.Add(scanButton, 1, wx.ALL | wx.EXPAND, 5)
-        vbox.Add(advancedControlButton, 1, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
-        vbox.Add(advancedAdjustmentButton, 1, wx.ALL | wx.EXPAND, 5)
-        vbox.Add(advancedCalibrationButton, 1, wx.ALL | wx.EXPAND, 5)
-
+        vbox.Add(title_text, 0, wx.BOTTOM | wx.CENTER, 10)
+        vbox.Add(wizard_button, 1, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(scan_button, 1, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(advanced_control_button, 1, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
+        vbox.Add(advanced_adjustment_button, 1, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(advanced_calibration_button, 1, wx.ALL | wx.EXPAND, 5)
         self.SetSizer(vbox)
         self.Layout()
 
-    def onWizard(self, event):
+        # Events
+        wizard_button.Bind(wx.EVT_BUTTON, self.on_wizard)
+        scan_button.Bind(wx.EVT_BUTTON, self.on_scan)
+        advanced_control_button.Bind(wx.EVT_BUTTON, self.on_advanced_control)
+        advanced_adjustment_button.Bind(wx.EVT_BUTTON, self.on_advanced_adjustment)
+        advanced_calibration_button.Bind(wx.EVT_BUTTON, self.on_advanced_calibration)
+
+    def on_wizard(self, event):
         self.GetParent().GetParent().Hide()
-        self.GetParent().GetParent().parent.workbench['control'].videoView.stop()
-        self.GetParent().GetParent().parent.workbench['calibration'].videoView.stop()
-        self.GetParent().GetParent().parent.workbench['scanning'].videoView.stop()
-        self.GetParent().GetParent().parent.workbench['control'].Disable()
-        self.GetParent().GetParent().parent.workbench['calibration'].Disable()
-        self.GetParent().GetParent().parent.workbench['scanning'].Disable()
         Wizard(self.GetParent().GetParent().parent)
-        self.GetParent().GetParent().parent.workbench['control'].Enable()
-        self.GetParent().GetParent().parent.workbench['calibration'].Enable()
-        self.GetParent().GetParent().parent.workbench['scanning'].Enable()
         self.GetParent().GetParent().Close()
 
-    def onScan(self, event):
+    def on_scan(self, event):
         profile.settings['workbench'] = u'Scanning workbench'
-        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().parent.workbench_update()
         self.GetParent().GetParent().Close()
 
-    def onAdvancedControl(self, event):
+    def on_advanced_control(self, event):
         profile.settings['workbench'] = u'Control workbench'
-        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().parent.workbench_update()
         self.GetParent().GetParent().Close()
 
-    def onAdvancedAdjustment(self, event):
+    def on_advanced_adjustment(self, event):
         profile.settings['workbench'] = u'Adjustment workbench'
-        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().parent.workbench_update()
         self.GetParent().GetParent().Close()
 
-    def onAdvancedCalibration(self, event):
+    def on_advanced_calibration(self, event):
         profile.settings['workbench'] = u'Calibration workbench'
-        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().parent.workbench_update()
         self.GetParent().GetParent().Close()
 
 
@@ -148,29 +142,31 @@ class OpenRecent(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        titleText = wx.StaticText(self, label=_("Open recent file"))
-        titleText.SetFont(
+        # Elements
+        title_text = wx.StaticText(self, label=_("Open recent file"))
+        title_text.SetFont(
             (wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(),
                      wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         lastFiles = profile.settings['last_files']
         lastFiles.reverse()
 
+        # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(titleText, 0, wx.BOTTOM | wx.CENTER, 10)
+        vbox.Add(title_text, 0, wx.BOTTOM | wx.CENTER, 10)
 
         for path in lastFiles:
             button = wx.Button(self, label=os.path.basename(path), name=path)
-            button.Bind(wx.EVT_BUTTON, self.onButtonPressed)
+            button.Bind(wx.EVT_BUTTON, self.on_button_pressed)
             vbox.Add(button, 0, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(vbox)
         self.Layout()
 
-    def onButtonPressed(self, event):
+    def on_button_pressed(self, event):
         button = event.GetEventObject()
         profile.settings['workbench'] = u'Scanning workbench'
-        self.GetParent().GetParent().parent.workbenchUpdate()
+        self.GetParent().GetParent().parent.workbench_update()
         self.GetParent().GetParent().parent.appendLastFile(button.GetName())
         self.GetParent().GetParent().parent.scanningWorkbench.sceneView.loadFile(button.GetName())
         self.GetParent().GetParent().Close()
@@ -181,13 +177,14 @@ class Content(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        createNew = CreateNew(self)
-        openRecent = OpenRecent(self)
+        # Elements
+        create_new = CreateNew(self)
+        open_recent = OpenRecent(self)
 
+        # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(createNew, 1, wx.ALL | wx.EXPAND, 10)
+        hbox.Add(create_new, 1, wx.ALL | wx.EXPAND, 10)
         hbox.Add(wx.StaticLine(self, style=wx.LI_VERTICAL), 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 20)
-        hbox.Add(openRecent, 1, wx.ALL | wx.EXPAND, 10)
-
+        hbox.Add(open_recent, 1, wx.ALL | wx.EXPAND, 10)
         self.SetSizer(hbox)
         self.Layout()

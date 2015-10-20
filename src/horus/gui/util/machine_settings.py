@@ -11,17 +11,19 @@ import wx.lib.intctrl
 
 from horus.util import profile
 
+# TODO: refactor PEP8
+
 
 class MachineSettingsDialog(wx.Dialog):
 
     def __init__(self, parent):
-        super(MachineSettingsDialog, self).__init__(None, title=_("Machine Settings"))
+        wx.Dialog.__init__(self, None, title=_("Machine Settings"))
 
         self.main = parent
 
-        # Graphic elements
+        # Elements
         self.machineShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
-        self.machineShapes = profile.settings.getPossibleValues("machine_shape")
+        self.machineShapes = profile.settings.get_possible_values("machine_shape")
         self.translatedMachineShapes = [_(s) for s in self.machineShapes]
         self.machineShapeCombo = wx.ComboBox(
             self, choices=self.translatedMachineShapes, size=(170, -1), style=wx.CB_READONLY)
@@ -105,7 +107,7 @@ class MachineSettingsDialog(wx.Dialog):
         hbox.Add(self.saveButton, 0, wx.ALL, 10)
         vbox.Add(hbox, 0, wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        #-- Fill data from settings
+        # Fill data from settings
         self.machineShapeCombo.SetValue(_(profile.settings['machine_shape']))
         self.diameterField.SetValue(profile.settings['machine_diameter'])
         self.widthField.SetValue(profile.settings['machine_width'])

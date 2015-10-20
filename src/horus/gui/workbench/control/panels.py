@@ -9,7 +9,7 @@ import wx._core
 
 from horus.util import system as sys
 from horus.gui.engine import driver, image_capture, calibration_data
-from horus.gui.util.customPanels import ExpandablePanel, SectionItem, Slider, ComboBox, \
+from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
     CheckBox, ToggleButton, CallbackButton, FloatTextBox
 
 
@@ -20,46 +20,56 @@ class CameraControl(ExpandablePanel):
 
         self.current_framerate = None
 
-        self.clear_sections()
-        section = self.create_section('camera_control')
-        section.add_item(Slider, 'brightness_control', tooltip=_(
-            "Image luminosity. Low values are better for environments with high ambient "
-            "light conditions. High values are recommended for poorly lit places"))
-        section.add_item(Slider, 'contrast_control', tooltip=_(
-            "Relative difference in intensity between an image point and its surroundings. "
-            "Low values are recommended for black or very dark colored objects. "
-            "High values are better for very light colored objects"))
-        section.add_item(Slider, 'saturation_control', tooltip=_(
-            "Purity of color. Low values will cause colors to disappear from the image. "
-            "High values will show an image with very intense colors"))
-        section.add_item(Slider, 'exposure_control', tooltip=_(
-            "Amount of light per unit area. It is controlled by the time the camera sensor "
-            "is exposed during a frame capture. "
-            "High values are recommended for poorly lit places"))
-        section.add_item(ComboBox, 'framerate', tooltip=_(
-            "Number of frames captured by the camera every second. "
-            "Maximum frame rate is recommended"))
-        section.add_item(ComboBox, 'resolution', tooltip=_(
-            "Size of the video. Maximum resolution is recommended"))
-        section.add_item(CheckBox, 'use_distortion', tooltip=_(
-            "This option applies lens distortion correction to the video. "
-            "This process slows the video feed from the camera"))
+        self.add_control(
+            'brightness_control',
+            Slider,
+            tooltip=_("Image luminosity. Low values are better for environments with high ambient "
+                      "light conditions. High values are recommended for poorly lit places"))
+        self.add_control(
+            'contrast_control',
+            Slider,
+            tooltip=_("Relative difference in intensity between an image point and its "
+                      "surroundings. Low values are recommended for black or very dark colored "
+                      "objects. High values are better for very light colored objects"))
+        self.add_control(
+            'saturation_control',
+            Slider,
+            tooltip=_("Purity of color. Low values will cause colors to disappear from the image. "
+                      "High values will show an image with very intense colors"))
+        self.add_control(
+            'exposure_control',
+            Slider,
+            tooltip=_("Amount of light per unit area. It is controlled by the time the camera "
+                      "sensor is exposed during a frame capture. "
+                      "High values are recommended for poorly lit places"))
+        self.add_control(
+            'framerate',
+            ComboBox,
+            tooltip=_("Number of frames captured by the camera every second. "
+                      "Maximum frame rate is recommended"))
+        self.add_control(
+            'resolution',
+            ComboBox,
+            tooltip=_("Size of the video. Maximum resolution is recommended"))
+        self.add_control(
+            'use_distortion',
+            CheckBox,
+            tooltip=_("This option applies lens distortion correction to the video. "
+                      "This process slows the video feed from the camera"))
 
         if sys.is_darwin():
-            section = self.sections['camera_control'].disable('framerate')
-            section = self.sections['camera_control'].disable('resolution')
+            self.disable('framerate')
+            self.disable('resolution')
 
     def update_callbacks(self):
-        section = self.sections['camera_control']
-        section.update_callback('brightness_control', driver.camera.set_brightness)
-        section.update_callback('contrast_control', driver.camera.set_contrast)
-        section.update_callback('saturation_control', driver.camera.set_saturation)
-        section.update_callback('exposure_control', driver.camera.set_exposure)
-        section.update_callback('framerate', lambda v: self.set_framerate(int(v)))
-        section.update_callback('resolution', lambda v: self.set_resolution(
+        self.update_callback('brightness_control', driver.camera.set_brightness)
+        self.update_callback('contrast_control', driver.camera.set_contrast)
+        self.update_callback('saturation_control', driver.camera.set_saturation)
+        self.update_callback('exposure_control', driver.camera.set_exposure)
+        self.update_callback('framerate', lambda v: self.set_framerate(int(v)))
+        self.update_callback('resolution', lambda v: self.set_resolution(
             int(v.split('x')[0]), int(v.split('x')[1])))
-        section.update_callback(
-            'use_distortion', lambda v: image_capture.set_use_distortion(v))
+        self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
 
     def set_framerate(self, v):
         if self.current_framerate != v:
@@ -77,18 +87,16 @@ class LaserControl(ExpandablePanel):
         ExpandablePanel.__init__(
             self, parent, _("Laser control"), has_undo=False, has_restore=False)
 
-        self.clear_sections()
-        self.section = self.create_section('laser_control')
-        self.section.add_item(ToggleButton, 'left_button')
-        self.section.add_item(ToggleButton, 'right_button')
+        self.add_control('left_button', ToggleButton)
+        self.add_control('right_button', ToggleButton)
 
     def update_callbacks(self):
-        self.section.update_callback(
-            'left_button', (lambda i=0: driver.board.laser_on(i),
-                            lambda i=0: driver.board.laser_off(i)))
-        self.section.update_callback(
-            'right_button', (lambda i=1: driver.board.laser_on(i),
-                             lambda i=1: driver.board.laser_off(i)))
+        self.update_callback('left_button',
+                             (lambda i=0: driver.board.laser_on(i),
+                              lambda i=0: driver.board.laser_off(i)))
+        self.update_callback('right_button',
+                             (lambda i=1: driver.board.laser_on(i),
+                              lambda i=1: driver.board.laser_off(i)))
 
 
 class LDRControl(ExpandablePanel):
@@ -97,13 +105,10 @@ class LDRControl(ExpandablePanel):
         ExpandablePanel.__init__(
             self, parent, _("LDR control"), has_undo=False, has_restore=False)
 
-        self.clear_sections()
-        section = self.create_section('ldr_control')
-        section.add_item(LDRSection, 'ldr_value')
+        self.add_control(LDRSection, 'ldr_value')
 
     def update_callbacks(self):
-        section = self.sections['ldr_control']
-        section.update_callback('ldr_value', lambda id: driver.board.ldr_sensor(id))
+        self.update_callback('ldr_value', lambda id: driver.board.ldr_sensor(id))
 
 
 class LDRSection(SectionItem):
@@ -164,24 +169,21 @@ class MotorControl(ExpandablePanel):
     def __init__(self, parent):
         ExpandablePanel.__init__(self, parent, _("Motor control"), has_undo=False)
 
-        self.clear_sections()
-        section = self.create_section('motor_control')
-        section.add_item(FloatTextBox, 'motor_step_control')
-        section.add_item(FloatTextBox, 'motor_speed_control')
-        section.add_item(FloatTextBox, 'motor_acceleration_control')
-        section.add_item(CallbackButton, 'move_button')
-        section.add_item(ToggleButton, 'enable_button')
+        self.add_control('motor_step_control', FloatTextBox)
+        self.add_control('motor_speed_control', FloatTextBox)
+        self.add_control('motor_acceleration_control', FloatTextBox)
+        self.add_control('move_button', CallbackButton)
+        self.add_control('enable_button', ToggleButton)
 
     def update_callbacks(self):
-        section = self.sections['motor_control']
-        section.update_callback('motor_step_control', lambda v: driver.board.motor_relative(v))
-        section.update_callback('motor_speed_control', lambda v: driver.board.motor_speed(v))
-        section.update_callback(
-            'motor_acceleration_control', lambda v: driver.board.motor_acceleration(v))
-        section.update_callback(
-            'move_button', lambda c: driver.board.motor_move(nonblocking=True, callback=c))
-        section.update_callback(
-            'enable_button', (driver.board.motor_enable, driver.board.motor_disable))
+        self.update_callback('motor_step_control', lambda v: driver.board.motor_relative(v))
+        self.update_callback('motor_speed_control', lambda v: driver.board.motor_speed(v))
+        self.update_callback('motor_acceleration_control',
+                             lambda v: driver.board.motor_acceleration(v))
+        self.update_callback('move_button',
+                             lambda c: driver.board.motor_move(nonblocking=True, callback=c))
+        self.update_callback('enable_button',
+                             (driver.board.motor_enable, driver.board.motor_disable))
 
 
 class GcodeControl(ExpandablePanel):
@@ -190,13 +192,10 @@ class GcodeControl(ExpandablePanel):
         ExpandablePanel.__init__(
             self, parent, _("Gcode Control"), has_undo=False, has_restore=False)
 
-        self.clear_sections()
-        section = self.create_section('gcode_control')
-        section.add_item(GcodeSection, 'gcode_gui')
+        self.add_control(GcodeSection, 'gcode_gui')
 
     def update_callbacks(self):
-        section = self.sections['gcode_control']
-        section.update_callback(
+        self.update_callback(
             'gcode_gui', lambda v, c: driver.board._send_command(v, callback=c, read_lines=True))
 
 

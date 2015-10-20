@@ -23,7 +23,7 @@ class ImageView(wx.Panel):
         self.image = self.default_image
         self.bitmap = wx.BitmapFromImage(self.default_image)
 
-        self.SetBackgroundColour(wx.BLACK)
+        # self.SetBackgroundColour(wx.BLACK)
         self.SetDoubleBuffered(True)
 
         self.Bind(wx.EVT_SHOW, self.on_show)
@@ -44,7 +44,7 @@ class ImageView(wx.Panel):
             dc.DrawBitmap(self.bitmap, self.x_offset, self.y_offset)
 
     def on_resize(self, size):
-        self.refreshBitmap()
+        self.refresh_bitmap()
 
     def set_image(self, image):
         if image is not None:

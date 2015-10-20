@@ -14,8 +14,8 @@ from horus.gui.engine import driver, image_capture
 from horus.engine.driver.board import WrongFirmware, BoardNotConnected
 from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo
 
-from horus.gui.util.imageView import VideoView
-from horus.gui.util.customPanels import ExpandableControl
+from horus.gui.util.image_view import VideoView
+from horus.gui.util.custom_panels import ExpandableCollection
 
 
 class Workbench(wx.Panel):
