@@ -35,3 +35,6 @@ class ControlWorkbench(WorkbenchConnection):
         image_capture.texture_mode.set_saturation(profile.settings['saturation_control'])
         image_capture.texture_mode.set_exposure(profile.settings['exposure_control'])
         image_capture.set_use_distortion(profile.settings['use_distortion'])
+
+    def video_frame(self):
+        return image_capture.capture_image()

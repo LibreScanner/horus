@@ -77,7 +77,7 @@ class WorkbenchConnection(Workbench):
         self.scroll_panel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
         self.scroll_panel.SetupScrolling(scroll_x=False, scrollIntoView=False)
         self.scroll_panel.SetAutoLayout(1)
-        self.video_view = VideoView(self._panel, image_capture.capture_image, 10, black=True)
+        self.video_view = VideoView(self._panel, self.video_frame, 10, black=True)
 
         self.collection = ExpandableCollection(self.scroll_panel)
         self.collection.SetBackgroundColour(wx.BLUE)
@@ -99,6 +99,9 @@ class WorkbenchConnection(Workbench):
         raise NotImplementedError
 
     def setup_engine(self):
+        raise NotImplementedError
+
+    def video_frame(self):
         raise NotImplementedError
 
     def add_panel(self, name, panel):

@@ -41,12 +41,7 @@ class ExpandableCollection(wx.Panel):
         for panel in self.expandable_panels.values():
             panel.hide_content()
         selected_panel.show_content()
-
-        selected_panel.content.Layout()
-        selected_panel.Layout()
         self.Layout()
-        self.GetParent().Layout()
-        self.GetParent().GetParent().Layout()
 
     # Engine callbacks
     def update_callbacks(self):
@@ -72,7 +67,7 @@ class ExpandablePanel(wx.Panel):
         wx.Panel.__init__(self, parent, size=(-1, -1))
 
         # Elements
-        self.callback = None
+        self.expand_callback = None
         self.undo_objects = []
         self.title = title
         self.title_text = TitleText(self, title, bold=True)
@@ -120,6 +115,9 @@ class ExpandablePanel(wx.Panel):
     def add_control(self, _name, _type, tooltip=None):
         self.content.add_control(_name, _type, tooltip)
 
+    def get_control(self, _name):
+        return self.content[_name]
+
     def update_callback(self, _name, _callback):
         self.content.update_callback(_name, _callback)
 
@@ -129,12 +127,16 @@ class ExpandablePanel(wx.Panel):
     def update_callbacks(self):
         raise NotImplementedError
 
-    def set_expand_callback(self, callback):
-        self.callback = callback
+    def on_selected(self):
+        raise NotImplementedError
+
+    def set_expand_callback(self, expand_callback):
+        self.expand_callback = expand_callback
 
     def on_title_clicked(self, event):
-        if self.callback is not None:
-            self.callback(self)
+        if self.expand_callback is not None:
+            self.expand_callback(self)
+            self.on_selected()
 
     def on_undo_button_clicked(self, event):
         if self.undo():
@@ -238,6 +240,9 @@ class ControlCollection(wx.Panel):
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.vbox)
         self.Layout()
+
+    def __getitem__(self, key):
+        return self.control_panels[key]
 
     def add_control(self, _name, _type, tooltip=None):
         control = _type(self, _name, tooltip)

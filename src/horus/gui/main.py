@@ -17,7 +17,7 @@ from horus.gui.util.preferences import PreferencesDialog
 from horus.gui.util.machine_settings import MachineSettingsDialog
 
 from horus.gui.workbench.control.main import ControlWorkbench
-# from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
+from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
 # from horus.gui.workbench.calibration.main import CalibrationWorkbench
 # from horus.gui.workbench.scanning.main import ScanningWorkbench
 
@@ -61,8 +61,8 @@ class MainWindow(wx.Frame):
 
         # Create Workbenchs
         self.workbench = {}
-        self.workbench['control'] = ControlWorkbench(self)
-        # self.workbench['adjustment'] = AdjustmentWorkbench(self)
+        # self.workbench['control'] = ControlWorkbench(self)
+        self.workbench['adjustment'] = AdjustmentWorkbench(self)
         # self.workbench['calibration'] = CalibrationWorkbench(self)
         # self.workbench['scanning'] = ScanningWorkbench(self)
 
@@ -569,7 +569,7 @@ class MainWindow(wx.Frame):
         self.workbenchUpdate()"""
         self.Layout()
 
-        self.workbench['control'].update_controls()
+        self.workbench['adjustment'].update_controls()
 
     def update_driver_profile(self):
         driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
