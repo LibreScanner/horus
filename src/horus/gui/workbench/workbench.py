@@ -20,34 +20,30 @@ from horus.gui.util.custom_panels import ExpandableCollection
 
 class Workbench(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, name='Workbench'):
         wx.Panel.__init__(self, parent)
 
+        # Element
+        self.name = name
+        self.toolbar = wx.ToolBar(self)
+        self.toolbar.SetDoubleBuffered(True)
+        self.combo = wx.ComboBox(self, -1, style=wx.CB_READONLY)
+        self._panel = wx.Panel(self)
+
+        # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.toolbar = wx.ToolBar(self)
-        self.combo = wx.ComboBox(self, -1, style=wx.CB_READONLY)
-        self._panel = wx.Panel(self)
-        self.scroll_panel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
-        self.scroll_panel.SetupScrolling(scroll_x=False, scrollIntoView=False)
-        self.scroll_panel.SetAutoLayout(1)
-
-        self.toolbar.SetDoubleBuffered(True)
-
         hbox.Add(self.toolbar, 0, wx.ALL | wx.EXPAND, 1)
         hbox.Add((0, 0), 1, wx.ALL | wx.EXPAND, 1)
         hbox.Add(self.combo, 0, wx.ALL, 10)
         vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 1)
         vbox.Add(self._panel, 1, wx.ALL | wx.EXPAND, 0)
-
         self._panel.SetSizer(self.hbox)
         self._panel.Layout()
-
         self.SetSizer(vbox)
         self.Layout()
-        self.Hide()
+        # self.Hide()
 
     def add_to_panel(self, _object, _size):
         if _object is not None:
@@ -56,8 +52,8 @@ class Workbench(wx.Panel):
 
 class WorkbenchConnection(Workbench):
 
-    def __init__(self, parent):
-        Workbench.__init__(self, parent)
+    def __init__(self, parent, name):
+        Workbench.__init__(self, parent, name)
 
         # Toolbar Configuration
         self.connect_tool = self.toolbar.AddLabelTool(
@@ -78,36 +74,43 @@ class WorkbenchConnection(Workbench):
         self.Bind(wx.EVT_SHOW, self.on_show)
 
         # Load controls
-        self.controls = ExpandableControl(self.scroll_panel)
-        self.load_controls()
-        self.controls.init_panels()
-        self.controls.update_callbacks()
-        self.video_view = VideoView(self._panel, image_capture.capture_image, 10)
+        self.scroll_panel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
+        self.scroll_panel.SetupScrolling(scroll_x=False, scrollIntoView=False)
+        self.scroll_panel.SetAutoLayout(1)
+        self.video_view = VideoView(self._panel, image_capture.capture_image, 10, black=True)
+
+        self.collection = ExpandableCollection(self.scroll_panel)
+        self.collection.SetBackgroundColour(wx.BLUE)
+        self.add_panels()
+        self.collection.init_panels_layout()
 
         # Layout
         vsbox = wx.BoxSizer(wx.VERTICAL)
-        vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
+        vsbox.Add(self.collection, 1, wx.ALL | wx.EXPAND, 0)
         self.scroll_panel.SetSizer(vsbox)
         vsbox.Fit(self.scroll_panel)
         panel_size = self.scroll_panel.GetSize()[0] + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
         self.scroll_panel.SetMinSize((panel_size, -1))
         self.add_to_panel(self.scroll_panel, 0)
         self.add_to_panel(self.video_view, 1)
-
         self.Layout()
 
-    def load_controls(self):
+    def add_panels(self):
         raise NotImplementedError
 
-    def update_engine(self):
+    def setup_engine(self):
         raise NotImplementedError
+
+    def add_panel(self, name, panel):
+        self.collection.add_panel(name, panel)
 
     def update_status(self, status):
         self._enable_tool(self.connect_tool, not status)
         self._enable_tool(self.disconnect_tool, status)
         if status:
-            self.update_engine()
-            self.controls.enableContent()
+            self.setup_engine()
+            self.video_view.play()
+            self.collection.enable_content()
             callback = self.GetParent().on_board_unplugged
             driver.board.set_unplug_callback(lambda: wx.CallAfter(callback))
             callback = self.GetParent().on_camera_unplugged
@@ -115,20 +118,24 @@ class WorkbenchConnection(Workbench):
         else:
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
-            self.controls.disableContent()
+            self.collection.disable_content()
+            self.video_view.stop()
 
     def update_controls(self):
-        self.controls.updateProfile()
-        if driver.is_connected:
-            self.update_engine()
+        self.collection.update_from_profile()
+        self.setup_engine()
 
     def on_open(self):
-        if driver.is_connected:
-            self.update_engine()
+        # if driver.is_connected:
+            # self.update_engine()
         self.video_view.play()
 
     def on_close(self):
-        self.video_view.stop()
+        try:
+            if self.video_view is not None:
+                self.video_view.stop()
+        except:
+            pass
 
     def on_show(self, event):
         if event.GetShow():
@@ -148,8 +155,8 @@ class WorkbenchConnection(Workbench):
     def before_connect(self):
         self._enable_tool(self.connect_tool, False)
         self.combo.Disable()
-        for i in xrange(self.GetParent().menuBar.GetMenuCount()):
-            self.GetParent().menuBar.EnableTop(i, False)
+        for i in xrange(self.GetParent().menu_bar.GetMenuCount()):
+            self.GetParent().menu_bar.EnableTop(i, False)
         driver.board.set_unplug_callback(None)
         driver.camera.set_unplug_callback(None)
         self.waitCursor = wx.BusyCursor()
@@ -185,12 +192,12 @@ class WorkbenchConnection(Workbench):
 
         self.combo.Enable()
         self.update_status(driver.is_connected)
-        for i in xrange(self.GetParent().menuBar.GetMenuCount()):
-            self.GetParent().menuBar.EnableTop(i, True)
+        for i in xrange(self.GetParent().menu_bar.GetMenuCount()):
+            self.GetParent().menu_bar.EnableTop(i, True)
         del self.waitCursor
 
     def _show_message(self, title, style, desc):
-        dlg = wx.MessageDialog(self, desc, result, wx.OK | style)
+        dlg = wx.MessageDialog(self, desc, title, wx.OK | style)
         dlg.ShowModal()
         dlg.Destroy()
 

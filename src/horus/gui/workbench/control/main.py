@@ -16,21 +16,22 @@ from horus.gui.workbench.control.panels import CameraControl, LaserControl, \
 class ControlWorkbench(WorkbenchConnection):
 
     def __init__(self, parent):
-        WorkbenchConnection.__init__(self, parent)
+        WorkbenchConnection.__init__(self, parent, name=_('Control workbench'))
 
-    def load_controls(self):
-        self.controls.add_panel(CameraControl, 'camera_control')
-        self.controls.add_panel(LaserControl, 'laser_control')
-        self.controls.add_panel(LDRControl, 'ldr_value')
-        self.controls.add_panel(MotorControl, 'motor_control')
-        self.controls.add_panel(GcodeControl, 'gcode_control')
+    def add_panels(self):
+        self.add_panel('camera_control', CameraControl)
+        self.add_panel('laser_control', LaserControl)
+        self.add_panel('ldr_value', LDRControl)
+        self.add_panel('motor_control', MotorControl)
+        self.add_panel('gcode_control', GcodeControl)
 
-    def update_engine(self):
+    def setup_engine(self):
         resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
-        image_capture.texture_mode.brightness = profile.settings['brightness_texture_control']
-        image_capture.texture_mode.contrast = profile.settings['contrast_texture_control']
-        image_capture.texture_mode.saturation = profile.settings['saturation_texture_control']
-        image_capture.texture_mode.exposure = profile.settings['exposure_texture_control']
-        image_capture.use_distortion = profile.settings['use_distortion']
+        image_capture.set_mode_texture()
+        image_capture.texture_mode.set_brightness(profile.settings['brightness_control'])
+        image_capture.texture_mode.set_contrast(profile.settings['contrast_control'])
+        image_capture.texture_mode.set_saturation(profile.settings['saturation_control'])
+        image_capture.texture_mode.set_exposure(profile.settings['exposure_control'])
+        image_capture.set_use_distortion(profile.settings['use_distortion'])

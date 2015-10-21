@@ -243,6 +243,7 @@ class PreferencesDialog(wx.Dialog):
                 'Info', wx.OK | wx.ICON_INFORMATION)
 
     def on_save_button(self, event):
+        # Update profile
         if len(self.serial_name_combo.GetValue()):
             profile.settings['serial_name'] = self.serial_name_combo.GetValue()
         if self.baud_rate_combo.GetValue() in self.baud_rates:
@@ -253,8 +254,12 @@ class PreferencesDialog(wx.Dialog):
         if profile.settings['language'] != self.language_combo.GetValue():
             profile.settings['language'] = self.language_combo.GetValue()
         profile.settings['invert_motor'] = self.invert_motor_check_box.GetValue()
-
         profile.settings.save_settings(categories=["preferences"])
+        # Update engine
+        driver.board.serial_name = profile.settings['serial_name']
+        driver.board.baud_rate = profile.settings['baud_rate']
+        driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
+        driver.board.motor_invert(profile.settings['invert_motor'])
         self.on_close(None)
 
     def on_close(self, event):

@@ -60,7 +60,7 @@ class Settings(collections.MutableMapping):
 
     def __setitem__(self, key, value):
         # For convinience, this sets the Setting value and not a Setting object
-        self.get_setting(key).value = value
+        self.cast_and_set(key, value)
 
     def set_min_value(self, key, value):
         self.get_setting(key).__min_value = value
@@ -69,8 +69,8 @@ class Settings(collections.MutableMapping):
         self.get_setting(key).__max_value = value
 
     def cast_and_set(self, key, value):
-        if len(value) == 0:
-            return
+        # if len(value) == 0:
+        #    return
         setting_type = self.get_setting(key)._type
         try:
             if setting_type == types.BooleanType:
@@ -90,7 +90,7 @@ class Settings(collections.MutableMapping):
         except:
             raise ValueError("Unable to cast setting %s to type %s" % (key, setting_type))
         else:
-            self.__setitem__(key, value)
+            self.get_setting(key).value = value
 
     # File management
 

@@ -12,7 +12,8 @@ from horus.util import resources
 
 class ImageView(wx.Panel):
 
-    def __init__(self, parent, resize=True, quality=wx.IMAGE_QUALITY_NORMAL, size=(-1, -1)):
+    def __init__(self, parent, resize=True,
+                 quality=wx.IMAGE_QUALITY_NORMAL, size=(-1, -1), black=False):
         wx.Panel.__init__(self, parent, size=size)  # , style=wx.SIMPLE_BORDER)
 
         self.x_offset = 0
@@ -23,7 +24,8 @@ class ImageView(wx.Panel):
         self.image = self.default_image
         self.bitmap = wx.BitmapFromImage(self.default_image)
 
-        # self.SetBackgroundColour(wx.BLACK)
+        if black:
+            self.SetBackgroundColour(wx.BLACK)
         self.SetDoubleBuffered(True)
 
         self.Bind(wx.EVT_SHOW, self.on_show)
@@ -89,8 +91,8 @@ class ImageView(wx.Panel):
 
 class VideoView(ImageView):
 
-    def __init__(self, parent, callback=None, milliseconds=1, size=(-1, -1)):
-        ImageView.__init__(self, parent, size=size)
+    def __init__(self, parent, callback=None, milliseconds=1, size=(-1, -1), black=False):
+        ImageView.__init__(self, parent, size=size, black=black)
 
         self.callback = callback
         self.milliseconds = milliseconds
@@ -104,7 +106,7 @@ class VideoView(ImageView):
         self.timer.Stop()
         if self.playing:
             if self.callback is not None:
-                self.setFrame(self.callback())
+                self.set_frame(self.callback())
             self._start()
 
     def set_callback(self, callback):

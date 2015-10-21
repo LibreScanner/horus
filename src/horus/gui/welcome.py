@@ -10,7 +10,7 @@ import wx._core
 
 from horus.util import profile, resources
 
-from horus.gui.wizard.main import Wizard
+# from horus.gui.wizard.main import Wizard
 from horus.gui.util.image_view import ImageView
 
 

@@ -12,17 +12,19 @@ import struct
 import wx._core
 import webbrowser
 
-# from horus.gui.workbench.control.main import ControlWorkbench
-# from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
-# from horus.gui.workbench.calibration.main import CalibrationWorkbench
-# from horus.gui.workbench.scanning.main import ScanningWorkbench
 from horus.gui.welcome import WelcomeDialog
 from horus.gui.util.preferences import PreferencesDialog
 from horus.gui.util.machine_settings import MachineSettingsDialog
+
+from horus.gui.workbench.control.main import ControlWorkbench
+# from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
+# from horus.gui.workbench.calibration.main import CalibrationWorkbench
+# from horus.gui.workbench.scanning.main import ScanningWorkbench
+
 # from horus.gui.wizard.main import *
 # from horus.gui.util.versionWindow import VersionWindow
 
-from horus.gui.engine import *
+from horus.gui.engine import driver
 
 from horus.util import profile, resources, meshLoader, version, system as sys
 
@@ -34,7 +36,7 @@ class MainWindow(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, title=_("Horus 0.2 BETA"), size=self.size)
 
-        self.SetMinSize((600, 450))
+        print ">>> Horus " + version.get_version() + " <<<"
 
         # Serial Name initialization
         serialList = driver.board.get_serial_list()
@@ -51,16 +53,40 @@ class MainWindow(wx.Frame):
                 profile.settings['camera_id'] = unicode(videoList[0])
 
         self.last_files = profile.settings['last_files']
-
-        print ">>> Horus " + version.get_version() + " <<<"
+        self.update_driver_profile()
 
         # Initialize GUI
+        self.SetIcon(wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO))
+        self.load_menu()
 
-        # Set Icon
-        icon = wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO)
-        self.SetIcon(icon)
+        # Create Workbenchs
+        self.workbench = {}
+        self.workbench['control'] = ControlWorkbench(self)
+        # self.workbench['adjustment'] = AdjustmentWorkbench(self)
+        # self.workbench['calibration'] = CalibrationWorkbench(self)
+        # self.workbench['scanning'] = ScanningWorkbench(self)
 
-        # Menu Bar
+        for workbench in self.workbench.values():
+            workbench.combo.Clear()
+            for w in self.workbench.values():
+                workbench.combo.Append(w.name)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        for workbench in self.workbench.values():
+            sizer.Add(workbench, 1, wx.ALL | wx.EXPAND)
+        self.SetSizer(sizer)
+
+        for workbench in self.workbench.values():
+            self.Bind(wx.EVT_COMBOBOX, self.on_combo_box_workbench_selected, workbench.combo)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+        x, y, w, h = wx.Display(0).GetGeometry()
+        ws, hs = self.size
+
+        self.SetPosition((x + (w - ws) / 2., y + (h - hs) / 2.))
+        self.SetMinSize((600, 450))
+
+    def load_menu(self):
         self.menu_bar = wx.MenuBar()
 
         # Menu File
@@ -71,19 +97,19 @@ class MainWindow(wx.Frame):
         self.menu_save_model = self.menu_file.Append(wx.NewId(), _("Save Model"))
         self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear Model"))
         self.menu_file.AppendSeparator()
-        self.menu_open_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Open Calibration Profile"), _("Opens Calibration profile .json"))
-        self.menu_save_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Save Calibration Profile"), _("Saves Calibration profile .json"))
-        self.menu_reset_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Reset Calibration Profile"), _("Resets Calibration default values"))
-        self.menu_file.AppendSeparator()
         self.menu_open_scan_profile = self.menu_file.Append(
-            wx.NewId(), _("Open Scan Profile"), _("Opens Scan profile .json"))
+            wx.NewId(), _("Open scan profile"), _("Opens scan profile .json"))
         self.menu_save_scan_profile = self.menu_file.Append(
-            wx.NewId(), _("Save Scan Profile"), _("Saves Scan profile .json"))
+            wx.NewId(), _("Save scan profile"), _("Saves scan profile .json"))
         self.menu_reset_scan_profile = self.menu_file.Append(
-            wx.NewId(), _("Reset Scan Profile"), _("Resets Scan default values"))
+            wx.NewId(), _("Reset scan profile"), _("Resets scan default values"))
+        self.menu_file.AppendSeparator()
+        self.menu_open_calibration_profile = self.menu_file.Append(
+            wx.NewId(), _("Open calibration profile"), _("Opens calibration profile .json"))
+        self.menu_save_calibration_profile = self.menu_file.Append(
+            wx.NewId(), _("Save calibration profile"), _("Saves calibration profile .json"))
+        self.menu_reset_calibration_profile = self.menu_file.Append(
+            wx.NewId(), _("Reset calibration profile"), _("Resets calibration default values"))
         self.menu_file.AppendSeparator()
         self.menu_exit = self.menu_file.Append(wx.ID_EXIT, _("Exit"))
         self.menu_bar.Append(self.menu_file, _("File"))
@@ -91,7 +117,7 @@ class MainWindow(wx.Frame):
         # Menu Edit
         self.menu_edit = wx.Menu()
         self.menu_preferences = self.menu_edit.Append(wx.NewId(), _("Preferences"))
-        self.menu_machine_settings = self.menu_edit.Append(wx.NewId(), _("Machine Settings"))
+        self.menu_machine_settings = self.menu_edit.Append(wx.NewId(), _("Machine settings"))
         self.menu_bar.Append(self.menu_edit, _("Edit"))
 
         # Menu View
@@ -129,51 +155,25 @@ class MainWindow(wx.Frame):
 
         self.SetMenuBar(self.menu_bar)
 
-        # Create Workbenchs
-        self.workbench = {}
-        # self.workbench['control'] = ControlWorkbench(self)
-        # self.workbench['adjustment'] = AdjustmentWorkbench(self)
-        # self.workbench['calibration'] = CalibrationWorkbench(self)
-        # self.workbench['scanning'] = ScanningWorkbench(self)
-
-        _choices = []
-        choices = profile.settings.get_possible_values('workbench')
-        for i in choices:
-            _choices.append(_(i))
-        self.workbenchDict = dict(zip(_choices, choices))
-
-        for w in self.workbench.values():
-            w.combo.Clear()
-            for i in choices:
-                w.combo.Append(_(i))
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        # sizer.Add(self.workbench['control'], 1, wx.ALL | wx.EXPAND)
-        # sizer.Add(self.workbench['adjustment'], 1, wx.ALL | wx.EXPAND)
-        # sizer.Add(self.workbench['calibration'], 1, wx.ALL | wx.EXPAND)
-        # sizer.Add(self.workbench['scanning'], 1, wx.ALL | wx.EXPAND)
-        self.SetSizer(sizer)
-
         # Events
         self.Bind(wx.EVT_MENU, self.on_launch_wizard, self.menu_launch_wizard)
         self.Bind(wx.EVT_MENU, self.on_load_model, self.menu_load_model)
         self.Bind(wx.EVT_MENU, self.on_save_model, self.menu_save_model)
         self.Bind(wx.EVT_MENU, self.on_clear_model, self.menu_clear_model)
-        self.Bind(wx.EVT_MENU, lambda e: self.on_open_profile("calibration_settings"),
-                  self.menu_open_calibration_profile)
-        self.Bind(wx.EVT_MENU, lambda e: self.on_save_profile("calibration_settings"),
-                  self.menu_save_calibration_profile)
-        self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("calibration_settings"),
-                  self.menu_reset_calibration_profile)
         self.Bind(wx.EVT_MENU, lambda e: self.on_open_profile("scan_settings"),
                   self.menu_open_scan_profile)
         self.Bind(wx.EVT_MENU, lambda e: self.on_save_profile("scan_settings"),
                   self.menu_save_scan_profile)
         self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("scan_settings"),
                   self.menu_reset_scan_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_open_profile("calibration_settings"),
+                  self.menu_open_calibration_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_save_profile("calibration_settings"),
+                  self.menu_save_calibration_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("calibration_settings"),
+                  self.menu_reset_calibration_profile)
         self.Bind(wx.EVT_MENU, self.on_exit, self.menu_exit)
-        # self.Bind(wx.EVT_MENU, self.on_mode_changed, self.menuBasicMode)
-        # self.Bind(wx.EVT_MENU, self.on_mode_changed, self.menuAdvancedMode)
+
         self.Bind(wx.EVT_MENU, self.on_preferences, self.menu_preferences)
         self.Bind(wx.EVT_MENU, self.on_machine_settings, self.menu_machine_settings)
 
@@ -199,19 +199,6 @@ class MainWindow(wx.Frame):
             'https://github.com/bq/horus/issues'), self.menu_issues)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
             'https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menu_forum)
-
-        for key in self.workbench.keys():
-            self.Bind(wx.EVT_COMBOBOX, self.on_combo_box_workbench_selected,
-                      self.workbench[key].combo)
-
-        self.Bind(wx.EVT_CLOSE, self.on_close)
-
-        self.updateProfileToAllControls()
-
-        x, y, w, h = wx.Display(0).GetGeometry()
-        ws, hs = self.size
-
-        self.SetPosition((x + (w - ws) / 2., y + (h - hs) / 2.))
 
     def on_launch_wizard(self, event):
         Wizard(self)
@@ -270,7 +257,7 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             profileFile = dlg.GetPath()
             profile.settings.load_settings(profileFile, categories=[category])
-            self.updateProfileToAllControls()
+            self.update_profile_to_all_controls()
         dlg.Destroy()
 
     def on_save_profile(self, category):
@@ -278,11 +265,11 @@ class MainWindow(wx.Frame):
                             style=wx.FD_SAVE)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
-            profileFile = dlg.GetPath()
-            if not profileFile.endswith('.json'):
+            profile_file = dlg.GetPath()
+            if not profile_file.endswith('.json'):
                 if sys.is_linux():  # hack for linux, as for some reason the .json is not appended.
-                    profileFile += '.json'
-            profile.settings.save_settings(profileFile, categories=[category])
+                    profile_file += '.json'
+            profile.settings.save_settings(profile_file, categories=[category])
         dlg.Destroy()
 
     def on_reset_profile(self, category):
@@ -296,7 +283,7 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
         if result:
             profile.settings.reset_to_default(categories=[category])
-            self.updateProfileToAllControls()
+            self.update_profile_to_all_controls()
 
     def on_exit(self, event):
         self.Close(True)
@@ -428,8 +415,8 @@ class MainWindow(wx.Frame):
 
     def on_combo_box_workbench_selected(self, event):
         if _(profile.settings['workbench']) != event.GetEventObject().GetValue():
-            profile.settings['workbench'] = self.workbenchDict[event.GetEventObject().GetValue()]
-            self.workbench_update()
+            profile.settings['workbench'] = event.GetEventObject().GetValue()
+            # self.workbench_update()
 
     def on_about(self, event):
         info = wx.AboutDialogInfo()
@@ -499,7 +486,7 @@ class MainWindow(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def updateProfileToAllControls(self):
+    def update_profile_to_all_controls(self):
         """if profile.settings['view_control_panel']:
             self.workbench['control'].scrollPanel.Show()
             self.menu_control_panel.Check(True)
@@ -582,7 +569,9 @@ class MainWindow(wx.Frame):
         self.workbenchUpdate()"""
         self.Layout()
 
-    def updateDriverProfile(self):
+        self.workbench['control'].update_controls()
+
+    def update_driver_profile(self):
         driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
         driver.board.serial_name = profile.settings['serial_name']
         driver.board.baud_rate = profile.settings['baud_rate']

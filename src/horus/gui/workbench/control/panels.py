@@ -9,7 +9,7 @@ import wx._core
 
 from horus.util import system as sys
 from horus.gui.engine import driver, image_capture, calibration_data
-from horus.gui.util.customPanels import ExpandablePanel, Slider, ComboBox, \
+from horus.gui.util.custom_panels import ExpandablePanel, ControlPanel, Slider, ComboBox, \
     CheckBox, ToggleButton, CallbackButton, FloatTextBox
 
 
@@ -17,45 +17,38 @@ class CameraControl(ExpandablePanel):
 
     def __init__(self, parent):
         ExpandablePanel.__init__(self, parent, _("Camera control"))
-
         self.current_framerate = None
 
+    def add_controls(self):
         self.add_control(
-            'brightness_control',
-            Slider,
-            tooltip=_("Image luminosity. Low values are better for environments with high ambient "
-                      "light conditions. High values are recommended for poorly lit places"))
+            'brightness_control', Slider,
+            _("Image luminosity. Low values are better for environments with high ambient "
+              "light conditions. High values are recommended for poorly lit places"))
         self.add_control(
-            'contrast_control',
-            Slider,
-            tooltip=_("Relative difference in intensity between an image point and its "
-                      "surroundings. Low values are recommended for black or very dark colored "
-                      "objects. High values are better for very light colored objects"))
+            'contrast_control', Slider,
+            _("Relative difference in intensity between an image point and its "
+              "surroundings. Low values are recommended for black or very dark colored "
+              "objects. High values are better for very light colored objects"))
         self.add_control(
-            'saturation_control',
-            Slider,
-            tooltip=_("Purity of color. Low values will cause colors to disappear from the image. "
-                      "High values will show an image with very intense colors"))
+            'saturation_control', Slider,
+            _("Purity of color. Low values will cause colors to disappear from the image. "
+              "High values will show an image with very intense colors"))
         self.add_control(
-            'exposure_control',
-            Slider,
-            tooltip=_("Amount of light per unit area. It is controlled by the time the camera "
-                      "sensor is exposed during a frame capture. "
-                      "High values are recommended for poorly lit places"))
+            'exposure_control', Slider,
+            _("Amount of light per unit area. It is controlled by the time the camera "
+              "sensor is exposed during a frame capture. "
+              "High values are recommended for poorly lit places"))
         self.add_control(
-            'framerate',
-            ComboBox,
-            tooltip=_("Number of frames captured by the camera every second. "
-                      "Maximum frame rate is recommended"))
+            'framerate', ComboBox,
+            _("Number of frames captured by the camera every second. "
+              "Maximum frame rate is recommended"))
         self.add_control(
-            'resolution',
-            ComboBox,
-            tooltip=_("Size of the video. Maximum resolution is recommended"))
+            'resolution', ComboBox,
+            _("Size of the video. Maximum resolution is recommended"))
         self.add_control(
-            'use_distortion',
-            CheckBox,
-            tooltip=_("This option applies lens distortion correction to the video. "
-                      "This process slows the video feed from the camera"))
+            'use_distortion', CheckBox,
+            _("This option applies lens distortion correction to the video. "
+              "This process slows the video feed from the camera"))
 
         if sys.is_darwin():
             self.disable('framerate')
@@ -66,17 +59,17 @@ class CameraControl(ExpandablePanel):
         self.update_callback('contrast_control', driver.camera.set_contrast)
         self.update_callback('saturation_control', driver.camera.set_saturation)
         self.update_callback('exposure_control', driver.camera.set_exposure)
-        self.update_callback('framerate', lambda v: self.set_framerate(int(v)))
-        self.update_callback('resolution', lambda v: self.set_resolution(
+        self.update_callback('framerate', lambda v: self._set_framerate(int(v)))
+        self.update_callback('resolution', lambda v: self._set_resolution(
             int(v.split('x')[0]), int(v.split('x')[1])))
         self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
 
-    def set_framerate(self, v):
+    def _set_framerate(self, v):
         if self.current_framerate != v:
             self.current_framerate = v
             driver.camera.set_frame_rate(v)
 
-    def set_resolution(self, width, height):
+    def _set_resolution(self, width, height):
         driver.camera.set_resolution(width, height)
         calibration_data.set_resolution(height, width)
 
@@ -87,6 +80,7 @@ class LaserControl(ExpandablePanel):
         ExpandablePanel.__init__(
             self, parent, _("Laser control"), has_undo=False, has_restore=False)
 
+    def add_controls(self):
         self.add_control('left_button', ToggleButton)
         self.add_control('right_button', ToggleButton)
 
@@ -105,46 +99,44 @@ class LDRControl(ExpandablePanel):
         ExpandablePanel.__init__(
             self, parent, _("LDR control"), has_undo=False, has_restore=False)
 
-        self.add_control(LDRSection, 'ldr_value')
+    def add_controls(self):
+        self.add_control('ldr_value', LDRSection)
 
     def update_callbacks(self):
         self.update_callback('ldr_value', lambda id: driver.board.ldr_sensor(id))
 
 
-class LDRSection(SectionItem):
+class LDRSection(ControlPanel):
 
     def __init__(self, parent, name, engine_callback=None):
-        SectionItem.__init__(self, parent, name, engine_callback)
+        ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.ldr_buttons = []
         self.ldr_labels = []
-        self.ldr_buttons += wx.Button(self, label='LDR 0', size=(140, -1))
-        self.ldr_buttons += wx.Button(self, label='LDR 1', size=(140, -1))
-        self.ldr_labels += wx.StaticText(self, label='0')
-        self.ldr_labels += wx.StaticText(self, label='0')
+        self.ldr_buttons += [wx.Button(self, label='LDR 0', size=(140, -1))]
+        self.ldr_buttons += [wx.Button(self, label='LDR 1', size=(140, -1))]
+        self.ldr_labels += [wx.StaticText(self, label='0')]
+        self.ldr_labels += [wx.StaticText(self, label='0')]
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.ldr_buttons[0], 0, wx.ALIGN_CENTER_VERTICAL)
         hbox.AddStretchSpacer()
         hbox.Add(self.ldr_labels[0], 1, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         vbox.Add(hbox, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
-
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.ldr_buttons[1], 0, wx.ALIGN_CENTER_VERTICAL)
         hbox.AddStretchSpacer()
         hbox.Add(self.ldr_labels[1], 1, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         vbox.Add(hbox, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
-
         self.SetSizer(vbox)
         self.Layout()
 
         # Events
         self.ldr_buttons[0].Bind(wx.EVT_BUTTON, self.on_button_0_clicked)
-        self.ldr_buttons[1].Bind(wx.EVT_BUTTON, self.onButton1Clicked)
+        self.ldr_buttons[1].Bind(wx.EVT_BUTTON, self.on_button_1_clicked)
 
     def on_button_0_clicked(self, event):
         self.on_ldr_button_clicked(0)
@@ -169,6 +161,7 @@ class MotorControl(ExpandablePanel):
     def __init__(self, parent):
         ExpandablePanel.__init__(self, parent, _("Motor control"), has_undo=False)
 
+    def add_controls(self):
         self.add_control('motor_step_control', FloatTextBox)
         self.add_control('motor_speed_control', FloatTextBox)
         self.add_control('motor_acceleration_control', FloatTextBox)
@@ -192,17 +185,18 @@ class GcodeControl(ExpandablePanel):
         ExpandablePanel.__init__(
             self, parent, _("Gcode Control"), has_undo=False, has_restore=False)
 
-        self.add_control(GcodeSection, 'gcode_gui')
+    def add_controls(self):
+        self.add_control('gcode_gui', GcodeSection)
 
     def update_callbacks(self):
         self.update_callback(
             'gcode_gui', lambda v, c: driver.board._send_command(v, callback=c, read_lines=True))
 
 
-class GcodeSection(SectionItem):
+class GcodeSection(ControlPanel):
 
     def __init__(self, parent, name, engine_callback=None):
-        SectionItem.__init__(self, parent, name, engine_callback)
+        ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
         self.request = wx.TextCtrl(self)
@@ -216,7 +210,6 @@ class GcodeSection(SectionItem):
         hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         vbox.Add(hbox, 0, wx.EXPAND)
         vbox.Add(self.response, 1, wx.TOP | wx.BOTTOM | wx.EXPAND, 8)
-
         self.SetSizer(vbox)
         self.Layout()
 

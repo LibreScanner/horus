@@ -16,6 +16,7 @@ class CameraSettings(object):
 
     def __init__(self):
         self.driver = Driver()
+
         self.selected = False
         self.brightness = 0
         self.contrast = 0
@@ -74,6 +75,11 @@ class ImageCapture(object):
         self._updating = False
         self.use_distortion = False
 
+    def initialize(self):
+        self.texture_mode.initialize()
+        self.laser_mode.initialize()
+        self.pattern_mode.initialize()
+
     def set_use_distortion(self, value):
         self.use_distortion = value
 
@@ -88,6 +94,15 @@ class ImageCapture(object):
             self._mode.selected = True
             self._mode.send_all_settings()
             self._updating = False
+
+    def set_mode_texture(self):
+        self.set_mode(self.texture_mode)
+
+    def set_mode_laser(self):
+        self.set_mode(self.laser_mode)
+
+    def set_mode_pattern(self):
+        self.set_mode(self.pattern_mode)
 
     def capture_texture(self):
         self.set_mode(self.texture_mode)
