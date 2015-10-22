@@ -70,7 +70,7 @@ class ExpandablePanel(wx.Panel):
         self.expand_callback = None
         self.undo_objects = []
         self.title = title
-        self.title_text = TitleText(self, title, bold=True)
+        self.title_text = TitleText(self, title)
         self.has_undo = has_undo
         self.has_restore = has_restore
         if self.has_undo:
@@ -145,6 +145,7 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Disable()
 
     def show_content(self):
+        self.title_text.font_bold()
         self.content.Show()
         if self.has_undo:
             self.undo_button.Show()
@@ -152,6 +153,7 @@ class ExpandablePanel(wx.Panel):
             self.restore_button.Show()
 
     def hide_content(self):
+        self.title_text.font_normal()
         self.content.Hide()
         if self.has_undo:
             self.undo_button.Hide()
@@ -199,18 +201,13 @@ class ExpandablePanel(wx.Panel):
 
 class TitleText(wx.Panel):
 
-    def __init__(self, parent, title, bold=True, hand_cursor=True):
+    def __init__(self, parent, title, hand_cursor=True):
         wx.Panel.__init__(self, parent)
 
         # Elements
         self.title = wx.StaticText(self, label=title)
-        if bold:
-            font_weight = wx.FONTWEIGHT_BOLD
-        else:
-            font_weight = wx.FONTWEIGHT_NORMAL
-        self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(
-            wx.SYS_ANSI_VAR_FONT).GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.NORMAL, font_weight)))
         self.line = wx.StaticLine(self)
+        self.font_normal()
 
         if hand_cursor:
             self.title.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
@@ -223,6 +220,16 @@ class TitleText(wx.Panel):
         self.SetSizer(vbox)
         self.Layout()
 
+    def font_normal(self):
+        self._set_font(wx.FONTWEIGHT_NORMAL)
+
+    def font_bold(self):
+        self._set_font(wx.FONTWEIGHT_BOLD)
+
+    def _set_font(self, style):
+        self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(
+            wx.SYS_ANSI_VAR_FONT).GetPointSize(),
+            wx.FONTFAMILY_DEFAULT, wx.NORMAL, style)))
 
 class ControlCollection(wx.Panel):
 

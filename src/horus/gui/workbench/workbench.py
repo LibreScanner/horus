@@ -8,6 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 import wx.lib.scrolledpanel
 
+from horus.gui.engine import driver
 from horus.gui.util.image_view import VideoView
 from horus.gui.util.custom_panels import ExpandableCollection
 
@@ -64,20 +65,22 @@ class Workbench(wx.Panel):
     def disable_content(self):
         self.collection.disable_content()
 
+    def update_controls(self):
+        self.collection.update_from_profile()
+        if driver.is_connected:
+            self.setup_engine()
+
     def on_connect(self):
-        self.setup_engine()
+        if driver.is_connected:
+            self.setup_engine()
         self.video_view.play()
 
     def on_disconnect(self):
         self.video_view.stop()
 
-    def update_controls(self):
-        self.collection.update_from_profile()
-        self.setup_engine()
-
     def on_open(self):
-        # if driver.is_connected:
-            # self.update_engine()
+        if driver.is_connected:
+            self.setup_engine()
         self.video_view.play()
 
     def on_close(self):
