@@ -9,16 +9,16 @@ from horus.util import profile
 
 from horus.gui.engine import driver, image_capture
 
-from horus.gui.workbench.workbench import WorkbenchConnection
+from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.adjustment.current_video import CurrentVideo
 from horus.gui.workbench.adjustment.panels import ScanCapturePanel, ScanSegmentationPanel, \
     CalibrationCapturePanel, CalibrationSegmentationPanel
 
 
-class AdjustmentWorkbench(WorkbenchConnection):
+class AdjustmentWorkbench(Workbench):
 
     def __init__(self, parent):
-        WorkbenchConnection.__init__(self, parent, name=_('Adjustment workbench'))
+        Workbench.__init__(self, parent, name=_('Adjustment workbench'))
 
         self.current_video = CurrentVideo()
 

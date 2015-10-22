@@ -128,7 +128,7 @@ class ExpandablePanel(wx.Panel):
         raise NotImplementedError
 
     def on_selected(self):
-        raise NotImplementedError
+        pass
 
     def set_expand_callback(self, expand_callback):
         self.expand_callback = expand_callback

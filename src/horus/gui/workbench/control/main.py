@@ -8,15 +8,15 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 from horus.util import profile
 
 from horus.gui.engine import driver, image_capture
-from horus.gui.workbench.workbench import WorkbenchConnection
+from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.control.panels import CameraControl, LaserControl, \
     LDRControl, MotorControl, GcodeControl
 
 
-class ControlWorkbench(WorkbenchConnection):
+class ControlWorkbench(Workbench):
 
     def __init__(self, parent):
-        WorkbenchConnection.__init__(self, parent, name=_('Control workbench'))
+        Workbench.__init__(self, parent, name=_('Control workbench'))
 
     def add_panels(self):
         self.add_panel('camera_control', CameraControl)

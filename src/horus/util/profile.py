@@ -462,16 +462,9 @@ class Settings(collections.MutableMapping):
                               'Switching language requires a restart of Horus')))
 
         # Hack to translate combo boxes:
-        _('Control workbench')
-        _('Adjustment workbench')
-        _('Calibration workbench')
-        _('Scanning workbench')
         self._add_setting(
-            Setting('workbench', _('Workbench'), 'preferences', unicode, u'Scanning workbench',
-                    possible_values=(u'Control workbench',
-                                     u'Adjustment workbench',
-                                     u'Calibration workbench',
-                                     u'Scanning workbench')))
+            Setting('workbench', _('Workbench'), 'preferences', unicode, u'control',
+                    possible_values=(u'control', u'adjustment', u'calibration', u'scanning')))
         self._add_setting(
             Setting('show_welcome', _('Show Welcome'), 'preferences', bool, True))
         self._add_setting(
@@ -663,7 +656,7 @@ def load_settings():
                 load_old_settings(os.path.join(get_base_path(), setting_file))
             except:
                 pass  # Setting file might not exist
-        settings.saveSettings()
+        settings.save_settings()
 
 # Temporary function to migrate old settings (INI) into new ones (JSON)
 

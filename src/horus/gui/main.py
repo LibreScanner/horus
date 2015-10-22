@@ -12,10 +12,13 @@ import struct
 import wx._core
 import webbrowser
 
+from horus.gui.engine import driver
+
 from horus.gui.welcome import WelcomeDialog
 from horus.gui.util.preferences import PreferencesDialog
 from horus.gui.util.machine_settings import MachineSettingsDialog
 
+from horus.gui.workbench.toolbar import ToolbarConnection
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
 # from horus.gui.workbench.calibration.main import CalibrationWorkbench
@@ -24,67 +27,57 @@ from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
 # from horus.gui.wizard.main import *
 # from horus.gui.util.versionWindow import VersionWindow
 
-from horus.gui.engine import driver
+from horus.util import profile, resources, mesh_loader, version, system as sys
 
-from horus.util import profile, resources, meshLoader, version, system as sys
+__version__ = version.get_version()
+__build__ = version.get_build()
+__github__ = version.get_github()
+__name__ = "Horus " + __version__ + " BETA"
 
 
 class MainWindow(wx.Frame):
 
-    size = (640 + 340, 480 + 155)
-
     def __init__(self):
-        wx.Frame.__init__(self, None, title=_("Horus 0.2 BETA"), size=self.size)
+        wx.Frame.__init__(self, None, title=__name__, size=(980, 635))
 
-        print ">>> Horus " + version.get_version() + " <<<"
+        print ">>> " + __name__ + " <<<"
 
-        # Serial Name initialization
-        serialList = driver.board.get_serial_list()
-        currentSerial = profile.settings['serial_name']
-        if len(serialList) > 0:
-            if currentSerial not in serialList:
-                profile.settings['serial_name'] = serialList[0]
-
-        # Video Id initialization
-        videoList = driver.camera.get_video_list()
-        currentVideoId = profile.settings['camera_id']
-        if len(videoList) > 0:
-            if currentVideoId not in videoList:
-                profile.settings['camera_id'] = unicode(videoList[0])
-
+        # Initialize driver
+        self.initialize_driver()
         self.last_files = profile.settings['last_files']
-        self.update_driver_profile()
 
         # Initialize GUI
-        self.SetIcon(wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO))
         self.load_menu()
+        self.load_workbenches()
 
-        # Create Workbenchs
+        ws, hs = self.GetSize()
+        x, y, w, h = wx.Display(0).GetGeometry()
+        self.SetMinSize((600, 450))
+        self.SetPosition((x + (w - ws) / 2., y + (h - hs) / 2.))
+        self.SetIcon(wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO))
+
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+    def load_workbenches(self):
+        self.toolbar = ToolbarConnection(self, on_connect_callback=self.on_connect,
+                                         on_disconnect_callback=self.on_disconnect)
         self.workbench = {}
-        # self.workbench['control'] = ControlWorkbench(self)
+        self.workbench['control'] = ControlWorkbench(self)
         self.workbench['adjustment'] = AdjustmentWorkbench(self)
         # self.workbench['calibration'] = CalibrationWorkbench(self)
         # self.workbench['scanning'] = ScanningWorkbench(self)
 
-        for workbench in self.workbench.values():
-            workbench.combo.Clear()
-            for w in self.workbench.values():
-                workbench.combo.Append(w.name)
-
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.toolbar, 0, wx.ALL | wx.EXPAND)
+        self.Bind(wx.EVT_COMBOBOX, self.on_combo_box_selected, self.toolbar.combo)
+
         for workbench in self.workbench.values():
+            self.toolbar.combo.Append(workbench.name)
             sizer.Add(workbench, 1, wx.ALL | wx.EXPAND)
+        name = self.workbench[profile.settings['workbench']].name
+        self.toolbar.combo.SetValue(name)
+        self.update_workbenches(name)
         self.SetSizer(sizer)
-
-        for workbench in self.workbench.values():
-            self.Bind(wx.EVT_COMBOBOX, self.on_combo_box_workbench_selected, workbench.combo)
-        self.Bind(wx.EVT_CLOSE, self.on_close)
-
-        x, y, w, h = wx.Display(0).GetGeometry()
-        ws, hs = self.size
-
-        self.SetPosition((x + (w - ws) / 2., y + (h - hs) / 2.))
-        self.SetMinSize((600, 450))
 
     def load_menu(self):
         self.menu_bar = wx.MenuBar()
@@ -204,15 +197,15 @@ class MainWindow(wx.Frame):
         Wizard(self)
 
     def on_load_model(self, event):
-        lastFile = os.path.split(profile.settings['last_file'])[0]
+        last_file = os.path.split(profile.settings['last_file'])[0]
         dlg = wx.FileDialog(
-            self, _("Open 3D model"), lastFile, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-        wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList,
-                                                      wildcardList, wildcardList.upper())
-        dlg.SetWildcard(wildcardFilter)
+            self, _("Open 3D model"), last_file, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        wildcard_list = ';'.join(map(lambda s: '*' + s, mesh_loader.loadSupportedExtensions()))
+        wildcard_filter = "All (%s)|%s;%s" % (wildcard_list, wildcard_list, wildcard_list.upper())
+        wildcard_list = ';'.join(map(lambda s: '*' + s, mesh_loader.loadSupportedExtensions()))
+        wildcard_filter += "|Mesh files (%s)|%s;%s" % (wildcard_list, wildcard_list,
+                                                       wildcard_list.upper())
+        dlg.SetWildcard(wildcard_filter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if filename is not None:
@@ -225,17 +218,17 @@ class MainWindow(wx.Frame):
             return
         dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(
             profile.settings['last_file'])[0], style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        fileExtensions = meshLoader.saveSupportedExtensions()
-        wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
-        wildcardFilter = "Mesh files (%s)|%s;%s" % (
-            wildcardList, wildcardList, wildcardList.upper())
-        dlg.SetWildcard(wildcardFilter)
+        file_extensions = mesh_loader.saveSupportedExtensions()
+        wildcard_list = ';'.join(map(lambda s: '*' + s, file_extensions))
+        wildcard_filter = "Mesh files (%s)|%s;%s" % (wildcard_list, wildcard_list,
+                                                     wildcard_list.upper())
+        dlg.SetWildcard(wildcard_filter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if not filename.endswith('.ply'):
                 if sys.is_linux():  # hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
-            meshLoader.saveMesh(filename, self.workbench['scanning'].sceneView._object)
+            mesh_loader.saveMesh(filename, self.workbench['scanning'].sceneView._object)
             self.append_last_file(filename)
         dlg.Destroy()
 
@@ -255,8 +248,8 @@ class MainWindow(wx.Frame):
                             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
-            profileFile = dlg.GetPath()
-            profile.settings.load_settings(profileFile, categories=[category])
+            profile_file = dlg.GetPath()
+            profile.settings.load_settings(profile_file, categories=[category])
             self.update_profile_to_all_controls()
         dlg.Destroy()
 
@@ -308,13 +301,6 @@ class MainWindow(wx.Frame):
             self.last_files = self.last_files[1:5]
         profile.settings['last_file'] = last_file
         profile.settings['last_files'] = self.last_files
-
-    def on_mode_changed(self, event):
-        # self.workbench['control'].updateProfileToAllControls()
-        # self.workbench['adjustment'].updateProfileToAllControls()
-        # self.workbench['calibration'].updateProfileToAllControls()
-        # self.workbench['scanning'].updateProfileToAllControls()
-        self.Layout()
 
     def on_preferences(self, event):
         if sys.is_windows():
@@ -413,21 +399,48 @@ class MainWindow(wx.Frame):
         self.workbench['scanning'].Layout()
         self.Layout()
 
-    def on_combo_box_workbench_selected(self, event):
-        if _(profile.settings['workbench']) != event.GetEventObject().GetValue():
-            profile.settings['workbench'] = event.GetEventObject().GetValue()
-            # self.workbench_update()
+    def on_connect(self):
+        for workbench in self.workbench.values():
+            workbench.enable_content()
+        self.workbench[profile.settings['workbench']].on_connect()
+
+    def on_disconnect(self):
+        for workbench in self.workbench.values():
+            workbench.disable_content()
+        self.workbench[profile.settings['workbench']].on_disconnect()
+
+    def on_combo_box_selected(self, event):
+        self.update_workbenches(event.GetEventObject().GetValue())
+
+    def update_workbenches(self, name):
+        waitCursor = wx.BusyCursor()
+        for key, wb in self.workbench.iteritems():
+            if wb.name == name:
+                wb.Hide()
+                wb.Show()
+                profile.settings['workbench'] = key
+            else:
+                wb.Hide()
+
+        is_scan = profile.settings['workbench'] == 'scanning'
+        self.menu_file.Enable(self.menu_load_model.GetId(), is_scan)
+        self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)
+        self.menu_file.Enable(self.menu_clear_model.GetId(), is_scan)
+        self.Layout()
+
+        del waitCursor
+        gc.collect()
 
     def on_about(self, event):
         info = wx.AboutDialogInfo()
         icon = wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
-        info.SetVersion(version.get_version())
+        info.SetVersion(__version__)
         tech_description = _('Horus is an Open Source 3D Scanner manager')
-        tech_description += '\nVersion: ' + version.get_version()
-        tech_description += '\nBuild: ' + version.get_build()
-        tech_description += '\nGitHub: ' + version.get_github()
+        tech_description += '\nVersion: ' + __version__
+        tech_description += '\nBuild: ' + __build__
+        tech_description += '\nGitHub: ' + __github__
         info.SetDescription(tech_description)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
@@ -487,6 +500,8 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def update_profile_to_all_controls(self):
+        self.workbench[profile.settings['workbench']].update_controls()
+
         """if profile.settings['view_control_panel']:
             self.workbench['control'].scrollPanel.Show()
             self.menu_control_panel.Check(True)
@@ -561,15 +576,23 @@ class MainWindow(wx.Frame):
                 self.workbench['scanning'].splitterWindow.Unsplit()
             else:
                 self.workbench['scanning'].scenePanel.Hide()
-                self.workbench['scanning'].splitterWindow.Unsplit()
+                self.workbench['scanning'].splitterWindow.Unsplit()"""
 
-        self.updateDriverProfile()
-        self.updateProfile()
+    def initialize_driver(self):
+        # Serial name
+        serial_list = driver.board.get_serial_list()
+        current_serial = profile.settings['serial_name']
+        if len(serial_list) > 0:
+            if current_serial not in serial_list:
+                profile.settings['serial_name'] = serial_list[0]
+        # Video id
+        video_list = driver.camera.get_video_list()
+        current_video_id = profile.settings['camera_id']
+        if len(video_list) > 0:
+            if current_video_id not in video_list:
+                profile.settings['camera_id'] = unicode(video_list[0])
 
-        self.workbenchUpdate()"""
-        self.Layout()
-
-        self.workbench['adjustment'].update_controls()
+        self.update_driver_profile()
 
     def update_driver_profile(self):
         driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
@@ -631,43 +654,3 @@ class MainWindow(wx.Frame):
         calibration_data.laser_planes[1].normal = profile.settings['normal_right']
         calibration_data.platform_rotation = profile.settings['rotation_matrix']
         calibration_data.platform_translation = profile.settings['translation_vector']
-
-    def updateDriver(self):
-        resolution = profile.settings['resolution'].split('x')
-        driver.camera.set_resolution(int(resolution[0]), int(resolution[1]))
-
-    def workbenchUpdate(self, layout=True):
-        currentWorkbench = profile.settings['workbench']
-
-        wb = {'Control workbench': self.workbench['control'],
-              'Adjustment workbench': self.workbench['adjustment'],
-              'Calibration workbench': self.workbench['calibration'],
-              'Scanning workbench': self.workbench['scanning']}
-
-        waitCursor = wx.BusyCursor()
-
-        self.updateDriver()
-
-        c = None
-
-        self.menu_file.Enable(self.menu_load_model.GetId(), c == 'Scanning workbench')
-        self.menu_file.Enable(self.menu_save_model.GetId(), c == 'Scanning workbench')
-        self.menu_file.Enable(self.menu_clear_model.GetId(), c == 'Scanning workbench')
-
-        wb[currentWorkbench].updateProfileToAllControls()
-        wb[currentWorkbench].combo.SetValue(_(currentWorkbench))
-
-        if layout:
-            for key in wb:
-                if wb[key] is not None:
-                    if key == currentWorkbench:
-                        wb[key].Hide()
-                        wb[key].Show()
-                    else:
-                        wb[key].Hide()
-
-            self.Layout()
-
-        del waitCursor
-
-        gc.collect()
