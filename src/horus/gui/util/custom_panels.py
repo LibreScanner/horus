@@ -6,6 +6,7 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
+import numpy as np
 from collections import OrderedDict
 
 from horus.util import profile, resources
@@ -230,6 +231,7 @@ class TitleText(wx.Panel):
         self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(
             wx.SYS_ANSI_VAR_FONT).GetPointSize(),
             wx.FONTFAMILY_DEFAULT, wx.NORMAL, style)))
+
 
 class ControlCollection(wx.Panel):
 
@@ -517,6 +519,29 @@ class TextBox(ControlPanel):
         self.release_restore()
 
 
+class FloatBox(wx.TextCtrl):
+
+    def __init__(self, *args, **kwargs):
+        wx.TextCtrl.__init__(self, *args, **kwargs)
+        self.old_value = 0.0
+
+    def SetValue(self, value):
+        self.old_value = value
+        wx.TextCtrl.SetValue(self, str(value))
+
+    def GetValue(self):
+        try:
+            value = float(wx.TextCtrl.GetValue(self))
+        except:
+            value = self.old_value
+            self.SetValue(value)
+            return value
+        else:
+            self.old_value = value
+            self.SetValue(value)
+            return value
+
+
 class FloatTextBox(ControlPanel):
 
     def __init__(self, parent, name, engine_callback=None):
@@ -524,11 +549,7 @@ class FloatTextBox(ControlPanel):
 
         # Elements
         label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
-        self.control = wx.TextCtrl(self, size=(120, -1), style=wx.TE_RIGHT)
-        self.control.SetValue_original = self.control.SetValue
-        self.control.SetValue = self.SetValue_overwrite
-        self.control.GetValue_original = self.control.GetValue
-        self.control.GetValue = self.GetValue_overwrite
+        self.control = FloatBox(self, size=(120, -1), style=wx.TE_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 
         # Layout
@@ -542,20 +563,6 @@ class FloatTextBox(ControlPanel):
         # Events
         self.control.Bind(wx.EVT_KILL_FOCUS, self._on_text_box_lost_focus)
 
-    def SetValue_overwrite(self, value):
-        self.control.SetValue_original(str(value))
-
-    def GetValue_overwrite(self):
-        try:
-            value = float(self.control.GetValue_original())
-        except:
-            value = profile.settings[self.name]
-            self.control.SetValue(value)
-            return value
-        else:
-            self.control.SetValue(value)
-            return value
-
     def _on_text_box_lost_focus(self, event):
         value = self.control.GetValue()
         self.update_to_profile(value)
@@ -563,10 +570,68 @@ class FloatTextBox(ControlPanel):
         self.release_restore()
 
 
+class FloatBoxArray(wx.Panel):
+
+    def __init__(self, parent, value, size):
+        wx.Panel.__init__(self, parent)
+        self.value = value
+        self.size = size
+        if len(self.value.shape) == 1:
+            self.r, self.c = 1, self.value.shape[0]
+        elif len(self.value.shape) == 2:
+            self.r, self.c = self.value.shape
+        self.texts = [[0 for j in range(self.c)] for i in range(self.r)]
+
+        ibox = wx.BoxSizer(wx.VERTICAL)
+        for i in range(self.r):
+            jbox = wx.BoxSizer(wx.HORIZONTAL)
+            for j in range(self.c):
+                self.texts[i][j] = FloatBox(self, size=self.size, style=wx.TE_RIGHT)
+                if self.r == 1:
+                    self.texts[i][j].SetValue(self.value[j])
+                else:
+                    self.texts[i][j].SetValue(self.value[i][j])
+                self.texts[i][j].SetEditable(False)
+                self.texts[i][j].Disable()
+                jbox.Add(self.texts[i][j], 1, wx.ALL | wx.EXPAND, 2)
+            ibox.Add(jbox, 1, wx.ALL | wx.EXPAND, 1)
+        self.SetSizer(ibox)
+
+    def SetValue(self, value):
+        self.value = value
+        for i in range(self.r):
+            for j in range(self.c):
+                self.texts[i][j].SetValue(self.value[i][j])
+
+    def GetValue(self):
+        pass
+
+
 class FloatTextBoxArray(ControlPanel):
 
     def __init__(self, parent, name, engine_callback=None):
         ControlPanel.__init__(self, parent, name, engine_callback)
+
+        # Elements
+        label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
+        self.control = FloatBoxArray(self, value=self.setting.value, size=(50, -1))
+
+        # Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, 0, wx.ALL | wx.EXPAND, 0)
+        vbox.AddStretchSpacer()
+        vbox.Add(self.control, 0, wx.ALL | wx.EXPAND, 5)
+        self.SetSizer(vbox)
+        self.Layout()
+
+        # Events
+        self.control.Bind(wx.EVT_KILL_FOCUS, self._on_text_box_lost_focus)
+
+    def _on_text_box_lost_focus(self, event):
+        value = self.control.GetValue()
+        self.update_to_profile(value)
+        self.set_engine(value)
+        self.release_restore()
 
 
 class Button(ControlPanel):

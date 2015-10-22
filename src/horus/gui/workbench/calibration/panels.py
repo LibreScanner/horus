@@ -8,8 +8,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 import numpy as np
 
-from horus.gui.util.customPanels import ExpandablePanel, Slider, Button, FloatTextBox
-
 from horus.util import profile
 
 from horus.engine.driver.driver import Driver
@@ -17,35 +15,32 @@ from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.autocheck import Autocheck, PatternNotDetected, \
     WrongMotorDirection, LaserNotDetected
 
+from horus.gui.util.custom_panels import ExpandablePanel, Slider, Button, FloatTextBox
+
 driver = Driver()
 pattern = Pattern()
 
 
-class PatternSettingsPanel(ExpandablePanel):
+class PatternSettings(ExpandablePanel):
 
     def __init__(self, parent):
-        ExpandablePanel.__init__(
-            self, parent, _("Pattern settings"), hasUndo=False)
+        ExpandablePanel.__init__(self, parent, _("Pattern settings"), has_undo=False)
 
-        self.clearSections()
-        section = self.createSection('pattern_settings')
-        section.addItem(Slider, 'pattern_rows', tooltip=_(
-            'Number of corner rows in the pattern'))
-        section.addItem(Slider, 'pattern_columns', tooltip=_(
-            'Number of corner columns in the pattern'))
-        section.addItem(FloatTextBox, 'pattern_square_width')
-        section.addItem(FloatTextBox, 'pattern_origin_distance', tooltip=_(
+    def add_controls(self):
+        self.add_control('pattern_rows', Slider, 'Number of corner rows in the pattern')
+        self.add_control('pattern_columns', Slider, 'Number of corner columns in the pattern')
+        self.add_control('pattern_square_width', FloatTextBox)
+        self.add_control('pattern_origin_distance', FloatTextBox,
             "Minimum distance between the origin of the pattern (bottom-left corner) "
-            "and the pattern's base surface"))
+            "and the pattern's base surface")
 
-    def updateCallbacks(self):
-        section = self.sections['pattern_settings']
-        section.updateCallback('pattern_rows', lambda v: self.updatePatternParameters())
-        section.updateCallback('pattern_columns', lambda v: self.updatePatternParameters())
-        section.updateCallback('pattern_square_width', lambda v: self.updatePatternParameters())
-        section.updateCallback('pattern_origin_distance', lambda v: self.updatePatternParameters())
+    def update_callbacks(self):
+        self.update_callback('pattern_rows', lambda v: self.update_pattern_parameters())
+        self.update_callback('pattern_columns', lambda v: self.update_pattern_parameters())
+        self.update_callback('pattern_square_width', lambda v: self.update_pattern_parameters())
+        self.update_callback('pattern_origin_distance', lambda v: self.update_pattern_parameters())
 
-    def updatePatternParameters(self):
+    def update_pattern_parameters(self):
         pattern.rows = profile.settings['pattern_rows']
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']

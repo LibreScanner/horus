@@ -14,6 +14,7 @@ import collections
 import json
 import types
 import numpy as np
+from ast import literal_eval
 
 if sys.version_info[0] < 3:
     import ConfigParser
@@ -82,10 +83,8 @@ class Settings(collections.MutableMapping):
             elif setting_type == types.UnicodeType:
                 value = unicode(value)
             elif setting_type == types.ListType:
-                from ast import literal_eval
                 value = literal_eval(value)
             elif setting_type == np.ndarray:
-                from ast import literal_eval
                 value = np.asarray(literal_eval(value))
         except:
             raise ValueError("Unable to cast setting %s to type %s" % (key, setting_type))
