@@ -60,7 +60,7 @@ class CameraIntrinsics(Calibration):
                 if len(self.object_points) < 15:
                     self.image_points.append(corners)
                     self.object_points.append(self.pattern.object_points)
-            return image
+                    return image
 
     def calibrate(self):
         error = 0

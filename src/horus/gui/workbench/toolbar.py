@@ -73,7 +73,7 @@ class ToolbarConnection(Toolbar):
             self.GetParent().menu_bar.EnableTop(i, False)
         driver.board.set_unplug_callback(None)
         driver.camera.set_unplug_callback(None)
-        self.waitCursor = wx.BusyCursor()
+        self.wait_cursor = wx.BusyCursor()
 
     def after_connect(self, response):
         ret, result = response
@@ -108,7 +108,7 @@ class ToolbarConnection(Toolbar):
         self.update_status(driver.is_connected)
         for i in xrange(self.GetParent().menu_bar.GetMenuCount()):
             self.GetParent().menu_bar.EnableTop(i, True)
-        del self.waitCursor
+        del self.wait_cursor
 
     def update_status(self, status):
         self._enable_tool(self.connect_tool, not status)

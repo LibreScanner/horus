@@ -9,7 +9,7 @@ import wx._core
 import wx.lib.scrolledpanel
 
 from horus.gui.engine import driver
-from horus.gui.util.image_view import VideoView
+from horus.gui.util.video_view import VideoView
 from horus.gui.util.custom_panels import ExpandableCollection
 
 
@@ -26,7 +26,6 @@ class Workbench(wx.Panel):
         self.video_view = VideoView(self, self.video_frame, 10, black=True)
 
         self.collection = ExpandableCollection(self.scroll_panel)
-        self.collection.SetBackgroundColour(wx.BLUE)
         self.add_panels()  # Add panels to collection
         self.collection.init_panels_layout()
 
@@ -39,7 +38,7 @@ class Workbench(wx.Panel):
         self.scroll_panel.SetMinSize((panel_size, -1))
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.scroll_panel, 0, wx.ALL | wx.EXPAND, 1)
+        hbox.Add(self.scroll_panel, 0, wx.ALL ^ wx.RIGHT | wx.EXPAND, 1)
         hbox.Add(self.video_view, 1, wx.ALL | wx.EXPAND, 1)
         self.SetSizer(hbox)
         self.Layout()
@@ -71,8 +70,7 @@ class Workbench(wx.Panel):
             self.setup_engine()
 
     def on_connect(self):
-        if driver.is_connected:
-            self.setup_engine()
+        self.setup_engine()
         self.video_view.play()
 
     def on_disconnect(self):
@@ -81,7 +79,7 @@ class Workbench(wx.Panel):
     def on_open(self):
         if driver.is_connected:
             self.setup_engine()
-        self.video_view.play()
+            self.video_view.play()
 
     def on_close(self):
         try:

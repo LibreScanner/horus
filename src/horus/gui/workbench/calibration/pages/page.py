@@ -10,63 +10,54 @@ import wx._core
 
 class Page(wx.Panel):
 
-    def __init__(self, parent, title="Title", subTitle="", left="Left", right="Right",
-                 buttonLeftCallback=None, buttonRightCallback=None,
-                 panelOrientation=wx.VERTICAL, viewProgress=False):
-        wx.Panel.__init__(self, parent)
+    def __init__(self, parent, title="Title", desc="", left="Left", right="Right",
+                 button_left_callback=None, button_right_callback=None, view_progress=False):
+        wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
 
-        self.buttonLeftCallback = buttonLeftCallback
-        self.buttonRightCallback = buttonRightCallback
+        self.button_left_callback = button_left_callback
+        self.button_right_callback = button_right_callback
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.panelBox = wx.BoxSizer(panelOrientation)
-
-        self._panel = wx.Panel(self)
-        self._downPanel = wx.Panel(self)
-
-        titleText = wx.StaticText(self, label=title)
-        titleText.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
-        if subTitle != "":
-            self.subTitleText = wx.StaticText(self, label=subTitle)
+        # Elements
+        self.panel = wx.Panel(self)
+        button_panel = wx.Panel(self)
+        title_text = wx.StaticText(self, label=title)
+        title_text.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        if desc != "":
+            self.desc_text = wx.StaticText(self, label=desc)
         self.gauge = wx.Gauge(self, range=100, size=(-1, 30))
-        self._leftButton = wx.Button(self._downPanel, -1, left)
-        self._rightButton = wx.Button(self._downPanel, -1, right)
-
-        # Layout
-        vbox.Add(titleText, 0, wx.ALL | wx.EXPAND, 10)
-        if subTitle != "":
-            vbox.Add(self.subTitleText, 0, wx.ALL | wx.EXPAND, 10)
-        vbox.Add(self._panel, 1, wx.ALL | wx.EXPAND, 8)
-        vbox.Add(self.gauge, 0, wx.ALL | wx.EXPAND, 8)
-        self._panel.SetSizer(self.panelBox)
-        vbox.Add(self._downPanel, 0, wx.ALL | wx.EXPAND, 1)
-        hbox.Add(self._leftButton, 0, wx.ALL | wx.EXPAND |
-                 wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, 7)
-        hbox.Add((0, 0), 1, wx.EXPAND)
-        hbox.Add(self._rightButton, 0, wx.ALL | wx.EXPAND |
-                 wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 7)
-        self._downPanel.SetSizer(hbox)
-
-        if not viewProgress:
+        self.left_button = wx.Button(button_panel, -1, left)
+        self.right_button = wx.Button(button_panel, -1, right)
+        if not view_progress:
             self.gauge.Hide()
 
+        # Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_box = wx.BoxSizer(wx.HORIZONTAL)
+        vbox.Add(title_text, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 12)
+        if desc != "":
+            vbox.Add(self.desc_text, 0, wx.ALL | wx.EXPAND, 14)
+        vbox.Add(self.panel, 1, wx.ALL | wx.EXPAND, 8)
+        vbox.Add(self.gauge, 0, wx.ALL | wx.EXPAND, 10)
+        self.panel.SetSizer(self.panel_box)
+        vbox.Add(button_panel, 0, wx.ALL | wx.EXPAND, 1)
+        hbox.Add(self.left_button, 0, wx.ALL | wx.EXPAND |
+                 wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT, 8)
+        hbox.Add((0, 0), 1, wx.EXPAND)
+        hbox.Add(self.right_button, 0, wx.ALL | wx.EXPAND |
+                 wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 8)
+        button_panel.SetSizer(hbox)
         self.SetSizer(vbox)
-
-        # Events
-        self._leftButton.Bind(wx.EVT_BUTTON, self._onLeftButtonPressed)
-        self._rightButton.Bind(wx.EVT_BUTTON, self._onRightButtonPressed)
-
         self.Layout()
 
-    def addToPanel(self, _object, _size):
-        if _object is not None:
-            self.panelBox.Add(_object, _size, wx.ALL | wx.EXPAND, 3)
+        # Events
+        self.left_button.Bind(wx.EVT_BUTTON, self._on_left_button_pressed)
+        self.right_button.Bind(wx.EVT_BUTTON, self._on_right_button_pressed)
 
-    def _onLeftButtonPressed(self, event):
-        if self.buttonLeftCallback is not None:
-            self.buttonLeftCallback()
+    def _on_left_button_pressed(self, event):
+        if self.button_left_callback is not None:
+            self.button_left_callback()
 
-    def _onRightButtonPressed(self, event):
-        if self.buttonRightCallback is not None:
-            self.buttonRightCallback()
+    def _on_right_button_pressed(self, event):
+        if self.button_right_callback is not None:
+            self.button_right_callback()

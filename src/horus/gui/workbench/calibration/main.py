@@ -7,16 +7,10 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
-from horus.gui.engine import driver, image_capture, image_detection
+from horus.gui.engine import driver, pattern, image_capture, image_detection
 from horus.gui.workbench.workbench import Workbench
-from horus.gui.workbench.calibration.panels import PatternSettings, AutocheckPanel, \
-    CameraIntrinsicsPanel, LaserTriangulationPanel, PlatformExtrinsicsPanel
-
-# from horus.gui.workbench.calibration.pages import AutocheckMainPage, CameraIntrinsicsMainPage, \
-#    CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
-#    PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
-
-from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
+from horus.gui.workbench.calibration.panels import PatternSettings, CameraIntrinsics, \
+    ScannerAutocheck, LaserTriangulation, PlatformExtrinsics
 
 
 class CalibrationWorkbench(Workbench):
@@ -26,18 +20,27 @@ class CalibrationWorkbench(Workbench):
 
     def add_panels(self):
         self.add_panel('pattern_settings', PatternSettings)
-        # self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
-        #     self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
-        # self.controls.addPanel('autocheck_panel', AutocheckPanel(
-        #     self.controls, buttonStartCallback=self.onAutocheckStartCallback,
-        #     buttonStopCallback=self.onCancelCallback))
-        # self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(
-        #     self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
-        # self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(
-        #     self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
+        self.add_panel('camera_intrinsics', CameraIntrinsics)
+        self.add_panel('scanner_autocheck', ScannerAutocheck)
+        self.add_panel('laser_triangulation', LaserTriangulation)
+        self.add_panel('platform_extrinsics', PlatformExtrinsics)
 
     def setup_engine(self):
-        pass
+        resolution = profile.settings['resolution'].split('x')
+        driver.camera.set_frame_rate(int(profile.settings['framerate']))
+        driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
+        image_capture.set_mode_pattern()
+        image_capture.pattern_mode.set_brightness(
+            profile.settings['brightness_pattern_calibration'])
+        image_capture.pattern_mode.set_contrast(profile.settings['contrast_pattern_calibration'])
+        image_capture.pattern_mode.set_saturation(
+            profile.settings['saturation_pattern_calibration'])
+        image_capture.pattern_mode.set_exposure(profile.settings['exposure_pattern_calibration'])
+        image_capture.set_use_distortion(profile.settings['use_distortion'])
+        pattern.rows = profile.settings['pattern_rows']
+        pattern.columns = profile.settings['pattern_columns']
+        pattern.square_width = profile.settings['pattern_square_width']
+        pattern.origin_distance = profile.settings['pattern_origin_distance']
 
     def video_frame(self):
         image = image_capture.capture_pattern()

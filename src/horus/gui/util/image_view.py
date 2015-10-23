@@ -13,8 +13,8 @@ from horus.util import resources
 class ImageView(wx.Panel):
 
     def __init__(self, parent, resize=True,
-                 quality=wx.IMAGE_QUALITY_NORMAL, size=(-1, -1), black=False):
-        wx.Panel.__init__(self, parent, size=size)  # , style=wx.SIMPLE_BORDER)
+                 quality=wx.IMAGE_QUALITY_NORMAL, size=(-1, -1), black=False, style=wx.NO_BORDER):
+        wx.Panel.__init__(self, parent, size=size, style=style)
 
         self.x_offset = 0
         self.y_offset = 0

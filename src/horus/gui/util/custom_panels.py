@@ -6,7 +6,6 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
-import numpy as np
 from collections import OrderedDict
 
 from horus.util import profile, resources
@@ -85,7 +84,6 @@ class ExpandablePanel(wx.Panel):
                 wx.Bitmap(resources.get_path_for_image("restore.png"), wx.BITMAP_TYPE_ANY))
 
         self.content = ControlCollection(self, self.append_undo, self.release_undo)
-        self.SetBackgroundColour(wx.GREEN)
 
         # Layout
         self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -93,12 +91,12 @@ class ExpandablePanel(wx.Panel):
         self.hbox.Add(self.title_text, 1, wx.ALIGN_CENTER_VERTICAL)
         if self.has_undo:
             self.hbox.Add(
-                self.undo_button, 0, wx.RIGHT | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+                self.undo_button, 0, wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, 5)
         if self.has_restore:
             self.hbox.Add(
-                self.restore_button, 0, wx.RIGHT | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+                self.restore_button, 0, wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, 5)
         self.vbox.Add(self.hbox, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
-        self.vbox.Add(self.content, 1, wx.ALL ^ wx.TOP ^ wx.BOTTOM | wx.EXPAND, 10)
+        self.vbox.Add(self.content, 1, wx.ALL ^ wx.TOP ^ wx.BOTTOM | wx.EXPAND, 15)
         self.SetSizer(self.vbox)
         self.Layout()
 
@@ -123,10 +121,10 @@ class ExpandablePanel(wx.Panel):
         self.content.update_callback(_name, _callback)
 
     def add_controls(self):
-        raise NotImplementedError
+        pass
 
     def update_callbacks(self):
-        raise NotImplementedError
+        pass
 
     def on_selected(self):
         pass
@@ -146,7 +144,7 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Disable()
 
     def show_content(self):
-        self.title_text.font_bold()
+        self.title_text.font_selected()
         self.content.Show()
         if self.has_undo:
             self.undo_button.Show()
@@ -207,8 +205,10 @@ class TitleText(wx.Panel):
 
         # Elements
         self.title = wx.StaticText(self, label=title)
+        self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(
+            wx.SYS_ANSI_VAR_FONT).GetPointSize(),
+            wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
         self.line = wx.StaticLine(self)
-        self.font_normal()
 
         if hand_cursor:
             self.title.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
@@ -216,29 +216,22 @@ class TitleText(wx.Panel):
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.title, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 10)
-        vbox.Add(self.line, 1, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 5)
+        vbox.Add(self.title, 0, wx.ALL ^ wx.TOP ^ wx.BOTTOM | wx.EXPAND, 10)
+        vbox.Add(self.line, 1, wx.ALL | wx.EXPAND, 8)
         self.SetSizer(vbox)
         self.Layout()
 
     def font_normal(self):
-        self._set_font(wx.FONTWEIGHT_NORMAL)
+        self.title.SetForegroundColour('#717577')
 
-    def font_bold(self):
-        self._set_font(wx.FONTWEIGHT_BOLD)
-
-    def _set_font(self, style):
-        self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(
-            wx.SYS_ANSI_VAR_FONT).GetPointSize(),
-            wx.FONTFAMILY_DEFAULT, wx.NORMAL, style)))
+    def font_selected(self):
+        self.title.SetForegroundColour('#313739')
 
 
 class ControlCollection(wx.Panel):
 
     def __init__(self, parent, append_undo_callback=None, release_undo_callback=None):
         wx.Panel.__init__(self, parent, size=(100, 100))
-
-        self.SetBackgroundColour(wx.RED)
 
         # Elements
         self.control_panels = OrderedDict()
@@ -596,6 +589,7 @@ class FloatBoxArray(wx.Panel):
                 jbox.Add(self.texts[i][j], 1, wx.ALL | wx.EXPAND, 2)
             ibox.Add(jbox, 1, wx.ALL | wx.EXPAND, 1)
         self.SetSizer(ibox)
+        self.Layout()
 
     def SetValue(self, value):
         self.value = value
@@ -618,9 +612,9 @@ class FloatTextBoxArray(ControlPanel):
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, 0, wx.ALL | wx.EXPAND, 0)
+        vbox.Add(label, 0, wx.BOTTOM | wx.EXPAND, 3)
         vbox.AddStretchSpacer()
-        vbox.Add(self.control, 0, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(self.control, 0, wx.ALL | wx.EXPAND, 0)
         self.SetSizer(vbox)
         self.Layout()
 

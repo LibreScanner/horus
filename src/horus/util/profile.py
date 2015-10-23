@@ -386,14 +386,14 @@ class Settings(collections.MutableMapping):
                                            buffer=np.array([0.0, 0.0, 0.0, 0.0, 0.0]))))
 
         self._add_setting(
-            Setting('distance_left', _('Distance'), 'calibration_settings', float, 0.0))
+            Setting('distance_left', _('Distance left'), 'calibration_settings', float, 0.0))
         self._add_setting(
-            Setting('normal_left', _('Normal'), 'calibration_settings',
+            Setting('normal_left', _('Normal left'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
         self._add_setting(
-            Setting('distance_right', _('Distance'), 'calibration_settings', float, 0.0))
+            Setting('distance_right', _('Distance right'), 'calibration_settings', float, 0.0))
         self._add_setting(
-            Setting('normal_right', _('Normal'), 'calibration_settings',
+            Setting('normal_right', _('Normal right'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
 
         self._add_setting(

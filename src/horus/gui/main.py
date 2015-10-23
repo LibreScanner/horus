@@ -38,7 +38,7 @@ __name__ = "Horus " + __version__ + " BETA"
 class MainWindow(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, title=__name__, size=(980, 635))
+        wx.Frame.__init__(self, None, title=__name__, size=(980, 615))
 
         print ">>> " + __name__ + " <<<"
 
@@ -75,8 +75,7 @@ class MainWindow(wx.Frame):
             self.toolbar.combo.Append(workbench.name)
             sizer.Add(workbench, 1, wx.ALL | wx.EXPAND)
         name = self.workbench[profile.settings['workbench']].name
-        self.toolbar.combo.SetValue(name)
-        self.update_workbenches(name)
+        self.update_workbench(name)
         self.SetSizer(sizer)
 
     def load_menu(self):
@@ -410,13 +409,13 @@ class MainWindow(wx.Frame):
         self.workbench[profile.settings['workbench']].on_disconnect()
 
     def on_combo_box_selected(self, event):
-        self.update_workbenches(event.GetEventObject().GetValue())
+        self.update_workbench(event.GetEventObject().GetValue())
 
-    def update_workbenches(self, name):
-        waitCursor = wx.BusyCursor()
+    def update_workbench(self, name):
+        self.wait_cursor = wx.BusyCursor()
+        self.toolbar.combo.SetValue(name)
         for key, wb in self.workbench.iteritems():
             if wb.name == name:
-                wb.Hide()
                 wb.Show()
                 profile.settings['workbench'] = key
             else:
@@ -428,7 +427,7 @@ class MainWindow(wx.Frame):
         self.menu_file.Enable(self.menu_clear_model.GetId(), is_scan)
         self.Layout()
 
-        del waitCursor
+        del self.wait_cursor
         gc.collect()
 
     def on_about(self, event):
