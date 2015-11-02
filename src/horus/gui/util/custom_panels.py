@@ -23,8 +23,8 @@ class ExpandableCollection(wx.Panel):
         self.SetSizer(self.vbox)
         self.Layout()
 
-    def add_panel(self, name, panel):
-        panel = panel(self)
+    def add_panel(self, name, panel, on_selected_callback=None):
+        panel = panel(self, on_selected_callback)
         panel.content.Disable()
         panel.set_expand_callback(self._expand_callback)
         self.expandable_panels.update({name: panel})
@@ -63,11 +63,12 @@ class ExpandableCollection(wx.Panel):
 
 class ExpandablePanel(wx.Panel):
 
-    def __init__(self, parent, title="", has_undo=True, has_restore=True):
+    def __init__(self, parent, title="", selected_callback=None, has_undo=True, has_restore=True):
         wx.Panel.__init__(self, parent, size=(-1, -1))
 
         # Elements
         self.expand_callback = None
+        self.selected_callback = selected_callback
         self.undo_objects = []
         self.title = title
         self.title_text = TitleText(self, title)
@@ -127,7 +128,8 @@ class ExpandablePanel(wx.Panel):
         pass
 
     def on_selected(self):
-        pass
+        if self.selected_callback is not None:
+            self.selected_callback()
 
     def set_expand_callback(self, expand_callback):
         self.expand_callback = expand_callback

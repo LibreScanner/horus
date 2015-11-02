@@ -200,7 +200,7 @@ class PreferencesDialog(wx.Dialog):
             extra_flags = ["-D"]
         self.count = -50
         out = avr_dude.flash(
-            extra_flags=extra_flags, hexPath=self.hexPath, callback=self.increment_progress)
+            extra_flags=extra_flags, hex_path=self.hex_path, callback=self.increment_progress)
         if 'not in sync' in out or 'Invalid' in out:
             wx.CallAfter(self.wrong_board_message)
         wx.CallAfter(self.after_load_firmware)

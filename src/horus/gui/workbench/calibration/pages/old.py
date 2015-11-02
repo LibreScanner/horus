@@ -42,6 +42,10 @@ image_capture = ImageCapture()
 image_detection = ImageDetection()
 
 
+class CameraIntrinsicsControls(wx.Panel):
+    pass
+
+
 class CameraIntrinsicsMainPage(Page):
 
     def __init__(self, parent, afterCancelCallback=None, afterCalibrationCallback=None):

@@ -15,7 +15,7 @@ from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.workbench.calibration.pages.video_page import VideoPage
 
 
-class PlatformExtrinsicsPages(wx.Panel):
+class LaserTriangulationPages(wx.Panel):
 
     def __init__(self, parent, accept_callback=None, cancel_callback=None):
         wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
@@ -25,7 +25,7 @@ class PlatformExtrinsicsPages(wx.Panel):
 
         self.SetBackgroundColour(wx.BLUE)
 
-        self.video_page = VideoPage(self, title=_('Platform extrinsics'),
+        self.video_page = VideoPage(self, title=_('Laser triangulation'),
                                     start_callback=self.on_start, cancel_callback=self.on_cancel)
         self.result_page = ResultPage(self, accet_callback=self.on_accept, reject_callback=self.on_cancel)
 
@@ -63,14 +63,14 @@ class ResultPage(Page):
 
     def __init__(self, parent, accet_callback=None, reject_callback=None):
         Page.__init__(self, parent,
-                      title=_('Platform extrinsics result'),
+                      title=_('Laser triangulation result'),
                       left=_('Reject'),
                       right=_('Accept'),
                       button_left_callback=reject_callback,
                       button_right_callback=accet_callback)
 
         # 3D Plot Panel
-        self.plot_panel = PlatformExtrinsics3DPlot(self.panel)
+        self.plot_panel = LaserTriangulation3DPlot(self.panel)
 
         # Layout
         self.panel_box.Add(self.plot_panel, 2, wx.ALL | wx.EXPAND, 3)
@@ -87,24 +87,29 @@ class ResultPage(Page):
         ret, result = response
 
         if ret:
-            # R = result[0]
-            # t = result[1]
+            dL = result[0][0]
+            nL = result[0][1]
+            stdL = result[0][2]
+            dR = result[1][0]
+            nR = result[1][1]
+            stdR = result[1][2]
+
             # self.GetParent().GetParent().controls.panels[
-            #     'platform_extrinsics_panel'].setParameters((R, t))
+            #     'laser_triangulation_panel'].setParameters((dL, nL, dR, nR))
             self.plot_panel.clear()
-            self.plot_panel.add(result)
+            self.plot_panel.add((dL, nL, stdL, dR, nR, stdR))
             self.plot_panel.Show()
             self.Layout()
         else:
-            if isinstance(result, PlatformExtrinsicsError):
+            if isinstance(result, LaserTriangulationError):
                 dlg = wx.MessageDialog(
-                    self, _("Platform Extrinsics Calibration has failed. Please try again."),
+                    self, _("Laser Triangulation Calibration has failed. Please try again."),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
 
 
-class PlatformExtrinsics3DPlot(wx.Panel):
+class LaserTriangulation3DPlot(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -126,21 +131,18 @@ class PlatformExtrinsics3DPlot(wx.Panel):
         self.Layout()
 
     def add(self, args):
-        R, t, center, point, normal, [x, y, z], circle = args
+        dL, nL, stdL, dR, nR, stdR = args
 
-        # plot the surface, data, and synthetic circle
-        self.ax.scatter(x, z, y, c='b', marker='o')
-        # self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
-        self.ax.plot(circle[0], circle[2], circle[1], c='r')
+        rL = np.cross(np.array([0, 0, 1]), nL)
+        sL = np.cross(rL, nL)
+        RL = np.array([rL, sL, nL])
 
-        d = pattern.distance
+        rR = np.cross(np.array([0, 0, 1]), nR)
+        sR = np.cross(rR, nR)
+        RR = np.array([rR, sR, nR])
 
-        self.ax.plot([t[0], t[0] + 50 * R[0][0]], [t[2], t[2] + 50 * R[2][0]],
-                     [t[1], t[1] + 50 * R[1][0]], linewidth=2.0, color='red')
-        self.ax.plot([t[0], t[0] + 50 * R[0][1]], [t[2], t[2] + 50 * R[2][1]],
-                     [t[1], t[1] + 50 * R[1][1]], linewidth=2.0, color='green')
-        self.ax.plot([t[0], t[0] + d * R[0][2]], [t[2], t[2] + d * R[2][2]],
-                     [t[1], t[1] + d * R[1][2]], linewidth=2.0, color='blue')
+        self.addPlane(RL, dL * nL)
+        self.addPlane(RR, dR * nR)
 
         self.ax.plot([0, 50], [0, 0], [0, 0], linewidth=2.0, color='red')
         self.ax.plot([0, 0], [0, 0], [0, 50], linewidth=2.0, color='green')
@@ -149,6 +151,9 @@ class PlatformExtrinsics3DPlot(wx.Panel):
         self.ax.set_xlabel('X')
         self.ax.set_ylabel('Z')
         self.ax.set_zlabel('Y')
+
+        self.ax.text(-100, 0, 0, str(round(stdL, 5)), fontsize=15)
+        self.ax.text(100, 0, 0, str(round(stdR, 5)), fontsize=15)
 
         self.ax.set_xlim(-150, 150)
         self.ax.set_ylim(0, 400)
@@ -160,6 +165,27 @@ class PlatformExtrinsics3DPlot(wx.Panel):
 
         self.canvas.draw()
         self.Layout()
+
+    def addPlane(self, R, t):
+        w = 200
+        h = 300
+
+        p = np.array([[-w / 2, -h / 2, 0], [-w / 2, h / 2, 0],
+                      [w / 2, h / 2, 0], [w / 2, -h / 2, 0], [-w / 2, -h / 2, 0]])
+        n = np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]])
+
+        self.ax.plot([0, t[0]], [0, t[2]], [0, t[1]], linewidth=2.0, color='yellow')
+
+        points = np.dot(R.T, p.T) + np.array([t, t, t, t, t]).T
+        normals = np.dot(R.T, n.T)
+
+        X = np.array([points[0], normals[0]])
+        Y = np.array([points[1], normals[1]])
+        Z = np.array([points[2], normals[2]])
+
+        self.ax.plot_surface(X, Z, Y, linewidth=0, color=(1, 0, 0, 0.8))
+
+        self.canvas.draw()
 
     def clear(self):
         self.ax.cla()

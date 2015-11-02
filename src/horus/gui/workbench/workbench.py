@@ -24,23 +24,23 @@ class Workbench(wx.Panel):
         self.scroll_panel.SetupScrolling(scroll_x=False, scrollIntoView=False)
         self.scroll_panel.SetAutoLayout(1)
         self.video_view = VideoView(self, self.video_frame, 10, black=True)
-
         self.collection = ExpandableCollection(self.scroll_panel)
+
+        # Layout
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.scroll_panel, 0, wx.ALL ^ wx.RIGHT | wx.EXPAND, 1)
+        self.hbox.Add(self.video_view, 1, wx.ALL | wx.EXPAND, 1)
+        self.SetSizer(self.hbox)
+
         self.add_panels()  # Add panels to collection
         self.collection.init_panels_layout()
 
-        # Layout
         vsbox = wx.BoxSizer(wx.VERTICAL)
         vsbox.Add(self.collection, 1, wx.ALL | wx.EXPAND, 0)
         self.scroll_panel.SetSizer(vsbox)
         vsbox.Fit(self.scroll_panel)
         panel_size = self.scroll_panel.GetSize()[0] + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
         self.scroll_panel.SetMinSize((panel_size, -1))
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.scroll_panel, 0, wx.ALL ^ wx.RIGHT | wx.EXPAND, 1)
-        hbox.Add(self.video_view, 1, wx.ALL | wx.EXPAND, 1)
-        self.SetSizer(hbox)
         self.Layout()
 
         # Events
@@ -55,8 +55,8 @@ class Workbench(wx.Panel):
     def video_frame(self):
         raise NotImplementedError
 
-    def add_panel(self, name, panel):
-        self.collection.add_panel(name, panel)
+    def add_panel(self, name, panel, on_selected_callback=None):
+        self.collection.add_panel(name, panel, on_selected_callback)
 
     def enable_content(self):
         self.collection.enable_content()

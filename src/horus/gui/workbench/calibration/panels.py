@@ -6,14 +6,15 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 from horus.gui.engine import pattern
-from horus.gui.util.custom_panels import ExpandablePanel, Slider, FloatTextBox, \
-    FloatTextBoxArray
+from horus.gui.util.custom_panels import ExpandablePanel, Slider, FloatTextBox, FloatTextBoxArray
 
 
 class PatternSettings(ExpandablePanel):
 
-    def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Pattern settings"), has_undo=False)
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Pattern settings"),
+                                 selected_callback=on_selected_callback, has_undo=False)
+        self.on_selected_callback = on_selected_callback
 
     def add_controls(self):
         self.add_control('pattern_rows', Slider, 'Number of corner rows in the pattern')
@@ -44,8 +45,9 @@ class PatternSettings(ExpandablePanel):
 
 class CameraIntrinsics(ExpandablePanel):
 
-    def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Camera intrinsics"), has_undo=False)
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Camera intrinsics"),
+                                 selected_callback=on_selected_callback, has_undo=False)
 
     def add_controls(self):
         self.add_control('camera_matrix', FloatTextBoxArray)
@@ -64,15 +66,17 @@ class CameraIntrinsics(ExpandablePanel):
 
 class ScannerAutocheck(ExpandablePanel):
 
-    def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Scanner autocheck"), has_undo=False,
-                                 has_restore=False)
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Scanner autocheck"),
+                                 selected_callback=on_selected_callback,
+                                 has_undo=False, has_restore=False)
 
 
 class LaserTriangulation(ExpandablePanel):
 
-    def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Laser triangulation"), has_undo=False)
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Laser triangulation"),
+                                 selected_callback=on_selected_callback, has_undo=False)
 
     def add_controls(self):
         self.add_control('distance_left', FloatTextBox)
@@ -101,8 +105,9 @@ class LaserTriangulation(ExpandablePanel):
 
 class PlatformExtrinsics(ExpandablePanel):
 
-    def __init__(self, parent):
-        ExpandablePanel.__init__(self, parent, _("Platform extrinsics"), has_undo=False)
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Platform extrinsics"),
+                                 selected_callback=on_selected_callback, has_undo=False)
 
     def add_controls(self):
         self.add_control('rotation_matrix', FloatTextBoxArray)

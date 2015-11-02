@@ -15,7 +15,7 @@ from horus.gui.util.custom_panels import ExpandablePanel, ControlPanel, Slider, 
 
 class CameraControl(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Camera control"))
         self.current_framerate = None
 
@@ -76,7 +76,7 @@ class CameraControl(ExpandablePanel):
 
 class LaserControl(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(
             self, parent, _("Laser control"), has_undo=False, has_restore=False)
 
@@ -95,7 +95,7 @@ class LaserControl(ExpandablePanel):
 
 class LDRControl(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(
             self, parent, _("LDR control"), has_undo=False, has_restore=False)
 
@@ -158,7 +158,7 @@ class LDRSection(ControlPanel):
 
 class MotorControl(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Motor control"), has_undo=False)
 
     def add_controls(self):
@@ -181,7 +181,7 @@ class MotorControl(ExpandablePanel):
 
 class GcodeControl(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(
             self, parent, _("Gcode Control"), has_undo=False, has_restore=False)
 

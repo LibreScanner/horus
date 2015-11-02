@@ -17,17 +17,17 @@ from horus.gui.util.video_view import VideoView
 
 class CapturePage(Page):
 
-    def __init__(self, parent, cancel_callback=None, start_callback=None):
+    def __init__(self, parent, start_callback=None):
         Page.__init__(self, parent,
-                      title=_("Camera intrinsics calibration"),
+                      title=_("Camera intrinsics"),
                       desc=_("Press space bar to perform captures"),
-                      left=_("Cancel"),
+                      left=_("Reset"),
                       right=_("Start"),
-                      button_left_callback=cancel_callback,
+                      button_left_callback=self.initialize,
                       button_right_callback=start_callback,
                       view_progress=True)
 
-        self.right_button.Hide()
+        # self.right_button.Hide()
 
         # Elements
         self.video_view = VideoView(self.panel, self.get_image, 10, black=True)
@@ -51,11 +51,10 @@ class CapturePage(Page):
         # Events
         self.video_view.Bind(wx.EVT_KEY_DOWN, self.on_key_press)
         self.image_grid_panel.Bind(wx.EVT_KEY_DOWN, self.on_key_press)
-        self.Bind(wx.EVT_SHOW, self.on_show)
 
     def initialize(self):
-        self.right_button.Hide()
-        self.desc.SetLabel(_("Press space bar to perform captures"))
+        # self.right_button.Hide()
+        self.desc_text.SetLabel(_("Press space bar to perform captures"))
         self.current_grid = 0
         self.gauge.SetValue(0)
         for panel in xrange(self.rows * self.columns):

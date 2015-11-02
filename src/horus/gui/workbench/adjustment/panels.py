@@ -17,7 +17,7 @@ current_video = CurrentVideo()
 
 class ScanCapturePanel(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Scan capture"))
 
     def add_controls(self):
@@ -109,7 +109,7 @@ class ScanCapturePanel(ExpandablePanel):
 
 class ScanSegmentationPanel(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Scan segmentation"))
 
     def add_controls(self):
@@ -140,7 +140,7 @@ class ScanSegmentationPanel(ExpandablePanel):
 
 class CalibrationCapturePanel(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Calibration capture"))
 
     def add_controls(self):
@@ -232,7 +232,7 @@ class CalibrationCapturePanel(ExpandablePanel):
 
 class CalibrationSegmentationPanel(ExpandablePanel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Calibration segmentation"))
 
     def add_controls(self):
