@@ -46,8 +46,9 @@ class CurrentVideo(object):
 
     def set_line(self, points, image):
         images = [None, None]
-        images[0] = self._compute_line_image(points[0], image)
-        images[1] = self._compute_line_image(points[1], image)
+        for i in xrange(2):
+          if points[i]:
+            images[i] = self._compute_line_image(points[i], image)
         image = self._combine_images(images)
         image = cv2.merge((image, image, image))
         image = self._apply_roi(image)
