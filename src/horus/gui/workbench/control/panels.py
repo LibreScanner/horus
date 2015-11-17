@@ -63,7 +63,7 @@ class CameraControl(ExpandablePanel):
         self.update_callback('exposure_control', driver.camera.set_exposure)
         self.update_callback('framerate', lambda v: self._set_framerate(int(v)))
         self.update_callback('resolution', lambda v: self._set_resolution(
-            int(v.split('x')[0]), int(v.split('x')[1])))
+            int(v.split('x')[1]), int(v.split('x')[0])))
         self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
 
     def _set_framerate(self, v):

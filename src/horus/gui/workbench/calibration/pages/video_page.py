@@ -57,6 +57,8 @@ class VideoPage(Page):
     def get_image(self):
         if scanner_autocheck.image is not None:
             image = scanner_autocheck.image
+        elif laser_triangulation.image is not None:
+            image = laser_triangulation.image
         else:
             image = image_capture.capture_pattern()
             image = image_detection.detect_pattern(image)

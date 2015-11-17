@@ -67,10 +67,10 @@ class CameraIntrinsicsPages(wx.Panel):
         if not hasattr(self, 'waitCursor'):
             self.waitCursor = wx.BusyCursor()
 
-    def after_calibration(self, result):
+    def after_calibration(self, response):
         self.capture_page.Hide()
         self.result_page.Show()
-        self.result_page.process_calibration(result)
+        self.result_page.process_calibration(response)
         if hasattr(self, 'waitCursor'):
             del self.waitCursor
 
