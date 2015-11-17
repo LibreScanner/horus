@@ -61,7 +61,7 @@ class ScanCapturePanel(ExpandablePanel):
         self.add_control('remove_background_scanning', CheckBox)
 
         # Initial layout
-        self._set_camera_mode(profile.settings['capture_mode_scanning'])
+        self._set_mode_layout(profile.settings['capture_mode_scanning'])
 
     def update_callbacks(self):
         self.update_callback('capture_mode_scanning', lambda v: self._set_camera_mode(v))
@@ -81,8 +81,15 @@ class ScanCapturePanel(ExpandablePanel):
 
     def on_selected(self):
         current_video.mode = profile.settings['capture_mode_scanning']
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+        profile.settings['current_panel_adjustment'] = 'scan_capture'
 
     def _set_camera_mode(self, mode):
+        self._set_mode_layout(mode)
+        current_video.mode = mode
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+
+    def _set_mode_layout(self, mode):
         if mode == 'Laser':
             self.get_control('brightness_texture_scanning').Hide()
             self.get_control('contrast_texture_scanning').Hide()
@@ -103,7 +110,6 @@ class ScanCapturePanel(ExpandablePanel):
             self.get_control('saturation_laser_scanning').Hide()
             self.get_control('exposure_laser_scanning').Hide()
             self.get_control('remove_background_scanning').Hide()
-        current_video.mode = mode
         self.GetParent().Layout()
 
 
@@ -136,6 +142,8 @@ class ScanSegmentationPanel(ExpandablePanel):
 
     def on_selected(self):
         current_video.mode = 'Gray'
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+        profile.settings['current_panel_adjustment'] = 'scan_segmentation'
 
 
 class CalibrationCapturePanel(ExpandablePanel):
@@ -184,7 +192,7 @@ class CalibrationCapturePanel(ExpandablePanel):
         self.add_control('remove_background_calibration', CheckBox)
 
         # Initial layout
-        self._set_camera_mode(profile.settings['capture_mode_calibration'])
+        self._set_mode_layout(profile.settings['capture_mode_calibration'])
 
     def update_callbacks(self):
         self.update_callback('capture_mode_calibration', lambda v: self._set_camera_mode(v))
@@ -204,8 +212,15 @@ class CalibrationCapturePanel(ExpandablePanel):
 
     def on_selected(self):
         current_video.mode = profile.settings['capture_mode_calibration']
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+        profile.settings['current_panel_adjustment'] = 'calibration_capture'
 
     def _set_camera_mode(self, mode):
+        self._set_mode_layout(mode)
+        current_video.mode = mode
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+
+    def _set_mode_layout(self, mode):
         if mode == 'Laser':
             self.get_control('brightness_pattern_calibration').Hide()
             self.get_control('contrast_pattern_calibration').Hide()
@@ -226,7 +241,6 @@ class CalibrationCapturePanel(ExpandablePanel):
             self.get_control('saturation_laser_calibration').Hide()
             self.get_control('exposure_laser_calibration').Hide()
             self.get_control('remove_background_calibration').Hide()
-        current_video.mode = mode
         self.GetParent().Layout()
 
 
@@ -260,3 +274,5 @@ class CalibrationSegmentationPanel(ExpandablePanel):
 
     def on_selected(self):
         current_video.mode = 'Gray'
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+        profile.settings['current_panel_adjustment'] = 'calibration_segmentation'

@@ -28,7 +28,7 @@ class ExpandableCollection(wx.Panel):
         panel.content.Disable()
         panel.set_expand_callback(self._expand_callback)
         self.expandable_panels.update({name: panel})
-        self.vbox.Add(panel, 0, wx.RIGHT | wx.LEFT | wx.EXPAND, 5)
+        self.vbox.Add(panel, 0, wx.ALL ^ wx.TOP | wx.EXPAND, 3)
 
     def init_panels_layout(self):
         values = self.expandable_panels.values()
@@ -352,7 +352,7 @@ class Slider(ControlPanel):
         self.flag_first_move = True
 
         # Elements
-        self.label = wx.StaticText(self, label=self.setting._label, size=(130, -1))
+        self.label = wx.StaticText(self, label=self.setting._label, size=(100, -1))
         self.control = wx.Slider(self, value=profile.settings[name],
                                  minValue=profile.settings.get_min_value(name),
                                  maxValue=profile.settings.get_max_value(name),

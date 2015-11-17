@@ -7,6 +7,8 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
+from horus.util import profile
+
 from horus.util import system as sys
 from horus.gui.engine import driver, image_capture, calibration_data
 from horus.gui.util.custom_panels import ExpandablePanel, ControlPanel, Slider, ComboBox, \
@@ -73,6 +75,9 @@ class CameraControl(ExpandablePanel):
         driver.camera.set_resolution(width, height)
         calibration_data.set_resolution(height, width)
 
+    def on_selected(self):
+        profile.settings['current_panel_control'] = 'camera_control'
+
 
 class LaserControl(ExpandablePanel):
 
@@ -92,6 +97,9 @@ class LaserControl(ExpandablePanel):
                              (lambda i=1: driver.board.laser_on(i),
                               lambda i=1: driver.board.laser_off(i)))
 
+    def on_selected(self):
+        profile.settings['current_panel_control'] = 'laser_control'
+
 
 class LDRControl(ExpandablePanel):
 
@@ -104,6 +112,9 @@ class LDRControl(ExpandablePanel):
 
     def update_callbacks(self):
         self.update_callback('ldr_value', lambda id: driver.board.ldr_sensor(id))
+
+    def on_selected(self):
+        profile.settings['current_panel_control'] = 'ldr_value'
 
 
 class LDRSection(ControlPanel):
@@ -178,6 +189,9 @@ class MotorControl(ExpandablePanel):
         self.update_callback('enable_button',
                              (driver.board.motor_enable, driver.board.motor_disable))
 
+    def on_selected(self):
+        profile.settings['current_panel_control'] = 'motor_control'
+
 
 class GcodeControl(ExpandablePanel):
 
@@ -192,6 +206,9 @@ class GcodeControl(ExpandablePanel):
         self.update_callback(
             'gcode_gui', lambda v, c: driver.board._send_command(v, callback=c, read_lines=True))
 
+    def on_selected(self):
+        profile.settings['current_panel_control'] = 'gcode_control'
+
 
 class GcodeSection(ControlPanel):
 
@@ -200,7 +217,7 @@ class GcodeSection(ControlPanel):
 
         # Elements
         self.request = wx.TextCtrl(self)
-        self.control = wx.Button(self, label=self.setting._label, size=(80, -1))
+        self.control = wx.Button(self, label=self.setting._label, size=(-1, -1))
         self.response = wx.TextCtrl(self, size=(-1, 250), style=wx.TE_MULTILINE)
 
         # Layout

@@ -213,6 +213,12 @@ class Settings(collections.MutableMapping):
             Setting('motor_acceleration_control', _(u'Acceleration (º/s²)'), 'scan_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
 
+        self._add_setting(
+            Setting('current_panel_control', u'camera_control', 'scan_settings',
+                    unicode, u'camera_control',
+                    possible_values=(u'camera_control', u'laser_control',
+                                     u'ldr_value', u'motor_control', u'gcode_control')))
+
         # Hack to translate combo boxes:
         _('Texture')
         _('Laser')
@@ -263,6 +269,17 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('threshold_value_scanning', _('Threshold value'), 'scan_settings',
                     int, 6, min_value=0, max_value=255))
+
+        self._add_setting(
+            Setting('current_video_mode_adjustment', u'Texture', 'scan_settings',
+                    unicode, u'Texture',
+                    possible_values=(u'Texture', u'Pattern', u'Laser', u'Gray')))
+
+        self._add_setting(
+            Setting('current_panel_adjustment', u'scan_capture', 'scan_settings',
+                    unicode, u'scan_capture',
+                    possible_values=(u'scan_capture', u'scan_segmentation',
+                                     u'calibration_capture', u'calibration_segmentation')))
 
         # Hack to translate combo boxes:
         _('Pattern')

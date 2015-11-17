@@ -13,7 +13,7 @@ from horus.gui.util.image_view import ImageView
 class VideoView(ImageView):
 
     def __init__(self, parent, callback=None, milliseconds=1, size=(-1, -1), black=False):
-        ImageView.__init__(self, parent, size=size, black=black, style=wx.RAISED_BORDER)
+        ImageView.__init__(self, parent, size=size, black=black)  # , style=wx.RAISED_BORDER)
 
         self.callback = callback
         self.milliseconds = milliseconds

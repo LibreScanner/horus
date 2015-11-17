@@ -21,7 +21,7 @@ from horus.gui.util.machine_settings import MachineSettingsDialog
 from horus.gui.workbench.toolbar import ToolbarConnection
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
-from horus.gui.workbench.calibration.main import CalibrationWorkbench
+# from horus.gui.workbench.calibration.main import CalibrationWorkbench
 # from horus.gui.workbench.scanning.main import ScanningWorkbench
 
 # from horus.gui.wizard.main import *
@@ -38,7 +38,7 @@ __name__ = "Horus " + __version__ + " BETA"
 class MainWindow(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, title=__name__, size=(980, 615))
+        wx.Frame.__init__(self, None, title=__name__, size=(980, 640))
 
         print ">>> " + __name__ + " <<<"
 
@@ -64,7 +64,7 @@ class MainWindow(wx.Frame):
         self.workbench = {}
         self.workbench['control'] = ControlWorkbench(self)
         self.workbench['adjustment'] = AdjustmentWorkbench(self)
-        self.workbench['calibration'] = CalibrationWorkbench(self)
+        # self.workbench['calibration'] = CalibrationWorkbench(self)
         # self.workbench['scanning'] = ScanningWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -420,7 +420,6 @@ class MainWindow(wx.Frame):
                 profile.settings['workbench'] = key
             else:
                 wb.Hide()
-
         is_scan = profile.settings['workbench'] == 'scanning'
         self.menu_file.Enable(self.menu_load_model.GetId(), is_scan)
         self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)
