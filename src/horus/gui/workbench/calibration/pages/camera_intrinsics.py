@@ -5,7 +5,14 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import cv2
+import random
 import wx._core
+import numpy as np
+
+from horus.util import profile
+
+from horus.gui.engine import camera_intrinsics, pattern
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
@@ -41,21 +48,37 @@ class CameraIntrinsicsPages(wx.Panel):
         self._initialize()
 
     def on_show(self, event):
-        pass
-        # self.capture_page.on_show(event)
+        try:
+            self.capture_page.on_show(event)
+        except:
+            pass
 
     def _initialize(self):
+        self.capture_page.initialize()
+        self.capture_page.SetFocus()
         self.capture_page.Show()
         self.result_page.Hide()
+        self.capture_page.left_button.Enable()
 
-    def on_start(self):
-        import time
-        # Perform calibration
-        time.sleep(1)
-        self.capture_page.Hide()
-        self.result_page.Show()
+    def before_calibration(self):
         if self.start_callback is not None:
             self.start_callback()
+        self.capture_page.left_button.Disable()
+        if not hasattr(self, 'waitCursor'):
+            self.waitCursor = wx.BusyCursor()
+
+    def after_calibration(self, result):
+        self.capture_page.Hide()
+        self.result_page.Show()
+        self.result_page.process_calibration(result)
+        if hasattr(self, 'waitCursor'):
+            del self.waitCursor
+
+    def on_start(self):
+        camera_intrinsics.set_callbacks(lambda: wx.CallAfter(self.before_calibration),
+                                        None,
+                                        lambda r: wx.CallAfter(self.after_calibration, r))
+        camera_intrinsics.start()
 
     def on_exit(self):
         self._initialize()
@@ -68,11 +91,13 @@ class ResultPage(Page):
     def __init__(self, parent, exit_callback=None):
         Page.__init__(self, parent,
                       title=_('Camera intrinsics result'),
+                      desc='.',
                       left=_('Reject'),
                       right=_('Accept'),
                       button_left_callback=self.on_reject,
                       button_right_callback=self.on_accept)
 
+        self.result = None
         self.exit_callback = exit_callback
 
         # 3D Plot Panel
@@ -90,12 +115,15 @@ class ResultPage(Page):
             self.Layout()
 
     def on_reject(self):
-        pass
+        camera_intrinsics.cancel()
         if self.exit_callback is not None:
             self.exit_callback()
 
     def on_accept(self):
-        pass
+        camera_intrinsics.accept()
+        mtx, dist = self.result
+        profile.settings['camera_matrix'] = mtx
+        profile.settings['distortion_vector'] = dist
         if self.exit_callback is not None:
             self.exit_callback()
 
@@ -106,8 +134,12 @@ class ResultPage(Page):
 
         if ret:
             error, mtx, dist, rvecs, tvecs = result
-            # self.GetParent().GetParent().controls.panels[
-            #     'camera_intrinsics_panel'].setParameters((mtx, dist))
+            text = ' fx: {0}  fy: {1}  cx: {2}  cy: {3}  dist: {4}'.format(
+                round(mtx[0][0], 3), round(mtx[1][1], 3),
+                round(mtx[0][2], 3), round(mtx[1][2], 3),
+                np.round(dist, 2))
+            self.result = (mtx, dist)
+            self.desc_text.SetLabel(text)
             self.plot_panel.add(error, rvecs, tvecs)
             self.plot_panel.Show()
             self.Layout()
@@ -134,17 +166,17 @@ class CameraIntrinsics3DPlot(wx.Panel):
 
         self.ax = self.fig.gca(projection='3d', axisbg=(0.7490196, 0.7490196, 0.7490196, 1))
 
-        self.printCanvas()
+        self.print_canvas()
 
-        self.Bind(wx.EVT_SIZE, self.onSize)
+        self.Bind(wx.EVT_SIZE, self.on_size)
         self.Layout()
 
-    def onSize(self, event):
+    def on_size(self, event):
         self.canvas.SetClientSize(self.GetClientSize())
         self.Layout()
         event.Skip()
 
-    def printCanvas(self):
+    def print_canvas(self):
         self.ax.plot([0, 50], [0, 0], [0, 0], linewidth=2.0, color='red')
         self.ax.plot([0, 0], [0, 0], [0, 50], linewidth=2.0, color='green')
         self.ax.plot([0, 0], [0, 50], [0, 0], linewidth=2.0, color='blue')
@@ -204,4 +236,4 @@ class CameraIntrinsics3DPlot(wx.Panel):
 
     def clear(self):
         self.ax.cla()
-        self.printCanvas()
+        self.print_canvas()

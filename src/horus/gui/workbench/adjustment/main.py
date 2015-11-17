@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
-from horus.gui.engine import driver, image_capture, pattern
+from horus.gui.engine import driver, pattern
 from horus.gui.util.video_view import VideoView
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.adjustment.current_video import CurrentVideo

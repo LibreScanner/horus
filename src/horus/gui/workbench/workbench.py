@@ -67,7 +67,7 @@ class Workbench(wx.Panel):
 
     def add_page(self, name, page):
         self.pages_collection[name] = page
-        self.hbox.Add(page, 1, wx.ALL | wx.EXPAND, 0)
+        self.hbox.Add(page, 1, wx.ALL | wx.EXPAND, 2)
 
     def enable_content(self):
         self.panels_collection.enable_content()

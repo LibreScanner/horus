@@ -28,7 +28,6 @@ class ControlWorkbench(Workbench):
 
     def add_pages(self):
         self.add_page('video_view', VideoView(self, self._video_frame, 10, black=True))
-
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_control']].on_title_clicked(None)
 

@@ -85,7 +85,7 @@ class Settings(collections.MutableMapping):
             elif setting_type == types.ListType:
                 value = literal_eval(value)
             elif setting_type == np.ndarray:
-                value = np.asarray(literal_eval(value))
+                value = np.asarray(value)
         except:
             raise ValueError("Unable to cast setting %s to type %s" % (key, setting_type))
         else:
@@ -270,17 +270,6 @@ class Settings(collections.MutableMapping):
             Setting('threshold_value_scanning', _('Threshold value'), 'scan_settings',
                     int, 6, min_value=0, max_value=255))
 
-        self._add_setting(
-            Setting('current_video_mode_adjustment', u'Texture', 'scan_settings',
-                    unicode, u'Texture',
-                    possible_values=(u'Texture', u'Pattern', u'Laser', u'Gray')))
-
-        self._add_setting(
-            Setting('current_panel_adjustment', u'scan_capture', 'scan_settings',
-                    unicode, u'scan_capture',
-                    possible_values=(u'scan_capture', u'scan_segmentation',
-                                     u'calibration_capture', u'calibration_segmentation')))
-
         # Hack to translate combo boxes:
         _('Pattern')
         _('Laser')
@@ -331,6 +320,17 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('threshold_value_calibration', _('Threshold value'), 'scan_settings',
                     int, 6, min_value=0, max_value=255))
+
+        self._add_setting(
+            Setting('current_video_mode_adjustment', u'Texture', 'scan_settings',
+                    unicode, u'Texture',
+                    possible_values=(u'Texture', u'Pattern', u'Laser', u'Gray')))
+
+        self._add_setting(
+            Setting('current_panel_adjustment', u'scan_capture', 'scan_settings',
+                    unicode, u'scan_capture',
+                    possible_values=(u'scan_capture', u'scan_segmentation',
+                                     u'calibration_capture', u'calibration_segmentation')))
 
         self._add_setting(
             Setting('capture_texture', _('Capture texture'), 'scan_settings', bool, True))
@@ -421,6 +421,13 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('translation_vector', _('Translation vector'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([5.0, 80.0, 320.0]))))
+
+        self._add_setting(
+            Setting('current_panel_calibration', u'pattern_settings', 'calibration_settings',
+                    unicode, u'pattern_settings',
+                    possible_values=(u'pattern_settings', u'camera_intrinsics',
+                                     u'scanner_autocheck', u'laser_triangulation',
+                                     u'platform_extrinsics')))
 
         # -- Machine Settings
 

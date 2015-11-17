@@ -12,7 +12,7 @@ class Page(wx.Panel):
 
     def __init__(self, parent, title="Title", desc="", left="Left", right="Right",
                  button_left_callback=None, button_right_callback=None, view_progress=False):
-        wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
+        wx.Panel.__init__(self, parent)  # , style=wx.RAISED_BORDER)
 
         self.button_left_callback = button_left_callback
         self.button_right_callback = button_right_callback

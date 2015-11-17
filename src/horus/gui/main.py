@@ -21,7 +21,7 @@ from horus.gui.util.machine_settings import MachineSettingsDialog
 from horus.gui.workbench.toolbar import ToolbarConnection
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
-# from horus.gui.workbench.calibration.main import CalibrationWorkbench
+from horus.gui.workbench.calibration.main import CalibrationWorkbench
 # from horus.gui.workbench.scanning.main import ScanningWorkbench
 
 # from horus.gui.wizard.main import *
@@ -64,7 +64,7 @@ class MainWindow(wx.Frame):
         self.workbench = {}
         self.workbench['control'] = ControlWorkbench(self)
         self.workbench['adjustment'] = AdjustmentWorkbench(self)
-        # self.workbench['calibration'] = CalibrationWorkbench(self)
+        self.workbench['calibration'] = CalibrationWorkbench(self)
         # self.workbench['scanning'] = ScanningWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)

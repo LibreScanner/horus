@@ -27,7 +27,7 @@ class CapturePage(Page):
                       button_right_callback=start_callback,
                       view_progress=True)
 
-        # self.right_button.Hide()
+        self.right_button.Hide()
 
         # Elements
         self.video_view = VideoView(self.panel, self.get_image, 10, black=True)
@@ -45,18 +45,19 @@ class CapturePage(Page):
         # Layout
         self.panel_box.Add(self.video_view, 2, wx.ALL | wx.EXPAND, 2)
         self.panel_box.Add(self.image_grid_panel, 3, wx.ALL | wx.EXPAND, 3)
-        self.video_view.SetFocus()
         self.Layout()
 
         # Events
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key_press)
         self.video_view.Bind(wx.EVT_KEY_DOWN, self.on_key_press)
         self.image_grid_panel.Bind(wx.EVT_KEY_DOWN, self.on_key_press)
 
     def initialize(self):
-        # self.right_button.Hide()
-        self.desc_text.SetLabel(_("Press space bar to perform captures"))
+        self.desc_text.SetLabel(
+            _("Click over the video panel and press space bar to perform captures"))
         self.current_grid = 0
         self.gauge.SetValue(0)
+        camera_intrinsics.reset()
         for panel in xrange(self.rows * self.columns):
             self.panel_grid[panel].SetBackgroundColour((221, 221, 221))
             self.panel_grid[panel].set_image(wx.Image(resources.get_path_for_image("void.png")))
@@ -65,6 +66,7 @@ class CapturePage(Page):
         if event.GetShow():
             self.gauge.SetValue(0)
             self.video_view.play()
+            self.image_grid_panel.SetFocus()
             self.GetParent().Layout()
             self.Layout()
         else:
@@ -77,10 +79,6 @@ class CapturePage(Page):
     def get_image(self):
         image = image_capture.capture_pattern()
         chessboard = image_detection.detect_pattern(image)
-        if image is chessboard:
-            self.video_view.SetBackgroundColour((217, 0, 0))
-        else:
-            self.video_view.SetBackgroundColour((45, 178, 0))
         return chessboard
 
     def on_key_press(self, event):

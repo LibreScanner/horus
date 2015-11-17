@@ -13,8 +13,7 @@ class PatternSettings(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Pattern settings"),
-                                 selected_callback=on_selected_callback, has_undo=False)
-        self.on_selected_callback = on_selected_callback
+                                 selected_callback=on_selected_callback)
 
     def add_controls(self):
         self.add_control('pattern_rows', Slider, 'Number of corner rows in the pattern')
@@ -53,16 +52,6 @@ class CameraIntrinsics(ExpandablePanel):
         self.add_control('camera_matrix', FloatTextBoxArray)
         self.add_control('distortion_vector', FloatTextBoxArray)
 
-    def update_callbacks(self):
-        self.update_callback('camera_matrix', lambda v: self._update_camera_matrix(v))
-        self.update_callback('distortion_vector', lambda v: self._update_distortion_vector(v))
-
-    def _update_camera_matrix(self, value):
-        pass
-
-    def _update_distortion_vector(self, value):
-        pass
-
 
 class ScannerAutocheck(ExpandablePanel):
 
@@ -84,24 +73,6 @@ class LaserTriangulation(ExpandablePanel):
         self.add_control('distance_right', FloatTextBox)
         self.add_control('normal_right', FloatTextBoxArray)
 
-    def update_callbacks(self):
-        self.update_callback('distance_left', lambda v: self._update_distance_left(v))
-        self.update_callback('normal_left', lambda v: self._update_normal_left(v))
-        self.update_callback('distance_right', lambda v: self._update_distance_right(v))
-        self.update_callback('normal_right', lambda v: self._update_normal_right(v))
-
-    def _update_distance_left(self, value):
-        pass
-
-    def _update_normal_left(self, value):
-        pass
-
-    def _update_distance_right(self, value):
-        pass
-
-    def _update_normal_right(self, value):
-        pass
-
 
 class PlatformExtrinsics(ExpandablePanel):
 
@@ -112,13 +83,3 @@ class PlatformExtrinsics(ExpandablePanel):
     def add_controls(self):
         self.add_control('rotation_matrix', FloatTextBoxArray)
         self.add_control('translation_vector', FloatTextBoxArray)
-
-    def update_callbacks(self):
-        self.update_callback('rotation_matrix', lambda v: self._update_rotation_matrix(v))
-        self.update_callback('translation_vector', lambda v: self._update_translation_vector(v))
-
-    def _update_rotation_matrix(self, value):
-        pass
-
-    def _update_translation_vector(self, value):
-        pass

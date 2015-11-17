@@ -58,6 +58,7 @@ class ExpandableCollection(wx.Panel):
 
     def update_from_profile(self):
         for panel in self.expandable_panels.values():
+            panel.enable_restore(True)
             panel.content.update_from_profile()
 
 
@@ -590,7 +591,7 @@ class FloatBoxArray(wx.Panel):
                 else:
                     self.texts[i][j].SetValue(self.value[i][j])
                 self.texts[i][j].SetEditable(False)
-                self.texts[i][j].Disable()
+                # self.texts[i][j].Disable()
                 jbox.Add(self.texts[i][j], 1, wx.ALL | wx.EXPAND, 2)
             ibox.Add(jbox, 1, wx.ALL | wx.EXPAND, 1)
         self.SetSizer(ibox)
@@ -600,7 +601,10 @@ class FloatBoxArray(wx.Panel):
         self.value = value
         for i in range(self.r):
             for j in range(self.c):
-                self.texts[i][j].SetValue(self.value[i][j])
+                if self.r == 1:
+                    self.texts[i][j].SetValue(self.value[j])
+                else:
+                    self.texts[i][j].SetValue(self.value[i][j])
 
     def GetValue(self):
         pass

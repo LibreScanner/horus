@@ -17,14 +17,14 @@ from horus.gui.util.video_view import VideoView
 
 class VideoPage(Page):
 
-    def __init__(self, parent, title='Video page', cancel_callback=None, start_callback=None):
+    def __init__(self, parent, title='Video page', start_callback=None):
         Page.__init__(self, parent,
                       title=title,
                       desc=_("Put the pattern on the platform as shown in the "
                              "picture and press Start"),
                       left=_("Cancel"),
                       right=_("Start"),
-                      button_left_callback=cancel_callback,
+                      button_left_callback=self.initialize,
                       button_right_callback=start_callback,
                       view_progress=True)
 
