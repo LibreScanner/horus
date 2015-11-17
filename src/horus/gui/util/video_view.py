@@ -27,8 +27,12 @@ class VideoView(ImageView):
         self.timer.Stop()
         if self.playing:
             if self.callback is not None:
-                self.set_frame(self.callback())
-            self._start()
+                frame = self.callback()
+                if frame is None:
+                    self.stop()
+                else:
+                    self.set_frame(frame)
+                    self._start()
 
     def set_callback(self, callback):
         self.callback = callback
