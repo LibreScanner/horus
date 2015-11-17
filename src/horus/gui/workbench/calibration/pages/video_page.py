@@ -9,7 +9,7 @@ import wx._core
 
 from horus.util import resources
 
-from horus.gui.engine import image_capture, image_detection, laser_triangulation
+from horus.gui.engine import image_capture, image_detection, scanner_autocheck, laser_triangulation
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
@@ -17,14 +17,14 @@ from horus.gui.util.video_view import VideoView
 
 class VideoPage(Page):
 
-    def __init__(self, parent, title='Video page', start_callback=None):
+    def __init__(self, parent, title='Video page', start_callback=None, cancel_callback=None):
         Page.__init__(self, parent,
                       title=title,
                       desc=_("Put the pattern on the platform as shown in the "
                              "picture and press Start"),
                       left=_("Cancel"),
                       right=_("Start"),
-                      button_left_callback=self.initialize,
+                      button_left_callback=cancel_callback,
                       button_right_callback=start_callback,
                       view_progress=True)
 
@@ -37,9 +37,6 @@ class VideoPage(Page):
         self.panel_box.Add(image_view, 3, wx.ALL | wx.EXPAND, 3)
         self.panel_box.Add(self.video_view, 2, wx.ALL | wx.EXPAND, 3)
         self.Layout()
-
-        # Events
-        self.Bind(wx.EVT_SHOW, self.on_show)
 
     def initialize(self):
         self.gauge.SetValue(0)
@@ -58,10 +55,9 @@ class VideoPage(Page):
                 pass
 
     def get_image(self):
-        if laser_triangulation.has_image:
-            image = laser_triangulation.image
+        if scanner_autocheck.image is not None:
+            image = scanner_autocheck.image
         else:
             image = image_capture.capture_pattern()
-            if not laser_triangulation._is_calibrating:
-                image = image_detection.detect_pattern(image)
+            image = image_detection.detect_pattern(image)
         return image

@@ -617,7 +617,7 @@ class FloatTextBoxArray(ControlPanel):
 
         # Elements
         label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
-        self.control = FloatBoxArray(self, value=self.setting.value, size=(50, -1))
+        self.control = FloatBoxArray(self, value=profile.settings[name], size=(50, -1))
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)

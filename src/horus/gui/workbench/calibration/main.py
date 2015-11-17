@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
-from horus.gui.engine import driver, pattern, image_capture, image_detection
+from horus.gui.engine import driver, pattern, calibration_data, image_capture, image_detection
 from horus.gui.util.video_view import VideoView
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.calibration.panels import PatternSettings, CameraIntrinsics, \
@@ -29,23 +29,23 @@ class CalibrationWorkbench(Workbench):
             'pattern_settings', PatternSettings, self.on_pattern_settings_selected)
         self.add_panel(
             'camera_intrinsics', CameraIntrinsics, self.on_camera_intrinsics_selected)
-        """self.add_panel('scanner_autocheck', ScannerAutocheck,
-                       self.on_scanner_autocheck_selected)
-        self.add_panel('laser_triangulation', LaserTriangulation,
+        self.add_panel(
+            'scanner_autocheck', ScannerAutocheck, self.on_scanner_autocheck_selected)
+        """self.add_panel('laser_triangulation', LaserTriangulation,
                        self.on_laser_triangulation_selected)
         self.add_panel('platform_extrinsics', PlatformExtrinsics,
                        self.on_platform_extrinsics_selected)"""
 
         # Add pages
-        """self.scanner_autocheck_pages = ScannerAutocheckPages(self)
+        """
         self.laser_triangulation_pages = LaserTriangulationPages(self)
         self.platform_extrinsics_pages = PlatformExtrinsicsPages(self)"""
 
-        """self.hbox.Add(self.scanner_autocheck_pages, 1, wx.ALL | wx.EXPAND, 1)
+        """
         self.hbox.Add(self.laser_triangulation_pages, 1, wx.ALL | wx.EXPAND, 1)
         self.hbox.Add(self.platform_extrinsics_pages, 1, wx.ALL | wx.EXPAND, 1)"""
 
-        """self.scanner_autocheck_pages.Hide()
+        """
         self.laser_triangulation_pages.Hide()
         self.platform_extrinsics_pages.Hide()"""
 
@@ -53,8 +53,11 @@ class CalibrationWorkbench(Workbench):
         self.add_page('video_view', VideoView(self, self._video_frame, 10, black=True))
         self.add_page('camera_intrinsics_pages', CameraIntrinsicsPages(
             self, start_callback=self.disable_panels, exit_callback=self.update_panels))
+        self.add_page('scanner_autocheck_pages', ScannerAutocheckPages(
+            self, start_callback=self.disable_panels, exit_callback=self.update_panels))
 
         self.pages_collection['camera_intrinsics_pages'].Hide()
+        self.pages_collection['scanner_autocheck_pages'].Hide()
 
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
@@ -71,6 +74,7 @@ class CalibrationWorkbench(Workbench):
         try:
             self.pages_collection['video_view'].stop()
             self.pages_collection['camera_intrinsics_pages'].on_show(False)
+            self.pages_collection['scanner_autocheck_pages'].on_show(False)
         except:
             pass
 
@@ -89,6 +93,8 @@ class CalibrationWorkbench(Workbench):
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']
         pattern.origin_distance = profile.settings['pattern_origin_distance']
+        calibration_data.camera_matrix = profile.settings['camera_matrix']
+        calibration_data.distortion_vector = profile.settings['distortion_vector']
 
     def on_pattern_settings_selected(self):
         profile.settings['current_panel_calibration'] = 'pattern_settings'
@@ -100,7 +106,8 @@ class CalibrationWorkbench(Workbench):
         self._on_panel_selected(self.pages_collection['camera_intrinsics_pages'])
 
     def on_scanner_autocheck_selected(self):
-        self._on_panel_selected(self.scanner_autocheck_pages)
+        profile.settings['current_panel_calibration'] = 'scanner_autocheck'
+        self._on_panel_selected(self.pages_collection['scanner_autocheck_pages'])
 
     def on_laser_triangulation_selected(self):
         self._on_panel_selected(self.laser_triangulation_pages)
@@ -125,8 +132,8 @@ class CalibrationWorkbench(Workbench):
         self.pages_collection['video_view'].Hide()
         self.pages_collection['video_view'].stop()
         self.pages_collection['camera_intrinsics_pages'].Hide()
-        """self.scanner_autocheck_pages.Hide()
-        self.laser_triangulation_pages.Hide()
+        self.pages_collection['scanner_autocheck_pages'].Hide()
+        """self.laser_triangulation_pages.Hide()
         self.platform_extrinsics_pages.Hide()"""
         panel.Show()
         self.Layout()

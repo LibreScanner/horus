@@ -11,6 +11,7 @@ from horus.engine.scan.current_video import CurrentVideo
 from horus.engine.calibration.pattern import Pattern
 from horus.engine.calibration.calibration_data import CalibrationData
 from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
+from horus.engine.calibration.autocheck import Autocheck
 from horus.engine.calibration.laser_triangulation import LaserTriangulation
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
 from horus.engine.algorithms.image_capture import ImageCapture
@@ -28,6 +29,7 @@ current_video = CurrentVideo()
 pattern = Pattern()
 calibration_data = CalibrationData()
 camera_intrinsics = CameraIntrinsics()
+scanner_autocheck = Autocheck()
 laser_triangulation = LaserTriangulation()
 platform_extrinsics = PlatformExtrinsics()
 image_capture = ImageCapture()
