@@ -442,6 +442,7 @@ class CheckBox(ControlPanel):
         # Elements
         label = wx.StaticText(self, label=self.setting._label, size=(130, -1))
         self.control = wx.CheckBox(self, size=(150, -1))
+        self.control.SetValue(profile.settings[self.name])
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -469,6 +470,7 @@ class RadioButton(ControlPanel):
         # Elements
         label = wx.StaticText(self, label=self.setting._label)
         self.control = wx.RadioButton(self, style=wx.ALIGN_RIGHT)
+        self.control.SetValue(profile.settings[self.name])
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -495,6 +497,7 @@ class TextBox(ControlPanel):
         # Elements
         label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
         self.control = wx.TextCtrl(self, size=(120, -1), style=wx.TE_RIGHT)
+        self.control.SetValue(profile.settings[self.name])
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)

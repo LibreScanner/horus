@@ -30,7 +30,6 @@ class AdjustmentWorkbench(Workbench):
 
     def add_pages(self):
         self.add_page('video_view', VideoView(self, self._video_frame, 10, black=True))
-
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)
 
@@ -50,25 +49,10 @@ class AdjustmentWorkbench(Workbench):
         resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
-        texture_mode = image_capture.texture_mode
-        texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
-        texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
-        texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
-        texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
-        pattern_mode = image_capture.pattern_mode
-        pattern_mode.set_brightness(profile.settings['brightness_pattern_calibration'])
-        pattern_mode.set_contrast(profile.settings['contrast_pattern_calibration'])
-        pattern_mode.set_saturation(profile.settings['saturation_pattern_calibration'])
-        pattern_mode.set_exposure(profile.settings['exposure_pattern_calibration'])
-        laser_mode = image_capture.laser_mode
-        laser_mode.set_brightness(profile.settings['brightness_laser_scanning'])
-        laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
-        laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
-        laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
-        image_capture.set_remove_background(profile.settings['remove_background_scanning'])
-        image_capture.set_use_distortion(profile.settings['use_distortion'])
+        self.current_video.mode = profile.settings['current_video_mode_adjustment']
         pattern.rows = profile.settings['pattern_rows']
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']
         pattern.distance = profile.settings['pattern_origin_distance']
-        self.current_video.mode = profile.settings['current_video_mode_adjustment']
+        self.panels_collection.expandable_panels[
+            profile.settings['current_panel_adjustment']].on_title_clicked(None)
