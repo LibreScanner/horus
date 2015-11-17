@@ -33,16 +33,8 @@ class CalibrationWorkbench(Workbench):
             'scanner_autocheck', ScannerAutocheck, self.on_scanner_autocheck_selected)
         self.add_panel(
             'laser_triangulation', LaserTriangulation, self.on_laser_triangulation_selected)
-        """self.add_panel('platform_extrinsics', PlatformExtrinsics,
-                       self.on_platform_extrinsics_selected)"""
-
-        # Add pages
-        """self.platform_extrinsics_pages = PlatformExtrinsicsPages(self)"""
-        """
-        self.hbox.Add(self.platform_extrinsics_pages, 1, wx.ALL | wx.EXPAND, 1)"""
-
-        """
-        self.platform_extrinsics_pages.Hide()"""
+        self.add_panel(
+            'platform_extrinsics', PlatformExtrinsics, self.on_platform_extrinsics_selected)
 
     def add_pages(self):
         self.add_page('video_view', VideoView(self, self._video_frame, 10, black=True))
@@ -52,10 +44,13 @@ class CalibrationWorkbench(Workbench):
             self, start_callback=self.disable_panels, exit_callback=self.update_panels))
         self.add_page('laser_triangulation_pages', LaserTriangulationPages(
             self, start_callback=self.disable_panels, exit_callback=self.update_panels))
+        self.add_page('platform_extrinsics_pages', PlatformExtrinsicsPages(
+            self, start_callback=self.disable_panels, exit_callback=self.update_panels))
 
         self.pages_collection['camera_intrinsics_pages'].Hide()
         self.pages_collection['scanner_autocheck_pages'].Hide()
         self.pages_collection['laser_triangulation_pages'].Hide()
+        self.pages_collection['platform_extrinsics_pages'].Hide()
 
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
@@ -74,6 +69,7 @@ class CalibrationWorkbench(Workbench):
             self.pages_collection['camera_intrinsics_pages'].on_show(False)
             self.pages_collection['scanner_autocheck_pages'].on_show(False)
             self.pages_collection['laser_triangulation_pages'].on_show(False)
+            self.pages_collection['platform_extrinsics_pages'].on_show(False)
         except:
             pass
 
@@ -114,7 +110,8 @@ class CalibrationWorkbench(Workbench):
         self._on_panel_selected(self.pages_collection['laser_triangulation_pages'])
 
     def on_platform_extrinsics_selected(self):
-        self._on_panel_selected(self.platform_extrinsics_pages)
+        profile.settings['current_panel_calibration'] = 'platform_extrinsics'
+        self._on_panel_selected(self.pages_collection['platform_extrinsics_pages'])
 
     def disable_panels(self):
         self.panels_collection.Disable()
@@ -135,6 +132,6 @@ class CalibrationWorkbench(Workbench):
         self.pages_collection['camera_intrinsics_pages'].Hide()
         self.pages_collection['scanner_autocheck_pages'].Hide()
         self.pages_collection['laser_triangulation_pages'].Hide()
-        """self.platform_extrinsics_pages.Hide()"""
+        self.pages_collection['platform_extrinsics_pages'].Hide()
         panel.Show()
         self.Layout()

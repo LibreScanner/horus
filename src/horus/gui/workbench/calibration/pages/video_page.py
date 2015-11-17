@@ -9,7 +9,8 @@ import wx._core
 
 from horus.util import resources
 
-from horus.gui.engine import image_capture, image_detection, scanner_autocheck, laser_triangulation
+from horus.gui.engine import image_capture, image_detection, scanner_autocheck, laser_triangulation, \
+    platform_extrinsics
 from horus.gui.workbench.calibration.pages.page import Page
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.video_view import VideoView
@@ -59,6 +60,8 @@ class VideoPage(Page):
             image = scanner_autocheck.image
         elif laser_triangulation.image is not None:
             image = laser_triangulation.image
+        elif platform_extrinsics.image is not None:
+            image = platform_extrinsics.image
         else:
             image = image_capture.capture_pattern()
             image = image_detection.detect_pattern(image)

@@ -29,8 +29,6 @@ class LaserTriangulationPages(wx.Panel):
         self.start_callback = start_callback
         self.exit_callback = exit_callback
 
-        self.SetBackgroundColour(wx.BLUE)
-
         self.video_page = VideoPage(self, title=_('Laser triangulation'),
                                     start_callback=self.on_start, cancel_callback=self.on_exit)
         self.result_page = ResultPage(self, exit_callback=self.on_exit)
@@ -145,7 +143,6 @@ class ResultPage(Page):
             dR = result[1][0]
             nR = result[1][1]
             stdR = result[1][2]
-            # TODO
             self.result = (dL, nL, dR, nR)
             text = ' dL: {0}  nL: {1}  dR: {2}  nR: {3}'.format(
                    round(dL, 3), np.round(nL, 3),

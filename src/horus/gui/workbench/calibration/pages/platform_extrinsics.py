@@ -6,6 +6,12 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
+import numpy as np
+
+from horus.util import profile
+
+from horus.gui.engine import pattern, platform_extrinsics
+from horus.engine.calibration.platform_extrinsics import PlatformExtrinsicsError
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.figure import Figure
@@ -17,57 +23,86 @@ from horus.gui.workbench.calibration.pages.video_page import VideoPage
 
 class PlatformExtrinsicsPages(wx.Panel):
 
-    def __init__(self, parent, accept_callback=None, cancel_callback=None):
-        wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
+    def __init__(self, parent, start_callback=None, exit_callback=None):
+        wx.Panel.__init__(self, parent)  # , style=wx.RAISED_BORDER)
 
-        self.accept_callback = accept_callback
-        self.cancel_callback = cancel_callback
-
-        self.SetBackgroundColour(wx.BLUE)
+        self.start_callback = start_callback
+        self.exit_callback = exit_callback
 
         self.video_page = VideoPage(self, title=_('Platform extrinsics'),
-                                    start_callback=self.on_start, cancel_callback=self.on_cancel)
-        self.result_page = ResultPage(self, accet_callback=self.on_accept, reject_callback=self.on_cancel)
+                                    start_callback=self.on_start, cancel_callback=self.on_exit)
+        self.result_page = ResultPage(self, exit_callback=self.on_exit)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.video_page, 1, wx.ALL | wx.EXPAND, 0)
         hbox.Add(self.result_page, 1, wx.ALL | wx.EXPAND, 0)
         self.SetSizer(hbox)
-
-        self._initialize()
         self.Layout()
 
-    def _initialize(self):
-        self.video_page.Show()
-        # self.result_page.Hide()
+        # Events
+        self.Bind(wx.EVT_SHOW, self.on_show)
 
-    def on_cancel(self):
-        self.Hide()
         self._initialize()
-        if self.cancel_callback is not None:
-            self.cancel_callback()
 
-    def on_start(self):
+    def on_show(self, event):
+        try:
+            self.video_page.on_show(event)
+        except:
+            pass
+
+    def _initialize(self):
+        self.video_page.initialize()
         self.video_page.Show()
         self.result_page.Hide()
-        pass
+        self.video_page.right_button.Enable()
 
-    def on_accept(self, result):
-        self.Hide()
+    def before_calibration(self):
+        if self.start_callback is not None:
+            self.start_callback()
+        self.video_page.right_button.Disable()
+        if not hasattr(self, 'waitCursor'):
+            self.waitCursor = wx.BusyCursor()
+
+    def progress_calibration(self, progress):
+        self.video_page.gauge.SetValue(progress)
+
+    def after_calibration(self, response):
+        ret, result = response
+        if ret:
+            self.video_page.Hide()
+            self.result_page.Show()
+        self.result_page.process_calibration(response)
+        if hasattr(self, 'waitCursor'):
+            del self.waitCursor
+
+    def on_start(self):
+        platform_extrinsics.set_callbacks(lambda: wx.CallAfter(self.before_calibration),
+                                          lambda p: wx.CallAfter(self.progress_calibration, p),
+                                          lambda r: wx.CallAfter(self.after_calibration, r))
+        platform_extrinsics.start()
+
+    def on_exit(self):
+        platform_extrinsics.cancel()
+        self.video_page.Show()
+        self.result_page.Hide()
         self._initialize()
-        if self.accept_callback is not None:
-            self.accept_callback(result)
+        if self.exit_callback is not None:
+            self.exit_callback()
 
 
 class ResultPage(Page):
 
-    def __init__(self, parent, accet_callback=None, reject_callback=None):
+    def __init__(self, parent, exit_callback=None):
         Page.__init__(self, parent,
                       title=_('Platform extrinsics result'),
+                      desc='.',
                       left=_('Reject'),
                       right=_('Accept'),
-                      button_left_callback=reject_callback,
-                      button_right_callback=accet_callback)
+                      button_left_callback=self.on_reject,
+                      button_right_callback=self.on_accept)
+
+        self.result = None
+        self.exit_callback = exit_callback
 
         # 3D Plot Panel
         self.plot_panel = PlatformExtrinsics3DPlot(self.panel)
@@ -83,14 +118,29 @@ class ResultPage(Page):
             self.GetParent().Layout()
             self.Layout()
 
+    def on_reject(self):
+        platform_extrinsics.cancel()
+        if self.exit_callback is not None:
+            self.exit_callback()
+
+    def on_accept(self):
+        platform_extrinsics.accept()
+        R, t = self.result
+        profile.settings['rotation_matrix'] = R
+        profile.settings['translation_vector'] = t
+        if self.exit_callback is not None:
+            self.exit_callback()
+
     def process_calibration(self, response):
         ret, result = response
 
         if ret:
-            # R = result[0]
-            # t = result[1]
-            # self.GetParent().GetParent().controls.panels[
-            #     'platform_extrinsics_panel'].setParameters((R, t))
+            R = result[0]
+            t = result[1]
+            self.result = (R, t)
+            text = ' R: {0}  t: {1}'.format(
+                   np.round(R, 3), np.round(t, 3))
+            self.desc_text.SetLabel(text)
             self.plot_panel.clear()
             self.plot_panel.add(result)
             self.plot_panel.Show()
@@ -117,10 +167,10 @@ class PlatformExtrinsics3DPlot(wx.Panel):
         self.canvas.SetExtraStyle(wx.EXPAND)
         self.ax = fig.gca(projection='3d', axisbg=(0.7490196, 0.7490196, 0.7490196, 1))
 
-        self.Bind(wx.EVT_SIZE, self.onSize)
+        self.Bind(wx.EVT_SIZE, self.on_size)
         self.Layout()
 
-    def onSize(self, event):
+    def on_size(self, event):
         self.canvas.SetClientSize(self.GetClientSize())
         self.canvas.draw()
         self.Layout()
@@ -133,7 +183,7 @@ class PlatformExtrinsics3DPlot(wx.Panel):
         # self.ax.scatter(center[0], center[2], center[1], c='b', marker='o')
         self.ax.plot(circle[0], circle[2], circle[1], c='r')
 
-        d = pattern.distance
+        d = pattern.origin_distance
 
         self.ax.plot([t[0], t[0] + 50 * R[0][0]], [t[2], t[2] + 50 * R[2][0]],
                      [t[1], t[1] + 50 * R[1][0]], linewidth=2.0, color='red')
