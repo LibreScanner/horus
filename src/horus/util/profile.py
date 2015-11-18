@@ -83,7 +83,7 @@ class Settings(collections.MutableMapping):
             elif setting_type == types.UnicodeType:
                 value = unicode(value)
             elif setting_type == types.ListType:
-                value = literal_eval(value)
+                value = value
             elif setting_type == np.ndarray:
                 value = np.asarray(value)
         except:
@@ -525,6 +525,8 @@ class Settings(collections.MutableMapping):
         # TODO: Set this default value
         self._add_setting(
             Setting('last_profile', _('Last Profile'), 'preferences', unicode, u''))
+        self._add_setting(
+            Setting('model_color', _('Model color'), 'preferences', unicode, u'888899'))
 
 
 class Setting(object):

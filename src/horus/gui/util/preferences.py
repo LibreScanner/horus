@@ -224,8 +224,8 @@ class PreferencesDialog(wx.Dialog):
         self.gauge.SetValue(0)
         self.gauge.Show()
         self.waitCursor = wx.BusyCursor()
-        self.GetSizer().Layout()
-        self.SetSizerAndFit(self.GetSizer())
+        self.get_sizer().Layout()
+        self.SetSizerAndFit(self.get_sizer())
 
     def after_load_firmware(self):
         self.upload_firmware_button.Enable()
@@ -233,8 +233,8 @@ class PreferencesDialog(wx.Dialog):
         self.boards_combo.Enable()
         self.gauge.Hide()
         del self.waitCursor
-        self.GetSizer().Layout()
-        self.SetSizerAndFit(self.GetSizer())
+        self.get_sizer().Layout()
+        self.SetSizerAndFit(self.get_sizer())
 
     def on_language_combo_changed(self, event):
         if profile.settings['language'] != self.language_combo.GetValue():

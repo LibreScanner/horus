@@ -7,47 +7,37 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.util import resources, profile, system as sys
+from horus.util import resources, profile
 
-from horus.gui.util.imageView import VideoView
-from horus.gui.util.sceneView import SceneView
-from horus.gui.util.customPanels import ExpandableControl
-
-from horus.gui.workbench.workbench import WorkbenchConnection
+from horus.gui.engine import ciclop_scan, current_video, image_capture, point_cloud_roi
+from horus.gui.workbench.workbench import Workbench
+from horus.gui.workbench.scanning.view_page import ViewPage
 from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform, \
     PointCloudROI, PointCloudColor
 
-from horus.engine.scan.ciclop_scan import CiclopScan
-from horus.engine.scan.current_video import CurrentVideo
-from horus.engine.algorithms.image_capture import ImageCapture
-from horus.engine.algorithms.image_detection import ImageDetection
-from horus.engine.algorithms import point_cloud_roi
 
-
-class ScanningWorkbench(WorkbenchConnection):
+class ScanningWorkbench(Workbench):
 
     def __init__(self, parent):
-        WorkbenchConnection.__init__(self, parent)
+        Workbench.__init__(self, parent, name=_('Scanning workbench'))
 
         self.scanning = False
-        self.showVideoViews = False
+        self.show_video_views = False
 
-        self.ciclop_scan = CiclopScan()
-        self.current_video = CurrentVideo()
-        self.image_capture = ImageCapture()
-        self.image_detection = ImageDetection()
-        self.point_cloud_roi = point_cloud_roi.PointCloudROI()
+        self.pointCloudTimer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.onPointCloudTimer, self.pointCloudTimer)
 
+    def add_toolbar(self):
         # Toolbar Configuration
         self.playTool = self.toolbar.AddLabelTool(
             wx.NewId(), _("Play"),
-            wx.Bitmap(resources.getPathForImage("play.png")), shortHelp=_("Play"))
+            wx.Bitmap(resources.get_path_for_image("play.png")), shortHelp=_("Play"))
         self.stopTool = self.toolbar.AddLabelTool(
             wx.NewId(), _("Stop"),
-            wx.Bitmap(resources.getPathForImage("stop.png")), shortHelp=_("Stop"))
+            wx.Bitmap(resources.get_path_for_image("stop.png")), shortHelp=_("Stop"))
         self.pauseTool = self.toolbar.AddLabelTool(
             wx.NewId(), _("Pause"),
-            wx.Bitmap(resources.getPathForImage("pause.png")), shortHelp=_("Pause"))
+            wx.Bitmap(resources.get_path_for_image("pause.png")), shortHelp=_("Pause"))
         self.toolbar.Realize()
 
         # Disable Toolbar Items
@@ -60,79 +50,42 @@ class ScanningWorkbench(WorkbenchConnection):
         self.Bind(wx.EVT_TOOL, self.onStopToolClicked, self.stopTool)
         self.Bind(wx.EVT_TOOL, self.onPauseToolClicked, self.pauseTool)
 
-        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
-        self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
-        self.scrollPanel.SetAutoLayout(1)
+    def add_panels(self):
+        self.add_panel('scan_parameters', ScanParameters)
+        self.add_panel('rotating_platform', RotatingPlatform)
+        self.add_panel('point_cloud_roi', PointCloudROI)
+        self.add_panel('point_cloud_color', PointCloudColor)
 
-        self.controls = ExpandableControl(self.scrollPanel)
+    def add_pages(self):
+        self.add_page('view_page', ViewPage(self, self.get_image))
 
-        self.controls.addPanel('scan_parameters', ScanParameters(self.controls))
-        self.controls.addPanel('rotating_platform', RotatingPlatform(self.controls))
-        self.controls.addPanel('point_cloud_roi', PointCloudROI(self.controls))
-        self.controls.addPanel('point_cloud_color', PointCloudColor(self.controls))
+    def on_open(self):
+        pass
+        # self.pages_collection['video_view'].play()
 
-        self.splitterWindow = wx.SplitterWindow(self._panel)
+    def on_close(self):
+        try:
+            pass
+            # self.pages_collection['video_view'].stop()
+        except:
+            pass
 
-        self.videoView = VideoView(self.splitterWindow, self.get_image, 10)
-        self.videoView.SetBackgroundColour(wx.BLACK)
+    def setup_engine(self):
+        resolution = profile.settings['resolution'].split('x')
+        driver.camera.set_frame_rate(int(profile.settings['framerate']))
+        driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
+        image_capture.set_mode_texture()
+        image_capture.texture_mode.set_brightness(profile.settings['brightness_control'])
+        image_capture.texture_mode.set_contrast(profile.settings['contrast_control'])
+        image_capture.texture_mode.set_saturation(profile.settings['saturation_control'])
+        image_capture.texture_mode.set_exposure(profile.settings['exposure_control'])
+        image_capture.set_use_distortion(profile.settings['use_distortion'])
+        driver.board.motor_relative(profile.settings['motor_step_control'])
+        driver.board.motor_speed(profile.settings['motor_speed_control'])
+        driver.board.motor_acceleration(profile.settings['motor_acceleration_control'])
 
-        self.scenePanel = wx.Panel(self.splitterWindow)
-        self.sceneView = SceneView(self.scenePanel)
-        self.gauge = wx.Gauge(self.scenePanel, size=(-1, 30))
-        self.gauge.Hide()
-
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.sceneView, 1, wx.ALL | wx.EXPAND, 0)
-        vbox.Add(self.gauge, 0, wx.ALL | wx.EXPAND, 0)
-        self.scenePanel.SetSizer(vbox)
-
-        self.splitterWindow.SplitVertically(self.videoView, self.scenePanel)
-        self.splitterWindow.SetMinimumPaneSize(200)
-
-        # Layout
-        vsbox = wx.BoxSizer(wx.VERTICAL)
-        vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
-        self.scrollPanel.SetSizer(vsbox)
-        vsbox.Fit(self.scrollPanel)
-        panel_size = self.scrollPanel.GetSize()[0] + \
-                     wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
-        self.scrollPanel.SetMinSize((panel_size, -1))
-
-        self.controls.initPanels()
-
-        self.addToPanel(self.scrollPanel, 0)
-        self.addToPanel(self.splitterWindow, 1)
-
-        # Video View Selector
-        _choices = []
-        choices = profile.settings.getPossibleValues('video_scanning')
-        for i in choices:
-            _choices.append(_(i))
-        self.videoViewsDict = dict(zip(_choices, choices))
-
-        self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(
-            resources.getPathForImage("views.png"), wx.BITMAP_TYPE_ANY), (10, 10))
-        self.comboVideoViews = wx.ComboBox(self.videoView,
-                                           value=_(profile.settings['video_scanning']),
-                                           choices=_choices, style=wx.CB_READONLY, pos=(60, 10))
-
-        self.buttonShowVideoViews.Hide()
-        self.comboVideoViews.Hide()
-
-        self.buttonShowVideoViews.Bind(wx.EVT_BUTTON, self.onShowVideoViews)
-        self.comboVideoViews.Bind(wx.EVT_COMBOBOX, self.onComboBoVideoViewsSelect)
-
-        self.pointCloudTimer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.onPointCloudTimer, self.pointCloudTimer)
-
-        self.updateCallbacks()
-        self.Layout()
-
-    def updateCallbacks(self):
-        self.controls.updateCallbacks()
-
-    def enableRestore(self, value):
-        self.controls.enableRestore(value)
+    def enable_restore(self, value):
+        self.controls.enable_restore(value)
 
     def onShow(self, event):
         if event.GetShow():
@@ -145,46 +98,34 @@ class ScanningWorkbench(WorkbenchConnection):
             except:
                 pass
 
-    def onShowVideoViews(self, event):
-        self.showVideoViews = not self.showVideoViews
-        if self.showVideoViews:
-            self.comboVideoViews.Show()
-        else:
-            self.comboVideoViews.Hide()
-
-    def onComboBoVideoViewsSelect(self, event):
-        value = self.videoViewsDict[self.comboVideoViews.GetValue()]
-        self.current_video.mode = value
-        profile.settings['video_scanning'] = value
-
     def get_image(self):
         if self.scanning:
-            self.image_capture.stream = False
-            return self.current_video.capture()
+            image_capture.stream = False
+            return current_video.capture()
         else:
-            self.image_capture.stream = True
-            image = self.image_capture.capture_texture()
+            image_capture.stream = True
+            image = image_capture.capture_texture()
             if profile.settings['video_scanning']:
-                image = self.point_cloud_roi.draw_roi(image)
+                image = point_cloud_roi.draw_roi(image)
             return image
 
     def onPointCloudTimer(self, event):
-        p, r = self.ciclop_scan.get_progress()
+        p, r = ciclop_scan.get_progress()
         self.gauge.SetRange(r)
         self.gauge.SetValue(p)
-        pointCloud = self.ciclop_scan.get_point_cloud_increment()
+        pointCloud = ciclop_scan.get_point_cloud_increment()
         if pointCloud is not None:
             if pointCloud[0] is not None and pointCloud[1] is not None:
                 if len(pointCloud[0]) > 0:
-                    pointCloud = self.point_cloud_roi.mask_point_cloud(*pointCloud)
+                    pointCloud = point_cloud_roi.mask_point_cloud(*pointCloud)
                     self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
 
     def onPlayToolClicked(self, event):
-        if self.ciclop_scan._inactive:
+        if ciclop_scan._inactive:
             # Resume
             self.enableLabelTool(self.pauseTool, True)
             self.enableLabelTool(self.playTool, False)
-            self.ciclop_scan.resume()
+            ciclop_scan.resume()
             self.pointCloudTimer.Start(milliseconds=50)
         else:
             result = True
@@ -200,9 +141,9 @@ class ScanningWorkbench(WorkbenchConnection):
                 self.gauge.Show()
                 self.scenePanel.Layout()
                 self.Layout()
-                self.ciclop_scan.set_callbacks(self.beforeScan,
-                                               None, lambda r: wx.CallAfter(self.afterScan, r))
-                self.ciclop_scan.start()
+                ciclop_scan.set_callbacks(self.beforeScan,
+                                          None, lambda r: wx.CallAfter(self.afterScan, r))
+                ciclop_scan.start()
 
     def beforeScan(self):
         self.scanning = True
@@ -232,7 +173,7 @@ class ScanningWorkbench(WorkbenchConnection):
         section = panel.sections['rotating_platform']
         section.disable('motor_speed_scanning')
         section.disable('motor_acceleration_scanning')
-        self.enableRestore(False)
+        self.enable_restore(False)
         self.pointCloudTimer.Start(milliseconds=50)
 
     def afterScan(self, response):
@@ -248,8 +189,8 @@ class ScanningWorkbench(WorkbenchConnection):
             self.onScanFinished()
 
     def onStopToolClicked(self, event):
-        paused = self.ciclop_scan._inactive
-        self.ciclop_scan.pause()
+        paused = ciclop_scan._inactive
+        ciclop_scan.pause()
         dlg = wx.MessageDialog(self,
                                _("Your current scanning will be stopped.\n"
                                  "Do you really want to do it?"),
@@ -259,11 +200,11 @@ class ScanningWorkbench(WorkbenchConnection):
 
         if result:
             self.scanning = False
-            self.ciclop_scan.stop()
+            ciclop_scan.stop()
             self.onScanFinished()
         else:
             if not paused:
-                self.ciclop_scan.resume()
+                ciclop_scan.resume()
 
     def onScanFinished(self):
         self.buttonShowVideoViews.Hide()
@@ -291,7 +232,7 @@ class ScanningWorkbench(WorkbenchConnection):
         section = panel.sections['rotating_platform']
         section.enable('motor_speed_scanning')
         section.enable('motor_acceleration_scanning')
-        self.enableRestore(True)
+        self.enable_restore(True)
         self.pointCloudTimer.Stop()
         self.videoView.setMilliseconds(10)
         self.gauge.SetValue(0)
@@ -302,7 +243,7 @@ class ScanningWorkbench(WorkbenchConnection):
     def onPauseToolClicked(self, event):
         self.enableLabelTool(self.pauseTool, False)
         self.enableLabelTool(self.playTool, True)
-        self.ciclop_scan.pause()
+        ciclop_scan.pause()
         self.pointCloudTimer.Stop()
 
     def updateToolbarStatus(self, status):

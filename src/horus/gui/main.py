@@ -11,6 +11,7 @@ import time
 import struct
 import wx._core
 import webbrowser
+from collections import OrderedDict
 
 from horus.gui.engine import driver
 
@@ -22,7 +23,7 @@ from horus.gui.workbench.toolbar import ToolbarConnection
 from horus.gui.workbench.control.main import ControlWorkbench
 from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
 from horus.gui.workbench.calibration.main import CalibrationWorkbench
-# from horus.gui.workbench.scanning.main import ScanningWorkbench
+from horus.gui.workbench.scanning.main import ScanningWorkbench
 
 # from horus.gui.wizard.main import *
 # from horus.gui.util.versionWindow import VersionWindow
@@ -61,11 +62,11 @@ class MainWindow(wx.Frame):
     def load_workbenches(self):
         self.toolbar = ToolbarConnection(self, on_connect_callback=self.on_connect,
                                          on_disconnect_callback=self.on_disconnect)
-        self.workbench = {}
+        self.workbench = OrderedDict()
         self.workbench['control'] = ControlWorkbench(self)
         self.workbench['adjustment'] = AdjustmentWorkbench(self)
         self.workbench['calibration'] = CalibrationWorkbench(self)
-        # self.workbench['scanning'] = ScanningWorkbench(self)
+        self.workbench['scanning'] = ScanningWorkbench(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.toolbar, 0, wx.ALL | wx.EXPAND)
@@ -115,17 +116,6 @@ class MainWindow(wx.Frame):
         # Menu View
         self.menu_view = wx.Menu()
         self.menu_control = wx.Menu()
-        self.menu_control_panel = self.menu_control.AppendCheckItem(wx.NewId(), _("Panel"))
-        self.menu_control_video = self.menu_control.AppendCheckItem(wx.NewId(), _("Video"))
-        self.menu_view.AppendMenu(wx.NewId(), _("Control"), self.menu_control)
-        self.menu_adjustment = wx.Menu()
-        self.menu_adjustment_panel = self.menu_adjustment.AppendCheckItem(wx.NewId(), _("Panel"))
-        self.menu_adjustment_video = self.menu_adjustment.AppendCheckItem(wx.NewId(), _("Video"))
-        self.menu_view.AppendMenu(wx.NewId(), _("Adjustment"), self.menu_adjustment)
-        self.menu_calibration = wx.Menu()
-        self.menu_calibration_panel = self.menu_calibration.AppendCheckItem(wx.NewId(), _("Panel"))
-        self.menu_calibration_video = self.menu_calibration.AppendCheckItem(wx.NewId(), _("Video"))
-        self.menu_view.AppendMenu(wx.NewId(), _("Calibration"), self.menu_calibration)
         self.menu_scanning = wx.Menu()
         self.menu_scanning_panel = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Panel"))
         self.menu_scanning_video = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Video"))
@@ -169,12 +159,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_preferences, self.menu_preferences)
         self.Bind(wx.EVT_MENU, self.on_machine_settings, self.menu_machine_settings)
 
-        self.Bind(wx.EVT_MENU, self.on_control_panel_clicked, self.menu_control_panel)
-        self.Bind(wx.EVT_MENU, self.on_control_video_clicked, self.menu_control_video)
-        self.Bind(wx.EVT_MENU, self.on_adjustment_panel_clicked, self.menu_adjustment_panel)
-        self.Bind(wx.EVT_MENU, self.on_adjustment_video_clicked, self.menu_adjustment_video)
-        self.Bind(wx.EVT_MENU, self.on_calibration_panel_clicked, self.menu_calibration_panel)
-        self.Bind(wx.EVT_MENU, self.on_calibration_video_clicked, self.menu_calibration_video)
         self.Bind(wx.EVT_MENU, self.on_scanning_panel_clicked, self.menu_scanning_panel)
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_video)
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_scene)
@@ -199,25 +183,25 @@ class MainWindow(wx.Frame):
         last_file = os.path.split(profile.settings['last_file'])[0]
         dlg = wx.FileDialog(
             self, _("Open 3D model"), last_file, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-        wildcard_list = ';'.join(map(lambda s: '*' + s, mesh_loader.loadSupportedExtensions()))
+        wildcard_list = ';'.join(map(lambda s: '*' + s, mesh_loader.load_supported_extensions()))
         wildcard_filter = "All (%s)|%s;%s" % (wildcard_list, wildcard_list, wildcard_list.upper())
-        wildcard_list = ';'.join(map(lambda s: '*' + s, mesh_loader.loadSupportedExtensions()))
+        wildcard_list = ';'.join(map(lambda s: '*' + s, mesh_loader.load_supported_extensions()))
         wildcard_filter += "|Mesh files (%s)|%s;%s" % (wildcard_list, wildcard_list,
                                                        wildcard_list.upper())
         dlg.SetWildcard(wildcard_filter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if filename is not None:
-                self.workbench['scanning'].sceneView.loadFile(filename)
+                self.workbench['scanning'].pages_collection['view_page'].scene_view.load_file(filename)
                 self.append_last_file(filename)
         dlg.Destroy()
 
     def on_save_model(self, event):
-        if self.workbench['scanning'].sceneView._object is None:
+        if self.workbench['scanning'].pages_collection['view_page'].scene_view._object is None:
             return
         dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(
             profile.settings['last_file'])[0], style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        file_extensions = mesh_loader.saveSupportedExtensions()
+        file_extensions = mesh_loader.save_supported_extensions()
         wildcard_list = ';'.join(map(lambda s: '*' + s, file_extensions))
         wildcard_filter = "Mesh files (%s)|%s;%s" % (wildcard_list, wildcard_list,
                                                      wildcard_list.upper())
@@ -227,12 +211,12 @@ class MainWindow(wx.Frame):
             if not filename.endswith('.ply'):
                 if sys.is_linux():  # hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
-            mesh_loader.saveMesh(filename, self.workbench['scanning'].sceneView._object)
+            mesh_loader.save_mesh(filename, self.workbench['scanning'].pages_collection['view_page'].scene_view._object)
             self.append_last_file(filename)
         dlg.Destroy()
 
     def on_clear_model(self, event):
-        if self.workbench['scanning'].sceneView._object is not None:
+        if self.workbench['scanning'].pages_collection['view_page'].scene_view._object is not None:
             dlg = wx.MessageDialog(
                 self,
                 _("Your current model will be erased.\nDo you really want to do it?"),
@@ -240,7 +224,7 @@ class MainWindow(wx.Frame):
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
-                self.workbench['scanning'].sceneView._clearScene()
+                self.workbench['scanning'].pages_collection['view_page'].scene_view._clear_scene()
 
     def on_open_profile(self, category):
         dlg = wx.FileDialog(self, _("Select profile file to load"), profile.get_base_path(),
@@ -317,7 +301,7 @@ class MainWindow(wx.Frame):
 
         if ret == wx.ID_OK:
             try:  # TODO: Fix this. If not in the Scanning workbench, _drawMachine() fails.
-                self.workbench['scanning'].sceneView._drawMachine()
+                self.workbench['scanning'].pages_collection['view_page'].scene_view._drawMachine()
             except:
                 pass
             profile.settings.save_settings(categories=["machine_settings"])
@@ -332,36 +316,6 @@ class MainWindow(wx.Frame):
         panel.GetParent().Layout()
         panel.Layout()
         self.Layout()
-
-    def on_control_panel_clicked(self, event):
-        self.on_menu_view_clicked('view_control_panel',
-                                  self.menu_control_panel.IsChecked(),
-                                  self.workbench['control'].scroll_panel)
-
-    def on_control_video_clicked(self, event):
-        self.on_menu_view_clicked('view_control_video',
-                                  self.menu_control_video.IsChecked(),
-                                  self.workbench['control'].video_view)
-
-    def on_adjustment_panel_clicked(self, event):
-        self.on_menu_view_clicked('view_adjustment_panel',
-                                  self.menu_adjustment_panel.IsChecked(),
-                                  self.workbench['adjustment'].scroll_panel)
-
-    def on_adjustment_video_clicked(self, event):
-        self.on_menu_view_clicked('view_adjustment_video',
-                                  self.menu_adjustment_video.IsChecked(),
-                                  self.workbench['adjustment'].video_view)
-
-    def on_calibration_panel_clicked(self, event):
-        self.on_menu_view_clicked('view_calibration_panel',
-                                  self.menu_calibration_panel.IsChecked(),
-                                  self.workbench['calibration'].scroll_panel)
-
-    def on_calibration_video_clicked(self, event):
-        self.on_menu_view_clicked('view_calibration_video',
-                                  self.menu_calibration_video.IsChecked(),
-                                  self.workbench['calibration'].video_view)
 
     def on_scanning_panel_clicked(self, event):
         self.on_menu_view_clicked('view_scanning_panel',
@@ -500,48 +454,6 @@ class MainWindow(wx.Frame):
     def update_profile_to_all_controls(self):
         self.workbench[profile.settings['workbench']].update_controls()
 
-        """if profile.settings['view_control_panel']:
-            self.workbench['control'].scrollPanel.Show()
-            self.menu_control_panel.Check(True)
-        else:
-            self.workbench['control'].scrollPanel.Hide()
-            self.menu_control_panel.Check(False)
-
-        if profile.settings['view_control_video']:
-            self.workbench['control'].videoView.Show()
-            self.menu_control_video.Check(True)
-        else:
-            self.workbench['control'].videoView.Hide()
-            self.menu_control_video.Check(False)
-
-        if profile.settings['view_adjustment_panel']:
-            self.workbench['adjustment'].scrollPanel.Show()
-            self.menu_adjustment_panel.Check(True)
-        else:
-            self.workbench['adjustment'].scrollPanel.Hide()
-            self.menu_adjustment_panel.Check(False)
-
-        if profile.settings['view_adjustment_video']:
-            self.workbench['adjustment'].videoView.Show()
-            self.menu_adjustment_video.Check(True)
-        else:
-            self.workbench['adjustment'].videoView.Hide()
-            self.menu_adjustment_video.Check(False)
-
-        if profile.settings['view_calibration_panel']:
-            self.workbench['calibration'].scrollPanel.Show()
-            self.menu_calibration_panel.Check(True)
-        else:
-            self.workbench['calibration'].scrollPanel.Hide()
-            self.menu_calibration_panel.Check(False)
-
-        if profile.settings['view_calibration_video']:
-            self.workbench['calibration'].videoView.Show()
-            self.menu_calibration_video.Check(True)
-        else:
-            self.workbench['calibration'].videoView.Hide()
-            self.menu_calibration_video.Check(False)
-
         if profile.settings['view_scanning_panel']:
             self.workbench['scanning'].scrollPanel.Show()
             self.menu_scanning_panel.Check(True)
@@ -574,7 +486,7 @@ class MainWindow(wx.Frame):
                 self.workbench['scanning'].splitterWindow.Unsplit()
             else:
                 self.workbench['scanning'].scenePanel.Hide()
-                self.workbench['scanning'].splitterWindow.Unsplit()"""
+                self.workbench['scanning'].splitterWindow.Unsplit()
 
     def initialize_driver(self):
         # Serial name

@@ -180,10 +180,9 @@ class MotorControl(ExpandablePanel):
         self.add_control('enable_button', ToggleButton)
 
     def update_callbacks(self):
-        self.update_callback('motor_step_control', lambda v: driver.board.motor_relative(v))
-        self.update_callback('motor_speed_control', lambda v: driver.board.motor_speed(v))
-        self.update_callback('motor_acceleration_control',
-                             lambda v: driver.board.motor_acceleration(v))
+        self.update_callback('motor_step_control', driver.board.motor_relative)
+        self.update_callback('motor_speed_control', driver.board.motor_speed)
+        self.update_callback('motor_acceleration_control', driver.board.motor_acceleration)
         self.update_callback('move_button',
                              lambda c: driver.board.motor_move(nonblocking=True, callback=c))
         self.update_callback('enable_button',
