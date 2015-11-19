@@ -63,7 +63,7 @@ class ImageCapture(object):
 
         self.stream = True
         # TODO: custom flush for each OS
-        self._flush_texture = 2
+        self._flush_texture = 1
         self._flush_laser = 1
         self._flush_pattern = 1
         self._flush_stream_texture = 0
@@ -114,7 +114,7 @@ class ImageCapture(object):
         image = self.capture_image(flush=flush)
         return image
 
-    def capture_laser(self, index):
+    def _capture_laser(self, index):
         self.set_mode(self.laser_mode)
         self.driver.board.lasers_off()
         self.driver.board.laser_on(index)
@@ -122,15 +122,40 @@ class ImageCapture(object):
             flush = self._flush_stream_laser
         else:
             flush = self._flush_laser
-        image = self.capture_image(flush=flush)
+        return self.capture_image(flush=flush)
+
+    def capture_laser(self, index):
+        image = self._capture_laser(index)
         if self._remove_background:
             self.driver.board.lasers_off()
+            if self.stream:
+                flush = self._flush_stream_laser
+            else:
+                flush = self._flush_laser
             image_background = self.capture_image(flush=flush)
             if image is not None and image_background is not None:
                 image = cv2.subtract(image, image_background)
         return image
 
     def capture_lasers(self):
+        images = [None, None]
+        images[0] = self._capture_laser(0)
+        images[1] = self._capture_laser(1)
+        if self._remove_background:
+            self.driver.board.lasers_off()
+            if self.stream:
+                flush = self._flush_stream_laser
+            else:
+                flush = self._flush_laser
+            image_background = self.capture_image(flush=flush)
+            if image_background is not None:
+                if images[0] is not None:
+                    images[0] = cv2.subtract(images[0], image_background)
+                if images[1] is not None:
+                    images[1] = cv2.subtract(images[1], image_background)
+        return images
+
+    def capture_all_lasers(self):
         self.set_mode(self.laser_mode)
         self.driver.board.lasers_on()
         if self.stream:

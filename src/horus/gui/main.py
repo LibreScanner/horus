@@ -8,7 +8,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import gc
 import os
 import time
-import struct
 import wx._core
 import webbrowser
 from collections import OrderedDict
@@ -60,13 +59,12 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
     def load_workbenches(self):
-        self.toolbar = ToolbarConnection(self, on_connect_callback=self.on_connect,
-                                         on_disconnect_callback=self.on_disconnect)
+        self.toolbar = ToolbarConnection(self, self.on_connect, self.on_disconnect)
         self.workbench = OrderedDict()
         self.workbench['control'] = ControlWorkbench(self)
         self.workbench['adjustment'] = AdjustmentWorkbench(self)
         self.workbench['calibration'] = CalibrationWorkbench(self)
-        self.workbench['scanning'] = ScanningWorkbench(self)
+        self.workbench['scanning'] = ScanningWorkbench(self, self.toolbar.toolbar_scan)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.toolbar, 0, wx.ALL | wx.EXPAND)
@@ -192,12 +190,12 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if filename is not None:
-                self.workbench['scanning'].pages_collection['view_page'].scene_view.load_file(filename)
+                self.workbench['scanning'].scene_view.load_file(filename)
                 self.append_last_file(filename)
         dlg.Destroy()
 
     def on_save_model(self, event):
-        if self.workbench['scanning'].pages_collection['view_page'].scene_view._object is None:
+        if self.workbench['scanning'].scene_view._object is None:
             return
         dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(
             profile.settings['last_file'])[0], style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
@@ -211,12 +209,12 @@ class MainWindow(wx.Frame):
             if not filename.endswith('.ply'):
                 if sys.is_linux():  # hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
-            mesh_loader.save_mesh(filename, self.workbench['scanning'].pages_collection['view_page'].scene_view._object)
+            mesh_loader.save_mesh(filename, self.workbench['scanning'].scene_view._object)
             self.append_last_file(filename)
         dlg.Destroy()
 
     def on_clear_model(self, event):
-        if self.workbench['scanning'].pages_collection['view_page'].scene_view._object is not None:
+        if self.workbench['scanning'].scene_view._object is not None:
             dlg = wx.MessageDialog(
                 self,
                 _("Your current model will be erased.\nDo you really want to do it?"),
@@ -224,7 +222,7 @@ class MainWindow(wx.Frame):
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
-                self.workbench['scanning'].pages_collection['view_page'].scene_view._clear_scene()
+                self.workbench['scanning'].scene_view._clear_scene()
 
     def on_open_profile(self, category):
         dlg = wx.FileDialog(self, _("Select profile file to load"), profile.get_base_path(),
@@ -301,7 +299,7 @@ class MainWindow(wx.Frame):
 
         if ret == wx.ID_OK:
             try:  # TODO: Fix this. If not in the Scanning workbench, _drawMachine() fails.
-                self.workbench['scanning'].pages_collection['view_page'].scene_view._drawMachine()
+                self.workbench['scanning'].scene_view._drawMachine()
             except:
                 pass
             profile.settings.save_settings(categories=["machine_settings"])
@@ -378,6 +376,7 @@ class MainWindow(wx.Frame):
         self.menu_file.Enable(self.menu_load_model.GetId(), is_scan)
         self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)
         self.menu_file.Enable(self.menu_clear_model.GetId(), is_scan)
+        self.toolbar.scanning_mode(is_scan)
         self.Layout()
 
         del self.wait_cursor
@@ -502,65 +501,7 @@ class MainWindow(wx.Frame):
             if current_video_id not in video_list:
                 profile.settings['camera_id'] = unicode(video_list[0])
 
-        self.update_driver_profile()
-
-    def update_driver_profile(self):
         driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
         driver.board.serial_name = profile.settings['serial_name']
         driver.board.baud_rate = profile.settings['baud_rate']
         driver.board.motor_invert(profile.settings['invert_motor'])
-
-    def updateProfile(self):
-        ciclop_scan.capture_texture = profile.settings['capture_texture']
-        use_laser = profile.settings['use_laser']
-        ciclop_scan.set_use_left_laser(use_laser == 'Left' or use_laser == 'Both')
-        ciclop_scan.set_use_right_laser(use_laser == 'Right' or use_laser == 'Both')
-        ciclop_scan.motor_step = profile.settings['motor_step_scanning']
-        ciclop_scan.motor_speed = profile.settings['motor_speed_scanning']
-        ciclop_scan.motor_acceleration = profile.settings['motor_acceleration_scanning']
-        ciclop_scan.color = struct.unpack(
-            'BBB', profile.settings['point_cloud_color'].decode('hex'))
-
-        image_capture.pattern_mode.brightness = profile.settings['brightness_pattern_calibration']
-        image_capture.pattern_mode.contrast = profile.settings['contrast_pattern_calibration']
-        image_capture.pattern_mode.saturation = profile.settings['saturation_pattern_calibration']
-        image_capture.pattern_mode.exposure = profile.settings['exposure_pattern_calibration']
-        image_capture.laser_mode.brightness = profile.settings['brightness_laser_scanning']
-        image_capture.laser_mode.contrast = profile.settings['contrast_laser_scanning']
-        image_capture.laser_mode.saturation = profile.settings['saturation_laser_scanning']
-        image_capture.laser_mode.exposure = profile.settings['exposure_laser_scanning']
-        image_capture.texture_mode.brightness = profile.settings['brightness_texture_scanning']
-        image_capture.texture_mode.contrast = profile.settings['contrast_texture_scanning']
-        image_capture.texture_mode.saturation = profile.settings['saturation_texture_scanning']
-        image_capture.texture_mode.exposure = profile.settings['exposure_texture_scanning']
-        image_capture.use_distortion = profile.settings['use_distortion']
-
-        laser_segmentation.red_channel = profile.settings['red_channel_scanning']
-        laser_segmentation.open_enable = profile.settings['open_enable_scanning']
-        laser_segmentation.open_value = profile.settings['open_value_scanning']
-        laser_segmentation.threshold_enable = profile.settings['threshold_enable_scanning']
-        laser_segmentation.threshold_value = profile.settings['threshold_value_scanning']
-
-        current_video.set_roi_view(profile.settings['roi_view'])
-        point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
-        point_cloud_roi.set_height(profile.settings['roi_height'])
-
-        pattern.rows = profile.settings['pattern_rows']
-        pattern.columns = profile.settings['pattern_columns']
-        pattern.square_width = profile.settings['pattern_square_width']
-        pattern.distance = profile.settings['pattern_origin_distance']
-
-        self.updateCalibrationProfile()
-
-    def updateCalibrationProfile(self):
-        resolution = profile.settings['resolution'].split('x')
-        driver.camera.set_frame_rate(int(profile.settings['framerate']))
-        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
-        calibration_data.camera_matrix = profile.settings['camera_matrix']
-        calibration_data.distortion_vector = profile.settings['distortion_vector']
-        calibration_data.laser_planes[0].distance = profile.settings['distance_left']
-        calibration_data.laser_planes[0].normal = profile.settings['normal_left']
-        calibration_data.laser_planes[1].distance = profile.settings['distance_right']
-        calibration_data.laser_planes[1].normal = profile.settings['normal_right']
-        calibration_data.platform_rotation = profile.settings['rotation_matrix']
-        calibration_data.platform_translation = profile.settings['translation_vector']

@@ -22,11 +22,14 @@ class Toolbar(wx.Panel):
         # Element
         self.toolbar = wx.ToolBar(self)
         self.toolbar.SetDoubleBuffered(True)
+        self.toolbar_scan = wx.ToolBar(self)
+        self.toolbar_scan.SetDoubleBuffered(True)
         self.combo = wx.ComboBox(self, -1, style=wx.CB_READONLY)
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.toolbar, 0, wx.ALL | wx.EXPAND, 1)
+        hbox.Add(self.toolbar_scan, 0, wx.ALL | wx.EXPAND, 1)
         hbox.Add((0, 0), 1, wx.ALL | wx.EXPAND, 1)
         hbox.Add(self.combo, 0, wx.ALL, 10)
         self.SetSizer(hbox)
@@ -35,7 +38,9 @@ class Toolbar(wx.Panel):
 
 class ToolbarConnection(Toolbar):
 
-    def __init__(self, parent, on_connect_callback=None, on_disconnect_callback=None):
+    def __init__(
+            self, parent, on_connect_callback=None, on_disconnect_callback=None):
+
         Toolbar.__init__(self, parent)
 
         self.on_connect_callback = on_connect_callback
@@ -133,3 +138,9 @@ class ToolbarConnection(Toolbar):
 
     def _enable_tool(self, item, enable):
         self.toolbar.EnableTool(item.GetId(), enable)
+
+    def scanning_mode(self, enable):
+        if enable:
+            self.toolbar_scan.Show()
+        else:
+            self.toolbar_scan.Hide()

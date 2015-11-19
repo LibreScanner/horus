@@ -65,9 +65,9 @@ class PointCloudROI(ExpandablePanel):
               "All information outside won't be taken into account "
               "during the scanning process"))
         self.add_control('roi_diameter', Slider)
-        self.add_control('roi_width', Slider)
+        # self.add_control('roi_width', Slider)
         self.add_control('roi_height', Slider)
-        self.add_control('roi_depth', Slider)
+        # self.add_control('roi_depth', Slider)
 
         # section.getItem('roi_diameter').control.Bind(wx.EVT_SCROLL_CHANGED, self.onRoiSliderChange)
         # section.getItem('roi_diameter').control.Bind(wx.EVT_SLIDER, self.onRoiSliderChanging)
@@ -75,7 +75,8 @@ class PointCloudROI(ExpandablePanel):
         # section.getItem('roi_height').control.Bind(wx.EVT_SLIDER, self.onRoiSliderChanging)
 
     def update_callbacks(self):
-        self.update_callback('roi_view', lambda v: (
+        pass
+        """self.update_callback('roi_view', lambda v: (
             current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))
         self.update_callback('roi_diameter', lambda v: (
             current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))
@@ -84,7 +85,7 @@ class PointCloudROI(ExpandablePanel):
         self.update_callback('roi_height', lambda v: (
             current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))
         self.update_callback('roi_depth', lambda v: (
-            current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))
+            current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))"""
 
     # def onRoiSliderChange(self, e):
         # Update the point cloud with the new ROI

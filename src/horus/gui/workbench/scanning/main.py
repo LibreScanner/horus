@@ -5,11 +5,13 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import struct
 import wx._core
 
 from horus.util import resources, profile
 
-from horus.gui.engine import ciclop_scan, current_video, image_capture, point_cloud_roi
+from horus.gui.engine import driver, image_capture, laser_segmentation, calibration_data, \
+    ciclop_scan, current_video, point_cloud_roi
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.scanning.view_page import ViewPage
 from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform, \
@@ -18,37 +20,35 @@ from horus.gui.workbench.scanning.panels import ScanParameters, RotatingPlatform
 
 class ScanningWorkbench(Workbench):
 
-    def __init__(self, parent):
+    def __init__(self, parent, toolbar_scan):
         Workbench.__init__(self, parent, name=_('Scanning workbench'))
 
         self.scanning = False
         self.show_video_views = False
+        self.toolbar_scan = toolbar_scan
 
-        self.pointCloudTimer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.onPointCloudTimer, self.pointCloudTimer)
-
-    def add_toolbar(self):
-        # Toolbar Configuration
-        self.playTool = self.toolbar.AddLabelTool(
+        # Elements
+        self.point_cloud_timer = wx.Timer(self)
+        self.play_tool = self.toolbar_scan.AddLabelTool(
             wx.NewId(), _("Play"),
             wx.Bitmap(resources.get_path_for_image("play.png")), shortHelp=_("Play"))
-        self.stopTool = self.toolbar.AddLabelTool(
+        self.stop_tool = self.toolbar_scan.AddLabelTool(
             wx.NewId(), _("Stop"),
             wx.Bitmap(resources.get_path_for_image("stop.png")), shortHelp=_("Stop"))
-        self.pauseTool = self.toolbar.AddLabelTool(
+        self.pause_tool = self.toolbar_scan.AddLabelTool(
             wx.NewId(), _("Pause"),
             wx.Bitmap(resources.get_path_for_image("pause.png")), shortHelp=_("Pause"))
-        self.toolbar.Realize()
+        self.toolbar_scan.Realize()
 
-        # Disable Toolbar Items
-        self.enableLabelTool(self.playTool, False)
-        self.enableLabelTool(self.stopTool, False)
-        self.enableLabelTool(self.pauseTool, False)
+        self._enable_tool_scan(self.play_tool, False)
+        self._enable_tool_scan(self.stop_tool, False)
+        self._enable_tool_scan(self.pause_tool, False)
 
-        # Bind Toolbar Items
-        self.Bind(wx.EVT_TOOL, self.onPlayToolClicked, self.playTool)
-        self.Bind(wx.EVT_TOOL, self.onStopToolClicked, self.stopTool)
-        self.Bind(wx.EVT_TOOL, self.onPauseToolClicked, self.pauseTool)
+        # Events
+        self.toolbar_scan.GetParent().Bind(wx.EVT_TOOL, self.on_play_tool_clicked, self.play_tool)
+        self.toolbar_scan.GetParent().Bind(wx.EVT_TOOL, self.on_stop_tool_clicked, self.stop_tool)
+        self.toolbar_scan.GetParent().Bind(wx.EVT_TOOL, self.on_pause_tool_clicked, self.pause_tool)
+        self.Bind(wx.EVT_TIMER, self.on_point_cloud_timer, self.point_cloud_timer)
 
     def add_panels(self):
         self.add_panel('scan_parameters', ScanParameters)
@@ -58,15 +58,24 @@ class ScanningWorkbench(Workbench):
 
     def add_pages(self):
         self.add_page('view_page', ViewPage(self, self.get_image))
+        self.video_view = self.pages_collection['view_page'].video_view
+        self.scene_view = self.pages_collection['view_page'].scene_view
+        self.gauge = self.pages_collection['view_page'].gauge
 
     def on_open(self):
-        pass
-        # self.pages_collection['video_view'].play()
+        self.video_view.play()
+        self.point_cloud_timer.Stop()
+        self._enable_tool_scan(self.play_tool, True)
+        self._enable_tool_scan(self.stop_tool, False)
+        self._enable_tool_scan(self.pause_tool, False)
 
     def on_close(self):
         try:
-            pass
-            # self.pages_collection['video_view'].stop()
+            self.video_view.stop()
+            self.point_cloud_timer.Stop()
+            self._enable_tool_scan(self.play_tool, False)
+            self._enable_tool_scan(self.stop_tool, False)
+            self._enable_tool_scan(self.pause_tool, False)
         except:
             pass
 
@@ -75,28 +84,44 @@ class ScanningWorkbench(Workbench):
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
         image_capture.set_mode_texture()
-        image_capture.texture_mode.set_brightness(profile.settings['brightness_control'])
-        image_capture.texture_mode.set_contrast(profile.settings['contrast_control'])
-        image_capture.texture_mode.set_saturation(profile.settings['saturation_control'])
-        image_capture.texture_mode.set_exposure(profile.settings['exposure_control'])
+        image_capture.texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
+        image_capture.texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
+        image_capture.texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
+        image_capture.texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
+        image_capture.laser_mode.brightness = profile.settings['brightness_laser_scanning']
+        image_capture.laser_mode.contrast = profile.settings['contrast_laser_scanning']
+        image_capture.laser_mode.saturation = profile.settings['saturation_laser_scanning']
+        image_capture.laser_mode.exposure = profile.settings['exposure_laser_scanning']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
-        driver.board.motor_relative(profile.settings['motor_step_control'])
-        driver.board.motor_speed(profile.settings['motor_speed_control'])
-        driver.board.motor_acceleration(profile.settings['motor_acceleration_control'])
+        laser_segmentation.red_channel = profile.settings['red_channel_scanning']
+        laser_segmentation.open_enable = profile.settings['open_enable_scanning']
+        laser_segmentation.open_value = profile.settings['open_value_scanning']
+        laser_segmentation.threshold_enable = profile.settings['threshold_enable_scanning']
+        laser_segmentation.threshold_value = profile.settings['threshold_value_scanning']
+        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
+        calibration_data.camera_matrix = profile.settings['camera_matrix']
+        calibration_data.distortion_vector = profile.settings['distortion_vector']
+        calibration_data.laser_planes[0].distance = profile.settings['distance_left']
+        calibration_data.laser_planes[0].normal = profile.settings['normal_left']
+        calibration_data.laser_planes[1].distance = profile.settings['distance_right']
+        calibration_data.laser_planes[1].normal = profile.settings['normal_right']
+        calibration_data.platform_rotation = profile.settings['rotation_matrix']
+        calibration_data.platform_translation = profile.settings['translation_vector']
+        ciclop_scan.capture_texture = profile.settings['capture_texture']
+        use_laser = profile.settings['use_laser']
+        ciclop_scan.set_use_left_laser(use_laser == 'Left' or use_laser == 'Both')
+        ciclop_scan.set_use_right_laser(use_laser == 'Right' or use_laser == 'Both')
+        ciclop_scan.motor_step = profile.settings['motor_step_scanning']
+        ciclop_scan.motor_speed = profile.settings['motor_speed_scanning']
+        ciclop_scan.motor_acceleration = profile.settings['motor_acceleration_scanning']
+        ciclop_scan.color = struct.unpack(
+            'BBB', profile.settings['point_cloud_color'].decode('hex'))
+        current_video.set_roi_view(profile.settings['roi_view'])
+        point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
+        point_cloud_roi.set_height(profile.settings['roi_height'])
 
     def enable_restore(self, value):
         self.controls.enable_restore(value)
-
-    def onShow(self, event):
-        if event.GetShow():
-            self.updateStatus(self.driver.is_connected)
-            self.pointCloudTimer.Stop()
-        else:
-            try:
-                self.pointCloudTimer.Stop()
-                self.videoView.stop()
-            except:
-                pass
 
     def get_image(self):
         if self.scanning:
@@ -109,27 +134,28 @@ class ScanningWorkbench(Workbench):
                 image = point_cloud_roi.draw_roi(image)
             return image
 
-    def onPointCloudTimer(self, event):
+    def on_point_cloud_timer(self, event):
         p, r = ciclop_scan.get_progress()
         self.gauge.SetRange(r)
         self.gauge.SetValue(p)
-        pointCloud = ciclop_scan.get_point_cloud_increment()
-        if pointCloud is not None:
-            if pointCloud[0] is not None and pointCloud[1] is not None:
-                if len(pointCloud[0]) > 0:
-                    pointCloud = point_cloud_roi.mask_point_cloud(*pointCloud)
-                    self.sceneView.appendPointCloud(pointCloud[0], pointCloud[1])
+        point_cloud = ciclop_scan.get_point_cloud_increment()
+        if point_cloud is not None:
+            if point_cloud[0] is not None and point_cloud[1] is not None:
+                if len(point_cloud[0]) > 0:
+                    point_cloud = point_cloud_roi.mask_point_cloud(*point_cloud)
+                    self.pages_collection['view_page'].scene_view.append_point_cloud(
+                        point_cloud[0], point_cloud[1])
 
-    def onPlayToolClicked(self, event):
+    def on_play_tool_clicked(self, event):
+        print "UEUEUE"
         if ciclop_scan._inactive:
-            # Resume
-            self.enableLabelTool(self.pauseTool, True)
-            self.enableLabelTool(self.playTool, False)
+            self._enable_tool_scan(self.play_tool, False)
+            self._enable_tool_scan(self.pause_tool, True)
             ciclop_scan.resume()
-            self.pointCloudTimer.Start(milliseconds=50)
+            self.point_cloud_timer.Start(milliseconds=50)
         else:
             result = True
-            if self.sceneView._object is not None:
+            if self.scene_view._object is not None:
                 dlg = wx.MessageDialog(self,
                                        _("Your current model will be erased.\n"
                                          "Do you really want to do it?"),
@@ -139,44 +165,43 @@ class ScanningWorkbench(Workbench):
             if result:
                 self.gauge.SetValue(0)
                 self.gauge.Show()
-                self.scenePanel.Layout()
                 self.Layout()
-                ciclop_scan.set_callbacks(self.beforeScan,
-                                          None, lambda r: wx.CallAfter(self.afterScan, r))
+                ciclop_scan.set_callbacks(self.before_scan,
+                                          None, lambda r: wx.CallAfter(self.after_scan, r))
                 ciclop_scan.start()
 
-    def beforeScan(self):
+    def before_scan(self):
         self.scanning = True
-        self.buttonShowVideoViews.Show()
-        self.enableLabelTool(self.disconnectTool, False)
-        self.enableLabelTool(self.playTool, False)
-        self.enableLabelTool(self.stopTool, True)
-        self.enableLabelTool(self.pauseTool, True)
-        self.sceneView.createDefaultObject()
-        self.sceneView.setShowDeleteMenu(False)
-        self.videoView.setMilliseconds(200)
-        self.combo.Disable()
-        self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuSaveModel.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuClearModel.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuOpenCalibrationProfile.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuSaveCalibrationProfile.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuResetCalibrationProfile.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuOpenScanProfile.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuSaveScanProfile.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuResetScanProfile.GetId(), False)
-        self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), False)
-        self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), False)
-        self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), False)
+        self._enable_tool_scan(self.play_tool, False)
+        self._enable_tool_scan(self.stop_tool, True)
+        self._enable_tool_scan(self.pause_tool, True)
+        # self.buttonShowVideoViews.Show()
+        # self.enableLabelTool(self.disconnectTool, False)
+        self.scene_view.create_default_object()
+        # self.scene_view.set_show_delete_menu(False)
+        self.video_view.set_milliseconds(200)
+        # self.combo.Disable()
+        """self.GetParent().menu_file.Enable(self.GetParent().menuLaunchWizard.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuLoadModel.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuSaveModel.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuClearModel.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuOpenCalibrationProfile.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuSaveCalibrationProfile.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuResetCalibrationProfile.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuOpenScanProfile.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuSaveScanProfile.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuResetScanProfile.GetId(), False)
+        self.GetParent().menu_file.Enable(self.GetParent().menuExit.GetId(), False)
+        self.GetParent().menu_edit.Enable(self.GetParent().menuPreferences.GetId(), False)
+        self.GetParent().menu_help.Enable(self.GetParent().menuWelcome.GetId(), False)
         panel = self.controls.panels['rotating_platform']
         section = panel.sections['rotating_platform']
         section.disable('motor_speed_scanning')
         section.disable('motor_acceleration_scanning')
-        self.enable_restore(False)
-        self.pointCloudTimer.Start(milliseconds=50)
+        self.enable_restore(False)"""
+        self.point_cloud_timer.Start(milliseconds=50)
 
-    def afterScan(self, response):
+    def after_scan(self, response):
         ret, result = response
         if ret:
             dlg = wx.MessageDialog(self,
@@ -186,9 +211,9 @@ class ScanningWorkbench(Workbench):
             dlg.ShowModal()
             dlg.Destroy()
             self.scanning = False
-            self.onScanFinished()
+            self.on_scan_finished()
 
-    def onStopToolClicked(self, event):
+    def on_stop_tool_clicked(self, event):
         paused = ciclop_scan._inactive
         ciclop_scan.pause()
         dlg = wx.MessageDialog(self,
@@ -201,19 +226,19 @@ class ScanningWorkbench(Workbench):
         if result:
             self.scanning = False
             ciclop_scan.stop()
-            self.onScanFinished()
+            self.on_scan_finished()
         else:
             if not paused:
                 ciclop_scan.resume()
 
-    def onScanFinished(self):
-        self.buttonShowVideoViews.Hide()
+    def on_scan_finished(self):
+        self._enable_tool_scan(self.play_tool, True)
+        self._enable_tool_scan(self.stop_tool, False)
+        self._enable_tool_scan(self.pause_tool, False)
+        """self.buttonShowVideoViews.Hide()
         self.comboVideoViews.Hide()
         self.enableLabelTool(self.disconnectTool, True)
-        self.enableLabelTool(self.playTool, True)
-        self.enableLabelTool(self.stopTool, False)
-        self.enableLabelTool(self.pauseTool, False)
-        self.sceneView.setShowDeleteMenu(True)
+        self.scene_view.setShowDeleteMenu(True)
         self.combo.Enable()
         self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
         self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), True)
@@ -232,34 +257,18 @@ class ScanningWorkbench(Workbench):
         section = panel.sections['rotating_platform']
         section.enable('motor_speed_scanning')
         section.enable('motor_acceleration_scanning')
-        self.enable_restore(True)
-        self.pointCloudTimer.Stop()
-        self.videoView.setMilliseconds(10)
+        self.enable_restore(True)"""
+        self.point_cloud_timer.Stop()
+        self.video_view.set_milliseconds(10)
         self.gauge.SetValue(0)
         self.gauge.Hide()
-        self.scenePanel.Layout()
         self.Layout()
 
-    def onPauseToolClicked(self, event):
-        self.enableLabelTool(self.pauseTool, False)
-        self.enableLabelTool(self.playTool, True)
+    def on_pause_tool_clicked(self, event):
+        self._enable_tool_scan(self.play_tool, True)
+        self._enable_tool_scan(self.pause_tool, False)
         ciclop_scan.pause()
-        self.pointCloudTimer.Stop()
+        self.point_cloud_timer.Stop()
 
-    def updateToolbarStatus(self, status):
-        if status:
-            if self.IsShown():
-                self.videoView.play()
-            self.enableLabelTool(self.playTool, True)
-            self.enableLabelTool(self.stopTool, False)
-            self.enableLabelTool(self.pauseTool, False)
-            self.controls.enableContent()
-        else:
-            self.videoView.stop()
-            self.enableLabelTool(self.playTool, False)
-            self.enableLabelTool(self.stopTool, False)
-            self.enableLabelTool(self.pauseTool, False)
-            self.controls.disableContent()
-
-    def updateProfileToAllControls(self):
-        self.controls.updateProfile()
+    def _enable_tool_scan(self, item, enable):
+        self.toolbar_scan.EnableTool(item.GetId(), enable)

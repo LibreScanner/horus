@@ -26,9 +26,9 @@ class CurrentVideo(object):
             return image_detection.detect_pattern(image)
 
         if self.mode == 'Laser':
-            return image_capture.capture_lasers()
+            return image_capture.capture_all_lasers()
 
         if self.mode == 'Gray':
-            image = image_capture.capture_lasers()
+            image = image_capture.capture_all_lasers()
             image = laser_segmentation.compute_line_segmentation(image)
             return cv2.merge((image, image, image))

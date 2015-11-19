@@ -547,7 +547,7 @@ class SceneView(opengl_gui.glGuiPanel):
                              self._mouse_y, 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0] >> 8
             f = glReadPixels(self._mouse_x, self.GetSize().GetHeight() - 1 -
                              self._mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
-            #self.GetTopLevelParent().SetTitle(hex(n) + " " + str(f))
+            # self.GetTopLevelParent().SetTitle(hex(n) + " " + str(f))
             self._mouse_3d_pos = opengl_helpers.unproject(
                 self._mouse_x, self._viewport[1] + self._viewport[3] - self._mouse_y,
                 f, self._model_matrix, self._proj_matrix, self._viewport)
@@ -674,7 +674,7 @@ class SceneView(opengl_gui.glGuiPanel):
                         glColor4ub(5, 171, 231, 64)
                 elif machine_shape == 'Circular':
                     glColor4ub(5, 171, 231, 96)
-                    #glColor4ub(200, 200, 200, 150)
+                    # glColor4ub(200, 200, 200, 150)
 
                 glVertex3f(polys[0][n][0], polys[0][n][1], height)
                 glVertex3f(polys[0][n][0], polys[0][n][1], 0)
@@ -684,7 +684,7 @@ class SceneView(opengl_gui.glGuiPanel):
 
             # Draw bottom and top of build volume.
             glColor4ub(5, 171, 231, 150)  # 128)
-            #glColor4ub(200, 200, 200, 200)
+            # glColor4ub(200, 200, 200, 200)
             glBegin(GL_TRIANGLE_FAN)
             for p in polys[0][::-1]:
                 glVertex3f(p[0], p[1], 0)
