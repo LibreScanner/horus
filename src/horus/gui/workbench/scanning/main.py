@@ -59,6 +59,7 @@ class ScanningWorkbench(Workbench):
     def add_pages(self):
         self.add_page('view_page', ViewPage(self, self.get_image))
         self.video_view = self.pages_collection['view_page'].video_view
+        self.scene_panel = self.pages_collection['view_page'].scene_panel
         self.scene_view = self.pages_collection['view_page'].scene_view
         self.gauge = self.pages_collection['view_page'].gauge
 
@@ -120,9 +121,6 @@ class ScanningWorkbench(Workbench):
         point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
         point_cloud_roi.set_height(profile.settings['roi_height'])
 
-    def enable_restore(self, value):
-        self.controls.enable_restore(value)
-
     def get_image(self):
         if self.scanning:
             image_capture.stream = False
@@ -147,7 +145,6 @@ class ScanningWorkbench(Workbench):
                         point_cloud[0], point_cloud[1])
 
     def on_play_tool_clicked(self, event):
-        print "UEUEUE"
         if ciclop_scan._inactive:
             self._enable_tool_scan(self.play_tool, False)
             self._enable_tool_scan(self.pause_tool, True)
@@ -175,30 +172,12 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.play_tool, False)
         self._enable_tool_scan(self.stop_tool, True)
         self._enable_tool_scan(self.pause_tool, True)
+        self.GetParent().enable_gui(False)
+        self.scroll_panel.Disable()
         # self.buttonShowVideoViews.Show()
-        # self.enableLabelTool(self.disconnectTool, False)
         self.scene_view.create_default_object()
-        # self.scene_view.set_show_delete_menu(False)
+        self.scene_view.set_show_delete_menu(False)
         self.video_view.set_milliseconds(200)
-        # self.combo.Disable()
-        """self.GetParent().menu_file.Enable(self.GetParent().menuLaunchWizard.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuLoadModel.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuSaveModel.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuClearModel.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuOpenCalibrationProfile.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuSaveCalibrationProfile.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuResetCalibrationProfile.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuOpenScanProfile.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuSaveScanProfile.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuResetScanProfile.GetId(), False)
-        self.GetParent().menu_file.Enable(self.GetParent().menuExit.GetId(), False)
-        self.GetParent().menu_edit.Enable(self.GetParent().menuPreferences.GetId(), False)
-        self.GetParent().menu_help.Enable(self.GetParent().menuWelcome.GetId(), False)
-        panel = self.controls.panels['rotating_platform']
-        section = panel.sections['rotating_platform']
-        section.disable('motor_speed_scanning')
-        section.disable('motor_acceleration_scanning')
-        self.enable_restore(False)"""
         self.point_cloud_timer.Start(milliseconds=50)
 
     def after_scan(self, response):
@@ -235,29 +214,10 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)
-        """self.buttonShowVideoViews.Hide()
-        self.comboVideoViews.Hide()
-        self.enableLabelTool(self.disconnectTool, True)
-        self.scene_view.setShowDeleteMenu(True)
-        self.combo.Enable()
-        self.GetParent().menuFile.Enable(self.GetParent().menuLaunchWizard.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuLoadModel.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuSaveModel.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuClearModel.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuOpenCalibrationProfile.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuSaveCalibrationProfile.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuResetCalibrationProfile.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuOpenScanProfile.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuSaveScanProfile.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuResetScanProfile.GetId(), True)
-        self.GetParent().menuFile.Enable(self.GetParent().menuExit.GetId(), True)
-        self.GetParent().menuEdit.Enable(self.GetParent().menuPreferences.GetId(), True)
-        self.GetParent().menuHelp.Enable(self.GetParent().menuWelcome.GetId(), True)
-        panel = self.controls.panels['rotating_platform']
-        section = panel.sections['rotating_platform']
-        section.enable('motor_speed_scanning')
-        section.enable('motor_acceleration_scanning')
-        self.enable_restore(True)"""
+        self.GetParent().enable_gui(True)
+        self.scroll_panel.Enable()
+        # self.comboVideoViews.Hide()
+        self.scene_view.set_show_delete_menu(True)
         self.point_cloud_timer.Stop()
         self.video_view.set_milliseconds(10)
         self.gauge.SetValue(0)

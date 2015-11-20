@@ -16,7 +16,7 @@ from horus.gui.engine import driver
 
 from horus.gui.welcome import WelcomeDialog
 from horus.gui.util.preferences import PreferencesDialog
-from horus.gui.util.machine_settings import MachineSettingsDialog
+# from horus.gui.util.machine_settings import MachineSettingsDialog  # add in future version
 
 from horus.gui.workbench.toolbar import ToolbarConnection
 from horus.gui.workbench.control.main import ControlWorkbench
@@ -49,6 +49,7 @@ class MainWindow(wx.Frame):
         # Initialize GUI
         self.load_menu()
         self.load_workbenches()
+        self.update_profile_to_all_controls()
 
         ws, hs = self.GetSize()
         x, y, w, h = wx.Display(0).GetGeometry()
@@ -108,7 +109,7 @@ class MainWindow(wx.Frame):
         # Menu Edit
         self.menu_edit = wx.Menu()
         self.menu_preferences = self.menu_edit.Append(wx.NewId(), _("Preferences"))
-        self.menu_machine_settings = self.menu_edit.Append(wx.NewId(), _("Machine settings"))
+        # self.menu_machine_settings = self.menu_edit.Append(wx.NewId(), _("Machine settings"))
         self.menu_bar.Append(self.menu_edit, _("Edit"))
 
         # Menu View
@@ -155,7 +156,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_exit, self.menu_exit)
 
         self.Bind(wx.EVT_MENU, self.on_preferences, self.menu_preferences)
-        self.Bind(wx.EVT_MENU, self.on_machine_settings, self.menu_machine_settings)
+        # self.Bind(wx.EVT_MENU, self.on_machine_settings, self.menu_machine_settings)
 
         self.Bind(wx.EVT_MENU, self.on_scanning_panel_clicked, self.menu_scanning_panel)
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_video)
@@ -274,6 +275,18 @@ class MainWindow(wx.Frame):
             pass
         event.Skip()
 
+    def enable_gui(self, status):
+        if status:
+            self.toolbar.toolbar.Enable()
+            self.toolbar.combo.Enable()
+            for i in xrange(self.menu_bar.GetMenuCount()):
+                self.menu_bar.EnableTop(i, True)
+        else:
+            self.toolbar.toolbar.Disable()
+            self.toolbar.combo.Disable()
+            for i in xrange(self.menu_bar.GetMenuCount()):
+                self.menu_bar.EnableTop(i, False)
+
     def append_last_file(self, last_file):
         if last_file in self.last_files:
             self.last_files.remove(last_file)
@@ -290,7 +303,7 @@ class MainWindow(wx.Frame):
         preferences = PreferencesDialog()
         preferences.ShowModal()
 
-    def on_machine_settings(self, event):
+    """def on_machine_settings(self, event):
         if sys.is_windows():
             driver.disconnect()
 
@@ -298,12 +311,12 @@ class MainWindow(wx.Frame):
         ret = machine_settings.ShowModal()
 
         if ret == wx.ID_OK:
-            try:  # TODO: Fix this. If not in the Scanning workbench, _drawMachine() fails.
-                self.workbench['scanning'].scene_view._drawMachine()
+            try:  # TODO: Fix this. If not in the Scanning workbench, _draw_machine() fails.
+                self.workbench['scanning'].scene_view._draw_machine()
             except:
                 pass
             profile.settings.save_settings(categories=["machine_settings"])
-            self.workbench['scanning'].controls.panels["point_cloud_roi"].update_profile()
+            self.workbench['scanning'].controls.panels["point_cloud_roi"].update_profile()"""
 
     def on_menu_view_clicked(self, key, checked, panel):
         profile.settings[key] = checked
@@ -325,28 +338,28 @@ class MainWindow(wx.Frame):
         checked_scene = self.menu_scanning_scene.IsChecked()
         profile.settings['view_scanning_video'] = checked_video
         profile.settings['view_scanning_scene'] = checked_scene
-        self.workbench['scanning'].splitter_window.Unsplit()
+        self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         if checked_video:
             self.workbench['scanning'].video_view.Show()
-            self.workbench['scanning'].splitter_window.SplitVertically(
+            self.workbench['scanning'].pages_collection['view_page'].SplitVertically(
                 self.workbench['scanning'].video_view, self.workbench['scanning'].scene_panel)
             if checked_scene:
                 self.workbench['scanning'].scene_panel.Show()
             else:
                 self.workbench['scanning'].scene_panel.Hide()
-                self.workbench['scanning'].splitter_window.Unsplit()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         else:
             self.workbench['scanning'].video_view.Hide()
             if checked_scene:
                 self.workbench['scanning'].scene_panel.Show()
-                self.workbench['scanning'].splitter_window.SplitVertically(
+                self.workbench['scanning'].pages_collection['view_page'].SplitVertically(
                     self.workbench['scanning'].scene_panel, self.workbench['scanning'].video_view)
-                self.workbench['scanning'].splitter_window.Unsplit()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
             else:
                 self.workbench['scanning'].scene_panel.Hide()
-                self.workbench['scanning'].splitter_window.Unsplit()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
 
-        self.workbench['scanning'].splitter_window.Layout()
+        self.workbench['scanning'].pages_collection['view_page'].Layout()
         self.workbench['scanning'].Layout()
         self.Layout()
 
@@ -454,10 +467,10 @@ class MainWindow(wx.Frame):
         self.workbench[profile.settings['workbench']].update_controls()
 
         if profile.settings['view_scanning_panel']:
-            self.workbench['scanning'].scrollPanel.Show()
+            self.workbench['scanning'].scroll_panel.Show()
             self.menu_scanning_panel.Check(True)
         else:
-            self.workbench['scanning'].scrollPanel.Hide()
+            self.workbench['scanning'].scroll_panel.Hide()
             self.menu_scanning_panel.Check(False)
 
         checked_video = profile.settings['view_scanning_video']
@@ -466,26 +479,26 @@ class MainWindow(wx.Frame):
         self.menu_scanning_video.Check(checked_video)
         self.menu_scanning_scene.Check(checked_scene)
 
-        self.workbench['scanning'].splitterWindow.Unsplit()
+        self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         if checked_video:
-            self.workbench['scanning'].videoView.Show()
-            self.workbench['scanning'].splitterWindow.SplitVertically(
-                self.workbench['scanning'].videoView, self.workbench['scanning'].scenePanel)
+            self.workbench['scanning'].video_view.Show()
+            self.workbench['scanning'].pages_collection['view_page'].SplitVertically(
+                self.workbench['scanning'].video_view, self.workbench['scanning'].scene_panel)
             if checked_scene:
-                self.workbench['scanning'].scenePanel.Show()
+                self.workbench['scanning'].scene_panel.Show()
             else:
-                self.workbench['scanning'].scenePanel.Hide()
-                self.workbench['scanning'].splitterWindow.Unsplit()
+                self.workbench['scanning'].scene_panel.Hide()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         else:
-            self.workbench['scanning'].videoView.Hide()
+            self.workbench['scanning'].video_view.Hide()
             if checked_scene:
-                self.workbench['scanning'].scenePanel.Show()
-                self.workbench['scanning'].splitterWindow.SplitVertically(
-                    self.workbench['scanning'].scenePanel, self.workbench['scanning'].videoView)
-                self.workbench['scanning'].splitterWindow.Unsplit()
+                self.workbench['scanning'].scene_panel.Show()
+                self.workbench['scanning'].pages_collection['view_page'].SplitVertically(
+                    self.workbench['scanning'].scene_panel, self.workbench['scanning'].video_view)
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
             else:
-                self.workbench['scanning'].scenePanel.Hide()
-                self.workbench['scanning'].splitterWindow.Unsplit()
+                self.workbench['scanning'].scene_panel.Hide()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
 
     def initialize_driver(self):
         # Serial name

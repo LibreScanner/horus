@@ -326,7 +326,7 @@ class SceneView(opengl_gui.glGuiPanel):
                     menu.Destroy()
         self._mouse_state = None
 
-    def setShowDeleteMenu(self, value=True):
+    def set_show_delete_menu(self, value=True):
         self._show_delete_menu = value
 
     def on_delete_object(self, event):

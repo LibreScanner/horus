@@ -73,9 +73,7 @@ class ToolbarConnection(Toolbar):
 
     def before_connect(self):
         self._enable_tool(self.connect_tool, False)
-        self.combo.Disable()
-        for i in xrange(self.GetParent().menu_bar.GetMenuCount()):
-            self.GetParent().menu_bar.EnableTop(i, False)
+        self.GetParent().enable_gui(False)
         driver.board.set_unplug_callback(None)
         driver.camera.set_unplug_callback(None)
         self.wait_cursor = wx.BusyCursor()
@@ -109,10 +107,8 @@ class ToolbarConnection(Toolbar):
                                    _("Unplug and plug your camera USB cable "
                                      "and try to connect again"))
 
-        self.combo.Enable()
         self.update_status(driver.is_connected)
-        for i in xrange(self.GetParent().menu_bar.GetMenuCount()):
-            self.GetParent().menu_bar.EnableTop(i, True)
+        self.GetParent().enable_gui(True)
         del self.wait_cursor
 
     def update_status(self, status):
