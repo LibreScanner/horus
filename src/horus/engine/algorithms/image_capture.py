@@ -63,7 +63,7 @@ class ImageCapture(object):
 
         self.stream = True
         # TODO: custom flush for each OS
-        self._flush_texture = 2
+        self._flush_texture = 3
         self._flush_laser = 2
         self._flush_pattern = 1
         self._flush_stream_texture = 0

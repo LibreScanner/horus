@@ -38,6 +38,8 @@ More interest links are shown below:
 
 ## Development
 
+NOTE: Horus 0.2 is in development. [New custom OpenCV](https://github.com/bqlabs/opencv/tree/horus-0.2) version is required. 
+
 Horus is an Open Source Project. Anyone has the freedom to use, modify, share and distribute this software. If you want to:
 * run the source code
 * make your own modifications
