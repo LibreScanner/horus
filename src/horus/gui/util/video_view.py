@@ -12,9 +12,11 @@ from horus.gui.util.image_view import ImageView
 
 class VideoView(ImageView):
 
-    def __init__(self, parent, callback=None, milliseconds=1, size=(-1, -1), black=False):
+    def __init__(self, parent, callback=None, milliseconds=1,
+                 size=(-1, -1), black=False, _reload=False):
         ImageView.__init__(self, parent, size=size, black=black)  # , style=wx.RAISED_BORDER)
 
+        self.reload = _reload
         self.callback = callback
         self.milliseconds = milliseconds
 
@@ -29,7 +31,8 @@ class VideoView(ImageView):
             if self.callback is not None:
                 frame = self.callback()
                 if frame is None:
-                    self.stop()
+                    if not self.reload:
+                        self.stop()
                 else:
                     self.set_frame(frame)
                     self._start()

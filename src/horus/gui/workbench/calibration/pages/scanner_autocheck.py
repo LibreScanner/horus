@@ -40,7 +40,7 @@ class ScannerAutocheckPages(wx.Panel):
 
     def on_show(self, event):
         try:
-            self.video_page.on_show(event)
+            self.video_page.on_show(event.GetShow())
         except:
             pass
 

@@ -46,7 +46,7 @@ class PlatformExtrinsicsPages(wx.Panel):
 
     def on_show(self, event):
         try:
-            self.video_page.on_show(event)
+            self.video_page.on_show(event.GetShow())
         except:
             pass
 
@@ -71,6 +71,14 @@ class PlatformExtrinsicsPages(wx.Panel):
         if ret:
             self.video_page.Hide()
             self.result_page.Show()
+        else:
+            if isinstance(result, PlatformExtrinsicsError):
+                dlg = wx.MessageDialog(
+                    self, _("Please, check the pattern"),
+                    _(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+            self.on_exit()
         self.result_page.process_calibration(response)
         if hasattr(self, 'waitCursor'):
             del self.waitCursor

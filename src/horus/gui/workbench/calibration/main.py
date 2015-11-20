@@ -66,10 +66,10 @@ class CalibrationWorkbench(Workbench):
     def on_close(self):
         try:
             self.pages_collection['video_view'].stop()
-            self.pages_collection['camera_intrinsics_pages'].on_show(False)
-            self.pages_collection['scanner_autocheck_pages'].on_show(False)
-            self.pages_collection['laser_triangulation_pages'].on_show(False)
-            self.pages_collection['platform_extrinsics_pages'].on_show(False)
+            self.pages_collection['camera_intrinsics_pages'].capture_page.on_show(False)
+            self.pages_collection['scanner_autocheck_pages'].video_page.on_show(False)
+            self.pages_collection['laser_triangulation_pages'].video_page.on_show(False)
+            self.pages_collection['platform_extrinsics_pages'].video_page.on_show(False)
         except:
             pass
 
@@ -114,17 +114,12 @@ class CalibrationWorkbench(Workbench):
         self._on_panel_selected(self.pages_collection['platform_extrinsics_pages'])
 
     def disable_panels(self):
-        self.panels_collection.Disable()
-        self.GetParent().toolbar.combo.Disable()
-        for i in range(4):
-            self.GetParent().menu_bar.EnableTop(i, False)
+        self.GetParent().enable_gui(False)
+        self.scroll_panel.Disable()
 
     def update_panels(self):
-        self.panels_collection.Enable()
-        self.GetParent().toolbar.combo.Enable()
-        for i in range(4):
-            self.GetParent().menu_bar.EnableTop(i, True)
-        self.panels_collection.update_from_profile()
+        self.GetParent().enable_gui(True)
+        self.scroll_panel.Enable()
 
     def _on_panel_selected(self, panel):
         self.pages_collection['video_view'].Hide()

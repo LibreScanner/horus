@@ -62,8 +62,8 @@ class CapturePage(Page):
             self.panel_grid[panel].SetBackgroundColour((221, 221, 221))
             self.panel_grid[panel].set_image(wx.Image(resources.get_path_for_image("void.png")))
 
-    def on_show(self, event):
-        if event.GetShow():
+    def on_show(self, status):
+        if status:
             self.gauge.SetValue(0)
             self.video_view.play()
             self.image_grid_panel.SetFocus()

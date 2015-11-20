@@ -64,10 +64,11 @@ class CurrentVideo(object):
             return images[1]
 
     def _compute_line_image(self, points, image):
-        u, v = points
-        image = np.zeros_like(image)
-        image[v.astype(int), u.astype(int)] = 255.0
-        return image
+        if points is not None:
+            u, v = points
+            image = np.zeros_like(image)
+            image[v.astype(int), u.astype(int)] = 255.0
+            return image
 
     def _apply_roi(self, image):
         image = self.point_cloud_roi.mask_image(image)

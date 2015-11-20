@@ -43,8 +43,8 @@ class VideoPage(Page):
         self.gauge.SetValue(0)
         self.right_button.Enable()
 
-    def on_show(self, event):
-        if event.GetShow():
+    def on_show(self, status):
+        if status:
             self.video_view.play()
             self.GetParent().Layout()
             self.Layout()

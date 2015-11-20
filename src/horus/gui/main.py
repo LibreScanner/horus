@@ -12,7 +12,7 @@ import wx._core
 import webbrowser
 from collections import OrderedDict
 
-from horus.gui.engine import driver
+from horus.gui.engine import driver, ciclop_scan, laser_triangulation
 
 from horus.gui.welcome import WelcomeDialog
 from horus.gui.util.preferences import PreferencesDialog

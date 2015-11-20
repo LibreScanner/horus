@@ -49,7 +49,7 @@ class CameraIntrinsicsPages(wx.Panel):
 
     def on_show(self, event):
         try:
-            self.capture_page.on_show(event)
+            self.capture_page.on_show(event.GetShow())
         except:
             pass
 
