@@ -221,7 +221,7 @@ class Camera(object):
                 self._capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
                 self._frame_rate = value
 
-    def set_resolution(self, width, height):
+    def set_resolution(self, height, width):
         if self._is_connected:
             if self._width != width or self._height != height:
                 self._set_width(width)

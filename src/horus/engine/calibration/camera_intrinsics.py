@@ -6,6 +6,7 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
+import numpy as np
 
 from horus import Singleton
 from horus.engine.calibration.calibration import Calibration
@@ -60,7 +61,7 @@ class CameraIntrinsics(Calibration):
                 if len(self.object_points) < 15:
                     self.image_points.append(corners)
                     self.object_points.append(self.pattern.object_points)
-            return image
+                    return image
 
     def calibrate(self):
         error = 0
@@ -75,7 +76,7 @@ class CameraIntrinsics(Calibration):
                 error += cv2.norm(self.image_points[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
             error /= len(self.object_points)
 
-        return ret, error, cmat, dvec.ravel(), rvecs, tvecs
+        return ret, error, np.round(cmat, 3), np.round(dvec.ravel(), 3), rvecs, tvecs
 
     def reset(self):
         self.image_points = []
@@ -89,5 +90,4 @@ class CameraIntrinsics(Calibration):
         self.calibration_data.distortion_vector = self.distortion_vector
 
     def cancel(self):
-        super(CameraIntrinsics, self).cancel()
         self.image_capture.set_use_distortion(self._use_distortion)

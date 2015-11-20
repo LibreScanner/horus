@@ -20,7 +20,7 @@ except ImportError as e:
     exit(1)
 
 from horus.util import resources
-resources.setBasePath(os.path.join(os.path.dirname(__file__), "../res"))
+resources.set_base_path(os.path.join(os.path.dirname(__file__), "../res"))
 
 from horus.gui import app
 

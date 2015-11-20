@@ -20,7 +20,6 @@ This module also contains a function to save objects as an STL file.
 http://en.wikipedia.org/wiki/STL_(file_format)
 """
 
-import sys
 import os
 import struct
 import numpy as np
@@ -28,13 +27,13 @@ import numpy as np
 from horus.util import model
 
 
-def _loadAscii(mesh, stream):
+def _load_ascii(mesh, stream):
     cnt = 0
     for lines in stream:
         for line in lines.split('\r'):
             if 'vertex' in line:
                 cnt += 1
-    mesh._prepareFaceCount(int(cnt) / 3)
+    mesh._prepare_face_count(int(cnt) / 3)
     stream.seek(5, os.SEEK_SET)
     cnt = 0
     data = [None, None, None]
@@ -44,13 +43,13 @@ def _loadAscii(mesh, stream):
                 data[cnt] = line.split()[1:]
                 cnt += 1
                 if cnt == 3:
-                    mesh._addFace(float(data[0][0]), float(data[0][1]), float(data[0][2]),
-                                  float(data[1][0]), float(data[1][1]), float(data[1][2]),
-                                  float(data[2][0]), float(data[2][1]), float(data[2][2]))
+                    mesh._add_face(float(data[0][0]), float(data[0][1]), float(data[0][2]),
+                                   float(data[1][0]), float(data[1][1]), float(data[1][2]),
+                                   float(data[2][0]), float(data[2][1]), float(data[2][2]))
                     cnt = 0
 
 
-def _loadBinary(mesh, stream):
+def _load_binary(mesh, stream):
     # Skip the header
     stream.read(80 - 5)
     count = struct.unpack('<I', stream.read(4))[0]
@@ -62,20 +61,20 @@ def _loadBinary(mesh, stream):
 
     data = np.fromfile(stream, dtype=dtype, count=count)
 
-    mesh.vertexCount = 3 * count
-    n = np.zeros((mesh.vertexCount / 3, 9), np.float32)
+    mesh.vertex_count = 3 * count
+    n = np.zeros((mesh.vertex_count / 3, 9), np.float32)
     n[:, 0:3] = n[:, 3:6] = n[:, 6:9] = data['n']
-    mesh.normal = n.reshape(mesh.vertexCount, 3)
-    mesh.vertexes = np.reshape(data['v'], (mesh.vertexCount, 3))
+    mesh.normal = n.reshape(mesh.vertex_count, 3)
+    mesh.vertexes = np.reshape(data['v'], (mesh.vertex_count, 3))
 
 
-def loadScene(filename):
+def load_scene(filename):
     obj = model.Model(filename)
-    m = obj._addMesh()
+    m = obj._add_mesh()
     with open(filename, "rb") as f:
         if f.read(5).lower() == "solid":
-            _loadAscii(m, f)
+            _load_ascii(m, f)
         else:
-            _loadBinary(m, f)
-        obj._postProcessAfterLoad()
+            _load_binary(m, f)
+        obj._post_process_after_load()
         return obj

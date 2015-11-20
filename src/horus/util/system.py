@@ -10,13 +10,13 @@ s = platform.system()
 del platform
 
 
-def isLinux():
+def is_linux():
     return s == 'Linux'
 
 
-def isDarwin():
+def is_darwin():
     return s == 'Darwin'
 
 
-def isWindows():
+def is_windows():
     return s == 'Windows'

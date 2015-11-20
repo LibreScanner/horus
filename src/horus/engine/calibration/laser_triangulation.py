@@ -70,11 +70,11 @@ class LaserTriangulation(MovingCalibration):
 
         # TODO: use arrays
         # Compute planes
-        dL, nL, stdL = compute_plane(self._point_cloud[0])
-        dR, nR, stdR = compute_plane(self._point_cloud[1])
+        self.dL, self.nL, stdL = compute_plane(self._point_cloud[0])
+        self.dR, self.nR, stdR = compute_plane(self._point_cloud[1])
 
-        if self._is_calibrating and nL is not None and nR is not None:
-            response = (True, ((dL, nL, stdL), (dR, nR, stdR)))
+        if self._is_calibrating and self.nL is not None and self.nR is not None:
+            response = (True, ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR)))
         else:
             if self._is_calibrating:
                 response = (False, LaserTriangulationError)
@@ -82,8 +82,15 @@ class LaserTriangulation(MovingCalibration):
                 response = (False, CalibrationCancel)
 
         self._is_calibrating = False
+        self.image = None
 
         return response
+
+    def accept(self):
+        self.calibration_data.laser_planes[0].distance = self.dL
+        self.calibration_data.laser_planes[0].normal = self.nL
+        self.calibration_data.laser_planes[1].distance = self.dR
+        self.calibration_data.laser_planes[1].normal = self.nR
 
 
 def compute_plane(X):

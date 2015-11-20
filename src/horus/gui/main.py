@@ -8,278 +8,214 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import gc
 import os
 import time
-import struct
 import wx._core
 import webbrowser
+from collections import OrderedDict
 
+from horus.gui.engine import driver, ciclop_scan, laser_triangulation
+
+from horus.gui.welcome import WelcomeDialog
+from horus.gui.util.preferences import PreferencesDialog
+# from horus.gui.util.machine_settings import MachineSettingsDialog  # add in future version
+
+from horus.gui.workbench.toolbar import ToolbarConnection
 from horus.gui.workbench.control.main import ControlWorkbench
-from horus.gui.workbench.scanning.main import ScanningWorkbench
+from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
 from horus.gui.workbench.calibration.main import CalibrationWorkbench
-from horus.gui.preferences import PreferencesDialog
-from horus.gui.machineSettings import MachineSettingsDialog
-from horus.gui.welcome import WelcomeWindow
-from horus.gui.wizard.main import *
-from horus.gui.util.versionWindow import VersionWindow
+from horus.gui.workbench.scanning.main import ScanningWorkbench
 
-from horus.engine.driver.driver import Driver
-from horus.engine.scan.ciclop_scan import CiclopScan
-from horus.engine.scan.current_video import CurrentVideo
-from horus.engine.calibration.pattern import Pattern
-from horus.engine.calibration.calibration_data import CalibrationData
-from horus.engine.calibration.laser_triangulation import LaserTriangulation
-from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
-from horus.engine.algorithms.image_capture import ImageCapture
-from horus.engine.algorithms.image_detection import ImageDetection
-from horus.engine.algorithms.laser_segmentation import LaserSegmentation
-from horus.engine.algorithms.point_cloud_generation import PointCloudGeneration
-from horus.engine.algorithms.point_cloud_roi import PointCloudROI
+# from horus.gui.wizard.main import *
+# from horus.gui.util.versionWindow import VersionWindow
 
-from horus.util import profile, resources, meshLoader, version, system as sys
+from horus.util import profile, resources, mesh_loader, version, system as sys
 
-driver = Driver()
-ciclop_scan = CiclopScan()
-current_video = CurrentVideo()
-pattern = Pattern()
-calibration_data = CalibrationData()
-laser_triangulation = LaserTriangulation()
-platform_extrinsics = PlatformExtrinsics()
-image_capture = ImageCapture()
-image_detection = ImageDetection()
-laser_segmentation = LaserSegmentation()
-point_cloud_generation = PointCloudGeneration()
-point_cloud_roi = PointCloudROI()
+__version__ = version.get_version()
+__build__ = version.get_build()
+__github__ = version.get_github()
+__name__ = "Horus " + __version__ + " BETA"
 
 
 class MainWindow(wx.Frame):
 
-    size = (640 + 340, 480 + 155)
-
     def __init__(self):
-        super(MainWindow, self).__init__(
-            None, title=_("Horus 0.2 BETA"), size=self.size)
+        wx.Frame.__init__(self, None, title=__name__, size=(980, 640))
 
-        self.SetMinSize((600, 450))
+        print ">>> " + __name__ + " <<<"
 
-        # Serial Name initialization
-        serialList = driver.board.get_serial_list()
-        currentSerial = profile.settings['serial_name']
-        if len(serialList) > 0:
-            if currentSerial not in serialList:
-                profile.settings['serial_name'] = serialList[0]
-
-        # Video Id initialization
-        videoList = driver.camera.get_video_list()
-        currentVideoId = profile.settings['camera_id']
-        if len(videoList) > 0:
-            if currentVideoId not in videoList:
-                profile.settings['camera_id'] = unicode(videoList[0])
-
-        self.lastFiles = profile.settings['last_files']
-
-        print ">>> Horus " + version.getVersion() + " <<<"
+        # Initialize driver
+        self.initialize_driver()
+        self.last_files = profile.settings['last_files']
 
         # Initialize GUI
+        self.load_menu()
+        self.load_workbenches()
+        self.update_profile_to_all_controls()
 
-        # Set Icon
-        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
-        self.SetIcon(icon)
+        ws, hs = self.GetSize()
+        x, y, w, h = wx.Display(0).GetGeometry()
+        self.SetMinSize((600, 450))
+        self.SetPosition((x + (w - ws) / 2., y + (h - hs) / 2.))
+        self.SetIcon(wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO))
 
-        # Status Bar
-        # self.CreateStatusBar()
+        self.Bind(wx.EVT_CLOSE, self.on_close)
 
-        # Menu Bar
-        self.menuBar = wx.MenuBar()
-
-        # Menu File
-        self.menuFile = wx.Menu()
-        self.menuLaunchWizard = self.menuFile.Append(wx.NewId(), _("Launch Wizard"))
-        self.menuFile.AppendSeparator()
-        self.menuLoadModel = self.menuFile.Append(wx.NewId(), _("Load Model"))
-        self.menuSaveModel = self.menuFile.Append(wx.NewId(), _("Save Model"))
-        self.menuClearModel = self.menuFile.Append(wx.NewId(), _("Clear Model"))
-        self.menuFile.AppendSeparator()
-        self.menuOpenCalibrationProfile = self.menuFile.Append(
-            wx.NewId(), _("Open Calibration Profile"), _("Opens Calibration profile .json"))
-        self.menuSaveCalibrationProfile = self.menuFile.Append(
-            wx.NewId(), _("Save Calibration Profile"), _("Saves Calibration profile .json"))
-        self.menuResetCalibrationProfile = self.menuFile.Append(
-            wx.NewId(), _("Reset Calibration Profile"), _("Resets Calibration default values"))
-        self.menuFile.AppendSeparator()
-        self.menuOpenScanProfile = self.menuFile.Append(
-            wx.NewId(), _("Open Scan Profile"), _("Opens Scan profile .json"))
-        self.menuSaveScanProfile = self.menuFile.Append(
-            wx.NewId(), _("Save Scan Profile"), _("Saves Scan profile .json"))
-        self.menuResetScanProfile = self.menuFile.Append(
-            wx.NewId(), _("Reset Scan Profile"), _("Resets Scan default values"))
-        self.menuFile.AppendSeparator()
-        self.menuExit = self.menuFile.Append(wx.ID_EXIT, _("Exit"))
-        self.menuBar.Append(self.menuFile, _("File"))
-
-        # Menu Edit
-        self.menuEdit = wx.Menu()
-        self.menuPreferences = self.menuEdit.Append(wx.NewId(), _("Preferences"))
-        self.menuMachineSettings = self.menuEdit.Append(wx.NewId(), _("Machine Settings"))
-        self.menuBar.Append(self.menuEdit, _("Edit"))
-
-        # Menu View
-        self.menuView = wx.Menu()
-        self.menuControl = wx.Menu()
-        self.menuControlPanel = self.menuControl.AppendCheckItem(wx.NewId(), _("Panel"))
-        self.menuControlVideo = self.menuControl.AppendCheckItem(wx.NewId(), _("Video"))
-        self.menuView.AppendMenu(wx.NewId(), _("Control"), self.menuControl)
-        self.menuCalibration = wx.Menu()
-        self.menuCalibrationPanel = self.menuCalibration.AppendCheckItem(wx.NewId(), _("Panel"))
-        self.menuCalibrationVideo = self.menuCalibration.AppendCheckItem(wx.NewId(), _("Video"))
-        self.menuView.AppendMenu(wx.NewId(), _("Calibration"), self.menuCalibration)
-        self.menuScanning = wx.Menu()
-        self.menuScanningPanel = self.menuScanning.AppendCheckItem(wx.NewId(), _("Panel"))
-        self.menuScanningVideo = self.menuScanning.AppendCheckItem(wx.NewId(), _("Video"))
-        self.menuScanningScene = self.menuScanning.AppendCheckItem(wx.NewId(), _("Scene"))
-        self.menuView.AppendMenu(wx.NewId(), _("Scanning"), self.menuScanning)
-        self.menuBar.Append(self.menuView, _("View"))
-
-        # Menu Help
-        self.menuHelp = wx.Menu()
-        self.menuWelcome = self.menuHelp.Append(wx.ID_ANY, _("Welcome"))
-        if profile.settings['check_for_updates']:
-            self.menuUpdates = self.menuHelp.Append(wx.ID_ANY, _("Updates"))
-        self.menuWiki = self.menuHelp.Append(wx.ID_ANY, _("Wiki"))
-        self.menuSources = self.menuHelp.Append(wx.ID_ANY, _("Sources"))
-        self.menuIssues = self.menuHelp.Append(wx.ID_ANY, _("Issues"))
-        self.menuForum = self.menuHelp.Append(wx.ID_ANY, _("Forum"))
-        self.menuAbout = self.menuHelp.Append(wx.ID_ABOUT, _("About"))
-        self.menuBar.Append(self.menuHelp, _("Help"))
-
-        self.SetMenuBar(self.menuBar)
-
-        # Create Workbenchs
-        self.controlWorkbench = ControlWorkbench(self)
-        self.scanningWorkbench = ScanningWorkbench(self)
-        self.calibrationWorkbench = CalibrationWorkbench(self)
-
-        _choices = []
-        choices = profile.settings.getPossibleValues('workbench')
-        for i in choices:
-            _choices.append(_(i))
-        self.workbenchDict = dict(zip(_choices, choices))
-
-        for workbench in [self.controlWorkbench, self.calibrationWorkbench,
-                          self.scanningWorkbench]:
-            workbench.combo.Clear()
-            for i in choices:
-                workbench.combo.Append(_(i))
+    def load_workbenches(self):
+        self.toolbar = ToolbarConnection(self, self.on_connect, self.on_disconnect)
+        self.workbench = OrderedDict()
+        self.workbench['control'] = ControlWorkbench(self)
+        self.workbench['adjustment'] = AdjustmentWorkbench(self)
+        self.workbench['calibration'] = CalibrationWorkbench(self)
+        self.workbench['scanning'] = ScanningWorkbench(self, self.toolbar.toolbar_scan)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.controlWorkbench, 1, wx.ALL | wx.EXPAND)
-        sizer.Add(self.calibrationWorkbench, 1, wx.ALL | wx.EXPAND)
-        sizer.Add(self.scanningWorkbench, 1, wx.ALL | wx.EXPAND)
+        sizer.Add(self.toolbar, 0, wx.ALL | wx.EXPAND)
+        self.Bind(wx.EVT_COMBOBOX, self.on_combo_box_selected, self.toolbar.combo)
+
+        for workbench in self.workbench.values():
+            self.toolbar.combo.Append(workbench.name)
+            sizer.Add(workbench, 1, wx.ALL | wx.EXPAND)
+        name = self.workbench[profile.settings['workbench']].name
+        self.update_workbench(name)
         self.SetSizer(sizer)
 
-        # Events
-        self.Bind(wx.EVT_MENU, self.onLaunchWizard, self.menuLaunchWizard)
-        self.Bind(wx.EVT_MENU, self.onLoadModel, self.menuLoadModel)
-        self.Bind(wx.EVT_MENU, self.onSaveModel, self.menuSaveModel)
-        self.Bind(wx.EVT_MENU, self.onClearModel, self.menuClearModel)
-        self.Bind(wx.EVT_MENU, lambda e: self.onOpenProfile("calibration_settings"), self.menuOpenCalibrationProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onSaveProfile("calibration_settings"), self.menuSaveCalibrationProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onResetProfile("calibration_settings"), self.menuResetCalibrationProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onOpenProfile("scan_settings"), self.menuOpenScanProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onSaveProfile("scan_settings"), self.menuSaveScanProfile)
-        self.Bind(wx.EVT_MENU, lambda e: self.onResetProfile("scan_settings"), self.menuResetScanProfile)
-        self.Bind(wx.EVT_MENU, self.onExit, self.menuExit)
-        # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuBasicMode)
-        # self.Bind(wx.EVT_MENU, self.onModeChanged, self.menuAdvancedMode)
-        self.Bind(wx.EVT_MENU, self.onPreferences, self.menuPreferences)
-        self.Bind(wx.EVT_MENU, self.onMachineSettings, self.menuMachineSettings)
+    def load_menu(self):
+        self.menu_bar = wx.MenuBar()
 
-        self.Bind(wx.EVT_MENU, self.onControlPanelClicked, self.menuControlPanel)
-        self.Bind(wx.EVT_MENU, self.onControlVideoClicked, self.menuControlVideo)
-        self.Bind(wx.EVT_MENU, self.onCalibrationPanelClicked, self.menuCalibrationPanel)
-        self.Bind(wx.EVT_MENU, self.onCalibrationVideoClicked, self.menuCalibrationVideo)
-        self.Bind(wx.EVT_MENU, self.onScanningPanelClicked, self.menuScanningPanel)
-        self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningVideo)
-        self.Bind(wx.EVT_MENU, self.onScanningVideoSceneClicked, self.menuScanningScene)
+        # Menu File
+        self.menu_file = wx.Menu()
+        self.menu_launch_wizard = self.menu_file.Append(wx.NewId(), _("Launch Wizard"))
+        self.menu_file.AppendSeparator()
+        self.menu_load_model = self.menu_file.Append(wx.NewId(), _("Load Model"))
+        self.menu_save_model = self.menu_file.Append(wx.NewId(), _("Save Model"))
+        self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear Model"))
+        self.menu_file.AppendSeparator()
+        self.menu_open_scan_profile = self.menu_file.Append(
+            wx.NewId(), _("Open scan profile"), _("Opens scan profile .json"))
+        self.menu_save_scan_profile = self.menu_file.Append(
+            wx.NewId(), _("Save scan profile"), _("Saves scan profile .json"))
+        self.menu_reset_scan_profile = self.menu_file.Append(
+            wx.NewId(), _("Reset scan profile"), _("Resets scan default values"))
+        self.menu_file.AppendSeparator()
+        self.menu_open_calibration_profile = self.menu_file.Append(
+            wx.NewId(), _("Open calibration profile"), _("Opens calibration profile .json"))
+        self.menu_save_calibration_profile = self.menu_file.Append(
+            wx.NewId(), _("Save calibration profile"), _("Saves calibration profile .json"))
+        self.menu_reset_calibration_profile = self.menu_file.Append(
+            wx.NewId(), _("Reset calibration profile"), _("Resets calibration default values"))
+        self.menu_file.AppendSeparator()
+        self.menu_exit = self.menu_file.Append(wx.ID_EXIT, _("Exit"))
+        self.menu_bar.Append(self.menu_file, _("File"))
 
-        self.Bind(wx.EVT_MENU, self.onAbout, self.menuAbout)
-        self.Bind(wx.EVT_MENU, self.onWelcome, self.menuWelcome)
+        # Menu Edit
+        self.menu_edit = wx.Menu()
+        self.menu_preferences = self.menu_edit.Append(wx.NewId(), _("Preferences"))
+        # self.menu_machine_settings = self.menu_edit.Append(wx.NewId(), _("Machine settings"))
+        self.menu_bar.Append(self.menu_edit, _("Edit"))
+
+        # Menu View
+        self.menu_view = wx.Menu()
+        self.menu_control = wx.Menu()
+        self.menu_scanning = wx.Menu()
+        self.menu_scanning_panel = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Panel"))
+        self.menu_scanning_video = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Video"))
+        self.menu_scanning_scene = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Scene"))
+        self.menu_view.AppendMenu(wx.NewId(), _("Scanning"), self.menu_scanning)
+        self.menu_bar.Append(self.menu_view, _("View"))
+
+        # Menu Help
+        self.menu_help = wx.Menu()
+        self.menu_welcome = self.menu_help.Append(wx.ID_ANY, _("Welcome"))
         if profile.settings['check_for_updates']:
-            self.Bind(wx.EVT_MENU, self.onUpdates, self.menuUpdates)
+            self.menu_updates = self.menu_help.Append(wx.ID_ANY, _("Updates"))
+        self.menu_wiki = self.menu_help.Append(wx.ID_ANY, _("Wiki"))
+        self.menu_sources = self.menu_help.Append(wx.ID_ANY, _("Sources"))
+        self.menu_issues = self.menu_help.Append(wx.ID_ANY, _("Issues"))
+        self.menu_forum = self.menu_help.Append(wx.ID_ANY, _("Forum"))
+        self.menu_about = self.menu_help.Append(wx.ID_ABOUT, _("About"))
+        self.menu_bar.Append(self.menu_help, _("Help"))
+
+        self.SetMenuBar(self.menu_bar)
+
+        # Events
+        self.Bind(wx.EVT_MENU, self.on_launch_wizard, self.menu_launch_wizard)
+        self.Bind(wx.EVT_MENU, self.on_load_model, self.menu_load_model)
+        self.Bind(wx.EVT_MENU, self.on_save_model, self.menu_save_model)
+        self.Bind(wx.EVT_MENU, self.on_clear_model, self.menu_clear_model)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_open_profile("scan_settings"),
+                  self.menu_open_scan_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_save_profile("scan_settings"),
+                  self.menu_save_scan_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("scan_settings"),
+                  self.menu_reset_scan_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_open_profile("calibration_settings"),
+                  self.menu_open_calibration_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_save_profile("calibration_settings"),
+                  self.menu_save_calibration_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("calibration_settings"),
+                  self.menu_reset_calibration_profile)
+        self.Bind(wx.EVT_MENU, self.on_exit, self.menu_exit)
+
+        self.Bind(wx.EVT_MENU, self.on_preferences, self.menu_preferences)
+        # self.Bind(wx.EVT_MENU, self.on_machine_settings, self.menu_machine_settings)
+
+        self.Bind(wx.EVT_MENU, self.on_scanning_panel_clicked, self.menu_scanning_panel)
+        self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_video)
+        self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_scene)
+
+        self.Bind(wx.EVT_MENU, self.on_about, self.menu_about)
+        self.Bind(wx.EVT_MENU, self.on_welcome, self.menu_welcome)
+        if profile.settings['check_for_updates']:
+            self.Bind(wx.EVT_MENU, self.on_updates, self.menu_updates)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://github.com/bq/horus/wiki'), self.menuWiki)
+            'https://github.com/bq/horus/wiki'), self.menu_wiki)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://github.com/bq/horus'), self.menuSources)
+            'https://github.com/bq/horus'), self.menu_sources)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://github.com/bq/horus/issues'), self.menuIssues)
+            'https://github.com/bq/horus/issues'), self.menu_issues)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menuForum)
+            'https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menu_forum)
 
-        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.controlWorkbench.combo)
-        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected,
-                  self.calibrationWorkbench.combo)
-        self.Bind(wx.EVT_COMBOBOX, self.onComboBoxWorkbenchSelected, self.scanningWorkbench.combo)
+    def on_launch_wizard(self, event):
+        Wizard(self)
 
-        self.Bind(wx.EVT_CLOSE, self.onClose)
-
-        self.updateProfileToAllControls()
-
-        x, y, w, h = wx.Display(0).GetGeometry()
-        ws, hs = self.size
-
-        self.SetPosition((x + (w - ws) / 2., y + (h - hs) / 2.))
-
-    def onLaunchWizard(self, event):
-        self.controlWorkbench.videoView.stop()
-        self.calibrationWorkbench.videoView.stop()
-        self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
-        self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
-        self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
-        self.scanningWorkbench.videoView.stop()
-        self.controlWorkbench.Disable()
-        self.calibrationWorkbench.Disable()
-        self.scanningWorkbench.Disable()
-        wizard = Wizard(self)
-        self.controlWorkbench.Enable()
-        self.calibrationWorkbench.Enable()
-        self.scanningWorkbench.Enable()
-
-    def onLoadModel(self, event):
-        lastFile = os.path.split(profile.settings['last_file'])[0]
+    def on_load_model(self, event):
+        last_file = os.path.split(profile.settings['last_file'])[0]
         dlg = wx.FileDialog(
-            self, _("Open 3D model"), lastFile, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-        wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList,
-                                                      wildcardList, wildcardList.upper())
-        dlg.SetWildcard(wildcardFilter)
+            self, _("Open 3D model"), last_file, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        wildcard_list = ';'.join(map(lambda s: '*' + s, mesh_loader.load_supported_extensions()))
+        wildcard_filter = "All (%s)|%s;%s" % (wildcard_list, wildcard_list, wildcard_list.upper())
+        wildcard_list = ';'.join(map(lambda s: '*' + s, mesh_loader.load_supported_extensions()))
+        wildcard_filter += "|Mesh files (%s)|%s;%s" % (wildcard_list, wildcard_list,
+                                                       wildcard_list.upper())
+        dlg.SetWildcard(wildcard_filter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if filename is not None:
-                self.scanningWorkbench.sceneView.loadFile(filename)
-                self.appendLastFile(filename)
+                self.workbench['scanning'].scene_view.load_file(filename)
+                self.append_last_file(filename)
         dlg.Destroy()
 
-    def onSaveModel(self, event):
-        if self.scanningWorkbench.sceneView._object is None:
+    def on_save_model(self, event):
+        if self.workbench['scanning'].scene_view._object is None:
             return
         dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(
             profile.settings['last_file'])[0], style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        fileExtensions = meshLoader.saveSupportedExtensions()
-        wildcardList = ';'.join(map(lambda s: '*' + s, fileExtensions))
-        wildcardFilter = "Mesh files (%s)|%s;%s" % (
-            wildcardList, wildcardList, wildcardList.upper())
-        dlg.SetWildcard(wildcardFilter)
+        file_extensions = mesh_loader.save_supported_extensions()
+        wildcard_list = ';'.join(map(lambda s: '*' + s, file_extensions))
+        wildcard_filter = "Mesh files (%s)|%s;%s" % (wildcard_list, wildcard_list,
+                                                     wildcard_list.upper())
+        dlg.SetWildcard(wildcard_filter)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if not filename.endswith('.ply'):
-                if sys.isLinux():  # hack for linux, as for some reason the .ply is not appended.
+                if sys.is_linux():  # hack for linux, as for some reason the .ply is not appended.
                     filename += '.ply'
-            meshLoader.saveMesh(filename, self.scanningWorkbench.sceneView._object)
-            self.appendLastFile(filename)
+            mesh_loader.save_mesh(filename, self.workbench['scanning'].scene_view._object)
+            self.append_last_file(filename)
         dlg.Destroy()
 
-    def onClearModel(self, event):
-        if self.scanningWorkbench.sceneView._object is not None:
+    def on_clear_model(self, event):
+        if self.workbench['scanning'].scene_view._object is not None:
             dlg = wx.MessageDialog(
                 self,
                 _("Your current model will be erased.\nDo you really want to do it?"),
@@ -287,31 +223,31 @@ class MainWindow(wx.Frame):
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
-                self.scanningWorkbench.sceneView._clearScene()
+                self.workbench['scanning'].scene_view._clear_scene()
 
-    def onOpenProfile(self, category):
-        dlg = wx.FileDialog(self, _("Select profile file to load"), profile.getBasePath(),
-            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+    def on_open_profile(self, category):
+        dlg = wx.FileDialog(self, _("Select profile file to load"), profile.get_base_path(),
+                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
-            profileFile = dlg.GetPath()
-            profile.settings.loadSettings(profileFile, categories=[category])
-            self.updateProfileToAllControls()
+            profile_file = dlg.GetPath()
+            profile.settings.load_settings(profile_file, categories=[category])
+            self.update_profile_to_all_controls()
         dlg.Destroy()
 
-    def onSaveProfile(self, category):
-        dlg = wx.FileDialog(self, _("Select profile file to save"), profile.getBasePath(),
-            style=wx.FD_SAVE)
+    def on_save_profile(self, category):
+        dlg = wx.FileDialog(self, _("Select profile file to save"), profile.get_base_path(),
+                            style=wx.FD_SAVE)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
-            profileFile = dlg.GetPath()
-            if not profileFile.endswith('.json'):
-                if sys.isLinux():  # hack for linux, as for some reason the .json is not appended.
-                    profileFile += '.json'
-            profile.settings.saveSettings(profileFile, categories=[category])
+            profile_file = dlg.GetPath()
+            if not profile_file.endswith('.json'):
+                if sys.is_linux():  # hack for linux, as for some reason the .json is not appended.
+                    profile_file += '.json'
+            profile.settings.save_settings(profile_file, categories=[category])
         dlg.Destroy()
 
-    def onResetProfile(self, category):
+    def on_reset_profile(self, category):
         dlg = wx.MessageDialog(
             self,
             _("This will reset all profile settings to defaults.\n"
@@ -321,13 +257,13 @@ class MainWindow(wx.Frame):
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
-            profile.settings.resetToDefault(categories=[category])
-            self.updateProfileToAllControls()
+            profile.settings.reset_to_default(categories=[category])
+            self.update_profile_to_all_controls()
 
-    def onExit(self, event):
+    def on_exit(self, event):
         self.Close(True)
 
-    def onClose(self, event):
+    def on_close(self, event):
         try:
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
@@ -335,94 +271,54 @@ class MainWindow(wx.Frame):
             if ciclop_scan.is_scanning:
                 ciclop_scan.stop()
                 time.sleep(0.5)
-            self.controlWorkbench.videoView.stop()
-            self.calibrationWorkbench.videoView.stop()
-            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
-            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
-            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
-            self.scanningWorkbench.videoView.stop()
         except:
             pass
         event.Skip()
 
-    def appendLastFile(self, lastFile):
-        if lastFile in self.lastFiles:
-            self.lastFiles.remove(lastFile)
-        self.lastFiles.append(lastFile)
-        if len(self.lastFiles) > 4:
-            self.lastFiles = self.lastFiles[1:5]
-        profile.settings['last_file'] = lastFile
-        profile.settings['last_files'] = self.lastFiles
+    def enable_gui(self, status):
+        if status:
+            self.toolbar.toolbar.Enable()
+            self.toolbar.combo.Enable()
+            for i in xrange(self.menu_bar.GetMenuCount()):
+                self.menu_bar.EnableTop(i, True)
+        else:
+            self.toolbar.toolbar.Disable()
+            self.toolbar.combo.Disable()
+            for i in xrange(self.menu_bar.GetMenuCount()):
+                self.menu_bar.EnableTop(i, False)
 
-    def onModeChanged(self, event):
-        # profile.settings['basic_mode'] = self.menuBasicMode.IsChecked()
-        self.controlWorkbench.updateProfileToAllControls()
-        self.calibrationWorkbench.updateProfileToAllControls()
-        self.scanningWorkbench.updateProfileToAllControls()
-        self.Layout()
+    def append_last_file(self, last_file):
+        if last_file in self.last_files:
+            self.last_files.remove(last_file)
+        self.last_files.append(last_file)
+        if len(self.last_files) > 4:
+            self.last_files = self.last_files[1:5]
+        profile.settings['last_file'] = last_file
+        profile.settings['last_files'] = self.last_files
 
-    def onPreferences(self, event):
-        if sys.isWindows():
-            ciclop_scan.stop()
-            laser_triangulation.cancel()
-            platform_extrinsics.cancel()
-            self.controlWorkbench.videoView.stop()
-            self.calibrationWorkbench.videoView.stop()
-            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
-            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
-            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
-            self.scanningWorkbench.videoView.stop()
-            driver.board.set_unplug_callback(None)
-            driver.camera.set_unplug_callback(None)
-            self.controlWorkbench.updateStatus(False)
-            self.calibrationWorkbench.updateStatus(False)
-            self.scanningWorkbench.updateStatus(False)
+    def on_preferences(self, event):
+        if sys.is_windows():
             driver.disconnect()
-            waitCursor = wx.BusyCursor()
 
-        prefDialog = PreferencesDialog()
-        prefDialog.ShowModal()
+        preferences = PreferencesDialog()
+        preferences.ShowModal()
 
-        self.updateDriverProfile()
-        self.controlWorkbench.updateCallbacks()
-        self.calibrationWorkbench.updateCallbacks()
-        self.scanningWorkbench.updateCallbacks()
-
-    def onMachineSettings(self, event):
-        if sys.isWindows():
-            ciclop_scan.stop()
-            laser_triangulation.cancel()
-            platform_extrinsics.cancel()
-            self.controlWorkbench.videoView.stop()
-            self.calibrationWorkbench.videoView.stop()
-            self.calibrationWorkbench.cameraIntrinsicsMainPage.videoView.stop()
-            self.calibrationWorkbench.laserTriangulationMainPage.videoView.stop()
-            self.calibrationWorkbench.platformExtrinsicsMainPage.videoView.stop()
-            self.scanningWorkbench.videoView.stop()
-            driver.board.set_unplug_callback(None)
-            driver.camera.set_unplug_callback(None)
-            self.controlWorkbench.updateStatus(False)
-            self.calibrationWorkbench.updateStatus(False)
-            self.scanningWorkbench.updateStatus(False)
+    """def on_machine_settings(self, event):
+        if sys.is_windows():
             driver.disconnect()
-            waitCursor = wx.BusyCursor()
 
-        MachineDialog = MachineSettingsDialog(self)
-        ret = MachineDialog.ShowModal()
+        machine_settings = MachineSettingsDialog(self)
+        ret = machine_settings.ShowModal()
 
         if ret == wx.ID_OK:
-            try:  # TODO: Fix this. If not in the Scanning workbench, _drawMachine() fails.
-                self.scanningWorkbench.sceneView._drawMachine()
+            try:  # TODO: Fix this. If not in the Scanning workbench, _draw_machine() fails.
+                self.workbench['scanning'].scene_view._draw_machine()
             except:
                 pass
-            profile.settings.saveSettings(categories=["machine_settings"])
-            self.scanningWorkbench.controls.panels["point_cloud_roi"].updateProfile()
+            profile.settings.save_settings(categories=["machine_settings"])
+            self.workbench['scanning'].controls.panels["point_cloud_roi"].update_profile()"""
 
-        self.controlWorkbench.updateCallbacks()
-        self.calibrationWorkbench.updateCallbacks()
-        self.scanningWorkbench.updateCallbacks()
-
-    def onMenuViewClicked(self, key, checked, panel):
+    def on_menu_view_clicked(self, key, checked, panel):
         profile.settings[key] = checked
         if checked:
             panel.Show()
@@ -432,111 +328,111 @@ class MainWindow(wx.Frame):
         panel.Layout()
         self.Layout()
 
-    def onControlPanelClicked(self, event):
-        self.onMenuViewClicked('view_control_panel',
-                               self.menuControlPanel.IsChecked(),
-                               self.controlWorkbench.scrollPanel)
+    def on_scanning_panel_clicked(self, event):
+        self.on_menu_view_clicked('view_scanning_panel',
+                                  self.menu_scanning_panel.IsChecked(),
+                                  self.workbench['scanning'].scroll_panel)
 
-    def onControlVideoClicked(self, event):
-        self.onMenuViewClicked('view_control_video',
-                               self.menuControlVideo.IsChecked(),
-                               self.controlWorkbench.videoView)
-
-    def onCalibrationPanelClicked(self, event):
-        self.onMenuViewClicked('view_calibration_panel',
-                               self.menuCalibrationPanel.IsChecked(),
-                               self.calibrationWorkbench.scrollPanel)
-
-    def onCalibrationVideoClicked(self, event):
-        self.onMenuViewClicked('view_calibration_video',
-                               self.menuCalibrationVideo.IsChecked(),
-                               self.calibrationWorkbench.videoView)
-
-    def onScanningPanelClicked(self, event):
-        self.onMenuViewClicked('view_scanning_panel',
-                               self.menuScanningPanel.IsChecked(),
-                               self.scanningWorkbench.scrollPanel)
-
-    def onScanningVideoSceneClicked(self, event):
-        checkedVideo = self.menuScanningVideo.IsChecked()
-        checkedScene = self.menuScanningScene.IsChecked()
-        profile.settings['view_scanning_video'] = checkedVideo
-        profile.settings['view_scanning_scene'] = checkedScene
-        self.scanningWorkbench.splitterWindow.Unsplit()
-        if checkedVideo:
-            self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(
-                self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
-            if checkedScene:
-                self.scanningWorkbench.scenePanel.Show()
+    def on_scanning_video_scene_clicked(self, event):
+        checked_video = self.menu_scanning_video.IsChecked()
+        checked_scene = self.menu_scanning_scene.IsChecked()
+        profile.settings['view_scanning_video'] = checked_video
+        profile.settings['view_scanning_scene'] = checked_scene
+        self.workbench['scanning'].pages_collection['view_page'].Unsplit()
+        if checked_video:
+            self.workbench['scanning'].video_view.Show()
+            self.workbench['scanning'].pages_collection['view_page'].SplitVertically(
+                self.workbench['scanning'].video_view, self.workbench['scanning'].scene_panel)
+            if checked_scene:
+                self.workbench['scanning'].scene_panel.Show()
             else:
-                self.scanningWorkbench.scenePanel.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scene_panel.Hide()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         else:
-            self.scanningWorkbench.videoView.Hide()
-            if checkedScene:
-                self.scanningWorkbench.scenePanel.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(
-                    self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
-                self.scanningWorkbench.splitterWindow.Unsplit()
+            self.workbench['scanning'].video_view.Hide()
+            if checked_scene:
+                self.workbench['scanning'].scene_panel.Show()
+                self.workbench['scanning'].pages_collection['view_page'].SplitVertically(
+                    self.workbench['scanning'].scene_panel, self.workbench['scanning'].video_view)
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
             else:
-                self.scanningWorkbench.scenePanel.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scene_panel.Hide()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
 
-        self.scanningWorkbench.splitterWindow.Layout()
-        self.scanningWorkbench.Layout()
+        self.workbench['scanning'].pages_collection['view_page'].Layout()
+        self.workbench['scanning'].Layout()
         self.Layout()
 
-    def onComboBoxWorkbenchSelected(self, event):
-        if _(profile.settings['workbench']) != event.GetEventObject().GetValue():
-            profile.settings['workbench'] = self.workbenchDict[event.GetEventObject().GetValue()]
-            self.workbenchUpdate()
+    def on_connect(self):
+        for workbench in self.workbench.values():
+            workbench.enable_content()
+        self.workbench[profile.settings['workbench']].on_connect()
 
-    def onAbout(self, event):
+    def on_disconnect(self):
+        for workbench in self.workbench.values():
+            workbench.disable_content()
+        self.workbench[profile.settings['workbench']].on_disconnect()
+
+    def on_combo_box_selected(self, event):
+        self.update_workbench(event.GetEventObject().GetValue())
+
+    def update_workbench(self, name):
+        self.wait_cursor = wx.BusyCursor()
+        self.toolbar.combo.SetValue(name)
+        for key, wb in self.workbench.iteritems():
+            if wb.name == name:
+                wb.Show()
+                profile.settings['workbench'] = key
+            else:
+                wb.Hide()
+        is_scan = profile.settings['workbench'] == 'scanning'
+        self.menu_file.Enable(self.menu_load_model.GetId(), is_scan)
+        self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)
+        self.menu_file.Enable(self.menu_clear_model.GetId(), is_scan)
+        self.toolbar.scanning_mode(is_scan)
+        self.Layout()
+
+        del self.wait_cursor
+        gc.collect()
+
+    def on_about(self, event):
         info = wx.AboutDialogInfo()
-        icon = wx.Icon(resources.getPathForImage("horus.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO)
         info.SetIcon(icon)
         info.SetName(u'Horus')
-        info.SetVersion(version.getVersion())
-        techDescription = _('Horus is an Open Source 3D Scanner manager')
-        techDescription += '\n' + 'Version: ' + version.getVersion()
-        build = version.getBuild()
-        if build is not '':
-            techDescription += '\n' + 'Build: ' + version.getBuild()
-        github = version.getGitHub()
-        if github is not '':
-            techDescription += '\n' + 'GitHub: ' + version.getGitHub()
-        info.SetDescription(techDescription)
+        info.SetVersion(__version__)
+        tech_description = _('Horus is an Open Source 3D Scanner manager')
+        tech_description += '\nVersion: ' + __version__
+        tech_description += '\nBuild: ' + __build__
+        tech_description += '\nGitHub: ' + __github__
+        info.SetDescription(tech_description)
         info.SetCopyright(u'(C) 2014-2015 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')
-        info.SetLicence("""Horus is free software; you can redistribute
-it and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
-
-Horus is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License for more details. You should have
-received a copy of the GNU General Public License along with File Hunter;
-if not, write to the Free Software Foundation, Inc., 59 Temple Place,
-Suite 330, Boston, MA  02111-1307  USA""")
+        info.SetLicence("Horus is free software; you can redistribute it and/or modify it\n"
+                        "under the terms of the GNU General Public License as published by\n"
+                        "the Free Software Foundation; either version 2 of the License,\n"
+                        "or (at your option) any later version.\n"
+                        "Horus is distributed in the hope that it will be useful,\n"
+                        "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+                        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+                        "See the GNU General Public License for more details. You should have\n"
+                        "received a copy of the GNU General Public License along with\n"
+                        "File Hunter; if not, write to the Free Software Foundation,\n"
+                        "Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA")
         info.AddDeveloper(u'Jesús Arroyo, Irene Sanz, Jorge Robles')
         info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
         info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
-        info.AddTranslator(
-            u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, '
-            'Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, '
-            'Meike Schirmeister')
-
+        info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, '
+                           'Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, '
+                           'Meike Schirmeister')
         wx.AboutBox(info)
 
-    def onWelcome(self, event):
-        WelcomeWindow(self)
+    def on_welcome(self, event):
+        WelcomeDialog(self)
 
-    def onUpdates(self, event):
+    def on_updates(self, event):
         if profile.settings['check_for_updates']:
-            if version.checkForUpdates():
+            if version.check_for_updates():
                 VersionWindow(self)
             else:
                 dlg = wx.MessageDialog(self, _("You are running the latest version of Horus!"), _(
@@ -544,190 +440,81 @@ Suite 330, Boston, MA  02111-1307  USA""")
                 dlg.ShowModal()
                 dlg.Destroy()
 
-    def onBoardUnplugged(self):
-        self._onDeviceUnplugged(
+    def on_board_unplugged(self):
+        self._on_device_unplugged(
             _("Board unplugged"),
             _("Board has been unplugged. Please, plug it in and press connect"))
 
-    def onCameraUnplugged(self):
-        self._onDeviceUnplugged(_("Camera unplugged"), _(
-            "Camera has been unplugged. Please, plug it in and press connect"))
+    def on_camera_unplugged(self):
+        self._on_device_unplugged(
+            _("Camera unplugged"),
+            _("Camera has been unplugged. Please, plug it in and press connect"))
 
-    def _onDeviceUnplugged(self, title="", description=""):
+    def _on_device_unplugged(self, title="", description=""):
         ciclop_scan.stop()
         laser_triangulation.cancel()
         platform_extrinsics.cancel()
-        self.controlWorkbench.updateStatus(False)
-        self.calibrationWorkbench.updateStatus(False)
-        self.scanningWorkbench.updateStatus(False)
+        self.workbench['control'].updateStatus(False)
+        self.workbench['adjustment'].updateStatus(False)
+        self.workbench['calibration'].updateStatus(False)
+        self.workbench['scanning'].updateStatus(False)
         driver.disconnect()
         dlg = wx.MessageDialog(self, description, title, wx.OK | wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
 
-    def updateProfileToAllControls(self):
-        if profile.settings['view_control_panel']:
-            self.controlWorkbench.scrollPanel.Show()
-            self.menuControlPanel.Check(True)
-        else:
-            self.controlWorkbench.scrollPanel.Hide()
-            self.menuControlPanel.Check(False)
-
-        if profile.settings['view_control_video']:
-            self.controlWorkbench.videoView.Show()
-            self.menuControlVideo.Check(True)
-        else:
-            self.controlWorkbench.videoView.Hide()
-            self.menuControlVideo.Check(False)
-
-        if profile.settings['view_calibration_panel']:
-            self.calibrationWorkbench.scrollPanel.Show()
-            self.menuCalibrationPanel.Check(True)
-        else:
-            self.calibrationWorkbench.scrollPanel.Hide()
-            self.menuCalibrationPanel.Check(False)
-
-        if profile.settings['view_calibration_video']:
-            self.calibrationWorkbench.videoView.Show()
-            self.menuCalibrationVideo.Check(True)
-        else:
-            self.calibrationWorkbench.videoView.Hide()
-            self.menuCalibrationVideo.Check(False)
+    def update_profile_to_all_controls(self):
+        self.workbench[profile.settings['workbench']].update_controls()
 
         if profile.settings['view_scanning_panel']:
-            self.scanningWorkbench.scrollPanel.Show()
-            self.menuScanningPanel.Check(True)
+            self.workbench['scanning'].scroll_panel.Show()
+            self.menu_scanning_panel.Check(True)
         else:
-            self.scanningWorkbench.scrollPanel.Hide()
-            self.menuScanningPanel.Check(False)
+            self.workbench['scanning'].scroll_panel.Hide()
+            self.menu_scanning_panel.Check(False)
 
-        checkedVideo = profile.settings['view_scanning_video']
-        checkedScene = profile.settings['view_scanning_scene']
+        checked_video = profile.settings['view_scanning_video']
+        checked_scene = profile.settings['view_scanning_scene']
 
-        self.menuScanningVideo.Check(checkedVideo)
-        self.menuScanningScene.Check(checkedScene)
+        self.menu_scanning_video.Check(checked_video)
+        self.menu_scanning_scene.Check(checked_scene)
 
-        self.scanningWorkbench.splitterWindow.Unsplit()
-        if checkedVideo:
-            self.scanningWorkbench.videoView.Show()
-            self.scanningWorkbench.splitterWindow.SplitVertically(
-                self.scanningWorkbench.videoView, self.scanningWorkbench.scenePanel)
-            if checkedScene:
-                self.scanningWorkbench.scenePanel.Show()
+        self.workbench['scanning'].pages_collection['view_page'].Unsplit()
+        if checked_video:
+            self.workbench['scanning'].video_view.Show()
+            self.workbench['scanning'].pages_collection['view_page'].SplitVertically(
+                self.workbench['scanning'].video_view, self.workbench['scanning'].scene_panel)
+            if checked_scene:
+                self.workbench['scanning'].scene_panel.Show()
             else:
-                self.scanningWorkbench.scenePanel.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scene_panel.Hide()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         else:
-            self.scanningWorkbench.videoView.Hide()
-            if checkedScene:
-                self.scanningWorkbench.scenePanel.Show()
-                self.scanningWorkbench.splitterWindow.SplitVertically(
-                    self.scanningWorkbench.scenePanel, self.scanningWorkbench.videoView)
-                self.scanningWorkbench.splitterWindow.Unsplit()
+            self.workbench['scanning'].video_view.Hide()
+            if checked_scene:
+                self.workbench['scanning'].scene_panel.Show()
+                self.workbench['scanning'].pages_collection['view_page'].SplitVertically(
+                    self.workbench['scanning'].scene_panel, self.workbench['scanning'].video_view)
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
             else:
-                self.scanningWorkbench.scenePanel.Hide()
-                self.scanningWorkbench.splitterWindow.Unsplit()
+                self.workbench['scanning'].scene_panel.Hide()
+                self.workbench['scanning'].pages_collection['view_page'].Unsplit()
 
-        self.updateDriverProfile()
-        self.updateProfile()
+    def initialize_driver(self):
+        # Serial name
+        serial_list = driver.board.get_serial_list()
+        current_serial = profile.settings['serial_name']
+        if len(serial_list) > 0:
+            if current_serial not in serial_list:
+                profile.settings['serial_name'] = serial_list[0]
+        # Video id
+        video_list = driver.camera.get_video_list()
+        current_video_id = profile.settings['camera_id']
+        if len(video_list) > 0:
+            if current_video_id not in video_list:
+                profile.settings['camera_id'] = unicode(video_list[0])
 
-        self.workbenchUpdate()
-        self.Layout()
-
-    def updateDriverProfile(self):
         driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
         driver.board.serial_name = profile.settings['serial_name']
         driver.board.baud_rate = profile.settings['baud_rate']
         driver.board.motor_invert(profile.settings['invert_motor'])
-
-    def updateProfile(self):
-        ciclop_scan.capture_texture = profile.settings['capture_texture']
-        use_laser = profile.settings['use_laser']
-        ciclop_scan.set_use_left_laser(use_laser == 'Left' or use_laser == 'Both')
-        ciclop_scan.set_use_right_laser(use_laser == 'Right' or use_laser == 'Both')
-        ciclop_scan.motor_step = profile.settings['motor_step_scanning']
-        ciclop_scan.motor_speed = profile.settings['motor_speed_scanning']
-        ciclop_scan.motor_acceleration = profile.settings['motor_acceleration_scanning']
-        ciclop_scan.color = struct.unpack(
-            'BBB', profile.settings['point_cloud_color'].decode('hex'))
-
-        image_capture.pattern_mode.brightness = profile.settings['brightness_pattern']
-        image_capture.pattern_mode.contrast = profile.settings['contrast_pattern']
-        image_capture.pattern_mode.saturation = profile.settings['saturation_pattern']
-        image_capture.pattern_mode.exposure = profile.settings['exposure_pattern']
-        image_capture.laser_mode.brightness = profile.settings['brightness_laser']
-        image_capture.laser_mode.contrast = profile.settings['contrast_laser']
-        image_capture.laser_mode.saturation = profile.settings['saturation_laser']
-        image_capture.laser_mode.exposure = profile.settings['exposure_laser']
-        image_capture.texture_mode.brightness = profile.settings['brightness_texture']
-        image_capture.texture_mode.contrast = profile.settings['contrast_texture']
-        image_capture.texture_mode.saturation = profile.settings['saturation_texture']
-        image_capture.texture_mode.exposure = profile.settings['exposure_texture']
-        image_capture.use_distortion = profile.settings['use_distortion']
-
-        laser_segmentation.red_channel = profile.settings['red_channel']
-        laser_segmentation.open_enable = profile.settings['open_enable']
-        laser_segmentation.open_value = profile.settings['open_value']
-        laser_segmentation.threshold_enable = profile.settings['threshold_enable']
-        laser_segmentation.threshold_value = profile.settings['threshold_value']
-
-        current_video.set_roi_view(profile.settings['roi_view'])
-        point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
-        point_cloud_roi.set_height(profile.settings['roi_height'])
-
-        pattern.rows = profile.settings['pattern_rows']
-        pattern.columns = profile.settings['pattern_columns']
-        pattern.square_width = profile.settings['pattern_square_width']
-        pattern.distance = profile.settings['pattern_origin_distance']
-
-        self.updateCalibrationProfile()
-
-    def updateCalibrationProfile(self):
-        resolution = profile.settings['resolution'].split('x')
-        driver.camera.set_frame_rate(int(profile.settings['framerate']))
-        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
-        calibration_data.camera_matrix = profile.settings['camera_matrix']
-        calibration_data.distortion_vector = profile.settings['distortion_vector']
-        calibration_data.laser_planes[0].distance = profile.settings['distance_left']
-        calibration_data.laser_planes[0].normal = profile.settings['normal_left']
-        calibration_data.laser_planes[1].distance = profile.settings['distance_right']
-        calibration_data.laser_planes[1].normal = profile.settings['normal_right']
-        calibration_data.platform_rotation = profile.settings['rotation_matrix']
-        calibration_data.platform_translation = profile.settings['translation_vector']
-
-    def updateDriver(self):
-        resolution = profile.settings['resolution'].split('x')
-        driver.camera.set_resolution(int(resolution[0]), int(resolution[1]))
-
-    def workbenchUpdate(self, layout=True):
-        currentWorkbench = profile.settings['workbench']
-
-        wb = {'Control workbench': self.controlWorkbench,
-              'Calibration workbench': self.calibrationWorkbench,
-              'Scanning workbench': self.scanningWorkbench}
-
-        waitCursor = wx.BusyCursor()
-
-        self.updateDriver()
-
-        self.menuFile.Enable(self.menuLoadModel.GetId(), currentWorkbench == 'Scanning workbench')
-        self.menuFile.Enable(self.menuSaveModel.GetId(), currentWorkbench == 'Scanning workbench')
-        self.menuFile.Enable(self.menuClearModel.GetId(), currentWorkbench == 'Scanning workbench')
-
-        wb[currentWorkbench].updateProfileToAllControls()
-        wb[currentWorkbench].combo.SetValue(_(currentWorkbench))
-
-        if layout:
-            for key in wb:
-                if wb[key] is not None:
-                    if key == currentWorkbench:
-                        wb[key].Hide()
-                        wb[key].Show()
-                    else:
-                        wb[key].Hide()
-
-            self.Layout()
-
-        del waitCursor
-
-        gc.collect()

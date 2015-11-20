@@ -63,7 +63,7 @@ class MovingCalibration(Calibration):
                 time.sleep(0.2)
 
             # Move to origin
-            self.driver.board.motor_relative(90-angle)
+            self.driver.board.motor_relative(90 - angle)
             self.driver.board.motor_move()
 
             self.driver.board.lasers_off()
