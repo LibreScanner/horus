@@ -66,9 +66,6 @@ class ScanningWorkbench(Workbench):
     def on_open(self):
         self.video_view.play()
         self.point_cloud_timer.Stop()
-        self._enable_tool_scan(self.play_tool, True)
-        self._enable_tool_scan(self.stop_tool, False)
-        self._enable_tool_scan(self.pause_tool, False)
 
     def on_close(self):
         try:
@@ -81,6 +78,10 @@ class ScanningWorkbench(Workbench):
             pass
 
     def setup_engine(self):
+        self._enable_tool_scan(self.play_tool, True)
+        self._enable_tool_scan(self.stop_tool, False)
+        self._enable_tool_scan(self.pause_tool, False)
+
         resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))

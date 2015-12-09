@@ -11,7 +11,7 @@ from horus.gui.engine import driver, image_capture
 from horus.gui.util.video_view import VideoView
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.control.panels import CameraControl, LaserControl, \
-    LDRControl, MotorControl, GcodeControl
+    MotorControl, GcodeControl
 
 
 class ControlWorkbench(Workbench):
@@ -22,7 +22,7 @@ class ControlWorkbench(Workbench):
     def add_panels(self):
         self.add_panel('camera_control', CameraControl)
         self.add_panel('laser_control', LaserControl)
-        self.add_panel('ldr_value', LDRControl)
+        # self.add_panel('ldr_value', LDRControl)
         self.add_panel('motor_control', MotorControl)
         self.add_panel('gcode_control', GcodeControl)
 

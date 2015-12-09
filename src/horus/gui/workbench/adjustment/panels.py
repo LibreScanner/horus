@@ -131,7 +131,7 @@ class ScanSegmentationPanel(ExpandablePanel):
         ExpandablePanel.__init__(self, parent, _("Scan segmentation"))
 
     def add_controls(self):
-        self.add_control('red_channel_scanning', ComboBox)
+        # self.add_control('red_channel_scanning', ComboBox)
         self.add_control('open_value_scanning', Slider)
         self.add_control(
             'open_enable_scanning',
@@ -146,7 +146,7 @@ class ScanSegmentationPanel(ExpandablePanel):
             "It removes a pixel if its intensity is less than the threshold value")
 
     def update_callbacks(self):
-        self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
+        # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
         self.update_callback('open_value_scanning', laser_segmentation.set_open_value)
         self.update_callback('open_enable_scanning', laser_segmentation.set_open_enable)
         self.update_callback('threshold_value_scanning', laser_segmentation.set_threshold_value)
@@ -285,7 +285,7 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         ExpandablePanel.__init__(self, parent, _("Calibration segmentation"))
 
     def add_controls(self):
-        self.add_control('red_channel_calibration', ComboBox)
+        # self.add_control('red_channel_calibration', ComboBox)
         self.add_control('open_value_calibration', Slider)
         self.add_control(
             'open_enable_calibration',
@@ -300,7 +300,7 @@ class CalibrationSegmentationPanel(ExpandablePanel):
             "It removes a pixel if its intensity is less than the threshold value")
 
     def update_callbacks(self):
-        self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
+        # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
         self.update_callback('open_value_calibration', laser_segmentation.set_open_value)
         self.update_callback('open_enable_calibration', laser_segmentation.set_open_enable)
         self.update_callback('threshold_value_calibration', laser_segmentation.set_threshold_value)

@@ -52,6 +52,11 @@ class CalibrationWorkbench(Workbench):
         self.pages_collection['laser_triangulation_pages'].Hide()
         self.pages_collection['platform_extrinsics_pages'].Hide()
 
+        self.pages_collection['camera_intrinsics_pages'].Disable()
+        self.pages_collection['scanner_autocheck_pages'].Disable()
+        self.pages_collection['laser_triangulation_pages'].Disable()
+        self.pages_collection['platform_extrinsics_pages'].Disable()
+
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
 
@@ -60,6 +65,16 @@ class CalibrationWorkbench(Workbench):
         return image_detection.detect_pattern(image)
 
     def on_open(self):
+        if driver.is_connected:
+            self.pages_collection['camera_intrinsics_pages'].Enable()
+            self.pages_collection['scanner_autocheck_pages'].Enable()
+            self.pages_collection['laser_triangulation_pages'].Enable()
+            self.pages_collection['platform_extrinsics_pages'].Enable()
+        else:
+            self.pages_collection['camera_intrinsics_pages'].Disable()
+            self.pages_collection['scanner_autocheck_pages'].Disable()
+            self.pages_collection['laser_triangulation_pages'].Disable()
+            self.pages_collection['platform_extrinsics_pages'].Disable()
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
 
