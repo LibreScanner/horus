@@ -63,11 +63,11 @@ class ImageCapture(object):
 
         self.stream = True
         # TODO: custom flush for each OS
-        self._flush_texture = 3
-        self._flush_laser = 2
+        self._flush_texture = 2
+        self._flush_laser = 1
         self._flush_pattern = 1
         self._flush_stream_texture = 0
-        self._flush_stream_laser = 2
+        self._flush_stream_laser = 1
         self._flush_stream_pattern = 0
         self._mode = self.pattern_mode
         self._mode.selected = True
@@ -114,6 +114,8 @@ class ImageCapture(object):
         image = self.capture_image(flush=flush)
         return image
 
+    # TODO: slow with laser
+
     def _capture_laser(self, index):
         self.set_mode(self.laser_mode)
         self.driver.board.lasers_off()
@@ -121,7 +123,7 @@ class ImageCapture(object):
         if self.stream:
             flush = self._flush_stream_laser
         else:
-            flush = self._flush_laser + 1 - index  # Optimization hack
+            flush = self._flush_laser
         return self.capture_image(flush=flush)
 
     def capture_laser(self, index):

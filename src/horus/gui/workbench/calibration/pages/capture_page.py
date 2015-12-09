@@ -19,8 +19,8 @@ class CapturePage(Page):
 
     def __init__(self, parent, start_callback=None):
         Page.__init__(self, parent,
-                      title=_("Camera intrinsics"),
-                      desc=_("Press space bar to perform captures"),
+                      title=_("Camera intrinsics (advanced)"),
+                      desc=_(""),
                       left=_("Reset"),
                       right=_("Start"),
                       button_left_callback=self.initialize,

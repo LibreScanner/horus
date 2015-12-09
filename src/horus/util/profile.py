@@ -14,7 +14,6 @@ import collections
 import json
 import types
 import numpy as np
-from ast import literal_eval
 
 if sys.version_info[0] < 3:
     import ConfigParser
@@ -250,7 +249,7 @@ class Settings(collections.MutableMapping):
                     int, 60, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_scanning', _('Exposure'), 'scan_settings',
-                    int, 6, min_value=1, max_value=512))
+                    int, 4, min_value=1, max_value=512))
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'scan_settings', bool, True))
@@ -261,13 +260,13 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('open_enable_scanning', _('Enable open'), 'scan_settings', bool, True))
         self._add_setting(
-            Setting('open_value_scanning', _('Open value'), 'scan_settings',
+            Setting('open_value_scanning', _('Open'), 'scan_settings',
                     int, 2, min_value=1, max_value=10))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'scan_settings', bool, True))
         self._add_setting(
-            Setting('threshold_value_scanning', _('Threshold value'), 'scan_settings',
+            Setting('threshold_value_scanning', _('Threshold'), 'scan_settings',
                     int, 6, min_value=0, max_value=255))
 
         # Hack to translate combo boxes:
@@ -285,23 +284,23 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_pattern_calibration', _('Saturation'), 'scan_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_pattern_calibration', _('Exposure'), 'scan_settings',
                     int, 16, min_value=1, max_value=512))
 
         self._add_setting(
             Setting('brightness_laser_calibration', _('Brightness'), 'scan_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 0, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_laser_calibration', _('Contrast'), 'scan_settings',
-                    int, 20, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_calibration', _('Saturation'), 'scan_settings',
-                    int, 60, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_calibration', _('Exposure'), 'scan_settings',
-                    int, 6, min_value=1, max_value=512))
+                    int, 4, min_value=1, max_value=512))
         self._add_setting(
             Setting('remove_background_calibration', _('Remove background'),
                     'scan_settings', bool, True))
@@ -312,14 +311,14 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('open_enable_calibration', _('Enable open'), 'scan_settings', bool, True))
         self._add_setting(
-            Setting('open_value_calibration', _('Open value'), 'scan_settings',
+            Setting('open_value_calibration', _('Open'), 'scan_settings',
                     int, 2, min_value=1, max_value=10))
         self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'scan_settings', bool, True))
         self._add_setting(
-            Setting('threshold_value_calibration', _('Threshold value'), 'scan_settings',
-                    int, 6, min_value=0, max_value=255))
+            Setting('threshold_value_calibration', _('Threshold'), 'scan_settings',
+                    int, 50, min_value=0, max_value=255))
 
         self._add_setting(
             Setting('current_video_mode_adjustment', u'Texture', 'scan_settings',

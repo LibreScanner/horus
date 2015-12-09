@@ -526,7 +526,7 @@ class FloatBox(wx.TextCtrl):
 
     def SetValue(self, value):
         self.old_value = value
-        wx.TextCtrl.SetValue(self, str(value))
+        wx.TextCtrl.SetValue(self, str(round(value, 4)))
 
     def GetValue(self):
         try:

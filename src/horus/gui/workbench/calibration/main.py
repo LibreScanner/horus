@@ -7,7 +7,8 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
-from horus.gui.engine import driver, pattern, calibration_data, image_capture, image_detection
+from horus.gui.engine import driver, pattern, calibration_data, image_capture, image_detection, \
+    laser_segmentation
 from horus.gui.util.video_view import VideoView
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.calibration.panels import PatternSettings, CameraIntrinsics, \
@@ -98,7 +99,16 @@ class CalibrationWorkbench(Workbench):
         pattern_mode.set_contrast(profile.settings['contrast_pattern_calibration'])
         pattern_mode.set_saturation(profile.settings['saturation_pattern_calibration'])
         pattern_mode.set_exposure(profile.settings['exposure_pattern_calibration'])
+        image_capture.laser_mode.brightness = profile.settings['brightness_laser_calibration']
+        image_capture.laser_mode.contrast = profile.settings['contrast_laser_calibration']
+        image_capture.laser_mode.saturation = profile.settings['saturation_laser_calibration']
+        image_capture.laser_mode.exposure = profile.settings['exposure_laser_calibration']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
+        laser_segmentation.red_channel = profile.settings['red_channel_calibration']
+        laser_segmentation.open_enable = profile.settings['open_enable_calibration']
+        laser_segmentation.open_value = profile.settings['open_value_calibration']
+        laser_segmentation.threshold_enable = profile.settings['threshold_enable_calibration']
+        laser_segmentation.threshold_value = profile.settings['threshold_value_calibration']
         pattern.rows = profile.settings['pattern_rows']
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']
@@ -133,6 +143,7 @@ class CalibrationWorkbench(Workbench):
         self.scroll_panel.Disable()
 
     def update_panels(self):
+        self.update_controls()
         self.GetParent().enable_gui(True)
         self.scroll_panel.Enable()
 
