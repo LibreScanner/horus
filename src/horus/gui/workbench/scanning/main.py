@@ -155,21 +155,32 @@ class ScanningWorkbench(Workbench):
             ciclop_scan.resume()
             self.point_cloud_timer.Start(milliseconds=50)
         else:
-            result = True
-            if self.scene_view._object is not None:
+            if calibration_data.check_calibration():
+                result = True
+                if self.scene_view._object is not None:
+                    dlg = wx.MessageDialog(self,
+                                           _("Your current model will be erased.\n"
+                                             "Do you really want to do it?"),
+                                           _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                    result = dlg.ShowModal() == wx.ID_YES
+                    dlg.Destroy()
+                if result:
+                    self.gauge.SetValue(0)
+                    self.gauge.Show()
+                    self.Layout()
+                    ciclop_scan.set_callbacks(self.before_scan,
+                                              None, lambda r: wx.CallAfter(self.after_scan, r))
+                    ciclop_scan.start()
+            else:
                 dlg = wx.MessageDialog(self,
-                                       _("Your current model will be erased.\n"
-                                         "Do you really want to do it?"),
-                                       _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
-                result = dlg.ShowModal() == wx.ID_YES
+                                       _("Calibration hasn't been performed correctly.\n"
+                                         "Please repeat calibration process again:\n"
+                                         "  1. Scanner autocheck\n"
+                                         "  2. Laser triangulation\n"
+                                         "  3. Platform extrinsics"),
+                                       _("Wrong calibration"), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
                 dlg.Destroy()
-            if result:
-                self.gauge.SetValue(0)
-                self.gauge.Show()
-                self.Layout()
-                ciclop_scan.set_callbacks(self.before_scan,
-                                          None, lambda r: wx.CallAfter(self.after_scan, r))
-                ciclop_scan.start()
 
     def before_scan(self):
         self.scanning = True

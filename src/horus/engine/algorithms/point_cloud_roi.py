@@ -17,7 +17,11 @@ class PointCloudROI(object):
 
     def __init__(self):
         self.calibration_data = CalibrationData()
+        self._height = 0
+        self._radious = 0
+        self._initialize()
 
+    def _initialize(self):
         self._umin = 0
         self._umax = 0
         self._vmin = 0
@@ -32,8 +36,6 @@ class PointCloudROI(object):
         self._no_trimmed_vmax = 0
         self._center_u = 0
         self._center_v = 0
-        self._height = 0
-        self._radious = 0
         self._circle_resolution = 30
         self._circle_array = np.array([[np.cos(i * 2 * np.pi / self._circle_resolution)
                                         for i in xrange(self._circle_resolution)],
@@ -132,10 +134,9 @@ class PointCloudROI(object):
         return image
 
     def _compute_roi(self):
-        if self.calibration_data.camera_matrix is not None and \
-           self.calibration_data.distortion_vector is not None and \
-           self.calibration_data.platform_rotation is not None and \
-           self.calibration_data.platform_translation is not None:
+        if self.calibration_data.check_calibration() is False:
+            self._initialize()
+        else:
             # Load calibration values
             fx = self.calibration_data.camera_matrix[0][0]
             fy = self.calibration_data.camera_matrix[1][1]

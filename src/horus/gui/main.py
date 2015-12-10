@@ -390,6 +390,7 @@ class MainWindow(wx.Frame):
         self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)
         self.menu_file.Enable(self.menu_clear_model.GetId(), is_scan)
         self.toolbar.scanning_mode(is_scan)
+        profile.settings.save_settings()
         self.Layout()
 
         del self.wait_cursor

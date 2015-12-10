@@ -73,6 +73,9 @@ class LaserTriangulation(ExpandablePanel):
         self.add_control('distance_right', FloatTextBox)
         self.add_control('normal_right', FloatTextBoxArray)
 
+        self.content.control_panels['distance_left'].control.SetEditable(False)
+        self.content.control_panels['distance_right'].control.SetEditable(False)
+
 
 class PlatformExtrinsics(ExpandablePanel):
 

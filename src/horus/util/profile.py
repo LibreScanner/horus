@@ -414,12 +414,12 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('rotation_matrix', _('Rotation matrix'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[0.0, 1.0, 0.0],
-                                                                          [0.0, 0.0, -1.0],
-                                                                          [-1.0, 0.0, 0.0]]))))
+                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[0.0, 0.0, 0.0],
+                                                                          [0.0, 0.0, 0.0],
+                                                                          [0.0, 0.0, 0.0]]))))
         self._add_setting(
             Setting('translation_vector', _('Translation vector'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([5.0, 80.0, 320.0]))))
+                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
 
         self._add_setting(
             Setting('current_panel_calibration', u'pattern_settings', 'calibration_settings',
