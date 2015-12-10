@@ -353,7 +353,7 @@ class Slider(ControlPanel):
         self.flag_first_move = True
 
         # Elements
-        self.label = wx.StaticText(self, label=self.setting._label, size=(100, -1))
+        self.label = wx.StaticText(self, label=self.setting._label, size=(110, -1))
         self.control = wx.Slider(self, value=profile.settings[name],
                                  minValue=profile.settings.get_min_value(name),
                                  maxValue=profile.settings.get_max_value(name),
@@ -362,9 +362,9 @@ class Slider(ControlPanel):
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.Add(self.label, 0, wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
         hbox.AddStretchSpacer()
-        hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        hbox.Add(self.control, 0, wx.TOP | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, -5)
         self.SetSizer(hbox)
         self.Layout()
 
@@ -547,7 +547,7 @@ class FloatTextBox(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
+        label = wx.StaticText(self, size=(160, -1), label=self.setting._label)
         self.control = FloatBox(self, size=(120, -1), style=wx.TE_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 

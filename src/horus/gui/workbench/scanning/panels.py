@@ -9,7 +9,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 
 from horus.util import profile
-from horus.gui.engine import ciclop_scan, current_video
+from horus.gui.engine import ciclop_scan, point_cloud_roi
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, ComboBox, \
     Button, FloatTextBox
 
@@ -19,6 +19,7 @@ class ScanParameters(ExpandablePanel):
     def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(
             self, parent, _("Scan Parameters"), has_undo=False, has_restore=False)
+        self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):
         self.add_control('capture_texture', CheckBox)
@@ -32,12 +33,18 @@ class ScanParameters(ExpandablePanel):
         ciclop_scan.set_use_left_laser(value == 'Left' or value == 'Both')
         ciclop_scan.set_use_right_laser(value == 'Right' or value == 'Both')
 
+    def on_selected(self):
+        self.main.scene_view._view_roi = False
+        self.main.scene_view.queue_refresh()
+        profile.settings['current_panel_scanning'] = 'scan_parameters'
+
 
 class RotatingPlatform(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(
             self, parent, _("Rotating platform"), has_undo=False)
+        self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):
         self.add_control('motor_step_scanning', FloatTextBox)
@@ -49,65 +56,55 @@ class RotatingPlatform(ExpandablePanel):
         self.update_callback('motor_speed_scanning', ciclop_scan.set_motor_speed)
         self.update_callback('motor_acceleration_scanning', ciclop_scan.set_motor_acceleration)
 
+    def on_selected(self):
+        self.main.scene_view._view_roi = False
+        self.main.scene_view.queue_refresh()
+        profile.settings['current_panel_scanning'] = 'rotating_platform'
+
 
 class PointCloudROI(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(self, parent, _("Point cloud ROI"))
-
-        self.main = self.GetParent().GetParent().GetParent().GetParent()
+        self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):
         self.add_control(
-            'roi_view', CheckBox,
-            _("View the Region Of Interest (ROI). "
+            'use_roi', CheckBox,
+            _("Use a Region Of Interest (ROI). "
               "This cylindrical region is the one being scanned. "
               "All information outside won't be taken into account "
               "during the scanning process"))
         self.add_control('roi_diameter', Slider)
-        # self.add_control('roi_width', Slider)
         self.add_control('roi_height', Slider)
         # self.add_control('roi_depth', Slider)
-
-        # section.getItem('roi_diameter').control.Bind(wx.EVT_SCROLL_CHANGED, self.onRoiSliderChange)
-        # section.getItem('roi_diameter').control.Bind(wx.EVT_SLIDER, self.onRoiSliderChanging)
-        # section.getItem('roi_height').control.Bind(wx.EVT_SCROLL_CHANGED, self.onRoiSliderChange)
-        # section.getItem('roi_height').control.Bind(wx.EVT_SLIDER, self.onRoiSliderChanging)
+        # self.add_control('roi_width', Slider)
 
     def update_callbacks(self):
-        pass
-        """self.update_callback('roi_view', lambda v: (
-            current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))
-        self.update_callback('roi_diameter', lambda v: (
-            current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))
-        self.update_callback('roi_width', lambda v: (
-            current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))
-        self.update_callback('roi_height', lambda v: (
-            current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))
-        self.update_callback('roi_depth', lambda v: (
-            current_video.set_roi_view(v), self.main.scene_view.queue_refresh()))"""
+        self.update_callback('use_roi', self._set_use_roi)
+        self.update_callback('roi_diameter', self._set_roi_diameter)
+        self.update_callback('roi_height', self._set_roi_height)
 
-    # def onRoiSliderChange(self, e):
-        # Update the point cloud with the new ROI
-        # self.main.sceneView.updatePointCloud()
+    def _set_use_roi(self, value):
+        if profile.settings['current_panel_scanning'] == 'point_cloud_roi':
+            self.main.scene_view._view_roi = value
+            self.main.scene_view.queue_refresh()
 
-    # Overwrites ExpandablePanel method
-    """def updateProfile(self):
-        section = self.sections['point_cloud_roi']
-        section.items['roi_view'][0].updateProfile()
-        section.items['roi_diameter'].updateProfile()
-        section.items['roi_width'].updateProfile()
-        section.items['roi_height'].updateProfile()
-        section.items['roi_depth'].updateProfile()
-        if profile.settings['machine_shape'] == "Rectangular":
-            section.hideItem('roi_diameter')
-            section.showItem('roi_width')
-            section.showItem('roi_depth')
-        elif profile.settings['machine_shape'] == "Circular":
-            section.hideItem('roi_width')
-            section.hideItem('roi_depth')
-            section.showItem('roi_diameter')
-        self.GetParent().GetParent().Layout()"""
+    def _set_roi_diameter(self, value):
+        profile.settings['roi_diameter'] = value
+        point_cloud_roi.set_diameter(value)
+        self.main.scene_view.queue_refresh()
+
+    def _set_roi_height(self, value):
+        profile.settings['roi_height'] = value
+        point_cloud_roi.set_height(value)
+        self.main.scene_view.queue_refresh()
+
+    def on_selected(self):
+        value = profile.settings['use_roi']
+        self.main.scene_view._view_roi = value
+        self.main.scene_view.queue_refresh()
+        profile.settings['current_panel_scanning'] = 'point_cloud_roi'
 
 
 class PointCloudColor(ExpandablePanel):
@@ -115,6 +112,7 @@ class PointCloudColor(ExpandablePanel):
     def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(
             self, parent, _("Point cloud color"), has_undo=False, has_restore=False)
+        self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):
         self.add_control('point_cloud_color', Button)
@@ -133,3 +131,8 @@ class PointCloudColor(ExpandablePanel):
             ciclop_scan.color = color
             profile.settings['point_cloud_color'] = unicode("".join(map(chr, color)).encode('hex'))
         dialog.Destroy()
+
+    def on_selected(self):
+        self.main.scene_view._view_roi = False
+        self.main.scene_view.queue_refresh()
+        profile.settings['current_panel_scanning'] = 'point_cloud_color'

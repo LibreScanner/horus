@@ -267,7 +267,7 @@ class Settings(collections.MutableMapping):
                     'scan_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_scanning', _('Threshold'), 'scan_settings',
-                    int, 6, min_value=0, max_value=255))
+                    int, 50, min_value=0, max_value=255))
 
         # Hack to translate combo boxes:
         _('Pattern')
@@ -352,7 +352,7 @@ class Settings(collections.MutableMapping):
                     float, 300.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
-            Setting('point_cloud_color', _('Choose Point Cloud Color'), 'scan_settings',
+            Setting('point_cloud_color', _('Choose point cloud color'), 'scan_settings',
                     unicode, u'AAAAAA'))
 
         # Hack to translate combo boxes:
@@ -448,19 +448,25 @@ class Settings(collections.MutableMapping):
             Setting('machine_model_path', _('Machine Model'), 'machine_settings',
                     unicode, unicode(resources.get_path_for_mesh('ciclop_platform.stl'))))
         self._add_setting(
-            Setting('roi_view', _('View ROI'), 'machine_settings', bool, False))
+            Setting('use_roi', _('Use ROI'), 'machine_settings', bool, True))
         self._add_setting(
             Setting('roi_diameter', _('Diameter (mm)'), 'machine_settings',
                     int, 200, min_value=0, max_value=250))
         self._add_setting(
-            Setting('roi_width', _('Width (mm)'), 'machine_settings',
-                    int, 200, min_value=0, max_value=250))
-        self._add_setting(
             Setting('roi_height', _('Height (mm)'), 'machine_settings',
                     int, 200, min_value=0, max_value=250))
+        # self._add_setting(
+        #     Setting('roi_width', _('Width (mm)'), 'machine_settings',
+        #             int, 200, min_value=0, max_value=250))
+        # self._add_setting(
+        #     Setting('roi_depth', _('Depth (mm)'), 'machine_settings',
+        #             int, 200, min_value=0, max_value=250))
+
         self._add_setting(
-            Setting('roi_depth', _('Depth (mm)'), 'machine_settings',
-                    int, 200, min_value=0, max_value=250))
+            Setting('current_panel_scanning', u'scan_parameters', 'scan_settings',
+                    unicode, u'scan_parameters',
+                    possible_values=(u'scan_parameters', u'rotating_platform',
+                                     u'point_cloud_roi', u'point_cloud_color')))
 
         # -- Preferences
 

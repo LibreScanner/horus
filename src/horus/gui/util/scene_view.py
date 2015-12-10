@@ -58,6 +58,8 @@ class SceneView(opengl_gui.glGuiPanel):
         self._z_offset = 0
         self._h_offset = 20
 
+        self._view_roi = False
+
         self._object_point_cloud = []
         self._object_texture = []
 
@@ -660,7 +662,7 @@ class SceneView(opengl_gui.glGuiPanel):
                                 profile.settings['roi_depth'],
                                 profile.settings['roi_height']], numpy.float32)
 
-        if profile.settings['roi_view']:
+        if self._view_roi:
             polys = profile.get_size_polygons(size, machine_shape)
             height = profile.settings['roi_height']
 

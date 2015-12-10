@@ -62,6 +62,8 @@ class ScanningWorkbench(Workbench):
         self.scene_panel = self.pages_collection['view_page'].scene_panel
         self.scene_view = self.pages_collection['view_page'].scene_view
         self.gauge = self.pages_collection['view_page'].gauge
+        self.panels_collection.expandable_panels[
+            profile.settings['current_panel_scanning']].on_title_clicked(None)
 
     def on_open(self):
         self.video_view.play()
@@ -118,7 +120,6 @@ class ScanningWorkbench(Workbench):
         ciclop_scan.motor_acceleration = profile.settings['motor_acceleration_scanning']
         ciclop_scan.color = struct.unpack(
             'BBB', profile.settings['point_cloud_color'].decode('hex'))
-        current_video.set_roi_view(profile.settings['roi_view'])
         point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
         point_cloud_roi.set_height(profile.settings['roi_height'])
 
@@ -129,7 +130,9 @@ class ScanningWorkbench(Workbench):
         else:
             image_capture.stream = True
             image = image_capture.capture_texture()
-            if profile.settings['video_scanning']:
+            if self.scene_view._view_roi:
+                if profile.settings['use_roi']:
+                    image = point_cloud_roi.mask_image(image)
                 image = point_cloud_roi.draw_roi(image)
             return image
 
@@ -142,7 +145,7 @@ class ScanningWorkbench(Workbench):
             if point_cloud[0] is not None and point_cloud[1] is not None:
                 if len(point_cloud[0]) > 0:
                     point_cloud = point_cloud_roi.mask_point_cloud(*point_cloud)
-                    self.pages_collection['view_page'].scene_view.append_point_cloud(
+                    self.scene_view.append_point_cloud(
                         point_cloud[0], point_cloud[1])
 
     def on_play_tool_clicked(self, event):
@@ -174,7 +177,10 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.stop_tool, True)
         self._enable_tool_scan(self.pause_tool, True)
         self.GetParent().enable_gui(False)
-        self.scroll_panel.Disable()
+        self.scroll_panel.Hide()
+        self.scroll_panel.GetParent().Layout()
+        self.scroll_panel.Layout()
+        self.GetParent().Layout()
         # self.buttonShowVideoViews.Show()
         self.scene_view.create_default_object()
         self.scene_view.set_show_delete_menu(False)
@@ -216,11 +222,11 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)
         self.GetParent().enable_gui(True)
-        self.scroll_panel.Enable()
+        self.GetParent().on_scanning_panel_clicked(None)
         # self.comboVideoViews.Hide()
         self.scene_view.set_show_delete_menu(True)
-        self.point_cloud_timer.Stop()
         self.video_view.set_milliseconds(10)
+        self.point_cloud_timer.Stop()
         self.gauge.SetValue(0)
         self.gauge.Hide()
         self.Layout()

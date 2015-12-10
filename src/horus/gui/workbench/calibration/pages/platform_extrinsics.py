@@ -11,6 +11,7 @@ import numpy as np
 from horus.util import profile
 
 from horus.gui.engine import pattern, platform_extrinsics
+from horus.gui.util.pattern_distance_window import PatternDistanceWindow
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsicsError
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -84,10 +85,13 @@ class PlatformExtrinsicsPages(wx.Panel):
             del self.waitCursor
 
     def on_start(self):
-        platform_extrinsics.set_callbacks(lambda: wx.CallAfter(self.before_calibration),
-                                          lambda p: wx.CallAfter(self.progress_calibration, p),
-                                          lambda r: wx.CallAfter(self.after_calibration, r))
-        platform_extrinsics.start()
+        if profile.settings['pattern_origin_distance'] == 0.0:
+            PatternDistanceWindow(self)
+        else:
+            platform_extrinsics.set_callbacks(lambda: wx.CallAfter(self.before_calibration),
+                                              lambda p: wx.CallAfter(self.progress_calibration, p),
+                                              lambda r: wx.CallAfter(self.after_calibration, r))
+            platform_extrinsics.start()
 
     def on_exit(self):
         platform_extrinsics.cancel()
