@@ -10,7 +10,7 @@ import os
 import urllib2
 import webbrowser
 
-from horus.util import resources, system as sys
+from horus.util import profile, resources, system as sys
 
 
 def get_version(_type='local'):
@@ -25,18 +25,29 @@ def get_github(_type='local'):
     return _get_version_data(2, _type)
 
 
+def download_version_file():
+    try:
+        filepath = os.path.join(profile.get_base_path(), 'version')
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        f = urllib2.urlopen('http://storage.googleapis.com/bq-horus/releases/version')
+        content = f.read()
+        with open(filepath, 'w') as f:
+            f.write(content)
+    except:
+        pass
+
+
 def _get_version_data(index, _type='local'):
     # Version Build GitHub
     try:
         if _type is 'local':
             version_file = resources.get_path_for_version()
-            if os.path.isfile(version_file):
-                with open(version_file, 'r') as f:
-                    content = f.read()
         elif _type is 'remote':
-            # TODO: save file
-            f = urllib2.urlopen('http://storage.googleapis.com/bq-horus/releases/version')
-            content = f.read()
+            version_file = os.path.join(profile.get_base_path(), 'version')
+        if os.path.isfile(version_file):
+            with open(version_file, 'r') as f:
+                content = f.read()
         data = content.split('\n')
         return data[index]
     except:

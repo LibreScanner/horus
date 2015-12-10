@@ -12,7 +12,7 @@ from horus.gui.splash import SplashScreen
 from horus.gui.welcome import WelcomeDialog
 
 from horus.util import profile, resources, version, system as sys
-from horus.gui.util.versionWindow import VersionWindow
+from horus.gui.util.version_window import VersionWindow
 
 
 class HorusApp(wx.App):
@@ -35,25 +35,28 @@ class HorusApp(wx.App):
         # Create Main Window
         self.main_window = MainWindow()
 
+        # Download version file
+        version.download_version_file()
+
         # Check for updates
-        """if profile.settings['check_for_updates'] and version.check_for_updates():
+        if profile.settings['check_for_updates'] and version.check_for_updates():
             v = VersionWindow(self.main_window)
             if v.download:
-                return"""
+                self.main_window.Close(True)
+                return
 
         # Show Main Window
         self.SetTopWindow(self.main_window)
         self.main_window.Show()
 
-        """if profile.settings['show_welcome']:
+        if profile.settings['show_welcome']:
             # Create Welcome Window
+            WelcomeDialog(self.main_window)
 
-            WelcomeDialog(self.main_window)"""
-
-        setFullScreenCapable(self.main_window)
+        set_full_screen_capable(self.main_window)
 
         if sys.is_darwin():
-            wx.CallAfter(self.StupidMacOSWorkaround)
+            wx.CallAfter(self.stupid_mac_os_workaround)
 
     def __del__(self):
         # Save Profile and Preferences
@@ -62,7 +65,7 @@ class HorusApp(wx.App):
     def MacReopenApp(self):
         self.GetTopWindow().Raise()
 
-    def StupidMacOSWorkaround(self):
+    def stupid_mac_os_workaround(self):
         """
         On MacOS for some magical reason opening new frames does not work
         until you opened a new modal dialog and closed it. If we do this from
@@ -83,7 +86,7 @@ if sys.is_darwin():  # Mac magic. Dragons live here. This sets full screen optio
         _objc.PyObjCObject_New.restype = ctypes.py_object
         _objc.PyObjCObject_New.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 
-        def setFullScreenCapable(frame):
+        def set_full_screen_capable(frame):
             frameobj = _objc.PyObjCObject_New(frame.GetHandle(), 0, 1)
 
             NSWindowCollectionBehaviorFullScreenPrimary = 1 << 7
@@ -91,9 +94,9 @@ if sys.is_darwin():  # Mac magic. Dragons live here. This sets full screen optio
             newBehavior = window.collectionBehavior() | NSWindowCollectionBehaviorFullScreenPrimary
             window.setCollectionBehavior_(newBehavior)
     except:
-        def setFullScreenCapable(frame):
+        def set_full_screen_capable(frame):
             pass
 
 else:
-    def setFullScreenCapable(frame):
+    def set_full_screen_capable(frame):
         pass

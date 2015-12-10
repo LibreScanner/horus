@@ -25,7 +25,7 @@ from horus.gui.workbench.calibration.main import CalibrationWorkbench
 from horus.gui.workbench.scanning.main import ScanningWorkbench
 
 # from horus.gui.wizard.main import *
-# from horus.gui.util.versionWindow import VersionWindow
+from horus.gui.util.version_window import VersionWindow
 
 from horus.util import profile, resources, mesh_loader, version, system as sys
 

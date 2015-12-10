@@ -89,16 +89,16 @@ class CreateNew(wx.Panel):
                      wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
         wizard_button = wx.Button(self, label=_("Wizard mode (step by step)"))
         scan_button = wx.Button(self, label=_("Scan using recent settings"))
-        advanced_control_button = wx.Button(self, label=_("Advanced Control"))
-        advanced_adjustment_button = wx.Button(self, label=_("Advanced Adjustment"))
-        advanced_calibration_button = wx.Button(self, label=_("Advanced Calibration"))
+        # advanced_control_button = wx.Button(self, label=_("Advanced control"))
+        advanced_adjustment_button = wx.Button(self, label=_("Advanced adjustment"))
+        advanced_calibration_button = wx.Button(self, label=_("Advanced calibration"))
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(title_text, 0, wx.BOTTOM | wx.CENTER, 10)
         vbox.Add(wizard_button, 1, wx.ALL | wx.EXPAND, 5)
         vbox.Add(scan_button, 1, wx.ALL | wx.EXPAND, 5)
-        vbox.Add(advanced_control_button, 1, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
+        # vbox.Add(advanced_control_button, 1, wx.TOP | wx.BOTTOM | wx.EXPAND, 5)
         vbox.Add(advanced_adjustment_button, 1, wx.ALL | wx.EXPAND, 5)
         vbox.Add(advanced_calibration_button, 1, wx.ALL | wx.EXPAND, 5)
         self.SetSizer(vbox)
@@ -107,7 +107,7 @@ class CreateNew(wx.Panel):
         # Events
         wizard_button.Bind(wx.EVT_BUTTON, self.on_wizard)
         scan_button.Bind(wx.EVT_BUTTON, self.on_scan)
-        advanced_control_button.Bind(wx.EVT_BUTTON, self.on_advanced_control)
+        # advanced_control_button.Bind(wx.EVT_BUTTON, self.on_advanced_control)
         advanced_adjustment_button.Bind(wx.EVT_BUTTON, self.on_advanced_adjustment)
         advanced_calibration_button.Bind(wx.EVT_BUTTON, self.on_advanced_calibration)
 
@@ -118,25 +118,29 @@ class CreateNew(wx.Panel):
 
     def on_scan(self, event):
         profile.settings['workbench'] = u'scanning'
-        workbench = self.GetParent().GetParent().parent.workbench[profile.settings['workbench']].name
+        workbench = self.GetParent().GetParent().parent.workbench[
+            profile.settings['workbench']].name
         self.GetParent().GetParent().parent.update_workbench(workbench)
         self.GetParent().GetParent().Close()
 
     def on_advanced_control(self, event):
         profile.settings['workbench'] = u'control'
-        workbench = self.GetParent().GetParent().parent.workbench[profile.settings['workbench']].name
+        workbench = self.GetParent().GetParent().parent.workbench[
+            profile.settings['workbench']].name
         self.GetParent().GetParent().parent.update_workbench(workbench)
         self.GetParent().GetParent().Close()
 
     def on_advanced_adjustment(self, event):
         profile.settings['workbench'] = u'adjustment'
-        workbench = self.GetParent().GetParent().parent.workbench[profile.settings['workbench']].name
+        workbench = self.GetParent().GetParent().parent.workbench[
+            profile.settings['workbench']].name
         self.GetParent().GetParent().parent.update_workbench(workbench)
         self.GetParent().GetParent().Close()
 
     def on_advanced_calibration(self, event):
         profile.settings['workbench'] = u'calibration'
-        workbench = self.GetParent().GetParent().parent.workbench[profile.settings['workbench']].name
+        workbench = self.GetParent().GetParent().parent.workbench[
+            profile.settings['workbench']].name
         self.GetParent().GetParent().parent.update_workbench(workbench)
         self.GetParent().GetParent().Close()
 

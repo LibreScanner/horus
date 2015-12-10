@@ -20,22 +20,22 @@ class VersionWindow(wx.Dialog):
         # Elements
         self.description = wx.StaticText(
             self, label=_('A new version of Horus is available, would you like to download?'))
-        self.downloadButton = wx.Button(self, label=_('Download'))
-        self.cancelButton = wx.Button(self, label=_('Cancel'))
+        self.download_button = wx.Button(self, label=_('Download'))
+        self.cancel_button = wx.Button(self, label=_('Cancel'))
 
         self.download = False
 
         # Events
-        self.downloadButton.Bind(wx.EVT_BUTTON, self.onDownloadButton)
-        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
-        self.Bind(wx.EVT_CLOSE, self.onCancelButton)
+        self.download_button.Bind(wx.EVT_BUTTON, self.on_download_button)
+        self.cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel_button)
+        self.Bind(wx.EVT_CLOSE, self.on_cancel_button)
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(self.description, 0, wx.ALL | wx.CENTER, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.cancelButton, 0, wx.ALL, 3)
-        hbox.Add(self.downloadButton, 0, wx.ALL, 3)
+        hbox.Add(self.cancel_button, 0, wx.ALL, 3)
+        hbox.Add(self.download_button, 0, wx.ALL, 3)
         vbox.Add(hbox, 0, wx.ALL | wx.CENTER, 10)
         self.SetSizer(vbox)
         self.Center()
@@ -43,12 +43,12 @@ class VersionWindow(wx.Dialog):
 
         self.ShowModal()
 
-    def onDownloadButton(self, event):
+    def on_download_button(self, event):
         self.download = True
-        version.downloadLatestVersion()
+        version.download_latest_version()
         self.EndModal(wx.ID_OK)
         self.Destroy()
 
-    def onCancelButton(self, event):
+    def on_cancel_button(self, event):
         self.EndModal(wx.ID_OK)
         self.Destroy()
