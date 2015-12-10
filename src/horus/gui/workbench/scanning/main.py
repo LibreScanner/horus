@@ -68,11 +68,17 @@ class ScanningWorkbench(Workbench):
     def on_open(self):
         self.video_view.play()
         self.point_cloud_timer.Stop()
+        if driver.is_connected and profile.settings['current_panel_scanning'] == 'point_cloud_roi':
+            self.scene_view._view_roi = profile.settings['use_roi']
+            self.scene_view.queue_refresh()
 
     def on_close(self):
         try:
             self.video_view.stop()
             self.point_cloud_timer.Stop()
+            self.pages_collection['view_page'].Enable()
+            self.scene_view._view_roi = False
+            self.scene_view.queue_refresh()
             self._enable_tool_scan(self.play_tool, False)
             self._enable_tool_scan(self.stop_tool, False)
             self._enable_tool_scan(self.pause_tool, False)
@@ -241,7 +247,9 @@ class ScanningWorkbench(Workbench):
         self.scene_view.set_show_delete_menu(True)
         self.video_view.set_milliseconds(10)
         self.point_cloud_timer.Stop()
-        self.scene_view._view_roi = profile.settings['use_roi']
+        if profile.settings['current_panel_scanning'] == 'point_cloud_roi':
+            self.scene_view._view_roi = profile.settings['use_roi']
+            self.scene_view.queue_refresh()
         self.gauge.SetValue(0)
         self.gauge.Hide()
         self.Layout()

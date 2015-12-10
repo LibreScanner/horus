@@ -175,45 +175,45 @@ class Settings(collections.MutableMapping):
         _('Medium')
         _('Low')
         self._add_setting(
-            Setting('luminosity', _('Luminosity'), 'scan_settings',
+            Setting('luminosity', _('Luminosity'), 'profile_settings',
                     unicode, u'Medium', possible_values=(u'High', u'Medium', u'Low')))
         self._add_setting(
-            Setting('brightness_control', _('Brightness'), 'scan_settings',
+            Setting('brightness_control', _('Brightness'), 'profile_settings',
                     int, 128, min_value=0, max_value=255))
         self._add_setting(
-            Setting('contrast_control', _('Contrast'), 'scan_settings',
+            Setting('contrast_control', _('Contrast'), 'profile_settings',
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
-            Setting('saturation_control', _('Saturation'), 'scan_settings',
+            Setting('saturation_control', _('Saturation'), 'profile_settings',
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
-            Setting('exposure_control', _('Exposure'), 'scan_settings',
+            Setting('exposure_control', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=512))
         self._add_setting(
-            Setting('framerate', _('Framerate'), 'scan_settings',
+            Setting('framerate', _('Framerate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
         self._add_setting(
-            Setting('resolution', _('Resolution'), 'scan_settings',
+            Setting('resolution', _('Resolution'), 'profile_settings',
                     unicode, u'1280x960', possible_values=(u'1280x960',
                                                            u'960x720',
                                                            u'800x600',
                                                            u'320x240',
                                                            u'160x120')))
         self._add_setting(
-            Setting('use_distortion', _('Use distortion'), 'scan_settings', bool, False))
+            Setting('use_distortion', _('Use distortion'), 'profile_settings', bool, False))
 
         self._add_setting(
-            Setting('motor_step_control', _(u'Step (º)'), 'scan_settings',
+            Setting('motor_step_control', _(u'Step (º)'), 'profile_settings',
                     float, 90.0))
         self._add_setting(
-            Setting('motor_speed_control', _(u'Speed (º/s)'), 'scan_settings',
+            Setting('motor_speed_control', _(u'Speed (º/s)'), 'profile_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
         self._add_setting(
-            Setting('motor_acceleration_control', _(u'Acceleration (º/s²)'), 'scan_settings',
+            Setting('motor_acceleration_control', _(u'Acceleration (º/s²)'), 'profile_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
-            Setting('current_panel_control', u'camera_control', 'scan_settings',
+            Setting('current_panel_control', u'camera_control', 'profile_settings',
                     unicode, u'camera_control',
                     possible_values=(u'camera_control', u'laser_control',
                                      u'ldr_value', u'motor_control', u'gcode_control')))
@@ -222,137 +222,137 @@ class Settings(collections.MutableMapping):
         _('Texture')
         _('Laser')
         self._add_setting(
-            Setting('capture_mode_scanning', _('Capture mode'), 'scan_settings',
+            Setting('capture_mode_scanning', _('Capture mode'), 'profile_settings',
                     unicode, u'Texture', possible_values=(u'Texture', u'Laser')))
 
         self._add_setting(
-            Setting('brightness_texture_scanning', _('Brightness'), 'scan_settings',
+            Setting('brightness_texture_scanning', _('Brightness'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
-            Setting('contrast_texture_scanning', _('Contrast'), 'scan_settings',
+            Setting('contrast_texture_scanning', _('Contrast'), 'profile_settings',
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
-            Setting('saturation_texture_scanning', _('Saturation'), 'scan_settings',
+            Setting('saturation_texture_scanning', _('Saturation'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
-            Setting('exposure_texture_scanning', _('Exposure'), 'scan_settings',
+            Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=512))
 
         self._add_setting(
-            Setting('brightness_laser_scanning', _('Brightness'), 'scan_settings',
+            Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
-            Setting('contrast_laser_scanning', _('Contrast'), 'scan_settings',
+            Setting('contrast_laser_scanning', _('Contrast'), 'profile_settings',
                     int, 20, min_value=0, max_value=255))
         self._add_setting(
-            Setting('saturation_laser_scanning', _('Saturation'), 'scan_settings',
+            Setting('saturation_laser_scanning', _('Saturation'), 'profile_settings',
                     int, 60, min_value=0, max_value=255))
         self._add_setting(
-            Setting('exposure_laser_scanning', _('Exposure'), 'scan_settings',
+            Setting('exposure_laser_scanning', _('Exposure'), 'profile_settings',
                     int, 4, min_value=1, max_value=512))
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
-                    'scan_settings', bool, True))
+                    'profile_settings', bool, True))
 
         self._add_setting(
-            Setting('red_channel_scanning', _('Red channel'), 'scan_settings',
+            Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
                     unicode, u'R (RGB)', possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
-            Setting('open_enable_scanning', _('Enable open'), 'scan_settings', bool, True))
+            Setting('open_enable_scanning', _('Enable open'), 'profile_settings', bool, True))
         self._add_setting(
-            Setting('open_value_scanning', _('Open'), 'scan_settings',
+            Setting('open_value_scanning', _('Open'), 'profile_settings',
                     int, 2, min_value=1, max_value=10))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
-                    'scan_settings', bool, True))
+                    'profile_settings', bool, True))
         self._add_setting(
-            Setting('threshold_value_scanning', _('Threshold'), 'scan_settings',
+            Setting('threshold_value_scanning', _('Threshold'), 'profile_settings',
                     int, 50, min_value=0, max_value=255))
 
         # Hack to translate combo boxes:
         _('Pattern')
         _('Laser')
         self._add_setting(
-            Setting('capture_mode_calibration', _('Capture mode'), 'scan_settings',
+            Setting('capture_mode_calibration', _('Capture mode'), 'profile_settings',
                     unicode, u'Pattern', possible_values=(u'Pattern', u'Laser')))
 
         self._add_setting(
-            Setting('brightness_pattern_calibration', _('Brightness'), 'scan_settings',
+            Setting('brightness_pattern_calibration', _('Brightness'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
-            Setting('contrast_pattern_calibration', _('Contrast'), 'scan_settings',
+            Setting('contrast_pattern_calibration', _('Contrast'), 'profile_settings',
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
-            Setting('saturation_pattern_calibration', _('Saturation'), 'scan_settings',
+            Setting('saturation_pattern_calibration', _('Saturation'), 'profile_settings',
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
-            Setting('exposure_pattern_calibration', _('Exposure'), 'scan_settings',
+            Setting('exposure_pattern_calibration', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=512))
 
         self._add_setting(
-            Setting('brightness_laser_calibration', _('Brightness'), 'scan_settings',
+            Setting('brightness_laser_calibration', _('Brightness'), 'profile_settings',
                     int, 0, min_value=0, max_value=255))
         self._add_setting(
-            Setting('contrast_laser_calibration', _('Contrast'), 'scan_settings',
+            Setting('contrast_laser_calibration', _('Contrast'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
-            Setting('saturation_laser_calibration', _('Saturation'), 'scan_settings',
+            Setting('saturation_laser_calibration', _('Saturation'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
-            Setting('exposure_laser_calibration', _('Exposure'), 'scan_settings',
+            Setting('exposure_laser_calibration', _('Exposure'), 'profile_settings',
                     int, 4, min_value=1, max_value=512))
         self._add_setting(
             Setting('remove_background_calibration', _('Remove background'),
-                    'scan_settings', bool, True))
+                    'profile_settings', bool, True))
 
         self._add_setting(
-            Setting('red_channel_calibration', _('Red channel'), 'scan_settings',
+            Setting('red_channel_calibration', _('Red channel'), 'profile_settings',
                     unicode, u'R (RGB)', possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
-            Setting('open_enable_calibration', _('Enable open'), 'scan_settings', bool, True))
+            Setting('open_enable_calibration', _('Enable open'), 'profile_settings', bool, True))
         self._add_setting(
-            Setting('open_value_calibration', _('Open'), 'scan_settings',
+            Setting('open_value_calibration', _('Open'), 'profile_settings',
                     int, 2, min_value=1, max_value=10))
         self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
-                    'scan_settings', bool, True))
+                    'profile_settings', bool, True))
         self._add_setting(
-            Setting('threshold_value_calibration', _('Threshold'), 'scan_settings',
+            Setting('threshold_value_calibration', _('Threshold'), 'profile_settings',
                     int, 50, min_value=0, max_value=255))
 
         self._add_setting(
-            Setting('current_video_mode_adjustment', u'Texture', 'scan_settings',
+            Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
                     unicode, u'Texture',
                     possible_values=(u'Texture', u'Pattern', u'Laser', u'Gray')))
 
         self._add_setting(
-            Setting('current_panel_adjustment', u'scan_capture', 'scan_settings',
+            Setting('current_panel_adjustment', u'scan_capture', 'profile_settings',
                     unicode, u'scan_capture',
                     possible_values=(u'scan_capture', u'scan_segmentation',
                                      u'calibration_capture', u'calibration_segmentation')))
 
         self._add_setting(
-            Setting('capture_texture', _('Capture texture'), 'scan_settings', bool, True))
+            Setting('capture_texture', _('Capture texture'), 'profile_settings', bool, True))
         # Hack to translate combo boxes:
         _('Left')
         _('Right')
         _('Both')
         self._add_setting(
-            Setting('use_laser', _('Use laser'), 'scan_settings',
+            Setting('use_laser', _('Use laser'), 'profile_settings',
                     unicode, u'Both', possible_values=(u'Left', u'Right', u'Both')))
 
         self._add_setting(
-            Setting('motor_step_scanning', _(u'Step (º)'), 'scan_settings',
+            Setting('motor_step_scanning', _(u'Step (º)'), 'profile_settings',
                     float, 0.45))
         self._add_setting(
-            Setting('motor_speed_scanning', _(u'Speed (º/s)'), 'scan_settings',
+            Setting('motor_speed_scanning', _(u'Speed (º/s)'), 'profile_settings',
                     float, 200.0, min_value=1.0, max_value=1000.0))
         self._add_setting(
-            Setting('motor_acceleration_scanning', _(u'Acceleration (º/s²)'), 'scan_settings',
+            Setting('motor_acceleration_scanning', _(u'Acceleration (º/s²)'), 'profile_settings',
                     float, 300.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
-            Setting('point_cloud_color', _('Choose point cloud color'), 'scan_settings',
+            Setting('point_cloud_color', _('Choose point cloud color'), 'profile_settings',
                     unicode, u'AAAAAA'))
 
         # Hack to translate combo boxes:
@@ -361,17 +361,17 @@ class Settings(collections.MutableMapping):
         _('Gray')
         _('Line')
         self._add_setting(
-            Setting('video_scanning', _('Video'), 'scan_settings',
+            Setting('video_scanning', _('Video'), 'profile_settings',
                     unicode, u'Laser', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
 
-        self._add_setting(Setting('left_button', _('Left'), 'scan_settings', unicode, u''))
-        self._add_setting(Setting('right_button', _('Right'), 'scan_settings', unicode, u''))
-        self._add_setting(Setting('move_button', _('Move'), 'scan_settings', unicode, u''))
-        self._add_setting(Setting('enable_button', _('Enable'), 'scan_settings', unicode, u''))
-        self._add_setting(Setting('gcode_gui', _('Send'), 'scan_settings', unicode, u''))
-        self._add_setting(Setting('ldr_value', _('Send'), 'scan_settings', unicode, u''))
+        self._add_setting(Setting('left_button', _('Left'), 'profile_settings', unicode, u''))
+        self._add_setting(Setting('right_button', _('Right'), 'profile_settings', unicode, u''))
+        self._add_setting(Setting('move_button', _('Move'), 'profile_settings', unicode, u''))
+        self._add_setting(Setting('enable_button', _('Enable'), 'profile_settings', unicode, u''))
+        self._add_setting(Setting('gcode_gui', _('Send'), 'profile_settings', unicode, u''))
+        self._add_setting(Setting('ldr_value', _('Send'), 'profile_settings', unicode, u''))
         self._add_setting(
-            Setting('autocheck_button', _('Perform autocheck'), 'scan_settings', unicode, u''))
+            Setting('autocheck_button', _('Perform autocheck'), 'profile_settings', unicode, u''))
 
         # -- Calibration Settings
 
@@ -422,7 +422,7 @@ class Settings(collections.MutableMapping):
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
 
         self._add_setting(
-            Setting('current_panel_calibration', u'pattern_settings', 'calibration_settings',
+            Setting('current_panel_calibration', u'pattern_settings', 'profile_settings',
                     unicode, u'pattern_settings',
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
                                      u'scanner_autocheck', u'laser_triangulation',
@@ -463,7 +463,7 @@ class Settings(collections.MutableMapping):
         #             int, 200, min_value=0, max_value=250))
 
         self._add_setting(
-            Setting('current_panel_scanning', u'scan_parameters', 'scan_settings',
+            Setting('current_panel_scanning', u'scan_parameters', 'profile_settings',
                     unicode, u'scan_parameters',
                     possible_values=(u'scan_parameters', u'rotating_platform',
                                      u'point_cloud_roi', u'point_cloud_color')))

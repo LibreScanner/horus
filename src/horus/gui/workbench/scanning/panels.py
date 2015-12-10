@@ -9,7 +9,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 
 from horus.util import profile
-from horus.gui.engine import ciclop_scan, point_cloud_roi
+from horus.gui.engine import driver, ciclop_scan, point_cloud_roi
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, ComboBox, \
     Button, FloatTextBox
 
@@ -86,7 +86,7 @@ class PointCloudROI(ExpandablePanel):
         self.update_callback('roi_height', self._set_roi_height)
 
     def _set_use_roi(self, value):
-        if profile.settings['current_panel_scanning'] == 'point_cloud_roi':
+        if driver.is_connected and profile.settings['current_panel_scanning'] == 'point_cloud_roi':
             if value:
                 point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
                 point_cloud_roi.set_height(profile.settings['roi_height'])
@@ -107,9 +107,10 @@ class PointCloudROI(ExpandablePanel):
         self.main.scene_view.queue_refresh()
 
     def on_selected(self):
-        value = profile.settings['use_roi']
-        self.main.scene_view._view_roi = value
-        self.main.scene_view.queue_refresh()
+        if driver.is_connected:
+            value = profile.settings['use_roi']
+            self.main.scene_view._view_roi = value
+            self.main.scene_view.queue_refresh()
         profile.settings['current_panel_scanning'] = 'point_cloud_roi'
 
 

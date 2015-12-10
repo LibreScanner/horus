@@ -112,37 +112,38 @@ class CreateNew(wx.Panel):
         advanced_calibration_button.Bind(wx.EVT_BUTTON, self.on_advanced_calibration)
 
     def on_wizard(self, event):
-        self.GetParent().GetParent().Hide()
-        Wizard(self.GetParent().GetParent().parent)
-        self.GetParent().GetParent().Close()
+        parent = self.GetParent().GetParent()
+        parent.Hide()
+        Wizard(parent.parent)
+        parent.Close()
 
     def on_scan(self, event):
-        profile.settings['workbench'] = u'scanning'
-        workbench = self.GetParent().GetParent().parent.workbench[
-            profile.settings['workbench']].name
-        self.GetParent().GetParent().parent.update_workbench(workbench)
-        self.GetParent().GetParent().Close()
+        profile.settings['workbench'] = 'scanning'
+        parent = self.GetParent().GetParent()
+        workbench = parent.parent.workbench[profile.settings['workbench']].name
+        parent.parent.update_workbench(workbench)
+        parent.Close()
 
     def on_advanced_control(self, event):
-        profile.settings['workbench'] = u'control'
-        workbench = self.GetParent().GetParent().parent.workbench[
-            profile.settings['workbench']].name
-        self.GetParent().GetParent().parent.update_workbench(workbench)
-        self.GetParent().GetParent().Close()
+        profile.settings['workbench'] = 'control'
+        parent = self.GetParent().GetParent()
+        workbench = parent.parent.workbench[profile.settings['workbench']].name
+        parent.parent.update_workbench(workbench)
+        parent.Close()
 
     def on_advanced_adjustment(self, event):
-        profile.settings['workbench'] = u'adjustment'
-        workbench = self.GetParent().GetParent().parent.workbench[
-            profile.settings['workbench']].name
-        self.GetParent().GetParent().parent.update_workbench(workbench)
-        self.GetParent().GetParent().Close()
+        profile.settings['workbench'] = 'adjustment'
+        parent = self.GetParent().GetParent()
+        workbench = parent.parent.workbench[profile.settings['workbench']].name
+        parent.parent.update_workbench(workbench)
+        parent.Close()
 
     def on_advanced_calibration(self, event):
-        profile.settings['workbench'] = u'calibration'
-        workbench = self.GetParent().GetParent().parent.workbench[
-            profile.settings['workbench']].name
-        self.GetParent().GetParent().parent.update_workbench(workbench)
-        self.GetParent().GetParent().Close()
+        profile.settings['workbench'] = 'calibration'
+        parent = self.GetParent().GetParent()
+        workbench = parent.parent.workbench[profile.settings['workbench']].name
+        parent.parent.update_workbench(workbench)
+        parent.Close()
 
 
 class OpenRecent(wx.Panel):
@@ -173,11 +174,13 @@ class OpenRecent(wx.Panel):
 
     def on_button_pressed(self, event):
         button = event.GetEventObject()
-        profile.settings['workbench'] = u'Scanning workbench'
-        self.GetParent().GetParent().parent.workbench_update()
-        self.GetParent().GetParent().parent.appendLastFile(button.GetName())
-        self.GetParent().GetParent().parent.scanningWorkbench.sceneView.loadFile(button.GetName())
-        self.GetParent().GetParent().Close()
+        profile.settings['workbench'] = 'scanning'
+        parent = self.GetParent().GetParent()
+        workbench = parent.parent.workbench[profile.settings['workbench']].name
+        parent.parent.update_workbench(workbench)
+        parent.parent.append_last_file(button.GetName())
+        parent.parent.workbench['scanning'].scene_view.load_file(button.GetName())
+        parent.Close()
 
 
 class Content(wx.Panel):

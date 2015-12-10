@@ -89,19 +89,19 @@ class MainWindow(wx.Frame):
         self.menu_save_model = self.menu_file.Append(wx.NewId(), _("Save Model"))
         self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear Model"))
         self.menu_file.AppendSeparator()
-        self.menu_open_scan_profile = self.menu_file.Append(
-            wx.NewId(), _("Open scan profile"), _("Opens scan profile .json"))
-        self.menu_save_scan_profile = self.menu_file.Append(
-            wx.NewId(), _("Save scan profile"), _("Saves scan profile .json"))
-        self.menu_reset_scan_profile = self.menu_file.Append(
-            wx.NewId(), _("Reset scan profile"), _("Resets scan default values"))
+        self.menu_open_profile = self.menu_file.Append(
+            wx.NewId(), _("Open profile"), _("Opens profile .json"))
+        self.menu_save_profile = self.menu_file.Append(
+            wx.NewId(), _("Save profile"), _("Saves profile .json"))
+        self.menu_reset_profile = self.menu_file.Append(
+            wx.NewId(), _("Reset profile"), _("Resets default values"))
         self.menu_file.AppendSeparator()
         self.menu_open_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Open calibration profile"), _("Opens calibration profile .json"))
+            wx.NewId(), _("Open calibration"), _("Opens calibration .json"))
         self.menu_save_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Save calibration profile"), _("Saves calibration profile .json"))
+            wx.NewId(), _("Save calibration"), _("Saves calibration .json"))
         self.menu_reset_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Reset calibration profile"), _("Resets calibration default values"))
+            wx.NewId(), _("Reset calibration"), _("Resets calibration default values"))
         self.menu_file.AppendSeparator()
         self.menu_exit = self.menu_file.Append(wx.ID_EXIT, _("Exit"))
         self.menu_bar.Append(self.menu_file, _("File"))
@@ -141,12 +141,12 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_load_model, self.menu_load_model)
         self.Bind(wx.EVT_MENU, self.on_save_model, self.menu_save_model)
         self.Bind(wx.EVT_MENU, self.on_clear_model, self.menu_clear_model)
-        self.Bind(wx.EVT_MENU, lambda e: self.on_open_profile("scan_settings"),
-                  self.menu_open_scan_profile)
-        self.Bind(wx.EVT_MENU, lambda e: self.on_save_profile("scan_settings"),
-                  self.menu_save_scan_profile)
-        self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("scan_settings"),
-                  self.menu_reset_scan_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_open_profile("profile_settings"),
+                  self.menu_open_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_save_profile("profile_settings"),
+                  self.menu_save_profile)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("profile_settings"),
+                  self.menu_reset_profile)
         self.Bind(wx.EVT_MENU, lambda e: self.on_open_profile("calibration_settings"),
                   self.menu_open_calibration_profile)
         self.Bind(wx.EVT_MENU, lambda e: self.on_save_profile("calibration_settings"),
@@ -237,7 +237,7 @@ class MainWindow(wx.Frame):
 
     def on_save_profile(self, category):
         dlg = wx.FileDialog(self, _("Select profile file to save"), profile.get_base_path(),
-                            style=wx.FD_SAVE)
+                            category.replace('_settings', ''), style=wx.FD_SAVE)
         dlg.SetWildcard("JSON files (*.json)|*.json")
         if dlg.ShowModal() == wx.ID_OK:
             profile_file = dlg.GetPath()
@@ -465,8 +465,11 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def update_profile_to_all_controls(self):
+        for _, w in self.workbench.iteritems():
+            w.update_controls()
         self.workbench[profile.settings['workbench']].update_controls()
 
+        # Scanning workbench layout
         if profile.settings['view_scanning_panel']:
             self.workbench['scanning'].scroll_panel.Show()
             self.menu_scanning_panel.Check(True)

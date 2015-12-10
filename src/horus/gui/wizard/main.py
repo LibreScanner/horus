@@ -128,7 +128,7 @@ class Wizard(wx.Dialog):
 
     def onScanningPageNextClicked(self):
         self.driver.board.lasers_off()
-        profile.settings.saveSettings(categories=["scan_settings"])
+        profile.settings.saveSettings(categories=["profile_settings"])
         dlg = wx.MessageDialog(
             self,
             _("You have finished the wizard.\nPress Play button to start scanning."),
