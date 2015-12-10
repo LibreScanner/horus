@@ -9,6 +9,8 @@ import wx._core
 
 from horus.util import profile
 
+from horus.gui.engine import current_video
+
 from horus.gui.util.video_view import VideoView
 from horus.gui.util.scene_view import SceneView
 
@@ -37,33 +39,20 @@ class ViewPage(wx.SplitterWindow):
         self.SplitVertically(self.video_view, self.scene_panel)
         self.SetMinimumPaneSize(200)
 
-        """# Video View Selector
+        # Video view selector
         _choices = []
         choices = profile.settings.get_possible_values('video_scanning')
         for i in choices:
             _choices.append(_(i))
-        self.videoViewsDict = dict(zip(_choices, choices))
+        self.video_views_dict = dict(zip(_choices, choices))
+        self.combo_video_views = wx.ComboBox(self.video_view,
+                                             value=_(profile.settings['video_scanning']),
+                                             choices=_choices, style=wx.CB_READONLY,
+                                             size=(100, -1), pos=(0, -1))
+        self.combo_video_views.Hide()
+        self.combo_video_views.Bind(wx.EVT_COMBOBOX, self.on_combo_box_video_views_select)
 
-        self.buttonShowVideoViews = wx.BitmapButton(self.videoView, wx.NewId(), wx.Bitmap(
-            resources.get_path_for_image("views.png"), wx.BITMAP_TYPE_ANY), (10, 10))
-        self.comboVideoViews = wx.ComboBox(self.videoView,
-                                           value=_(profile.settings['video_scanning']),
-                                           choices=_choices, style=wx.CB_READONLY, pos=(60, 10))
-
-        self.buttonShowVideoViews.Hide()
-        self.comboVideoViews.Hide()
-
-        self.buttonShowVideoViews.Bind(wx.EVT_BUTTON, self.onShowVideoViews)
-        self.comboVideoViews.Bind(wx.EVT_COMBOBOX, self.onComboBoVideoViewsSelect)"""
-
-    def onShowVideoViews(self, event):
-        self.show_video_views = not self.show_video_views
-        if self.show_video_views:
-            self.comboVideoViews.Show()
-        else:
-            self.comboVideoViews.Hide()
-
-    def onComboBoVideoViewsSelect(self, event):
-        value = self.videoViewsDict[self.comboVideoViews.GetValue()]
+    def on_combo_box_video_views_select(self, event):
+        value = self.video_views_dict[self.combo_video_views.GetValue()]
         current_video.mode = value
         profile.settings['video_scanning'] = value

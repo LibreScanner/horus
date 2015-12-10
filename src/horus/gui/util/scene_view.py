@@ -125,13 +125,6 @@ class SceneView(opengl_gui.glGuiPanel):
         del point
         del color
 
-    def update_point_cloud(self):
-        if self._object is not None:
-            self._clear_scene()
-            self.create_default_object()
-            for point, texture in zip(self._object_point_cloud, self._object_texture):
-                self.append_point_cloud(*point_cloud_roi.mask_point_cloud(point, texture))
-
     def load_file(self, filename):
         # Only one STL / PLY file can be active
         if filename is not None:

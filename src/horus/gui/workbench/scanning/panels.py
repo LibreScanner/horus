@@ -87,17 +87,23 @@ class PointCloudROI(ExpandablePanel):
 
     def _set_use_roi(self, value):
         if profile.settings['current_panel_scanning'] == 'point_cloud_roi':
+            if value:
+                point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
+                point_cloud_roi.set_height(profile.settings['roi_height'])
+            else:
+                point_cloud_roi.set_diameter(250)
+                point_cloud_roi.set_height(250)
             self.main.scene_view._view_roi = value
             self.main.scene_view.queue_refresh()
 
     def _set_roi_diameter(self, value):
         profile.settings['roi_diameter'] = value
-        point_cloud_roi.set_diameter(value)
+        point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
         self.main.scene_view.queue_refresh()
 
     def _set_roi_height(self, value):
         profile.settings['roi_height'] = value
-        point_cloud_roi.set_height(value)
+        point_cloud_roi.set_height(profile.settings['roi_height'])
         self.main.scene_view.queue_refresh()
 
     def on_selected(self):

@@ -126,13 +126,15 @@ class ScanningWorkbench(Workbench):
     def get_image(self):
         if self.scanning:
             image_capture.stream = False
-            return current_video.capture()
+            image = current_video.capture()
+            if profile.settings['use_roi']:
+                image = point_cloud_roi.mask_image(image)
+            return image
         else:
             image_capture.stream = True
             image = image_capture.capture_texture()
             if self.scene_view._view_roi:
-                if profile.settings['use_roi']:
-                    image = point_cloud_roi.mask_image(image)
+                image = point_cloud_roi.mask_image(image)
                 image = point_cloud_roi.draw_roi(image)
             return image
 
@@ -183,6 +185,7 @@ class ScanningWorkbench(Workbench):
                 dlg.Destroy()
 
     def before_scan(self):
+        self.scene_view._view_roi = False
         self.scanning = True
         self._enable_tool_scan(self.play_tool, False)
         self._enable_tool_scan(self.stop_tool, True)
@@ -192,7 +195,7 @@ class ScanningWorkbench(Workbench):
         self.scroll_panel.GetParent().Layout()
         self.scroll_panel.Layout()
         self.GetParent().Layout()
-        # self.buttonShowVideoViews.Show()
+        self.pages_collection['view_page'].combo_video_views.Show()
         self.scene_view.create_default_object()
         self.scene_view.set_show_delete_menu(False)
         self.video_view.set_milliseconds(200)
@@ -234,10 +237,11 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.pause_tool, False)
         self.GetParent().enable_gui(True)
         self.GetParent().on_scanning_panel_clicked(None)
-        # self.comboVideoViews.Hide()
+        self.pages_collection['view_page'].combo_video_views.Hide()
         self.scene_view.set_show_delete_menu(True)
         self.video_view.set_milliseconds(10)
         self.point_cloud_timer.Stop()
+        self.scene_view._view_roi = profile.settings['use_roi']
         self.gauge.SetValue(0)
         self.gauge.Hide()
         self.Layout()

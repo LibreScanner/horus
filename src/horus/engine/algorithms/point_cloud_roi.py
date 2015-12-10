@@ -51,14 +51,6 @@ class PointCloudROI(object):
         self._height = value
         self._compute_roi()
 
-    # TODO
-    def set_width(self, value):
-        pass
-
-    # TODO
-    def set_depth(self, value):
-        pass
-
     def mask_image(self, image):
         if image is not None:
             mask = np.zeros(image.shape, np.uint8)

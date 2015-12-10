@@ -35,7 +35,7 @@ class VideoView(ImageView):
                         self.stop()
                 else:
                     self.set_frame(frame)
-                    self._start()
+                self._start()
 
     def set_callback(self, callback):
         self.callback = callback
