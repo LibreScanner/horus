@@ -491,7 +491,7 @@ class Settings(collections.MutableMapping):
 
         # Hack to translate combo boxes:
         self._add_setting(
-            Setting('workbench', _('Workbench'), 'preferences', unicode, u'control',
+            Setting('workbench', _('Workbench'), 'preferences', unicode, u'scanning',
                     possible_values=(u'control', u'adjustment', u'calibration', u'scanning')))
         self._add_setting(
             Setting('show_welcome', _('Show Welcome'), 'preferences', bool, True))
@@ -675,50 +675,10 @@ def get_base_path():
     return basePath
 
 
-# Temporary function to migrate old settings (INI) into new ones (JSON)
 def load_settings():
     if os.path.exists(os.path.join(get_base_path(), 'settings.json')):
         settings.load_settings()
         return
-    else:
-        for setting_file in ('machine_settings.ini', 'current-profile.ini', 'preferences.ini'):
-            try:
-                load_old_settings(os.path.join(get_base_path(), setting_file))
-            except:
-                pass  # Setting file might not exist
-        settings.save_settings()
-
-# Temporary function to migrate old settings (INI) into new ones (JSON)
-
-
-def load_old_settings(filename):
-    profileParser = ConfigParser.ConfigParser()
-    try:
-        profileParser.read(filename)
-    except ConfigParser.ParsingError:
-        print "Unable to read file: %s" % filename
-    section = profileParser.sections()[0]
-
-    for key in settings:
-        if profileParser.has_option(section, key):
-            setting_type = settings.get_setting(key)._type
-            if setting_type == types.BooleanType:
-                settings[key] = bool(profileParser.get(section, key))
-            elif setting_type == types.IntType:
-                settings[key] = int(float(profileParser.get(section, key)))
-            elif setting_type == types.FloatType:
-                settings[key] = float(profileParser.get(section, key))
-            elif setting_type == types.UnicodeType:
-                settings[key] = unicode(profileParser.get(section, key))
-            elif setting_type == types.ListType:
-                from ast import literal_eval
-                settings[key] = literal_eval(profileParser.get(section, key))
-            elif setting_type == np.ndarray:
-                from ast import literal_eval
-                settings[key] = np.asarray(literal_eval(profileParser.get(section, key)))
-            else:
-                raise TypeError(
-                    "Unknown type when loading old setting %s of type %s" % (key, setting_type))
 
 
 # TODO: Move these somewhere else
