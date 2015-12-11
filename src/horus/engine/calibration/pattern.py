@@ -17,7 +17,7 @@ class Pattern(object):
         self._rows = 0
         self._columns = 0
         self._square_width = 0
-        self.distance = 0
+        self.origin_distance = 0
 
     @property
     def rows(self):
@@ -67,8 +67,8 @@ class Pattern(object):
         objp = np.multiply(objp, self.square_width)
         self.object_points = objp
 
-    def set_distance(self, value):
-        self.distance = self.to_float(value)
+    def set_origin_distance(self, value):
+        self.origin_distance = self.to_float(value)
 
     def to_int(self, value):
         try:

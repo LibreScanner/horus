@@ -6,176 +6,100 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
+import wx.lib.scrolledpanel
+from collections import OrderedDict
 
-from horus.util import resources
-
-from horus.engine.driver.driver import Driver
-from horus.engine.driver.board import WrongFirmware, BoardNotConnected
-from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo
+from horus.gui.engine import driver
+from horus.gui.util.custom_panels import ExpandableCollection
 
 
 class Workbench(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, name='Workbench'):
         wx.Panel.__init__(self, parent)
+        self.name = name
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        # Elements
+        self.scroll_panel = wx.lib.scrolledpanel.ScrolledPanel(self, size=(-1, -1))
+        self.scroll_panel.SetupScrolling(scroll_x=False, scrollIntoView=False)
+        self.scroll_panel.SetAutoLayout(1)
+        self.panels_collection = ExpandableCollection(self.scroll_panel)
+        self.pages_collection = OrderedDict()
+
+        # Layout
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.scroll_panel, 0, wx.ALL ^ wx.RIGHT | wx.EXPAND, 1)
+        self.SetSizer(self.hbox)
 
-        self.toolbar = wx.ToolBar(self)
-        self.combo = wx.ComboBox(self, -1, style=wx.CB_READONLY)
-        self._panel = wx.Panel(self)
+        self.add_panels()  # Add panels to collection
+        self.panels_collection.init_panels_layout()
 
-        self.toolbar.SetDoubleBuffered(True)
+        vsbox = wx.BoxSizer(wx.VERTICAL)
+        vsbox.Add(self.panels_collection, 1, wx.ALL | wx.EXPAND, 0)
+        self.scroll_panel.SetSizer(vsbox)
+        vsbox.Fit(self.scroll_panel)
+        panel_size = self.scroll_panel.GetSize()[0] + wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.scroll_panel.SetMinSize((panel_size, -1))
+        self.scroll_panel.Disable()
 
-        hbox.Add(self.toolbar, 0, wx.ALL | wx.EXPAND, 1)
-        hbox.Add((0, 0), 1, wx.ALL | wx.EXPAND, 1)
-        hbox.Add(self.combo, 0, wx.ALL, 10)
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 1)
-        vbox.Add(self._panel, 1, wx.ALL | wx.EXPAND, 0)
-
-        self._panel.SetSizer(self.hbox)
-        self._panel.Layout()
-
-        self.SetSizer(vbox)
-        self.Layout()
-        self.Hide()
-
-    def addToPanel(self, _object, _size):
-        if _object is not None:
-            self.hbox.Add(_object, _size, wx.ALL | wx.EXPAND, 1)
-
-
-class WorkbenchConnection(Workbench):
-
-    def __init__(self, parent):
-        Workbench.__init__(self, parent)
-
-        self.driver = Driver()
-
-        #-- Toolbar Configuration
-        self.connectTool = self.toolbar.AddLabelTool(
-            wx.NewId(), _("Connect"),
-            wx.Bitmap(resources.getPathForImage("connect.png")), shortHelp=_("Connect"))
-        self.disconnectTool = self.toolbar.AddLabelTool(
-            wx.NewId(), _("Disconnect"),
-            wx.Bitmap(resources.getPathForImage("disconnect.png")), shortHelp=_("Disconnect"))
-        self.toolbar.Realize()
-
-        #-- Disable Toolbar Items
-        self.enableLabelTool(self.connectTool, True)
-        self.enableLabelTool(self.disconnectTool, False)
-
-        #-- Bind Toolbar Items
-        self.Bind(wx.EVT_TOOL, self.onConnectToolClicked, self.connectTool)
-        self.Bind(wx.EVT_TOOL, self.onDisconnectToolClicked, self.disconnectTool)
-
+        self.add_pages()
         self.Layout()
 
-        self.videoView = None
+        # Events
+        self.Bind(wx.EVT_SHOW, self.on_show)
 
-        self.Bind(wx.EVT_SHOW, self.onShow)
+    def add_panels(self):
+        raise NotImplementedError
 
-    def onShow(self, event):
+    def add_pages(self):
+        raise NotImplementedError
+
+    def setup_engine(self):
+        raise NotImplementedError
+
+    def on_open(self):
+        raise NotImplementedError
+
+    def on_close(self):
+        raise NotImplementedError
+
+    def add_panel(self, name, panel, on_selected_callback=None):
+        self.panels_collection.add_panel(name, panel, on_selected_callback)
+
+    def add_page(self, name, page):
+        self.pages_collection[name] = page
+        self.hbox.Add(page, 1, wx.ALL | wx.EXPAND, 2)
+
+    def enable_content(self):
+        self.panels_collection.enable_content()
+        self.scroll_panel.Enable()
+
+    def disable_content(self):
+        self.panels_collection.disable_content()
+        self.scroll_panel.Disable()
+
+    def update_controls(self):
+        self.panels_collection.update_from_profile()
+        if driver.is_connected:
+            self.setup_engine()
+
+    def on_connect(self):
+        if driver.is_connected:
+            for _, p in self.pages_collection.iteritems():
+                p.Enable()
+            self.setup_engine()
+        self.on_open()
+
+    def on_disconnect(self):
+        for _, p in self.pages_collection.iteritems():
+            p.Disable()
+        self.on_close()
+        self.disable_content()
+
+    def on_show(self, event):
         if event.GetShow():
-            self.updateStatus(self.driver.is_connected)
+            if driver.is_connected:
+                self.setup_engine()
+            self.on_open()
         else:
-            try:
-                if self.videoView is not None:
-                    self.videoView.stop()
-            except:
-                pass
-
-    def onConnectToolClicked(self, event):
-        self.driver.set_callbacks(
-            lambda: wx.CallAfter(self.beforeConnect),
-            lambda r: wx.CallAfter(self.afterConnect, r))
-        self.driver.connect()
-
-    def onDisconnectToolClicked(self, event):
-        self.driver.disconnect()
-        self.updateStatus(self.driver.is_connected)
-
-    def beforeConnect(self):
-        self.enableLabelTool(self.connectTool, False)
-        self.combo.Disable()
-        for i in xrange(self.GetParent().menuBar.GetMenuCount()):
-            self.GetParent().menuBar.EnableTop(i, False)
-        self.driver.board.set_unplug_callback(None)
-        self.driver.camera.set_unplug_callback(None)
-        self.waitCursor = wx.BusyCursor()
-
-    def afterConnect(self, response):
-        ret, result = response
-
-        if not ret:
-            if isinstance(result, WrongFirmware):
-                dlg = wx.MessageDialog(
-                    self, _("Board has a wrong firmware or an invalid Baud Rate.\n"
-                            "Please select your Board and press Upload Firmware"),
-                    _(result), wx.OK | wx.ICON_INFORMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                self.updateStatus(False)
-                self.GetParent().onPreferences(None)
-            elif isinstance(result, BoardNotConnected):
-                dlg = wx.MessageDialog(
-                    self, _(
-                        "Board is not connected.\n"
-                        "Please connect your board and select a valid Serial Name"),
-                    _(result), wx.OK | wx.ICON_INFORMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                self.updateStatus(False)
-                self.GetParent().onPreferences(None)
-            elif isinstance(result, WrongCamera):
-                dlg = wx.MessageDialog(
-                    self, _(
-                        "You probably have selected a wrong camera.\n"
-                        "Please select other Camera Id"),
-                    _(result), wx.OK | wx.ICON_INFORMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                self.updateStatus(False)
-                self.GetParent().onPreferences(None)
-            elif isinstance(result, CameraNotConnected):
-                dlg = wx.MessageDialog(
-                    self, _("Please plug your camera and try to connect again"),
-                    _(result), wx.OK | wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
-            elif isinstance(result, InvalidVideo):
-                dlg = wx.MessageDialog(
-                    self, _("Unplug and plug your camera USB cable and try to connect again"),
-                    _(result), wx.OK | wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
-
-        self.updateStatus(self.driver.is_connected)
-        self.combo.Enable()
-        for i in xrange(self.GetParent().menuBar.GetMenuCount()):
-            self.GetParent().menuBar.EnableTop(i, True)
-        del self.waitCursor
-
-    def enableLabelTool(self, item, enable):
-        self.toolbar.EnableTool(item.GetId(), enable)
-
-    def updateStatus(self, status):
-        self.updateToolbarStatus(status)
-        if status:
-            self.enableLabelTool(self.connectTool, False)
-            self.enableLabelTool(self.disconnectTool, True)
-            self.driver.board.set_unplug_callback(
-                lambda: wx.CallAfter(self.GetParent().onBoardUnplugged))
-            self.driver.camera.set_unplug_callback(
-                lambda: wx.CallAfter(self.GetParent().onCameraUnplugged))
-            self.GetParent().workbenchUpdate(False)
-        else:
-            self.enableLabelTool(self.connectTool, True)
-            self.enableLabelTool(self.disconnectTool, False)
-            self.driver.board.set_unplug_callback(None)
-            self.driver.camera.set_unplug_callback(None)
-
-    def updateToolbarStatus(self, status):
-        pass
+            self.on_close()

@@ -11,17 +11,19 @@ import wx.lib.intctrl
 
 from horus.util import profile
 
+# TODO: refactor PEP8
+
 
 class MachineSettingsDialog(wx.Dialog):
 
     def __init__(self, parent):
-        super(MachineSettingsDialog, self).__init__(None, title=_("Machine Settings"))
+        wx.Dialog.__init__(self, None, title=_("Machine Settings"))
 
         self.main = parent
 
-        # Graphic elements
+        # Elements
         self.machineShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
-        self.machineShapes = profile.settings.getPossibleValues("machine_shape")
+        self.machineShapes = profile.settings.get_possible_values("machine_shape")
         self.translatedMachineShapes = [_(s) for s in self.machineShapes]
         self.machineShapeCombo = wx.ComboBox(
             self, choices=self.translatedMachineShapes, size=(170, -1), style=wx.CB_READONLY)
@@ -42,13 +44,13 @@ class MachineSettingsDialog(wx.Dialog):
         self.machineModelField = wx.StaticText(self, size=(200, -1))
 
         self.defaultButton = wx.Button(self, label=_("Default"))
-        self.cancelButton = wx.Button(self, label=_("Cancel"))
+        self.cancel_button = wx.Button(self, label=_("Cancel"))
         self.saveButton = wx.Button(self, label=_("Save"))
 
         # Events
         self.machineShapeCombo.Bind(wx.EVT_COMBOBOX, self.onMachineShapeComboChanged)
         self.machineModelButton.Bind(wx.EVT_BUTTON, self.onMachineModelButton)
-        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButton)
+        self.cancel_button.Bind(wx.EVT_BUTTON, self.onCancelButton)
         self.saveButton.Bind(wx.EVT_BUTTON, self.onSaveButton)
         self.defaultButton.Bind(wx.EVT_BUTTON, self.onDefaultButton)
         self.Bind(wx.EVT_CLOSE, self.onCancelButton)
@@ -101,11 +103,11 @@ class MachineSettingsDialog(wx.Dialog):
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.defaultButton, 0, wx.ALL ^ wx.RIGHT, 10)
-        hbox.Add(self.cancelButton, 0, wx.ALL ^ wx.RIGHT, 10)
+        hbox.Add(self.cancel_button, 0, wx.ALL ^ wx.RIGHT, 10)
         hbox.Add(self.saveButton, 0, wx.ALL, 10)
         vbox.Add(hbox, 0, wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
-        #-- Fill data from settings
+        # Fill data from settings
         self.machineShapeCombo.SetValue(_(profile.settings['machine_shape']))
         self.diameterField.SetValue(profile.settings['machine_diameter'])
         self.widthField.SetValue(profile.settings['machine_width'])
@@ -151,7 +153,7 @@ class MachineSettingsDialog(wx.Dialog):
         self.machineModelField.SetLabel(self._getFileName(self.machineModelPath))
 
     def onMachineShapeComboChanged(self, event):
-        vbox = self.GetSizer()
+        vbox = self.get_sizer()
         machine_shape = self.machineShapes[
             self.translatedMachineShapes.index(self.machineShapeCombo.GetValue())]
         if machine_shape == "Circular":

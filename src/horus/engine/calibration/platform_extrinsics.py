@@ -16,7 +16,7 @@ from horus.engine.calibration.moving_calibration import MovingCalibration
 class PlatformExtrinsicsError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("PlatformExtrinsicsError"))
+        Exception.__init__(self, "PlatformExtrinsicsError")
 
 
 estimated_t = [5, 90, 320]
@@ -61,7 +61,7 @@ class PlatformExtrinsics(MovingCalibration):
     def _calibrate(self):
         self.has_image = False
         self.image_capture.stream = True
-        t = None
+        self.tt = None
         self.x = np.array(self.x)
         self.y = np.array(self.y)
         self.z = np.array(self.z)
@@ -73,13 +73,14 @@ class PlatformExtrinsics(MovingCalibration):
             if normal[1] > 0:
                 normal = -normal
             # Fitting a circle inside the plane
-            center, R, circle = fit_circle(point, normal, points)
+            center, self.R, circle = fit_circle(point, normal, points)
             # Get real origin
-            t = center - self.pattern.distance * np.array(normal)
+            self.t = center - self.pattern.origin_distance * np.array(normal)
 
-        if self._is_calibrating and t is not None and \
-           np.linalg.norm(t - estimated_t) < 100:
-            response = (True, (R, t, center, point, normal, [self.x, self.y, self.z], circle))
+        if self._is_calibrating and self.t is not None and \
+           np.linalg.norm(self.t - estimated_t) < 100:
+            response = (True, (self.R, self.t, center, point, normal,
+                        [self.x, self.y, self.z], circle))
         else:
             if self._is_calibrating:
                 response = (False, PlatformExtrinsicsError)
@@ -87,8 +88,13 @@ class PlatformExtrinsics(MovingCalibration):
                 response = (False, CalibrationCancel)
 
         self._is_calibrating = False
+        self.image = None
 
         return response
+
+    def accept(self):
+        self.calibration_data.platform_rotation = self.R
+        self.calibration_data.platform_translation = self.t
 
 
 def compute_pattern_position(pose, distance):
@@ -118,7 +124,7 @@ def fit_plane(data):
     best_fit_values, ier = optimize.leastsq(residuals_plane, estimate, args=(data))
     xF, yF, zF, tF, pF = best_fit_values
 
-    #point  = [xF,yF,zF]
+    # point  = [xF,yF,zF]
     point = data[0]
     normal = -np.array([np.sin(tF) * np.cos(pF), np.sin(tF) * np.sin(pF), np.cos(tF)])
 

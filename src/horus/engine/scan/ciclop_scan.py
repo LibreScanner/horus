@@ -13,17 +13,17 @@ from horus import Singleton
 from horus.engine.scan.scan import Scan
 from horus.engine.scan.scan_capture import ScanCapture
 from horus.engine.scan.current_video import CurrentVideo
+from horus.engine.calibration.calibration_data import CalibrationData
 
 
 class ScanError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("ScanError"))
+        Exception.__init__(self, "ScanError")
 
 
 @Singleton
 class CiclopScan(Scan):
-
     """Perform Ciclop scanning algorithm:
 
         - Capture Thread: capture raw images and manage motor and lasers
@@ -34,6 +34,7 @@ class CiclopScan(Scan):
         Scan.__init__(self)
         self.image = None
         self.current_video = CurrentVideo()
+        self.calibration_data = CalibrationData()
         self.capture_texture = True
         self.laser = [True, True]
         self.move_motor = True
@@ -125,15 +126,19 @@ class CiclopScan(Scan):
             capture.texture = self.image_capture.capture_texture()
         else:
             r, g, b = self.color
-            ones = np.ones((1280, 960, 3), np.uint8)  # TODO: add real values
+            ones = np.ones((self.calibration_data.height,
+                            self.calibration_data.width, 3), np.uint8)
             ones[:, :, 0] *= r
             ones[:, :, 1] *= g
             ones[:, :, 2] *= b
             capture.texture = ones
 
-        for i in xrange(2):
-            if self.laser[i]:
-                capture.lasers[i] = self.image_capture.capture_laser(i)
+        if self.laser[0] and self.laser[1]:
+            capture.lasers = self.image_capture.capture_lasers()
+        else:
+            for i in xrange(2):
+                if self.laser[i]:
+                    capture.lasers[i] = self.image_capture.capture_laser(i)
 
         # Set current video images
         self.current_video.set_texture(capture.texture)

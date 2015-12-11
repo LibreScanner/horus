@@ -10,47 +10,60 @@ import os
 import urllib2
 import webbrowser
 
-from horus.util import resources, system as sys
+from horus.util import profile, resources, system as sys
 
 
-def getVersion(_type='local'):
-    return _getVersionData(0, _type)
+def get_version(_type='local'):
+    return _get_version_data(0, _type)
 
 
-def getBuild(_type='local'):
-    return _getVersionData(1, _type)
+def get_build(_type='local'):
+    return _get_version_data(1, _type)
 
 
-def getGitHub(_type='local'):
-    return _getVersionData(2, _type)
+def get_github(_type='local'):
+    return _get_version_data(2, _type)
 
 
-def _getVersionData(index, _type='local'):
+def download_version_file():
+    try:
+        filepath = os.path.join(profile.get_base_path(), 'version')
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        f = urllib2.urlopen('http://storage.googleapis.com/bq-horus/releases/version', timeout=1)
+        content = f.read()
+        with open(filepath, 'w') as f:
+            f.write(content)
+    except:
+        pass
+
+
+def _get_version_data(index, _type='local'):
     # Version Build GitHub
     try:
         if _type is 'local':
-            if os.path.isfile(resources.getPathForVersion()):
-                with open(resources.getPathForVersion(), 'r') as f:
-                    content = f.read()
+            version_file = resources.get_path_for_version()
         elif _type is 'remote':
-            f = urllib2.urlopen('http://storage.googleapis.com/bq-horus/releases/version')
-            content = f.read()
+            version_file = os.path.join(profile.get_base_path(), 'version')
+        if os.path.isfile(version_file):
+            with open(version_file, 'r') as f:
+                content = f.read()
         data = content.split('\n')
         return data[index]
     except:
         return ''
 
 
-def checkForUpdates():
-    return getVersion('remote') >= getVersion('local') and \
-        getBuild('local') is not '' and \
-        getBuild('remote') > getBuild('local')
+def check_for_updates():
+    return get_version('remote') >= get_version('local') and \
+        get_build('local') is not '' and \
+        get_build('remote') > get_build('local')
 
 
-def _getExecutableUrl(version):
+def _get_executable_url(version):
     url = None
-    import platform
-    if sys.isLinux():
+    if sys.is_linux():
+        import platform
         url = "https://launchpad.net/~bqopensource/+archive/ubuntu/horus/+files/"
         url += "horus_"
         url += version + "-bq1~"
@@ -59,23 +72,23 @@ def _getExecutableUrl(version):
             url += "amd64.deb"
         elif platform.architecture()[0] == '32bit':
             url += "i386.deb"
-    elif sys.isWindows():
+        del platform
+    elif sys.is_windows():
         url = "storage.googleapis.com/bq-horus/releases/"
         url += "Horus_"
         url += version + ".exe"
-    elif sys.isDarwin():
+    elif sys.is_darwin():
         url = "https://storage.googleapis.com/bq-horus/releases/"
         url += "Horus_"
         url += version + ".dmg"
-    del platform
     return url
 
 
-def _downloadVersion(version):
-    url = _getExecutableUrl(version)
+def _download_version(version):
+    url = _get_executable_url(version)
     if url is not None:
         webbrowser.open(url)
 
 
-def downloadLatestVersion():
-    _downloadVersion(getVersion('remote'))
+def download_latest_version():
+    _download_version(get_version('remote'))

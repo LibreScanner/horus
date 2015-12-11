@@ -20,19 +20,19 @@ if system == 'Darwin':
 class WrongCamera(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Wrong Camera"))
+        Exception.__init__(self, "Wrong Camera")
 
 
 class CameraNotConnected(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Camera Not Connected"))
+        Exception.__init__(self, "Camera Not Connected")
 
 
 class InvalidVideo(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Invalid Video"))
+        Exception.__init__(self, "Invalid Video")
 
 
 class Camera(object):
@@ -221,7 +221,7 @@ class Camera(object):
                 self._capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
                 self._frame_rate = value
 
-    def set_resolution(self, width, height):
+    def set_resolution(self, height, width):
         if self._is_connected:
             if self._width != width or self._height != height:
                 self._set_width(width)
@@ -255,7 +255,7 @@ class Camera(object):
                 ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
                 value = ctl.get_val()
                 value /= self._rel_exposure
-            elif system == 'Exposure':
+            elif system == 'Windows':
                 value = self._capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
                 value = 2 ** -value
             else:
@@ -298,7 +298,7 @@ class Camera(object):
 
     def get_video_list(self):
         baselist = []
-        if system == 'Windws':
+        if system == 'Windows':
             count = self._count_cameras()
             for i in xrange(count):
                 baselist.append(str(i))

@@ -8,40 +8,40 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import os
 
-from horus.util.meshLoaders import ply
-from horus.util.meshLoaders import stl
+from horus.util.mesh_loaders import ply
+from horus.util.mesh_loaders import stl
 
 
-def loadSupportedExtensions():
+def load_supported_extensions():
     """ return a list of supported file extensions for loading. """
     return ['.ply', '.stl']
 
 
-def saveSupportedExtensions():
+def save_supported_extensions():
     """ return a list of supported file extensions for saving. """
     return ['.ply']
 
 
-def loadMesh(filename):
+def load_mesh(filename):
     """
     loadMesh loads one model from a file.
     """
     ext = os.path.splitext(filename)[1].lower()
     if ext == '.ply':
-        return ply.loadScene(filename)
+        return ply.load_scene(filename)
     if ext == '.stl':
-        return stl.loadScene(filename)
+        return stl.load_scene(filename)
     print 'Error: Unknown model extension: %s' % (ext)
     return None
 
 
-def saveMesh(filename, _object):
+def save_mesh(filename, _object):
     """
     Save a object into the file given by the filename.
     Use the filename extension to find out the file format.
     """
     ext = os.path.splitext(filename)[1].lower()
     if ext == '.ply':
-        ply.saveScene(filename, _object)
+        ply.save_scene(filename, _object)
         return
     print 'Error: Unknown model extension: %s' % (ext)

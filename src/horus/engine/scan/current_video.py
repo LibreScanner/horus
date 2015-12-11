@@ -9,7 +9,6 @@ import cv2
 import numpy as np
 
 from horus import Singleton
-from horus.engine.algorithms.point_cloud_roi import PointCloudROI
 
 
 @Singleton
@@ -17,8 +16,6 @@ class CurrentVideo(object):
 
     def __init__(self):
         self.mode = 'Texture'
-        self.roi_view = False
-        self.point_cloud_roi = PointCloudROI()
 
         self.images = {}
         self.images['Texture'] = None
@@ -26,22 +23,16 @@ class CurrentVideo(object):
         self.images['Gray'] = None
         self.images['Line'] = None
 
-    def set_roi_view(self, value):
-        self.roi_view = value
-
     def set_texture(self, image):
-        image = self._apply_roi(image)
         self.images['Texture'] = image
 
     def set_laser(self, images):
         image = self._combine_images(images)
-        image = self._apply_roi(image)
         self.images['Laser'] = image
 
     def set_gray(self, images):
         image = self._combine_images(images)
         image = cv2.merge((image, image, image))
-        image = self._apply_roi(image)
         self.images['Gray'] = image
 
     def set_line(self, points, image):
@@ -50,7 +41,6 @@ class CurrentVideo(object):
         images[1] = self._compute_line_image(points[1], image)
         image = self._combine_images(images)
         image = cv2.merge((image, image, image))
-        image = self._apply_roi(image)
         self.images['Line'] = image
 
     def _combine_images(self, images):
@@ -64,16 +54,11 @@ class CurrentVideo(object):
             return images[1]
 
     def _compute_line_image(self, points, image):
-        u, v = points
-        image = np.zeros_like(image)
-        image[v.astype(int), u.astype(int)] = 255.0
-        return image
-
-    def _apply_roi(self, image):
-        image = self.point_cloud_roi.mask_image(image)
-        if self.roi_view:
-            image = self.point_cloud_roi.draw_roi(image)
-        return image
+        if points is not None:
+            u, v = points
+            image = np.zeros_like(image)
+            image[v.astype(int), u.astype(int)] = 255.0
+            return image
 
     def capture(self):
         return self.images[self.mode]

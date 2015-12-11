@@ -1,10 +1,3 @@
-# coding=utf-8
-
-__author__ = "Jesús Arroyo Torrens <jesus.arroyo@bq.com>"
-__license__ = "GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html"
-__copyright__ = "Copyright (C) 2015 Mundo Reader S.L. - Released under terms of the GPLv2 License"
-
-
 import unittest
 from horus.engine.driver.board import Board
 

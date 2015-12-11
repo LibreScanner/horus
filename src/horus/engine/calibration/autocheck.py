@@ -5,36 +5,35 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-import cv2
 import time
 import numpy as np
 
 from horus import Singleton
-from horus.engine.calibration.calibration import Calibration
+from horus.engine.calibration.calibration import Calibration, CalibrationCancel
 
 
 class PatternNotDetected(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Pattern Not Detected"))
+        Exception.__init__(self, "Pattern Not Detected")
 
 
 class WrongMotorDirection(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Wrong Motor Direction"))
+        Exception.__init__(self, "Wrong Motor Direction")
 
 
 class LaserNotDetected(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Laser Not Detected"))
+        Exception.__init__(self, "Laser Not Detected")
 
 
 class WrongLaserPosition(Exception):
 
     def __init__(self):
-        Exception.__init__(self, _("Wrong Laser Position"))
+        Exception.__init__(self, "Wrong Laser Position")
 
 
 @Singleton
@@ -52,7 +51,7 @@ class Autocheck(Calibration):
 
     def _start(self):
         if self.driver.is_connected:
-
+            ret = False
             response = None
             self.image = None
             self._is_calibrating = True
@@ -67,6 +66,7 @@ class Autocheck(Calibration):
                 self.check_pattern_and_motor()
                 time.sleep(0.1)
                 self.check_lasers()
+                ret = True
             except Exception as e:
                 response = e
             finally:
@@ -78,7 +78,7 @@ class Autocheck(Calibration):
                 if self._progress_callback is not None:
                     self._progress_callback(100)
                 if self._after_callback is not None:
-                    self._after_callback(response)
+                    self._after_callback((ret, response))
 
     def check_pattern_and_motor(self):
         scan_step = 30
@@ -94,6 +94,8 @@ class Autocheck(Calibration):
 
         # Capture data
         for i in xrange(0, 360, scan_step):
+            if not self._is_calibrating:
+                raise CalibrationCancel()
             image = self.image_capture.capture_pattern()
             pose = self.image_detection.detect_pose(image)
             if pose is not None:
@@ -136,6 +138,8 @@ class Autocheck(Calibration):
 
     def check_lasers(self):
         for i in xrange(2):
+            if not self._is_calibrating:
+                raise CalibrationCancel()
             image = self.image_capture.capture_laser(i)
             self.image = image
             corners = self.image_detection.detect_corners(image)

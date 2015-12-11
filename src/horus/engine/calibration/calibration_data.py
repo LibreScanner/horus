@@ -82,3 +82,20 @@ class CalibrationData(object):
     def _compute_weight_matrix(self):
         self._weight_matrix = np.array((np.matrix(np.linspace(0, self.width - 1, self.width)).T *
                                         np.matrix(np.ones(self.height))).T)
+
+    def check_calibration(self):
+        if self.camera_matrix is None or self.distortion_vector is None:
+            return False
+        for plane in self.laser_planes:
+            if plane.distance is None or plane.normal is None:
+                return False
+            if plane.distance == 0.0 or self._is_zero(plane.normal):
+                return False
+        if self.platform_rotation is None or self.platform_translation is None:
+            return False
+        if self._is_zero(self.platform_rotation) or self._is_zero(self.platform_translation):
+            return False
+        return True
+
+    def _is_zero(self, array):
+        return np.all(array == 0.0)

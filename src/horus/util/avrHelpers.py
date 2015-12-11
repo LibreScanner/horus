@@ -25,32 +25,32 @@ class FirmwareError(Exception):
 class AvrDude(SerialDevice):
 
     def __init__(self, protocol="arduino", microcontroller="atmega328p",
-                 baudRate="19200", confPath=None, port=None):
+                 baud_rate="19200", conf_path=None, port=None):
         self.protocol = protocol
         self.microcontroller = microcontroller
-        self.baudRate = baudRate
+        self.baud_rate = baud_rate
 
-        if sys.isWindows():
-            self.avrdude = path(resources.getPathForTools("avrdude.exe")).abspath()
-        elif sys.isDarwin():
-            self.avrdude = path(resources.getPathForTools("avrdude")).abspath()
+        if sys.is_windows():
+            self.avrdude = path(resources.get_path_for_tools("avrdude.exe")).abspath()
+        elif sys.is_darwin():
+            self.avrdude = path(resources.get_path_for_tools("avrdude")).abspath()
         else:
             self.avrdude = 'avrdude'
 
         if self.avrdude is None:
             raise FirmwareError('avrdude not installed')
 
-        if confPath is None:
-            self.avrconf = path(resources.getPathForTools("avrdude.conf")).abspath()
+        if conf_path is None:
+            self.avrconf = path(resources.get_path_for_tools("avrdude.conf")).abspath()
         else:
-            self.avrconf = path(confPath).abspath()
+            self.avrconf = path(conf_path).abspath()
 
         if port:
             self.port = port
         else:
-            self.port = self.get_port(baudRate)
+            self.port = self.get_port(baud_rate)
 
-    def _runCommand(self, flags, callback=None):
+    def _run_command(self, flags, callback=None):
         config = dict(avrdude=self.avrdude, avrconf=self.avrconf)
         cmd = ['%(avrdude)s'] + flags
         cmd = [v % config for v in cmd]
@@ -66,19 +66,19 @@ class AvrDude(SerialDevice):
                     callback()
         return out
 
-    def flash(self, hexPath=None, extraFlags=None, callback=None):
-        if hexPath is None:
-            hexPath = resources.getPathForFirmware("horus-fw.hex")
-        hexPath = path(hexPath)
-        flags = ['-c', self.protocol, '-b', str(self.baudRate), '-p',
+    def flash(self, hex_path=None, extra_flags=None, callback=None):
+        if hex_path is None:
+            hex_path = resources.get_path_for_firmware("horus-fw.hex")
+        hex_path = path(hex_path)
+        flags = ['-c', self.protocol, '-b', str(self.baud_rate), '-p',
                  self.microcontroller, '-P', '%s' % self.port, '-U',
-                 'flash:w:%s:i' % hexPath.name, '-C', '%(avrconf)s']
-        if extraFlags is not None:
-            flags.extend(extraFlags)
+                 'flash:w:%s:i' % hex_path.name, '-C', '%(avrconf)s']
+        if extra_flags is not None:
+            flags.extend(extra_flags)
         try:
             cwd = os.getcwd()
-            os.chdir(hexPath.parent)
-            out = self._runCommand(flags, callback)
+            os.chdir(hex_path.parent)
+            out = self._run_command(flags, callback)
         finally:
             os.chdir(cwd)
         return out

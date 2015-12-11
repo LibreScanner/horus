@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 from horus.util import profile, resources
 
-from horus.engine.calibration.pattern import Pattern
+from horus.gui.engine import pattern
 
 
 class PatternDistanceWindow(wx.Dialog):
@@ -19,7 +19,6 @@ class PatternDistanceWindow(wx.Dialog):
             size=(420, -1), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
 
         self.value = float(profile.settings['pattern_origin_distance'])
-        self.pattern = Pattern()
 
         # Elements
         self.description = wx.StaticText(self, label=_(
@@ -30,31 +29,31 @@ class PatternDistanceWindow(wx.Dialog):
             "Minimum distance between the origin of the pattern (bottom-left corner) "
             "and the pattern's base surface")
         self.image = wx.Image(
-            resources.getPathForImage("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
-        self.patternImage = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
-        self.patternImage.SetToolTip(wx.ToolTip(tooltip))
-        self.patternLabel = wx.StaticText(self, label=_('Pattern distance (mm)'))
-        self.patternLabel.SetToolTip(wx.ToolTip(tooltip))
-        self.patternTextbox = wx.TextCtrl(
+            resources.get_path_for_image("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
+        self.image = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
+        self.image.SetToolTip(wx.ToolTip(tooltip))
+        self.label = wx.StaticText(self, label=_('Pattern distance (mm)'))
+        self.label.SetToolTip(wx.ToolTip(tooltip))
+        self.text_box = wx.TextCtrl(
             self, value=str(profile.settings['pattern_origin_distance']))
-        self.okButton = wx.Button(self, label=_('OK'))
-        self.cancelButton = wx.Button(self, label=_('Cancel'))
+        self.ok_button = wx.Button(self, label=_('OK'))
+        self.cancel_button = wx.Button(self, label=_('Cancel'))
 
         # Events
-        self.patternTextbox.Bind(wx.EVT_TEXT, self.onTextBoxChanged)
-        self.cancelButton.Bind(wx.EVT_BUTTON, self.onClose)
-        self.okButton.Bind(wx.EVT_BUTTON, self.onOk)
-        self.Bind(wx.EVT_CLOSE, self.onClose)
+        self.text_box.Bind(wx.EVT_TEXT, self.on_text_box_changed)
+        self.cancel_button.Bind(wx.EVT_BUTTON, self.on_close)
+        self.ok_button.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(self.description, 0, wx.ALL | wx.CENTER, 10)
-        vbox.Add(self.patternImage, 0, wx.ALL | wx.CENTER, 10)
+        vbox.Add(self.image, 0, wx.ALL | wx.CENTER, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.patternLabel, 0, wx.ALL, 7)
-        hbox.Add(self.patternTextbox, 0, wx.ALL, 3)
-        hbox.Add(self.okButton, 0, wx.ALL, 3)
-        hbox.Add(self.cancelButton, 0, wx.ALL, 3)
+        hbox.Add(self.label, 0, wx.ALL, 7)
+        hbox.Add(self.text_box, 0, wx.ALL, 3)
+        hbox.Add(self.ok_button, 0, wx.ALL, 3)
+        hbox.Add(self.cancel_button, 0, wx.ALL, 3)
         vbox.Add(hbox, 0, wx.ALL | wx.CENTER, 10)
         self.SetSizer(vbox)
         self.Center()
@@ -62,23 +61,23 @@ class PatternDistanceWindow(wx.Dialog):
 
         self.ShowModal()
 
-    def onTextBoxChanged(self, event):
+    def on_text_box_changed(self, event):
         try:
-            value = float(self.patternTextbox.GetValue())
+            value = float(self.text_box.GetValue())
             if value >= 0:
                 self.value = value
         except:
             pass
 
-    def setPatternDistance(self, distance):
+    def set_pattern_distance(self, distance):
         profile.settings['pattern_origin_distance'] = distance
-        self.pattern.distance = distance
+        pattern.origin_distance = distance
 
-    def onOk(self, event):
-        self.setPatternDistance(self.value)
+    def on_ok(self, event):
+        self.set_pattern_distance(self.value)
         self.EndModal(wx.ID_OK)
         self.Destroy()
 
-    def onClose(self, event):
+    def on_close(self, event):
         self.EndModal(wx.ID_OK)
         self.Destroy()

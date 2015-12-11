@@ -16,6 +16,7 @@ class CameraSettings(object):
 
     def __init__(self):
         self.driver = Driver()
+
         self.selected = False
         self.brightness = 0
         self.contrast = 0
@@ -74,6 +75,11 @@ class ImageCapture(object):
         self._updating = False
         self.use_distortion = False
 
+    def initialize(self):
+        self.texture_mode.initialize()
+        self.laser_mode.initialize()
+        self.pattern_mode.initialize()
+
     def set_use_distortion(self, value):
         self.use_distortion = value
 
@@ -89,8 +95,18 @@ class ImageCapture(object):
             self._mode.send_all_settings()
             self._updating = False
 
+    def set_mode_texture(self):
+        self.set_mode(self.texture_mode)
+
+    def set_mode_laser(self):
+        self.set_mode(self.laser_mode)
+
+    def set_mode_pattern(self):
+        self.set_mode(self.pattern_mode)
+
     def capture_texture(self):
         self.set_mode(self.texture_mode)
+        # self.driver.board.lasers_off()
         if self.stream:
             flush = self._flush_stream_texture
         else:
@@ -98,7 +114,9 @@ class ImageCapture(object):
         image = self.capture_image(flush=flush)
         return image
 
-    def capture_laser(self, index):
+    # TODO: slow with laser
+
+    def _capture_laser(self, index):
         self.set_mode(self.laser_mode)
         self.driver.board.lasers_off()
         self.driver.board.laser_on(index)
@@ -106,15 +124,40 @@ class ImageCapture(object):
             flush = self._flush_stream_laser
         else:
             flush = self._flush_laser
-        image = self.capture_image(flush=flush)
+        return self.capture_image(flush=flush)
+
+    def capture_laser(self, index):
+        image = self._capture_laser(index)
         if self._remove_background:
             self.driver.board.lasers_off()
+            if self.stream:
+                flush = self._flush_stream_laser
+            else:
+                flush = self._flush_laser
             image_background = self.capture_image(flush=flush)
             if image is not None and image_background is not None:
                 image = cv2.subtract(image, image_background)
         return image
 
     def capture_lasers(self):
+        images = [None, None]
+        images[0] = self._capture_laser(0)
+        images[1] = self._capture_laser(1)
+        if self._remove_background:
+            self.driver.board.lasers_off()
+            if self.stream:
+                flush = self._flush_stream_laser
+            else:
+                flush = self._flush_laser
+            image_background = self.capture_image(flush=flush)
+            if image_background is not None:
+                if images[0] is not None:
+                    images[0] = cv2.subtract(images[0], image_background)
+                if images[1] is not None:
+                    images[1] = cv2.subtract(images[1], image_background)
+        return images
+
+    def capture_all_lasers(self):
         self.set_mode(self.laser_mode)
         self.driver.board.lasers_on()
         if self.stream:
@@ -131,6 +174,7 @@ class ImageCapture(object):
 
     def capture_pattern(self):
         self.set_mode(self.pattern_mode)
+        # self.driver.board.lasers_off()
         if self.stream:
             flush = self._flush_stream_pattern
         else:
@@ -139,9 +183,6 @@ class ImageCapture(object):
         return image
 
     def capture_image(self, flush=0):
-        #image = None
-        #while not self._updating:
-        #    pass
         image = self.driver.camera.capture_image(flush=flush)
         if self.use_distortion:
             if self.calibration_data.camera_matrix is not None and \

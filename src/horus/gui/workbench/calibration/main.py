@@ -5,320 +5,154 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-import wx.lib.scrolledpanel
+from horus.util import profile
 
-from horus.util import resources, profile
+from horus.gui.engine import driver, pattern, calibration_data, image_capture, image_detection, \
+    laser_segmentation
+from horus.gui.util.video_view import VideoView
+from horus.gui.workbench.workbench import Workbench
+from horus.gui.workbench.calibration.panels import PatternSettings, CameraIntrinsics, \
+    ScannerAutocheck, LaserTriangulation, PlatformExtrinsics
 
-from horus.gui.util.imageView import VideoView
-from horus.gui.util.customPanels import ExpandableControl
-from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
-
-from horus.gui.workbench.workbench import WorkbenchConnection
-
-from horus.gui.workbench.calibration.current_video import CurrentVideo
-from horus.gui.workbench.calibration.panels import PatternSettingsPanel, ImageDetectionPanel, \
-    LaserSegmentation, AutocheckPanel, CameraIntrinsicsPanel, \
-    LaserTriangulationPanel, PlatformExtrinsicsPanel
-
-from horus.gui.workbench.calibration.pages import CameraIntrinsicsMainPage, \
-    CameraIntrinsicsResultPage, LaserTriangulationMainPage, LaserTriangulationResultPage, \
-    PlatformExtrinsicsMainPage, PlatformExtrinsicsResultPage
-
-from horus.engine.driver.driver import Driver
-from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
-from horus.engine.calibration.autocheck import Autocheck
-from horus.engine.algorithms.image_capture import ImageCapture
-from horus.engine.algorithms.image_detection import ImageDetection
+from horus.gui.workbench.calibration.pages.camera_intrinsics import CameraIntrinsicsPages
+from horus.gui.workbench.calibration.pages.scanner_autocheck import ScannerAutocheckPages
+from horus.gui.workbench.calibration.pages.laser_triangulation import LaserTriangulationPages
+from horus.gui.workbench.calibration.pages.platform_extrinsics import PlatformExtrinsicsPages
 
 
-class CalibrationWorkbench(WorkbenchConnection):
+class CalibrationWorkbench(Workbench):
 
     def __init__(self, parent):
-        WorkbenchConnection.__init__(self, parent)
+        Workbench.__init__(self, parent, name=_('Calibration workbench'))
 
-        self.calibrating = False
+    def add_panels(self):
+        self.add_panel(
+            'pattern_settings', PatternSettings, self.on_pattern_settings_selected)
+        self.add_panel(
+            'camera_intrinsics', CameraIntrinsics, self.on_camera_intrinsics_selected)
+        self.add_panel(
+            'scanner_autocheck', ScannerAutocheck, self.on_scanner_autocheck_selected)
+        self.add_panel(
+            'laser_triangulation', LaserTriangulation, self.on_laser_triangulation_selected)
+        self.add_panel(
+            'platform_extrinsics', PlatformExtrinsics, self.on_platform_extrinsics_selected)
 
-        self.driver = Driver()
-        self.camera_intrinsics = CameraIntrinsics()
-        self.autocheck = Autocheck()
-        self.image_capture = ImageCapture()
-        self.image_detection = ImageDetection()
-        self.current_video = CurrentVideo()
+    def add_pages(self):
+        self.add_page('video_view', VideoView(self, self.get_image, 10, black=True))
+        self.add_page('camera_intrinsics_pages', CameraIntrinsicsPages(
+            self, start_callback=self.disable_panels, exit_callback=self.update_panels))
+        self.add_page('scanner_autocheck_pages', ScannerAutocheckPages(
+            self, start_callback=self.disable_panels, exit_callback=self.update_panels))
+        self.add_page('laser_triangulation_pages', LaserTriangulationPages(
+            self, start_callback=self.disable_panels, exit_callback=self.update_panels))
+        self.add_page('platform_extrinsics_pages', PlatformExtrinsicsPages(
+            self, start_callback=self.disable_panels, exit_callback=self.update_panels))
 
-        self.toolbar.Realize()
+        self.pages_collection['camera_intrinsics_pages'].Hide()
+        self.pages_collection['scanner_autocheck_pages'].Hide()
+        self.pages_collection['laser_triangulation_pages'].Hide()
+        self.pages_collection['platform_extrinsics_pages'].Hide()
 
-        self.scrollPanel = wx.lib.scrolledpanel.ScrolledPanel(self._panel, size=(-1, -1))
-        self.scrollPanel.SetupScrolling(scroll_x=False, scrollIntoView=False)
-        self.scrollPanel.SetAutoLayout(1)
+        self.pages_collection['camera_intrinsics_pages'].Disable()
+        self.pages_collection['scanner_autocheck_pages'].Disable()
+        self.pages_collection['laser_triangulation_pages'].Disable()
+        self.pages_collection['platform_extrinsics_pages'].Disable()
 
-        self.controls = ExpandableControl(self.scrollPanel)
-
-        self.video_image = None
-        self.videoView = VideoView(self._panel, self.get_image, 10)
-        self.videoView.SetBackgroundColour(wx.BLACK)
-
-        # Add Scroll Panels
-        self.controls.addPanel('image_detection', ImageDetectionPanel(self.controls))
-        self.controls.addPanel('laser_segmentation', LaserSegmentation(self.controls))
-        self.controls.addPanel('pattern_settings', PatternSettingsPanel(self.controls))
-        self.controls.addPanel('camera_intrinsics_panel', CameraIntrinsicsPanel(
-            self.controls, buttonStartCallback=self.onCameraIntrinsicsStartCallback))
-        self.controls.addPanel('scanner_autocheck', AutocheckPanel(
-            self.controls, buttonStartCallback=self.onAutocheckStartCallback,
-            buttonStopCallback=self.onCancelCallback))
-        self.controls.addPanel('laser_triangulation_panel', LaserTriangulationPanel(
-            self.controls, buttonStartCallback=self.onLaserTriangulationStartCallback))
-        self.controls.addPanel('platform_extrinsics_panel', PlatformExtrinsicsPanel(
-            self.controls, buttonStartCallback=self.onPlatformExtrinsicsStartCallback))
-
-        # Add Calibration Pages
-        self.cameraIntrinsicsMainPage = CameraIntrinsicsMainPage(
-            self._panel,
-            afterCancelCallback=self.onCancelCallback,
-            afterCalibrationCallback=self.onCameraIntrinsicsAfterCalibrationCallback)
-
-        self.cameraIntrinsicsResultPage = CameraIntrinsicsResultPage(
-            self._panel,
-            buttonRejectCallback=self.onCancelCallback,
-            buttonAcceptCallback=self.onCameraIntrinsicsAcceptCallback)
-
-        self.laserTriangulationMainPage = LaserTriangulationMainPage(
-            self._panel,
-            afterCancelCallback=self.onCancelCallback,
-            afterCalibrationCallback=self.onLaserTriangulationAfterCalibrationCallback)
-
-        self.laserTriangulationResultPage = LaserTriangulationResultPage(
-            self._panel,
-            buttonRejectCallback=self.onCancelCallback,
-            buttonAcceptCallback=self.onLaserTriangulationAcceptCallback)
-
-        self.platformExtrinsicsMainPage = PlatformExtrinsicsMainPage(
-            self._panel,
-            afterCancelCallback=self.onCancelCallback,
-            afterCalibrationCallback=self.onPlatformExtrinsicsAfterCalibrationCallback)
-
-        self.platformExtrinsicsResultPage = PlatformExtrinsicsResultPage(
-            self._panel,
-            buttonRejectCallback=self.onCancelCallback,
-            buttonAcceptCallback=self.onPlatformExtrinsicsAcceptCallback)
-
-        self.cameraIntrinsicsMainPage.Hide()
-        self.cameraIntrinsicsResultPage.Hide()
-        self.laserTriangulationMainPage.Hide()
-        self.laserTriangulationResultPage.Hide()
-        self.platformExtrinsicsMainPage.Hide()
-        self.platformExtrinsicsResultPage.Hide()
-
-        # Layout
-        vsbox = wx.BoxSizer(wx.VERTICAL)
-        vsbox.Add(self.controls, 0, wx.ALL | wx.EXPAND, 0)
-        self.scrollPanel.SetSizer(vsbox)
-        vsbox.Fit(self.scrollPanel)
-        self.scrollPanel.SetMinSize((self.scrollPanel.GetSize()[0], -1))
-
-        self.controls.initPanels()
-
-        self.addToPanel(self.scrollPanel, 0)
-        self.addToPanel(self.videoView, 1)
-
-        self.addToPanel(self.cameraIntrinsicsMainPage, 1)
-        self.addToPanel(self.cameraIntrinsicsResultPage, 1)
-        self.addToPanel(self.laserTriangulationMainPage, 1)
-        self.addToPanel(self.laserTriangulationResultPage, 1)
-        self.addToPanel(self.platformExtrinsicsMainPage, 1)
-        self.addToPanel(self.platformExtrinsicsResultPage, 1)
-
-        self.updateCallbacks()
-        self.Layout()
-
-    def updateCallbacks(self):
-        self.controls.updateCallbacks()
+        self.panels_collection.expandable_panels[
+            profile.settings['current_panel_calibration']].on_title_clicked(None)
 
     def get_image(self):
-        if self.autocheck._is_calibrating:
-            image = self.autocheck.image
+        image = image_capture.capture_pattern()
+        return image_detection.detect_pattern(image)
+
+    def on_open(self):
+        if driver.is_connected:
+            self.pages_collection['camera_intrinsics_pages'].Enable()
+            self.pages_collection['scanner_autocheck_pages'].Enable()
+            self.pages_collection['laser_triangulation_pages'].Enable()
+            self.pages_collection['platform_extrinsics_pages'].Enable()
         else:
-            image = self.current_video.capture()
-        return image
+            self.pages_collection['camera_intrinsics_pages'].Disable()
+            self.pages_collection['scanner_autocheck_pages'].Disable()
+            self.pages_collection['laser_triangulation_pages'].Disable()
+            self.pages_collection['platform_extrinsics_pages'].Disable()
+        self.panels_collection.expandable_panels[
+            profile.settings['current_panel_calibration']].on_title_clicked(None)
 
-    def enableMenus(self, value):
-        main = self.GetParent()
-        main.menuFile.Enable(main.menuLaunchWizard.GetId(), value)
-        main.menuFile.Enable(main.menuOpenCalibrationProfile.GetId(), value)
-        main.menuFile.Enable(main.menuSaveCalibrationProfile.GetId(), value)
-        main.menuFile.Enable(main.menuResetCalibrationProfile.GetId(), value)
-        main.menuFile.Enable(main.menuOpenScanProfile.GetId(), value)
-        main.menuFile.Enable(main.menuSaveScanProfile.GetId(), value)
-        main.menuFile.Enable(main.menuResetScanProfile.GetId(), value)
-        main.menuFile.Enable(main.menuExit.GetId(), value)
-        main.menuEdit.Enable(main.menuPreferences.GetId(), value)
-        main.menuHelp.Enable(main.menuWelcome.GetId(), value)
-        main.Layout()
+    def on_close(self):
+        try:
+            self.pages_collection['video_view'].stop()
+            self.pages_collection['camera_intrinsics_pages'].capture_page.on_show(False)
+            self.pages_collection['scanner_autocheck_pages'].video_page.on_show(False)
+            self.pages_collection['laser_triangulation_pages'].video_page.on_show(False)
+            self.pages_collection['platform_extrinsics_pages'].video_page.on_show(False)
+        except:
+            pass
 
-    def onAutocheckStartCallback(self):
-        self.calibrating = True
-        self.enableLabelTool(self.disconnectTool, False)
-        self.controls.setExpandable(False)
-        self.combo.Disable()
-        self.enableMenus(False)
+    def setup_engine(self):
+        resolution = profile.settings['resolution'].split('x')
+        driver.camera.set_frame_rate(int(profile.settings['framerate']))
+        driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
+        image_capture.set_mode_pattern()
+        pattern_mode = image_capture.pattern_mode
+        pattern_mode.set_brightness(profile.settings['brightness_pattern_calibration'])
+        pattern_mode.set_contrast(profile.settings['contrast_pattern_calibration'])
+        pattern_mode.set_saturation(profile.settings['saturation_pattern_calibration'])
+        pattern_mode.set_exposure(profile.settings['exposure_pattern_calibration'])
+        image_capture.laser_mode.brightness = profile.settings['brightness_laser_calibration']
+        image_capture.laser_mode.contrast = profile.settings['contrast_laser_calibration']
+        image_capture.laser_mode.saturation = profile.settings['saturation_laser_calibration']
+        image_capture.laser_mode.exposure = profile.settings['exposure_laser_calibration']
+        image_capture.set_use_distortion(profile.settings['use_distortion'])
+        laser_segmentation.red_channel = profile.settings['red_channel_calibration']
+        laser_segmentation.open_enable = profile.settings['open_enable_calibration']
+        laser_segmentation.open_value = profile.settings['open_value_calibration']
+        laser_segmentation.threshold_enable = profile.settings['threshold_enable_calibration']
+        laser_segmentation.threshold_value = profile.settings['threshold_value_calibration']
+        pattern.rows = profile.settings['pattern_rows']
+        pattern.columns = profile.settings['pattern_columns']
+        pattern.square_width = profile.settings['pattern_square_width']
+        pattern.origin_distance = profile.settings['pattern_origin_distance']
+        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
+        calibration_data.camera_matrix = profile.settings['camera_matrix']
+        calibration_data.distortion_vector = profile.settings['distortion_vector']
+
+    def on_pattern_settings_selected(self):
+        profile.settings['current_panel_calibration'] = 'pattern_settings'
+        self._on_panel_selected(self.pages_collection['video_view'])
+        self.pages_collection['video_view'].play()
+
+    def on_camera_intrinsics_selected(self):
+        profile.settings['current_panel_calibration'] = 'camera_intrinsics'
+        self._on_panel_selected(self.pages_collection['camera_intrinsics_pages'])
+
+    def on_scanner_autocheck_selected(self):
+        profile.settings['current_panel_calibration'] = 'scanner_autocheck'
+        self._on_panel_selected(self.pages_collection['scanner_autocheck_pages'])
+
+    def on_laser_triangulation_selected(self):
+        profile.settings['current_panel_calibration'] = 'laser_triangulation'
+        self._on_panel_selected(self.pages_collection['laser_triangulation_pages'])
+
+    def on_platform_extrinsics_selected(self):
+        profile.settings['current_panel_calibration'] = 'platform_extrinsics'
+        self._on_panel_selected(self.pages_collection['platform_extrinsics_pages'])
+
+    def disable_panels(self):
+        self.GetParent().enable_gui(False)
+        self.scroll_panel.Disable()
+
+    def update_panels(self):
+        self.update_controls()
+        self.GetParent().enable_gui(True)
+        self.scroll_panel.Enable()
+
+    def _on_panel_selected(self, panel):
+        self.pages_collection['video_view'].Hide()
+        self.pages_collection['video_view'].stop()
+        self.pages_collection['camera_intrinsics_pages'].Hide()
+        self.pages_collection['scanner_autocheck_pages'].Hide()
+        self.pages_collection['laser_triangulation_pages'].Hide()
+        self.pages_collection['platform_extrinsics_pages'].Hide()
+        panel.Show()
         self.Layout()
-
-    def onCameraIntrinsicsStartCallback(self):
-        self.calibrating = True
-        self.enableLabelTool(self.disconnectTool, False)
-        self.controls.setExpandable(False)
-        self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Disable()
-        self.combo.Disable()
-        self.enableMenus(False)
-        self.videoView.stop()
-        self.videoView.Hide()
-        self.cameraIntrinsicsMainPage.Show()
-        self.cameraIntrinsicsMainPage.videoView.SetFocus()
-        self.Layout()
-
-    def onLaserTriangulationStartCallback(self):
-        self.calibrating = True
-        self.enableLabelTool(self.disconnectTool, False)
-        self.controls.setExpandable(False)
-        self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
-        self.combo.Disable()
-        self.enableMenus(False)
-        self.videoView.stop()
-        self.videoView.Hide()
-        self.laserTriangulationMainPage.Show()
-        self.Layout()
-
-    def onPlatformExtrinsicsStartCallback(self):
-        if profile.settings['pattern_origin_distance'] == 0:
-            PatternDistanceWindow(self)
-            self.updateProfileToAllControls()
-        else:
-            self.calibrating = True
-            self.enableLabelTool(self.disconnectTool, False)
-            self.controls.setExpandable(False)
-            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
-            self.combo.Disable()
-            self.enableMenus(False)
-            self.videoView.stop()
-            self.videoView.Hide()
-            self.platformExtrinsicsMainPage.Show()
-            self.Layout()
-
-    def onCancelCallback(self):
-        self.calibrating = False
-        self.enableLabelTool(self.disconnectTool, True)
-        self.controls.setExpandable(True)
-        self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
-        self.controls.panels['laser_triangulation_panel'].buttonsPanel.Enable()
-        self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Enable()
-        self.controls.updateProfile()
-        self.combo.Enable()
-        self.enableMenus(True)
-        self.cameraIntrinsicsMainPage.Hide()
-        self.cameraIntrinsicsResultPage.Hide()
-        self.laserTriangulationMainPage.Hide()
-        self.laserTriangulationResultPage.Hide()
-        self.platformExtrinsicsMainPage.Hide()
-        self.platformExtrinsicsResultPage.Hide()
-        self.current_video.mode = 'Pattern'
-        self.videoView.play()
-        self.videoView.Show()
-        self.Layout()
-
-    def onCameraIntrinsicsAfterCalibrationCallback(self, result):
-        self.cameraIntrinsicsResultPage.processCalibration(result)
-        if result[0]:
-            self.cameraIntrinsicsMainPage.Hide()
-            self.cameraIntrinsicsResultPage.Show()
-        else:
-            self.cameraIntrinsicsMainPage.initialize()
-        self.Layout()
-
-    def onCameraIntrinsicsAcceptCallback(self):
-        self.calibrating = False
-        self.enableLabelTool(self.disconnectTool, True)
-        self.controls.setExpandable(True)
-        self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
-        self.controls.panels['camera_intrinsics_panel'].updateAllControlsToProfile()
-        self.camera_intrinsics.accept()
-        self.combo.Enable()
-        self.enableMenus(True)
-        self.cameraIntrinsicsResultPage.Hide()
-        self.current_video.mode = 'Pattern'
-        self.videoView.play()
-        self.videoView.Show()
-        self.Layout()
-
-    def onLaserTriangulationAfterCalibrationCallback(self, result):
-        self.laserTriangulationResultPage.processCalibration(result)
-        if result[0]:
-            self.laserTriangulationMainPage.Hide()
-            self.laserTriangulationResultPage.Show()
-        else:
-            self.laserTriangulationMainPage.initialize()
-        self.Layout()
-
-    def onLaserTriangulationAcceptCallback(self):
-        self.calibrating = False
-        self.enableLabelTool(self.disconnectTool, True)
-        self.controls.setExpandable(True)
-        self.controls.panels['laser_triangulation_panel'].buttonsPanel.Enable()
-        self.controls.panels['laser_triangulation_panel'].updateAllControlsToProfile()
-        self.combo.Enable()
-        self.enableMenus(True)
-        self.laserTriangulationResultPage.Hide()
-        self.current_video.mode = 'Pattern'
-        self.videoView.play()
-        self.videoView.Show()
-        self.Layout()
-
-    def onPlatformExtrinsicsAfterCalibrationCallback(self, result):
-        self.platformExtrinsicsResultPage.processCalibration(result)
-        if result[0]:
-            self.platformExtrinsicsMainPage.Hide()
-            self.platformExtrinsicsResultPage.Show()
-        else:
-            self.platformExtrinsicsMainPage.initialize()
-        self.Layout()
-
-    def onPlatformExtrinsicsAcceptCallback(self):
-        self.calibrating = False
-        self.enableLabelTool(self.disconnectTool, True)
-        self.controls.setExpandable(True)
-        self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Enable()
-        self.controls.panels['platform_extrinsics_panel'].updateAllControlsToProfile()
-        self.combo.Enable()
-        self.enableMenus(True)
-        self.platformExtrinsicsResultPage.Hide()
-        self.current_video.mode = 'Pattern'
-        self.videoView.play()
-        self.videoView.Show()
-        self.Layout()
-
-    def updateToolbarStatus(self, status):
-        if status:
-            if self.IsShown():
-                self.videoView.play()
-            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Enable()
-            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Enable()
-            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Enable()
-            self.controls.enableContent()
-        else:
-            self.videoView.stop()
-            self.controls.panels['camera_intrinsics_panel'].buttonsPanel.Disable()
-            self.controls.panels['laser_triangulation_panel'].buttonsPanel.Disable()
-            self.controls.panels['platform_extrinsics_panel'].buttonsPanel.Disable()
-            self.controls.disableContent()
-            self.calibrating = False
-            self.combo.Enable()
-            self.controls.setExpandable(True)
-            self.cameraIntrinsicsMainPage.Hide()
-            self.cameraIntrinsicsResultPage.Hide()
-            self.laserTriangulationMainPage.Hide()
-            self.laserTriangulationResultPage.Hide()
-            self.platformExtrinsicsMainPage.Hide()
-            self.platformExtrinsicsResultPage.Hide()
-            self.videoView.Show()
-
-    def updateProfileToAllControls(self):
-        self.controls.updateProfile()
