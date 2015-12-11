@@ -30,7 +30,7 @@ def download_version_file():
         filepath = os.path.join(profile.get_base_path(), 'version')
         if os.path.exists(filepath):
             os.remove(filepath)
-        f = urllib2.urlopen('http://storage.googleapis.com/bq-horus/releases/version')
+        f = urllib2.urlopen('http://storage.googleapis.com/bq-horus/releases/version', timeout=1)
         content = f.read()
         with open(filepath, 'w') as f:
             f.write(content)

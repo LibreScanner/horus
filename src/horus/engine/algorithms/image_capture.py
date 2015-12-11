@@ -174,7 +174,7 @@ class ImageCapture(object):
 
     def capture_pattern(self):
         self.set_mode(self.pattern_mode)
-        self.driver.board.lasers_off()
+        # self.driver.board.lasers_off()
         if self.stream:
             flush = self._flush_stream_pattern
         else:

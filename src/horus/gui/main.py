@@ -12,7 +12,8 @@ import wx._core
 import webbrowser
 from collections import OrderedDict
 
-from horus.gui.engine import driver, ciclop_scan, laser_triangulation
+from horus.gui.engine import driver, ciclop_scan, scanner_autocheck, \
+    laser_triangulation, platform_extrinsics
 
 from horus.gui.welcome import WelcomeDialog
 from horus.gui.util.preferences import PreferencesDialog
@@ -24,7 +25,7 @@ from horus.gui.workbench.adjustment.main import AdjustmentWorkbench
 from horus.gui.workbench.calibration.main import CalibrationWorkbench
 from horus.gui.workbench.scanning.main import ScanningWorkbench
 
-# from horus.gui.wizard.main import *
+from horus.gui.wizard.main import Wizard
 from horus.gui.util.version_window import VersionWindow
 
 from horus.util import profile, resources, mesh_loader, version, system as sys
@@ -176,6 +177,7 @@ class MainWindow(wx.Frame):
             'https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menu_forum)
 
     def on_launch_wizard(self, event):
+        self.workbench[profile.settings['workbench']].on_close()
         Wizard(self)
 
     def on_load_model(self, event):
@@ -453,6 +455,7 @@ class MainWindow(wx.Frame):
 
     def _on_device_unplugged(self, title="", description=""):
         ciclop_scan.stop()
+        scanner_autocheck.cancel()
         laser_triangulation.cancel()
         platform_extrinsics.cancel()
         self.workbench['control'].updateStatus(False)

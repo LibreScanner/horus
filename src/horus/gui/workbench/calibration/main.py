@@ -38,7 +38,7 @@ class CalibrationWorkbench(Workbench):
             'platform_extrinsics', PlatformExtrinsics, self.on_platform_extrinsics_selected)
 
     def add_pages(self):
-        self.add_page('video_view', VideoView(self, self._video_frame, 10, black=True))
+        self.add_page('video_view', VideoView(self, self.get_image, 10, black=True))
         self.add_page('camera_intrinsics_pages', CameraIntrinsicsPages(
             self, start_callback=self.disable_panels, exit_callback=self.update_panels))
         self.add_page('scanner_autocheck_pages', ScannerAutocheckPages(
@@ -61,7 +61,7 @@ class CalibrationWorkbench(Workbench):
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
 
-    def _video_frame(self):
+    def get_image(self):
         image = image_capture.capture_pattern()
         return image_detection.detect_pattern(image)
 

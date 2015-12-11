@@ -171,12 +171,14 @@ class Settings(collections.MutableMapping):
         # -- Scan Settings
 
         # Hack to translate combo boxes:
+        _('Very high')
         _('High')
         _('Medium')
         _('Low')
         self._add_setting(
             Setting('luminosity', _('Luminosity'), 'profile_settings',
-                    unicode, u'Medium', possible_values=(u'High', u'Medium', u'Low')))
+                    unicode, u'Medium', possible_values=(u'Very high', u'High', u'Medium',
+                                                         u'Low')))
         self._add_setting(
             Setting('brightness_control', _('Brightness'), 'profile_settings',
                     int, 128, min_value=0, max_value=255))
@@ -227,7 +229,7 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('brightness_texture_scanning', _('Brightness'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 128, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_texture_scanning', _('Contrast'), 'profile_settings',
                     int, 32, min_value=0, max_value=255))
@@ -278,7 +280,7 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('brightness_pattern_calibration', _('Brightness'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 128, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_pattern_calibration', _('Contrast'), 'profile_settings',
                     int, 32, min_value=0, max_value=255))

@@ -39,6 +39,7 @@ class ControlWorkbench(Workbench):
 
     def on_close(self):
         try:
+            driver.board.lasers_off()
             self.pages_collection['video_view'].stop()
         except:
             pass
