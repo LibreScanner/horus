@@ -14,8 +14,6 @@ from horus.gui.util.image_view import ImageView
 from horus.gui.util.pattern_distance_window import PatternDistanceWindow
 from horus.gui.wizard.wizard_page import WizardPage
 
-from horus.engine.calibration.combo_calibration import ComboCalibrationError
-
 
 class CalibrationPage(WizardPage):
 
@@ -141,7 +139,6 @@ class CalibrationPage(WizardPage):
         else:
             self.result_label.SetLabel(
                 _("Check pattern and lasers and try again"))
-            self.gauge.SetValue(100)
             dlg = wx.MessageDialog(
                 self, _("Check pattern and lasers and try again"),
                 _("Calibration failed"), wx.OK | wx.ICON_ERROR)
@@ -149,6 +146,8 @@ class CalibrationPage(WizardPage):
             dlg.Destroy()
             self.skip_button.Enable()
             self.on_finish_calibration()
+
+        self.gauge.SetValue(100)
 
         if ret:
             self.skip_button.Disable()

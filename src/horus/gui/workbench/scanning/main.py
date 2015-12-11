@@ -174,11 +174,11 @@ class ScanningWorkbench(Workbench):
                     dlg.Destroy()
                 if result:
                     self.gauge.SetValue(0)
-                    self.gauge.Show()
-                    self.Layout()
                     ciclop_scan.set_callbacks(self.before_scan,
                                               None, lambda r: wx.CallAfter(self.after_scan, r))
                     ciclop_scan.start()
+                    self.gauge.Show()
+                    self.Layout()
             else:
                 dlg = wx.MessageDialog(self,
                                        _("Calibration hasn't been performed correctly.\n"

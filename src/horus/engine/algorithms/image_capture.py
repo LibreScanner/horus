@@ -106,7 +106,7 @@ class ImageCapture(object):
 
     def capture_texture(self):
         self.set_mode(self.texture_mode)
-        self.driver.board.lasers_off()
+        # self.driver.board.lasers_off()
         if self.stream:
             flush = self._flush_stream_texture
         else:
