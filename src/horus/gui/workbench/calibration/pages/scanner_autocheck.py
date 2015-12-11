@@ -51,8 +51,8 @@ class ScannerAutocheckPages(wx.Panel):
         if self.start_callback is not None:
             self.start_callback()
         self.video_page.right_button.Disable()
-        if not hasattr(self, 'waitCursor'):
-            self.waitCursor = wx.BusyCursor()
+        if not hasattr(self, 'wait_cursor'):
+            self.wait_cursor = wx.BusyCursor()
 
     def progress_calibration(self, progress):
         self.video_page.gauge.SetValue(progress)
@@ -89,8 +89,8 @@ class ScannerAutocheckPages(wx.Panel):
                 dlg.Destroy()
         self._initialize()
         self.video_page.right_button.Enable()
-        if hasattr(self, 'waitCursor'):
-            del self.waitCursor
+        if hasattr(self, 'wait_cursor'):
+            del self.wait_cursor
         if self.exit_callback is not None:
             self.exit_callback()
 
@@ -104,7 +104,7 @@ class ScannerAutocheckPages(wx.Panel):
         self._initialize()
         self.video_page.right_button.Enable()
         scanner_autocheck.cancel()
-        if hasattr(self, 'waitCursor'):
-            del self.waitCursor
+        if hasattr(self, 'wait_cursor'):
+            del self.wait_cursor
         if self.exit_callback is not None:
             self.exit_callback()

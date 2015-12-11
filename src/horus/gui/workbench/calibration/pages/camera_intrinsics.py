@@ -64,15 +64,15 @@ class CameraIntrinsicsPages(wx.Panel):
         if self.start_callback is not None:
             self.start_callback()
         self.capture_page.left_button.Disable()
-        if not hasattr(self, 'waitCursor'):
-            self.waitCursor = wx.BusyCursor()
+        if not hasattr(self, 'wait_cursor'):
+            self.wait_cursor = wx.BusyCursor()
 
     def after_calibration(self, response):
         self.capture_page.Hide()
         self.result_page.Show()
         self.result_page.process_calibration(response)
-        if hasattr(self, 'waitCursor'):
-            del self.waitCursor
+        if hasattr(self, 'wait_cursor'):
+            del self.wait_cursor
 
     def on_start(self):
         camera_intrinsics.set_callbacks(lambda: wx.CallAfter(self.before_calibration),

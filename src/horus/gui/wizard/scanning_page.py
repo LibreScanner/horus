@@ -18,11 +18,11 @@ from horus.engine.algorithms.image_capture import ImageCapture
 
 class ScanningPage(WizardPage):
 
-    def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
+    def __init__(self, parent, button_prev_callback=None, button_next_callback=None):
         WizardPage.__init__(self, parent,
                             title=_("Scanning"),
-                            buttonPrevCallback=buttonPrevCallback,
-                            buttonNextCallback=buttonNextCallback)
+                            button_prev_callback=button_prev_callback,
+                            button_next_callback=button_next_callback)
 
         self.driver = Driver()
         self.ciclop_scan = CiclopScan()
@@ -52,7 +52,7 @@ class ScanningPage(WizardPage):
                                          choices=_choices,
                                          style=wx.CB_READONLY)
 
-        self.skipButton.Hide()
+        self.skip_button.Hide()
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -69,17 +69,17 @@ class ScanningPage(WizardPage):
 
         self.resolutionComboBox.Bind(wx.EVT_COMBOBOX, self.onResolutionComboBoxChanged)
         self.laserComboBox.Bind(wx.EVT_COMBOBOX, self.onLaserComboBoxChanged)
-        self.Bind(wx.EVT_SHOW, self.onShow)
+        self.Bind(wx.EVT_SHOW, self.on_show)
 
-        self.videoView.setMilliseconds(10)
-        self.videoView.setCallback(self.get_image)
+        self.video_view.set_milliseconds(10)
+        self.video_view.set_callback(self.get_image)
 
-    def onShow(self, event):
+    def on_show(self, event):
         if event.GetShow():
-            self.updateStatus(self.driver.is_connected)
+            self.update_status(self.driver.is_connected)
         else:
             try:
-                self.videoView.stop()
+                self.video_view.stop()
             except:
                 pass
 
@@ -114,11 +114,11 @@ class ScanningPage(WizardPage):
     def get_image(self):
         return self.image_capture.capture_texture()
 
-    def updateStatus(self, status):
+    def update_status(self, status):
         if status:
             profile.settings['workbench'] = u'Scanning workbench'
             self.GetParent().parent.workbenchUpdate(False)
-            self.videoView.play()
+            self.video_view.play()
             value = profile.settings['use_laser']
             if value == 'Left':
                 self.driver.board.laser_on(0)
@@ -129,4 +129,4 @@ class ScanningPage(WizardPage):
             elif value == 'Both':
                 self.driver.board.lasers_on()
         else:
-            self.videoView.stop()
+            self.video_view.stop()

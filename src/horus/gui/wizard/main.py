@@ -12,7 +12,7 @@ from horus.util import profile
 from horus.gui.engine import driver
 
 from horus.gui.wizard.connection_page import ConnectionPage
-# from horus.gui.wizard.calibration_page import CalibrationPage
+from horus.gui.wizard.calibration_page import CalibrationPage
 # from horus.gui.wizard.scanning_page import ScanningPage
 
 
@@ -29,11 +29,11 @@ class Wizard(wx.Dialog):
             self,
             button_prev_callback=self.on_connection_page_prev_clicked,
             button_next_callback=self.on_connection_page_next_clicked)
-        """self.calibration_page = CalibrationPage(
+        self.calibration_page = CalibrationPage(
             self,
             button_prev_callback=self.on_calibration_page_prev_clicked,
             button_next_callback=self.on_calibration_page_next_clicked)
-        self.scanning_page = ScanningPage(
+        """self.scanning_page = ScanningPage(
             self,
             button_prev_callback=self.on_scanning_page_prev_clicked,
             button_next_callback=self.on_scanning_page_next_clicked)"""
@@ -41,20 +41,20 @@ class Wizard(wx.Dialog):
         pages = [self.connection_page]  # , self.calibration_page, self.scanning_page]
 
         self.connection_page.intialize(pages)
-        """self.calibration_page.intialize(pages)
-        self.scanning_page.intialize(pages)"""
+        self.calibration_page.intialize(pages)
+        """self.scanning_page.intialize(pages)"""
 
         self.connection_page.Show()
-        """self.calibration_page.Hide()
-        self.scanning_page.Hide()"""
+        self.calibration_page.Hide()
+        """self.scanning_page.Hide()"""
 
         driver.board.set_unplug_callback(lambda: wx.CallAfter(self.on_board_unplugged))
         driver.camera.set_unplug_callback(lambda: wx.CallAfter(self.on_camera_unplugged))
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.connection_page, 1, wx.ALL | wx.EXPAND, 0)
-        """hbox.Add(self.calibration_page, 1, wx.ALL | wx.EXPAND, 0)
-        hbox.Add(self.scanning_page, 1, wx.ALL | wx.EXPAND, 0)"""
+        hbox.Add(self.calibration_page, 1, wx.ALL | wx.EXPAND, 0)
+        """hbox.Add(self.scanning_page, 1, wx.ALL | wx.EXPAND, 0)"""
 
         self.SetSizer(hbox)
 
@@ -97,8 +97,8 @@ class Wizard(wx.Dialog):
         if result:
             self.connection_page.video_view.stop()
             self.parent.toolbar.update_status(driver.is_connected)
-            """self.calibration_page.video_view.stop()
-            self.scanning_page.video_view.stop()
+            self.calibration_page.video_view.stop()
+            """self.scanning_page.video_view.stop()
             self.parent.workbench_update()"""
             self.EndModal(wx.ID_OK)
             self.Destroy()

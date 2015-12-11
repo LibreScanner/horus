@@ -61,8 +61,8 @@ class PlatformExtrinsicsPages(wx.Panel):
         if self.start_callback is not None:
             self.start_callback()
         self.video_page.right_button.Disable()
-        if not hasattr(self, 'waitCursor'):
-            self.waitCursor = wx.BusyCursor()
+        if not hasattr(self, 'wait_cursor'):
+            self.wait_cursor = wx.BusyCursor()
 
     def progress_calibration(self, progress):
         self.video_page.gauge.SetValue(progress)
@@ -81,8 +81,8 @@ class PlatformExtrinsicsPages(wx.Panel):
                 dlg.Destroy()
             self.on_exit()
         self.result_page.process_calibration(response)
-        if hasattr(self, 'waitCursor'):
-            del self.waitCursor
+        if hasattr(self, 'wait_cursor'):
+            del self.wait_cursor
 
     def on_start(self):
         if profile.settings['pattern_origin_distance'] == 0.0:

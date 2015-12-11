@@ -223,7 +223,7 @@ class PreferencesDialog(wx.Dialog):
         self.boards_combo.Disable()
         self.gauge.SetValue(0)
         self.gauge.Show()
-        self.waitCursor = wx.BusyCursor()
+        self.wait_cursor = wx.BusyCursor()
         self.get_sizer().Layout()
         self.SetSizerAndFit(self.get_sizer())
 
@@ -232,7 +232,7 @@ class PreferencesDialog(wx.Dialog):
         self.clear_check_box.Enable()
         self.boards_combo.Enable()
         self.gauge.Hide()
-        del self.waitCursor
+        del self.wait_cursor
         self.get_sizer().Layout()
         self.SetSizerAndFit(self.get_sizer())
 

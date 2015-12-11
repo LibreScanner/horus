@@ -679,12 +679,12 @@ class CallbackButton(ControlPanel):
     def _on_button_clicked(self, event):
         if self.engine_callback is not None:
             self.control.Disable()
-            self.waitCursor = wx.BusyCursor()
+            self.wait_cursor = wx.BusyCursor()
             self.engine_callback(lambda r: wx.CallAfter(self._on_finish_callback, r))
 
     def _on_finish_callback(self, ret):
         self.control.Enable()
-        del self.waitCursor
+        del self.wait_cursor
 
 
 class ToggleButton(ControlPanel):

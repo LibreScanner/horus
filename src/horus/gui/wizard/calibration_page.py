@@ -6,197 +6,192 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
-import time
-
-from horus.gui.util.imageView import ImageView
-from horus.gui.util.patternDistanceWindow import PatternDistanceWindow
-
-from horus.gui.wizard.wizardPage import WizardPage
 
 from horus.util import profile, resources
 
-from horus.engine.driver.driver import Driver
-from horus.engine.calibration.combo_calibration import ComboCalibration, ComboCalibrationError
+from horus.gui.engine import driver, image_capture, image_detection, combo_calibration
+from horus.gui.util.image_view import ImageView
+from horus.gui.util.pattern_distance_window import PatternDistanceWindow
+from horus.gui.wizard.wizard_page import WizardPage
 
-from horus.engine.algorithms.image_capture import ImageCapture
-from horus.engine.algorithms.image_detection import ImageDetection
+from horus.engine.calibration.combo_calibration import ComboCalibrationError
 
 
 class CalibrationPage(WizardPage):
 
-    def __init__(self, parent, buttonPrevCallback=None, buttonNextCallback=None):
+    def __init__(self, parent, button_prev_callback=None, button_next_callback=None):
         WizardPage.__init__(self, parent,
                             title=_("Calibration"),
-                            buttonPrevCallback=buttonPrevCallback,
-                            buttonNextCallback=buttonNextCallback)
+                            button_prev_callback=button_prev_callback,
+                            button_next_callback=button_next_callback)
 
-        self.driver = Driver()
-        self.image_capture = ImageCapture()
-        self.image_detection = ImageDetection()
-        self.combo_calibration = ComboCalibration()
-
-        self.patternLabel = wx.StaticText(self.panel, label=_(
+        self.pattern_label = wx.StaticText(self.panel, label=_(
             "Put the pattern on the platform as shown in the picture and press \"Calibrate\""))
-        self.patternLabel.Wrap(400)
-        self.imageView = ImageView(self.panel, quality=wx.IMAGE_QUALITY_HIGH)
-        self.imageView.setImage(wx.Image(resources.getPathForImage("pattern-position.png")))
-        self.calibrateButton = wx.Button(self.panel, label=_("Calibrate"))
-        self.cancelButton = wx.Button(self.panel, label=_("Cancel"))
+        self.pattern_label.Wrap(400)
+        self.image_view = ImageView(self.panel, quality=wx.IMAGE_QUALITY_HIGH)
+        self.image_view.set_image(wx.Image(resources.get_path_for_image("pattern-position.png")))
+        self.calibrate_button = wx.Button(self.panel, label=_("Calibrate"))
+        self.cancel_button = wx.Button(self.panel, label=_("Cancel"))
         self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
-        self.resultLabel = wx.StaticText(self.panel, size=(-1, 30))
+        self.result_label = wx.StaticText(self.panel, size=(-1, 30))
 
-        self.cancelButton.Disable()
-        self.resultLabel.Hide()
-        self.skipButton.Enable()
-        self.nextButton.Disable()
+        self.cancel_button.Disable()
+        self.result_label.Hide()
+        self.skip_button.Enable()
+        self.next_button.Disable()
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.patternLabel, 0, wx.ALL | wx.CENTER, 5)
-        vbox.Add(self.imageView, 1, wx.ALL | wx.EXPAND, 5)
-        vbox.Add(self.resultLabel, 0, wx.ALL | wx.CENTER, 5)
+        vbox.Add(self.pattern_label, 0, wx.ALL | wx.CENTER, 5)
+        vbox.Add(self.image_view, 1, wx.ALL | wx.EXPAND, 5)
+        vbox.Add(self.result_label, 0, wx.ALL | wx.CENTER, 5)
         vbox.Add(self.gauge, 0, wx.ALL | wx.EXPAND, 5)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.cancelButton, 1, wx.ALL | wx.EXPAND, 5)
-        hbox.Add(self.calibrateButton, 1, wx.ALL | wx.EXPAND, 5)
+        hbox.Add(self.cancel_button, 1, wx.ALL | wx.EXPAND, 5)
+        hbox.Add(self.calibrate_button, 1, wx.ALL | wx.EXPAND, 5)
         vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 2)
         self.panel.SetSizer(vbox)
 
         self.Layout()
 
-        self.calibrateButton.Bind(wx.EVT_BUTTON, self.onCalibrationButtonClicked)
-        self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancelButtonClicked)
-        self.Bind(wx.EVT_SHOW, self.onShow)
+        self.calibrate_button.Bind(wx.EVT_BUTTON, self.on_calibration_button_clicked)
+        self.cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel_button_clicked)
+        self.Bind(wx.EVT_SHOW, self.on_show)
 
-        self.videoView.setMilliseconds(10)
-        self.videoView.setCallback(self.get_image)
+        self.video_view.set_milliseconds(10)
+        self.video_view.set_callback(self.get_image)
 
-    def onShow(self, event):
+    def on_show(self, event):
         if event.GetShow():
-            self.updateStatus(self.driver.is_connected)
+            self.update_status(driver.is_connected)
         else:
             try:
-                self.videoView.stop()
+                self.video_view.stop()
             except:
                 pass
 
     def get_image(self):
-        if self.combo_calibration._is_calibrating:
-            image = self.combo_calibration.image
+        if combo_calibration.image is not None:
+            image = combo_calibration.image
         else:
-            image = self.image_capture.capture_pattern()
-            image = self.image_detection.detect_pattern(image)
+            image = image_capture.capture_pattern()
+            image = image_detection.detect_pattern(image)
         return image
 
-    def onUnplugged(self):
-        self.videoView.stop()
-        self.combo_calibration.cancel()
-        self.enableNext = True
+    def on_unplugged(self):
+        self.video_view.stop()
+        combo_calibration.cancel()
+        self.enable_next = True
 
-    def onCalibrationButtonClicked(self, event):
-        self.combo_calibration.set_callbacks(
-            lambda: wx.CallAfter(self.beforeCalibration),
-            lambda p: wx.CallAfter(self.progressCalibration, p),
-            lambda r: wx.CallAfter(self.afterCalibration, r))
+    def on_calibration_button_clicked(self, event):
+        combo_calibration.set_callbacks(
+            lambda: wx.CallAfter(self.before_calibration),
+            lambda p: wx.CallAfter(self.progress_calibration, p),
+            lambda r: wx.CallAfter(self.after_calibration, r))
         if profile.settings['pattern_origin_distance'] == 0.0:
             PatternDistanceWindow(self)
         else:
-            self.combo_calibration.start()
+            combo_calibration.start()
 
-    def onCancelButtonClicked(self, event):
-        boardUnplugCallback = self.driver.board.unplug_callback
-        cameraUnplugCallback = self.driver.camera.unplug_callback
-        self.driver.board.set_unplug_callback(None)
-        self.driver.camera.set_unplug_callback(None)
-        self.resultLabel.SetLabel(_("Calibration canceled. To try again press \"Calibrate\""))
-        self.combo_calibration.cancel()
-        self.skipButton.Enable()
-        self.onFinishCalibration()
-        self.driver.board.set_unplug_callback(boardUnplugCallback)
-        self.driver.camera.set_unplug_callback(cameraUnplugCallback)
+    def on_cancel_button_clicked(self, event):
+        board_unplug_callback = driver.board.unplug_callback
+        camera_unplug_callback = driver.camera.unplug_callback
+        driver.board.set_unplug_callback(None)
+        driver.camera.set_unplug_callback(None)
+        self.result_label.SetLabel(_("Calibration canceled. To try again press \"Calibrate\""))
+        combo_calibration.cancel()
+        self.skip_button.Enable()
+        self.on_finish_calibration()
+        driver.board.set_unplug_callback(board_unplug_callback)
+        driver.camera.set_unplug_callback(camera_unplug_callback)
 
-    def beforeCalibration(self):
+    def before_calibration(self):
         self.breadcrumbs.Disable()
-        self.calibrateButton.Disable()
-        self.cancelButton.Enable()
-        self.prevButton.Disable()
-        self.skipButton.Disable()
-        self.nextButton.Disable()
-        self.enableNext = False
+        self.calibrate_button.Disable()
+        self.cancel_button.Enable()
+        self.prev_button.Disable()
+        self.skip_button.Disable()
+        self.next_button.Disable()
+        self.enable_next = False
         self.gauge.SetValue(0)
-        self.resultLabel.Hide()
+        self.result_label.Hide()
         self.gauge.Show()
         self.Layout()
-        self.waitCursor = wx.BusyCursor()
+        self.wait_cursor = wx.BusyCursor()
 
-    def progressCalibration(self, progress):
+    def progress_calibration(self, progress):
         self.gauge.SetValue(progress)
 
-    def afterCalibration(self, response):
+    def after_calibration(self, response):
         ret, result = response
 
         if ret:
             response_platform_extrinsics = result[0]
             response_laser_triangulation = result[1]
 
-            profile.settings['rotation_matrix'] = response_platform_extrinsics[0]
-            profile.settings['translation_vector'] = response_platform_extrinsics[1]
-
             profile.settings['distance_left'] = response_laser_triangulation[0][0]
             profile.settings['normal_left'] = response_laser_triangulation[0][1]
             profile.settings['distance_right'] = response_laser_triangulation[1][0]
             profile.settings['normal_right'] = response_laser_triangulation[1][1]
+
+            profile.settings['rotation_matrix'] = response_platform_extrinsics[0]
+            profile.settings['translation_vector'] = response_platform_extrinsics[1]
+
+            combo_calibration.accept()
         else:
-            if isinstance(result, ComboCalibrationError):
-                self.resultLabel.SetLabel(
-                    _("Calibration failed. Please try again"))
-                dlg = wx.MessageDialog(
-                    self, _("Calibration failed. Please try again"),
-                    _(result), wx.OK | wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
-                self.skipButton.Enable()
-                self.onFinishCalibration()
+            self.result_label.SetLabel(
+                _("Check pattern and lasers and try again"))
+            self.gauge.SetValue(100)
+            dlg = wx.MessageDialog(
+                self, _("Check pattern and lasers and try again"),
+                _("Calibration failed"), wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.skip_button.Enable()
+            self.on_finish_calibration()
 
         if ret:
-            self.skipButton.Disable()
-            self.nextButton.Enable()
-            self.resultLabel.SetLabel(_("All OK. Please press next to continue"))
+            self.skip_button.Disable()
+            self.next_button.Enable()
+            self.result_label.SetLabel(_("Success. Please press next to continue"))
+            dlg = wx.MessageDialog(
+                self, _("Scanner calibrated correctly"),
+                _("Success"), wx.OK | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
         else:
-            self.skipButton.Enable()
-            self.nextButton.Disable()
+            self.skip_button.Enable()
+            self.next_button.Disable()
 
-        self.onFinishCalibration()
+        self.on_finish_calibration()
 
-    def onFinishCalibration(self):
+    def on_finish_calibration(self):
         self.breadcrumbs.Enable()
-        self.enableNext = True
+        self.enable_next = True
         self.gauge.Hide()
-        self.resultLabel.Show()
-        self.calibrateButton.Enable()
-        self.cancelButton.Disable()
-        self.prevButton.Enable()
+        self.result_label.Show()
+        self.calibrate_button.Enable()
+        self.cancel_button.Disable()
+        self.prev_button.Enable()
         self.panel.Fit()
         self.panel.Layout()
         self.Layout()
-        if hasattr(self, 'waitCursor'):
-            del self.waitCursor
+        if hasattr(self, 'wait_cursor'):
+            del self.wait_cursor
 
-    def updateStatus(self, status):
+    def update_status(self, status):
         if status:
-            if profile.settings['workbench'] != u'Calibration workbench':
-                profile.settings['workbench'] = u'Calibration workbench'
-                self.GetParent().parent.workbenchUpdate(False)
-            self.videoView.play()
-            self.calibrateButton.Enable()
-            self.skipButton.Enable()
-            self.driver.board.lasers_off()
+            self.GetParent().parent.workbench['calibration'].setup_engine()
+            self.video_view.play()
+            self.calibrate_button.Enable()
+            self.skip_button.Enable()
+            driver.board.lasers_off()
         else:
-            self.videoView.stop()
+            self.video_view.stop()
             self.gauge.SetValue(0)
             self.gauge.Show()
-            self.prevButton.Enable()
-            self.skipButton.Disable()
-            self.nextButton.Disable()
-            self.calibrateButton.Disable()
-            self.cancelButton.Disable()
+            self.prev_button.Enable()
+            self.skip_button.Disable()
+            self.next_button.Disable()
+            self.calibrate_button.Disable()
+            self.cancel_button.Disable()

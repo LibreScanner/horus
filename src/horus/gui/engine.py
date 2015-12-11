@@ -14,6 +14,7 @@ from horus.engine.calibration.camera_intrinsics import CameraIntrinsics
 from horus.engine.calibration.autocheck import Autocheck
 from horus.engine.calibration.laser_triangulation import LaserTriangulation
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsics
+from horus.engine.calibration.combo_calibration import ComboCalibration
 from horus.engine.algorithms.image_capture import ImageCapture
 from horus.engine.algorithms.image_detection import ImageDetection
 from horus.engine.algorithms.laser_segmentation import LaserSegmentation
@@ -32,6 +33,7 @@ camera_intrinsics = CameraIntrinsics()
 scanner_autocheck = Autocheck()
 laser_triangulation = LaserTriangulation()
 platform_extrinsics = PlatformExtrinsics()
+combo_calibration = ComboCalibration()
 image_capture = ImageCapture()
 image_detection = ImageDetection()
 laser_segmentation = LaserSegmentation()
