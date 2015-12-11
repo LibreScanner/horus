@@ -23,6 +23,8 @@ class CalibrationPage(WizardPage):
                             button_prev_callback=button_prev_callback,
                             button_next_callback=button_next_callback)
 
+        self.parent = parent
+
         self.pattern_label = wx.StaticText(self.panel, label=_(
             "Put the pattern on the platform as shown in the picture and press \"Calibrate\""))
         self.pattern_label.Wrap(400)
@@ -80,6 +82,8 @@ class CalibrationPage(WizardPage):
         self.video_view.stop()
         combo_calibration.cancel()
         self.enable_next = True
+        driver.disconnect()
+        self.parent.on_exit(message=False)
 
     def on_calibration_button_clicked(self, event):
         combo_calibration.set_callbacks(

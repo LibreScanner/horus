@@ -22,6 +22,9 @@ class VideoView(ImageView):
 
         self.playing = False
 
+        self._tries = 0  # Check if command fails
+        self._number_frames_fail = 3
+
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
 
@@ -31,9 +34,13 @@ class VideoView(ImageView):
             if self.callback is not None:
                 frame = self.callback()
                 if frame is None:
-                    if not self.reload:
-                        self.stop()
+                    self._tries += 1
+                    if self._tries >= self._number_frames_fail:
+                        self._tries = 0
+                        if not self.reload:
+                            self.stop()
                 else:
+                    self._tries = 0
                     self.set_frame(frame)
                 self._start()
 

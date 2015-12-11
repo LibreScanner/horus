@@ -94,6 +94,7 @@ class Workbench(wx.Panel):
         for _, p in self.pages_collection.iteritems():
             p.Disable()
         self.on_close()
+        self.disable_content()
 
     def on_show(self, event):
         if event.GetShow():

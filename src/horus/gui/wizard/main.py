@@ -23,8 +23,6 @@ class Wizard(wx.Dialog):
 
         self.parent = parent
 
-        self.current_workbench = profile.settings['workbench']
-
         self.connection_page = ConnectionPage(
             self,
             button_prev_callback=self.on_connection_page_prev_clicked,
@@ -86,21 +84,20 @@ class Wizard(wx.Dialog):
         self.calibration_page.Hide()
         self.scanning_page.Hide()
 
-    def on_exit(self):
+    def on_exit(self, message=True):
         driver.board.lasers_off()
-        profile.settings['workbench'] = self.current_workbench
-        dlg = wx.MessageDialog(
-            self, _("Do you really want to exit?"),
-            _("Exit wizard"), wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
-        result = dlg.ShowModal() == wx.ID_OK
-        dlg.Destroy()
-        if result:
-            self.connection_page.video_view.stop()
-            self.parent.toolbar.update_status(driver.is_connected)
-            self.calibration_page.video_view.stop()
-            self.scanning_page.video_view.stop()
-            self.EndModal(wx.ID_OK)
-            self.Destroy()
+        if message:
+            dlg = wx.MessageDialog(
+                self, _("Do you really want to exit?"),
+                _("Exit wizard"), wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+        self.connection_page.video_view.stop()
+        self.parent.toolbar.update_status(driver.is_connected)
+        self.calibration_page.video_view.stop()
+        self.scanning_page.video_view.stop()
+        self.EndModal(wx.ID_OK)
+        self.Destroy()
 
     def on_connection_page_prev_clicked(self):
         self.on_exit()

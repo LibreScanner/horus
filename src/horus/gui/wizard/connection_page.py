@@ -94,7 +94,8 @@ class ConnectionPage(WizardPage):
     def on_unplugged(self):
         self.video_view.stop()
         scanner_autocheck.cancel()
-        self.after_auto_check()
+        driver.disconnect()
+        self.parent.on_exit(message=False)
 
     def on_connect_button_clicked(self, event):
         driver.set_callbacks(

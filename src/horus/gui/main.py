@@ -445,23 +445,26 @@ class MainWindow(wx.Frame):
 
     def on_board_unplugged(self):
         self._on_device_unplugged(
+            _("Scanner unplugged"),
+            _("Scanner has been unplugged. Please, plug it in and press connect"))
+        """self._on_device_unplugged(
             _("Board unplugged"),
-            _("Board has been unplugged. Please, plug it in and press connect"))
+            _("Board has been unplugged. Please, plug it in and press connect"))"""
 
     def on_camera_unplugged(self):
         self._on_device_unplugged(
+            _("Scanner unplugged"),
+            _("Scanner has been unplugged. Please, plug it in and press connect"))
+        """self._on_device_unplugged(
             _("Camera unplugged"),
-            _("Camera has been unplugged. Please, plug it in and press connect"))
+            _("Camera has been unplugged. Please, plug it in and press connect"))"""
 
     def _on_device_unplugged(self, title="", description=""):
         ciclop_scan.stop()
         scanner_autocheck.cancel()
         laser_triangulation.cancel()
         platform_extrinsics.cancel()
-        self.workbench['control'].update_status(False)
-        self.workbench['adjustment'].update_status(False)
-        self.workbench['calibration'].update_status(False)
-        self.workbench['scanning'].update_status(False)
+        self.toolbar.update_status(False)
         driver.disconnect()
         dlg = wx.MessageDialog(self, description, title, wx.OK | wx.ICON_ERROR)
         dlg.ShowModal()
