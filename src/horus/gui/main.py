@@ -33,7 +33,7 @@ from horus.util import profile, resources, mesh_loader, version, system as sys
 __version__ = version.get_version()
 __build__ = version.get_build()
 __github__ = version.get_github()
-__name__ = "Horus " + __version__ + " BETA"
+__name__ = "Horus " + __version__
 
 
 class MainWindow(wx.Frame):
