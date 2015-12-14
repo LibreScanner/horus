@@ -5,7 +5,7 @@ from setuptools import setup
 
 version = os.environ.get('VERSION')
 
-APP = ['src/horus.py']
+APP = ['horus']
 DATA_FILES = ['doc','res']
 
 PLIST = {
