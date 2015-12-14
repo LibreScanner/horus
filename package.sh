@@ -106,7 +106,7 @@ rm -rf dar_dist
 
 if [ $BUILD_TARGET = "debian" ]; then
 	# Generate Debian source package
-	python setup.py --command-packages=stdeb.command sdist_dsc \
+	python setup_deb.py --command-packages=stdeb.command sdist_dsc \
 	#--debian-version 1 \
 	#--suite 'trusty' \
 	#--section 'misc' \
