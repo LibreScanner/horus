@@ -34,6 +34,7 @@ More interest links are shown below:
 |:------------------:|:---------:|:--------:|:------------------------------------:|
 | ![][debian-logo]   | Debian    | 8        | [link](doc/installation/debian.md)   |
 | ![][raspbian-logo] | Raspbian  | RPi2     | [link](doc/installation/raspbian.md) |
+| ![][fedora-logo]   | Fedora    | 21, 22   | [link](doc/installation/fedora.md)   |
 
 
 ## Development
@@ -66,3 +67,4 @@ NOTE: *dmg* packages only can be generated in Mac OS X
 [macosx-logo]: doc/images/macosx.png
 [debian-logo]: doc/images/debian.png
 [raspbian-logo]: doc/images/raspbian.png
+[fedora-logo]: doc/images/fedora.png
