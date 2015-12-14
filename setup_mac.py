@@ -1,27 +1,27 @@
 # coding=utf-8
 
-import os
+# import os
 from setuptools import setup
 
-version = os.environ.get('VERSION')
+version = '0.2b1'  # os.environ.get('VERSION')
 
 APP = ['horus']
-DATA_FILES = ['doc','res']
+DATA_FILES = ['doc', 'res']
 
 PLIST = {
     u'CFBundleName': u'Horus',
     u'CFBundleShortVersionString': version,
     u'CFBundleVersion': version,
-    u'CFBundleIdentifier': u'com.bq.Horus-'+version,
+    u'CFBundleIdentifier': u'com.bq.Horus-' + version,
     u'LSMinimumSystemVersion': u'10.8',
     u'LSApplicationCategoryType': u'public.app-category.graphics-design'
-  }
+}
 
 OPTIONS = {
     'argv_emulation': False,
     'iconfile': 'res/horus.icns',
     'plist': PLIST
-  }
+}
 
 setup(name='Horus',
       version=version,

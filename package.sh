@@ -106,7 +106,7 @@ rm -rf dar_dist
 
 if [ $BUILD_TARGET = "debian" ]; then
 	# Generate Debian source package
-	python setup_deb.py --command-packages=stdeb.command sdist_dsc \
+	python setup.py --command-packages=stdeb.command sdist_dsc \
 	#--debian-version 1 \
 	#--suite 'trusty' \
 	#--section 'misc' \
@@ -141,7 +141,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 		elif [ $EXTRA_ARGS = "-i" ]; then
 			# Install Debian package
 			dpkg-buildpackage
-			sudo dpkg -i ../horus*.deb
+			sudo dpkg -i --force-overwrite ../horus*.deb
 			sudo apt-get -f install
 		elif [ $EXTRA_ARGS = "-u" ]; then
 			# Upload to launchpad
@@ -278,7 +278,7 @@ fi
 if [ $BUILD_TARGET = "win32" ]; then
 	rm -rf ${TARGET_DIR}
 	mkdir -p ${TARGET_DIR}
-	
+
 	rm -f log.txt
 
 	mkdir -p ${TARGET_DIR}/python
@@ -298,7 +298,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	cp -rf $WIN_DEP/opencv/build/python/2.7/x86/cv2.pyd ${TARGET_DIR}/python/DLLs
 	cp -rf $WIN_DEP/VideoCapture-0.9-5/Python27/DLLs/vidcap.pyd ${TARGET_DIR}/python/DLLs
 	cp -rf $WIN_DEP/pyglet ${TARGET_DIR}/python/Lib
-	
+
 	#if [ ! $EXTRA_ARGS ]; then
 	#	rm -rf $WIN_DEP
 	#fi

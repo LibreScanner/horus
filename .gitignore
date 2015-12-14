@@ -22,3 +22,6 @@ deb_dist/*
 win_dist/*
 dar_dist/*
 _site
+build/
+dist/
+src/Horus.egg-info/

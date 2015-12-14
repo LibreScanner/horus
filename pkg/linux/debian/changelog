@@ -1,4 +1,4 @@
-horus (0.2-bq1) trusty; urgency=medium
+horus (0.2b1-bq1) trusty; urgency=medium
 
   * Engine refactor
   * New profile format: json
