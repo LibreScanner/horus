@@ -3,7 +3,7 @@
 # import os
 from setuptools import setup
 
-version = '0.2b1'  # os.environ.get('VERSION')
+version = os.environ.get('VERSION')
 
 APP = ['horus']
 DATA_FILES = ['doc', 'res']

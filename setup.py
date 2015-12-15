@@ -4,7 +4,7 @@
 import os
 from setuptools import setup, find_packages
 
-version = '0.2b1'  # os.environ.get('VERSION')
+version = os.environ.get('VERSION')
 
 
 def package_data_dirs(source, basedir='/usr/share/horus'):
@@ -16,7 +16,7 @@ def package_data_dirs(source, basedir='/usr/share/horus'):
             dirs.append((os.path.join(basedir, dirname),
                          [os.path.join(source, dirname, f)]))
 
-    # dirs.append(('/usr/share/applications', ['pkg/linux/horus.desktop']))
+    dirs.append(('/usr/share/applications', ['pkg/linux/horus.desktop']))
 
     return dirs
 

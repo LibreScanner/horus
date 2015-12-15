@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is to package the Horus package for Windows/Linux
+# This script is to package the Horus package for Linux/MacOSX/Windows
 # This script should run under Linux and Mac OS X, as well as Windows with Cygwin.
 
 #############################
@@ -106,24 +106,7 @@ rm -rf dar_dist
 
 if [ $BUILD_TARGET = "debian" ]; then
 	# Generate Debian source package
-	python setup.py --command-packages=stdeb.command sdist_dsc \
-	#--debian-version 1 \
-	#--suite 'trusty' \
-	#--section 'misc' \
-	#--package 'horus' \
-	#--depends 'python,
-	#           python-serial,
-	#           python-wxgtk2.8,
-	#           python-opengl,
-	#           python-pyglet,
-	#           python-numpy,
-	#           python-scipy,
-	#           python-matplotlib,
-	#           python-opencv,
-	#           avrdude,
-	#           libftdi1,
-	#           v4l-utils' \
-	#bdist_deb # Used to generate deb files
+	python setup.py --command-packages=stdeb.command sdist_dsc
 
 	# Copy postinst and postrm files
 	cp -a pkg/linux/debian/postinst deb_dist/horus-${VERSION}/debian/postinst
@@ -147,7 +130,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 			# Upload to launchpad
 			debuild -S -sa
 			PPA=${PPA:="ppa:jesus-arroyo/horus"}
-			RELEASES="trusty vivid"
+			RELEASES="trusty vivid wily"
 			ORIG_RELEASE=`head -1 pkg/linux/debian/changelog | sed 's/.*) \(.*\);.*/\1/'`
 			cd .. ; mv horus-${VERSION} horus-${VERSION}${VEXT}
 			mv horus_${VERSION}.orig.tar.gz horus_${VERSION}${VEXT}.orig.tar.gz
