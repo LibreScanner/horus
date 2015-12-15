@@ -12,7 +12,7 @@ OutFile "Horus_${VERSION}.exe"
 ; The default installation directory
 InstallDir $PROGRAMFILES\Horus
 
-; Registry key to check for directory (so if you install again, it will 
+; Registry key to check for directory (so if you install again, it will
 ; overwrite the old one automatically)
 InstallDirRegKey HKLM "Software\Horus" "Install_Dir"
 
@@ -36,7 +36,7 @@ SetCompressor /SOLID lzma
 #!define MUI_HEADERIMAGE
 #!define MUI_HEADERIMAGE_RIGHT
 #!define MUI_HEADERIMAGE_BITMAP "header.bmp"
-#!define MUI_HEADERIMAGE_BITMAP_NOSTRETCH 
+#!define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
 ; Don't show the component description box
 !define MUI_COMPONENTSPAGE_NODESC
 
@@ -70,7 +70,7 @@ ReserveFile '${NSISDIR}\Plugins\InstallOptions.dll'
 ;--------------------------------
 
 Function .onInit
- 
+
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\Horus" \
   "UninstallString"
@@ -78,16 +78,16 @@ Function .onInit
 
   ClearErrors
   ExecWait '$R0 _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
- 
+
   IfErrors no_remove_uninstaller done
     ;You can either use Delete /REBOOTOK in the uninstaller or add some code
     ;here to remove the uninstaller. Use a registry key to check
     ;whether the user has chosen to uninstall. If you are using an uninstaller
     ;components page, make sure all sections are uninstalled.
   no_remove_uninstaller:
- 
+
 done:
- 
+
 FunctionEnd
 
 ;--------------------------------
@@ -96,7 +96,7 @@ FunctionEnd
 Section "Horus ${VERSION}"
 
   SectionIn RO
-  
+
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
 
@@ -105,10 +105,10 @@ Section "Horus ${VERSION}"
 
   ; Remove ini files version
   Delete "$INSTDIR\src\horus\*.ini"
-  
+
   ; Write the installation path into the registry
   WriteRegStr HKLM "SOFTWARE\Horus" "Install_Dir" "$INSTDIR"
-  
+
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Horus" "DisplayName" "Horus"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Horus" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -118,14 +118,14 @@ Section "Horus ${VERSION}"
 
   ; Write start menu entries for all users
   SetShellVarContext all
-  
+
   CreateDirectory "$SMPROGRAMS\Horus"
   CreateShortCut "$SMPROGRAMS\Horus\Uninstall Horus.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\Horus\Horus.lnk" "$INSTDIR\python\python.exe" "$\"$INSTDIR\src\horus.py$\"" "$INSTDIR\res\horus.ico" 0
-  
+  CreateShortCut "$SMPROGRAMS\Horus\Horus.lnk" "$INSTDIR\python\python.exe" "$\"$INSTDIR\horus$\"" "$INSTDIR\res\horus.ico" 0
+
   ; Give all users write permissions in the install directory, so they can read/write profile and preferences files.
   AccessControl::GrantOnFile "$INSTDIR" "(S-1-5-32-545)" "FullAccess"
-  
+
 SectionEnd
 
 Function LaunchLink
@@ -138,7 +138,7 @@ Section "Install FTDI Drivers"
   ; Set output path to the driver directory.
   SetOutPath "$INSTDIR\drivers\"
   File /r "drivers\"
- 
+
   ExecWait '"$INSTDIR\drivers\CDM v2.10.00 WHQL Certified.exe" /lm'
 SectionEnd
 
@@ -175,7 +175,7 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
-  
+
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Horus"
   DeleteRegKey HKLM "SOFTWARE\Horus"

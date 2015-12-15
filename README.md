@@ -33,7 +33,6 @@ More interest links are shown below:
 | Logo               | Name      | Versions | Instructions                         |
 |:------------------:|:---------:|:--------:|:------------------------------------:|
 | ![][debian-logo]   | Debian    | 8        | [link](doc/installation/debian.md)   |
-| ![][raspbian-logo] | Raspbian  | RPi2     | [link](doc/installation/raspbian.md) |
 | ![][fedora-logo]   | Fedora    | 21, 22   | [link](doc/installation/fedora.md)   |
 
 

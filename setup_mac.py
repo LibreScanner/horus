@@ -1,9 +1,8 @@
 # coding=utf-8
 
-# import os
 from setuptools import setup
 
-version = os.environ.get('VERSION')
+version = '0.2b1'
 
 APP = ['horus']
 DATA_FILES = ['doc', 'res']

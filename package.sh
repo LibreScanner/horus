@@ -129,7 +129,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 		elif [ $EXTRA_ARGS = "-u" ]; then
 			# Upload to launchpad
 			debuild -S -sa
-			PPA=${PPA:="ppa:jesus-arroyo/horus"}
+			PPA=${PPA:="ppa:jesus-arroyo/horus-dev"}
 			RELEASES="trusty vivid wily"
 			ORIG_RELEASE=`head -1 pkg/linux/debian/changelog | sed 's/.*) \(.*\);.*/\1/'`
 			cd .. ; mv horus-${VERSION} horus-${VERSION}${VEXT}
@@ -162,8 +162,6 @@ if [ $BUILD_TARGET = "darwin" ]; then
 
 	mkdir -p dar_dist
 
-	# sed -i '' 's|\"../res\"|\"res\"|g' src/horus.py
-
 	python setup_mac.py py2app -b dar_dist/build -d dar_dist/dist
 
 	chmod 755 dar_dist/dist/Horus.app/Contents/Resources/res/tools/darwin/avrdude
@@ -182,8 +180,6 @@ if [ $BUILD_TARGET = "darwin" ]; then
 		--app-drop-link 530 275 \
 		dar_dist/Horus_${VERSION}${VEXT}.dmg \
 		dar_dist/dist/Horus.app
-
-	# sed -i '' 's|\"res\"|\"../res\"|g' src/horus.py
 
 	rm -rf .eggs
 fi
@@ -302,6 +298,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	cp -a ../doc/* ${TARGET_DIR}/doc
 	cp -a ../res/* ${TARGET_DIR}/res
 	cp -a ../src/* ${TARGET_DIR}/src
+	cp -a ../horus ${TARGET_DIR}/
 
 	# Add script files
 	cp -a ../pkg/${BUILD_TARGET}/*.bat $TARGET_DIR/

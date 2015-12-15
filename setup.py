@@ -1,10 +1,9 @@
-#!/usr/bin/python
 # coding=utf-8
 
 import os
 from setuptools import setup, find_packages
 
-version = os.environ.get('VERSION')
+version = '0.2b1'
 
 
 def package_data_dirs(source, basedir='/usr/share/horus'):

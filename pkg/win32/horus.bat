@@ -1,2 +1,1 @@
-@python\python.exe src\horus.py %*
-
+@python\python.exe horus %*
