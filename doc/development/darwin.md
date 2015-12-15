@@ -109,7 +109,7 @@ git clone git@github.com:bq/horus.git
 In the project directory, execute the command:
 
 ```bash
-python src/horus.py
+./horus
 ```
 
 ## 4. Build packages

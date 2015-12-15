@@ -85,7 +85,7 @@ And build it your own: [instructions](https://github.com/bq/horus/wiki/Documenta
 In the project directory, execute the command:
 
 ```bash
-python src/horus.py
+./horus
 ```
 
 ### Unit testing

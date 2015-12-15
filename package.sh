@@ -162,7 +162,7 @@ if [ $BUILD_TARGET = "darwin" ]; then
 
 	mkdir -p dar_dist
 
-	sed -i '' 's|\"../res\"|\"res\"|g' src/horus.py
+	# sed -i '' 's|\"../res\"|\"res\"|g' src/horus.py
 
 	python setup_mac.py py2app -b dar_dist/build -d dar_dist/dist
 
@@ -183,7 +183,7 @@ if [ $BUILD_TARGET = "darwin" ]; then
 		dar_dist/Horus_${VERSION}${VEXT}.dmg \
 		dar_dist/dist/Horus.app
 
-	sed -i '' 's|\"res\"|\"../res\"|g' src/horus.py
+	# sed -i '' 's|\"res\"|\"../res\"|g' src/horus.py
 
 	rm -rf .eggs
 fi
