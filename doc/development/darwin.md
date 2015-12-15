@@ -14,13 +14,8 @@ If you are a developer and you want to modify the code, contribute, build packag
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
-#### Sublime Text 3 IDE
-```bash
-brew tap caskroom/cask
-brew install brew-cask
-brew cask install sublime-text3
-brew update && brew upgrade brew-cask && brew cleanup
-```
+#### Atom IDE
+Download open source [Atom code editor](https://atom.io/).
 
 #### Git version control
 ```bash

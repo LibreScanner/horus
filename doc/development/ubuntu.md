@@ -8,12 +8,8 @@ If you are a developer and you want to modify the code, contribute, build packag
 
 ### Tools
 
-#### Sublime Text 3 IDE
-```bash
-sudo add-apt-repository ppa:webupd8team/sublime-text-3
-sudo apt-get update
-sudo apt-get install sublime-text-installer
-```
+#### Atom IDE
+Download open source [Atom code editor](https://atom.io/).
 
 #### Git version control
 ```bash
