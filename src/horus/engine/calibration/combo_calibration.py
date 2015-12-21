@@ -45,12 +45,15 @@ class ComboCalibration(MovingCalibration):
             self.image = image
         else:
             # Platform extrinsics
-            t = platform_extrinsics.compute_pattern_position(
-                pose, (self.pattern.rows - 1) * self.pattern.square_width)
-            if t is not None:
-                self.x += [t[0][0]]
-                self.y += [t[1][0]]
-                self.z += [t[2][0]]
+            d, n, corners = self.image_detection.detect_pattern_plane(pose)
+            if corners is not None:
+                origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
+                origin = np.array([[origin[0]], [origin[1]]])
+                t = self.point_cloud_generation.compute_camera_point_cloud(origin, d, n)
+                if t is not None:
+                    self.x += [t[0][0]]
+                    self.y += [t[1][0]]
+                    self.z += [t[2][0]]
 
             # Laser triangulation
             plane = self.image_detection.detect_pattern_plane(pose)
@@ -88,6 +91,12 @@ class ComboCalibration(MovingCalibration):
             center, self.R, circle = platform_extrinsics.fit_circle(point, normal, points)
             # Get real origin
             self.t = center - self.pattern.origin_distance * np.array(normal)
+
+            print ">>> Platform calibration "
+            print ">>> - Translation: " + str(self.t)
+            print ">>> - Rotation: "
+            print str(self.R)
+            print ">>> - Normal: " + str(normal)
 
         # Laser triangulation
         # Save point clouds
