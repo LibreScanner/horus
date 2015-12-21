@@ -70,16 +70,18 @@ class LaserTriangulation(MovingCalibration):
 
         # TODO: use arrays
         # Compute planes
-        self.dL, self.nL, stdL = compute_plane(self._point_cloud[0])
-        self.dR, self.nR, stdR = compute_plane(self._point_cloud[1])
+        self.dL, self.nL, stdL = compute_plane(0, self._point_cloud[0])
+        self.dR, self.nR, stdR = compute_plane(1, self._point_cloud[1])
 
-        if self._is_calibrating and self.nL is not None and self.nR is not None:
+        if self._is_calibrating and \
+           stdL < 0.1 and stdR < 0.1 and \
+           self.nL is not None and self.nR is not None:
             response = (True, ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR)))
         else:
             if self._is_calibrating:
-                response = (False, LaserTriangulationError)
+                response = (False, LaserTriangulationError())
             else:
-                response = (False, CalibrationCancel)
+                response = (False, CalibrationCancel())
 
         self._is_calibrating = False
         self.image = None
@@ -93,11 +95,12 @@ class LaserTriangulation(MovingCalibration):
         self.calibration_data.laser_planes[1].normal = self.nR
 
 
-def compute_plane(X):
+def compute_plane(index, X):
     if X is not None:
         X = np.matrix(X).T
         n = X.shape[1]
         std = 0
+        size = 0
         if n > 3:
             final_points = []
 
@@ -114,18 +117,30 @@ def compute_plane(X):
                 distance = np.dot(normal, np.array(Xm))[0]
                 error_vector = np.dot(M.T, normal)
 
-                # If last std is equal to current std, break loop
-                if std == error_vector.std():
-                    break
-
                 std = error_vector.std()
 
                 final_points = np.where(abs(error_vector) < abs(2 * std))[0]
 
                 X = X[:, final_points]
 
-                if std < 0.1 or len(final_points) < 1000:
+                # print normal, distance, std, len(final_points)
+
+                if std < 0.05 or std > 1.0 or \
+                   len(final_points) < 1000 or \
+                   size == len(final_points):
+                    size = len(final_points)
                     break
+
+                size = len(final_points)
+
+            print ">>> Laser calibration " + str(index)
+            print ">>> - Distance: " + str(distance)
+            print ">>> - Normal: " + str(normal)
+            print ">>> - Standard deviation: " + str(std)
+            print ">>> - Iterations: " + str(trials)
+            print ">>> - Point cloud size: " + str(size)
+
+            save_point_cloud('PC' + str(index) + '-final.ply', np.array(np.matrix(X).T))
 
             return distance, normal, std
         else:

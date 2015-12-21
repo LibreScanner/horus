@@ -41,7 +41,7 @@ class MovingCalibration(Calibration):
             self.driver.board.lasers_off()
             self.driver.board.motor_enable()
             self.driver.board.motor_speed(200)
-            self.driver.board.motor_acceleration(300)
+            self.driver.board.motor_acceleration(200)
 
             # Move to origin
             self.driver.board.motor_relative(-90)
@@ -60,7 +60,7 @@ class MovingCalibration(Calibration):
                 angle += self.step
                 self.driver.board.motor_relative(self.step)
                 self.driver.board.motor_move()
-                time.sleep(0.2)
+                time.sleep(0.3)
 
             # Move to origin
             self.driver.board.motor_relative(90 - angle)

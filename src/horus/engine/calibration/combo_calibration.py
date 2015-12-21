@@ -95,8 +95,8 @@ class ComboCalibration(MovingCalibration):
             laser_triangulation.save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
         # TODO: use arrays
         # Compute planes
-        self.dL, self.nL, stdL = laser_triangulation.compute_plane(self._point_cloud[0])
-        self.dR, self.nR, stdR = laser_triangulation.compute_plane(self._point_cloud[1])
+        self.dL, self.nL, stdL = laser_triangulation.compute_plane(0, self._point_cloud[0])
+        self.dR, self.nR, stdR = laser_triangulation.compute_plane(1, self._point_cloud[1])
 
         # Return response
 
@@ -110,7 +110,8 @@ class ComboCalibration(MovingCalibration):
                 result = False
                 response = (False, ComboCalibrationError)
 
-            if self.nL is not None and self.nR is not None:
+            if stdL < 0.1 and stdR < 0.1 and \
+               self.nL is not None and self.nR is not None:
                 response_laser_triangulation = ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR))
             else:
                 result = False

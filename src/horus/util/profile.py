@@ -320,7 +320,7 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_calibration', _('Threshold'), 'profile_settings',
-                    int, 50, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
 
         self._add_setting(
             Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',

@@ -29,13 +29,13 @@ class CalibrationWorkbench(Workbench):
         self.add_panel(
             'pattern_settings', PatternSettings, self.on_pattern_settings_selected)
         self.add_panel(
-            'camera_intrinsics', CameraIntrinsics, self.on_camera_intrinsics_selected)
-        self.add_panel(
             'scanner_autocheck', ScannerAutocheck, self.on_scanner_autocheck_selected)
         self.add_panel(
             'laser_triangulation', LaserTriangulation, self.on_laser_triangulation_selected)
         self.add_panel(
             'platform_extrinsics', PlatformExtrinsics, self.on_platform_extrinsics_selected)
+        self.add_panel(
+            'camera_intrinsics', CameraIntrinsics, self.on_camera_intrinsics_selected)
 
     def add_pages(self):
         self.add_page('video_view', VideoView(self, self.get_image, 10, black=True))

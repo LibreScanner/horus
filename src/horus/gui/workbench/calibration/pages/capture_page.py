@@ -54,8 +54,8 @@ class CapturePage(Page):
 
     def initialize(self):
         self.desc_text.SetLabel(
-            _("Click over the video panel and press space bar to perform captures. "
-              "Default values are recommended."))
+            _("Default values are recommended."
+              "Click over the video panel and press space bar to perform captures."))
         self.current_grid = 0
         self.gauge.SetValue(0)
         camera_intrinsics.reset()

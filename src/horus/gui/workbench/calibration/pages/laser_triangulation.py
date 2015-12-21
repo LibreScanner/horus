@@ -72,12 +72,6 @@ class LaserTriangulationPages(wx.Panel):
             self.video_page.Hide()
             self.result_page.Show()
         else:
-            if isinstance(result, LaserTriangulationError):
-                dlg = wx.MessageDialog(
-                    self, _("Please, check the lasers"),
-                    _(result), wx.OK | wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
             self.on_exit()
         self.result_page.process_calibration(response)
         if hasattr(self, 'wait_cursor'):
@@ -160,10 +154,16 @@ class ResultPage(Page):
             self.plot_panel.add((dL, nL, stdL, dR, nR, stdR))
             self.plot_panel.Show()
             self.Layout()
+            dlg = wx.MessageDialog(
+                self, _("Lasers calibrated correctly"),
+                _("Success"), wx.OK | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
         else:
             if isinstance(result, LaserTriangulationError):
                 dlg = wx.MessageDialog(
-                    self, _("Laser Triangulation Calibration has failed. Please try again."),
+                    self, _("Laser Triangulation Calibration has failed.\n"
+                            "Please check the lasers and try again."),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
