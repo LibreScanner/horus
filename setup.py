@@ -1,9 +1,11 @@
 # coding=utf-8
 
 import os
+import sys
 from setuptools import setup, find_packages
 
-version = '0.2b1'
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+from horus import __version__
 
 
 def package_data_dirs(source, basedir='/usr/share/horus'):
@@ -22,7 +24,7 @@ def package_data_dirs(source, basedir='/usr/share/horus'):
 
 setup(
     name='Horus',
-    version=version,
+    version=__version__,
     author='Jesús Arroyo Torrens',
     author_email='jesus.arroyo@bq.com',
     description='Horus is a full software solution for 3D scanning',

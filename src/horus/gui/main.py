@@ -198,7 +198,8 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def on_save_model(self, event):
-        if self.workbench['scanning'].scene_view._object is None:
+        if self.workbench['scanning'].scene_view._object is None or \
+           not self.workbench['scanning'].scene_view._object._is_point_cloud:
             return
         dlg = wx.FileDialog(self, _("Save 3D model"), os.path.split(
             profile.settings['last_file'])[0], style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)

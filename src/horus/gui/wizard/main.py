@@ -93,9 +93,10 @@ class Wizard(wx.Dialog):
             dlg.ShowModal()
             dlg.Destroy()
         self.connection_page.video_view.stop()
-        self.parent.toolbar.update_status(driver.is_connected)
         self.calibration_page.video_view.stop()
         self.scanning_page.video_view.stop()
+        self.parent.toolbar.update_status(driver.is_connected)
+        self.parent.update_profile_to_all_controls()
         self.EndModal(wx.ID_OK)
         self.Destroy()
 
@@ -136,6 +137,7 @@ class Wizard(wx.Dialog):
             self.calibration_page.video_view.stop()
             self.scanning_page.video_view.stop()
             self.parent.toolbar.update_status(driver.is_connected)
+            self.parent.update_profile_to_all_controls()
             self.parent.workbench['scanning'].update_controls()
             profile.settings['workbench'] = 'scanning'
             workbench = self.parent.workbench[profile.settings['workbench']].name

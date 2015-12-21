@@ -1,8 +1,10 @@
 # coding=utf-8
 
+import sys
 from setuptools import setup
 
-version = '0.2b1'
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+from horus import __version__
 
 APP = ['horus']
 DATA_FILES = ['doc', 'res']
@@ -23,7 +25,7 @@ OPTIONS = {
 }
 
 setup(name='Horus',
-      version=version,
+      version=__version__,
       author='Jesús Arroyo Torrens',
       author_email='jesus.arroyo@bq.com',
       description='Horus is a full software solution for 3D scanning',
