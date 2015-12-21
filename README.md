@@ -1,8 +1,11 @@
 # Horus
 
-[![License](http://img.shields.io/:license-gpl-blue.svg?style=flat)](http://opensource.org/licenses/GPL-2.0) [![Google Group](https://img.shields.io/badge/-Google%20Group-lightgrey.svg)](https://groups.google.com/forum/?hl=en#!forum/ciclop-3d-scanner)
+[![R&D](https://img.shields.io/badge/-R%26D-brightgreen.svg)](https://github.com/bqlabs/horus)
+[![License](http://img.shields.io/:license-gpl-blue.svg)](http://opensource.org/licenses/GPL-2.0) [![Google Group](https://img.shields.io/badge/-Google%20Group-lightgrey.svg)](https://groups.google.com/forum/?hl=en#!forum/ciclop-3d-scanner)
 
-Horus is a general solution for 3D scanning. It provides graphic user interfaces for connection, configuration, control, calibration and scanning. It is ready to use with Open Source [Ciclop 3D Scanner](https://github.com/bqlabs/ciclop).
+Horus is a general solution for 3D laser scanning. It provides graphic user interfaces for connection, configuration, control, calibration and scanning with Open Source [Ciclop 3D Scanner](https://github.com/bqlabs/ciclop).
+
+This is a research project to explore the 3D laser scan with free tools. Feel free to use it for experiments, modify and adapt it to new devices and contribute new features or ideas.
 
 This project has been developed in [Python](https://www.python.org/) language and it is distributed under [GPL v2](https://www.gnu.org/licenses/gpl-2.0.html) license.
 
@@ -18,22 +21,25 @@ More interest links are shown below:
 
 ## Installation
 
-###### Last stable version: 0.1.2.4
+###### Research version: 0.2b1
+
+###### Stable version: 0.1.2.4
 
 #### Supported versions
 
 | Logo              | Name     | Versions     | Instructions                        |
 |:-----------------:|:--------:|:------------:|:-----------------------------------:|
 | ![][ubuntu-logo]  | Ubuntu   | 14.04, 14.10 | [link](doc/installation/ubuntu.md)  |
-| ![][windows-logo] | Windows  | 7, 8, 8.1    | [link](doc/installation/windows.md) |
-| ![][macosx-logo]  | Mac OS X | 10.9, 10.10  | [link](doc/installation/macosx.md)  |
+
 
 #### Experimental versions
 
-| Logo               | Name      | Versions | Instructions                         |
-|:------------------:|:---------:|:--------:|:------------------------------------:|
-| ![][debian-logo]   | Debian    | 8        | [link](doc/installation/debian.md)   |
-| ![][fedora-logo]   | Fedora    | 21, 22   | [link](doc/installation/fedora.md)   |
+| Logo               | Name      | Versions     | Instructions                          |
+|:------------------:|:---------:|:------------:|:-------------------------------------:|
+| ![][windows-logo]  | Windows   | 7, 8, 8.1    | [link](doc/installation/windows.md)   |
+| ![][macosx-logo]   | Mac OS X  | 10.9, 10.10  | [link](doc/installation/macosx.md)    |
+| ![][debian-logo]   | Debian    | 8            | [link](doc/installation/debian.md)    |
+| ![][fedora-logo]   | Fedora    | 21, 22       | [link](doc/installation/fedora.md)    |
 
 
 ## Development
