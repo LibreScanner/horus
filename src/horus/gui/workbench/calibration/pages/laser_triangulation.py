@@ -159,6 +159,7 @@ class ResultPage(Page):
                 _("Success"), wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
+            self.Layout()
         else:
             if isinstance(result, LaserTriangulationError):
                 dlg = wx.MessageDialog(

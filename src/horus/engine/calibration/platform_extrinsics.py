@@ -48,13 +48,16 @@ class PlatformExtrinsics(MovingCalibration):
         image = self.image_capture.capture_pattern()
         pose = self.image_detection.detect_pose(image)
         if pose is not None:
-            self.image = self.image_detection.draw_pattern(image, pose[2])
-            t = compute_pattern_position(
-                pose, (self.pattern.rows - 1) * self.pattern.square_width)
-            if t is not None:
-                self.x += [t[0][0]]
-                self.y += [t[1][0]]
-                self.z += [t[2][0]]
+            d, n, corners = self.image_detection.detect_pattern_plane(pose)
+            self.image = self.image_detection.draw_pattern(image, corners)
+            if corners is not None:
+                origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
+                origin = np.array([[origin[0]], [origin[1]]])
+                t = self.point_cloud_generation.compute_camera_point_cloud(origin, d, n)
+                if t is not None:
+                    self.x += [t[0][0]]
+                    self.y += [t[1][0]]
+                    self.z += [t[2][0]]
         else:
             self.image = image
 
@@ -78,14 +81,21 @@ class PlatformExtrinsics(MovingCalibration):
             self.t = center - self.pattern.origin_distance * np.array(normal)
 
         if self._is_calibrating and self.t is not None and \
-           np.linalg.norm(self.t - estimated_t) < 100:
+           np.linalg.norm(self.t - estimated_t) < 1000:
             response = (True, (self.R, self.t, center, point, normal,
                         [self.x, self.y, self.z], circle))
+
+            print ">>> Platform calibration "
+            print ">>> - Translation: " + str(self.t)
+            print ">>> - Rotation: "
+            print str(self.R)
+            print ">>> - Normal: " + str(normal)
+
         else:
             if self._is_calibrating:
-                response = (False, PlatformExtrinsicsError)
+                response = (False, PlatformExtrinsicsError())
             else:
-                response = (False, CalibrationCancel)
+                response = (False, CalibrationCancel())
 
         self._is_calibrating = False
         self.image = None
@@ -95,14 +105,6 @@ class PlatformExtrinsics(MovingCalibration):
     def accept(self):
         self.calibration_data.platform_rotation = self.R
         self.calibration_data.platform_translation = self.t
-
-
-def compute_pattern_position(pose, distance):
-    # Compute point coordinates
-    rotation, origin, corners = pose
-    point = origin + np.matrix(rotation) * np.matrix([[0], [distance], [0]])
-    point = np.array(point)
-    return point
 
 
 def distance2plane(p0, n0, p):

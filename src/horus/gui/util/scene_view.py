@@ -18,7 +18,6 @@ OpenGL.ERROR_CHECKING = False
 from OpenGL.GLU import *
 from OpenGL.GL import *
 
-from horus.gui.engine import point_cloud_roi
 from horus.util import profile, mesh_loader, model, system as sys
 from horus.gui.util import opengl_helpers, opengl_gui
 

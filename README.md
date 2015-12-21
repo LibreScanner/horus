@@ -11,6 +11,7 @@ This project has been developed in [Python](https://www.python.org/) language an
 
 More interest links are shown below:
 
+* [3D Scan Science](https://github.com/Jesus89/3DScanScience)
 * [Presentation](http://diwo.bq.com/en/presentacion-ciclop-horus/) [[es](http://diwo.bq.com/presentacion-ciclop-horus/)]
 * [3D Design](http://diwo.bq.com/en/ciclop-released/) [[es](http://diwo.bq.com/ciclop-released/)]
 * [Electronics](http://diwo.bq.com/en/zum-scan-released/) [[es](http://diwo.bq.com/zum-scan-released/)]

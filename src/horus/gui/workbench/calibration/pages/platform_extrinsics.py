@@ -73,12 +73,6 @@ class PlatformExtrinsicsPages(wx.Panel):
             self.video_page.Hide()
             self.result_page.Show()
         else:
-            if isinstance(result, PlatformExtrinsicsError):
-                dlg = wx.MessageDialog(
-                    self, _("Please, check the pattern"),
-                    _(result), wx.OK | wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
             self.on_exit()
         self.result_page.process_calibration(response)
         if hasattr(self, 'wait_cursor'):
@@ -157,10 +151,17 @@ class ResultPage(Page):
             self.plot_panel.add(result)
             self.plot_panel.Show()
             self.Layout()
+            dlg = wx.MessageDialog(
+                self, _("Platform calibrated correctly"),
+                _("Success"), wx.OK | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.Layout()
         else:
             if isinstance(result, PlatformExtrinsicsError):
                 dlg = wx.MessageDialog(
-                    self, _("Platform Extrinsics Calibration has failed. Please try again."),
+                    self, _("Platform Extrinsics Calibration has failed.\n"
+                            "Please check the pattern and try again."),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
