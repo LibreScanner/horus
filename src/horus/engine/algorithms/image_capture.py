@@ -6,10 +6,13 @@ __copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
+import platform
 
 from horus import Singleton
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.calibration_data import CalibrationData
+
+system = platform.system()
 
 
 class CameraSettings(object):
@@ -62,13 +65,28 @@ class ImageCapture(object):
         self.pattern_mode = CameraSettings()
 
         self.stream = True
-        # TODO: custom flush for each OS
-        self._flush_texture = 2
-        self._flush_laser = 1
-        self._flush_pattern = 1
-        self._flush_stream_texture = 0
-        self._flush_stream_laser = 1
-        self._flush_stream_pattern = 0
+        if system == 'Linux':
+            self._flush_texture = 2
+            self._flush_laser = 2  # exp < 32 ? 2 : 3
+            self._flush_pattern = 2
+            self._flush_stream_texture = 0
+            self._flush_stream_laser = 2
+            self._flush_stream_pattern = 0
+        elif system == 'Darwin':
+            self._flush_texture = 2
+            self._flush_laser = 2  # exp < 32 ? 2 : 3
+            self._flush_pattern = 2
+            self._flush_stream_texture = 0
+            self._flush_stream_laser = 2
+            self._flush_stream_pattern = 0
+        elif system == 'Windows':
+            self._flush_texture = 2
+            self._flush_laser = 2  # exp < 32 ? 2 : 3
+            self._flush_pattern = 2
+            self._flush_stream_texture = 0
+            self._flush_stream_laser = 2
+            self._flush_stream_pattern = 0
+
         self._mode = self.pattern_mode
         self._mode.selected = True
         self._remove_background = True

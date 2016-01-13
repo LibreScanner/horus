@@ -190,7 +190,7 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_control', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=512))
+                    int, 16, min_value=1, max_value=256))
         self._add_setting(
             Setting('framerate', _('Framerate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
@@ -238,7 +238,7 @@ class Settings(collections.MutableMapping):
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=512))
+                    int, 16, min_value=1, max_value=256))
 
         self._add_setting(
             Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
@@ -251,7 +251,7 @@ class Settings(collections.MutableMapping):
                     int, 60, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_scanning', _('Exposure'), 'profile_settings',
-                    int, 4, min_value=1, max_value=512))
+                    int, 4, min_value=1, max_value=64))
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'profile_settings', bool, True))
@@ -289,7 +289,7 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_pattern_calibration', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=512))
+                    int, 16, min_value=1, max_value=256))
 
         self._add_setting(
             Setting('brightness_laser_calibration', _('Brightness'), 'profile_settings',
@@ -302,7 +302,7 @@ class Settings(collections.MutableMapping):
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_calibration', _('Exposure'), 'profile_settings',
-                    int, 4, min_value=1, max_value=512))
+                    int, 4, min_value=1, max_value=64))
         self._add_setting(
             Setting('remove_background_calibration', _('Remove background'),
                     'profile_settings', bool, True))
