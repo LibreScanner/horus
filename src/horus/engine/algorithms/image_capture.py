@@ -2,7 +2,7 @@
 # This file is part of the Horus Project
 
 __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
-__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
@@ -69,23 +69,23 @@ class ImageCapture(object):
             self._flush_texture = 2
             self._flush_laser = 2  # exp < 32 ? 2 : 3
             self._flush_pattern = 2
-            self._flush_stream_texture = 0
+            self._flush_stream_texture = 1
             self._flush_stream_laser = 2
-            self._flush_stream_pattern = 0
+            self._flush_stream_pattern = 1
         elif system == 'Darwin':
             self._flush_texture = 2
             self._flush_laser = 2  # exp < 32 ? 2 : 3
             self._flush_pattern = 2
-            self._flush_stream_texture = 0
+            self._flush_stream_texture = 1
             self._flush_stream_laser = 2
-            self._flush_stream_pattern = 0
+            self._flush_stream_pattern = 1
         elif system == 'Windows':
             self._flush_texture = 2
             self._flush_laser = 2  # exp < 32 ? 2 : 3
             self._flush_pattern = 2
-            self._flush_stream_texture = 0
+            self._flush_stream_texture = 1
             self._flush_stream_laser = 2
-            self._flush_stream_pattern = 0
+            self._flush_stream_pattern = 1
 
         self._mode = self.pattern_mode
         self._mode.selected = True

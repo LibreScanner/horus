@@ -3,7 +3,7 @@
 
 __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>\
               Nicanor Romero Venier <nicanor.romerovenier@bq.com>'
-__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.\
+__copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.\
                  Copyright (C) 2013 David Braam from Cura Project'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 

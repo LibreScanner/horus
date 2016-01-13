@@ -2,7 +2,7 @@
  ----------------------------------------------
  -  Horus Project
  -  Jesus Arroyo Torrens <jesus.arroyo@bq.com>
- -  May 2015 Mundo Readers S.L.
+ -  May 2015-2016 Mundo Readers S.L.
  ----------------------------------------------
 
 (*)~----------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ uvcc_controls = (
 'UVCC_REQ_WB_COMPONENT_AUTO',
 'UVCC_REQ_WB_COMPONENT_ABS',
 '__UVCC_REQ_OUT_OF_RANGE'
-                
+
                 )
 control_dict = dict(zip(uvcc_controls,range(len(uvcc_controls))))
 
@@ -278,4 +278,3 @@ if __name__ == '__main__':
         uvccCloseCam(cam)
         uvccReleaseCam(cam)
     __uvcc_dll.uvccExit()
-

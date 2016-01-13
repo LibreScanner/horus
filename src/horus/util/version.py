@@ -2,7 +2,7 @@
 # This file is part of the Horus Project
 
 __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
-__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.\
+__copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.\
                  Copyright (C) 2013 David Braam from Cura Project'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
@@ -64,7 +64,7 @@ def _get_executable_url(version):
     url = None
     if sys.is_linux():
         import platform
-        url = "https://launchpad.net/~bqopensource/+archive/ubuntu/horus/+files/"
+        url = "https://launchpad.net/~jesus-arroyo/+archive/ubuntu/horus/+files/"
         url += "horus_"
         url += version + "-bq1~"
         url += platform.linux_distribution()[2] + "1_"

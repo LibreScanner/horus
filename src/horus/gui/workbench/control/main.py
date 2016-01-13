@@ -2,7 +2,7 @@
 # This file is part of the Horus Project
 
 __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
-__copyright__ = 'Copyright (C) 2014-2015 Mundo Reader S.L.'
+__copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 from horus.util import profile
@@ -27,7 +27,7 @@ class ControlWorkbench(Workbench):
         self.add_panel('gcode_control', GcodeControl)
 
     def add_pages(self):
-        self.add_page('video_view', VideoView(self, self._video_frame, 10, black=True))
+        self.add_page('video_view', VideoView(self, self._video_frame, 30, black=True))
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_control']].on_title_clicked(None)
 
