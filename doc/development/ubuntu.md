@@ -27,7 +27,7 @@ sudo apt-get install python-serial python-wxgtk2.8 python-opengl python-pyglet p
 
 #### Custom OpenCV
 ```bash
-sudo add-apt-repository ppa:bqopensource/opencv
+sudo add-apt-repository ppa:jesus-arroyo/horus
 sudo apt-get update
 sudo apt-get install python-opencv
 ```
@@ -74,7 +74,7 @@ or
 git clone git@github.com:bq/opencv.git
 ```
 
-And build it your own: [instructions](https://github.com/bq/horus/wiki/Documentation#build-custom-opencv)
+And build it your own: [instructions](https://github.com/bqlabs/opencv/wiki/Build)
 
 ## 3. Execute source code
 

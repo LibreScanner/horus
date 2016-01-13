@@ -2,14 +2,14 @@
 
 [return to Home](../../README.md)
 
-First you need to build and install our [custom OpenCV](https://github.com/bq/horus/wiki/Documentation#build-custom-opencv)
+First you need to build and install our [custom OpenCV](https://github.com/bqlabs/opencv/wiki/Build)
 
 Then, add our ppa for Horus
 
 ```bash
 sudo apt-get install software-properties-common python-software-properties
-sudo add-apt-repository ppa:bqopensource/horus-dev
-sudo sed -i 's/jessie/trusty/g' /etc/apt/sources.list.d/bqopensource-*.list
+sudo add-apt-repository ppa:jesus-arroyo/horus
+sudo sed -i 's/jessie/trusty/g' /etc/apt/sources.list.d/jesus-arroyo-*.list
 ```
 
 Update your system
@@ -48,7 +48,6 @@ sudo apt-get upgrade
 
 NOTE: our packages are hosted in launchpad.net
 
-* [PPA Horus](https://launchpad.net/~bqopensource/+archive/ubuntu/horus/)
-* [PPA Horus-dev](https://launchpad.net/~bqopensource/+archive/ubuntu/horus-dev/)
+* [PPA Horus](https://launchpad.net/~jesus-arroyo/+archive/ubuntu/horus/)
 
 [debian-logo]: ../images/debian.png

@@ -5,8 +5,7 @@
 Add our ppa for OpenCV and Horus
 
 ```bash
-sudo add-apt-repository ppa:bqopensource/opencv
-sudo add-apt-repository ppa:bqopensource/horus
+sudo add-apt-repository ppa:jesus-arroyo/horus
 ```
 
 Update your system
@@ -45,8 +44,6 @@ sudo apt-get upgrade
 
 NOTE: our packages are hosted in launchpad.net
 
-* [PPA OpenCV](https://launchpad.net/~bqopensource/+archive/ubuntu/opencv/)
-* [PPA Horus](https://launchpad.net/~bqopensource/+archive/ubuntu/horus/)
-* [PPA Horus-dev](https://launchpad.net/~bqopensource/+archive/ubuntu/horus-dev/)
+* [PPA Horus](https://launchpad.net/~jesus-arroyo/+archive/ubuntu/horus/)
 
 [ubuntu-logo]: ../images/ubuntu.png

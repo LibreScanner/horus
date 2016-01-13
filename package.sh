@@ -17,8 +17,6 @@ EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
 export VERSION=`head -1 res/version`
-BQ_VERSION=`head -1 pkg/linux/debian/changelog | grep -o '[0-9.]*' | tail -1`
-VEXT=${VEXT:=""}
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
 
 ##Which versions of external programs to use
@@ -131,16 +129,12 @@ if [ $BUILD_TARGET = "debian" ]; then
 			debuild -S -sa
 			PPA=${PPA:="ppa:jesus-arroyo/horus-dev"}
 			RELEASES="trusty vivid wily"
-			ORIG_RELEASE=`head -1 pkg/linux/debian/changelog | sed 's/.*) \(.*\);.*/\1/'`
-			cd .. ; mv horus-${VERSION} horus-${VERSION}${VEXT}
-			mv horus_${VERSION}.orig.tar.gz horus_${VERSION}${VEXT}.orig.tar.gz
-			cd horus-${VERSION}${VEXT}
 			for RELEASE in $RELEASES ;
 			do
 			  cp debian/changelog debian/changelog.backup
-			  sed -i "s/${ORIG_RELEASE}/${RELEASE}/;s/${VERSION}/${VERSION}${VEXT}/;s/bq${BQ_VERSION}/bq${BQ_VERSION}~${RELEASE}1/" debian/changelog
+			  sed -i "s/unstable/${RELEASE}/;s/${VERSION}/${VERSION}-${RELEASE}1/;" debian/changelog
 			  debuild -S -sa
-			  dput -f ${PPA} ../horus_${VERSION}${VEXT}-bq${BQ_VERSION}~${RELEASE}1_source.changes
+			  dput -f ${PPA} ../horus_${VERSION}-${RELEASE}1_source.changes
 			  mv debian/changelog.backup debian/changelog
 			done
 		fi
@@ -178,7 +172,7 @@ if [ $BUILD_TARGET = "darwin" ]; then
 		--icon Horus.app 180 280 \
 		--hide-extension Horus.app \
 		--app-drop-link 530 275 \
-		dar_dist/Horus_${VERSION}${VEXT}.dmg \
+		dar_dist/Horus_${VERSION}.dmg \
 		dar_dist/dist/Horus.app
 
 	rm -rf .eggs
@@ -306,8 +300,8 @@ if [ $BUILD_TARGET = "win32" ]; then
 	# Package the result
 	rm -rf ../pkg/win32/dist
 	ln -sf `pwd`/${TARGET_DIR} ../pkg/win32/dist
-	makensis -DVERSION=${VERSION}${VEXT} ../pkg/win32/installer.nsi
+	makensis -DVERSION=${VERSION} ../pkg/win32/installer.nsi
 	if [ $? != 0 ]; then echo "Failed to package NSIS installer"; exit 1; fi
-	mv ../pkg/win32/Horus_${VERSION}${VEXT}.exe .
+	mv ../pkg/win32/Horus_${VERSION}.exe .
 	rm -rf ../pkg/win32/dist
 fi

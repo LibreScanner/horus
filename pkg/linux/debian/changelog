@@ -1,4 +1,4 @@
-horus (0.2b1-bq1) trusty; urgency=medium
+horus (0.2b1) unstable; urgency=medium
 
   * Engine refactor
   * New profile format: json
@@ -15,7 +15,7 @@ horus (0.2b1-bq1) trusty; urgency=medium
   * Apply point cloud ROI after scanning
   * Machine settings added to configure scanning volume
 
- -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Thu, 30 Sept 2015 00:00:00 +0100
+ -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Thu, 30 Sep 2015 00:00:00 +0100
 
 horus (0.1.2.4-bq1) trusty; urgency=medium
 
@@ -23,7 +23,7 @@ horus (0.1.2.4-bq1) trusty; urgency=medium
   * Version updates.
   * Load hex files.
 
- -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Thu, 20 July 2015 00:00:00 +0100
+ -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Thu, 20 Jul 2015 00:00:00 +0100
 
 horus (0.1.1.1-bq1) trusty; urgency=medium
 
