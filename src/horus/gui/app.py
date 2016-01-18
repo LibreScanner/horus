@@ -26,13 +26,16 @@ class HorusApp(wx.App):
             SplashScreen(self.after_splash_callback)
 
     def after_splash_callback(self):
-        # Load Settings
+        # Load settings
         profile.load_settings()
 
-        # Load Language
+        # Load language
         resources.setup_localization(profile.settings['language'])
 
-        # Create Main Window
+        # Load version
+        version.download_lastest_data()
+
+        # Create main window
         self.main_window = MainWindow()
 
         # Check for updates
@@ -42,12 +45,12 @@ class HorusApp(wx.App):
                 self.main_window.Close(True)
                 return
 
-        # Show Main Window
+        # Show main window
         self.SetTopWindow(self.main_window)
         self.main_window.Show()
 
         if profile.settings['show_welcome']:
-            # Create Welcome Window
+            # Create welcome window
             WelcomeDialog(self.main_window)
 
         set_full_screen_capable(self.main_window)
@@ -56,7 +59,7 @@ class HorusApp(wx.App):
             wx.CallAfter(self.stupid_mac_os_workaround)
 
     def __del__(self):
-        # Save Profile and Preferences
+        # Save profile and preferences
         profile.settings.save_settings()
 
     def MacReopenApp(self):

@@ -24,17 +24,20 @@ latest_commit = ''
 URL_API_RELEASES = 'https://api.github.com/repos/bqlabs/horus/releases/latest'
 URL_DOWNLOAD = 'https://github.com/bqlabs/horus/releases/download/'
 
-try:
-    f = urllib2.urlopen(URL_API_RELEASES, timeout=1)
-    content = json.loads(f.read())
-    tag_name = content['tag_name']
-    f = urllib2.urlopen(URL_DOWNLOAD + tag_name + '/version', timeout=1)
-    content = json.loads(f.read())
-    latest_version = content['version']
-    latest_datetime = content['datetime']
-    latest_commit = content['commit']
-except:
-    pass
+
+def download_lastest_data():
+    global latest_version, latest_commit, latest_datetime
+    try:
+        f = urllib2.urlopen(URL_API_RELEASES, timeout=1)
+        content = json.loads(f.read())
+        tag_name = content['tag_name']
+        f = urllib2.urlopen(URL_DOWNLOAD + tag_name + '/version', timeout=1)
+        content = json.loads(f.read())
+        latest_version = content['version']
+        latest_datetime = content['datetime']
+        latest_commit = content['commit']
+    except:
+        pass
 
 
 def check_for_updates():
