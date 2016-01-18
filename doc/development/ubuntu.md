@@ -27,7 +27,7 @@ sudo apt-get install python-serial python-wxgtk2.8 python-opengl python-pyglet p
 
 #### Custom OpenCV
 ```bash
-sudo add-apt-repository ppa:jesus-arroyo/horus
+sudo add-apt-repository ppa:bqlabs/horus
 sudo apt-get update
 sudo apt-get install python-opencv
 ```

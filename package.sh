@@ -141,7 +141,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 		elif [ $EXTRA_ARGS = "-u" ]; then
 			# Upload to launchpad
 			debuild -S -sa
-			PPA=${PPA:="ppa:jesus-arroyo/horus-dev"}
+			PPA=${PPA:="ppa:bqlabs/horus-dev"}
 			RELEASES="trusty vivid wily"
 			for RELEASE in $RELEASES ;
 			do

@@ -8,8 +8,8 @@ Then, add our ppa for Horus
 
 ```bash
 sudo apt-get install software-properties-common python-software-properties
-sudo add-apt-repository ppa:jesus-arroyo/horus
-sudo sed -i 's/jessie/trusty/g' /etc/apt/sources.list.d/jesus-arroyo-*.list
+sudo add-apt-repository ppa:bqlabs/horus
+sudo sed -i 's/jessie/trusty/g' /etc/apt/sources.list.d/bqlabs-*.list
 ```
 
 Update your system
@@ -48,6 +48,7 @@ sudo apt-get upgrade
 
 NOTE: our packages are hosted in launchpad.net
 
-* [PPA Horus](https://launchpad.net/~jesus-arroyo/+archive/ubuntu/horus/)
+* [PPA Horus](https://launchpad.net/~bqlabs/+archive/ubuntu/horus/)
+* [PPA Horus dev](https://launchpad.net/~bqlabs/+archive/ubuntu/horus-dev/)
 
 [debian-logo]: ../images/debian.png
