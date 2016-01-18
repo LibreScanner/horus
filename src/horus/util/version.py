@@ -13,7 +13,22 @@ import webbrowser
 from horus import __version__, __datetime__, __commit__
 from horus.util import system as sys
 
-current_version = __version__
+
+class Version:
+    def __init__(self, version):
+        self.number = ''
+        self.prenumber = ''
+        for p in ['a', 'b', 'rc']:
+            data = version.split(p)
+            if len(data) == 2:
+                self.number = data[0]
+                self.prenumber = p + data[1]
+        if self.prenumber == '':
+            self.number = version
+            self.prenumber = 'z'
+
+
+current_version = Version(__version__)
 current_datetime = __datetime__
 current_commit = __commit__
 
@@ -33,7 +48,7 @@ def download_lastest_data():
         tag_name = content['tag_name']
         f = urllib2.urlopen(URL_DOWNLOAD + tag_name + '/version', timeout=1)
         content = json.loads(f.read())
-        latest_version = content['version']
+        latest_version = Version(content['version'])
         latest_datetime = content['datetime']
         latest_commit = content['commit']
     except:
@@ -41,7 +56,9 @@ def download_lastest_data():
 
 
 def check_for_updates():
-    return latest_version >= current_version and \
+    return latest_version is not '' and \
+        latest_version.number >= current_version.number and \
+        latest_version.prenumber >= current_version.prenumber and \
         current_datetime is not '' and \
         latest_datetime > current_datetime
 
