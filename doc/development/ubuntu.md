@@ -102,6 +102,11 @@ nosetests test
 
 Horus development comes with a script *package.sh*. This script generates a final release package. You should not need it during development, unless you are changing the release process. If you want to distribute your own version of Horus, then the *package.sh* script will allow you to do that.
 
+### Version
+```bash
+bash package.sh version  # Generate version file
+```
+
 ### GNU/Linux Ubuntu
 ```bash
 bash package.sh debian     # Generate deb package

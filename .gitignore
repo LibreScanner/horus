@@ -26,3 +26,4 @@ build/
 dist/
 src/Horus.egg-info/
 horus.egg-info/
+version

@@ -35,9 +35,6 @@ class HorusApp(wx.App):
         # Create Main Window
         self.main_window = MainWindow()
 
-        # Download version file
-        version.download_version_file()
-
         # Check for updates
         if profile.settings['check_for_updates'] and version.check_for_updates():
             v = VersionWindow(self.main_window)

@@ -12,6 +12,7 @@ import wx._core
 import webbrowser
 from collections import OrderedDict
 
+from horus import __version__, __datetime__, __commit__
 from horus.gui.engine import driver, ciclop_scan, scanner_autocheck, \
     laser_triangulation, platform_extrinsics
 
@@ -30,9 +31,6 @@ from horus.gui.util.version_window import VersionWindow
 
 from horus.util import profile, resources, mesh_loader, version, system as sys
 
-__version__ = version.get_version()
-__build__ = version.get_build()
-__github__ = version.get_github()
 __name__ = "Horus " + __version__
 
 
@@ -407,8 +405,8 @@ class MainWindow(wx.Frame):
         info.SetVersion(__version__)
         tech_description = _('Horus is an Open Source 3D Scanner manager')
         tech_description += '\nVersion: ' + __version__
-        tech_description += '\nBuild: ' + __build__
-        tech_description += '\nGitHub: ' + __github__
+        tech_description += '\nDatetime: ' + __datetime__
+        tech_description += '\nCommit: ' + __commit__
         info.SetDescription(tech_description)
         info.SetCopyright(u'(C) 2014-2016 Mundo Reader S.L.')
         info.SetWebSite(u'http://www.bq.com')

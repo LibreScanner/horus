@@ -12,12 +12,16 @@ BUILD_TARGET=${1:-none}
 #BUILD_TARGET=win32
 #BUILD_TARGET=debian
 #BUILD_TARGET=darwin
+#BUILD_TARGET=version
 
 EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
-export VERSION=`head -1 res/version`
+export VERSION=0.2b1
+export DATETIME=`git log -1 --pretty=%ci`
+export COMMIT=`git log -1 --pretty=%H`
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
+
 
 ##Which versions of external programs to use
 WIN_PORTABLE_PY_VERSION=2.7.2.1 #TODO: 2.7.6.1
@@ -93,10 +97,20 @@ if [ $BUILD_TARGET = "win32" ]; then
 	checkTool 7z "7zip: http://www.7-zip.org/"
 fi
 
-# Clean sources
-rm -rf deb_dist
-rm -rf win_dist
-rm -rf dar_dist
+# Update version data
+sed -i "s/__datetime__ = ''/__datetime__ = '$DATETIME'/;" src/horus/__init__.py
+sed -i "s/__commit__ = ''/__commit__ = '$COMMIT'/;" src/horus/__init__.py
+
+if [ $BUILD_TARGET = "version" ]
+then
+	echo '{"version": "'$VERSION'", "datetime": "'$DATETIME'", "commit": "'$COMMIT'"}' > version
+else
+	# Clean sources
+	rm -rf version
+	rm -rf deb_dist
+	rm -rf win_dist
+	rm -rf dar_dist
+fi
 
 #############################
 # Debian packaging
@@ -305,3 +319,7 @@ if [ $BUILD_TARGET = "win32" ]; then
 	mv ../pkg/win32/Horus_${VERSION}.exe .
 	rm -rf ../pkg/win32/dist
 fi
+
+# Restore version data
+sed -i "s/__datetime__ = '$DATETIME'/__datetime__ = ''/;" src/horus/__init__.py
+sed -i "s/__commit__ = '$COMMIT'/__commit__ = ''/;" src/horus/__init__.py
