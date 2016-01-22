@@ -2,53 +2,22 @@
 
 [return to Home](../../README.md)
 
+### Not supported for version 0.2
+However it can be installed following the next instructions.
+
 First you need to build and install our [custom OpenCV](https://github.com/bqlabs/opencv/wiki/Build)
 
-Then, add our ppa for Horus
+Then, generate the executable file following the next [instructions](../development/ubuntu.md).
 
 ```bash
-sudo apt-get install software-properties-common python-software-properties
-sudo add-apt-repository ppa:bqlabs/horus
-sudo sed -i 's/jessie/trusty/g' /etc/apt/sources.list.d/bqlabs-*.list
-```
-
-Update your system
-
-```bash
-sudo apt-get update
-```
-
-Install Horus
-
-```bash
-sudo apt-get install horus
+bash package.sh debian -i
 ```
 
 If user has no access to serial port, execute:
 
 ```bash
 sudo usermod -a -G dialout $USER
-```
-
-Reboot the computer to apply the changes
-
-```bash
 sudo reboot
 ```
-
-### Update Horus
-
-If there is a new release just execute:
-
-```bash
-sudo apt-get upgrade
-```
-
-<br>
-
-NOTE: our packages are hosted in launchpad.net
-
-* [PPA Horus](https://launchpad.net/~bqlabs/+archive/ubuntu/horus/)
-* [PPA Horus dev](https://launchpad.net/~bqlabs/+archive/ubuntu/horus-dev/)
 
 [debian-logo]: ../images/debian.png

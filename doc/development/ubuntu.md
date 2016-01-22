@@ -26,6 +26,14 @@ sudo apt-get install python-serial python-wxgtk2.8 python-opengl python-pyglet p
 ```
 
 #### Custom OpenCV
+
+*NOTE*: first try to remove previous versions of opencv:
+
+```bash
+sudo apt-get remove python-opencv
+sudo apt-get autoremove
+```
+
 ```bash
 sudo add-apt-repository ppa:bqlabs/horus
 sudo apt-get update

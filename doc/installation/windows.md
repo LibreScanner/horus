@@ -2,16 +2,20 @@
 
 [return to Home](../../README.md)
 
+### Not supported for version 0.2
+However it can be installed following the next instructions.
+
 First install USB Camera drivers:
 * [Logitech Camera C270 Drivers](http://support.logitech.com/en_us/product/hd-webcam-c270)
 
-Then, download executable file:
-* [Horus installer](http://storage.googleapis.com/bq-horus/releases/Horus_0.1.2.4.exe)
+Generate the executable file with Cygwin following the next [instructions](../development/ubuntu.md).
 
-Execute the installer and follow the wizard
+```bash
+bash package.sh win32
+```
 
-This package contains all dependencies and also Arduino and FTDI drivers
+Execute the installer and follow the wizard. This package contains all dependencies and also Arduino and FTDI drivers.
 
-Reboot the computer to apply the changes
+Reboot the computer to apply the changes.
 
 [windows-logo]: ../images/windows.png

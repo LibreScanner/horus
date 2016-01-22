@@ -17,30 +17,7 @@ More interest links are shown below:
 * [Electronics](http://diwo.bq.com/en/zum-scan-released/) [[es](http://diwo.bq.com/zum-scan-released/)]
 * [Firmware](http://diwo.bq.com/en/horus-fw-released/) [[es](http://diwo.bq.com/horus-fw-released/)]
 * [Software](http://diwo.bq.com/en/horus-released/) [[es](http://diwo.bq.com/horus-released/)]
-* [Documentation](http://diwo.bq.com/en/documentation-ciclop-and-horus/) [[es](http://diwo.bq.com/documentation-ciclop-and-horus/)]
-
-
-## Installation
-
-###### Research version: 0.2b1
-
-###### Stable version: 0.1.2.4
-
-#### Supported versions
-
-| Logo              | Name     | Versions     | Instructions                        |
-|:-----------------:|:--------:|:------------:|:-----------------------------------:|
-| ![][ubuntu-logo]  | Ubuntu   | 14.04, 14.10 | [link](doc/installation/ubuntu.md)  |
-
-
-#### Experimental versions
-
-| Logo               | Name      | Versions     | Instructions                          |
-|:------------------:|:---------:|:------------:|:-------------------------------------:|
-| ![][windows-logo]  | Windows   | 7, 8, 8.1    | [link](doc/installation/windows.md)   |
-| ![][macosx-logo]   | Mac OS X  | 10.9, 10.10  | [link](doc/installation/macosx.md)    |
-| ![][debian-logo]   | Debian    | 8            | [link](doc/installation/debian.md)    |
-| ![][fedora-logo]   | Fedora    | 21, 22       | [link](doc/installation/fedora.md)    |
+* [Product documentation](http://diwo.bq.com/en/documentation-ciclop-and-horus/) [[es](http://diwo.bq.com/documentation-ciclop-and-horus/)]
 
 
 ## Development
@@ -66,6 +43,32 @@ NOTE: *deb* and *exe* packages can be generated in *debian like* systems
 * [Darwin development](doc/development/darwin.md)
 
 NOTE: *dmg* packages only can be generated in Mac OS X
+
+
+## Installation
+
+#### Supported
+
+###### Current version: 0.2b1
+
+| Logo              | Name     | Versions            | Instructions                        |
+|:-----------------:|:--------:|:-------------------:|:-----------------------------------:|
+| ![][ubuntu-logo]  | Ubuntu   | 14.04, 14.10, 15.10 | [link](doc/installation/ubuntu.md)  |
+
+
+#### Experimental
+
+**Horus 0.2 is not supported in the following distributions**.
+
+However, anyone can test it and contribute to its support.
+
+| Logo               | Name      | Versions     | Instructions                          |
+|:------------------:|:---------:|:------------:|:-------------------------------------:|
+| ![][windows-logo]  | Windows   | 7, 8, 8.1    | [link](doc/installation/windows.md)   |
+| ![][macosx-logo]   | Mac OS X  | 10.9, 10.10  | [link](doc/installation/macosx.md)    |
+| ![][debian-logo]   | Debian    | 8            | [link](doc/installation/debian.md)    |
+| ![][fedora-logo]   | Fedora    | 21, 22       | [link](doc/installation/fedora.md)    |
+
 
 
 [ubuntu-logo]: doc/images/ubuntu.png
