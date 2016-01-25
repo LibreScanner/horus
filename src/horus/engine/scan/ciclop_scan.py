@@ -74,6 +74,15 @@ class CiclopScan(Scan):
         self._theta = 0
         self._captures_queue.queue.clear()
         self._point_cloud_queue.queue.clear()
+        self._begin = time.time()
+
+        # Setup console
+        print ">>> Start scan:"
+        print ">>>> elapsed progress: 0 %"
+        print ">>>> elapsed time: 0' 0\""
+        print ">>>> elapsed angle: 0º"
+        print ">>>> capture: 0 ms"
+        print ">>>> process: 0 ms"
 
         # Setup scanner
         self.driver.board.lasers_off()
@@ -113,7 +122,17 @@ class CiclopScan(Scan):
                         self._range = abs(360.0 / self.motor_step)
                     # Put images into queue
                     self._captures_queue.put(capture)
-                    print "Capture: {0} ms".format(int((time.time() - begin) * 1000))
+
+                    # Print info
+                    end = time.time()
+                    # Cursor up + remove lines
+                    print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
+                    print ">>>> elapsed progress: {0} %".format(
+                        int(100 * self._progress / self._range))
+                    print ">>>> elapsed time: {0}".format(
+                        time.strftime("%M' %S\"", time.gmtime(end - self._begin)))
+                    print ">>>> elapsed angle: {0}º".format(int(np.rad2deg(self._theta)))
+                    print ">>>> capture: {0} ms".format(int((end - begin) * 1000))
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()
@@ -189,11 +208,15 @@ class CiclopScan(Scan):
                         self.current_video.set_gray(images)
                         self.current_video.set_line(points, image)
 
-                        print "Process: {0} ms".format(int((time.time() - begin) * 1000))
+                        # Print info
+                        print ">>>> process: {0} ms".format(int((time.time() - begin) * 1000))
         if ret:
             response = (True, None)
         else:
             response = (False, ScanError)
+
+        # Cursor down
+        print "\x1b[1C"
 
         self.image_capture.stream = True
 
