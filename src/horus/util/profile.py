@@ -473,12 +473,12 @@ class Settings(collections.MutableMapping):
         # -- Preferences
 
         self._add_setting(
-            Setting('serial_name', _('Serial Name'), 'preferences', unicode, u'/dev/ttyUSB0'))
+            Setting('serial_name', _('Serial Name'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('baud_rate', _('Baud rate'), 'preferences', int, 115200,
                     possible_values=(9600, 14400, 19200, 38400, 57600, 115200)))
         self._add_setting(
-            Setting('camera_id', _('Camera Id'), 'preferences', unicode, u'/dev/video0'))
+            Setting('camera_id', _('Camera Id'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('board', _('Board'), 'preferences', unicode, u'BT ATmega328',
                     possible_values=(u'Arduino Uno', u'BT ATmega328')))

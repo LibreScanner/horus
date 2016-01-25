@@ -5,6 +5,7 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import time
 import wx._core
 import threading
 
@@ -195,12 +196,12 @@ class PreferencesDialog(wx.Dialog):
 
     def load_firmware(self, hex_baud_rate, clear_eeprom):
         avr_dude = AvrDude(port=profile.settings['serial_name'], baud_rate=hex_baud_rate)
-        extra_flags = []
+        print ">>> Flashing firmware: "
         if clear_eeprom:
-            extra_flags = ["-D"]
+            avr_dude.flash(clear_eeprom=True)
+            time.sleep(3)  # Clear EEPROM
         self.count = -50
-        out = avr_dude.flash(
-            extra_flags=extra_flags, hex_path=self.hex_path, callback=self.increment_progress)
+        out = avr_dude.flash(hex_path=self.hex_path, callback=self.increment_progress)
         if 'not in sync' in out or 'Invalid' in out:
             wx.CallAfter(self.wrong_board_message)
         wx.CallAfter(self.after_load_firmware)
@@ -221,20 +222,26 @@ class PreferencesDialog(wx.Dialog):
         self.upload_firmware_button.Disable()
         self.clear_check_box.Disable()
         self.boards_combo.Disable()
+        self.hex_combo.Disable()
+        self.cancel_button.Disable()
+        self.save_button.Disable()
         self.gauge.SetValue(0)
         self.gauge.Show()
         self.wait_cursor = wx.BusyCursor()
-        self.get_sizer().Layout()
-        self.SetSizerAndFit(self.get_sizer())
+        self.GetSizer().Layout()
+        self.SetSizerAndFit(self.GetSizer())
 
     def after_load_firmware(self):
         self.upload_firmware_button.Enable()
         self.clear_check_box.Enable()
         self.boards_combo.Enable()
+        self.hex_combo.Enable()
+        self.cancel_button.Enable()
+        self.save_button.Enable()
         self.gauge.Hide()
         del self.wait_cursor
-        self.get_sizer().Layout()
-        self.SetSizerAndFit(self.get_sizer())
+        self.GetSizer().Layout()
+        self.SetSizerAndFit(self.GetSizer())
 
     def on_language_combo_changed(self, event):
         if profile.settings['language'] != self.language_combo.GetValue():

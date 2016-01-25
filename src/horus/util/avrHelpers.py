@@ -54,6 +54,7 @@ class AvrDude(SerialDevice):
         config = dict(avrdude=self.avrdude, avrconf=self.avrconf)
         cmd = ['%(avrdude)s'] + flags
         cmd = [v % config for v in cmd]
+        print '>>>> ' + ' '.join(cmd)
         p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
         out = ''
         while True:
@@ -66,15 +67,15 @@ class AvrDude(SerialDevice):
                     callback()
         return out
 
-    def flash(self, hex_path=None, extra_flags=None, callback=None):
+    def flash(self, hex_path=None, clear_eeprom=False, callback=None):
         if hex_path is None:
             hex_path = resources.get_path_for_firmware("horus-fw.hex")
+        if clear_eeprom:
+            hex_path = resources.get_path_for_firmware("eeprom_clear.hex")
         hex_path = path(hex_path)
-        flags = ['-c', self.protocol, '-b', str(self.baud_rate), '-p',
-                 self.microcontroller, '-P', '%s' % self.port, '-U',
-                 'flash:w:%s:i' % hex_path.name, '-C', '%(avrconf)s']
-        if extra_flags is not None:
-            flags.extend(extra_flags)
+        flags = ['-C', '%(avrconf)s', '-c', self.protocol, '-p', self.microcontroller,
+                 '-P', '%s' % self.port, '-b', str(self.baud_rate), '-D', '-U',
+                 'flash:w:%s' % hex_path.name]
         try:
             cwd = os.getcwd()
             os.chdir(hex_path.parent)
