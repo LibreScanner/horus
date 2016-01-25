@@ -75,6 +75,15 @@ class ComboCalibration(MovingCalibration):
         self.has_image = False
         self.image_capture.stream = True
 
+        # Laser triangulation
+        # Save point clouds
+        for i in xrange(2):
+            laser_triangulation.save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
+        # TODO: use arrays
+        # Compute planes
+        self.dL, self.nL, stdL = laser_triangulation.compute_plane(0, self._point_cloud[0])
+        self.dR, self.nR, stdR = laser_triangulation.compute_plane(1, self._point_cloud[1])
+
         # Platform extrinsics
         self.t = None
         self.x = np.array(self.x)
@@ -98,17 +107,7 @@ class ComboCalibration(MovingCalibration):
             print str(self.R)
             print ">>> - Normal: " + str(normal)
 
-        # Laser triangulation
-        # Save point clouds
-        for i in xrange(2):
-            laser_triangulation.save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
-        # TODO: use arrays
-        # Compute planes
-        self.dL, self.nL, stdL = laser_triangulation.compute_plane(0, self._point_cloud[0])
-        self.dR, self.nR, stdR = laser_triangulation.compute_plane(1, self._point_cloud[1])
-
         # Return response
-
         result = True
         if self._is_calibrating:
             if self.t is not None and \

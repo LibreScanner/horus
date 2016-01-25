@@ -424,6 +424,16 @@ class Settings(collections.MutableMapping):
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
 
         self._add_setting(
+            Setting('estimated_size', _('Estimated size'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([-5.0, 9.0, 320.0]))))
+
+        self._add_setting(
+            Setting('laser_triangulation_hash', _(''), 'calibration_settings', unicode, u''))
+
+        self._add_setting(
+            Setting('platform_extrinsics_hash', _(''), 'calibration_settings', unicode, u''))
+
+        self._add_setting(
             Setting('current_panel_calibration', u'pattern_settings', 'profile_settings',
                     unicode, u'pattern_settings',
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
@@ -622,8 +632,10 @@ class Setting(object):
     def _load_json_dict(self, json_dict):
         # Only load configurable fields (__value, __min_value, __max_value)
         self.value = json_dict['value']
-        self.min_value = json_dict['min_value']
-        self.max_value = json_dict['max_value']
+        if 'min_value' in json_dict:
+            self.min_value = json_dict['min_value']
+        if 'max_value' in json_dict:
+            self.max_value = json_dict['max_value']
 
     def _to_json_dict(self):
         # Convert only configurable fields
@@ -639,8 +651,11 @@ class Setting(object):
         else:
             json_dict['value'] = value
 
-        json_dict['min_value'] = self.min_value
-        json_dict['max_value'] = self.max_value
+        if self.min_value is not None:
+            json_dict['min_value'] = self.min_value
+
+        if self.max_value is not None:
+            json_dict['max_value'] = self.max_value
         return json_dict
 
 

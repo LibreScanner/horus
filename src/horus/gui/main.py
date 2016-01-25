@@ -527,3 +527,4 @@ class MainWindow(wx.Frame):
         driver.board.serial_name = profile.settings['serial_name']
         driver.board.baud_rate = profile.settings['baud_rate']
         driver.board.motor_invert(profile.settings['invert_motor'])
+        platform_extrinsics.set_estimated_size(profile.settings['estimated_size'])

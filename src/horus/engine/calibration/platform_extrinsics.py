@@ -19,7 +19,7 @@ class PlatformExtrinsicsError(Exception):
         Exception.__init__(self, "PlatformExtrinsicsError")
 
 
-estimated_t = [5, 90, 320]
+estimated_t = [-5, 90, 320]
 
 
 @Singleton
@@ -105,6 +105,10 @@ class PlatformExtrinsics(MovingCalibration):
     def accept(self):
         self.calibration_data.platform_rotation = self.R
         self.calibration_data.platform_translation = self.t
+
+    def set_estimated_size(self, estimated_size):
+        global estimated_t
+        estimated_t = estimated_size
 
 
 def distance2plane(p0, n0, p):

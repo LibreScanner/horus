@@ -163,32 +163,57 @@ class ScanningWorkbench(Workbench):
             ciclop_scan.resume()
             self.point_cloud_timer.Start(milliseconds=50)
         else:
-            if calibration_data.check_calibration():
-                result = True
-                if self.scene_view._object is not None:
-                    dlg = wx.MessageDialog(self,
-                                           _("Your current model will be erased.\n"
-                                             "Do you really want to do it?"),
-                                           _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
-                    result = dlg.ShowModal() == wx.ID_YES
-                    dlg.Destroy()
-                if result:
-                    self.gauge.SetValue(0)
-                    ciclop_scan.set_callbacks(self.before_scan,
-                                              None, lambda r: wx.CallAfter(self.after_scan, r))
-                    ciclop_scan.start()
-                    self.gauge.Show()
-                    self.Layout()
-            else:
+            if not calibration_data.check_calibration():
                 dlg = wx.MessageDialog(self,
-                                       _("Calibration hasn't been performed correctly.\n"
-                                         "Please repeat calibration process again:\n"
+                                       _("Calibration parameters are not correct.\n"
+                                         "Please perform calibration process:\n"
                                          "  1. Scanner autocheck\n"
                                          "  2. Laser triangulation\n"
                                          "  3. Platform extrinsics"),
-                                       _("Wrong calibration"), wx.OK | wx.ICON_ERROR)
+                                       _("Wrong calibration parameters"), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
+                return
+
+            if profile.settings['laser_triangulation_hash'] != calibration_data.md5_hash():
+                dlg = wx.MessageDialog(self,
+                                       _("Laser triangulation calibration has been performed \n"
+                                         "with different camera intrinsics values.\n"
+                                         "Please perform Laser triangulation calibration again:\n"
+                                         "  1. Scanner autocheck\n"
+                                         "  2. Laser triangulation"),
+                                       _("Wrong calibration parameters"), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+
+            if profile.settings['platform_extrinsics_hash'] != calibration_data.md5_hash():
+                dlg = wx.MessageDialog(self,
+                                       _("Platform extrinsics calibration has been performed \n"
+                                         "with different camera intrinsics values.\n"
+                                         "Please perform Platform extrinsics calibration again:\n"
+                                         "  1. Scanner autocheck\n"
+                                         "  2. Platform extrinsics"),
+                                       _("Wrong calibration parameters"), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+
+            result = True
+            if self.scene_view._object is not None:
+                dlg = wx.MessageDialog(self,
+                                       _("Your current model will be erased.\n"
+                                         "Do you really want to do it?"),
+                                       _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                result = dlg.ShowModal() == wx.ID_YES
+                dlg.Destroy()
+            if result:
+                self.gauge.SetValue(0)
+                ciclop_scan.set_callbacks(self.before_scan,
+                                          None, lambda r: wx.CallAfter(self.after_scan, r))
+                ciclop_scan.start()
+                self.gauge.Show()
+                self.Layout()
 
     def before_scan(self):
         self.scene_view._view_roi = False

@@ -5,6 +5,8 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+
+import md5
 import cv2
 import numpy as np
 
@@ -30,6 +32,8 @@ class CalibrationData(object):
         self._roi = None
         self._dist_camera_matrix = None
         self._weight_matrix = None
+
+        self._md5_hash = None
 
         self.laser_planes = [LaserPlane(), LaserPlane()]
         self.platform_rotation = None
@@ -78,6 +82,10 @@ class CalibrationData(object):
             self._dist_camera_matrix, self._roi = cv2.getOptimalNewCameraMatrix(
                 self._camera_matrix, self._distortion_vector,
                 (int(self.width), int(self.height)), alpha=1)
+            self._md5_hash = md5.new()
+            self._md5_hash.update(self._camera_matrix)
+            self._md5_hash.update(self._distortion_vector)
+            self._md5_hash = self._md5_hash.hexdigest()
 
     def _compute_weight_matrix(self):
         self._weight_matrix = np.array((np.matrix(np.linspace(0, self.width - 1, self.width)).T *
@@ -99,3 +107,6 @@ class CalibrationData(object):
 
     def _is_zero(self, array):
         return np.all(array == 0.0)
+
+    def md5_hash(self):
+        return self._md5_hash
