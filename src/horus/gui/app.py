@@ -6,6 +6,7 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import wx._core
+import logging.config
 
 from horus.gui.main import MainWindow
 from horus.gui.splash import SplashScreen
@@ -26,6 +27,9 @@ class HorusApp(wx.App):
             SplashScreen(self.after_splash_callback)
 
     def after_splash_callback(self):
+        # Load logger
+        logging.config.fileConfig(resources.get_path_for_logger('logger.conf'))
+
         # Load settings
         profile.load_settings()
 
