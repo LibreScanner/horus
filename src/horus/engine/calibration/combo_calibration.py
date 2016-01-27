@@ -12,6 +12,9 @@ from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 from horus.engine.calibration import laser_triangulation, platform_extrinsics
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class ComboCalibrationError(Exception):
 
@@ -101,11 +104,10 @@ class ComboCalibration(MovingCalibration):
             # Get real origin
             self.t = center - self.pattern.origin_distance * np.array(normal)
 
-            print ">>> Platform calibration "
-            print ">>> - Translation: " + str(self.t)
-            print ">>> - Rotation: "
-            print str(self.R)
-            print ">>> - Normal: " + str(normal)
+            logger.info("Platform calibration ")
+            logger.info(" Translation: " + str(self.t))
+            logger.info(" Rotation: " + str(self.R).replace('\n', ''))
+            logger.info(" Normal: " + str(normal))
 
         # Return response
         result = True

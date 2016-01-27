@@ -9,6 +9,10 @@ __version__ = '0.2b1'
 __datetime__ = ''
 __commit__ = ''
 
+import os
+import logging.config
+logging.config.fileConfig(os.path.join(os.path.dirname(__file__), 'logging.conf'))
+
 
 def Singleton(class_):
     class class_w(class_):

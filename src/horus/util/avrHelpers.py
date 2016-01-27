@@ -17,6 +17,9 @@ from subprocess import Popen, PIPE, STDOUT
 from pathHelpers import path
 from serialDevice import SerialDevice
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class FirmwareError(Exception):
     pass
@@ -54,7 +57,7 @@ class AvrDude(SerialDevice):
         config = dict(avrdude=self.avrdude, avrconf=self.avrconf)
         cmd = ['%(avrdude)s'] + flags
         cmd = [v % config for v in cmd]
-        print '>>>> ' + ' '.join(cmd)
+        logger.info(' ' + ' '.join(cmd))
         p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
         out = ''
         while True:
@@ -80,6 +83,7 @@ class AvrDude(SerialDevice):
             cwd = os.getcwd()
             os.chdir(hex_path.parent)
             out = self._run_command(flags, callback)
+            logger.info(' Upload completed')
         finally:
             os.chdir(cwd)
         return out

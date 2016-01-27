@@ -26,5 +26,6 @@ build/
 dist/
 src/Horus.egg-info/
 horus.egg-info/
+horus.log
 version
 doc/readthedocs/_build

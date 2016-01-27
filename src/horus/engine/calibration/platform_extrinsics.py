@@ -12,6 +12,9 @@ from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class PlatformExtrinsicsError(Exception):
 
@@ -85,11 +88,10 @@ class PlatformExtrinsics(MovingCalibration):
             response = (True, (self.R, self.t, center, point, normal,
                         [self.x, self.y, self.z], circle))
 
-            print ">>> Platform calibration "
-            print ">>> - Translation: " + str(self.t)
-            print ">>> - Rotation: "
-            print str(self.R)
-            print ">>> - Normal: " + str(normal)
+            logger.info("Platform calibration ")
+            logger.info(" Translation: " + str(self.t))
+            logger.info(" Rotation: " + str(self.R).replace('\n', ''))
+            logger.info(" Normal: " + str(normal))
 
         else:
             if self._is_calibrating:

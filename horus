@@ -17,7 +17,7 @@ try:
     import scipy
     import matplotlib
 except ImportError as e:
-    print e.message
+    print(e.message)
     exit(1)
 
 try:

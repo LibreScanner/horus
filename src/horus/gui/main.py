@@ -31,15 +31,18 @@ from horus.gui.util.version_window import VersionWindow
 
 from horus.util import profile, resources, mesh_loader, version, system as sys
 
-__name__ = "Horus " + __version__
+import logging
+logger = logging.getLogger(__name__)
+
+__title__ = "Horus " + __version__
 
 
 class MainWindow(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, title=__name__, size=(980, 640))
+        wx.Frame.__init__(self, None, title=__title__, size=(980, 640))
 
-        print ">>> " + __name__ + " <<<"
+        logger.info("Start application " + __title__)
 
         # Initialize driver
         self.initialize_driver()
@@ -57,6 +60,9 @@ class MainWindow(wx.Frame):
         self.SetIcon(wx.Icon(resources.get_path_for_image("horus.ico"), wx.BITMAP_TYPE_ICO))
 
         self.Bind(wx.EVT_CLOSE, self.on_close)
+
+    def __del__(self):
+        logger.info("Finish application " + __title__)
 
     def load_workbenches(self):
         self.toolbar = ToolbarConnection(self, self.on_connect, self.on_disconnect)

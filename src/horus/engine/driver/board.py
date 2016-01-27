@@ -11,6 +11,9 @@ import serial
 import threading
 import platform
 
+import logging
+logger = logging.getLogger(__name__)
+
 system = platform.system()
 
 
@@ -62,7 +65,7 @@ class Board(object):
 
     def connect(self):
         """Open serial port and perform handshake"""
-        print ">>> Connecting board {0} {1}".format(self.serial_name, self.baud_rate)
+        logger.info("Connecting board {0} {1}".format(self.serial_name, self.baud_rate))
         self._is_connected = False
         try:
             self._serial_port = serial.Serial(self.serial_name, self.baud_rate, timeout=2)
@@ -74,20 +77,20 @@ class Board(object):
                     self.motor_absolute(0)
                     self._serial_port.timeout = 0.05
                     self._is_connected = True
-                    print ">>> Done"
+                    logger.info(" Done")
                 else:
                     raise WrongFirmware()
             else:
                 raise BoardNotConnected()
         except:
-            print "Error opening the port {0}\n".format(self.serial_name)
+            logger.error("Error opening the port {0}\n".format(self.serial_name))
             self._serial_port = None
             raise BoardNotConnected()
 
     def disconnect(self):
         """Close serial port"""
         if self._is_connected:
-            print ">>> Disconnecting board {0}".format(self.serial_name)
+            logger.info("Disconnecting board {0}".format(self.serial_name))
             try:
                 if self._serial_port is not None:
                     self.lasers_off()
@@ -95,10 +98,9 @@ class Board(object):
                     self._serial_port.close()
                     del self._serial_port
             except serial.SerialException:
-                print "Error closing the port {0}\n".format(self.serial_name)
-                print ">>> Error"
+                logger.error("Error closing the port {0}\n".format(self.serial_name))
             self._is_connected = False
-            print ">>> Done"
+            logger.info(" Done")
 
     def set_unplug_callback(self, value):
         self.unplug_callback = value

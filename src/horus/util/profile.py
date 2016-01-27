@@ -14,11 +14,8 @@ import collections
 import json
 import types
 import numpy as np
-
-if sys.version_info[0] < 3:
-    import ConfigParser
-else:
-    import configparser as ConfigParser
+import logging
+logger = logging.getLogger(__name__)
 
 from horus.util import resources, system
 
@@ -616,13 +613,13 @@ class Setting(object):
         if self.min_value is not None and value < self.min_value:
             # raise ValueError('Error when setting %s.\n%s is below min value %s.' %
             # (self._id, value, self.min_value))
-            print 'Warning: For setting %s, %s is below min value %s.' % \
-                (self._id, value, self.min_value)
+            logger.warning('Warning: For setting %s, %s is below min value %s.' % (self._id, value,
+                           self.min_value))
         if self.max_value is not None and value > self.max_value:
             # raise ValueError('Error when setting %s.\n%s is above max value %s.' %
             # (self._id, value, self.max_value))
-            print 'Warning: For setting %s.\n%s is above max value %s.' % \
-                (self._id, value, self.max_value)
+            logger.warning('Warning: For setting %s.\n%s is above max value %s.' % (self._id, value,
+                           self.max_value))
 
     def _check_possible_values(self, value):
         if self._possible_values is not None and value not in self._possible_values:
@@ -688,7 +685,7 @@ def get_base_path():
         try:
             os.makedirs(basePath)
         except:
-            print "Failed to create directory: %s" % (basePath)
+            logger.error("Failed to create directory: %s" % (basePath))
     return basePath
 
 

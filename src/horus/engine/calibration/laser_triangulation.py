@@ -13,6 +13,9 @@ from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class LaserTriangulationError(Exception):
 
@@ -123,8 +126,6 @@ def compute_plane(index, X):
 
                 X = X[:, final_points]
 
-                # print normal, distance, std, len(final_points)
-
                 if std < 0.05 or std > 1.0 or \
                    len(final_points) < 1000 or \
                    size == len(final_points):
@@ -133,12 +134,12 @@ def compute_plane(index, X):
 
                 size = len(final_points)
 
-            print ">>> Laser calibration " + str(index)
-            print ">>> - Distance: " + str(distance)
-            print ">>> - Normal: " + str(normal)
-            print ">>> - Standard deviation: " + str(std)
-            print ">>> - Iterations: " + str(trials)
-            print ">>> - Point cloud size: " + str(size)
+            logger.info("Laser calibration " + str(index))
+            logger.info(" Distance: " + str(distance))
+            logger.info(" Normal: " + str(normal))
+            logger.info(" Standard deviation: " + str(std))
+            logger.info(" Iterations: " + str(trials))
+            logger.info(" Point cloud size: " + str(size))
 
             save_point_cloud('PC' + str(index) + '-final.ply', np.array(np.matrix(X).T))
 

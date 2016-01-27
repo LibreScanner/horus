@@ -13,6 +13,9 @@ from horus.gui.engine import driver
 from horus.util import profile, resources
 from horus.util.avrHelpers import AvrDude
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class PreferencesDialog(wx.Dialog):
 
@@ -196,7 +199,7 @@ class PreferencesDialog(wx.Dialog):
 
     def load_firmware(self, hex_baud_rate, clear_eeprom):
         avr_dude = AvrDude(port=profile.settings['serial_name'], baud_rate=hex_baud_rate)
-        print ">>> Flashing firmware: "
+        logger.info("Uploading firmware: ")
         if clear_eeprom:
             avr_dude.flash(clear_eeprom=True)
             time.sleep(3)  # Clear EEPROM
