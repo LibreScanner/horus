@@ -205,13 +205,10 @@ class ImageCapture(object):
         if self.use_distortion:
             if self.calibration_data.camera_matrix is not None and \
                self.calibration_data.distortion_vector is not None and \
-               self.calibration_data.dist_camera_matrix is not None and \
-               self.calibration_data.roi is not None:
+               self.calibration_data.dist_camera_matrix is not None:
                 image = cv2.undistort(image,
                                       self.calibration_data.camera_matrix,
                                       self.calibration_data.distortion_vector,
                                       None,
                                       self.calibration_data.dist_camera_matrix)
-                x, y, w, h = self.calibration_data.roi
-                image = image[y:y + h + 1, x:x + w + 1]
         return image

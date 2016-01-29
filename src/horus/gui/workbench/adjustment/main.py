@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
-from horus.gui.engine import driver, pattern
+from horus.gui.engine import driver, pattern, calibration_data, image_capture
 from horus.gui.util.video_view import VideoView
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.adjustment.current_video import CurrentVideo
@@ -54,5 +54,9 @@ class AdjustmentWorkbench(Workbench):
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']
         pattern.distance = profile.settings['pattern_origin_distance']
+        image_capture.set_use_distortion(profile.settings['use_distortion'])
+        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
+        calibration_data.camera_matrix = profile.settings['camera_matrix']
+        calibration_data.distortion_vector = profile.settings['distortion_vector']
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)

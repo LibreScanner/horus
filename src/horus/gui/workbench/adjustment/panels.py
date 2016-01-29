@@ -94,7 +94,6 @@ class ScanCapturePanel(ExpandablePanel):
         laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
         laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
-        image_capture.set_use_distortion(profile.settings['use_distortion'])
 
     def _set_camera_mode(self, mode):
         self._set_mode_layout(mode)
@@ -248,7 +247,6 @@ class CalibrationCapturePanel(ExpandablePanel):
         laser_mode.set_contrast(profile.settings['contrast_laser_calibration'])
         laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
-        image_capture.set_use_distortion(profile.settings['use_distortion'])
 
     def _set_camera_mode(self, mode):
         self._set_mode_layout(mode)
