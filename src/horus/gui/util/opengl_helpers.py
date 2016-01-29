@@ -19,6 +19,9 @@ from OpenGL.GLU import *
 from OpenGL.GL import *
 from OpenGL.GL import shaders
 
+import logging
+logger = logging.getLogger(__name__)
+
 from sys import platform as _platform
 if _platform != 'darwin':
     glutInit()  # Hack; required before glut can be called. Not required for all OS.
@@ -71,7 +74,7 @@ class GLShader(GLReferenceCounter):
             glDeleteShader(vertex_shader)
             glDeleteShader(fragment_shader)
         except RuntimeError, e:
-            print str(e)
+            logger.error(str(e))
             self._program = None
 
     def bind(self):
@@ -95,7 +98,7 @@ class GLShader(GLReferenceCounter):
                     glGetUniformLocation(self._program, name), 1, False,
                     value.getA().astype(numpy.float32))
             else:
-                print 'Unknown type for setUniform: %s' % (str(type(value)))
+                logger.warning('Unknown type for setUniform: %s' % (str(type(value))))
 
     def is_valid(self):
         return self._program is not None
@@ -108,7 +111,7 @@ class GLShader(GLReferenceCounter):
 
     def __del__(self):
         if self._program is not None and bool(glDeleteProgram):
-            print "Shader was not properly released!"
+            logger.warning("Shader was not properly released!")
 
 
 class GLFakeShader(GLReferenceCounter):
@@ -284,7 +287,7 @@ class GLVBO(GLReferenceCounter):
 
     def __del__(self):
         if self._buffer is not None and bool(glDeleteBuffers):
-            print "VBO was not properly released!"
+            logger.warning("VBO was not properly released!")
 
 
 def unproject(winx, winy, winz, model_matrix, proj_matrix, viewport):

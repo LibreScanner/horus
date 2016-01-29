@@ -7,6 +7,7 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 
+# Check dependencies
 try:
     import os
     import wx
@@ -17,7 +18,7 @@ try:
     import scipy
     import matplotlib
 except ImportError as e:
-    print e.message
+    print(e.message)
     exit(1)
 
 try:
@@ -34,10 +35,9 @@ if not os.path.exists(resdir):
 
 resources.set_base_path(resdir)
 
-from horus.gui import app
-
 
 def main():
+    from horus.gui import app
     app.HorusApp().MainLoop()
 
 if __name__ == '__main__':

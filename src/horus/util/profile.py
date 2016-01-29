@@ -14,11 +14,8 @@ import collections
 import json
 import types
 import numpy as np
-
-if sys.version_info[0] < 3:
-    import ConfigParser
-else:
-    import configparser as ConfigParser
+import logging
+logger = logging.getLogger(__name__)
 
 from horus.util import resources, system
 
@@ -424,6 +421,16 @@ class Settings(collections.MutableMapping):
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
 
         self._add_setting(
+            Setting('estimated_size', _('Estimated size'), 'calibration_settings',
+                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([-5.0, 9.0, 320.0]))))
+
+        self._add_setting(
+            Setting('laser_triangulation_hash', _(''), 'calibration_settings', unicode, u''))
+
+        self._add_setting(
+            Setting('platform_extrinsics_hash', _(''), 'calibration_settings', unicode, u''))
+
+        self._add_setting(
             Setting('current_panel_calibration', u'pattern_settings', 'profile_settings',
                     unicode, u'pattern_settings',
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
@@ -473,12 +480,12 @@ class Settings(collections.MutableMapping):
         # -- Preferences
 
         self._add_setting(
-            Setting('serial_name', _('Serial Name'), 'preferences', unicode, u'/dev/ttyUSB0'))
+            Setting('serial_name', _('Serial Name'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('baud_rate', _('Baud rate'), 'preferences', int, 115200,
                     possible_values=(9600, 14400, 19200, 38400, 57600, 115200)))
         self._add_setting(
-            Setting('camera_id', _('Camera Id'), 'preferences', unicode, u'/dev/video0'))
+            Setting('camera_id', _('Camera Id'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('board', _('Board'), 'preferences', unicode, u'BT ATmega328',
                     possible_values=(u'Arduino Uno', u'BT ATmega328')))
@@ -606,13 +613,13 @@ class Setting(object):
         if self.min_value is not None and value < self.min_value:
             # raise ValueError('Error when setting %s.\n%s is below min value %s.' %
             # (self._id, value, self.min_value))
-            print 'Warning: For setting %s, %s is below min value %s.' % \
-                (self._id, value, self.min_value)
+            logger.warning('Warning: For setting %s, %s is below min value %s.' % (self._id, value,
+                           self.min_value))
         if self.max_value is not None and value > self.max_value:
             # raise ValueError('Error when setting %s.\n%s is above max value %s.' %
             # (self._id, value, self.max_value))
-            print 'Warning: For setting %s.\n%s is above max value %s.' % \
-                (self._id, value, self.max_value)
+            logger.warning('Warning: For setting %s.\n%s is above max value %s.' % (self._id, value,
+                           self.max_value))
 
     def _check_possible_values(self, value):
         if self._possible_values is not None and value not in self._possible_values:
@@ -622,8 +629,10 @@ class Setting(object):
     def _load_json_dict(self, json_dict):
         # Only load configurable fields (__value, __min_value, __max_value)
         self.value = json_dict['value']
-        self.min_value = json_dict['min_value']
-        self.max_value = json_dict['max_value']
+        if 'min_value' in json_dict:
+            self.min_value = json_dict['min_value']
+        if 'max_value' in json_dict:
+            self.max_value = json_dict['max_value']
 
     def _to_json_dict(self):
         # Convert only configurable fields
@@ -639,8 +648,11 @@ class Setting(object):
         else:
             json_dict['value'] = value
 
-        json_dict['min_value'] = self.min_value
-        json_dict['max_value'] = self.max_value
+        if self.min_value is not None:
+            json_dict['min_value'] = self.min_value
+
+        if self.max_value is not None:
+            json_dict['max_value'] = self.max_value
         return json_dict
 
 
@@ -673,7 +685,7 @@ def get_base_path():
         try:
             os.makedirs(basePath)
         except:
-            print "Failed to create directory: %s" % (basePath)
+            logger.error("Failed to create directory: %s" % (basePath))
     return basePath
 
 

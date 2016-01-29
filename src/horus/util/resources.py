@@ -25,16 +25,16 @@ def get_path_for_resource(directory, resource_name):
     return path
 
 
-def get_path_for_version(name='version'):
-    return get_path_for_resource('.', name)
-
-
 def get_path_for_image(name):
     return get_path_for_resource('images', name)
 
 
 def get_path_for_firmware(name):
     return get_path_for_resource('firmware', name)
+
+
+def get_path_for_logger(name):
+    return get_path_for_resource('logger', name)
 
 
 def get_path_for_tools(name):

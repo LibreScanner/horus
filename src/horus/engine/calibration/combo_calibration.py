@@ -12,6 +12,9 @@ from horus.engine.calibration.calibration import CalibrationCancel
 from horus.engine.calibration.moving_calibration import MovingCalibration
 from horus.engine.calibration import laser_triangulation, platform_extrinsics
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class ComboCalibrationError(Exception):
 
@@ -75,6 +78,15 @@ class ComboCalibration(MovingCalibration):
         self.has_image = False
         self.image_capture.stream = True
 
+        # Laser triangulation
+        # Save point clouds
+        for i in xrange(2):
+            laser_triangulation.save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
+        # TODO: use arrays
+        # Compute planes
+        self.dL, self.nL, stdL = laser_triangulation.compute_plane(0, self._point_cloud[0])
+        self.dR, self.nR, stdR = laser_triangulation.compute_plane(1, self._point_cloud[1])
+
         # Platform extrinsics
         self.t = None
         self.x = np.array(self.x)
@@ -92,23 +104,12 @@ class ComboCalibration(MovingCalibration):
             # Get real origin
             self.t = center - self.pattern.origin_distance * np.array(normal)
 
-            print ">>> Platform calibration "
-            print ">>> - Translation: " + str(self.t)
-            print ">>> - Rotation: "
-            print str(self.R)
-            print ">>> - Normal: " + str(normal)
-
-        # Laser triangulation
-        # Save point clouds
-        for i in xrange(2):
-            laser_triangulation.save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
-        # TODO: use arrays
-        # Compute planes
-        self.dL, self.nL, stdL = laser_triangulation.compute_plane(0, self._point_cloud[0])
-        self.dR, self.nR, stdR = laser_triangulation.compute_plane(1, self._point_cloud[1])
+            logger.info("Platform calibration ")
+            logger.info(" Translation: " + str(self.t))
+            logger.info(" Rotation: " + str(self.R).replace('\n', ''))
+            logger.info(" Normal: " + str(normal))
 
         # Return response
-
         result = True
         if self._is_calibrating:
             if self.t is not None and \

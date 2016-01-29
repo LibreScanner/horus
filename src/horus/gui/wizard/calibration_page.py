@@ -9,7 +9,8 @@ import wx._core
 
 from horus.util import profile, resources
 
-from horus.gui.engine import driver, image_capture, image_detection, combo_calibration
+from horus.gui.engine import driver, calibration_data, image_capture, \
+    image_detection, combo_calibration
 from horus.gui.util.image_view import ImageView
 from horus.gui.util.pattern_distance_window import PatternDistanceWindow
 from horus.gui.wizard.wizard_page import WizardPage
@@ -138,6 +139,9 @@ class CalibrationPage(WizardPage):
 
             profile.settings['rotation_matrix'] = response_platform_extrinsics[0]
             profile.settings['translation_vector'] = response_platform_extrinsics[1]
+
+            profile.settings['laser_triangulation_hash'] = calibration_data.md5_hash()
+            profile.settings['platform_extrinsics_hash'] = calibration_data.md5_hash()
 
             combo_calibration.accept()
         else:

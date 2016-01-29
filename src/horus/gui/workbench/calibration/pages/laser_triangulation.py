@@ -10,7 +10,7 @@ import numpy as np
 
 from horus.util import profile
 
-from horus.gui.engine import laser_triangulation
+from horus.gui.engine import calibration_data, laser_triangulation
 from horus.engine.calibration.laser_triangulation import LaserTriangulationError
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -132,6 +132,7 @@ class ResultPage(Page):
         profile.settings['normal_left'] = nL
         profile.settings['distance_right'] = dR
         profile.settings['normal_right'] = nR
+        profile.settings['laser_triangulation_hash'] = calibration_data.md5_hash()
         if self.exit_callback is not None:
             self.exit_callback()
 

@@ -8,6 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import time
 import Queue
 import numpy as np
+import datetime
 
 from horus import Singleton
 from horus.engine.scan.scan import Scan
@@ -15,11 +16,16 @@ from horus.engine.scan.scan_capture import ScanCapture
 from horus.engine.scan.current_video import CurrentVideo
 from horus.engine.calibration.calibration_data import CalibrationData
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class ScanError(Exception):
 
     def __init__(self):
         Exception.__init__(self, "ScanError")
+
+string_time = ""
 
 
 @Singleton
@@ -69,11 +75,22 @@ class CiclopScan(Scan):
         self.motor_acceleration = value
 
     def _initialize(self):
+        global string_time
         self.image = None
         self.image_capture.stream = False
         self._theta = 0
         self._captures_queue.queue.clear()
         self._point_cloud_queue.queue.clear()
+        self._begin = time.time()
+
+        # Setup console
+        logger.info("Start scan")
+        string_time = str(datetime.datetime.now())[:-3] + " - "
+        print string_time + " elapsed progress: 0 %"
+        print string_time + " elapsed time: 0' 0\""
+        print string_time + " elapsed angle: 0º"
+        print string_time + " capture: 0 ms"
+        print string_time + " process: 0 ms"
 
         # Setup scanner
         self.driver.board.lasers_off()
@@ -87,6 +104,7 @@ class CiclopScan(Scan):
             self.driver.board.motor_disable()
 
     def _capture(self):
+        global string_time
         while self.is_scanning:
             if self._inactive:
                 self.image_capture.stream = True
@@ -113,7 +131,19 @@ class CiclopScan(Scan):
                         self._range = abs(360.0 / self.motor_step)
                     # Put images into queue
                     self._captures_queue.put(capture)
-                    print "Capture: {0} ms".format(int((time.time() - begin) * 1000))
+
+                    # Print info
+                    end = time.time()
+                    string_time = str(datetime.datetime.now())[:-3] + " - "
+
+                    # Cursor up + remove lines
+                    print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
+                    print string_time + " elapsed progress: {0} %".format(
+                        int(100 * self._progress / self._range))
+                    print string_time + " elapsed time: {0}".format(
+                        time.strftime("%M' %S\"", time.gmtime(end - self._begin)))
+                    print string_time + " elapsed angle: {0}º".format(int(np.rad2deg(self._theta)))
+                    print string_time + " capture: {0} ms".format(int((end - begin) * 1000))
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()
@@ -147,6 +177,7 @@ class CiclopScan(Scan):
         return capture
 
     def _process(self):
+        global string_time
         ret = False
         while self.is_scanning:
             if self._inactive:
@@ -189,13 +220,20 @@ class CiclopScan(Scan):
                         self.current_video.set_gray(images)
                         self.current_video.set_line(points, image)
 
-                        print "Process: {0} ms".format(int((time.time() - begin) * 1000))
+                        # Print info
+                        print string_time + " process: {0} ms".format(
+                            int((time.time() - begin) * 1000))
         if ret:
             response = (True, None)
         else:
             response = (False, ScanError)
 
+        # Cursor down
+        print "\x1b[1C"
+
         self.image_capture.stream = True
+
+        logger.info("Finish scan")
 
         if self._after_callback is not None:
             self._after_callback(response)

@@ -11,6 +11,9 @@ import time
 import glob
 import platform
 
+import logging
+logger = logging.getLogger(__name__)
+
 system = platform.system()
 
 if system == 'Darwin':
@@ -79,7 +82,7 @@ class Camera(object):
         self._height = 0
 
     def connect(self):
-        print ">>> Connecting camera {0}".format(self.camera_id)
+        logger.info("Connecting camera {0}".format(self.camera_id))
         self._is_connected = False
         self.initialize()
         if system == 'Darwin':
@@ -97,14 +100,14 @@ class Camera(object):
             self._is_connected = True
             self._check_video()
             self._check_camera()
-            print ">>> Done"
+            logger.info(" Done")
         else:
             raise CameraNotConnected()
 
     def disconnect(self):
         tries = 0
         if self._is_connected:
-            print ">>> Disconnecting camera {0}".format(self.camera_id)
+            logger.info("Disconnecting camera {0}".format(self.camera_id))
             if self._capture is not None:
                 if self._capture.isOpened():
                     self._is_connected = False
@@ -112,7 +115,7 @@ class Camera(object):
                         tries += 1
                         if not self._reading:
                             self._capture.release()
-                print ">>> Done"
+                logger.info(" Done")
 
     def set_unplug_callback(self, value):
         self.unplug_callback = value

@@ -10,7 +10,7 @@ import numpy as np
 
 from horus.util import profile
 
-from horus.gui.engine import pattern, platform_extrinsics
+from horus.gui.engine import pattern, calibration_data, platform_extrinsics
 from horus.gui.util.pattern_distance_window import PatternDistanceWindow
 from horus.engine.calibration.platform_extrinsics import PlatformExtrinsicsError
 
@@ -134,6 +134,7 @@ class ResultPage(Page):
         R, t = self.result
         profile.settings['rotation_matrix'] = R
         profile.settings['translation_vector'] = t
+        profile.settings['platform_extrinsics_hash'] = calibration_data.md5_hash()
         if self.exit_callback is not None:
             self.exit_callback()
 

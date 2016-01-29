@@ -22,6 +22,9 @@ import numpy as np
 from horus import __version__
 from horus.util import model
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def _load_ascii(mesh, stream, dtype, count):
     fields = dtype.fields
@@ -119,7 +122,7 @@ def load_scene(filename):
             return obj
 
         else:
-            print "Error: incorrect file format."
+            logger.error("Error: incorrect file format.")
             return None
 
 

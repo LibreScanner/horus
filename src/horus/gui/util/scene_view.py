@@ -264,26 +264,6 @@ class SceneView(opengl_gui.glGuiPanel):
             self._pitch = 90
             self.queue_refresh()
 
-        if key_code == wx.WXK_F3 and wx.GetKeyState(wx.WXK_SHIFT):
-            ShaderEditor(self, self.shader_update, self._object_load_shader.get_vertex_shader(
-            ), self._object_load_shader.getFragmentShader())
-        if key_code == wx.WXK_F4 and wx.GetKeyState(wx.WXK_SHIFT):
-            from collections import defaultdict
-            from gc import get_objects
-            self._before_leak_test = defaultdict(int)
-            for i in get_objects():
-                self._before_leak_test[type(i)] += 1
-        if key_code == wx.WXK_F5 and wx.GetKeyState(wx.WXK_SHIFT):
-            from collections import defaultdict
-            from gc import get_objects
-            self._after_leak_test = defaultdict(int)
-            for i in get_objects():
-                self._after_leak_test[type(i)] += 1
-            for k in self._after_leak_test:
-                if self._after_leak_test[k] - self._before_leak_test[k]:
-                    print k, self._after_leak_test[k], self._before_leak_test[k],
-                    self._after_leak_test[k] - self._before_leak_test[k]
-
         if key_code == wx.WXK_CONTROL:
             self._move_vertical = True
 
