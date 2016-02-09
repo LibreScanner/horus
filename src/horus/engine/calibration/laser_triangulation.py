@@ -77,7 +77,7 @@ class LaserTriangulation(MovingCalibration):
         self.dR, self.nR, stdR = compute_plane(1, self._point_cloud[1])
 
         if self._is_calibrating and \
-           stdL < 0.1 and stdR < 0.1 and \
+           stdL < 5.0 and stdR < 5.0 and \
            self.nL is not None and self.nR is not None:
             response = (True, ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR)))
         else:
@@ -126,7 +126,7 @@ def compute_plane(index, X):
 
                 X = X[:, final_points]
 
-                if std < 0.05 or std > 1.0 or \
+                if std < 0.05 or std > 20.0 or \
                    len(final_points) < 1000 or \
                    size == len(final_points):
                     size = len(final_points)

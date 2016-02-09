@@ -90,6 +90,7 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)
 
+        driver.board.lasers_off()
         resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
@@ -103,6 +104,7 @@ class ScanningWorkbench(Workbench):
         image_capture.laser_mode.saturation = profile.settings['saturation_laser_scanning']
         image_capture.laser_mode.exposure = profile.settings['exposure_laser_scanning']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
+        image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         laser_segmentation.red_channel = profile.settings['red_channel_scanning']
         laser_segmentation.open_enable = profile.settings['open_enable_scanning']
         laser_segmentation.open_value = profile.settings['open_value_scanning']

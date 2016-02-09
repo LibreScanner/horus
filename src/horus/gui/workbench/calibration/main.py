@@ -90,6 +90,7 @@ class CalibrationWorkbench(Workbench):
             pass
 
     def setup_engine(self):
+        driver.board.lasers_off()
         resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
@@ -104,6 +105,7 @@ class CalibrationWorkbench(Workbench):
         image_capture.laser_mode.saturation = profile.settings['saturation_laser_calibration']
         image_capture.laser_mode.exposure = profile.settings['exposure_laser_calibration']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
+        image_capture.set_remove_background(profile.settings['remove_background_calibration'])
         laser_segmentation.red_channel = profile.settings['red_channel_calibration']
         laser_segmentation.open_enable = profile.settings['open_enable_calibration']
         laser_segmentation.open_value = profile.settings['open_value_calibration']

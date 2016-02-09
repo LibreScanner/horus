@@ -84,7 +84,7 @@ class PlatformExtrinsics(MovingCalibration):
             self.t = center - self.pattern.origin_distance * np.array(normal)
 
         if self._is_calibrating and self.t is not None and \
-           np.linalg.norm(self.t - estimated_t) < 1000:
+           np.linalg.norm(self.t - estimated_t) < 300:
             response = (True, (self.R, self.t, center, point, normal,
                         [self.x, self.y, self.z], circle))
 

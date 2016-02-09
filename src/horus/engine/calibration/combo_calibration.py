@@ -120,7 +120,7 @@ class ComboCalibration(MovingCalibration):
                 result = False
                 response = (False, ComboCalibrationError)
 
-            if stdL < 0.1 and stdR < 0.1 and \
+            if stdL < 5.0 and stdR < 5.0 and \
                self.nL is not None and self.nR is not None:
                 response_laser_triangulation = ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR))
             else:

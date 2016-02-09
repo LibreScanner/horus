@@ -50,6 +50,7 @@ class CiclopScan(Scan):
         self.color = (0, 0, 0)
 
         self._theta = 0
+        self._debug = False
         self._captures_queue = Queue.Queue(100)
         self._point_cloud_queue = Queue.Queue(1000)
 
@@ -73,6 +74,9 @@ class CiclopScan(Scan):
 
     def set_motor_acceleration(self, value):
         self.motor_acceleration = value
+
+    def set_debug(self, value):
+        self._debug = value
 
     def _initialize(self):
         global string_time
@@ -156,11 +160,11 @@ class CiclopScan(Scan):
             capture.texture = self.image_capture.capture_texture()
         else:
             r, g, b = self.color
-            ones = np.ones((self.calibration_data.height,
-                            self.calibration_data.width, 3), np.uint8)
-            ones[:, :, 0] *= r
-            ones[:, :, 1] *= g
-            ones[:, :, 2] *= b
+            ones = np.zeros((self.calibration_data.height,
+                             self.calibration_data.width, 3), np.uint8)
+            ones[:, :, 0] = r
+            ones[:, :, 1] = g
+            ones[:, :, 2] = b
             capture.texture = ones
 
         if self.laser[0] and self.laser[1]:
@@ -213,7 +217,19 @@ class CiclopScan(Scan):
                                     capture.theta, points_2d, i)
                                 # Compute point cloud texture
                                 u, v = points_2d
-                                texture = capture.texture[v, u.astype(int)].T
+
+                                if self._debug:
+                                    if i == 0:
+                                        r, g, b = 255, 0, 0
+                                    else:
+                                        r, g, b = 0, 255, 0
+                                    texture = np.zeros((3, len(v)), np.uint8)
+                                    texture[0, :] = r
+                                    texture[1, :] = g
+                                    texture[2, :] = b
+                                else:
+                                    texture = capture.texture[v, u.astype(int)].T
+
                                 self._point_cloud_queue.put((point_cloud, texture))
 
                         # Set current video images

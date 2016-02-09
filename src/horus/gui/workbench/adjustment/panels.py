@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
-from horus.gui.engine import image_capture, laser_segmentation
+from horus.gui.engine import driver, image_capture, laser_segmentation
 
 from horus.gui.workbench.adjustment.current_video import CurrentVideo
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, ComboBox, CheckBox
@@ -233,6 +233,7 @@ class CalibrationCapturePanel(ExpandablePanel):
         self.update_callback('remove_background_calibration', image_capture.set_remove_background)
 
     def on_selected(self):
+        driver.board.lasers_off()
         current_video.mode = profile.settings['capture_mode_calibration']
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_capture'
