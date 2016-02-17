@@ -188,7 +188,7 @@ class GcodeSection(ControlPanel):
         # Elements
         self.request = wx.TextCtrl(self)
         self.control = wx.Button(self, label=self.setting._label, size=(-1, -1))
-        self.response = wx.TextCtrl(self, size=(-1, 250), style=wx.TE_MULTILINE)
+        self.response = wx.TextCtrl(self, size=(-1, 300), style=wx.TE_MULTILINE)
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)

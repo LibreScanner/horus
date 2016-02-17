@@ -15,6 +15,11 @@ from horus.gui.util.custom_panels import ExpandablePanel, Slider, ComboBox, Chec
 current_video = CurrentVideo()
 
 
+def flush_video():
+        current_video.capture()
+        current_video.capture()
+
+
 class ScanCapturePanel(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
@@ -94,11 +99,14 @@ class ScanCapturePanel(ExpandablePanel):
         laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
         laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
+        flush_video()
 
     def _set_camera_mode(self, mode):
         self._set_mode_layout(mode)
         current_video.mode = mode
         profile.settings['current_video_mode_adjustment'] = current_video.mode
+        if mode == 'Texture':
+            flush_video()
 
     def _set_mode_layout(self, mode):
         if mode == 'Laser':
@@ -248,11 +256,14 @@ class CalibrationCapturePanel(ExpandablePanel):
         laser_mode.set_contrast(profile.settings['contrast_laser_calibration'])
         laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
+        flush_video()
 
     def _set_camera_mode(self, mode):
         self._set_mode_layout(mode)
         current_video.mode = mode
         profile.settings['current_video_mode_adjustment'] = current_video.mode
+        if mode == 'Pattern':
+            flush_video()
 
     def _set_mode_layout(self, mode):
         if mode == 'Laser':

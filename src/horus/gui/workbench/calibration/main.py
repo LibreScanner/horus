@@ -72,6 +72,8 @@ class CalibrationWorkbench(Workbench):
             self.pages_collection['laser_triangulation_pages'].Enable()
             self.pages_collection['platform_extrinsics_pages'].Enable()
         else:
+            for page in self.pages_collection:
+                self.pages_collection[page].stop()
             self.pages_collection['camera_intrinsics_pages'].Disable()
             self.pages_collection['scanner_autocheck_pages'].Disable()
             self.pages_collection['laser_triangulation_pages'].Disable()
@@ -81,13 +83,14 @@ class CalibrationWorkbench(Workbench):
 
     def on_close(self):
         try:
-            self.pages_collection['video_view'].stop()
-            self.pages_collection['camera_intrinsics_pages'].capture_page.on_show(False)
-            self.pages_collection['scanner_autocheck_pages'].video_page.on_show(False)
-            self.pages_collection['laser_triangulation_pages'].video_page.on_show(False)
-            self.pages_collection['platform_extrinsics_pages'].video_page.on_show(False)
+            for page in self.pages_collection:
+                self.pages_collection[page].stop()
         except:
             pass
+
+    def reset(self):
+        for page in self.pages_collection:
+            self.pages_collection[page].reset()
 
     def setup_engine(self):
         driver.board.lasers_off()
@@ -122,7 +125,6 @@ class CalibrationWorkbench(Workbench):
     def on_pattern_settings_selected(self):
         profile.settings['current_panel_calibration'] = 'pattern_settings'
         self._on_panel_selected(self.pages_collection['video_view'])
-        self.pages_collection['video_view'].play()
 
     def on_camera_intrinsics_selected(self):
         profile.settings['current_panel_calibration'] = 'camera_intrinsics'
@@ -150,11 +152,10 @@ class CalibrationWorkbench(Workbench):
         self.scroll_panel.Enable()
 
     def _on_panel_selected(self, panel):
-        self.pages_collection['video_view'].Hide()
-        self.pages_collection['video_view'].stop()
-        self.pages_collection['camera_intrinsics_pages'].Hide()
-        self.pages_collection['scanner_autocheck_pages'].Hide()
-        self.pages_collection['laser_triangulation_pages'].Hide()
-        self.pages_collection['platform_extrinsics_pages'].Hide()
+        for page in self.pages_collection:
+            self.pages_collection[page].Hide()
+            self.pages_collection[page].stop()
         panel.Show()
+        if driver.is_connected:
+            panel.play()
         self.Layout()

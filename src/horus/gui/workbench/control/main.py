@@ -44,6 +44,9 @@ class ControlWorkbench(Workbench):
         except:
             pass
 
+    def reset(self):
+        self.pages_collection['video_view'].reset()
+
     def setup_engine(self):
         resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))

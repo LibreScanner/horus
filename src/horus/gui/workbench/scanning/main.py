@@ -86,6 +86,9 @@ class ScanningWorkbench(Workbench):
         except:
             pass
 
+    def reset(self):
+        self.video_view.reset()
+
     def setup_engine(self):
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.stop_tool, False)
@@ -265,6 +268,10 @@ class ScanningWorkbench(Workbench):
                 ciclop_scan.resume()
 
     def on_scan_finished(self):
+        # Flush video
+        image_capture.capture_texture()
+        image_capture.capture_texture()
+        image_capture.capture_texture()
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)

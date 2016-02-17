@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.gui.engine import scanner_autocheck
+from horus.gui.engine import scanner_autocheck, image_capture
 from horus.engine.calibration.autocheck import PatternNotDetected, WrongMotorDirection, \
     LaserNotDetected
 
@@ -32,20 +32,20 @@ class ScannerAutocheckPages(wx.Panel):
         hbox.Add(self.video_page, 1, wx.ALL | wx.EXPAND, 0)
         self.SetSizer(hbox)
 
-        # Events
-        self.Bind(wx.EVT_SHOW, self.on_show)
-
         self._initialize()
         self.Layout()
 
-    def on_show(self, event):
-        try:
-            self.video_page.on_show(event.GetShow())
-        except:
-            pass
-
     def _initialize(self):
         self.video_page.initialize()
+
+    def play(self):
+        self.video_page.play()
+
+    def stop(self):
+        self.video_page.stop()
+
+    def reset(self):
+        self.video_page.reset()
 
     def before_calibration(self):
         if self.start_callback is not None:
@@ -59,6 +59,10 @@ class ScannerAutocheckPages(wx.Panel):
 
     def after_calibration(self, response):
         ret, result = response
+
+        # Flush video
+        image_capture.capture_pattern()
+        image_capture.capture_pattern()
 
         if ret:
             dlg = wx.MessageDialog(

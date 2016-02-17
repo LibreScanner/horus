@@ -37,7 +37,7 @@ class CapturePage(Page):
         self.image_grid_panel = wx.Panel(self.panel)
         self.grid_sizer = wx.GridSizer(self.rows, self.columns, 3, 3)
         for panel in xrange(self.rows * self.columns):
-            self.panel_grid.append(ImageView(self.image_grid_panel, black=True))
+            self.panel_grid.append(ImageView(self.image_grid_panel))
             self.panel_grid[panel].Bind(wx.EVT_KEY_DOWN, self.on_key_press)
             self.grid_sizer.Add(self.panel_grid[panel], 0, wx.ALL | wx.EXPAND)
         self.image_grid_panel.SetSizer(self.grid_sizer)
@@ -63,19 +63,19 @@ class CapturePage(Page):
             self.panel_grid[panel].SetBackgroundColour((221, 221, 221))
             self.panel_grid[panel].set_image(wx.Image(resources.get_path_for_image("void.png")))
 
-    def on_show(self, status):
-        if status:
-            self.gauge.SetValue(0)
-            self.video_view.play()
-            self.image_grid_panel.SetFocus()
-            self.GetParent().Layout()
-            self.Layout()
-        else:
-            try:
-                self.initialize()
-                self.video_view.stop()
-            except:
-                pass
+    def play(self):
+        self.gauge.SetValue(0)
+        self.video_view.play()
+        self.image_grid_panel.SetFocus()
+        self.GetParent().Layout()
+        self.Layout()
+
+    def stop(self):
+        self.initialize()
+        self.video_view.stop()
+
+    def reset(self):
+        self.video_view.reset()
 
     def get_image(self):
         image = image_capture.capture_pattern()
@@ -84,7 +84,7 @@ class CapturePage(Page):
 
     def on_key_press(self, event):
         if event.GetKeyCode() == 32:  # spacebar
-            self.video_view.pause()
+            self.video_view.stop()
             image = camera_intrinsics.capture()
             if image is not None:
                 self.add_frame_to_grid(image)

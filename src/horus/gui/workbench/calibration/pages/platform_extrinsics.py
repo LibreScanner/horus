@@ -40,22 +40,22 @@ class PlatformExtrinsicsPages(wx.Panel):
         self.SetSizer(hbox)
         self.Layout()
 
-        # Events
-        self.Bind(wx.EVT_SHOW, self.on_show)
-
         self._initialize()
-
-    def on_show(self, event):
-        try:
-            self.video_page.on_show(event.GetShow())
-        except:
-            pass
 
     def _initialize(self):
         self.video_page.initialize()
         self.video_page.Show()
         self.result_page.Hide()
         self.video_page.right_button.Enable()
+
+    def play(self):
+        self.video_page.play()
+
+    def stop(self):
+        self.video_page.stop()
+
+    def reset(self):
+        self.video_page.reset()
 
     def before_calibration(self):
         if self.start_callback is not None:
@@ -115,14 +115,6 @@ class ResultPage(Page):
 
         # Layout
         self.panel_box.Add(self.plot_panel, 2, wx.ALL | wx.EXPAND, 3)
-
-        # Events
-        self.Bind(wx.EVT_SHOW, self.on_show)
-
-    def on_show(self, event):
-        if event.GetShow():
-            self.GetParent().Layout()
-            self.Layout()
 
     def on_reject(self):
         platform_extrinsics.cancel()

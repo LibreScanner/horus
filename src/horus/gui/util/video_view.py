@@ -44,19 +44,22 @@ class VideoView(ImageView):
     def play(self):
         if not self.playing:
             self.playing = True
+            # Flush video
+            if self.callback is not None:
+                self.callback()
+                self.callback()
+                frame = self.callback()
+                self.set_frame(frame)
             self._start()
 
     def _start(self):
         self.timer.Start(milliseconds=100)
 
-    def pause(self):
-        if self.playing:
-            self.playing = False
-            self.timer.Stop()
-
     def stop(self):
         if self.playing:
             self.playing = False
             self.timer.Stop()
-            self.hide = True
-            self.set_default_image()
+
+    def reset(self):
+        self.hide = True
+        self.set_default_image()

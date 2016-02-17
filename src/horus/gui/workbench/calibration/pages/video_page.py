@@ -43,17 +43,17 @@ class VideoPage(Page):
         self.gauge.SetValue(0)
         self.right_button.Enable()
 
-    def on_show(self, status):
-        if status:
-            self.video_view.play()
-            self.GetParent().Layout()
-            self.Layout()
-        else:
-            try:
-                self.initialize()
-                self.video_view.stop()
-            except:
-                pass
+    def play(self):
+        self.video_view.play()
+        self.GetParent().Layout()
+        self.Layout()
+
+    def stop(self):
+        self.initialize()
+        self.video_view.stop()
+
+    def reset(self):
+        self.video_view.reset()
 
     def get_image(self):
         if scanner_autocheck.image is not None:

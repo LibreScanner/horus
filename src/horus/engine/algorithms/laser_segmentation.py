@@ -53,7 +53,7 @@ class LaserSegmentation(object):
     def compute_hough_lines(self, image):
         if image is not None:
             image = self.compute_line_segmentation(image)
-            lines = cv2.HoughLines(image, 1, np.pi / 180, 200)
+            lines = cv2.HoughLines(image, 1, np.pi / 180, 150)
             # if lines is not None:
             #   rho, theta = lines[0][0]
             #   ## Calculate coordinates

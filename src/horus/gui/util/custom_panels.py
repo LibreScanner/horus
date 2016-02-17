@@ -408,7 +408,7 @@ class ComboBox(ControlPanel):
         self.control = wx.ComboBox(self, wx.ID_ANY,
                                    value=_(profile.settings[self.name]),
                                    choices=_choices,
-                                   size=(150, -1),
+                                   size=(130, -1),
                                    style=wx.CB_READONLY)
 
         self.control.SetValue_original = self.control.SetValue
@@ -548,7 +548,7 @@ class FloatTextBox(ControlPanel):
 
         # Elements
         label = wx.StaticText(self, size=(160, -1), label=self.setting._label)
-        self.control = FloatBox(self, size=(120, -1), style=wx.TE_RIGHT)
+        self.control = FloatBox(self, size=(100, -1), style=wx.TE_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 
         # Layout
