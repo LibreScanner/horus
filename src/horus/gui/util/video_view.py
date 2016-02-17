@@ -12,16 +12,12 @@ from horus.gui.util.image_view import ImageView
 
 class VideoView(ImageView):
 
-    def __init__(self, parent, callback=None, milliseconds=1,
-                 size=(-1, -1), black=False, _reload=False):
-        ImageView.__init__(self, parent, size=size, black=black)  # , style=wx.RAISED_BORDER)
+    def __init__(self, parent, callback=None, size=(-1, -1)):
+        ImageView.__init__(self, parent, size=size, black=True)
 
-        self.reload = _reload
         self.callback = callback
-        self.milliseconds = milliseconds
 
         self.playing = False
-
         self._tries = 0  # Check if command fails
         self._number_frames_fail = 3
 
@@ -37,8 +33,6 @@ class VideoView(ImageView):
                     self._tries += 1
                     if self._tries >= self._number_frames_fail:
                         self._tries = 0
-                        if not self.reload:
-                            self.stop()
                 else:
                     self._tries = 0
                     self.set_frame(frame)
@@ -47,16 +41,13 @@ class VideoView(ImageView):
     def set_callback(self, callback):
         self.callback = callback
 
-    def set_milliseconds(self, milliseconds):
-        self.milliseconds = milliseconds
-
     def play(self):
         if not self.playing:
             self.playing = True
             self._start()
 
     def _start(self):
-        self.timer.Start(milliseconds=self.milliseconds)
+        self.timer.Start(milliseconds=100)
 
     def pause(self):
         if self.playing:

@@ -30,7 +30,7 @@ class CapturePage(Page):
         self.right_button.Hide()
 
         # Elements
-        self.video_view = VideoView(self.panel, self.get_image, 10, black=True)
+        self.video_view = VideoView(self.panel, self.get_image)
         self.rows, self.columns = 3, 5
         self.panel_grid = []
         self.current_grid = 0

@@ -38,7 +38,7 @@ class CalibrationWorkbench(Workbench):
             'camera_intrinsics', CameraIntrinsics, self.on_camera_intrinsics_selected)
 
     def add_pages(self):
-        self.add_page('video_view', VideoView(self, self.get_image, 10, black=True))
+        self.add_page('video_view', VideoView(self, self.get_image))
         self.add_page('camera_intrinsics_pages', CameraIntrinsicsPages(
             self, start_callback=self.disable_panels, exit_callback=self.update_panels))
         self.add_page('scanner_autocheck_pages', ScannerAutocheckPages(

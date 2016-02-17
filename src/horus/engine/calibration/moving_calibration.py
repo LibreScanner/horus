@@ -69,8 +69,8 @@ class MovingCalibration(Calibration):
             self.driver.board.lasers_off()
             self.driver.board.motor_disable()
 
-        # Compute calibration
-        response = self._calibrate()
+            # Compute calibration
+            response = self._calibrate()
 
-        if self._after_callback is not None:
-            self._after_callback(response)
+            if self._after_callback is not None:
+                self._after_callback(response)

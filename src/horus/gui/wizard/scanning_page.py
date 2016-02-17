@@ -66,7 +66,6 @@ class ScanningPage(WizardPage):
         self.laser_combo_box.Bind(wx.EVT_COMBOBOX, self.on_laser_combo_box_changed)
         self.Bind(wx.EVT_SHOW, self.on_show)
 
-        self.video_view.set_milliseconds(10)
         self.video_view.set_callback(self.get_image)
 
     def on_show(self, event):

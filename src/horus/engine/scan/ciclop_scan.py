@@ -51,8 +51,8 @@ class CiclopScan(Scan):
 
         self._theta = 0
         self._debug = False
-        self._captures_queue = Queue.Queue(100)
-        self._point_cloud_queue = Queue.Queue(1000)
+        self._captures_queue = Queue.Queue(10)
+        self._point_cloud_queue = Queue.Queue(10)
 
     def set_capture_texture(self, value):
         self.capture_texture = value
@@ -110,6 +110,7 @@ class CiclopScan(Scan):
     def _capture(self):
         global string_time
         while self.is_scanning:
+            time.sleep(0.01)
             if self._inactive:
                 self.image_capture.stream = True
                 time.sleep(0.1)
@@ -184,6 +185,7 @@ class CiclopScan(Scan):
         global string_time
         ret = False
         while self.is_scanning:
+            time.sleep(0.05)
             if self._inactive:
                 self.image_detection.stream = True
                 time.sleep(0.1)

@@ -5,8 +5,9 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-from horus.gui.engine import pattern
-from horus.gui.util.custom_panels import ExpandablePanel, Slider, FloatTextBox, FloatTextBoxArray
+from horus.gui.engine import pattern, image_capture
+from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
+    FloatTextBox, FloatTextBoxArray
 
 
 class PatternSettings(ExpandablePanel):
@@ -51,6 +52,13 @@ class CameraIntrinsics(ExpandablePanel):
     def add_controls(self):
         self.add_control('camera_matrix', FloatTextBoxArray)
         self.add_control('distortion_vector', FloatTextBoxArray)
+        self.add_control(
+            'use_distortion', CheckBox,
+            _("This option applies lens distortion correction to the video. "
+              "This process slows the video feed from the camera"))
+
+    def update_callbacks(self):
+        self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
 
 
 class ScannerAutocheck(ExpandablePanel):

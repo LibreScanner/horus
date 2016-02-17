@@ -32,7 +32,7 @@ class VideoPage(Page):
         # Elements
         image_view = ImageView(self.panel, quality=wx.IMAGE_QUALITY_HIGH)
         image_view.set_image(wx.Image(resources.get_path_for_image("pattern-position.png")))
-        self.video_view = VideoView(self.panel, self.get_image, 10, black=True)
+        self.video_view = VideoView(self.panel, self.get_image)
 
         # Layout
         self.panel_box.Add(image_view, 3, wx.ALL | wx.EXPAND, 3)

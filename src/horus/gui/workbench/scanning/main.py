@@ -28,6 +28,7 @@ class ScanningWorkbench(Workbench):
         self.toolbar_scan = toolbar_scan
 
         # Elements
+        self.point_cloud_timer_millis = 50
         self.point_cloud_timer = wx.Timer(self)
         self.play_tool = self.toolbar_scan.AddLabelTool(
             wx.NewId(), _("Play"),
@@ -163,7 +164,7 @@ class ScanningWorkbench(Workbench):
             self._enable_tool_scan(self.play_tool, False)
             self._enable_tool_scan(self.pause_tool, True)
             ciclop_scan.resume()
-            self.point_cloud_timer.Start(milliseconds=50)
+            self.point_cloud_timer.Start(milliseconds=self.point_cloud_timer_millis)
         else:
             if not calibration_data.check_calibration():
                 dlg = wx.MessageDialog(self,
@@ -231,8 +232,7 @@ class ScanningWorkbench(Workbench):
         self.pages_collection['view_page'].combo_video_views.Show()
         self.scene_view.create_default_object()
         self.scene_view.set_show_delete_menu(False)
-        self.video_view.set_milliseconds(200)
-        self.point_cloud_timer.Start(milliseconds=50)
+        self.point_cloud_timer.Start(milliseconds=self.point_cloud_timer_millis)
 
     def after_scan(self, response):
         ret, result = response
@@ -272,7 +272,6 @@ class ScanningWorkbench(Workbench):
         self.GetParent().on_scanning_panel_clicked(None)
         self.pages_collection['view_page'].combo_video_views.Hide()
         self.scene_view.set_show_delete_menu(True)
-        self.video_view.set_milliseconds(10)
         self.point_cloud_timer.Stop()
         if profile.settings['current_panel_scanning'] == 'point_cloud_roi':
             self.scene_view._view_roi = profile.settings['use_roi']

@@ -9,6 +9,7 @@ import wx._core
 
 from horus.util import profile, resources
 
+from horus.engine.calibration.combo_calibration import ComboCalibrationError
 from horus.gui.engine import driver, calibration_data, image_capture, \
     image_detection, combo_calibration
 from horus.gui.util.image_view import ImageView
@@ -59,7 +60,6 @@ class CalibrationPage(WizardPage):
         self.cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel_button_clicked)
         self.Bind(wx.EVT_SHOW, self.on_show)
 
-        self.video_view.set_milliseconds(10)
         self.video_view.set_callback(self.get_image)
 
     def on_show(self, event):
@@ -145,13 +145,14 @@ class CalibrationPage(WizardPage):
 
             combo_calibration.accept()
         else:
-            self.result_label.SetLabel(
-                _("Check pattern and lasers and try again"))
-            dlg = wx.MessageDialog(
-                self, _("Check pattern and lasers and try again"),
-                _("Calibration failed"), wx.OK | wx.ICON_ERROR)
-            dlg.ShowModal()
-            dlg.Destroy()
+            if isinstance(result, ComboCalibrationError):
+                self.result_label.SetLabel(
+                    _("Check pattern and lasers and try again"))
+                dlg = wx.MessageDialog(
+                    self, _("Check pattern and lasers and try again"),
+                    _("Calibration failed"), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
             self.skip_button.Enable()
             self.on_finish_calibration()
 

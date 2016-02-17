@@ -275,6 +275,10 @@ class MainWindow(wx.Frame):
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
             driver.disconnect()
+            # Stop video
+            # for workbench in self.workbench:
+            #     workbench.on_close()
+            self.workbench['control'].on_close()
             if ciclop_scan.is_scanning:
                 ciclop_scan.stop()
                 time.sleep(0.5)
@@ -387,11 +391,12 @@ class MainWindow(wx.Frame):
         self.wait_cursor = wx.BusyCursor()
         self.toolbar.combo.SetValue(name)
         for key, wb in self.workbench.iteritems():
+            if wb.name != name:
+                wb.Hide()
+        for key, wb in self.workbench.iteritems():
             if wb.name == name:
                 wb.Show()
                 profile.settings['workbench'] = key
-            else:
-                wb.Hide()
         is_scan = profile.settings['workbench'] == 'scanning'
         self.menu_file.Enable(self.menu_load_model.GetId(), is_scan)
         self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)

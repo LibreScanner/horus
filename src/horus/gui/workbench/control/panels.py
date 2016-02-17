@@ -9,10 +9,9 @@ import wx._core
 
 from horus.util import profile
 
-from horus.util import system as sys
-from horus.gui.engine import driver, image_capture, calibration_data
-from horus.gui.util.custom_panels import ExpandablePanel, ControlPanel, Slider, ComboBox, \
-    CheckBox, ToggleButton, CallbackButton, FloatTextBox
+from horus.gui.engine import driver
+from horus.gui.util.custom_panels import ExpandablePanel, ControlPanel, Slider, \
+    ToggleButton, CallbackButton, FloatTextBox
 
 
 class CameraControl(ExpandablePanel):
@@ -40,40 +39,12 @@ class CameraControl(ExpandablePanel):
             _("Amount of light per unit area. It is controlled by the time the camera "
               "sensor is exposed during a frame capture. "
               "High values are recommended for poorly lit places"))
-        self.add_control(
-            'framerate', ComboBox,
-            _("Number of frames captured by the camera every second. "
-              "Maximum frame rate is recommended"))
-        self.add_control(
-            'resolution', ComboBox,
-            _("Size of the video. Maximum resolution is recommended"))
-        self.add_control(
-            'use_distortion', CheckBox,
-            _("This option applies lens distortion correction to the video. "
-              "This process slows the video feed from the camera"))
-
-        if sys.is_darwin():
-            self.disable('framerate')
-            self.disable('resolution')
 
     def update_callbacks(self):
         self.update_callback('brightness_control', driver.camera.set_brightness)
         self.update_callback('contrast_control', driver.camera.set_contrast)
         self.update_callback('saturation_control', driver.camera.set_saturation)
         self.update_callback('exposure_control', driver.camera.set_exposure)
-        self.update_callback('framerate', lambda v: self._set_framerate(int(v)))
-        self.update_callback('resolution', lambda v: self._set_resolution(
-            int(v.split('x')[1]), int(v.split('x')[0])))
-        self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
-
-    def _set_framerate(self, v):
-        if self.current_framerate != v:
-            self.current_framerate = v
-            driver.camera.set_frame_rate(v)
-
-    def _set_resolution(self, width, height):
-        driver.camera.set_resolution(width, height)
-        calibration_data.set_resolution(height, width)
 
     def on_selected(self):
         profile.settings['current_panel_control'] = 'camera_control'

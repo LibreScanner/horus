@@ -76,15 +76,14 @@ class LaserTriangulation(MovingCalibration):
         self.dL, self.nL, stdL = compute_plane(0, self._point_cloud[0])
         self.dR, self.nR, stdR = compute_plane(1, self._point_cloud[1])
 
-        if self._is_calibrating and \
-           stdL < 5.0 and stdR < 5.0 and \
-           self.nL is not None and self.nR is not None:
-            response = (True, ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR)))
-        else:
-            if self._is_calibrating:
-                response = (False, LaserTriangulationError())
+        if self._is_calibrating:
+            if stdL < 10.0 and stdR < 10.0 and \
+               self.nL is not None and self.nR is not None:
+                response = (True, ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR)))
             else:
-                response = (False, CalibrationCancel())
+                response = (False, LaserTriangulationError())
+        else:
+            response = (False, CalibrationCancel())
 
         self._is_calibrating = False
         self.image = None

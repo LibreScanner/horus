@@ -27,7 +27,7 @@ class ControlWorkbench(Workbench):
         self.add_panel('gcode_control', GcodeControl)
 
     def add_pages(self):
-        self.add_page('video_view', VideoView(self, self._video_frame, 30, black=True))
+        self.add_page('video_view', VideoView(self, self._video_frame))
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_control']].on_title_clicked(None)
 

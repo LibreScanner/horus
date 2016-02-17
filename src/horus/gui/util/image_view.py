@@ -12,8 +12,8 @@ from horus.util import resources
 
 class ImageView(wx.Panel):
 
-    def __init__(self, parent, resize=True,
-                 quality=wx.IMAGE_QUALITY_NORMAL, size=(-1, -1), black=False, style=wx.NO_BORDER):
+    def __init__(self, parent, resize=True, quality=wx.IMAGE_QUALITY_NORMAL,
+                 size=(-1, -1), black=False, style=wx.NO_BORDER):
         wx.Panel.__init__(self, parent, size=size, style=style)
 
         self.x_offset = 0
@@ -24,9 +24,9 @@ class ImageView(wx.Panel):
         self.image = self.default_image
         self.bitmap = wx.BitmapFromImage(self.default_image)
 
-        if black:
-            self.SetBackgroundColour(wx.BLACK)
-        self.SetDoubleBuffered(True)
+        self.black = black
+        self.frame = None
+        # self.SetDoubleBuffered(True)
 
         self.Bind(wx.EVT_SHOW, self.on_show)
         self.Bind(wx.EVT_PAINT, self.on_paint)
@@ -42,7 +42,12 @@ class ImageView(wx.Panel):
 
     def on_paint(self, event):
         if not self.hide:
-            dc = wx.PaintDC(self)
+            if self.black:
+                dc = wx.BufferedPaintDC(self)
+                dc.SetBackground(wx.BLACK_BRUSH)
+                dc.Clear()
+            else:
+                dc = wx.PaintDC(self)
             dc.DrawBitmap(self.bitmap, self.x_offset, self.y_offset)
 
     def on_resize(self, size):
@@ -59,6 +64,7 @@ class ImageView(wx.Panel):
         self.set_image(self.default_image)
 
     def set_frame(self, frame):
+        self.frame = frame
         if frame is not None:
             height, width = frame.shape[:2]
             self.set_image(wx.ImageFromBuffer(width, height, frame))
@@ -87,50 +93,3 @@ class ImageView(wx.Panel):
             return (nwidth, nheight, x_offset, y_offset)
         else:
             return (0, 0, 0, 0)
-
-
-class VideoView(ImageView):
-
-    def __init__(self, parent, callback=None, milliseconds=1, size=(-1, -1), black=False):
-        ImageView.__init__(self, parent, size=size, black=black)
-
-        self.callback = callback
-        self.milliseconds = milliseconds
-
-        self.playing = False
-
-        self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
-
-    def on_timer(self, event):
-        self.timer.Stop()
-        if self.playing:
-            if self.callback is not None:
-                self.set_frame(self.callback())
-            self._start()
-
-    def set_callback(self, callback):
-        self.callback = callback
-
-    def set_milliseconds(self, milliseconds):
-        self.milliseconds = milliseconds
-
-    def play(self):
-        if not self.playing:
-            self.playing = True
-            self._start()
-
-    def _start(self):
-        self.timer.Start(milliseconds=self.milliseconds)
-
-    def pause(self):
-        if self.playing:
-            self.playing = False
-            self.timer.Stop()
-
-    def stop(self):
-        if self.playing:
-            self.playing = False
-            self.timer.Stop()
-            self.hide = True
-            self.set_default_image()

@@ -69,9 +69,9 @@ class ImageCapture(object):
             self._flush_texture = 2
             self._flush_laser = 2  # exp < 32 ? 2 : 3
             self._flush_pattern = 2
-            self._flush_stream_texture = 1
+            self._flush_stream_texture = 0
             self._flush_stream_laser = 2
-            self._flush_stream_pattern = 1
+            self._flush_stream_pattern = 0
         elif system == 'Darwin':
             self._flush_texture = 2
             self._flush_laser = 2  # exp < 32 ? 2 : 3
