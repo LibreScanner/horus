@@ -38,7 +38,7 @@ NOTE: *dmg* packages only can be generated in Mac OS X
 
 #### Supported
 
-###### Current version: 0.2b1
+###### Current version: 0.2b2
 
 | Logo              | Name     | Versions            | Instructions                        |
 |:-----------------:|:--------:|:-------------------:|:-----------------------------------:|
