@@ -71,6 +71,7 @@ class LaserTriangulationPages(wx.Panel):
         if ret:
             self.video_page.Hide()
             self.result_page.Show()
+            self.Layout()
         else:
             self.on_exit()
         self.result_page.process_calibration(response)

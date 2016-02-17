@@ -70,6 +70,7 @@ class CameraIntrinsicsPages(wx.Panel):
     def after_calibration(self, response):
         self.capture_page.Hide()
         self.result_page.Show()
+        self.Layout()
         self.result_page.process_calibration(response)
         if hasattr(self, 'wait_cursor'):
             del self.wait_cursor
