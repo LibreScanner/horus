@@ -110,8 +110,6 @@ class ScanningWorkbench(Workbench):
         image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         laser_segmentation.red_channel = profile.settings['red_channel_scanning']
-        laser_segmentation.open_enable = profile.settings['open_enable_scanning']
-        laser_segmentation.open_value = profile.settings['open_value_scanning']
         laser_segmentation.threshold_enable = profile.settings['threshold_enable_scanning']
         laser_segmentation.threshold_value = profile.settings['threshold_value_scanning']
         calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))

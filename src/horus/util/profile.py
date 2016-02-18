@@ -255,12 +255,8 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
-                    unicode, u'R (RGB)', possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
-        self._add_setting(
-            Setting('open_enable_scanning', _('Enable open'), 'profile_settings', bool, True))
-        self._add_setting(
-            Setting('open_value_scanning', _('Open'), 'profile_settings',
-                    int, 2, min_value=1, max_value=10))
+                    unicode, u'R-G (RGB)',
+                    possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
@@ -306,12 +302,8 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('red_channel_calibration', _('Red channel'), 'profile_settings',
-                    unicode, u'R (RGB)', possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
-        self._add_setting(
-            Setting('open_enable_calibration', _('Enable open'), 'profile_settings', bool, True))
-        self._add_setting(
-            Setting('open_value_calibration', _('Open'), 'profile_settings',
-                    int, 2, min_value=1, max_value=10))
+                    unicode, u'R-G (RGB)',
+                    possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'profile_settings', bool, True))
