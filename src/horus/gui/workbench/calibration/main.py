@@ -110,8 +110,6 @@ class CalibrationWorkbench(Workbench):
         image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
         laser_segmentation.red_channel = profile.settings['red_channel_calibration']
-        laser_segmentation.open_enable = profile.settings['open_enable_calibration']
-        laser_segmentation.open_value = profile.settings['open_value_calibration']
         laser_segmentation.threshold_enable = profile.settings['threshold_enable_calibration']
         laser_segmentation.threshold_value = profile.settings['threshold_value_calibration']
         pattern.rows = profile.settings['pattern_rows']

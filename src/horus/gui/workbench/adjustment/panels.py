@@ -139,12 +139,6 @@ class ScanSegmentationPanel(ExpandablePanel):
 
     def add_controls(self):
         # self.add_control('red_channel_scanning', ComboBox)
-        self.add_control('open_value_scanning', Slider)
-        self.add_control(
-            'open_enable_scanning',
-            CheckBox,
-            "Open is an operation used to remove the noise when scanning. The higher its value, "
-            "the lower the noise but also the lower the detail in the image")
         self.add_control('threshold_value_scanning', Slider)
         self.add_control(
             'threshold_enable_scanning',
@@ -154,8 +148,6 @@ class ScanSegmentationPanel(ExpandablePanel):
 
     def update_callbacks(self):
         # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
-        self.update_callback('open_value_scanning', laser_segmentation.set_open_value)
-        self.update_callback('open_enable_scanning', laser_segmentation.set_open_enable)
         self.update_callback('threshold_value_scanning', laser_segmentation.set_threshold_value)
         self.update_callback('threshold_enable_scanning', laser_segmentation.set_threshold_enable)
 
@@ -170,8 +162,6 @@ class ScanSegmentationPanel(ExpandablePanel):
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         laser_segmentation.set_red_channel(profile.settings['red_channel_scanning'])
-        laser_segmentation.set_open_value(profile.settings['open_value_scanning'])
-        laser_segmentation.set_open_enable(profile.settings['open_enable_scanning'])
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_scanning'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_scanning'])
 
@@ -296,12 +286,6 @@ class CalibrationSegmentationPanel(ExpandablePanel):
 
     def add_controls(self):
         # self.add_control('red_channel_calibration', ComboBox)
-        self.add_control('open_value_calibration', Slider)
-        self.add_control(
-            'open_enable_calibration',
-            CheckBox,
-            "Open is an operation used to remove the noise when scanning. The higher its value, "
-            "the lower the noise but also the lower the detail in the image")
         self.add_control('threshold_value_calibration', Slider)
         self.add_control(
             'threshold_enable_calibration',
@@ -311,8 +295,6 @@ class CalibrationSegmentationPanel(ExpandablePanel):
 
     def update_callbacks(self):
         # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
-        self.update_callback('open_value_calibration', laser_segmentation.set_open_value)
-        self.update_callback('open_enable_calibration', laser_segmentation.set_open_enable)
         self.update_callback('threshold_value_calibration', laser_segmentation.set_threshold_value)
         self.update_callback(
             'threshold_enable_calibration', laser_segmentation.set_threshold_enable)
@@ -328,7 +310,5 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
         laser_segmentation.set_red_channel(profile.settings['red_channel_calibration'])
-        laser_segmentation.set_open_value(profile.settings['open_value_calibration'])
-        laser_segmentation.set_open_enable(profile.settings['open_enable_calibration'])
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_calibration'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_calibration'])
