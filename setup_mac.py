@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import os
 import sys
 from setuptools import setup
 
@@ -11,9 +12,9 @@ DATA_FILES = ['doc', 'res']
 
 PLIST = {
     u'CFBundleName': u'Horus',
-    u'CFBundleShortVersionString': version,
-    u'CFBundleVersion': version,
-    u'CFBundleIdentifier': u'com.bq.Horus-' + version,
+    u'CFBundleShortVersionString': __version__,
+    u'CFBundleVersion': __version__,
+    u'CFBundleIdentifier': u'com.bq.Horus-' + __version__,
     u'LSMinimumSystemVersion': u'10.8',
     u'LSApplicationCategoryType': u'public.app-category.graphics-design'
 }
