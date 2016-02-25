@@ -533,8 +533,10 @@ class MainWindow(wx.Frame):
         if len(video_list) > 0:
             if current_video_id not in video_list:
                 profile.settings['camera_id'] = unicode(video_list[0])
-
-        driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
+        
+        if len(profile.settings['camera_id']):
+            driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
+            
         driver.board.serial_name = profile.settings['serial_name']
         driver.board.baud_rate = profile.settings['baud_rate']
         driver.board.motor_invert(profile.settings['invert_motor'])

@@ -32,10 +32,7 @@ class ExpandableCollection(wx.Panel):
 
     def init_panels_layout(self):
         values = self.expandable_panels.values()
-        if len(values) > 0:
-            for panel in values:
-                panel.hide_content()
-            values[0].show_content()
+        self._expand_callback(values[0])
 
     def _expand_callback(self, selected_panel):
         for panel in self.expandable_panels.values():
@@ -254,6 +251,8 @@ class ControlCollection(wx.Panel):
         control.set_undo_callbacks(self.append_undo_callback, self.release_undo_callback)
         self.control_panels.update({_name: control})
         self.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
+        self.vbox.Layout()
+        self.SetSizerAndFit(self.vbox)
 
     def update_callback(self, _name, _callback):
         self.control_panels[_name].set_engine_callback(_callback)

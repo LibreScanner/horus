@@ -18,6 +18,7 @@ system = platform.system()
 
 if system == 'Darwin':
     import uvc
+    from uvc.mac import *
 
 
 class WrongCamera(Exception):
@@ -60,7 +61,7 @@ class Camera(object):
             self._max_contrast = 1.
             self._max_saturation = 1.
         elif system == 'Darwin':
-            self._number_frames_fail = 1
+            self._number_frames_fail = 3
             self._max_brightness = 255.
             self._max_contrast = 255.
             self._max_saturation = 255.

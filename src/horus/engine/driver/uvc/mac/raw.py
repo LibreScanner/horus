@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 from horus.util import resources
 
-dll_path = resources.getPathForTools('uvcc.so')
+dll_path = resources.get_path_for_tools('uvcc.so')
 
 ### defines and constants
 class uvccModelId(Structure):
