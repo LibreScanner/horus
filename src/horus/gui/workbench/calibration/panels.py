@@ -5,8 +5,8 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-from horus.gui.engine import pattern, image_capture
-from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
+from horus.gui.engine import pattern
+from horus.gui.util.custom_panels import ExpandablePanel, Slider, \
     FloatTextBox, FloatTextBoxArray
 
 

@@ -252,17 +252,28 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'profile_settings', bool, True))
-
         self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
                     unicode, u'R-G (RGB)',
                     possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
+            Setting('window_enable_scanning', _('Enable window'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('window_value_scanning', _('Window'), 'profile_settings',
+                    int, 20, min_value=0, max_value=30))
+        self._add_setting(
+            Setting('blur_enable_scanning', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_scanning', _('Blur'), 'profile_settings',
+                    int, 1, min_value=0, max_value=5))
+        self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_scanning', _('Threshold'), 'profile_settings',
-                    int, 50, min_value=0, max_value=255))
+                    int, 30, min_value=0, max_value=255))
 
         # Hack to translate combo boxes:
         _('Pattern')
@@ -305,11 +316,23 @@ class Settings(collections.MutableMapping):
                     unicode, u'R-G (RGB)',
                     possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
+            Setting('window_enable_calibration', _('Enable window'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('window_value_calibration', _('Window'), 'profile_settings',
+                    int, 20, min_value=0, max_value=30))
+        self._add_setting(
+            Setting('blur_enable_calibration', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_calibration', _('Blur'), 'profile_settings',
+                    int, 1, min_value=0, max_value=5))
+        self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_calibration', _('Threshold'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 50, min_value=0, max_value=255))
 
         self._add_setting(
             Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
