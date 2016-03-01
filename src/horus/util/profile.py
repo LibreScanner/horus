@@ -187,7 +187,7 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_control', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=256))
+                    int, 16, min_value=1, max_value=128))
         self._add_setting(
             Setting('framerate', _('Framerate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
@@ -235,7 +235,7 @@ class Settings(collections.MutableMapping):
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=256))
+                    int, 16, min_value=1, max_value=128))
 
         self._add_setting(
             Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
@@ -252,17 +252,28 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'profile_settings', bool, True))
-
         self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
                     unicode, u'R-G (RGB)',
                     possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
+            Setting('window_enable_scanning', _('Enable window'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('window_value_scanning', _('Window'), 'profile_settings',
+                    int, 20, min_value=0, max_value=30))
+        self._add_setting(
+            Setting('blur_enable_scanning', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_scanning', _('Blur'), 'profile_settings',
+                    int, 1, min_value=0, max_value=10))
+        self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_scanning', _('Threshold'), 'profile_settings',
-                    int, 50, min_value=0, max_value=255))
+                    int, 30, min_value=0, max_value=255))
 
         # Hack to translate combo boxes:
         _('Pattern')
@@ -282,7 +293,7 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_pattern_calibration', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=256))
+                    int, 16, min_value=1, max_value=128))
 
         self._add_setting(
             Setting('brightness_laser_calibration', _('Brightness'), 'profile_settings',
@@ -305,11 +316,23 @@ class Settings(collections.MutableMapping):
                     unicode, u'R-G (RGB)',
                     possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
+            Setting('window_enable_calibration', _('Enable window'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('window_value_calibration', _('Window'), 'profile_settings',
+                    int, 20, min_value=0, max_value=30))
+        self._add_setting(
+            Setting('blur_enable_calibration', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_calibration', _('Blur'), 'profile_settings',
+                    int, 1, min_value=0, max_value=10))
+        self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_calibration', _('Threshold'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 50, min_value=0, max_value=255))
 
         self._add_setting(
             Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
@@ -384,8 +407,8 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
-                                                                          [0.0, 1430.0, 640.0],
+                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1422.0, 0.0, 480.0],
+                                                                          [0.0, 1422.0, 640.0],
                                                                           [0.0, 0.0, 1.0]]))))
         self._add_setting(
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',

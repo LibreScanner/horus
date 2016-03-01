@@ -590,7 +590,7 @@ class FloatBoxArray(wx.Panel):
                 else:
                     self.texts[i][j].SetValue(self.value[i][j])
                 self.texts[i][j].SetEditable(False)
-                # self.texts[i][j].Disable()
+                self.texts[i][j].Disable()
                 jbox.Add(self.texts[i][j], 1, wx.ALL | wx.EXPAND, 2)
             ibox.Add(jbox, 1, wx.ALL | wx.EXPAND, 1)
         self.SetSizer(ibox)

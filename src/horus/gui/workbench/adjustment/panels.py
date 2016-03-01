@@ -16,8 +16,9 @@ current_video = CurrentVideo()
 
 
 def flush_video():
-        current_video.capture()
-        current_video.capture()
+    current_video.capture()
+    current_video.capture()
+    current_video.capture()
 
 
 class ScanCapturePanel(ExpandablePanel):
@@ -85,6 +86,7 @@ class ScanCapturePanel(ExpandablePanel):
         self.update_callback('remove_background_scanning', image_capture.set_remove_background)
 
     def on_selected(self):
+        current_video.updating = True
         current_video.mode = profile.settings['capture_mode_scanning']
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'scan_capture'
@@ -100,13 +102,16 @@ class ScanCapturePanel(ExpandablePanel):
         laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
         flush_video()
+        current_video.updating = False
 
     def _set_camera_mode(self, mode):
+        current_video.updating = True
         self._set_mode_layout(mode)
         current_video.mode = mode
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         if mode == 'Texture':
             flush_video()
+        current_video.updating = False
 
     def _set_mode_layout(self, mode):
         if mode == 'Laser':
@@ -141,17 +146,29 @@ class ScanSegmentationPanel(ExpandablePanel):
         # self.add_control('red_channel_scanning', ComboBox)
         self.add_control('threshold_value_scanning', Slider)
         self.add_control(
-            'threshold_enable_scanning',
-            CheckBox,
+            'threshold_enable_scanning', CheckBox,
             "Threshold is a function used to remove the noise when scanning. "
             "It removes a pixel if its intensity is less than the threshold value")
+        self.add_control('window_value_scanning', Slider)
+        self.add_control(
+            'window_enable_scanning', CheckBox,
+            "Filter pixels out of 2 * window value around the peak")
+        self.add_control('blur_value_scanning', Slider)
+        self.add_control(
+            'blur_enable_scanning', CheckBox,
+            "Blur filter of kernel size 2 * value + 1")
 
     def update_callbacks(self):
         # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
+        self.update_callback('window_value_scanning', laser_segmentation.set_window_value)
+        self.update_callback('window_enable_scanning', laser_segmentation.set_window_enable)
+        self.update_callback('blur_value_scanning', laser_segmentation.set_blur_value)
+        self.update_callback('blur_enable_scanning', laser_segmentation.set_blur_enable)
         self.update_callback('threshold_value_scanning', laser_segmentation.set_threshold_value)
         self.update_callback('threshold_enable_scanning', laser_segmentation.set_threshold_enable)
 
     def on_selected(self):
+        current_video.updating = True
         current_video.mode = 'Gray'
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'scan_segmentation'
@@ -162,8 +179,13 @@ class ScanSegmentationPanel(ExpandablePanel):
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         laser_segmentation.set_red_channel(profile.settings['red_channel_scanning'])
+        laser_segmentation.set_window_value(profile.settings['window_value_scanning'])
+        laser_segmentation.set_window_enable(profile.settings['window_enable_scanning'])
+        laser_segmentation.set_blur_value(profile.settings['blur_value_scanning'])
+        laser_segmentation.set_blur_enable(profile.settings['blur_enable_scanning'])
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_scanning'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_scanning'])
+        current_video.updating = False
 
 
 class CalibrationCapturePanel(ExpandablePanel):
@@ -231,6 +253,7 @@ class CalibrationCapturePanel(ExpandablePanel):
         self.update_callback('remove_background_calibration', image_capture.set_remove_background)
 
     def on_selected(self):
+        current_video.updating = True
         driver.board.lasers_off()
         current_video.mode = profile.settings['capture_mode_calibration']
         profile.settings['current_video_mode_adjustment'] = current_video.mode
@@ -247,13 +270,16 @@ class CalibrationCapturePanel(ExpandablePanel):
         laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
         flush_video()
+        current_video.updating = False
 
     def _set_camera_mode(self, mode):
+        current_video.updating = True
         self._set_mode_layout(mode)
         current_video.mode = mode
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         if mode == 'Pattern':
             flush_video()
+        current_video.updating = False
 
     def _set_mode_layout(self, mode):
         if mode == 'Laser':
@@ -288,18 +314,30 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         # self.add_control('red_channel_calibration', ComboBox)
         self.add_control('threshold_value_calibration', Slider)
         self.add_control(
-            'threshold_enable_calibration',
-            CheckBox,
-            "Threshold is a function used to remove the noise when scanning. "
+            'threshold_enable_calibration', CheckBox,
+            "Threshold is a function used to remove the noise when calibrating. "
             "It removes a pixel if its intensity is less than the threshold value")
+        self.add_control('window_value_calibration', Slider)
+        self.add_control(
+            'window_enable_calibration', CheckBox,
+            "Filter pixels out of 2 * window value around the peak")
+        self.add_control('blur_value_calibration', Slider)
+        self.add_control(
+            'blur_enable_calibration', CheckBox,
+            "Blur filter of kernel size 2 * value + 1")
 
     def update_callbacks(self):
         # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
+        self.update_callback('window_value_calibration', laser_segmentation.set_window_value)
+        self.update_callback('window_enable_calibration', laser_segmentation.set_window_enable)
+        self.update_callback('blur_value_calibration', laser_segmentation.set_blur_value)
+        self.update_callback('blur_enable_calibration', laser_segmentation.set_blur_enable)
         self.update_callback('threshold_value_calibration', laser_segmentation.set_threshold_value)
         self.update_callback(
             'threshold_enable_calibration', laser_segmentation.set_threshold_enable)
 
     def on_selected(self):
+        current_video.updating = True
         current_video.mode = 'Gray'
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_segmentation'
@@ -310,5 +348,10 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
         laser_segmentation.set_red_channel(profile.settings['red_channel_calibration'])
+        laser_segmentation.set_window_value(profile.settings['window_value_calibration'])
+        laser_segmentation.set_window_enable(profile.settings['window_enable_calibration'])
+        laser_segmentation.set_blur_value(profile.settings['blur_value_calibration'])
+        laser_segmentation.set_blur_enable(profile.settings['blur_enable_calibration'])
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_calibration'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_calibration'])
+        current_video.updating = False

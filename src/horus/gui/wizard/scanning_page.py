@@ -33,6 +33,7 @@ class ScanningPage(WizardPage):
         self.resolution_label.SetToolTip(wx.ToolTip(_("Sets the motor step. High (0.45),"
                                                       " Medium (0.9), Low (1.8)")))
         self.resolution_combo_box = wx.ComboBox(self.panel, wx.ID_ANY,
+                                                size=(200, -1),
                                                 value=value,
                                                 choices=[_("High"), _("Medium"), _("Low")],
                                                 style=wx.CB_READONLY)
@@ -44,26 +45,39 @@ class ScanningPage(WizardPage):
         self.laser_dict = dict(zip(_choices, choices))
         self.laser_label = wx.StaticText(self.panel, label=_("Use laser"))
         self.laser_combo_box = wx.ComboBox(self.panel, wx.ID_ANY,
+                                           size=(200, -1),
                                            value=_(profile.settings['use_laser']),
                                            choices=_choices,
                                            style=wx.CB_READONLY)
+
+        self.capture_texture_label = wx.StaticText(self.panel, label=_("Capture texture"))
+        self.capture_texture_checkbox = wx.CheckBox(self.panel,
+                                                    size=(200, -1))
+        self.capture_texture_checkbox.SetValue(profile.settings['capture_texture'])
+
         self.skip_button.Hide()
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.resolution_label, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 18)
-        hbox.Add(self.resolution_combo_box, 1, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 12)
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 5)
+        hbox.Add(self.resolution_label, 1, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.Add(self.resolution_combo_box, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 15)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.laser_label, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 18)
-        hbox.Add(self.laser_combo_box, 1, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 12)
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 5)
+        hbox.Add(self.laser_label, 1, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.Add(self.laser_combo_box, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 15)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.capture_texture_label, 1, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.Add(self.capture_texture_checkbox, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 15)
         self.panel.SetSizer(vbox)
         self.Layout()
 
         self.resolution_combo_box.Bind(wx.EVT_COMBOBOX, self.on_resolution_combo_box_changed)
         self.laser_combo_box.Bind(wx.EVT_COMBOBOX, self.on_laser_combo_box_changed)
+        self.capture_texture_checkbox.Bind(
+            wx.EVT_CHECKBOX, self.on_capture_texture_checkbox_changed)
         self.Bind(wx.EVT_SHOW, self.on_show)
 
         self.video_view.set_callback(self.get_image)
@@ -91,19 +105,24 @@ class ScanningPage(WizardPage):
     def on_laser_combo_box_changed(self, event):
         value = self.laser_dict[event.GetEventObject().GetValue()]
         profile.settings['use_laser'] = value
-        useLeft = value == 'Left' or value == 'Both'
-        useRight = value == 'Right' or value == 'Both'
-        if useLeft:
+        use_left = value == 'Left' or value == 'Both'
+        use_right = value == 'Right' or value == 'Both'
+        if use_left:
             driver.board.laser_on(0)
         else:
             driver.board.laser_off(0)
 
-        if useRight:
+        if use_right:
             driver.board.laser_on(1)
         else:
             driver.board.laser_off(1)
-        ciclop_scan.set_use_left_laser(useLeft)
-        ciclop_scan.set_use_right_laser(useRight)
+        ciclop_scan.set_use_left_laser(use_left)
+        ciclop_scan.set_use_right_laser(use_right)
+
+    def on_capture_texture_checkbox_changed(self, event):
+        value = event.GetEventObject().GetValue()
+        profile.settings['capture_texture'] = value
+        ciclop_scan.set_capture_texture(value)
 
     def get_image(self):
         return image_capture.capture_texture()

@@ -22,7 +22,7 @@ class ViewPage(wx.SplitterWindow):
 
         self.get_image = get_image
 
-        self.video_view = VideoView(self, get_image)
+        self.video_view = VideoView(self, get_image, wxtimer=False)
         self.video_view.SetBackgroundColour(wx.BLACK)
 
         self.scene_panel = wx.Panel(self)
@@ -51,6 +51,18 @@ class ViewPage(wx.SplitterWindow):
                                              size=(100, -1), pos=(0, -1))
         self.combo_video_views.Hide()
         self.combo_video_views.Bind(wx.EVT_COMBOBOX, self.on_combo_box_video_views_select)
+
+        # Events
+        self.video_view.Bind(wx.EVT_SHOW, self.on_show)
+
+    def on_show(self, event):
+        if event.GetShow():
+            self.video_view.play()
+        else:
+            try:
+                self.video_view.stop()
+            except:
+                pass
 
     def on_combo_box_video_views_select(self, event):
         value = self.video_views_dict[self.combo_video_views.GetValue()]
