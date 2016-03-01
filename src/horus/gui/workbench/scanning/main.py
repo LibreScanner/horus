@@ -67,7 +67,8 @@ class ScanningWorkbench(Workbench):
             profile.settings['current_panel_scanning']].on_title_clicked(None)
 
     def on_open(self):
-        self.video_view.play()
+        if self.video_view.IsShown():
+            self.video_view.play()
         self.point_cloud_timer.Stop()
         if driver.is_connected and profile.settings['current_panel_scanning'] == 'point_cloud_roi':
             self.scene_view._view_roi = profile.settings['use_roi']
