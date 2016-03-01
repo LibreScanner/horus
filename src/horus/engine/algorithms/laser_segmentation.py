@@ -76,20 +76,24 @@ class LaserSegmentation(object):
                 image = self.point_cloud_roi.mask_image(image)
             # Obtain red channel
             image = self._obtain_red_channel(image)
-            # Window filter
+            # Threshold image
+            if self.threshold_enable:
+                image = cv2.threshold(
+                    image, self.threshold_value, 255, cv2.THRESH_TOZERO)[1]
+            # Window mask
             if self.window_enable:
                 peak = image.argmax(axis=1)
                 _min = peak - self.window_value
                 _max = peak + self.window_value + 1
+                mask = np.zeros_like(image)
                 for i in xrange(self.calibration_data.height):
-                    image[i, 0:_min[i]] = 0
-                    image[i, _max[i]:self.calibration_data.width] = 0
+                    mask[i, _min[i]:_max[i]] = 255
             # Blur image
             if self.blur_enable:
                 image = cv2.blur(image, (self.blur_value, self.blur_value))
-            # Threshold image
-            if self.threshold_enable:
-                image = cv2.threshold(image, self.threshold_value, 255.0, cv2.THRESH_TOZERO)[1]
+            # Apply mask
+            if self.window_enable:
+                image = cv2.bitwise_and(image, mask)
             return image
 
     def _obtain_red_channel(self, image):
@@ -97,7 +101,7 @@ class LaserSegmentation(object):
         if self.red_channel == 'R-G (RGB)':
             r, g, b = cv2.split(image)
             ret = cv2.subtract(r, g)
-            ret *= np.amax(r) / np.amax(ret)
+            ret *= 1.0 * np.amax(r) / np.amax(ret)
         elif self.red_channel == 'Cr (YCrCb)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))[1]
         elif self.red_channel == 'U (YUV)':

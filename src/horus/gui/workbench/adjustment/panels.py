@@ -139,6 +139,11 @@ class ScanSegmentationPanel(ExpandablePanel):
 
     def add_controls(self):
         # self.add_control('red_channel_scanning', ComboBox)
+        self.add_control('threshold_value_scanning', Slider)
+        self.add_control(
+            'threshold_enable_scanning', CheckBox,
+            "Threshold is a function used to remove the noise when scanning. "
+            "It removes a pixel if its intensity is less than the threshold value")
         self.add_control('window_value_scanning', Slider)
         self.add_control(
             'window_enable_scanning', CheckBox,
@@ -147,11 +152,6 @@ class ScanSegmentationPanel(ExpandablePanel):
         self.add_control(
             'blur_enable_scanning', CheckBox,
             "Blur filter of kernel size 2 * value + 1")
-        self.add_control('threshold_value_scanning', Slider)
-        self.add_control(
-            'threshold_enable_scanning', CheckBox,
-            "Threshold is a function used to remove the noise when scanning. "
-            "It removes a pixel if its intensity is less than the threshold value")
 
     def update_callbacks(self):
         # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
@@ -301,6 +301,11 @@ class CalibrationSegmentationPanel(ExpandablePanel):
 
     def add_controls(self):
         # self.add_control('red_channel_calibration', ComboBox)
+        self.add_control('threshold_value_calibration', Slider)
+        self.add_control(
+            'threshold_enable_calibration', CheckBox,
+            "Threshold is a function used to remove the noise when calibrating. "
+            "It removes a pixel if its intensity is less than the threshold value")
         self.add_control('window_value_calibration', Slider)
         self.add_control(
             'window_enable_calibration', CheckBox,
@@ -309,11 +314,6 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         self.add_control(
             'blur_enable_calibration', CheckBox,
             "Blur filter of kernel size 2 * value + 1")
-        self.add_control('threshold_value_calibration', Slider)
-        self.add_control(
-            'threshold_enable_calibration', CheckBox,
-            "Threshold is a function used to remove the noise when calibrating. "
-            "It removes a pixel if its intensity is less than the threshold value")
 
     def update_callbacks(self):
         # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
