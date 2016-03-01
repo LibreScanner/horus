@@ -187,7 +187,7 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_control', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=256))
+                    int, 16, min_value=1, max_value=128))
         self._add_setting(
             Setting('framerate', _('Framerate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
@@ -235,7 +235,7 @@ class Settings(collections.MutableMapping):
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=256))
+                    int, 16, min_value=1, max_value=128))
 
         self._add_setting(
             Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
@@ -267,7 +267,7 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('blur_value_scanning', _('Blur'), 'profile_settings',
-                    int, 1, min_value=0, max_value=5))
+                    int, 1, min_value=0, max_value=10))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
@@ -293,7 +293,7 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_pattern_calibration', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=256))
+                    int, 16, min_value=1, max_value=128))
 
         self._add_setting(
             Setting('brightness_laser_calibration', _('Brightness'), 'profile_settings',
@@ -326,7 +326,7 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('blur_value_calibration', _('Blur'), 'profile_settings',
-                    int, 1, min_value=0, max_value=5))
+                    int, 1, min_value=0, max_value=10))
         self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'profile_settings', bool, True))

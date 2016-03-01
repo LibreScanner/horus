@@ -16,8 +16,9 @@ current_video = CurrentVideo()
 
 
 def flush_video():
-        current_video.capture()
-        current_video.capture()
+    current_video.capture()
+    current_video.capture()
+    current_video.capture()
 
 
 class ScanCapturePanel(ExpandablePanel):
@@ -85,6 +86,7 @@ class ScanCapturePanel(ExpandablePanel):
         self.update_callback('remove_background_scanning', image_capture.set_remove_background)
 
     def on_selected(self):
+        current_video.updating = True
         current_video.mode = profile.settings['capture_mode_scanning']
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'scan_capture'
@@ -100,13 +102,16 @@ class ScanCapturePanel(ExpandablePanel):
         laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
         flush_video()
+        current_video.updating = False
 
     def _set_camera_mode(self, mode):
+        current_video.updating = True
         self._set_mode_layout(mode)
         current_video.mode = mode
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         if mode == 'Texture':
             flush_video()
+        current_video.updating = False
 
     def _set_mode_layout(self, mode):
         if mode == 'Laser':
@@ -163,6 +168,7 @@ class ScanSegmentationPanel(ExpandablePanel):
         self.update_callback('threshold_enable_scanning', laser_segmentation.set_threshold_enable)
 
     def on_selected(self):
+        current_video.updating = True
         current_video.mode = 'Gray'
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'scan_segmentation'
@@ -179,6 +185,7 @@ class ScanSegmentationPanel(ExpandablePanel):
         laser_segmentation.set_blur_enable(profile.settings['blur_enable_scanning'])
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_scanning'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_scanning'])
+        current_video.updating = False
 
 
 class CalibrationCapturePanel(ExpandablePanel):
@@ -246,6 +253,7 @@ class CalibrationCapturePanel(ExpandablePanel):
         self.update_callback('remove_background_calibration', image_capture.set_remove_background)
 
     def on_selected(self):
+        current_video.updating = True
         driver.board.lasers_off()
         current_video.mode = profile.settings['capture_mode_calibration']
         profile.settings['current_video_mode_adjustment'] = current_video.mode
@@ -262,13 +270,16 @@ class CalibrationCapturePanel(ExpandablePanel):
         laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
         flush_video()
+        current_video.updating = False
 
     def _set_camera_mode(self, mode):
+        current_video.updating = True
         self._set_mode_layout(mode)
         current_video.mode = mode
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         if mode == 'Pattern':
             flush_video()
+        current_video.updating = False
 
     def _set_mode_layout(self, mode):
         if mode == 'Laser':
@@ -326,6 +337,7 @@ class CalibrationSegmentationPanel(ExpandablePanel):
             'threshold_enable_calibration', laser_segmentation.set_threshold_enable)
 
     def on_selected(self):
+        current_video.updating = True
         current_video.mode = 'Gray'
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_segmentation'
@@ -342,3 +354,4 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         laser_segmentation.set_blur_enable(profile.settings['blur_enable_calibration'])
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_calibration'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_calibration'])
+        current_video.updating = False

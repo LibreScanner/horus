@@ -16,6 +16,13 @@ class CurrentVideo(object):
 
     def __init__(self):
         self.mode = 'Texture'
+        self.updating = False
+        self.latest_image = None
+
+    def get_frame(self):
+        if not self.updating:
+            self.latest_image = self.capture()
+        return self.latest_image
 
     def capture(self):
         if self.mode == 'Texture':
@@ -33,5 +40,8 @@ class CurrentVideo(object):
             for i in xrange(2):
                 images[i] = image_capture.capture_laser(i)
                 images[i] = laser_segmentation.compute_line_segmentation(images[i])
-            image = images[0] + images[1]
-            return cv2.merge((image, image, image))
+            if images[0] is not None and images[1] is not None:
+                image = images[0] + images[1]
+                return cv2.merge((image, image, image))
+            else:
+                return None

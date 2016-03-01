@@ -68,8 +68,10 @@ class ToolbarConnection(Toolbar):
         driver.connect()
 
     def on_disconnect_tool_clicked(self, event):
+        self.wait_cursor = wx.BusyCursor()
         driver.disconnect()
         self.update_status(driver.is_connected)
+        del self.wait_cursor
 
     def before_connect(self):
         self._enable_tool(self.connect_tool, False)

@@ -113,7 +113,7 @@ class CalibrationWorkbench(Workbench):
         laser_segmentation.window_enable = profile.settings['window_enable_calibration']
         laser_segmentation.window_value = profile.settings['window_value_calibration']
         laser_segmentation.blur_enable = profile.settings['blur_enable_calibration']
-        laser_segmentation.blur_value = profile.settings['blur_value_calibration']
+        laser_segmentation.set_blur_value(profile.settings['blur_value_calibration'])
         laser_segmentation.threshold_enable = profile.settings['threshold_enable_calibration']
         laser_segmentation.threshold_value = profile.settings['threshold_value_calibration']
         pattern.rows = profile.settings['pattern_rows']

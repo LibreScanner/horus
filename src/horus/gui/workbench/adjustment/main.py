@@ -29,12 +29,12 @@ class AdjustmentWorkbench(Workbench):
         self.add_panel('calibration_segmentation', CalibrationSegmentationPanel)
 
     def add_pages(self):
-        self.add_page('video_view', VideoView(self, self._video_frame))
+        self.add_page('video_view', VideoView(self, self._video_frame, wxtimer=False))
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)
 
     def _video_frame(self):
-        return self.current_video.capture()
+        return self.current_video.get_frame()
 
     def on_open(self):
         self.pages_collection['video_view'].play()
