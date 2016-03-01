@@ -407,8 +407,8 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
-                                                                          [0.0, 1430.0, 640.0],
+                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1422.0, 0.0, 480.0],
+                                                                          [0.0, 1422.0, 640.0],
                                                                           [0.0, 0.0, 1.0]]))))
         self._add_setting(
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',

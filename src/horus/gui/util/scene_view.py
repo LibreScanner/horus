@@ -281,6 +281,7 @@ class SceneView(opengl_gui.glGuiPanel):
         else:
             self._mouse_state = 'dragOrClick'
         if self._mouse_state == 'doubleClick':
+            self._move_vertical = False
             if e.GetButton() == 1:
                 self.center_object()
                 self.queue_refresh()

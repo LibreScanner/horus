@@ -14,8 +14,8 @@ from horus.gui.util.image_view import ImageView
 
 class VideoView(ImageView):
 
-    def __init__(self, parent, callback=None, wxtimer=True):
-        ImageView.__init__(self, parent, black=True)
+    def __init__(self, parent, callback=None, size=(-1, -1), wxtimer=True):
+        ImageView.__init__(self, parent, size=size, black=True)
 
         self.callback = callback
 
