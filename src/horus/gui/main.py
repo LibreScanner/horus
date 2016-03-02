@@ -277,16 +277,13 @@ class MainWindow(wx.Frame):
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
             driver.disconnect()
-            # Stop video
-            # for workbench in self.workbench:
-            #     workbench.on_close()
-            self.workbench['control'].on_close()
             if ciclop_scan.is_scanning:
                 ciclop_scan.stop()
                 time.sleep(0.5)
         except:
             pass
-        event.Skip()
+        self.Show(False)
+        self.Destroy()
 
     def enable_gui(self, status):
         if status:
