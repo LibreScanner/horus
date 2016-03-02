@@ -58,6 +58,12 @@ class CalibrationWorkbench(Workbench):
         self.pages_collection['laser_triangulation_pages'].Disable()
         self.pages_collection['platform_extrinsics_pages'].Disable()
 
+        if not profile.settings['view_mode_advanced']:
+            self.panels_collection.expandable_panels['camera_intrinsics'].Hide()
+
+            if profile.settings['current_panel_calibration'] == 'camera_intrinsics':
+                self.on_pattern_settings_selected()
+
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
 

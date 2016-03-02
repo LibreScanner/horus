@@ -547,6 +547,9 @@ class Settings(collections.MutableMapping):
             Setting('view_scanning_scene', _('View Scanning Scene'), 'preferences', bool, True))
 
         self._add_setting(
+            Setting('view_mode_advanced', _('Advanced mode'), 'preferences', bool, False))
+
+        self._add_setting(
             Setting('last_files', _('Last Files'), 'preferences', list, []))
         # TODO: Set this default value
         self._add_setting(

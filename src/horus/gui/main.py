@@ -125,6 +125,7 @@ class MainWindow(wx.Frame):
         self.menu_scanning_video = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Video"))
         self.menu_scanning_scene = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Scene"))
         self.menu_view.AppendMenu(wx.NewId(), _("Scanning"), self.menu_scanning)
+        self.menu_mode_advanced = self.menu_view.AppendCheckItem(wx.NewId(), _("Advanced mode"))
         self.menu_bar.Append(self.menu_view, _("View"))
 
         # Menu Help
@@ -166,6 +167,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_scanning_panel_clicked, self.menu_scanning_panel)
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_video)
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_scene)
+        self.Bind(wx.EVT_MENU, self.on_mode_advanced_clicked, self.menu_mode_advanced)
 
         self.Bind(wx.EVT_MENU, self.on_about, self.menu_about)
         self.Bind(wx.EVT_MENU, self.on_welcome, self.menu_welcome)
@@ -374,6 +376,23 @@ class MainWindow(wx.Frame):
         self.workbench['scanning'].Layout()
         self.Layout()
 
+    def on_mode_advanced_clicked(self, event):
+        checked = self.menu_mode_advanced.IsChecked()
+        profile.settings['view_mode_advanced'] = checked
+        if checked:
+            self.workbench['calibration'].panels_collection.expandable_panels[
+                'camera_intrinsics'].Show()
+        else:
+            self.workbench['calibration'].panels_collection.expandable_panels[
+                'camera_intrinsics'].Hide()
+
+            if profile.settings['current_panel_calibration'] == 'camera_intrinsics':
+                self.workbench['calibration'].on_pattern_settings_selected()
+                self.workbench['calibration'].panels_collection.expandable_panels[
+                    profile.settings['current_panel_calibration']].on_title_clicked(None)
+        self.workbench['calibration'].Layout()
+        self.Layout()
+
     def on_connect(self):
         for workbench in self.workbench.values():
             workbench.enable_content()
@@ -499,6 +518,10 @@ class MainWindow(wx.Frame):
         self.menu_scanning_video.Check(checked_video)
         self.menu_scanning_scene.Check(checked_scene)
 
+        checked = profile.settings['view_mode_advanced']
+
+        self.menu_mode_advanced.Check(checked)
+
         self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         if checked_video:
             self.workbench['scanning'].video_view.Show()
@@ -533,10 +556,10 @@ class MainWindow(wx.Frame):
         if len(video_list) > 0:
             if current_video_id not in video_list:
                 profile.settings['camera_id'] = unicode(video_list[0])
-        
+
         if len(profile.settings['camera_id']):
             driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
-            
+
         driver.board.serial_name = profile.settings['serial_name']
         driver.board.baud_rate = profile.settings['baud_rate']
         driver.board.motor_invert(profile.settings['invert_motor'])
