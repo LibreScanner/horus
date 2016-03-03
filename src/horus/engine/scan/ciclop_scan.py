@@ -19,6 +19,9 @@ from horus.engine.calibration.calibration_data import CalibrationData
 import logging
 logger = logging.getLogger(__name__)
 
+import platform
+system = platform.system()
+
 
 class ScanError(Exception):
 
@@ -89,12 +92,13 @@ class CiclopScan(Scan):
 
         # Setup console
         logger.info("Start scan")
-        string_time = str(datetime.datetime.now())[:-3] + " - "
-        print string_time + " elapsed progress: 0 %"
-        print string_time + " elapsed time: 0' 0\""
-        print string_time + " elapsed angle: 0º"
-        print string_time + " capture: 0 ms"
-        print string_time + " process: 0 ms"
+        if system == 'Linux':
+            string_time = str(datetime.datetime.now())[:-3] + " - "
+            print string_time + " elapsed progress: 0 %"
+            print string_time + " elapsed time: 0' 0\""
+            print string_time + " elapsed angle: 0º"
+            print string_time + " capture: 0 ms"
+            print string_time + " process: 0 ms"
 
         # Setup scanner
         self.driver.board.lasers_off()
@@ -142,13 +146,14 @@ class CiclopScan(Scan):
                     string_time = str(datetime.datetime.now())[:-3] + " - "
 
                     # Cursor up + remove lines
-                    print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
-                    print string_time + " elapsed progress: {0} %".format(
-                        int(100 * self._progress / self._range))
-                    print string_time + " elapsed time: {0}".format(
-                        time.strftime("%M' %S\"", time.gmtime(end - self._begin)))
-                    print string_time + " elapsed angle: {0}º".format(int(np.rad2deg(self._theta)))
-                    print string_time + " capture: {0} ms".format(int((end - begin) * 1000))
+                    if system == 'Linux':
+                        print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
+                        print string_time + " elapsed progress: {0} %".format(
+                            int(100 * self._progress / self._range))
+                        print string_time + " elapsed time: {0}".format(
+                            time.strftime("%M' %S\"", time.gmtime(end - self._begin)))
+                        print string_time + " elapsed angle: {0}º".format(int(np.rad2deg(self._theta)))
+                        print string_time + " capture: {0} ms".format(int((end - begin) * 1000))
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()
@@ -239,8 +244,9 @@ class CiclopScan(Scan):
                         self.current_video.set_line(points, image)
 
                         # Print info
-                        print string_time + " process: {0} ms".format(
-                            int((time.time() - begin) * 1000))
+                        if system == 'Linux':
+                            print string_time + " process: {0} ms".format(
+                                int((time.time() - begin) * 1000))
         if ret:
             response = (True, None)
         else:

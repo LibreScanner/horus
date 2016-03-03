@@ -307,16 +307,10 @@ class MainWindow(wx.Frame):
         profile.settings['last_files'] = self.last_files
 
     def on_preferences(self, event):
-        if sys.is_windows():
-            driver.disconnect()
-
         preferences = PreferencesDialog()
         preferences.ShowModal()
 
     """def on_machine_settings(self, event):
-        if sys.is_windows():
-            driver.disconnect()
-
         machine_settings = MachineSettingsDialog(self)
         ret = machine_settings.ShowModal()
 

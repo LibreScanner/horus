@@ -159,7 +159,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 
 	# Clean directory
 	cd ../..
-	rm -rf "Horus.egg-info"
+	rm -rf "src/Horus.egg-info"
 fi
 
 #############################

@@ -26,7 +26,7 @@ class ImageView(wx.Panel):
 
         self.black = black
         self.frame = None
-        # self.SetDoubleBuffered(True)
+        self.SetDoubleBuffered(True)
 
         self.Bind(wx.EVT_SHOW, self.on_show)
         self.Bind(wx.EVT_PAINT, self.on_paint)

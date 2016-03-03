@@ -53,6 +53,7 @@ class Camera(object):
         self._reading = False
         self._updating = False
         self._last_image = None
+        self._video_list = None
         self._tries = 0  # Check if command fails
 
         self.initialize()
@@ -321,13 +322,17 @@ class Camera(object):
     def get_video_list(self):
         baselist = []
         if system == 'Windows':
-            count = self._count_cameras()
-            for i in xrange(count):
-                baselist.append(str(i))
+            if not self._is_connected:
+                count = self._count_cameras()
+                for i in xrange(count):
+                    baselist.append(str(i))
+                self._video_list = baselist
         elif system == 'Darwin':
             for device in uvc.mac.Camera_List():
                 baselist.append(str(device.src_id))
+            self._video_list = baselist
         else:
             for device in ['/dev/video*']:
                 baselist = baselist + glob.glob(device)
-        return baselist
+            self._video_list = baselist
+        return self._video_list

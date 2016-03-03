@@ -1,1 +1,1 @@
-@python\python.exe -m horus %*
+@python\python.exe horus.py %*

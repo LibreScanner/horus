@@ -9,7 +9,7 @@ import wx._core
 
 from horus.util import profile
 
-from horus.gui.engine import current_video
+from horus.gui.engine import driver, current_video
 
 from horus.gui.util.video_view import VideoView
 from horus.gui.util.scene_view import SceneView
@@ -23,7 +23,6 @@ class ViewPage(wx.SplitterWindow):
         self.get_image = get_image
 
         self.video_view = VideoView(self, get_image, wxtimer=False)
-        self.video_view.SetBackgroundColour(wx.BLACK)
 
         self.scene_panel = wx.Panel(self)
         self.scene_view = SceneView(self.scene_panel)
@@ -57,7 +56,8 @@ class ViewPage(wx.SplitterWindow):
 
     def on_show(self, event):
         if event.GetShow():
-            self.video_view.play()
+            if driver.is_connected:
+                self.video_view.play()
         else:
             try:
                 self.video_view.stop()

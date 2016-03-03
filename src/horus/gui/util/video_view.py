@@ -73,9 +73,8 @@ class VideoView(ImageView):
                 self.timer.Stop()
             else:
                 self.timer.cancel()
+                self.timer.join()
 
     def reset(self):
-        if not self.wxtimer:
-            time.sleep(0.5)
         self.hide = True
         self.set_default_image()

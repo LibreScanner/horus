@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.gui.engine import pattern
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, \
-    FloatTextBox, FloatTextBoxArray
+    FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray
 
 
 class PatternSettings(ExpandablePanel):
@@ -78,13 +78,10 @@ class LaserTriangulation(ExpandablePanel):
                                  selected_callback=on_selected_callback, has_undo=False)
 
     def add_controls(self):
-        self.add_control('distance_left', FloatTextBox)
-        self.add_control('normal_left', FloatTextBoxArray)
-        self.add_control('distance_right', FloatTextBox)
-        self.add_control('normal_right', FloatTextBoxArray)
-
-        self.content.control_panels['distance_left'].control.Disable()
-        self.content.control_panels['distance_right'].control.Disable()
+        self.add_control('distance_left', FloatLabel)
+        self.add_control('normal_left', FloatLabelArray)
+        self.add_control('distance_right', FloatLabel)
+        self.add_control('normal_right', FloatLabelArray)
 
 
 class PlatformExtrinsics(ExpandablePanel):
@@ -94,5 +91,5 @@ class PlatformExtrinsics(ExpandablePanel):
                                  selected_callback=on_selected_callback, has_undo=False)
 
     def add_controls(self):
-        self.add_control('rotation_matrix', FloatTextBoxArray)
-        self.add_control('translation_vector', FloatTextBoxArray)
+        self.add_control('rotation_matrix', FloatLabelArray)
+        self.add_control('translation_vector', FloatLabelArray)

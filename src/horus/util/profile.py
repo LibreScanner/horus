@@ -416,12 +416,12 @@ class Settings(collections.MutableMapping):
                                            buffer=np.array([0.0, 0.0, 0.0, 0.0, 0.0]))))
 
         self._add_setting(
-            Setting('distance_left', _('Distance left'), 'calibration_settings', float, 0.0))
+            Setting('distance_left', _('Distance left (mm)'), 'calibration_settings', float, 0.0))
         self._add_setting(
             Setting('normal_left', _('Normal left'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
         self._add_setting(
-            Setting('distance_right', _('Distance right'), 'calibration_settings', float, 0.0))
+            Setting('distance_right', _('Distance right (mm)'), 'calibration_settings', float, 0.0))
         self._add_setting(
             Setting('normal_right', _('Normal right'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
@@ -432,12 +432,12 @@ class Settings(collections.MutableMapping):
                                                                           [0.0, 0.0, 0.0],
                                                                           [0.0, 0.0, 0.0]]))))
         self._add_setting(
-            Setting('translation_vector', _('Translation vector'), 'calibration_settings',
+            Setting('translation_vector', _('Translation vector (mm)'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([0.0, 0.0, 0.0]))))
 
         self._add_setting(
             Setting('estimated_size', _('Estimated size'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([-5.0, 9.0, 320.0]))))
+                    np.ndarray, np.ndarray(shape=(3,), buffer=np.array([-5.0, 90.0, 320.0]))))
 
         self._add_setting(
             Setting('laser_triangulation_hash', _(''), 'calibration_settings', unicode, u''))
@@ -558,7 +558,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('last_profile', _('Last Profile'), 'preferences', unicode, u''))
         self._add_setting(
-            Setting('model_color', _('Model color'), 'preferences', unicode, u'888899'))
+            Setting('model_color', _('Model color'), 'preferences', unicode, u'888888'))
 
 
 class Setting(object):
