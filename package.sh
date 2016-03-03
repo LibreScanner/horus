@@ -24,7 +24,7 @@ TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
 
 
 ##Which versions of external programs to use
-WIN_PORTABLE_PY_VERSION=2.7.2.1 #TODO: 2.7.6.1
+WIN_PORTABLE_PY_VERSION=2.7.2.1
 
 
 #############################

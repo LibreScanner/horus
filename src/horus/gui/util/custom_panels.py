@@ -40,7 +40,6 @@ class ExpandableCollection(wx.Panel):
             panel.hide_content()
         selected_panel.show_content()
         self.Layout()
-        self.GetParent().Layout()
 
     # Engine callbacks
     def update_callbacks(self):

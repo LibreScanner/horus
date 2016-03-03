@@ -86,6 +86,7 @@ class CiclopScan(Scan):
         self.image = None
         self.image_capture.stream = False
         self._theta = 0
+        self._progress = 0
         self._captures_queue.queue.clear()
         self._point_cloud_queue.queue.clear()
         self._begin = time.time()
