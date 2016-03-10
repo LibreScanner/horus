@@ -66,6 +66,7 @@ class ExpandablePanel(wx.Panel):
         wx.Panel.__init__(self, parent, size=(-1, -1))
 
         # Elements
+        self.parent = parent
         self.expand_callback = None
         self.selected_callback = selected_callback
         self.undo_objects = []
@@ -151,6 +152,7 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Show()
         if self.has_restore:
             self.restore_button.Show()
+        self.parent.Layout()
 
     def hide_content(self):
         self.title_text.font_normal()
@@ -159,6 +161,7 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Hide()
         if self.has_restore:
             self.restore_button.Hide()
+        self.parent.Layout()
 
     def append_undo(self, _object):
         if self.has_undo:
@@ -224,9 +227,11 @@ class TitleText(wx.Panel):
 
     def font_normal(self):
         self.title.SetForegroundColour('#717577')
+        self.Layout()
 
     def font_selected(self):
         self.title.SetForegroundColour('#313739')
+        self.Layout()
 
 
 class ControlCollection(wx.Panel):
@@ -571,7 +576,7 @@ class FloatTextBox(ControlPanel):
 
 class FloatBoxArray(wx.Panel):
 
-    def __init__(self, parent, value, size):
+    def __init__(self, parent, value, size, onedit_callback=None):
         wx.Panel.__init__(self, parent)
         self.value = value
         self.size = size
@@ -590,7 +595,8 @@ class FloatBoxArray(wx.Panel):
                     self.texts[i][j].SetValue(self.value[j])
                 else:
                     self.texts[i][j].SetValue(self.value[i][j])
-                self.texts[i][j].SetEditable(False)
+                self.texts[i][j].Bind(wx.EVT_KILL_FOCUS, self.onedit_callback)
+                # self.texts[i][j].SetEditable(False)
                 # self.texts[i][j].Disable()
                 jbox.Add(self.texts[i][j], 1, wx.ALL | wx.EXPAND, 2)
             ibox.Add(jbox, 1, wx.ALL | wx.EXPAND, 1)
@@ -607,7 +613,13 @@ class FloatBoxArray(wx.Panel):
                     self.texts[i][j].SetValue(self.value[i][j])
 
     def GetValue(self):
-        pass
+        for i in range(self.r):
+            for j in range(self.c):
+                if self.r == 1:
+                    self.value[j] = self.texts[i][j].GetValue()
+                else:
+                    self.value[j][i] = self.texts[i][j].GetValue()
+        return self.value
 
 
 class FloatTextBoxArray(ControlPanel):
@@ -617,7 +629,8 @@ class FloatTextBoxArray(ControlPanel):
 
         # Elements
         label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
-        self.control = FloatBoxArray(self, value=profile.settings[name], size=(50, -1))
+        self.control = FloatBoxArray(self, value=profile.settings[name], size=(50, -1),
+                                     onchange_callback=self._on_text_box_lost_focus)
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
