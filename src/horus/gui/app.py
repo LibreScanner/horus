@@ -21,10 +21,12 @@ class HorusApp(wx.App):
     def __init__(self):
         super(HorusApp, self).__init__(redirect=False)
 
+        self.splash = None
+
         if sys.is_darwin():
             self.after_splash_callback()
         else:
-            SplashScreen(self.after_splash_callback)
+            self.splash = SplashScreen(self.after_splash_callback)
 
     def after_splash_callback(self):
         # Load logger
@@ -46,8 +48,16 @@ class HorusApp(wx.App):
         if profile.settings['check_for_updates'] and version.check_for_updates():
             v = VersionWindow(self.main_window)
             if v.download:
+                if self.splash is not None:
+                    self.splash.Show(False)
+                    self.splash = None
                 self.main_window.Close(True)
                 return
+
+        # Hide Splash
+        if self.splash is not None:
+            self.splash.Show(False)
+            self.splash = None
 
         # Show main window
         self.SetTopWindow(self.main_window)

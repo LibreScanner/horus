@@ -218,6 +218,7 @@ class glGuiPanel(glcanvas.GLCanvas):
             self.on_mouse_motion(e)
 
     def _on_gui_paint(self, e):
+        wx.PaintDC(self)
         try:
             self.SetCurrent(self._context)
             for obj in self.gl_release_list:

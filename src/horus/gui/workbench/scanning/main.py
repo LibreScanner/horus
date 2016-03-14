@@ -40,6 +40,7 @@ class ScanningWorkbench(Workbench):
             wx.NewId(), _("Pause"),
             wx.Bitmap(resources.get_path_for_image("pause.png")), shortHelp=_("Pause"))
         self.toolbar_scan.Realize()
+        self.toolbar_scan.GetParent().Layout()
 
         self._enable_tool_scan(self.play_tool, False)
         self._enable_tool_scan(self.stop_tool, False)
@@ -217,12 +218,9 @@ class ScanningWorkbench(Workbench):
                 result = dlg.ShowModal() == wx.ID_YES
                 dlg.Destroy()
             if result:
-                self.gauge.SetValue(0)
                 ciclop_scan.set_callbacks(self.before_scan,
                                           None, lambda r: wx.CallAfter(self.after_scan, r))
                 ciclop_scan.start()
-                self.gauge.Show()
-                self.Layout()
 
     def before_scan(self):
         self.scene_view._view_roi = False
@@ -239,6 +237,10 @@ class ScanningWorkbench(Workbench):
         self.scene_view.create_default_object()
         self.scene_view.set_show_delete_menu(False)
         self.point_cloud_timer.Start(milliseconds=self.point_cloud_timer_millis)
+        self.gauge.SetValue(0)
+        self.gauge.Show()
+        self.scene_panel.Layout()
+        self.Layout()
 
     def after_scan(self, response):
         ret, result = response
@@ -288,6 +290,7 @@ class ScanningWorkbench(Workbench):
             self.scene_view.queue_refresh()
         self.gauge.SetValue(0)
         self.gauge.Hide()
+        self.scene_panel.Layout()
         self.Layout()
 
     def on_pause_tool_clicked(self, event):

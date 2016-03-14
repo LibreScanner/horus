@@ -277,16 +277,13 @@ class MainWindow(wx.Frame):
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
             driver.disconnect()
-            # Stop video
-            # for workbench in self.workbench:
-            #     workbench.on_close()
-            self.workbench['control'].on_close()
             if ciclop_scan.is_scanning:
                 ciclop_scan.stop()
                 time.sleep(0.5)
         except:
             pass
-        event.Skip()
+        self.Show(False)
+        self.Destroy()
 
     def enable_gui(self, status):
         if status:
@@ -310,16 +307,10 @@ class MainWindow(wx.Frame):
         profile.settings['last_files'] = self.last_files
 
     def on_preferences(self, event):
-        if sys.is_windows():
-            driver.disconnect()
-
         preferences = PreferencesDialog()
         preferences.ShowModal()
 
     """def on_machine_settings(self, event):
-        if sys.is_windows():
-            driver.disconnect()
-
         machine_settings = MachineSettingsDialog(self)
         ret = machine_settings.ShowModal()
 
