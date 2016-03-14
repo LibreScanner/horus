@@ -7,6 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 import logging.config
+import datetime
 
 from horus.gui.main import MainWindow
 from horus.gui.splash import SplashScreen
@@ -29,11 +30,12 @@ class HorusApp(wx.App):
             self.splash = SplashScreen(self.after_splash_callback)
 
     def after_splash_callback(self):
-        # Load logger
-        logging.config.fileConfig(resources.get_path_for_logger('logger.conf'))
-
         # Load settings
         profile.load_settings()
+
+        # Load logger
+        self.clear_log_if_required()
+        logging.config.fileConfig(resources.get_path_for_logger('logger.conf'))
 
         # Load language
         resources.setup_localization(profile.settings['language'])
@@ -75,6 +77,25 @@ class HorusApp(wx.App):
     def __del__(self):
         # Save profile and preferences
         profile.settings.save_settings()
+
+    def clear_log_if_required(self):
+        date_format = '%Y-%m-%d %H:%M:%S'
+        current_log_date = datetime.datetime.now()
+        last_log_date = profile.settings['last_clear_log_date']
+        try:
+            last_log_date = datetime.datetime.strptime(last_log_date, date_format)
+            # Remove log if have elapsed 7 days after last log clear
+            if (current_log_date - last_log_date).days >= 7:
+                with open('horus.log', 'w'):
+                    pass
+        except:
+            pass
+        self._update_log_date()
+
+    def _update_log_date(self):
+        date_format = '%Y-%m-%d %H:%M:%S'
+        current_log_date = datetime.datetime.now()
+        profile.settings['last_clear_log_date'] = str(current_log_date.strftime(date_format))
 
     def MacReopenApp(self):
         self.GetTopWindow().Raise()

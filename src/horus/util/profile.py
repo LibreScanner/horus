@@ -559,6 +559,8 @@ class Settings(collections.MutableMapping):
             Setting('last_profile', _('Last Profile'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('model_color', _('Model color'), 'preferences', unicode, u'888888'))
+        self._add_setting(
+            Setting('last_clear_log_date', _('Last clear log date'), 'preferences', unicode, u''))
 
 
 class Setting(object):

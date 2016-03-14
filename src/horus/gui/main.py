@@ -108,6 +108,11 @@ class MainWindow(wx.Frame):
         self.menu_reset_calibration_profile = self.menu_file.Append(
             wx.NewId(), _("Reset calibration"), _("Resets calibration default values"))
         self.menu_file.AppendSeparator()
+        self.menu_export_log = self.menu_file.Append(
+            wx.NewId(), _("Export log"), _("Export log file"))
+        self.menu_clear_log = self.menu_file.Append(
+            wx.NewId(), _("Clear log"), _("Clear log file"))
+        self.menu_file.AppendSeparator()
         self.menu_exit = self.menu_file.Append(wx.ID_EXIT, _("Exit"))
         self.menu_bar.Append(self.menu_file, _("File"))
 
@@ -159,6 +164,8 @@ class MainWindow(wx.Frame):
                   self.menu_save_calibration_profile)
         self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("calibration_settings"),
                   self.menu_reset_calibration_profile)
+        self.Bind(wx.EVT_MENU, self.on_export_log, self.menu_export_log)
+        self.Bind(wx.EVT_MENU, self.on_clear_log, self.menu_clear_log)
         self.Bind(wx.EVT_MENU, self.on_exit, self.menu_exit)
 
         self.Bind(wx.EVT_MENU, self.on_preferences, self.menu_preferences)
@@ -269,6 +276,36 @@ class MainWindow(wx.Frame):
             profile.settings.reset_to_default(categories=[category])
             self.update_profile_to_all_controls()
 
+    def on_clear_log(self, event):
+        dlg = wx.MessageDialog(
+            self,
+            _("Your current log file will be erased.\nDo you really want to do it?"),
+            _("Clear Log File"), wx.YES_NO | wx.ICON_QUESTION)
+        result = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        if result:
+            with open('horus.log', 'w'):
+                pass
+            date_format = '%Y-%m-%d %H:%M:%S'
+            current_log_date = datetime.datetime.now()
+            profile.settings['last_clear_log_date'] = str(current_log_date.strftime(date_format))
+
+    def on_export_log(self, event):
+        dlg = wx.FileDialog(self, _("Select log file to save"),
+                            profile.get_base_path(), style=wx.FD_SAVE)
+        dlg.SetWildcard("Log files (*.log)|*.log")
+        if dlg.ShowModal() == wx.ID_OK:
+            log_file = dlg.GetPath()
+            if not log_file.endswith('.log'):
+                if sys.is_linux():  # hack for linux, as for some reason the .log is not appended.
+                    log_file += '.log'
+
+            with open(log_file, 'w') as _file:
+                with open('horus.log', 'r') as _log:
+                    _file.write(_log.read())
+            log_file
+        dlg.Destroy()
+
     def on_exit(self, event):
         self.Close(True)
 
@@ -277,6 +314,8 @@ class MainWindow(wx.Frame):
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
             driver.disconnect()
+            for workbench in self.workbench:
+                workbench.on_disconnect()
             if ciclop_scan.is_scanning:
                 ciclop_scan.stop()
                 time.sleep(0.5)
@@ -391,8 +430,7 @@ class MainWindow(wx.Frame):
 
     def on_disconnect(self):
         for workbench in self.workbench.values():
-            workbench.disable_content()
-        self.workbench[profile.settings['workbench']].on_disconnect()
+            workbench.on_disconnect()
 
     def on_combo_box_selected(self, event):
         self.update_workbench(event.GetEventObject().GetValue())
