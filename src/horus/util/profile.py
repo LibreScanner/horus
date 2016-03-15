@@ -30,10 +30,11 @@ class Settings(collections.MutableMapping):
 
     def __getitem__(self, key):
         # For convinience, this returns the Setting value and not the Setting object itself
-        if self._settings_dict[key].value is not None:
-            return self._settings_dict[key].value
+        value = self.get_setting(key).value
+        if value is not None:
+            return value
         else:
-            return self._settings_dict[key].default
+            return self.get_default(key)
 
     def get_setting(self, key):
         return self._settings_dict[key]
@@ -42,7 +43,10 @@ class Settings(collections.MutableMapping):
         return self.get_setting(key)._label
 
     def get_default(self, key):
-        return self.get_setting(key).default
+        if self.get_setting(key)._type == np.ndarray:
+            return self.get_setting(key).default.copy()
+        else:
+            return self.get_setting(key).default
 
     def get_min_value(self, key):
         return self.get_setting(key).min_value
@@ -153,12 +157,12 @@ class Settings(collections.MutableMapping):
 
     def reset_to_default(self, key=None, categories=None):
         if key is not None:
-            self.__setitem__(key, self.get_setting(key).default)
+            self.__setitem__(key, self.get_default(key))
         else:
             for key in self._settings_dict.keys():
                 if categories is not None and self.get_setting(key)._category not in categories:
                     continue
-                self.__setitem__(key, self.get_setting(key).default)
+                self.__setitem__(key, self.get_default(key))
 
     def _add_setting(self, setting):
         self._settings_dict[setting._id] = setting
@@ -232,23 +236,23 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_texture_scanning', _('Saturation'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 50, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=128))
 
         self._add_setting(
             Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 0, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_laser_scanning', _('Contrast'), 'profile_settings',
-                    int, 20, min_value=0, max_value=255))
+                    int, 200, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_scanning', _('Saturation'), 'profile_settings',
-                    int, 60, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_scanning', _('Exposure'), 'profile_settings',
-                    int, 4, min_value=1, max_value=64))
+                    int, 6, min_value=1, max_value=64))
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'profile_settings', bool, True))
@@ -261,7 +265,7 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('window_value_scanning', _('Window'), 'profile_settings',
-                    int, 20, min_value=0, max_value=30))
+                    int, 15, min_value=0, max_value=30))
         self._add_setting(
             Setting('blur_enable_scanning', _('Enable blur'),
                     'profile_settings', bool, True))
@@ -273,7 +277,7 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_scanning', _('Threshold'), 'profile_settings',
-                    int, 30, min_value=0, max_value=255))
+                    int, 50, min_value=0, max_value=255))
 
         # Hack to translate combo boxes:
         _('Pattern')
@@ -300,7 +304,7 @@ class Settings(collections.MutableMapping):
                     int, 0, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_laser_calibration', _('Contrast'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 200, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_calibration', _('Saturation'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
@@ -320,10 +324,10 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('window_value_calibration', _('Window'), 'profile_settings',
-                    int, 20, min_value=0, max_value=30))
+                    int, 10, min_value=0, max_value=30))
         self._add_setting(
             Setting('blur_enable_calibration', _('Enable blur'),
-                    'profile_settings', bool, True))
+                    'profile_settings', bool, False))
         self._add_setting(
             Setting('blur_value_calibration', _('Blur'), 'profile_settings',
                     int, 1, min_value=0, max_value=10))
@@ -366,6 +370,14 @@ class Settings(collections.MutableMapping):
                     float, 300.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
+            Setting('use_roi', _('Use ROI'), 'profile_settings', bool, False))
+        self._add_setting(
+            Setting('roi_diameter', _('Diameter (mm)'), 'profile_settings',
+                    int, 200, min_value=0, max_value=250))
+        self._add_setting(
+            Setting('roi_height', _('Height (mm)'), 'profile_settings',
+                    int, 200, min_value=0, max_value=250))
+        self._add_setting(
             Setting('point_cloud_color', _('Choose point cloud color'), 'profile_settings',
                     unicode, u'AAAAAA'))
 
@@ -407,8 +419,8 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1422.0, 0.0, 480.0],
-                                                                          [0.0, 1422.0, 640.0],
+                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
+                                                                          [0.0, 1430.0, 640.0],
                                                                           [0.0, 0.0, 1.0]]))))
         self._add_setting(
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',
@@ -471,14 +483,6 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('machine_model_path', _('Machine Model'), 'machine_settings',
                     unicode, unicode(resources.get_path_for_mesh('ciclop_platform.stl'))))
-        self._add_setting(
-            Setting('use_roi', _('Use ROI'), 'machine_settings', bool, True))
-        self._add_setting(
-            Setting('roi_diameter', _('Diameter (mm)'), 'machine_settings',
-                    int, 200, min_value=0, max_value=250))
-        self._add_setting(
-            Setting('roi_height', _('Height (mm)'), 'machine_settings',
-                    int, 200, min_value=0, max_value=250))
         # self._add_setting(
         #     Setting('roi_width', _('Width (mm)'), 'machine_settings',
         #             int, 200, min_value=0, max_value=250))

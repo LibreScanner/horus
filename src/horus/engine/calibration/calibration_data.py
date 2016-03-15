@@ -51,9 +51,8 @@ class CalibrationData(object):
 
     @camera_matrix.setter
     def camera_matrix(self, value):
-        if self._camera_matrix is not value:
-            self._camera_matrix = value
-            self._compute_dist_camera_matrix()
+        self._camera_matrix = value
+        self._compute_dist_camera_matrix()
 
     @property
     def distortion_vector(self):
@@ -61,9 +60,8 @@ class CalibrationData(object):
 
     @distortion_vector.setter
     def distortion_vector(self, value):
-        if self._distortion_vector is not value:
-            self._distortion_vector = value
-            self._compute_dist_camera_matrix()
+        self._distortion_vector = value
+        self._compute_dist_camera_matrix()
 
     @property
     def roi(self):

@@ -87,6 +87,7 @@ class PointCloudROI(ExpandablePanel):
 
     def _set_use_roi(self, value):
         if driver.is_connected and profile.settings['current_panel_scanning'] == 'point_cloud_roi':
+            point_cloud_roi.set_use_roi(value)
             if value:
                 point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
                 point_cloud_roi.set_height(profile.settings['roi_height'])

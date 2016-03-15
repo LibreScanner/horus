@@ -101,7 +101,7 @@ class LaserSegmentation(object):
         if self.red_channel == 'R-G (RGB)':
             r, g, b = cv2.split(image)
             ret = cv2.subtract(r, g)
-            ret *= 1.0 * np.amax(r) / np.amax(ret)
+            # ret *= 1.0 * np.amax(r) / np.amax(ret)
         elif self.red_channel == 'Cr (YCrCb)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCR_CB))[1]
         elif self.red_channel == 'U (YUV)':

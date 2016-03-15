@@ -619,7 +619,7 @@ class FloatBoxArray(wx.Panel):
                 if self.r == 1:
                     self.value[j] = self.texts[i][j].GetValue()
                 else:
-                    self.value[j][i] = self.texts[i][j].GetValue()
+                    self.value[i][j] = self.texts[i][j].GetValue()
         return self.value
 
 

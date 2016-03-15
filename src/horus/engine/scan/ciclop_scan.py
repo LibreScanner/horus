@@ -115,7 +115,7 @@ class CiclopScan(Scan):
     def _capture(self):
         global string_time
         while self.is_scanning:
-            time.sleep(0.01)
+            time.sleep(0.02)
             if self._inactive:
                 self.image_capture.stream = True
                 time.sleep(0.1)
@@ -236,7 +236,7 @@ class CiclopScan(Scan):
                                     texture[1, :] = g
                                     texture[2, :] = b
                                 else:
-                                    texture = capture.texture[v, u.astype(int)].T
+                                    texture = capture.texture[v, np.around(u).astype(int)].T
 
                                 self._point_cloud_queue.put((point_cloud, texture))
 

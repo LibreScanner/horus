@@ -136,6 +136,7 @@ class ScanningWorkbench(Workbench):
         ciclop_scan.motor_acceleration = profile.settings['motor_acceleration_scanning']
         ciclop_scan.color = struct.unpack(
             'BBB', profile.settings['point_cloud_color'].decode('hex'))
+        point_cloud_roi.set_use_roi(profile.settings['use_roi'])
         point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
         point_cloud_roi.set_height(profile.settings['roi_height'])
 
@@ -143,8 +144,7 @@ class ScanningWorkbench(Workbench):
         if self.scanning:
             image_capture.stream = False
             image = current_video.capture()
-            if profile.settings['use_roi']:
-                image = point_cloud_roi.mask_image(image)
+            image = point_cloud_roi.mask_image(image)
             return image
         else:
             image_capture.stream = True
