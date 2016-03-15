@@ -139,7 +139,7 @@ class ResultPage(Page):
             t = result[1]
             self.result = (R, t)
             text = ' R: {0}  t: {1}'.format(
-                   np.round(R, 3), np.round(t, 4)).replace('\n', '')
+                   np.round(R, 2), np.round(t, 4)).replace('\n', '')
             self.desc_text.SetLabel(text)
             self.plot_panel.clear()
             self.plot_panel.add(result)

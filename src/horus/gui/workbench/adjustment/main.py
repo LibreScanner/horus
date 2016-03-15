@@ -37,7 +37,9 @@ class AdjustmentWorkbench(Workbench):
         return self.current_video.get_frame()
 
     def on_open(self):
-        self.pages_collection['video_view'].play()
+        current_video_mode = profile.settings['current_video_mode_adjustment']
+        self.pages_collection['video_view'].play(
+            flush=not (current_video_mode == 'Laser' or current_video_mode == 'Gray'))
 
     def on_close(self):
         try:

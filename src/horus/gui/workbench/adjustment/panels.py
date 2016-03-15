@@ -18,7 +18,7 @@ current_video = CurrentVideo()
 def flush_video():
     current_video.capture()
     current_video.capture()
-    current_video.capture()
+    # current_video.capture()
 
 
 class ScanCapturePanel(ExpandablePanel):
@@ -101,7 +101,8 @@ class ScanCapturePanel(ExpandablePanel):
         laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
         laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
-        flush_video()
+        if current_video.mode == 'Texture':
+            flush_video()
         current_video.updating = False
 
     def _set_camera_mode(self, mode):
@@ -269,7 +270,8 @@ class CalibrationCapturePanel(ExpandablePanel):
         laser_mode.set_contrast(profile.settings['contrast_laser_calibration'])
         laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
-        flush_video()
+        if current_video.mode == 'Pattern':
+            flush_video()
         current_video.updating = False
 
     def _set_camera_mode(self, mode):

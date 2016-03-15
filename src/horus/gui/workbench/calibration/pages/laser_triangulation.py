@@ -140,7 +140,7 @@ class ResultPage(Page):
             nR = result[1][1]
             stdR = result[1][2]
             self.result = (dL, nL, dR, nR)
-            text = ' dL: {0}  nL: {1}  dR: {2}  nR: {3}'.format(
+            text = ' L: {0} {1}  R: {2} {3}'.format(
                    round(dL, 4), np.round(nL, 4),
                    round(dR, 4), np.round(nR, 4))
             self.desc_text.SetLabel(text)

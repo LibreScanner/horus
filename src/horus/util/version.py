@@ -78,11 +78,13 @@ def _get_executable_url(version):
         del platform
     elif sys.is_windows():
         url = URL_DOWNLOAD
-        url += 'Horus_'
+        url += latest_version
+        url += '/Horus_'
         url += version + '.exe'
     elif sys.is_darwin():
         url = URL_DOWNLOAD
-        url += 'Horus_'
+        url += latest_version
+        url += '/Horus_'
         url += version + '.dmg'
     return url
 

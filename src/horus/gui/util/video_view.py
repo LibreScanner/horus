@@ -5,7 +5,6 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-import time
 import wx._core
 
 from threading import Timer
@@ -48,13 +47,14 @@ class VideoView(ImageView):
     def set_callback(self, callback):
         self.callback = callback
 
-    def play(self):
+    def play(self, flush=True):
         if not self.playing:
             self.playing = True
-            # Flush video
             if self.callback is not None:
-                self.callback()
-                self.callback()
+                # Flush video
+                if flush:
+                    self.callback()
+                    self.callback()
                 frame = self.callback()
                 self.set_frame(frame)
             self._start()
