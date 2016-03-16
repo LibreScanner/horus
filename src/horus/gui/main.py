@@ -89,11 +89,11 @@ class MainWindow(wx.Frame):
 
         # Menu File
         self.menu_file = wx.Menu()
-        self.menu_launch_wizard = self.menu_file.Append(wx.NewId(), _("Launch Wizard"))
+        self.menu_launch_wizard = self.menu_file.Append(wx.NewId(), _("Launch wizard"))
         self.menu_file.AppendSeparator()
-        self.menu_load_model = self.menu_file.Append(wx.NewId(), _("Load Model"))
-        self.menu_save_model = self.menu_file.Append(wx.NewId(), _("Save Model"))
-        self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear Model"))
+        self.menu_load_model = self.menu_file.Append(wx.NewId(), _("Open model"))
+        self.menu_save_model = self.menu_file.Append(wx.NewId(), _("Save model"))
+        self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear model"))
         self.menu_file.AppendSeparator()
         self.menu_open_profile = self.menu_file.Append(
             wx.NewId(), _("Open profile"), _("Opens profile .json"))

@@ -130,7 +130,7 @@ class Wizard(wx.Dialog):
         profile.settings.save_settings()
         dlg = wx.MessageDialog(
             self,
-            _("You have finished the wizard.\nPress Play button to start scanning."),
+            _("You have completed the wizard.\nPress Play button to start scanning."),
             _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()

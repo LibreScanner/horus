@@ -452,10 +452,10 @@ class Settings(collections.MutableMapping):
                     np.ndarray, np.ndarray(shape=(3,), buffer=np.array([-5.0, 90.0, 320.0]))))
 
         self._add_setting(
-            Setting('laser_triangulation_hash', _(''), 'calibration_settings', unicode, u''))
+            Setting('laser_triangulation_hash', '', 'calibration_settings', unicode, u''))
 
         self._add_setting(
-            Setting('platform_extrinsics_hash', _(''), 'calibration_settings', unicode, u''))
+            Setting('platform_extrinsics_hash', '', 'calibration_settings', unicode, u''))
 
         self._add_setting(
             Setting('current_panel_calibration', u'pattern_settings', 'profile_settings',

@@ -20,7 +20,9 @@ class CapturePage(Page):
     def __init__(self, parent, start_callback=None):
         Page.__init__(self, parent,
                       title=_("Camera intrinsics (advanced)"),
-                      desc=_(""),
+                      desc=_("Default values are recommended. To perform the calibration, "
+                             "disable 'use distortion', click over the video panel and press "
+                             "space bar to perform captures."),
                       left=_("Reset"),
                       right=_("Start"),
                       button_left_callback=self.initialize,

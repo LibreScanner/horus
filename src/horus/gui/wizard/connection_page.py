@@ -208,7 +208,7 @@ class ConnectionPage(WizardPage):
         ret, result = response
 
         if ret:
-            self.result_label.SetLabel(_("Success. Please press next to continue"))
+            self.result_label.SetLabel(_("Success. Please press \"Next\" to continue"))
             dlg = wx.MessageDialog(
                 self, _("Scanner configured correctly"),
                 _("Success"), wx.OK | wx.ICON_INFORMATION)

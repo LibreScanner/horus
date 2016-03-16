@@ -161,7 +161,7 @@ class CalibrationPage(WizardPage):
         if ret:
             self.skip_button.Disable()
             self.next_button.Enable()
-            self.result_label.SetLabel(_("Success. Please press next to continue"))
+            self.result_label.SetLabel(_("Success. Please press \"Next\" to continue"))
             dlg = wx.MessageDialog(
                 self, _("Scanner calibrated correctly"),
                 _("Success"), wx.OK | wx.ICON_INFORMATION)

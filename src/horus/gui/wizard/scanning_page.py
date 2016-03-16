@@ -30,8 +30,8 @@ class ScanningPage(WizardPage):
         else:
             value = _("High")
         self.resolution_label = wx.StaticText(self.panel, label=_("Resolution"))
-        self.resolution_label.SetToolTip(wx.ToolTip(_("Sets the motor step. High (0.45),"
-                                                      " Medium (0.9), Low (1.8)")))
+        self.resolution_label.SetToolTip(wx.ToolTip(_(u"Set the motor step. High (0.45º),"
+                                                      u" Medium (0.9º), Low (1.8º)")))
         self.resolution_combo_box = wx.ComboBox(self.panel, wx.ID_ANY,
                                                 size=(200, -1),
                                                 value=value,
