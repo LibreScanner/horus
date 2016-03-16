@@ -73,11 +73,11 @@ class ImageCapture(object):
             self._flush_stream_laser = 2
             self._flush_stream_pattern = 0
         elif system == 'Darwin':
-            self._flush_texture = 3
-            self._flush_laser = 3
-            self._flush_pattern = 3
+            self._flush_texture = 4
+            self._flush_laser = 4
+            self._flush_pattern = 4
             self._flush_stream_texture = 0
-            self._flush_stream_laser = 3
+            self._flush_stream_laser = 2
             self._flush_stream_pattern = 0
         elif system == 'Windows':
             self._flush_texture = 4

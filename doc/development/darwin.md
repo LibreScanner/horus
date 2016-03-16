@@ -9,6 +9,9 @@ If you are a developer and you want to modify the code, contribute, build packag
 
 ### Tools
 
+#### Install FTDI driver
+* [FTDI USB Driver](http://www.ftdichip.com/Drivers/VCP/MacOSX/FTDIUSBSerialDriver_v2_3.dmg)
+
 #### Install Homebrew
 ```bash
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -23,12 +26,11 @@ brew install git
 ```
 
 #### Python
-Install non-system, framework-based, universal [Python](http://www.python.org/ftp/python/2.7.6/python-2.7.6-macosx10.6.dmg). Not with brew
+Install non-system, framework-based, universal [Python](http://www.python.org/ftp/python/2.7.6/python-2.7.6-macosx10.6.dmg). Not with brew.
 
 #### Python tools
 ```bash
-sudo easy_install pip
-sudo -H pip install -U pip setuptools
+pip install -U pip setuptools
 ```
 
 ### Dependencies
@@ -38,7 +40,13 @@ Following dependencies are included in dmg package, but if you want to install i
 #### OpenCV
 ```bash
 brew tap homebrew/science
+brew info opencv
 brew install opencv
+```
+
+```bash
+sudo ln -s /usr/local/Cellar/opencv/2.4.12_2/lib/python2.7/site-packages/cv.py /Library/Python/2.7/site-packages/cv.py
+sudo ln -s /usr/local/Cellar/opencv/2.4.12_2/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
 ```
 
 #### wxPython
@@ -46,24 +54,26 @@ brew install opencv
 brew install wxpython
 ```
 
-NOTE: in order to build Horus for other Mac OS X versions you must to install official dmg
-
-* [wxPython](http://downloads.sourceforge.net/wxpython/3.0.2.0/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg). Not with brew
-
 ```bash
-sudo installer -pkg /path/to/pkg -target /
+sudo ln -s /usr/local/Cellar/wxpython/3.0.2.0/lib/python2.7/site-packages/wx-3.0-osx_cocoa/wx /Library/Python/2.7/site-packages/wx
 ```
 
 #### Python modules
 ```bash
-sudo -H pip install -U pyserial pyopengl pyopengl-accelerate numpy scipy matplotlib==1.4.0 pyobjc-framework-qtkit
+pip install -U pyserial pyopengl pyopengl-accelerate numpy scipy matplotlib==1.4.0 pyobjc-framework-qtkit
+```
+
+NOTE: if 'xcodebuild' fails, try:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 ```
 
 In order to generate dmg package, some extra dependencies are needed
 
 #### Packaging dependencies
 ```bash
-sudo -H pip install -U py2app==0.7.2
+pip install -U py2app==0.7.2
 ```
 
 To reduce the package size, "tests" directories must be removed

@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from horus import __version__
 
 APP = ['horus']
-DATA_FILES = ['doc', 'res']
+DATA_FILES = ['res']
 
 PLIST = {
     u'CFBundleName': u'Horus',
