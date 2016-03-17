@@ -30,12 +30,26 @@ Install non-system, framework-based, universal [Python](http://www.python.org/ft
 
 #### Python tools
 ```bash
-pip install -U pip setuptools
+pip install -U pip setuptools virtualenv
 ```
 
 ### Dependencies
 
-Following dependencies are included in dmg package, but if you want to install it manually, they are:
+First you need to configure a virtualenv
+
+```bash
+virtualenv $HOME/venv
+```
+
+In order to use wxPython from the virtualenv this hack is needed
+
+```bash
+cp `which python` $HOME/venv/bin/python;
+echo 'export PYTHONHOME=$HOME/venv' >> $HOME/venv/bin/activate;
+source $HOME/venv/bin/activate
+```
+
+Then, you can install the python dependencies into the virtualenv
 
 #### OpenCV
 ```bash
@@ -45,8 +59,8 @@ brew install opencv
 ```
 
 ```bash
-sudo ln -s /usr/local/Cellar/opencv/2.4.12_2/lib/python2.7/site-packages/cv.py /Library/Python/2.7/site-packages/cv.py
-sudo ln -s /usr/local/Cellar/opencv/2.4.12_2/lib/python2.7/site-packages/cv2.so /Library/Python/2.7/site-packages/cv2.so
+ln -s /usr/local/Cellar/opencv/2.4.12_2/lib/python2.7/site-packages/cv.py $HOME/venv/lib/python2.7/site-packages;
+ln -s /usr/local/Cellar/opencv/2.4.12_2/lib/python2.7/site-packages/cv2.so $HOME/venv/lib/python2.7/site-packages
 ```
 
 #### wxPython
@@ -55,7 +69,7 @@ brew install wxpython
 ```
 
 ```bash
-sudo ln -s /usr/local/Cellar/wxpython/3.0.2.0/lib/python2.7/site-packages/wx-3.0-osx_cocoa/wx /Library/Python/2.7/site-packages/wx
+ln -s /usr/local/Cellar/wxpython/3.0.2.0/lib/python2.7/site-packages/wx* $HOME/venv/lib/python2.7/site-packages
 ```
 
 #### Python modules
@@ -76,24 +90,24 @@ In order to generate dmg package, some extra dependencies are needed
 pip install -U py2app==0.7.2
 ```
 
-To reduce the package size, "tests" directories must be removed
-
-```bash
-cd /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages
-sudo find . -name tests -type d -exec rm -r {} +
-```
-
 Also some patches are needed to make py2app work
 
 ```bash
-cd /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/py2app/recipes
+cd $HOME/venv/lib/python2.7/site-packages/py2app/recipes;
 
-sudo sed -i '' 's/scan_code/_scan_code/g' virtualenv.py
-sudo sed -i '' 's/load_module/_load_module/g' virtualenv.py
+sed -i '' 's/scan_code/_scan_code/g' virtualenv.py;
+sed -i '' 's/load_module/_load_module/g' virtualenv.py;
 
-cd /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/macholib
+cd $HOME/venv/lib/python2.7/site-packages/macholib;
 
-sudo sed -i '' 's/loader=loader.filename/loader_path=loader.filename/g' MachOGraph.py
+sed -i '' 's/loader=loader.filename/loader_path=loader.filename/g' MachOGraph.py
+```
+
+To reduce the package size, "tests" directories must be removed
+
+```bash
+cd $HOME/venv/lib/python2.7/site-packages;
+find . -name tests -type d -exec rm -r {} +
 ```
 
 ## 2. Download source code
