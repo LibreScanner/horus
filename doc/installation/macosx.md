@@ -2,18 +2,16 @@
 
 [return to Home](../../README.md)
 
-### Not supported for version 0.2
-However it can be installed following the next instructions.
+### Version 0.2 beta3
 
-Generate the executable file following the next [instructions](../development/macosx.md).
+Download Horus installer:
 
-```bash
-bash package.sh darwin
-```
+* [Horus 0.2b3 installer](https://github.com/bqlabs/horus/releases/download/0.2b3/Horus_0.2b3.dmg)
 
 Execute the installer and drag Horus icon into *Applications*
 
 Also, you need to update your FTDI drivers:
+
 * [FTDI USB Drivers](http://www.ftdichip.com/Drivers/VCP/MacOSX/FTDIUSBSerialDriver_v2_3.dmg)
 
 Reboot the computer to apply the changes.
