@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 from collections import OrderedDict
 
-from horus.util import profile, resources
+from horus.util import profile, resources, system
 
 
 class ExpandableCollection(wx.Panel):
@@ -258,7 +258,8 @@ class ControlCollection(wx.Panel):
         self.control_panels.update({_name: control})
         self.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
         self.vbox.Layout()
-        # self.SetSizerAndFit(self.vbox)  TODO: test on mac
+        if system.is_darwin():
+            self.SetSizerAndFit(self.vbox)
 
     def update_callback(self, _name, _callback):
         self.control_panels[_name].set_engine_callback(_callback)

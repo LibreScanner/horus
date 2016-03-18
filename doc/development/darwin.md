@@ -12,13 +12,13 @@ If you are a developer and you want to modify the code, contribute, build packag
 #### Install FTDI driver
 * [FTDI USB Driver](http://www.ftdichip.com/Drivers/VCP/MacOSX/FTDIUSBSerialDriver_v2_3.dmg)
 
+#### Atom IDE
+Download open source [Atom code editor](https://atom.io/).
+
 #### Install Homebrew
 ```bash
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
-
-#### Atom IDE
-Download open source [Atom code editor](https://atom.io/).
 
 #### Git version control
 ```bash
@@ -26,11 +26,12 @@ brew install git
 ```
 
 #### Python
-Install non-system, framework-based, universal [Python](http://www.python.org/ftp/python/2.7.6/python-2.7.6-macosx10.6.dmg). Not with brew.
+Install non-system, framework-based, universal [Python](https://www.python.org/ftp/python/2.7.10/python-2.7.10-macosx10.6.pkg). Not with brew.
 
 #### Python tools
 ```bash
-pip install -U pip setuptools virtualenv
+pip install -U pip setuptools
+pip install -U virtualenv
 ```
 
 ### Dependencies
@@ -74,13 +75,34 @@ ln -s /usr/local/Cellar/wxpython/3.0.2.0/lib/python2.7/site-packages/wx* $HOME/v
 
 #### Python modules
 ```bash
-pip install -U pyserial pyopengl pyopengl-accelerate numpy scipy matplotlib==1.4.0 pyobjc-framework-qtkit
+pip install -U pyserial pyopengl pyopengl-accelerate numpy scipy matplotlib==1.4.0
 ```
 
-NOTE: if 'xcodebuild' fails, try:
+##### Pyobjc QTKit
+
+* Install Xcode.app. Then, switch xcode commands and accept the xcodebuild license
 
 ```bash
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild
+```
+
+* Downgrade setuptools
+```bash
+pip install -U setuptools==3.4
+```
+
+* Install qtkit 2.5.1
+```bash
+pip install -U pyobjc-core==2.5.1
+pip install -U pyobjc-framework-cocoa==2.5.1
+pip install -U pyobjc-framework-quartz==2.5.1
+pip install -U pyobjc-framework-qtkit==2.5.1
+```
+
+* Restore setuptools
+```bash
+pip install -U setuptools
 ```
 
 In order to generate dmg package, some extra dependencies are needed
@@ -117,10 +139,7 @@ All source code is available on GitHub. You can download main Horus project by d
 ### Horus
 ```bash
 git clone https://github.com/bq/horus.git
-```
-or
-```bash
-git clone git@github.com:bq/horus.git
+cd horus
 ```
 
 ## 3. Execute source code
