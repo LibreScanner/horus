@@ -98,8 +98,13 @@ if [ $BUILD_TARGET = "win32" ]; then
 fi
 
 # Update version data
-sed -i "s/__datetime__ = ''/__datetime__ = '$DATETIME'/;" src/horus/__init__.py
-sed -i "s/__commit__ = ''/__commit__ = '$COMMIT'/;" src/horus/__init__.py
+if [ $BUILD_TARGET = "darwin" ]; then
+	sed -i "" "s/__datetime__ = ''/__datetime__ = '$DATETIME'/;" src/horus/__init__.py
+	sed -i "" "s/__commit__ = ''/__commit__ = '$COMMIT'/;" src/horus/__init__.py
+else
+	sed -i "s/__datetime__ = ''/__datetime__ = '$DATETIME'/;" src/horus/__init__.py
+	sed -i "s/__commit__ = ''/__commit__ = '$COMMIT'/;" src/horus/__init__.py
+fi
 
 if [ $BUILD_TARGET = "version" ]
 then
@@ -322,5 +327,10 @@ if [ $BUILD_TARGET = "win32" ]; then
 fi
 
 # Restore version data
-sed -i "s/__datetime__ = '$DATETIME'/__datetime__ = ''/;" src/horus/__init__.py
-sed -i "s/__commit__ = '$COMMIT'/__commit__ = ''/;" src/horus/__init__.py
+if [ $BUILD_TARGET = "darwin" ]; then
+	sed -i "" "s/__datetime__ = '$DATETIME'/__datetime__ = ''/;" src/horus/__init__.py
+	sed -i "" "s/__commit__ = '$COMMIT'/__commit__ = ''/;" src/horus/__init__.py
+else
+	sed -i "s/__datetime__ = '$DATETIME'/__datetime__ = ''/;" src/horus/__init__.py
+	sed -i "s/__commit__ = '$COMMIT'/__commit__ = ''/;" src/horus/__init__.py
+fi

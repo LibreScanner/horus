@@ -18,7 +18,7 @@ from horus.gui.util.scene_view import SceneView
 class ViewPage(wx.SplitterWindow):
 
     def __init__(self, parent, get_image):
-        wx.SplitterWindow.__init__(self, parent)  # , style=wx.SP_3D | wx.SP_LIVE_UPDATE)
+        wx.SplitterWindow.__init__(self, parent, style=wx.SP_3D | wx.SP_LIVE_UPDATE)
 
         self.get_image = get_image
 
