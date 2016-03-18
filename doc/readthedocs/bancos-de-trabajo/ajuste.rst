@@ -28,9 +28,13 @@ Segmentación
 
 En esta sección se ajusta la apertura y el umbral para la detección del láser durante el escaneado.
 
-La opción de "open" elimina ruido de fondo a costa de perder resolución.
+* Open: elimina ruido de fondo a costa de perder resolución.
 
-La opción de "threshold" fija un umbral de detección. Actúa también para eliminar ruido de fondo.
+* Threshold: fija un umbral de detección. Actúa también para eliminar ruido de fondo.
+
+* Windows: establece una ventana de detección alrededor del punto de máxima intensidad.
+
+* Blur: aplica un filtro de difuminado a la imagen.
 
 .. image:: ../images/adjustment-scan-segmentation.png
 
@@ -57,8 +61,10 @@ Segmentación
 
 En esta sección se ajusta la apertura y el umbral para la detección del láser durante la calibración.
 
-La opción de "open" elimina ruido de fondo a costa de perder resolución.
+* Threshold: fija un umbral de detección. Actúa también para eliminar ruido de fondo.
 
-La opción de "threshold" fija un umbral de detección. Actúa también para eliminar ruido de fondo.
+* Windows: establece una ventana de detección alrededor del punto de máxima intensidad.
+
+* Blur: aplica un filtro de difuminado a la imagen.
 
 .. image:: ../images/adjustment-calibration-segmentation.png

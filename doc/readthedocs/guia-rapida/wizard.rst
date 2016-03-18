@@ -59,6 +59,8 @@ En esta ventana se ajustan los parámetros de escaneo:
 
 * Laser: se selecciona el láser izquierdo, derecho o ambos.
 
+* Capturar textura: indica si capturar la nube de puntos con o sin color.
+
 .. figure:: ../images/wizard-scanning.png
 
 Al completar el Wizard se accede a la ventana principal.

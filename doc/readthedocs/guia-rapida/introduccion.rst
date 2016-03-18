@@ -5,7 +5,7 @@ Introducción
 
 Horus es una aplicación multiplataforma para experimentar con el `escáner 3D libre Ciclop`_.
 
-Proporciona una interfaz gráfica que permite conectarse al escáner, controlar sus dispositivos, ajustar los parámetros de escaneado, autocalibrar el dispositivo y escanear objetos en 3D con Ciclop. Incluye además un visualizador de la nube de puntos obtenida en tiempo real.
+Proporciona una interfaz gráfica que permite conectarse al escáner, controlar sus dispositivos, ajustar los parámetros de escaneado, autocalibrar el escáner y escanear objetos en 3D con Ciclop. Incluye además un visualizador de la nube de puntos obtenida en tiempo real.
 
 .. image:: ../images/main-window.png
 
