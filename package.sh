@@ -17,14 +17,14 @@ BUILD_TARGET=${1:-none}
 EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
-export VERSION=0.2b1
+export VERSION=0.2b3
 export DATETIME=`git log -1 --pretty=%ci`
 export COMMIT=`git log -1 --pretty=%H`
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
 
 
 ##Which versions of external programs to use
-WIN_PORTABLE_PY_VERSION=2.7.2.1 #TODO: 2.7.6.1
+WIN_PORTABLE_PY_VERSION=2.7.2.1
 
 
 #############################
@@ -98,8 +98,13 @@ if [ $BUILD_TARGET = "win32" ]; then
 fi
 
 # Update version data
-sed -i "s/__datetime__ = ''/__datetime__ = '$DATETIME'/;" src/horus/__init__.py
-sed -i "s/__commit__ = ''/__commit__ = '$COMMIT'/;" src/horus/__init__.py
+if [ $BUILD_TARGET = "darwin" ]; then
+	sed -i "" "s/__datetime__ = ''/__datetime__ = '$DATETIME'/;" src/horus/__init__.py
+	sed -i "" "s/__commit__ = ''/__commit__ = '$COMMIT'/;" src/horus/__init__.py
+else
+	sed -i "s/__datetime__ = ''/__datetime__ = '$DATETIME'/;" src/horus/__init__.py
+	sed -i "s/__commit__ = ''/__commit__ = '$COMMIT'/;" src/horus/__init__.py
+fi
 
 if [ $BUILD_TARGET = "version" ]
 then
@@ -159,7 +164,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 
 	# Clean directory
 	cd ../..
-	rm -rf "Horus.egg-info"
+	rm -rf "src/Horus.egg-info"
 fi
 
 #############################
@@ -302,11 +307,10 @@ if [ $BUILD_TARGET = "win32" ]; then
 	rm -rf ${TARGET_DIR}/python/Lib/OpenGL/DLLS/gle*
 
 	# Add Horus
-	mkdir -p ${TARGET_DIR}/doc ${TARGET_DIR}/res ${TARGET_DIR}/src
-	cp -a ../doc/* ${TARGET_DIR}/doc
+	mkdir -p ${TARGET_DIR}/res ${TARGET_DIR}/src
 	cp -a ../res/* ${TARGET_DIR}/res
 	cp -a ../src/* ${TARGET_DIR}/src
-	cp -a ../horus ${TARGET_DIR}/
+	cp -a ../horus ${TARGET_DIR}/horus.py
 
 	# Add script files
 	cp -a ../pkg/${BUILD_TARGET}/*.bat $TARGET_DIR/
@@ -318,8 +322,15 @@ if [ $BUILD_TARGET = "win32" ]; then
 	if [ $? != 0 ]; then echo "Failed to package NSIS installer"; exit 1; fi
 	mv ../pkg/win32/Horus_${VERSION}.exe .
 	rm -rf ../pkg/win32/dist
+
+	cd ..
 fi
 
 # Restore version data
-sed -i "s/__datetime__ = '$DATETIME'/__datetime__ = ''/;" src/horus/__init__.py
-sed -i "s/__commit__ = '$COMMIT'/__commit__ = ''/;" src/horus/__init__.py
+if [ $BUILD_TARGET = "darwin" ]; then
+	sed -i "" "s/__datetime__ = '$DATETIME'/__datetime__ = ''/;" src/horus/__init__.py
+	sed -i "" "s/__commit__ = '$COMMIT'/__commit__ = ''/;" src/horus/__init__.py
+else
+	sed -i "s/__datetime__ = '$DATETIME'/__datetime__ = ''/;" src/horus/__init__.py
+	sed -i "s/__commit__ = '$COMMIT'/__commit__ = ''/;" src/horus/__init__.py
+fi

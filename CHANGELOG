@@ -1,0 +1,23 @@
+Version 0.2
+
+* New profile format:
+  * Using separated calibration and scanner profiles
+* Wizard: combined laser and platform calibration in one
+* New auto check algorithm: check motor direction and pattern and laser detection
+* New adjustment workbench:
+  * Scan adjustment: separated camera settings for texture and laser detection
+  * Calibration adjustment: separated settings for pattern and laser detection
+* Added auto check to calibration workbench
+* Improved laser detection:
+  * Easy to adjust to light conditions
+  * Easy to adjust for different object materials, colors, surfaces
+* Improved calibration algorithms
+* Improved scan algorithm:
+  * Using separated camera settings for texture and laser detection
+* Improved performance
+* Apply point cloud ROI before scanning
+* Fixed Clear EEPROM
+* New updates system
+* Added verbose log file
+* Log file management
+* Internal refactor

@@ -58,7 +58,7 @@ class CurrentVideo(object):
         if points is not None:
             u, v = points
             image = np.zeros_like(image)
-            image[v.astype(int), u.astype(int)] = 255.0
+            image[v.astype(int), np.around(u).astype(int)] = 255
             return image
 
     def capture(self):

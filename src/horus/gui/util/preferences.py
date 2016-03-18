@@ -11,7 +11,7 @@ import threading
 
 from horus.gui.engine import driver
 from horus.util import profile, resources
-from horus.util.avrHelpers import AvrDude
+from horus.util.avr_helpers import AvrDude
 
 import logging
 logger = logging.getLogger(__name__)

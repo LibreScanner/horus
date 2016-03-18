@@ -9,7 +9,7 @@ import wx._core
 
 from horus.util import profile
 
-from horus.gui.engine import current_video
+from horus.gui.engine import driver, current_video
 
 from horus.gui.util.video_view import VideoView
 from horus.gui.util.scene_view import SceneView
@@ -18,12 +18,11 @@ from horus.gui.util.scene_view import SceneView
 class ViewPage(wx.SplitterWindow):
 
     def __init__(self, parent, get_image):
-        wx.SplitterWindow.__init__(self, parent)
+        wx.SplitterWindow.__init__(self, parent, style=wx.SP_3D | wx.SP_LIVE_UPDATE)
 
         self.get_image = get_image
 
-        self.video_view = VideoView(self, get_image, 10, _reload=True)
-        self.video_view.SetBackgroundColour(wx.BLACK)
+        self.video_view = VideoView(self, get_image, wxtimer=False)
 
         self.scene_panel = wx.Panel(self)
         self.scene_view = SceneView(self.scene_panel)
@@ -51,6 +50,19 @@ class ViewPage(wx.SplitterWindow):
                                              size=(100, -1), pos=(0, -1))
         self.combo_video_views.Hide()
         self.combo_video_views.Bind(wx.EVT_COMBOBOX, self.on_combo_box_video_views_select)
+
+        # Events
+        self.video_view.Bind(wx.EVT_SHOW, self.on_show)
+
+    def on_show(self, event):
+        if event.GetShow():
+            if driver.is_connected:
+                self.video_view.play()
+        else:
+            try:
+                self.video_view.stop()
+            except:
+                pass
 
     def on_combo_box_video_views_select(self, event):
         value = self.video_views_dict[self.combo_video_views.GetValue()]

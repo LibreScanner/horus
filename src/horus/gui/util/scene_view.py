@@ -281,6 +281,7 @@ class SceneView(opengl_gui.glGuiPanel):
         else:
             self._mouse_state = 'dragOrClick'
         if self._mouse_state == 'doubleClick':
+            self._move_vertical = False
             if e.GetButton() == 1:
                 self.center_object()
                 self.queue_refresh()
@@ -517,8 +518,8 @@ class SceneView(opengl_gui.glGuiPanel):
 
         if self._mouse_x > -1:  # mouse has not passed over the opengl window.
             glFlush()
-            n = glReadPixels(self._mouse_x, self.GetSize().GetHeight() - 1 -
-                             self._mouse_y, 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0] >> 8
+            # n = glReadPixels(self._mouse_x, self.GetSize().GetHeight() - 1 -
+            #                  self._mouse_y, 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0] >> 8
             f = glReadPixels(self._mouse_x, self.GetSize().GetHeight() - 1 -
                              self._mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
             # self.GetTopLevelParent().SetTitle(hex(n) + " " + str(f))

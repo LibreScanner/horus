@@ -197,8 +197,6 @@ class Board(object):
                     if callback is not None:
                         callback(ret)
                     self._fail()
-            else:
-                self._fail()
         if callback is not None:
             callback(ret)
         return ret
@@ -207,8 +205,9 @@ class Board(object):
         self._tries = 0
 
     def _fail(self):
+        logger.debug("Board fail")
         self._tries += 1
-        if self._tries >= 1:
+        if self._tries >= 3:
             self._tries = 0
             if self.unplug_callback is not None and \
                self.parent is not None and \

@@ -56,7 +56,7 @@ class PatternDistanceWindow(wx.Dialog):
         hbox.Add(self.cancel_button, 0, wx.ALL, 3)
         vbox.Add(hbox, 0, wx.ALL | wx.CENTER, 10)
         self.SetSizer(vbox)
-        self.Center()
+        self.CenterOnScreen()
         self.Fit()
 
         self.ShowModal()

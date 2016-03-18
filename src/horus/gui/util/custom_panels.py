@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 from collections import OrderedDict
 
-from horus.util import profile, resources
+from horus.util import profile, resources, system
 
 
 class ExpandableCollection(wx.Panel):
@@ -33,9 +33,7 @@ class ExpandableCollection(wx.Panel):
     def init_panels_layout(self):
         values = self.expandable_panels.values()
         if len(values) > 0:
-            for panel in values:
-                panel.hide_content()
-            values[0].show_content()
+            self._expand_callback(values[0])
 
     def _expand_callback(self, selected_panel):
         for panel in self.expandable_panels.values():
@@ -68,6 +66,7 @@ class ExpandablePanel(wx.Panel):
         wx.Panel.__init__(self, parent, size=(-1, -1))
 
         # Elements
+        self.parent = parent
         self.expand_callback = None
         self.selected_callback = selected_callback
         self.undo_objects = []
@@ -153,6 +152,7 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Show()
         if self.has_restore:
             self.restore_button.Show()
+        self.parent.Layout()
 
     def hide_content(self):
         self.title_text.font_normal()
@@ -161,6 +161,7 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Hide()
         if self.has_restore:
             self.restore_button.Hide()
+        self.parent.Layout()
 
     def append_undo(self, _object):
         if self.has_undo:
@@ -226,9 +227,11 @@ class TitleText(wx.Panel):
 
     def font_normal(self):
         self.title.SetForegroundColour('#717577')
+        self.Layout()
 
     def font_selected(self):
         self.title.SetForegroundColour('#313739')
+        self.Layout()
 
 
 class ControlCollection(wx.Panel):
@@ -254,6 +257,9 @@ class ControlCollection(wx.Panel):
         control.set_undo_callbacks(self.append_undo_callback, self.release_undo_callback)
         self.control_panels.update({_name: control})
         self.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
+        self.vbox.Layout()
+        if system.is_darwin():
+            self.SetSizerAndFit(self.vbox)
 
     def update_callback(self, _name, _callback):
         self.control_panels[_name].set_engine_callback(_callback)
@@ -364,7 +370,7 @@ class Slider(ControlPanel):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.label, 0, wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
         hbox.AddStretchSpacer()
-        hbox.Add(self.control, 0, wx.TOP | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, -5)
+        hbox.Add(self.control, 0, wx.TOP | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
         self.SetSizer(hbox)
         self.Layout()
 
@@ -408,7 +414,7 @@ class ComboBox(ControlPanel):
         self.control = wx.ComboBox(self, wx.ID_ANY,
                                    value=_(profile.settings[self.name]),
                                    choices=_choices,
-                                   size=(150, -1),
+                                   size=(130, -1),
                                    style=wx.CB_READONLY)
 
         self.control.SetValue_original = self.control.SetValue
@@ -548,7 +554,7 @@ class FloatTextBox(ControlPanel):
 
         # Elements
         label = wx.StaticText(self, size=(160, -1), label=self.setting._label)
-        self.control = FloatBox(self, size=(120, -1), style=wx.TE_RIGHT)
+        self.control = FloatBox(self, size=(100, -1), style=wx.TE_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 
         # Layout
@@ -571,8 +577,9 @@ class FloatTextBox(ControlPanel):
 
 class FloatBoxArray(wx.Panel):
 
-    def __init__(self, parent, value, size):
+    def __init__(self, parent, value, size, onedit_callback=None):
         wx.Panel.__init__(self, parent)
+        self.onedit_callback = onedit_callback
         self.value = value
         self.size = size
         if len(self.value.shape) == 1:
@@ -590,7 +597,8 @@ class FloatBoxArray(wx.Panel):
                     self.texts[i][j].SetValue(self.value[j])
                 else:
                     self.texts[i][j].SetValue(self.value[i][j])
-                self.texts[i][j].SetEditable(False)
+                self.texts[i][j].Bind(wx.EVT_KILL_FOCUS, self.onedit_callback)
+                # self.texts[i][j].SetEditable(False)
                 # self.texts[i][j].Disable()
                 jbox.Add(self.texts[i][j], 1, wx.ALL | wx.EXPAND, 2)
             ibox.Add(jbox, 1, wx.ALL | wx.EXPAND, 1)
@@ -607,7 +615,13 @@ class FloatBoxArray(wx.Panel):
                     self.texts[i][j].SetValue(self.value[i][j])
 
     def GetValue(self):
-        pass
+        for i in range(self.r):
+            for j in range(self.c):
+                if self.r == 1:
+                    self.value[j] = self.texts[i][j].GetValue()
+                else:
+                    self.value[i][j] = self.texts[i][j].GetValue()
+        return self.value
 
 
 class FloatTextBoxArray(ControlPanel):
@@ -617,7 +631,8 @@ class FloatTextBoxArray(ControlPanel):
 
         # Elements
         label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
-        self.control = FloatBoxArray(self, value=profile.settings[name], size=(50, -1))
+        self.control = FloatBoxArray(self, value=profile.settings[name], size=(50, -1),
+                                     onedit_callback=self._on_text_box_lost_focus)
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -635,6 +650,82 @@ class FloatTextBoxArray(ControlPanel):
         self.update_to_profile(value)
         self.set_engine(value)
         self.release_restore()
+
+
+class FloatLabel(ControlPanel):
+
+    def __init__(self, parent, name, engine_callback=None):
+        ControlPanel.__init__(self, parent, name, engine_callback)
+
+        # Elements
+        label = wx.StaticText(self, size=(160, -1), label=self.setting._label)
+        self.control = wx.StaticText(self, size=(100, -1), style=wx.TE_RIGHT)
+        self.control.SetLabel(str(round(profile.settings[self.name], 4)))
+
+        # Layout
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(label, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 7)
+        hbox.Add(self.control, 0, wx.TOP | wx.ALIGN_CENTER_VERTICAL, 4)
+        self.SetSizer(hbox)
+        self.Layout()
+
+    def update_from_profile(self):
+        value = profile.settings[self.name]
+        self.control.SetLabel(str(round(value, 3)))
+
+
+class FloatStaticArray(wx.Panel):
+
+    def __init__(self, parent, value, size):
+        wx.Panel.__init__(self, parent)
+        self.value = value
+        self.size = size
+        if len(self.value.shape) == 1:
+            self.r, self.c = 1, self.value.shape[0]
+        elif len(self.value.shape) == 2:
+            self.r, self.c = self.value.shape
+        self.texts = [[0 for j in range(self.c)] for i in range(self.r)]
+
+        ibox = wx.BoxSizer(wx.VERTICAL)
+        for i in range(self.r):
+            jbox = wx.BoxSizer(wx.HORIZONTAL)
+            for j in range(self.c):
+                self.texts[i][j] = wx.StaticText(self, size=self.size, style=wx.TE_RIGHT)
+                if self.r == 1:
+                    self.texts[i][j].SetLabel(str(round(self.value[j], 4)))
+                else:
+                    self.texts[i][j].SetLabel(str(round(self.value[i][j], 4)))
+                jbox.Add(self.texts[i][j], 1, wx.ALL | wx.EXPAND, 2)
+            ibox.Add(jbox, 1, wx.ALL | wx.EXPAND, 1)
+        self.SetSizer(ibox)
+        self.Layout()
+
+    def SetValue(self, value):
+        self.value = value
+        for i in range(self.r):
+            for j in range(self.c):
+                if self.r == 1:
+                    self.texts[i][j].SetLabel(str(round(self.value[j], 4)))
+                else:
+                    self.texts[i][j].SetLabel(str(round(self.value[i][j], 4)))
+
+
+class FloatLabelArray(ControlPanel):
+
+    def __init__(self, parent, name, engine_callback=None):
+        ControlPanel.__init__(self, parent, name, engine_callback)
+
+        # Elements
+        label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
+        self.control = FloatStaticArray(self, value=profile.settings[name], size=(50, -1))
+
+        # Layout
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 2)
+        vbox.AddStretchSpacer()
+        vbox.Add(self.control, 0, wx.ALL | wx.EXPAND, 10)
+        self.SetSizer(vbox)
+        self.Layout()
 
 
 class Button(ControlPanel):

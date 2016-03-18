@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import os
 import sys
 from setuptools import setup
 
@@ -7,13 +8,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from horus import __version__
 
 APP = ['horus']
-DATA_FILES = ['doc', 'res']
+DATA_FILES = ['res']
 
 PLIST = {
     u'CFBundleName': u'Horus',
-    u'CFBundleShortVersionString': version,
-    u'CFBundleVersion': version,
-    u'CFBundleIdentifier': u'com.bq.Horus-' + version,
+    u'CFBundleShortVersionString': __version__,
+    u'CFBundleVersion': __version__,
+    u'CFBundleIdentifier': u'com.bq.Horus-' + __version__,
     u'LSMinimumSystemVersion': u'10.8',
     u'LSApplicationCategoryType': u'public.app-category.graphics-design'
 }

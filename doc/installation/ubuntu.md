@@ -2,14 +2,14 @@
 
 [return to Home](../../README.md)
 
-### Supported version 0.2
+### Version 0.2 beta3
 
 Add our ppa:
 
 *NOTE*: Official versions are hosted in **ppa:bqlabs/horus**. Alpha, beta and rc versions are hosted in **ppa:bqlabs/horus-dev**.
 
 ```bash
-sudo add-apt-repository ppa:bqlabs/horus
+sudo add-apt-repository ppa:bqlabs/horus-dev
 sudo apt-get update
 ```
 

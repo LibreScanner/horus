@@ -35,8 +35,6 @@ class CameraIntrinsics(Calibration):
         self.image_points = []
         self.object_points = []
 
-        self._camera_use_distortion = False
-
     def _start(self):
         ret, error, cmat, dvec, rvecs, tvecs = self.calibrate()
 
@@ -81,13 +79,10 @@ class CameraIntrinsics(Calibration):
     def reset(self):
         self.image_points = []
         self.object_points = []
-        self._use_distortion = self.image_capture.use_distortion
-        self.image_capture.set_use_distortion(False)
 
     def accept(self):
-        self.image_capture.set_use_distortion(self._use_distortion)
         self.calibration_data.camera_matrix = self.camera_matrix
         self.calibration_data.distortion_vector = self.distortion_vector
 
     def cancel(self):
-        self.image_capture.set_use_distortion(self._use_distortion)
+        pass

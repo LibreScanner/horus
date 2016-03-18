@@ -5,17 +5,10 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-##                    ##
-##-- TODO: refactor --##
-##                    ##
-
 import os
 import system as sys
 import resources
 from subprocess import Popen, PIPE, STDOUT
-
-from pathHelpers import path
-from serialDevice import SerialDevice
 
 import logging
 logger = logging.getLogger(__name__)
@@ -25,33 +18,26 @@ class FirmwareError(Exception):
     pass
 
 
-class AvrDude(SerialDevice):
+class AvrDude(object):
 
     def __init__(self, protocol="arduino", microcontroller="atmega328p",
-                 baud_rate="19200", conf_path=None, port=None):
+                 baud_rate="19200", port=None):
         self.protocol = protocol
         self.microcontroller = microcontroller
         self.baud_rate = baud_rate
 
         if sys.is_windows():
-            self.avrdude = path(resources.get_path_for_tools("avrdude.exe")).abspath()
+            self.avrdude = os.path.abspath(resources.get_path_for_tools("avrdude.exe"))
         elif sys.is_darwin():
-            self.avrdude = path(resources.get_path_for_tools("avrdude")).abspath()
+            self.avrdude = os.path.abspath(resources.get_path_for_tools("avrdude"))
         else:
             self.avrdude = 'avrdude'
 
         if self.avrdude is None:
             raise FirmwareError('avrdude not installed')
 
-        if conf_path is None:
-            self.avrconf = path(resources.get_path_for_tools("avrdude.conf")).abspath()
-        else:
-            self.avrconf = path(conf_path).abspath()
-
-        if port:
-            self.port = port
-        else:
-            self.port = self.get_port(baud_rate)
+        self.avrconf = os.path.abspath(resources.get_path_for_tools("avrdude.conf"))
+        self.port = port
 
     def _run_command(self, flags, callback=None):
         config = dict(avrdude=self.avrdude, avrconf=self.avrconf)
@@ -75,13 +61,12 @@ class AvrDude(SerialDevice):
             hex_path = resources.get_path_for_firmware("horus-fw.hex")
         if clear_eeprom:
             hex_path = resources.get_path_for_firmware("eeprom_clear.hex")
-        hex_path = path(hex_path)
         flags = ['-C', '%(avrconf)s', '-c', self.protocol, '-p', self.microcontroller,
                  '-P', '%s' % self.port, '-b', str(self.baud_rate), '-D', '-U',
-                 'flash:w:%s' % hex_path.name]
+                 'flash:w:%s' % os.path.basename(hex_path)]
         try:
             cwd = os.getcwd()
-            os.chdir(hex_path.parent)
+            os.chdir(os.path.dirname(os.path.abspath(hex_path)))
             out = self._run_command(flags, callback)
             logger.info(' Upload completed')
         finally:

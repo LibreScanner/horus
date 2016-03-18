@@ -38,12 +38,13 @@ NOTE: *dmg* packages only can be generated in Mac OS X
 
 #### Supported
 
-###### Current version: 0.2b1
+###### Current version: 0.2b3
 
 | Logo              | Name     | Versions            | Instructions                        |
 |:-----------------:|:--------:|:-------------------:|:-----------------------------------:|
 | ![][ubuntu-logo]  | Ubuntu   | 14.04, 14.10, 15.10 | [link](doc/installation/ubuntu.md)  |
-
+| ![][windows-logo] | Windows  | 7                   | [link](doc/installation/windows.md) |
+| ![][macosx-logo]  | Mac OS X | 10.9, 10.10, 10.11  | [link](doc/installation/macosx.md)  |
 
 #### Experimental
 
@@ -53,16 +54,14 @@ However, anyone can test it and contribute to its support.
 
 | Logo               | Name      | Versions     | Instructions                          |
 |:------------------:|:---------:|:------------:|:-------------------------------------:|
-| ![][windows-logo]  | Windows   | 7, 8, 8.1    | [link](doc/installation/windows.md)   |
-| ![][macosx-logo]   | Mac OS X  | 10.9, 10.10  | [link](doc/installation/macosx.md)    |
 | ![][debian-logo]   | Debian    | 8            | [link](doc/installation/debian.md)    |
 | ![][fedora-logo]   | Fedora    | 21, 22       | [link](doc/installation/fedora.md)    |
 
 
 More interest links are shown below:
 
-* [3D Scan Science](https://github.com/Jesus89/3DScanScience)
 * [Documentation 0.2 (es)](http://horus.readthedocs.org)
+* [3D Scan Science](https://github.com/Jesus89/3DScanScience)
 * [Presentation](http://diwo.bq.com/en/presentacion-ciclop-horus/) [[es](http://diwo.bq.com/presentacion-ciclop-horus/)]
 * [3D Design](http://diwo.bq.com/en/ciclop-released/) [[es](http://diwo.bq.com/ciclop-released/)]
 * [Electronics](http://diwo.bq.com/en/zum-scan-released/) [[es](http://diwo.bq.com/zum-scan-released/)]

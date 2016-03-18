@@ -19,6 +19,9 @@ from horus.engine.calibration.calibration_data import CalibrationData
 import logging
 logger = logging.getLogger(__name__)
 
+import platform
+system = platform.system()
+
 
 class ScanError(Exception):
 
@@ -50,8 +53,9 @@ class CiclopScan(Scan):
         self.color = (0, 0, 0)
 
         self._theta = 0
-        self._captures_queue = Queue.Queue(100)
-        self._point_cloud_queue = Queue.Queue(1000)
+        self._debug = False
+        self._captures_queue = Queue.Queue(10)
+        self._point_cloud_queue = Queue.Queue(10)
 
     def set_capture_texture(self, value):
         self.capture_texture = value
@@ -74,23 +78,28 @@ class CiclopScan(Scan):
     def set_motor_acceleration(self, value):
         self.motor_acceleration = value
 
+    def set_debug(self, value):
+        self._debug = value
+
     def _initialize(self):
         global string_time
         self.image = None
         self.image_capture.stream = False
         self._theta = 0
+        self._progress = 0
         self._captures_queue.queue.clear()
         self._point_cloud_queue.queue.clear()
         self._begin = time.time()
 
         # Setup console
         logger.info("Start scan")
-        string_time = str(datetime.datetime.now())[:-3] + " - "
-        print string_time + " elapsed progress: 0 %"
-        print string_time + " elapsed time: 0' 0\""
-        print string_time + " elapsed angle: 0º"
-        print string_time + " capture: 0 ms"
-        print string_time + " process: 0 ms"
+        if system == 'Linux':
+            string_time = str(datetime.datetime.now())[:-3] + " - "
+            print string_time + " elapsed progress: 0 %"
+            print string_time + " elapsed time: 0' 0\""
+            print string_time + " elapsed angle: 0º"
+            print string_time + " capture: 0 ms"
+            print string_time + " process: 0 ms"
 
         # Setup scanner
         self.driver.board.lasers_off()
@@ -106,6 +115,7 @@ class CiclopScan(Scan):
     def _capture(self):
         global string_time
         while self.is_scanning:
+            time.sleep(0.02)
             if self._inactive:
                 self.image_capture.stream = True
                 time.sleep(0.1)
@@ -137,13 +147,14 @@ class CiclopScan(Scan):
                     string_time = str(datetime.datetime.now())[:-3] + " - "
 
                     # Cursor up + remove lines
-                    print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
-                    print string_time + " elapsed progress: {0} %".format(
-                        int(100 * self._progress / self._range))
-                    print string_time + " elapsed time: {0}".format(
-                        time.strftime("%M' %S\"", time.gmtime(end - self._begin)))
-                    print string_time + " elapsed angle: {0}º".format(int(np.rad2deg(self._theta)))
-                    print string_time + " capture: {0} ms".format(int((end - begin) * 1000))
+                    if system == 'Linux':
+                        print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
+                        print string_time + " elapsed progress: {0} %".format(
+                            int(100 * self._progress / self._range))
+                        print string_time + " elapsed time: {0}".format(
+                            time.strftime("%M' %S\"", time.gmtime(end - self._begin)))
+                        print string_time + " elapsed angle: {0}º".format(int(np.rad2deg(self._theta)))
+                        print string_time + " capture: {0} ms".format(int((end - begin) * 1000))
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()
@@ -156,11 +167,11 @@ class CiclopScan(Scan):
             capture.texture = self.image_capture.capture_texture()
         else:
             r, g, b = self.color
-            ones = np.ones((self.calibration_data.height,
-                            self.calibration_data.width, 3), np.uint8)
-            ones[:, :, 0] *= r
-            ones[:, :, 1] *= g
-            ones[:, :, 2] *= b
+            ones = np.zeros((self.calibration_data.height,
+                             self.calibration_data.width, 3), np.uint8)
+            ones[:, :, 0] = r
+            ones[:, :, 1] = g
+            ones[:, :, 2] = b
             capture.texture = ones
 
         if self.laser[0] and self.laser[1]:
@@ -180,6 +191,7 @@ class CiclopScan(Scan):
         global string_time
         ret = False
         while self.is_scanning:
+            time.sleep(0.05)
             if self._inactive:
                 self.image_detection.stream = True
                 time.sleep(0.1)
@@ -213,7 +225,19 @@ class CiclopScan(Scan):
                                     capture.theta, points_2d, i)
                                 # Compute point cloud texture
                                 u, v = points_2d
-                                texture = capture.texture[v, u.astype(int)].T
+
+                                if self._debug:
+                                    if i == 0:
+                                        r, g, b = 255, 0, 0
+                                    else:
+                                        r, g, b = 0, 255, 0
+                                    texture = np.zeros((3, len(v)), np.uint8)
+                                    texture[0, :] = r
+                                    texture[1, :] = g
+                                    texture[2, :] = b
+                                else:
+                                    texture = capture.texture[v, np.around(u).astype(int)].T
+
                                 self._point_cloud_queue.put((point_cloud, texture))
 
                         # Set current video images
@@ -221,8 +245,9 @@ class CiclopScan(Scan):
                         self.current_video.set_line(points, image)
 
                         # Print info
-                        print string_time + " process: {0} ms".format(
-                            int((time.time() - begin) * 1000))
+                        if system == 'Linux':
+                            print string_time + " process: {0} ms".format(
+                                int((time.time() - begin) * 1000))
         if ret:
             response = (True, None)
         else:

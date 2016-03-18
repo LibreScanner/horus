@@ -26,6 +26,10 @@ File
 
 * Resetear calibración: resetea al valor por defecto todos los parámetros de calibración.
 
+* Exportar log: guarda un fichero .log con el registro de las ejecuciones previas.
+
+* Eliminar log: borra el fichero de registro. Se borra automáticamente cada 7 días.
+
 * Salir: finaliza la ejecución del programa.
 
 .. image:: ../images/menu-file.png
@@ -41,6 +45,8 @@ View
 ----
 
 Este menú permite seleccionar las ventanas visibles en el banco de trabajo de escaneado. Estas son el panel de configuración, el video y la escena 3D.
+
+También permite activar el "Modo Avanzado", que en este caso muestra la Calibración Intrínseca.
 
 .. image:: ../images/menu-view.png
 

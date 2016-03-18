@@ -85,20 +85,22 @@ class Wizard(wx.Dialog):
         self.scanning_page.Hide()
 
     def on_exit(self, message=True):
-        driver.board.lasers_off()
+        result = True
         if message:
             dlg = wx.MessageDialog(
                 self, _("Do you really want to exit?"),
-                _("Exit wizard"), wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
-            dlg.ShowModal()
+                _("Exit wizard"), wx.YES_NO | wx.ICON_INFORMATION)
+            result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
-        self.connection_page.video_view.stop()
-        self.calibration_page.video_view.stop()
-        self.scanning_page.video_view.stop()
-        self.parent.toolbar.update_status(driver.is_connected)
-        self.parent.update_profile_to_all_controls()
-        self.EndModal(wx.ID_OK)
-        self.Destroy()
+        if result:
+            driver.board.lasers_off()
+            self.connection_page.video_view.stop()
+            self.calibration_page.video_view.stop()
+            self.scanning_page.video_view.stop()
+            self.parent.toolbar.update_status(driver.is_connected)
+            self.parent.update_profile_to_all_controls()
+            self.EndModal(wx.ID_OK)
+            self.Destroy()
 
     def on_connection_page_prev_clicked(self):
         self.on_exit()
@@ -128,19 +130,18 @@ class Wizard(wx.Dialog):
         profile.settings.save_settings()
         dlg = wx.MessageDialog(
             self,
-            _("You have finished the wizard.\nPress Play button to start scanning."),
+            _("You have completed the wizard.\nPress Play button to start scanning."),
             _("Ready to scan!"), wx.OK | wx.ICON_INFORMATION)
-        result = dlg.ShowModal() == wx.ID_OK
+        dlg.ShowModal()
         dlg.Destroy()
-        if result:
-            self.connection_page.video_view.stop()
-            self.calibration_page.video_view.stop()
-            self.scanning_page.video_view.stop()
-            self.parent.toolbar.update_status(driver.is_connected)
-            self.parent.update_profile_to_all_controls()
-            self.parent.workbench['scanning'].update_controls()
-            profile.settings['workbench'] = 'scanning'
-            workbench = self.parent.workbench[profile.settings['workbench']].name
-            self.parent.update_workbench(workbench)
-            self.EndModal(wx.ID_OK)
-            self.Destroy()
+        self.connection_page.video_view.stop()
+        self.calibration_page.video_view.stop()
+        self.scanning_page.video_view.stop()
+        self.parent.toolbar.update_status(driver.is_connected)
+        self.parent.update_profile_to_all_controls()
+        self.parent.workbench['scanning'].update_controls()
+        profile.settings['workbench'] = 'scanning'
+        workbench = self.parent.workbench[profile.settings['workbench']].name
+        self.parent.update_workbench(workbench)
+        self.EndModal(wx.ID_OK)
+        self.Destroy()

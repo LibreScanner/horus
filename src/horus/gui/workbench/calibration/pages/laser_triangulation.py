@@ -39,22 +39,22 @@ class LaserTriangulationPages(wx.Panel):
         self.SetSizer(hbox)
         self.Layout()
 
-        # Events
-        self.Bind(wx.EVT_SHOW, self.on_show)
-
         self._initialize()
-
-    def on_show(self, event):
-        try:
-            self.video_page.on_show(event.GetShow())
-        except:
-            pass
 
     def _initialize(self):
         self.video_page.initialize()
         self.video_page.Show()
         self.result_page.Hide()
         self.video_page.right_button.Enable()
+
+    def play(self):
+        self.video_page.play()
+
+    def stop(self):
+        self.video_page.stop()
+
+    def reset(self):
+        self.video_page.reset()
 
     def before_calibration(self):
         if self.start_callback is not None:
@@ -71,6 +71,7 @@ class LaserTriangulationPages(wx.Panel):
         if ret:
             self.video_page.Hide()
             self.result_page.Show()
+            self.Layout()
         else:
             self.on_exit()
         self.result_page.process_calibration(response)
@@ -112,14 +113,6 @@ class ResultPage(Page):
         # Layout
         self.panel_box.Add(self.plot_panel, 2, wx.ALL | wx.EXPAND, 3)
 
-        # Events
-        self.Bind(wx.EVT_SHOW, self.on_show)
-
-    def on_show(self, event):
-        if event.GetShow():
-            self.GetParent().Layout()
-            self.Layout()
-
     def on_reject(self):
         laser_triangulation.cancel()
         if self.exit_callback is not None:
@@ -147,7 +140,7 @@ class ResultPage(Page):
             nR = result[1][1]
             stdR = result[1][2]
             self.result = (dL, nL, dR, nR)
-            text = ' dL: {0}  nL: {1}  dR: {2}  nR: {3}'.format(
+            text = ' L: {0} {1}  R: {2} {3}'.format(
                    round(dL, 4), np.round(nL, 4),
                    round(dR, 4), np.round(nR, 4))
             self.desc_text.SetLabel(text)

@@ -67,25 +67,25 @@ class ImageCapture(object):
         self.stream = True
         if system == 'Linux':
             self._flush_texture = 2
-            self._flush_laser = 2  # exp < 32 ? 2 : 3
+            self._flush_laser = 2
             self._flush_pattern = 2
-            self._flush_stream_texture = 1
+            self._flush_stream_texture = 0
             self._flush_stream_laser = 2
-            self._flush_stream_pattern = 1
+            self._flush_stream_pattern = 0
         elif system == 'Darwin':
-            self._flush_texture = 2
-            self._flush_laser = 2  # exp < 32 ? 2 : 3
-            self._flush_pattern = 2
-            self._flush_stream_texture = 1
+            self._flush_texture = 5
+            self._flush_laser = 4
+            self._flush_pattern = 4
+            self._flush_stream_texture = 0
             self._flush_stream_laser = 2
-            self._flush_stream_pattern = 1
+            self._flush_stream_pattern = 0
         elif system == 'Windows':
-            self._flush_texture = 2
-            self._flush_laser = 2  # exp < 32 ? 2 : 3
-            self._flush_pattern = 2
-            self._flush_stream_texture = 1
+            self._flush_texture = 4
+            self._flush_laser = 4
+            self._flush_pattern = 4
+            self._flush_stream_texture = 0
             self._flush_stream_laser = 2
-            self._flush_stream_pattern = 1
+            self._flush_stream_pattern = 0
 
         self._mode = self.pattern_mode
         self._mode.selected = True
@@ -124,7 +124,6 @@ class ImageCapture(object):
 
     def capture_texture(self):
         self.set_mode(self.texture_mode)
-        # self.driver.board.lasers_off()
         if self.stream:
             flush = self._flush_stream_texture
         else:
@@ -142,7 +141,9 @@ class ImageCapture(object):
             flush = self._flush_stream_laser
         else:
             flush = self._flush_laser
-        return self.capture_image(flush=flush)
+        image = self.capture_image(flush=flush)
+        self.driver.board.laser_off(index)
+        return image
 
     def capture_laser(self, index):
         image = self._capture_laser(index)
@@ -188,11 +189,11 @@ class ImageCapture(object):
             image_background = self.capture_image(flush=flush)
             if image is not None and image_background is not None:
                 image = cv2.subtract(image, image_background)
+        self.driver.board.lasers_off()
         return image
 
     def capture_pattern(self):
         self.set_mode(self.pattern_mode)
-        # self.driver.board.lasers_off()
         if self.stream:
             flush = self._flush_stream_pattern
         else:
@@ -203,15 +204,13 @@ class ImageCapture(object):
     def capture_image(self, flush=0):
         image = self.driver.camera.capture_image(flush=flush)
         if self.use_distortion:
-            if self.calibration_data.camera_matrix is not None and \
+            if image is not None and \
+               self.calibration_data.camera_matrix is not None and \
                self.calibration_data.distortion_vector is not None and \
-               self.calibration_data.dist_camera_matrix is not None and \
-               self.calibration_data.roi is not None:
+               self.calibration_data.dist_camera_matrix is not None:
                 image = cv2.undistort(image,
                                       self.calibration_data.camera_matrix,
                                       self.calibration_data.distortion_vector,
                                       None,
                                       self.calibration_data.dist_camera_matrix)
-                x, y, w, h = self.calibration_data.roi
-                image = image[y:y + h + 1, x:x + w + 1]
         return image

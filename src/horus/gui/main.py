@@ -9,6 +9,7 @@ import gc
 import os
 import time
 import wx._core
+import datetime
 import webbrowser
 from collections import OrderedDict
 
@@ -88,11 +89,11 @@ class MainWindow(wx.Frame):
 
         # Menu File
         self.menu_file = wx.Menu()
-        self.menu_launch_wizard = self.menu_file.Append(wx.NewId(), _("Launch Wizard"))
+        self.menu_launch_wizard = self.menu_file.Append(wx.NewId(), _("Launch wizard"))
         self.menu_file.AppendSeparator()
-        self.menu_load_model = self.menu_file.Append(wx.NewId(), _("Load Model"))
-        self.menu_save_model = self.menu_file.Append(wx.NewId(), _("Save Model"))
-        self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear Model"))
+        self.menu_load_model = self.menu_file.Append(wx.NewId(), _("Open model"))
+        self.menu_save_model = self.menu_file.Append(wx.NewId(), _("Save model"))
+        self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear model"))
         self.menu_file.AppendSeparator()
         self.menu_open_profile = self.menu_file.Append(
             wx.NewId(), _("Open profile"), _("Opens profile .json"))
@@ -107,6 +108,11 @@ class MainWindow(wx.Frame):
             wx.NewId(), _("Save calibration"), _("Saves calibration .json"))
         self.menu_reset_calibration_profile = self.menu_file.Append(
             wx.NewId(), _("Reset calibration"), _("Resets calibration default values"))
+        self.menu_file.AppendSeparator()
+        self.menu_export_log = self.menu_file.Append(
+            wx.NewId(), _("Export log"), _("Export log file"))
+        self.menu_clear_log = self.menu_file.Append(
+            wx.NewId(), _("Clear log"), _("Clear log file"))
         self.menu_file.AppendSeparator()
         self.menu_exit = self.menu_file.Append(wx.ID_EXIT, _("Exit"))
         self.menu_bar.Append(self.menu_file, _("File"))
@@ -125,6 +131,7 @@ class MainWindow(wx.Frame):
         self.menu_scanning_video = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Video"))
         self.menu_scanning_scene = self.menu_scanning.AppendCheckItem(wx.NewId(), _("Scene"))
         self.menu_view.AppendMenu(wx.NewId(), _("Scanning"), self.menu_scanning)
+        self.menu_mode_advanced = self.menu_view.AppendCheckItem(wx.NewId(), _("Advanced mode"))
         self.menu_bar.Append(self.menu_view, _("View"))
 
         # Menu Help
@@ -158,6 +165,8 @@ class MainWindow(wx.Frame):
                   self.menu_save_calibration_profile)
         self.Bind(wx.EVT_MENU, lambda e: self.on_reset_profile("calibration_settings"),
                   self.menu_reset_calibration_profile)
+        self.Bind(wx.EVT_MENU, self.on_export_log, self.menu_export_log)
+        self.Bind(wx.EVT_MENU, self.on_clear_log, self.menu_clear_log)
         self.Bind(wx.EVT_MENU, self.on_exit, self.menu_exit)
 
         self.Bind(wx.EVT_MENU, self.on_preferences, self.menu_preferences)
@@ -166,6 +175,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_scanning_panel_clicked, self.menu_scanning_panel)
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_video)
         self.Bind(wx.EVT_MENU, self.on_scanning_video_scene_clicked, self.menu_scanning_scene)
+        self.Bind(wx.EVT_MENU, self.on_mode_advanced_clicked, self.menu_mode_advanced)
 
         self.Bind(wx.EVT_MENU, self.on_about, self.menu_about)
         self.Bind(wx.EVT_MENU, self.on_welcome, self.menu_welcome)
@@ -267,6 +277,36 @@ class MainWindow(wx.Frame):
             profile.settings.reset_to_default(categories=[category])
             self.update_profile_to_all_controls()
 
+    def on_clear_log(self, event):
+        dlg = wx.MessageDialog(
+            self,
+            _("Your current log file will be erased.\nDo you really want to do it?"),
+            _("Clear Log File"), wx.YES_NO | wx.ICON_QUESTION)
+        result = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        if result:
+            with open('horus.log', 'w'):
+                pass
+            date_format = '%Y-%m-%d %H:%M:%S'
+            current_log_date = datetime.datetime.now()
+            profile.settings['last_clear_log_date'] = str(current_log_date.strftime(date_format))
+
+    def on_export_log(self, event):
+        dlg = wx.FileDialog(self, _("Select log file to save"),
+                            profile.get_base_path(), style=wx.FD_SAVE)
+        dlg.SetWildcard("Log files (*.log)|*.log")
+        if dlg.ShowModal() == wx.ID_OK:
+            log_file = dlg.GetPath()
+            if not log_file.endswith('.log'):
+                if sys.is_linux():  # hack for linux, as for some reason the .log is not appended.
+                    log_file += '.log'
+
+            with open(log_file, 'w') as _file:
+                with open('horus.log', 'r') as _log:
+                    _file.write(_log.read())
+            log_file
+        dlg.Destroy()
+
     def on_exit(self, event):
         self.Close(True)
 
@@ -275,12 +315,15 @@ class MainWindow(wx.Frame):
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
             driver.disconnect()
+            for workbench in self.workbench:
+                workbench.on_disconnect()
             if ciclop_scan.is_scanning:
                 ciclop_scan.stop()
                 time.sleep(0.5)
         except:
             pass
-        event.Skip()
+        self.Show(False)
+        self.Destroy()
 
     def enable_gui(self, status):
         if status:
@@ -304,16 +347,10 @@ class MainWindow(wx.Frame):
         profile.settings['last_files'] = self.last_files
 
     def on_preferences(self, event):
-        if sys.is_windows():
-            driver.disconnect()
-
         preferences = PreferencesDialog()
         preferences.ShowModal()
 
     """def on_machine_settings(self, event):
-        if sys.is_windows():
-            driver.disconnect()
-
         machine_settings = MachineSettingsDialog(self)
         ret = machine_settings.ShowModal()
 
@@ -370,6 +407,23 @@ class MainWindow(wx.Frame):
         self.workbench['scanning'].Layout()
         self.Layout()
 
+    def on_mode_advanced_clicked(self, event):
+        checked = self.menu_mode_advanced.IsChecked()
+        profile.settings['view_mode_advanced'] = checked
+        if checked:
+            self.workbench['calibration'].panels_collection.expandable_panels[
+                'camera_intrinsics'].Show()
+        else:
+            self.workbench['calibration'].panels_collection.expandable_panels[
+                'camera_intrinsics'].Hide()
+
+            if profile.settings['current_panel_calibration'] == 'camera_intrinsics':
+                self.workbench['calibration'].on_pattern_settings_selected()
+                self.workbench['calibration'].panels_collection.expandable_panels[
+                    profile.settings['current_panel_calibration']].on_title_clicked(None)
+        self.workbench['calibration'].Layout()
+        self.Layout()
+
     def on_connect(self):
         for workbench in self.workbench.values():
             workbench.enable_content()
@@ -377,8 +431,7 @@ class MainWindow(wx.Frame):
 
     def on_disconnect(self):
         for workbench in self.workbench.values():
-            workbench.disable_content()
-        self.workbench[profile.settings['workbench']].on_disconnect()
+            workbench.on_disconnect()
 
     def on_combo_box_selected(self, event):
         self.update_workbench(event.GetEventObject().GetValue())
@@ -387,11 +440,12 @@ class MainWindow(wx.Frame):
         self.wait_cursor = wx.BusyCursor()
         self.toolbar.combo.SetValue(name)
         for key, wb in self.workbench.iteritems():
+            if wb.name != name:
+                wb.Hide()
+        for key, wb in self.workbench.iteritems():
             if wb.name == name:
                 wb.Show()
                 profile.settings['workbench'] = key
-            else:
-                wb.Hide()
         is_scan = profile.settings['workbench'] == 'scanning'
         self.menu_file.Enable(self.menu_load_model.GetId(), is_scan)
         self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)
@@ -494,6 +548,10 @@ class MainWindow(wx.Frame):
         self.menu_scanning_video.Check(checked_video)
         self.menu_scanning_scene.Check(checked_scene)
 
+        checked = profile.settings['view_mode_advanced']
+
+        self.menu_mode_advanced.Check(checked)
+
         self.workbench['scanning'].pages_collection['view_page'].Unsplit()
         if checked_video:
             self.workbench['scanning'].video_view.Show()
@@ -529,7 +587,9 @@ class MainWindow(wx.Frame):
             if current_video_id not in video_list:
                 profile.settings['camera_id'] = unicode(video_list[0])
 
-        driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
+        if len(profile.settings['camera_id']):
+            driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
+
         driver.board.serial_name = profile.settings['serial_name']
         driver.board.baud_rate = profile.settings['baud_rate']
         driver.board.motor_invert(profile.settings['invert_motor'])

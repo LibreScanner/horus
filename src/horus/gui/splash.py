@@ -24,5 +24,6 @@ class SplashScreen(wx.SplashScreen):
         wx.CallAfter(self.do_callback)
 
     def do_callback(self):
-        self.Destroy()
         self.callback()
+        if self:
+            self.Destroy()

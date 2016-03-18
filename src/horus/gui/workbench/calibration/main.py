@@ -38,7 +38,7 @@ class CalibrationWorkbench(Workbench):
             'camera_intrinsics', CameraIntrinsics, self.on_camera_intrinsics_selected)
 
     def add_pages(self):
-        self.add_page('video_view', VideoView(self, self.get_image, 10, black=True))
+        self.add_page('video_view', VideoView(self, self.get_image))
         self.add_page('camera_intrinsics_pages', CameraIntrinsicsPages(
             self, start_callback=self.disable_panels, exit_callback=self.update_panels))
         self.add_page('scanner_autocheck_pages', ScannerAutocheckPages(
@@ -58,6 +58,12 @@ class CalibrationWorkbench(Workbench):
         self.pages_collection['laser_triangulation_pages'].Disable()
         self.pages_collection['platform_extrinsics_pages'].Disable()
 
+        if not profile.settings['view_mode_advanced']:
+            self.panels_collection.expandable_panels['camera_intrinsics'].Hide()
+
+            if profile.settings['current_panel_calibration'] == 'camera_intrinsics':
+                self.on_pattern_settings_selected()
+
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_calibration']].on_title_clicked(None)
 
@@ -72,6 +78,8 @@ class CalibrationWorkbench(Workbench):
             self.pages_collection['laser_triangulation_pages'].Enable()
             self.pages_collection['platform_extrinsics_pages'].Enable()
         else:
+            for page in self.pages_collection:
+                self.pages_collection[page].stop()
             self.pages_collection['camera_intrinsics_pages'].Disable()
             self.pages_collection['scanner_autocheck_pages'].Disable()
             self.pages_collection['laser_triangulation_pages'].Disable()
@@ -81,15 +89,17 @@ class CalibrationWorkbench(Workbench):
 
     def on_close(self):
         try:
-            self.pages_collection['video_view'].stop()
-            self.pages_collection['camera_intrinsics_pages'].capture_page.on_show(False)
-            self.pages_collection['scanner_autocheck_pages'].video_page.on_show(False)
-            self.pages_collection['laser_triangulation_pages'].video_page.on_show(False)
-            self.pages_collection['platform_extrinsics_pages'].video_page.on_show(False)
+            for page in self.pages_collection:
+                self.pages_collection[page].stop()
         except:
             pass
 
+    def reset(self):
+        for page in self.pages_collection:
+            self.pages_collection[page].reset()
+
     def setup_engine(self):
+        driver.board.lasers_off()
         resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
@@ -104,9 +114,12 @@ class CalibrationWorkbench(Workbench):
         image_capture.laser_mode.saturation = profile.settings['saturation_laser_calibration']
         image_capture.laser_mode.exposure = profile.settings['exposure_laser_calibration']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
+        image_capture.set_remove_background(profile.settings['remove_background_calibration'])
         laser_segmentation.red_channel = profile.settings['red_channel_calibration']
-        laser_segmentation.open_enable = profile.settings['open_enable_calibration']
-        laser_segmentation.open_value = profile.settings['open_value_calibration']
+        laser_segmentation.window_enable = profile.settings['window_enable_calibration']
+        laser_segmentation.window_value = profile.settings['window_value_calibration']
+        laser_segmentation.blur_enable = profile.settings['blur_enable_calibration']
+        laser_segmentation.set_blur_value(profile.settings['blur_value_calibration'])
         laser_segmentation.threshold_enable = profile.settings['threshold_enable_calibration']
         laser_segmentation.threshold_value = profile.settings['threshold_value_calibration']
         pattern.rows = profile.settings['pattern_rows']
@@ -120,7 +133,6 @@ class CalibrationWorkbench(Workbench):
     def on_pattern_settings_selected(self):
         profile.settings['current_panel_calibration'] = 'pattern_settings'
         self._on_panel_selected(self.pages_collection['video_view'])
-        self.pages_collection['video_view'].play()
 
     def on_camera_intrinsics_selected(self):
         profile.settings['current_panel_calibration'] = 'camera_intrinsics'
@@ -148,11 +160,10 @@ class CalibrationWorkbench(Workbench):
         self.scroll_panel.Enable()
 
     def _on_panel_selected(self, panel):
-        self.pages_collection['video_view'].Hide()
-        self.pages_collection['video_view'].stop()
-        self.pages_collection['camera_intrinsics_pages'].Hide()
-        self.pages_collection['scanner_autocheck_pages'].Hide()
-        self.pages_collection['laser_triangulation_pages'].Hide()
-        self.pages_collection['platform_extrinsics_pages'].Hide()
+        for page in self.pages_collection:
+            self.pages_collection[page].Hide()
+            self.pages_collection[page].stop()
         panel.Show()
+        if driver.is_connected:
+            panel.play()
         self.Layout()

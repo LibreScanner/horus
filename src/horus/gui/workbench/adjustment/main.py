@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
-from horus.gui.engine import driver, pattern
+from horus.gui.engine import driver, pattern, calibration_data, image_capture
 from horus.gui.util.video_view import VideoView
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.adjustment.current_video import CurrentVideo
@@ -29,21 +29,26 @@ class AdjustmentWorkbench(Workbench):
         self.add_panel('calibration_segmentation', CalibrationSegmentationPanel)
 
     def add_pages(self):
-        self.add_page('video_view', VideoView(self, self._video_frame, 10, black=True))
+        self.add_page('video_view', VideoView(self, self._video_frame, wxtimer=False))
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)
 
     def _video_frame(self):
-        return self.current_video.capture()
+        return self.current_video.get_frame()
 
     def on_open(self):
-        self.pages_collection['video_view'].play()
+        current_video_mode = profile.settings['current_video_mode_adjustment']
+        self.pages_collection['video_view'].play(
+            flush=not (current_video_mode == 'Laser' or current_video_mode == 'Gray'))
 
     def on_close(self):
         try:
             self.pages_collection['video_view'].stop()
         except:
             pass
+
+    def reset(self):
+        self.pages_collection['video_view'].reset()
 
     def setup_engine(self):
         resolution = profile.settings['resolution'].split('x')
@@ -54,5 +59,9 @@ class AdjustmentWorkbench(Workbench):
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']
         pattern.distance = profile.settings['pattern_origin_distance']
+        image_capture.set_use_distortion(profile.settings['use_distortion'])
+        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
+        calibration_data.camera_matrix = profile.settings['camera_matrix']
+        calibration_data.distortion_vector = profile.settings['distortion_vector']
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_adjustment']].on_title_clicked(None)

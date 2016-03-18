@@ -70,7 +70,6 @@ class ConnectionPage(WizardPage):
         self.auto_check_button.Bind(wx.EVT_BUTTON, self.on_auto_check_button_clicked)
         self.Bind(wx.EVT_SHOW, self.on_show)
 
-        self.video_view.set_milliseconds(10)
         self.video_view.set_callback(self.get_image)
         self.update_status(driver.is_connected)
 
@@ -209,7 +208,7 @@ class ConnectionPage(WizardPage):
         ret, result = response
 
         if ret:
-            self.result_label.SetLabel(_("Success. Please press next to continue"))
+            self.result_label.SetLabel(_("Success. Please press \"Next\" to continue"))
             dlg = wx.MessageDialog(
                 self, _("Scanner configured correctly"),
                 _("Success"), wx.OK | wx.ICON_INFORMATION)

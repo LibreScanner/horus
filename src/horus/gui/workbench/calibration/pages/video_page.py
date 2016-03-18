@@ -22,7 +22,7 @@ class VideoPage(Page):
         Page.__init__(self, parent,
                       title=title,
                       desc=_("Put the pattern on the platform as shown in the "
-                             "picture and press Start"),
+                             "picture and press \"Start\""),
                       left=_("Cancel"),
                       right=_("Start"),
                       button_left_callback=cancel_callback,
@@ -32,7 +32,7 @@ class VideoPage(Page):
         # Elements
         image_view = ImageView(self.panel, quality=wx.IMAGE_QUALITY_HIGH)
         image_view.set_image(wx.Image(resources.get_path_for_image("pattern-position.png")))
-        self.video_view = VideoView(self.panel, self.get_image, 10, black=True)
+        self.video_view = VideoView(self.panel, self.get_image)
 
         # Layout
         self.panel_box.Add(image_view, 3, wx.ALL | wx.EXPAND, 3)
@@ -43,17 +43,17 @@ class VideoPage(Page):
         self.gauge.SetValue(0)
         self.right_button.Enable()
 
-    def on_show(self, status):
-        if status:
-            self.video_view.play()
-            self.GetParent().Layout()
-            self.Layout()
-        else:
-            try:
-                self.initialize()
-                self.video_view.stop()
-            except:
-                pass
+    def play(self):
+        self.video_view.play()
+        self.GetParent().Layout()
+        self.Layout()
+
+    def stop(self):
+        self.initialize()
+        self.video_view.stop()
+
+    def reset(self):
+        self.video_view.reset()
 
     def get_image(self):
         if scanner_autocheck.image is not None:

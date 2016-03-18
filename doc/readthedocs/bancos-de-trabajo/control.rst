@@ -10,10 +10,7 @@ En este banco de trabajo sirve para probar los componentes del escáner: cámara
 Cámara
 ------
 
-En esta sección se puede ajustar el brillo, contraste, saturación y exposición de la cámara. Éstos valores sólo afectan a este banco de trabajo.
-
-También se puede modificar la tasa de refresco, resolución y distorsión de la cámara. Éstos valores sí que afectan al resto de los bancos de trabajo.
-
+En esta sección se puede ajustar el brillo, contraste, saturación y exposición de la cámara.
 
 .. image:: ../images/control-camera.png
 
@@ -22,7 +19,7 @@ Láser
 
 En esta sección se pueden encender y apagar los dos láseres.
 
-.. image:: ../images/control-laser.png
+.. image:: ../images/control-lasers.png
 
 Motor
 -----

@@ -63,6 +63,9 @@ class Workbench(wx.Panel):
     def on_close(self):
         raise NotImplementedError
 
+    def reset(self):
+        raise NotImplementedError
+
     def add_panel(self, name, panel, on_selected_callback=None):
         self.panels_collection.add_panel(name, panel, on_selected_callback)
 
@@ -85,21 +88,22 @@ class Workbench(wx.Panel):
 
     def on_connect(self):
         if driver.is_connected:
+            self.setup_engine()
             for _, p in self.pages_collection.iteritems():
                 p.Enable()
-            self.setup_engine()
-        self.on_open()
+            self.on_open()
 
     def on_disconnect(self):
         for _, p in self.pages_collection.iteritems():
             p.Disable()
         self.on_close()
         self.disable_content()
+        self.reset()
 
     def on_show(self, event):
         if event.GetShow():
             if driver.is_connected:
                 self.setup_engine()
-            self.on_open()
+                self.on_open()
         else:
             self.on_close()

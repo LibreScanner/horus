@@ -121,7 +121,7 @@ Section "Horus ${VERSION}"
 
   CreateDirectory "$SMPROGRAMS\Horus"
   CreateShortCut "$SMPROGRAMS\Horus\Uninstall Horus.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\Horus\Horus.lnk" "$INSTDIR\python\python.exe" "$\"$INSTDIR\horus$\"" "$INSTDIR\res\horus.ico" 0
+  CreateShortCut "$SMPROGRAMS\Horus\Horus.lnk" "$INSTDIR\python\pythonw.exe" '-m "horus"' "$INSTDIR\res\horus.ico" 0
 
   ; Give all users write permissions in the install directory, so they can read/write profile and preferences files.
   AccessControl::GrantOnFile "$INSTDIR" "(S-1-5-32-545)" "FullAccess"
@@ -153,22 +153,6 @@ Section "Install Arduino Drivers"
     ExecWait '"$INSTDIR\drivers\dpinst32.exe" /lm'
   ${EndIf}
 SectionEnd
-
-;Section "Open PLY files with Horus"
-;	WriteRegStr HKCR .ply "" "Horus PLY model file"
-;	DeleteRegValue HKCR .ply "Content Type"
-;	WriteRegStr HKCR "Horus PLY model file\DefaultIcon" "" "$INSTDIR\res\stl.ico,0"
-;	WriteRegStr HKCR "Horus PLY model file\shell" "" "open"
-;	WriteRegStr HKCR "Horus PLY model file\shell\open\command" "" '"$INSTDIR\python\pythonw.exe" -c "import os; os.chdir(\"$INSTDIR\"); import Horus; Horus.main()" "%1"'
-;SectionEnd
-;
-;Section "Open STL files with Horus"
-;	WriteRegStr HKCR .stl "" "Horus STL model file"
-;	DeleteRegValue HKCR .stl "Content Type"
-;	WriteRegStr HKCR "Horus STL model file\DefaultIcon" "" "$INSTDIR\res\stl.ico,0"
-;	WriteRegStr HKCR "Horus STL model file\shell" "" "open"
-;	WriteRegStr HKCR "Horus STL model file\shell\open\command" "" '"$INSTDIR\python\pythonw.exe" -c "import os; os.chdir(\"$INSTDIR\"); import Horus; Horus.main()" "%1"'
-;SectionEnd
 
 ;--------------------------------
 

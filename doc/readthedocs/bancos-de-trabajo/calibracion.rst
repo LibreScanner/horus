@@ -16,19 +16,6 @@ En esta sección se configuran las características del patrón de calibración.
 
 .. image:: ../images/calibration-pattern.png
 
-Calibración de la cámara
-------------------------
-
-Esta sección es avanzada. Se recomienda utilizar los valores por defecto. Al modificar los valores en esta calibración es preciso realizar las posteriores calibraciones.
-
-Para ejecutar esta calibración se captura el patrón en distintas posiciones con la tecla "escape". Al completar todas las capturas se procede a la calibración de forma automática. En cualquier momento se pueden resetear las capturas tomadas anteriormente.
-
-.. image:: ../images/calibration-intrinsics.png
-
-Finalmente se muestra el resultado de forma numérica y representado en 3D. Se puede Aceptar o Rechazar el resultado de la calibración.
-
-.. image:: ../images/calibration-intrinsics-result.png
-
 Auto-comprobación
 -----------------
 
@@ -63,3 +50,14 @@ Para comenzar la calibración hay que colocar el patrón perpendicular a la cám
 Finalmente se muestra el resultado de forma numérica y representado en 3D. Adjunto a cada plano se representa la dispersión de los puntos capturados durante la calibración. Se puede Aceptar o Rechazar el resultado de la calibración.
 
 .. image:: ../images/calibration-platform-result.png
+
+Una vez finalizado este proceso, el escáner ya estará calibrado.
+
+Nota: calibración de la cámara (avanzado)
+-----------------------------------------
+
+Esta sección es avanzada. Se recomienda utilizar los valores por defecto. Al modificar los valores en esta calibración es preciso realizar las posteriores calibraciones.
+
+Para ejecutar esta calibración se captura el patrón en distintas posiciones con la tecla "espacio". Al completar todas las capturas se procede a la calibración de forma automática. En cualquier momento se pueden resetear las capturas tomadas anteriormente.
+
+.. image:: ../images/calibration-intrinsics.png

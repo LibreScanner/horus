@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile
 
-from horus.gui.engine import driver, image_capture
+from horus.gui.engine import driver, calibration_data, image_capture
 from horus.gui.util.video_view import VideoView
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.control.panels import CameraControl, LaserControl, \
@@ -27,7 +27,7 @@ class ControlWorkbench(Workbench):
         self.add_panel('gcode_control', GcodeControl)
 
     def add_pages(self):
-        self.add_page('video_view', VideoView(self, self._video_frame, 30, black=True))
+        self.add_page('video_view', VideoView(self, self._video_frame))
         self.panels_collection.expandable_panels[
             profile.settings['current_panel_control']].on_title_clicked(None)
 
@@ -44,6 +44,9 @@ class ControlWorkbench(Workbench):
         except:
             pass
 
+    def reset(self):
+        self.pages_collection['video_view'].reset()
+
     def setup_engine(self):
         resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
@@ -54,6 +57,9 @@ class ControlWorkbench(Workbench):
         image_capture.texture_mode.set_saturation(profile.settings['saturation_control'])
         image_capture.texture_mode.set_exposure(profile.settings['exposure_control'])
         image_capture.set_use_distortion(profile.settings['use_distortion'])
+        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
+        calibration_data.camera_matrix = profile.settings['camera_matrix']
+        calibration_data.distortion_vector = profile.settings['distortion_vector']
         driver.board.motor_relative(profile.settings['motor_step_control'])
         driver.board.motor_speed(profile.settings['motor_speed_control'])
         driver.board.motor_acceleration(profile.settings['motor_acceleration_control'])

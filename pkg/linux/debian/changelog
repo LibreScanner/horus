@@ -1,21 +1,20 @@
+horus (0.2b3) unstable; urgency=medium
+
+  * Beta 3
+
+ -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Fri, 18 Mar 2016 00:00:00 +0100
+
+horus (0.2b2.1) unstable; urgency=medium
+
+  * Beta 2
+
+ -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Wed, 17 Feb 2016 00:00:00 +0100
+
 horus (0.2b1) unstable; urgency=medium
 
-  * Engine refactor
-  * New profile format: json
-  * Using separated calibration and scan profiles
-  * New autocheck algorithm with pattern, motor direction and laser detection
-  * New calibration algorithm on wizard: it combines laser and platform calibration
-  * Only modify framerate, resolution, use distortion on control workbench
-  * Adjust image settings for pattern, texture and laser detection
-  * Select red channel in laser segmentation
-  * Added image processing settings to calibration workbench
-  * Improved camera intrinsics calibration
-  * Added autocheck to calibration workbench
-  * Scan parameters: capture texture and use laser
-  * Apply point cloud ROI after scanning
-  * Machine settings added to configure scanning volume
+  * Beta 1
 
- -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Thu, 30 Sep 2015 00:00:00 +0100
+ -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Mon, 18 Jan 2016 00:00:00 +0100
 
 horus (0.1.2.4-bq1) trusty; urgency=medium
 
@@ -23,13 +22,13 @@ horus (0.1.2.4-bq1) trusty; urgency=medium
   * Version updates.
   * Load hex files.
 
- -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Thu, 20 Jul 2015 00:00:00 +0100
+ -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Mon, 20 Jul 2015 00:00:00 +0100
 
 horus (0.1.1.1-bq1) trusty; urgency=medium
 
   * Stable version release.
 
- -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Thu, 27 Apr 2015 00:00:00 +0100
+ -- Jesús Arroyo Torrens <jesus.arroyo@bq.com>  Mon, 27 Apr 2015 00:00:00 +0100
 
 horus (0.1-bq1) trusty; urgency=medium
 

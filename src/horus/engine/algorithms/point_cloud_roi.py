@@ -17,6 +17,7 @@ class PointCloudROI(object):
 
     def __init__(self):
         self.calibration_data = CalibrationData()
+        self._use_roi = False
         self._height = 0
         self._radious = 0
         self._initialize()
@@ -51,21 +52,32 @@ class PointCloudROI(object):
         self._height = value
         self._compute_roi()
 
+    def set_use_roi(self, value):
+        self._use_roi = value
+
     def mask_image(self, image):
-        if image is not None:
-            mask = np.zeros(image.shape, np.uint8)
-            mask[self._vmin:self._vmax, self._umin:self._umax] = image[
-                self._vmin:self._vmax, self._umin:self._umax]
-            return mask
+        if self._use_roi:
+            if image is not None:
+                mask = np.zeros(image.shape, np.uint8)
+                mask[self._vmin:self._vmax, self._umin:self._umax] = image[
+                    self._vmin:self._vmax, self._umin:self._umax]
+                return mask
+        else:
+            return image
 
     def mask_point_cloud(self, point_cloud, texture):
         if point_cloud is not None and len(point_cloud) > 0:
             rho = np.sqrt(point_cloud[0, :] ** 2 + point_cloud[1, :] ** 2)
             z = point_cloud[2, :]
-            idx = np.where((z >= 0) &
-                           (z <= self._height) &
-                           (rho >= -self._radious) &
-                           (rho <= self._radious))[0]
+
+            if self._use_roi:
+                idx = np.where((z >= 0) &
+                               (z <= self._height) &
+                               (rho >= -self._radious) &
+                               (rho <= self._radious))[0]
+            else:
+                idx = np.where((z >= 0))[0]
+
             return point_cloud[:, idx], texture[:, idx]
 
     def draw_roi(self, image):

@@ -20,7 +20,9 @@ class CapturePage(Page):
     def __init__(self, parent, start_callback=None):
         Page.__init__(self, parent,
                       title=_("Camera intrinsics (advanced)"),
-                      desc=_(""),
+                      desc=_("Default values are recommended. To perform the calibration, "
+                             "disable 'use distortion', click over the video panel and press "
+                             "space bar to perform the captures."),
                       left=_("Reset"),
                       right=_("Start"),
                       button_left_callback=self.initialize,
@@ -30,14 +32,14 @@ class CapturePage(Page):
         self.right_button.Hide()
 
         # Elements
-        self.video_view = VideoView(self.panel, self.get_image, 10, black=True)
+        self.video_view = VideoView(self.panel, self.get_image)
         self.rows, self.columns = 3, 5
         self.panel_grid = []
         self.current_grid = 0
         self.image_grid_panel = wx.Panel(self.panel)
         self.grid_sizer = wx.GridSizer(self.rows, self.columns, 3, 3)
         for panel in xrange(self.rows * self.columns):
-            self.panel_grid.append(ImageView(self.image_grid_panel, black=True))
+            self.panel_grid.append(ImageView(self.image_grid_panel))
             self.panel_grid[panel].Bind(wx.EVT_KEY_DOWN, self.on_key_press)
             self.grid_sizer.Add(self.panel_grid[panel], 0, wx.ALL | wx.EXPAND)
         self.image_grid_panel.SetSizer(self.grid_sizer)
@@ -54,8 +56,9 @@ class CapturePage(Page):
 
     def initialize(self):
         self.desc_text.SetLabel(
-            _("Default values are recommended."
-              "Click over the video panel and press space bar to perform captures."))
+            _("Default values are recommended. To perform the calibration, "
+              "disable 'use distortion', click over the video panel and press "
+              "space bar to perform the captures."))
         self.current_grid = 0
         self.gauge.SetValue(0)
         camera_intrinsics.reset()
@@ -63,19 +66,19 @@ class CapturePage(Page):
             self.panel_grid[panel].SetBackgroundColour((221, 221, 221))
             self.panel_grid[panel].set_image(wx.Image(resources.get_path_for_image("void.png")))
 
-    def on_show(self, status):
-        if status:
-            self.gauge.SetValue(0)
-            self.video_view.play()
-            self.image_grid_panel.SetFocus()
-            self.GetParent().Layout()
-            self.Layout()
-        else:
-            try:
-                self.initialize()
-                self.video_view.stop()
-            except:
-                pass
+    def play(self):
+        self.gauge.SetValue(0)
+        self.video_view.play()
+        self.image_grid_panel.SetFocus()
+        self.GetParent().Layout()
+        self.Layout()
+
+    def stop(self):
+        self.initialize()
+        self.video_view.stop()
+
+    def reset(self):
+        self.video_view.reset()
 
     def get_image(self):
         image = image_capture.capture_pattern()
@@ -84,7 +87,7 @@ class CapturePage(Page):
 
     def on_key_press(self, event):
         if event.GetKeyCode() == 32:  # spacebar
-            self.video_view.pause()
+            self.video_view.stop()
             image = camera_intrinsics.capture()
             if image is not None:
                 self.add_frame_to_grid(image)

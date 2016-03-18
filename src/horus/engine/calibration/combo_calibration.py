@@ -118,19 +118,19 @@ class ComboCalibration(MovingCalibration):
                     self.R, self.t, center, point, normal, [self.x, self.y, self.z], circle)
             else:
                 result = False
-                response = (False, ComboCalibrationError)
 
-            if stdL < 0.1 and stdR < 0.1 and \
+            if stdL < 10.0 and stdR < 10.0 and \
                self.nL is not None and self.nR is not None:
                 response_laser_triangulation = ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR))
             else:
                 result = False
-                response = (False, ComboCalibrationError)
 
             if result:
                 response = (True, (response_platform_extrinsics, response_laser_triangulation))
+            else:
+                response = (False, ComboCalibrationError())
         else:
-            response = (False, CalibrationCancel)
+            response = (False, CalibrationCancel())
 
         self._is_calibrating = False
         self.image = None
