@@ -25,6 +25,8 @@ class LaserSegmentation(object):
         self.window_value = 0
         self.blur_enable = False
         self.blur_value = 0
+        self.open_enable = False
+        self.open_value = 0
         self.threshold_enable = False
         self.threshold_value = 0
 
@@ -42,6 +44,12 @@ class LaserSegmentation(object):
 
     def set_blur_value(self, value):
         self.blur_value = 2 * value + 1
+
+    def set_open_enable(self, value):
+        self.open_enable = value
+
+    def set_open_value(self, value):
+        self.open_value = 2 * value - 1
 
     def set_threshold_enable(self, value):
         self.threshold_enable = value
@@ -76,6 +84,11 @@ class LaserSegmentation(object):
                 image = self.point_cloud_roi.mask_image(image)
             # Obtain red channel
             image = self._obtain_red_channel(image)
+            # Open image
+            if self.open_enable:
+                kernel = cv2.getStructuringElement(
+                    cv2.MORPH_RECT, (self.open_value, self.open_value))
+                image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
             # Threshold image
             if self.threshold_enable:
                 image = cv2.threshold(

@@ -273,6 +273,11 @@ class Settings(collections.MutableMapping):
             Setting('blur_value_scanning', _('Blur'), 'profile_settings',
                     int, 1, min_value=0, max_value=10))
         self._add_setting(
+            Setting('open_enable_scanning', _('Enable open'), 'profile_settings', bool, True))
+        self._add_setting(
+            Setting('open_value_scanning', _('Open'), 'profile_settings',
+                    int, 1, min_value=1, max_value=10))
+        self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
         self._add_setting(

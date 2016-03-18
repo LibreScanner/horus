@@ -22,7 +22,7 @@ class VideoPage(Page):
         Page.__init__(self, parent,
                       title=title,
                       desc=_("Put the pattern on the platform as shown in the "
-                             "picture and press Start"),
+                             "picture and press \"Start\""),
                       left=_("Cancel"),
                       right=_("Start"),
                       button_left_callback=cancel_callback,

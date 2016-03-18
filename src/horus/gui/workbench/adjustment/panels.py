@@ -64,7 +64,10 @@ class ScanCapturePanel(ExpandablePanel):
             _("Amount of light per unit area. It is controlled by the time the camera "
               "sensor is exposed during a frame capture. "
               "High values are recommended for poorly lit places"))
-        self.add_control('remove_background_scanning', CheckBox)
+        self.add_control(
+            'remove_background_scanning', CheckBox,
+            _("Capture an extra image without laser to remove "
+              "the background in the laser's image."))
 
         # Initial layout
         self._set_mode_layout(profile.settings['capture_mode_scanning'])
@@ -145,19 +148,30 @@ class ScanSegmentationPanel(ExpandablePanel):
 
     def add_controls(self):
         # self.add_control('red_channel_scanning', ComboBox)
-        self.add_control('threshold_value_scanning', Slider)
+        self.add_control(
+            'open_value_scanning', Slider,
+            _("Remove noise in the background. Kernel size: 2 * value - 1"))
+        self.add_control(
+            'open_enable_scanning', CheckBox,
+            _("Remove noise in the background. Kernel size: 2 * value - 1"))
+        self.add_control(
+            'threshold_value_scanning', Slider,
+            _("Remove all pixels which intensity is less that the threshold value"))
         self.add_control(
             'threshold_enable_scanning', CheckBox,
-            "Threshold is a function used to remove the noise when scanning. "
-            "It removes a pixel if its intensity is less than the threshold value")
-        self.add_control('window_value_scanning', Slider)
+            _("Remove all pixels which intensity is less that the threshold value"))
+        self.add_control(
+            'window_value_scanning', Slider,
+            _("Filter pixels out of 2 * window value around the intensity peak"))
         self.add_control(
             'window_enable_scanning', CheckBox,
-            "Filter pixels out of 2 * window value around the peak")
-        self.add_control('blur_value_scanning', Slider)
+            _("Filter pixels out of 2 * window value around the intensity peak"))
+        self.add_control(
+            'blur_value_scanning', Slider,
+            _("Blur with Normalized box filter. Kernel size: 2 * value + 1"))
         self.add_control(
             'blur_enable_scanning', CheckBox,
-            "Blur filter of kernel size 2 * value + 1")
+            _("Blur with Normalized box filter. Kernel size: 2 * value + 1"))
 
     def update_callbacks(self):
         # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
@@ -165,6 +179,8 @@ class ScanSegmentationPanel(ExpandablePanel):
         self.update_callback('window_enable_scanning', laser_segmentation.set_window_enable)
         self.update_callback('blur_value_scanning', laser_segmentation.set_blur_value)
         self.update_callback('blur_enable_scanning', laser_segmentation.set_blur_enable)
+        self.update_callback('open_value_scanning', laser_segmentation.set_open_value)
+        self.update_callback('open_enable_scanning', laser_segmentation.set_open_enable)
         self.update_callback('threshold_value_scanning', laser_segmentation.set_threshold_value)
         self.update_callback('threshold_enable_scanning', laser_segmentation.set_threshold_enable)
 
@@ -184,6 +200,8 @@ class ScanSegmentationPanel(ExpandablePanel):
         laser_segmentation.set_window_enable(profile.settings['window_enable_scanning'])
         laser_segmentation.set_blur_value(profile.settings['blur_value_scanning'])
         laser_segmentation.set_blur_enable(profile.settings['blur_enable_scanning'])
+        laser_segmentation.open_enable = profile.settings['open_enable_scanning']
+        laser_segmentation.open_value = profile.settings['open_value_scanning']
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_scanning'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_scanning'])
         current_video.updating = False
@@ -232,7 +250,10 @@ class CalibrationCapturePanel(ExpandablePanel):
             _("Amount of light per unit area. It is controlled by the time the camera "
               "sensor is exposed during a frame capture. "
               "High values are recommended for poorly lit places"))
-        self.add_control('remove_background_calibration', CheckBox)
+        self.add_control(
+            'remove_background_calibration', CheckBox,
+            _("Capture an extra image without laser to remove "
+              "the background in the laser's image."))
 
         # Initial layout
         self._set_mode_layout(profile.settings['capture_mode_calibration'])
@@ -314,19 +335,24 @@ class CalibrationSegmentationPanel(ExpandablePanel):
 
     def add_controls(self):
         # self.add_control('red_channel_calibration', ComboBox)
-        self.add_control('threshold_value_calibration', Slider)
+        self.add_control(
+            'threshold_value_calibration', Slider,
+            _("Remove all pixels which intensity is less that the threshold value"))
         self.add_control(
             'threshold_enable_calibration', CheckBox,
-            "Threshold is a function used to remove the noise when calibrating. "
-            "It removes a pixel if its intensity is less than the threshold value")
-        self.add_control('window_value_calibration', Slider)
+            _("Remove all pixels which intensity is less that the threshold value"))
+        self.add_control(
+            'window_value_calibration', Slider,
+            _("Filter pixels out of 2 * window value around the intensity peak"))
         self.add_control(
             'window_enable_calibration', CheckBox,
-            "Filter pixels out of 2 * window value around the peak")
-        self.add_control('blur_value_calibration', Slider)
+            _("Filter pixels out of 2 * window value around the intensity peak"))
+        self.add_control(
+            'blur_value_calibration', Slider,
+            _("Blur with Normalized box filter. Kernel size: 2 * value + 1"))
         self.add_control(
             'blur_enable_calibration', CheckBox,
-            "Blur filter of kernel size 2 * value + 1")
+            _("Blur with Normalized box filter. Kernel size: 2 * value + 1"))
 
     def update_callbacks(self):
         # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)

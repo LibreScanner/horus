@@ -17,12 +17,16 @@ class PatternSettings(ExpandablePanel):
                                  selected_callback=on_selected_callback)
 
     def add_controls(self):
-        self.add_control('pattern_rows', Slider, 'Number of corner rows in the pattern')
-        self.add_control('pattern_columns', Slider, 'Number of corner columns in the pattern')
-        self.add_control('pattern_square_width', FloatTextBox)
-        self.add_control('pattern_origin_distance', FloatTextBox,
-                         "Minimum distance between the origin of the pattern (bottom-left corner) "
-                         "and the pattern's base surface")
+        self.add_control(
+            'pattern_rows', Slider, _("Number of corner rows in the pattern"))
+        self.add_control(
+            'pattern_columns', Slider, _("Number of corner columns in the pattern"))
+        self.add_control(
+            'pattern_square_width', FloatTextBox, _("Square width in the pattern (mm)"))
+        self.add_control(
+            'pattern_origin_distance', FloatTextBox,
+            _("Minimum distance between the origin of the pattern (bottom-left corner) "
+              "and the pattern's base surface (mm)"))
 
     def update_callbacks(self):
         self.update_callback('pattern_rows', lambda v: self._update_rows(v))

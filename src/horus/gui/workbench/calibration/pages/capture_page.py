@@ -22,7 +22,7 @@ class CapturePage(Page):
                       title=_("Camera intrinsics (advanced)"),
                       desc=_("Default values are recommended. To perform the calibration, "
                              "disable 'use distortion', click over the video panel and press "
-                             "space bar to perform captures."),
+                             "space bar to perform the captures."),
                       left=_("Reset"),
                       right=_("Start"),
                       button_left_callback=self.initialize,
@@ -56,8 +56,9 @@ class CapturePage(Page):
 
     def initialize(self):
         self.desc_text.SetLabel(
-            _("Default values are recommended. To perform the calibration, disable 'use distortion'"
-              ", click over the video panel and press space bar to perform captures."))
+            _("Default values are recommended. To perform the calibration, "
+              "disable 'use distortion', click over the video panel and press "
+              "space bar to perform the captures."))
         self.current_grid = 0
         self.gauge.SetValue(0)
         camera_intrinsics.reset()
