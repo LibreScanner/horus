@@ -39,6 +39,12 @@ class InvalidVideo(Exception):
         Exception.__init__(self, "Invalid Video")
 
 
+class WrongDriver(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, "Wrong Driver")
+
+
 class Camera(object):
 
     """Camera class. For accessing to the scanner camera"""
@@ -104,6 +110,7 @@ class Camera(object):
             self._is_connected = True
             self._check_video()
             self._check_camera()
+            self._check_driver()
             logger.info(" Done")
         else:
             raise CameraNotConnected()
@@ -126,7 +133,8 @@ class Camera(object):
 
     def _check_video(self):
         """Check correct video"""
-        if self.capture_image() is None or (self.capture_image() == 0).all():
+        frame = self.capture_image(flush=1)
+        if frame is None or (frame == 0).all():
             raise InvalidVideo()
 
     def _check_camera(self):
@@ -150,6 +158,15 @@ class Camera(object):
 
         if not c_exp or not c_bri:
             raise WrongCamera()
+
+    def _check_driver(self):
+        """Check correct driver: only for Windows"""
+        if system == 'Windows':
+            self.set_exposure(10)
+            frame = self.capture_image(flush=1)
+            mean = sum(cv2.mean(frame)) / 3.0
+            if mean > 200:
+                raise WrongDriver()
 
     def capture_image(self, flush=0, mirror=False):
         """Capture image from camera"""
