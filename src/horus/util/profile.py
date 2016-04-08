@@ -196,16 +196,6 @@ class Settings(collections.MutableMapping):
             Setting('framerate', _('Framerate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
         self._add_setting(
-            Setting('resolution', _('Resolution'), 'profile_settings',
-                    unicode, u'1280x960', possible_values=(u'1280x960',
-                                                           u'960x720',
-                                                           u'800x600',
-                                                           u'320x240',
-                                                           u'160x120')))
-        self._add_setting(
-            Setting('use_distortion', _('Use distortion'), 'profile_settings', bool, False))
-
-        self._add_setting(
             Setting('motor_step_control', _(u'Step (º)'), 'profile_settings',
                     float, 90.0))
         self._add_setting(
@@ -423,6 +413,20 @@ class Settings(collections.MutableMapping):
             Setting('adjust_laser', _('Adjust Laser'), 'calibration_settings', bool, True))
 
         self._add_setting(
+            Setting('camera_width', _('Width'), 'calibration_settings',
+                    int, 1280, min_value=1, max_value=10000))
+        self._add_setting(
+            Setting('camera_height', _('Height'), 'calibration_settings',
+                    int, 960, min_value=1, max_value=10000))
+
+        self._add_setting(
+            Setting('camera_rotate', _('Rotate'), 'calibration_settings', bool, True))
+        self._add_setting(
+            Setting('camera_hmirror', _('H Mirror'), 'calibration_settings', bool, False))
+        self._add_setting(
+            Setting('camera_vmirror', _('V Mirror'), 'calibration_settings', bool, True))
+
+        self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
                                                                           [0.0, 1430.0, 640.0],
@@ -431,6 +435,8 @@ class Settings(collections.MutableMapping):
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(5,),
                                            buffer=np.array([0.0, 0.0, 0.0, 0.0, 0.0]))))
+        self._add_setting(
+            Setting('use_distortion', _('Use distortion'), 'calibration_settings', bool, False))
 
         self._add_setting(
             Setting('distance_left', _('Distance left (mm)'), 'calibration_settings', float, 0.0))
@@ -467,7 +473,7 @@ class Settings(collections.MutableMapping):
                     unicode, u'pattern_settings',
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
                                      u'scanner_autocheck', u'laser_triangulation',
-                                     u'platform_extrinsics')))
+                                     u'platform_extrinsics', u'video_settings')))
 
         # -- Machine Settings
 

@@ -90,6 +90,9 @@ class Camera(object):
         self._frame_rate = 0
         self._width = 0
         self._height = 0
+        self._rotate = True
+        self._hmirror = False
+        self._vmirror = True
 
     def connect(self):
         logger.info("Connecting camera {0}".format(self.camera_id))
@@ -168,7 +171,7 @@ class Camera(object):
             if mean > 200:
                 raise WrongDriver()
 
-    def capture_image(self, flush=0, mirror=False):
+    def capture_image(self, flush=0):
         """Capture image from camera"""
         if self._is_connected:
             if self._updating:
@@ -181,8 +184,11 @@ class Camera(object):
                 ret, image = self._capture.read()
                 self._reading = False
                 if ret:
-                    image = cv2.transpose(image)
-                    if not mirror:
+                    if self._rotate:
+                        image = cv2.transpose(image)
+                    if self._hmirror:
+                        image = cv2.flip(image, 0)
+                    if self._vmirror:
                         image = cv2.flip(image, 1)
                     self._success()
                     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -193,6 +199,15 @@ class Camera(object):
                     return None
         else:
             return None
+
+    def set_rotate(self, value):
+        self._rotate = value
+
+    def set_horizontal_mirror(self, value):
+        self._hmirror = value
+
+    def set_vertical_mirror(self, value):
+        self._vmirror = value
 
     def set_brightness(self, value):
         if self._is_connected:
@@ -258,7 +273,7 @@ class Camera(object):
                 self._frame_rate = value
                 self._updating = False
 
-    def set_resolution(self, height, width):
+    def set_resolution(self, width, height):
         if self._is_connected:
             if self._width != width or self._height != height:
                 self._updating = True
@@ -304,7 +319,10 @@ class Camera(object):
             return value
 
     def get_resolution(self):
-        return int(self._height), int(self._width)  # Inverted values because of transpose
+        if self._rotate:
+            return int(self._height), int(self._width)
+        else:
+            return int(self._width), int(self._height)
 
     def _success(self):
         self._tries = 0

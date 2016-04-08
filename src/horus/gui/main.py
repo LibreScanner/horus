@@ -403,12 +403,17 @@ class MainWindow(wx.Frame):
         profile.settings['view_mode_advanced'] = checked
         if checked:
             self.workbench['calibration'].panels_collection.expandable_panels[
+                'video_settings'].Show()
+            self.workbench['calibration'].panels_collection.expandable_panels[
                 'camera_intrinsics'].Show()
         else:
             self.workbench['calibration'].panels_collection.expandable_panels[
+                'video_settings'].Hide()
+            self.workbench['calibration'].panels_collection.expandable_panels[
                 'camera_intrinsics'].Hide()
 
-            if profile.settings['current_panel_calibration'] == 'camera_intrinsics':
+            if profile.settings['current_panel_calibration'] == 'video_settings' or \
+               profile.settings['current_panel_calibration'] == 'camera_intrinsics':
                 self.workbench['calibration'].on_pattern_settings_selected()
                 self.workbench['calibration'].panels_collection.expandable_panels[
                     profile.settings['current_panel_calibration']].on_title_clicked(None)

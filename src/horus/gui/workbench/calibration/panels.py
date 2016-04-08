@@ -5,7 +5,7 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-from horus.gui.engine import pattern, calibration_data, image_capture
+from horus.gui.engine import driver, pattern, calibration_data, image_capture
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
     FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray
 
@@ -47,32 +47,6 @@ class PatternSettings(ExpandablePanel):
         pattern.origin_distance = value
 
 
-class CameraIntrinsics(ExpandablePanel):
-
-    def __init__(self, parent, on_selected_callback):
-        ExpandablePanel.__init__(self, parent, _("Camera intrinsics"),
-                                 selected_callback=on_selected_callback, has_undo=False)
-
-    def add_controls(self):
-        self.add_control('camera_matrix', FloatTextBoxArray)
-        self.add_control('distortion_vector', FloatTextBoxArray)
-        self.add_control(
-            'use_distortion', CheckBox,
-            _("This option applies lens distortion correction to the video. "
-              "This process slows the video feed from the camera"))
-
-    def update_callbacks(self):
-        self.update_callback('camera_matrix', lambda v: self._update_camera_matrix(v))
-        self.update_callback('distortion_vector', lambda v: self._update_distortion_vector(v))
-        self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
-
-    def _update_camera_matrix(self, value):
-        calibration_data.camera_matrix = value
-
-    def _update_distortion_vector(self, value):
-        calibration_data.distortion_vector = value
-
-
 class ScannerAutocheck(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
@@ -103,3 +77,46 @@ class PlatformExtrinsics(ExpandablePanel):
     def add_controls(self):
         self.add_control('rotation_matrix', FloatLabelArray)
         self.add_control('translation_vector', FloatLabelArray)
+
+
+class VideoSettings(ExpandablePanel):
+
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Video settings"),
+                                 selected_callback=on_selected_callback, has_undo=False)
+
+    def add_controls(self):
+        self.add_control('camera_rotate', CheckBox, _("Rotate camera"))
+        self.add_control('camera_hmirror', CheckBox, _("Horizontal camera mirror"))
+        self.add_control('camera_vmirror', CheckBox, _("Vertical camera mirror"))
+
+    def update_callbacks(self):
+        self.update_callback('camera_rotate', lambda v: driver.camera.set_rotate(v))
+        self.update_callback('camera_hmirror', lambda v: driver.camera.set_horizontal_mirror(v))
+        self.update_callback('camera_vmirror', lambda v: driver.camera.set_vertical_mirror(v))
+
+
+class CameraIntrinsics(ExpandablePanel):
+
+    def __init__(self, parent, on_selected_callback):
+        ExpandablePanel.__init__(self, parent, _("Camera intrinsics"),
+                                 selected_callback=on_selected_callback, has_undo=False)
+
+    def add_controls(self):
+        self.add_control('camera_matrix', FloatTextBoxArray)
+        self.add_control('distortion_vector', FloatTextBoxArray)
+        self.add_control(
+            'use_distortion', CheckBox,
+            _("This option applies lens distortion correction to the video. "
+              "This process slows the video feed from the camera"))
+
+    def update_callbacks(self):
+        self.update_callback('camera_matrix', lambda v: self._update_camera_matrix(v))
+        self.update_callback('distortion_vector', lambda v: self._update_distortion_vector(v))
+        self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
+
+    def _update_camera_matrix(self, value):
+        calibration_data.camera_matrix = value
+
+    def _update_distortion_vector(self, value):
+        calibration_data.distortion_vector = value
