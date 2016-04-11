@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.gui.engine import driver, pattern, calibration_data, image_capture
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
-    FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray
+    FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray, IntLabel
 
 
 class PatternSettings(ExpandablePanel):
@@ -86,14 +86,14 @@ class VideoSettings(ExpandablePanel):
                                  selected_callback=on_selected_callback, has_undo=False)
 
     def add_controls(self):
+        self.add_control('camera_width', IntLabel, _("Width"))
+        self.add_control('camera_height', IntLabel, _("Height"))
         self.add_control('camera_rotate', CheckBox, _("Rotate camera"))
-        self.add_control('camera_hmirror', CheckBox, _("Horizontal camera mirror"))
-        self.add_control('camera_vmirror', CheckBox, _("Vertical camera mirror"))
+        self.add_control('camera_mirror', CheckBox, _("Camera mirror"))
 
     def update_callbacks(self):
         self.update_callback('camera_rotate', lambda v: driver.camera.set_rotate(v))
-        self.update_callback('camera_hmirror', lambda v: driver.camera.set_horizontal_mirror(v))
-        self.update_callback('camera_vmirror', lambda v: driver.camera.set_vertical_mirror(v))
+        self.update_callback('camera_mirror', lambda v: driver.camera.set_mirror(v))
 
 
 class CameraIntrinsics(ExpandablePanel):

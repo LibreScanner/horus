@@ -91,8 +91,7 @@ class Camera(object):
         self._width = 0
         self._height = 0
         self._rotate = True
-        self._hmirror = False
-        self._vmirror = True
+        self._mirror = True
 
     def connect(self):
         logger.info("Connecting camera {0}".format(self.camera_id))
@@ -186,10 +185,9 @@ class Camera(object):
                 if ret:
                     if self._rotate:
                         image = cv2.transpose(image)
-                    if self._hmirror:
-                        image = cv2.flip(image, 0)
-                    if self._vmirror:
                         image = cv2.flip(image, 1)
+                    if self._mirror:
+                        image = cv2.flip(image, 0)
                     self._success()
                     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                     self._last_image = image
@@ -203,11 +201,8 @@ class Camera(object):
     def set_rotate(self, value):
         self._rotate = value
 
-    def set_horizontal_mirror(self, value):
-        self._hmirror = value
-
-    def set_vertical_mirror(self, value):
-        self._vmirror = value
+    def set_mirror(self, value):
+        self._mirror = value
 
     def set_brightness(self, value):
         if self._is_connected:

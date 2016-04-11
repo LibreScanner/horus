@@ -422,9 +422,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('camera_rotate', _('Rotate'), 'calibration_settings', bool, True))
         self._add_setting(
-            Setting('camera_hmirror', _('H Mirror'), 'calibration_settings', bool, False))
-        self._add_setting(
-            Setting('camera_vmirror', _('V Mirror'), 'calibration_settings', bool, True))
+            Setting('camera_mirror', _('Mirror'), 'calibration_settings', bool, False))
 
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
