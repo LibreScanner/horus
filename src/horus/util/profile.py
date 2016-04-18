@@ -385,6 +385,8 @@ class Settings(collections.MutableMapping):
             Setting('video_scanning', _('Video'), 'profile_settings',
                     unicode, u'Laser', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
 
+        self._add_setting(
+            Setting('save_image_button', _('Save image'), 'profile_settings', unicode, u''))
         self._add_setting(Setting('left_button', _('Left'), 'profile_settings', unicode, u''))
         self._add_setting(Setting('right_button', _('Right'), 'profile_settings', unicode, u''))
         self._add_setting(Setting('move_button', _('Move'), 'profile_settings', unicode, u''))

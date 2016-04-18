@@ -198,6 +198,11 @@ class Camera(object):
         else:
             return None
 
+    def save_image(self, filename):
+        image = self.capture_image()
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        cv2.imwrite(filename, image)
+
     def set_rotate(self, value):
         self._rotate = value
 

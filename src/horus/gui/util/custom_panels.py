@@ -760,7 +760,7 @@ class Button(ControlPanel):
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.control, 1, wx.ALL | wx.EXPAND, 5)
+        hbox.Add(self.control, 1, wx.TOP | wx.EXPAND, 10)
         self.SetSizer(hbox)
         self.Layout()
 
