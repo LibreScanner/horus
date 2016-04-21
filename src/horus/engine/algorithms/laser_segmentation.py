@@ -6,6 +6,7 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
+import math
 import numpy as np
 
 from horus import Singleton
@@ -60,6 +61,12 @@ class LaserSegmentation(object):
             s = image.sum(axis=1)
             v = np.where(s > 0)[0]
             u = (self.calibration_data.weight_matrix * image).sum(axis=1)[v] / s[v]
+            if self.refinement_method == 'SGF':
+                # Segmented gaussian filter
+                u, v = self._sgf(u, v, s)
+            elif self.refinement_method == 'RANSAC':
+                # Random sample consensus
+                u, v = self._ransac(u, v)
             return (u, v), image
 
     def compute_hough_lines(self, image):
@@ -80,24 +87,11 @@ class LaserSegmentation(object):
                 image = self.point_cloud_roi.mask_image(image)
             # Obtain red channel
             image = self._obtain_red_channel(image)
-            # Threshold image
-            if self.threshold_enable:
-                image = cv2.threshold(
-                    image, self.threshold_value, 255, cv2.THRESH_TOZERO)[1]
-            # Window mask
-            if self.window_enable:
-                peak = image.argmax(axis=1)
-                _min = peak - self.window_value
-                _max = peak + self.window_value + 1
-                mask = np.zeros_like(image)
-                for i in xrange(self.calibration_data.height):
-                    mask[i, _min[i]:_max[i]] = 255
-            # Blur image
-            if self.blur_enable:
-                image = cv2.blur(image, (self.blur_value, self.blur_value))
-            # Apply mask
-            if self.window_enable:
-                image = cv2.bitwise_and(image, mask)
+            if image is not None:
+                # Threshold image
+                image = self._threshold_image(image)
+                # Window mask
+                image = self._window_mask(image)
             return image
 
     def _obtain_red_channel(self, image):
@@ -109,3 +103,107 @@ class LaserSegmentation(object):
         elif self.red_channel == 'U (YUV)':
             ret = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YUV))[1]
         return ret
+
+    def _threshold_image(self, image):
+        if self.threshold_enable:
+            image = cv2.threshold(
+                image, self.threshold_value, 255, cv2.THRESH_TOZERO)[1]
+            if self.blur_enable:
+                image = cv2.blur(image, (self.blur_value, self.blur_value))
+            image = cv2.threshold(
+                image, self.threshold_value, 255, cv2.THRESH_TOZERO)[1]
+        return image
+
+    def _window_mask(self, image):
+        if self.window_enable:
+            peak = image.argmax(axis=1)
+            _min = peak - self.window_value
+            _max = peak + self.window_value + 1
+            mask = np.zeros_like(image)
+            for i in xrange(self.calibration_data.height):
+                mask[i, _min[i]:_max[i]] = 255
+            # Apply mask
+            image = cv2.bitwise_and(image, mask)
+        return image
+
+    def _sgf(self, u, v, s):
+        return u, v
+
+    # RANSAC implementation: https://github.com/ahojnnes/numpy-snippets/blob/master/ransac.py
+
+    def _ransac(self, u, v):
+        if len(u) > 0:
+            data = np.vstack((v.ravel(), u.ravel())).T
+            dr, thetar = self.ransac(data, self.LinearLeastSquares2D(), 2, 2)
+            u = (dr - v * math.sin(thetar)) / math.cos(thetar)
+        return u, v
+
+    class LinearLeastSquares2D(object):
+        '''
+        2D linear least squares using the hesse normal form:
+            d = x*sin(theta) + y*cos(theta)
+        which allows you to have vertical lines.
+        '''
+
+        def fit(self, data):
+            data_mean = data.mean(axis=0)
+            x0, y0 = data_mean
+            if data.shape[0] > 2:  # over determined
+                u, v, w = np.linalg.svd(data - data_mean)
+                vec = w[0]
+                theta = math.atan2(vec[0], vec[1])
+            elif data.shape[0] == 2:  # well determined
+                theta = math.atan2(data[1, 0] - data[0, 0], data[1, 1] - data[0, 1])
+            theta = (theta + math.pi * 5 / 2) % (2 * math.pi)
+            d = x0 * math.sin(theta) + y0 * math.cos(theta)
+            return d, theta
+
+        def residuals(self, model, data):
+            d, theta = model
+            dfit = data[:, 0] * math.sin(theta) + data[:, 1] * math.cos(theta)
+            return np.abs(d - dfit)
+
+        def is_degenerate(self, sample):
+            return False
+
+    def ransac(self, data, model_class, min_samples, threshold, max_trials=100):
+        '''
+        Fits a model to data with the RANSAC algorithm.
+        :param data: numpy.ndarray
+            data set to which the model is fitted, must be of shape NxD where
+            N is the number of data points and D the dimensionality of the data
+        :param model_class: object
+            object with the following methods implemented:
+             * fit(data): return the computed model
+             * residuals(model, data): return residuals for each data point
+             * is_degenerate(sample): return boolean value if sample choice is
+                degenerate
+            see LinearLeastSquares2D class for a sample implementation
+        :param min_samples: int
+            the minimum number of data points to fit a model
+        :param threshold: int or float
+            maximum distance for a data point to count as an inlier
+        :param max_trials: int, optional
+            maximum number of iterations for random sample selection, default 100
+        :returns: tuple
+            best model returned by model_class.fit, best inlier indices
+        '''
+
+        best_model = None
+        best_inlier_num = 0
+        best_inliers = None
+        data_idx = np.arange(data.shape[0])
+        for _ in xrange(max_trials):
+            sample = data[np.random.randint(0, data.shape[0], 2)]
+            if model_class.is_degenerate(sample):
+                continue
+            sample_model = model_class.fit(sample)
+            sample_model_residua = model_class.residuals(sample_model, data)
+            sample_model_inliers = data_idx[sample_model_residua < threshold]
+            inlier_num = sample_model_inliers.shape[0]
+            if inlier_num > best_inlier_num:
+                best_inlier_num = inlier_num
+                best_inliers = sample_model_inliers
+        if best_inliers is not None:
+            best_model = model_class.fit(data[best_inliers])
+        return best_model

@@ -262,13 +262,13 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('blur_value_scanning', _('Blur'), 'profile_settings',
-                    int, 3, min_value=0, max_value=10))
+                    int, 2, min_value=0, max_value=10))
         self._add_setting(
             Setting('window_enable_scanning', _('Enable window'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('window_value_scanning', _('Window'), 'profile_settings',
-                    int, 5, min_value=0, max_value=30))
+                    int, 8, min_value=0, max_value=30))
         self._add_setting(
             Setting('refinement_scanning', _('Refinement'), 'profile_settings',
                     unicode, u'SGF',
@@ -321,19 +321,19 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_calibration', _('Threshold'), 'profile_settings',
-                    int, 50, min_value=0, max_value=255))
+                    int, 30, min_value=0, max_value=255))
         self._add_setting(
             Setting('blur_enable_calibration', _('Enable blur'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('blur_value_calibration', _('Blur'), 'profile_settings',
-                    int, 3, min_value=0, max_value=10))
+                    int, 2, min_value=0, max_value=10))
         self._add_setting(
             Setting('window_enable_calibration', _('Enable window'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('window_value_calibration', _('Window'), 'profile_settings',
-                    int, 10, min_value=0, max_value=30))
+                    int, 5, min_value=0, max_value=30))
         self._add_setting(
             Setting('refinement_calibration', _('Refinement'), 'profile_settings',
                     unicode, u'RANSAC',
