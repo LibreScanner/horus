@@ -116,14 +116,13 @@ class ScanningWorkbench(Workbench):
         image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         laser_segmentation.red_channel = profile.settings['red_channel_scanning']
-        laser_segmentation.window_enable = profile.settings['window_enable_scanning']
-        laser_segmentation.window_value = profile.settings['window_value_scanning']
-        laser_segmentation.blur_enable = profile.settings['blur_enable_scanning']
-        laser_segmentation.set_blur_value(profile.settings['blur_value_scanning'])
-        laser_segmentation.open_enable = profile.settings['open_enable_scanning']
-        laser_segmentation.open_value = profile.settings['open_value_scanning']
         laser_segmentation.threshold_enable = profile.settings['threshold_enable_scanning']
         laser_segmentation.threshold_value = profile.settings['threshold_value_scanning']
+        laser_segmentation.blur_enable = profile.settings['blur_enable_scanning']
+        laser_segmentation.set_blur_value(profile.settings['blur_value_scanning'])
+        laser_segmentation.window_enable = profile.settings['window_enable_scanning']
+        laser_segmentation.window_value = profile.settings['window_value_scanning']
+        laser_segmentation.refinement_method = profile.settings['refinement_scanning']
         width, height = driver.camera.get_resolution()
         calibration_data.set_resolution(width, height)
         calibration_data.camera_matrix = profile.settings['camera_matrix']

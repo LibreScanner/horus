@@ -198,8 +198,7 @@ class Camera(object):
         else:
             return None
 
-    def save_image(self, filename):
-        image = self.capture_image()
+    def save_image(self, filename, image):
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         cv2.imwrite(filename, image)
 

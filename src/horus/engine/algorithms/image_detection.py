@@ -61,7 +61,7 @@ class ImageDetection(object):
         if corners is not None:
             p1 = corners[0][0]
             p2 = corners[self.pattern.columns - 1][0]
-            p3 = corners[self.pattern.columns * (self.pattern.rows - 1) - 1][0]
+            p3 = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
             p4 = corners[self.pattern.columns * self.pattern.rows - 1][0]
             p11 = min(p1[1], p2[1], p3[1], p4[1])
             p12 = max(p1[1], p2[1], p3[1], p4[1])

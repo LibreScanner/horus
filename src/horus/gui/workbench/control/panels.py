@@ -52,6 +52,7 @@ class CameraControl(ExpandablePanel):
         profile.settings['current_panel_control'] = 'camera_control'
 
     def _save_image(self):
+        image = driver.camera.capture_image()
         dlg = wx.FileDialog(self, _("Save image"), style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         wildcard_list = ';'.join(map(lambda s: '*' + s, ['.png']))
         wildcard_filter = "Image files (%s)|%s;%s" % (wildcard_list, wildcard_list,
@@ -62,7 +63,7 @@ class CameraControl(ExpandablePanel):
             if not filename.endswith('.png'):
                 if sys.is_linux():  # hack for linux, as for some reason the .ply is not appended.
                     filename += '.png'
-            driver.camera.save_image(filename)
+            driver.camera.save_image(filename, image)
         dlg.Destroy()
 
 

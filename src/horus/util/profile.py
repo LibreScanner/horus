@@ -242,37 +242,39 @@ class Settings(collections.MutableMapping):
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_scanning', _('Exposure'), 'profile_settings',
-                    int, 6, min_value=1, max_value=64))
+                    int, 8, min_value=1, max_value=64))
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'profile_settings', bool, True))
+
         self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
-                    unicode, u'R-G (RGB)',
-                    possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
-        self._add_setting(
-            Setting('window_enable_scanning', _('Enable window'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('window_value_scanning', _('Window'), 'profile_settings',
-                    int, 15, min_value=0, max_value=30))
-        self._add_setting(
-            Setting('blur_enable_scanning', _('Enable blur'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('blur_value_scanning', _('Blur'), 'profile_settings',
-                    int, 1, min_value=0, max_value=10))
-        self._add_setting(
-            Setting('open_enable_scanning', _('Enable open'), 'profile_settings', bool, True))
-        self._add_setting(
-            Setting('open_value_scanning', _('Open'), 'profile_settings',
-                    int, 1, min_value=1, max_value=10))
+                    unicode, u'R (RGB)',
+                    possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_scanning', _('Threshold'), 'profile_settings',
                     int, 50, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('blur_enable_scanning', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_scanning', _('Blur'), 'profile_settings',
+                    int, 3, min_value=0, max_value=10))
+        self._add_setting(
+            Setting('window_enable_scanning', _('Enable window'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('window_value_scanning', _('Window'), 'profile_settings',
+                    int, 5, min_value=0, max_value=30))
+        self._add_setting(
+            Setting('refinement_scanning', _('Refinement'), 'profile_settings',
+                    unicode, u'SGF',
+                    possible_values=(u'SGF', u'RANSAC')))
+        _('Open')
+        _('Enable open')
 
         # Hack to translate combo boxes:
         _('Pattern')
@@ -302,18 +304,30 @@ class Settings(collections.MutableMapping):
                     int, 200, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_calibration', _('Saturation'), 'profile_settings',
-                    int, 100, min_value=0, max_value=255))
+                    int, 200, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_calibration', _('Exposure'), 'profile_settings',
-                    int, 4, min_value=1, max_value=64))
+                    int, 8, min_value=1, max_value=64))
         self._add_setting(
             Setting('remove_background_calibration', _('Remove background'),
                     'profile_settings', bool, True))
 
         self._add_setting(
             Setting('red_channel_calibration', _('Red channel'), 'profile_settings',
-                    unicode, u'R-G (RGB)',
-                    possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
+                    unicode, u'R (RGB)',
+                    possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
+        self._add_setting(
+            Setting('threshold_enable_calibration', _('Enable threshold'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('threshold_value_calibration', _('Threshold'), 'profile_settings',
+                    int, 50, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('blur_enable_calibration', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_calibration', _('Blur'), 'profile_settings',
+                    int, 3, min_value=0, max_value=10))
         self._add_setting(
             Setting('window_enable_calibration', _('Enable window'),
                     'profile_settings', bool, True))
@@ -321,17 +335,9 @@ class Settings(collections.MutableMapping):
             Setting('window_value_calibration', _('Window'), 'profile_settings',
                     int, 10, min_value=0, max_value=30))
         self._add_setting(
-            Setting('blur_enable_calibration', _('Enable blur'),
-                    'profile_settings', bool, False))
-        self._add_setting(
-            Setting('blur_value_calibration', _('Blur'), 'profile_settings',
-                    int, 1, min_value=0, max_value=10))
-        self._add_setting(
-            Setting('threshold_enable_calibration', _('Enable threshold'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('threshold_value_calibration', _('Threshold'), 'profile_settings',
-                    int, 50, min_value=0, max_value=255))
+            Setting('refinement_calibration', _('Refinement'), 'profile_settings',
+                    unicode, u'RANSAC',
+                    possible_values=(u'SGF', u'RANSAC')))
 
         self._add_setting(
             Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
@@ -641,7 +647,8 @@ class Setting(object):
 
     def _check_type(self, value):
         if not isinstance(value, self._type):
-            raise TypeError("Error when setting %s.\n%s (%s) is not of type %s." %
+            raise TypeError("Error when setting %s.\n%s (%s) is not of type %s. "
+                            "Please remove current profile at ~/.horus" %
                             (self._id, value, type(value), self._type))
 
     def _check_range(self, value):
