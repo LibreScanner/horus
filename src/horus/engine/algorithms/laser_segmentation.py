@@ -8,6 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import cv2
 import math
 import numpy as np
+import scipy.ndimage
 
 from horus import Singleton
 from horus.engine.calibration.calibration_data import CalibrationData
@@ -126,8 +127,24 @@ class LaserSegmentation(object):
             image = cv2.bitwise_and(image, mask)
         return image
 
+    # Segmented gaussian filter
+
     def _sgf(self, u, v, s):
-        return u, v
+        if len(u) > 0:
+            i = 0
+            sigma = 2.0
+            f = np.array([])
+            segments = [s[_r] for _r in np.ma.clump_unmasked(np.ma.masked_equal(s, 0))]
+
+            # Detect stripe segments
+            for segment in segments:
+                j = len(segment)
+                # Apply gaussian filter
+                fseg = scipy.ndimage.gaussian_filter(u[i:i + j], sigma=sigma)
+                f = np.concatenate((f, fseg))
+                i += j
+
+        return f, v
 
     # RANSAC implementation: https://github.com/ahojnnes/numpy-snippets/blob/master/ransac.py
 

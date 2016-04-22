@@ -371,7 +371,7 @@ class Settings(collections.MutableMapping):
                     float, 300.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
-            Setting('use_roi', _('Use ROI'), 'profile_settings', bool, False))
+            Setting('use_roi', _('Use ROI'), 'profile_settings', bool, True))
         self._add_setting(
             Setting('roi_diameter', _('Diameter (mm)'), 'profile_settings',
                     int, 200, min_value=0, max_value=250))
@@ -434,8 +434,8 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
-                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
-                                                                          [0.0, 1430.0, 640.0],
+                    np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1435.0, 0.0, 480.0],
+                                                                          [0.0, 1435.0, 640.0],
                                                                           [0.0, 0.0, 1.0]]))))
         self._add_setting(
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',
