@@ -18,7 +18,7 @@ current_video = CurrentVideo()
 def flush_video():
     current_video.capture()
     current_video.capture()
-    # current_video.capture()
+    current_video.capture()
 
 
 class ScanCapturePanel(ExpandablePanel):
@@ -166,7 +166,7 @@ class ScanSegmentationPanel(ExpandablePanel):
         self.add_control(
             'window_enable_scanning', CheckBox,
             _("Filter pixels out of 2 * window value around the intensity peak"))
-        # self.add_control('refinement_scanning', ComboBox)
+        self.add_control('refinement_scanning', ComboBox)
 
     def update_callbacks(self):
         # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
@@ -176,7 +176,7 @@ class ScanSegmentationPanel(ExpandablePanel):
         self.update_callback('blur_enable_scanning', laser_segmentation.set_blur_enable)
         self.update_callback('window_value_scanning', laser_segmentation.set_window_value)
         self.update_callback('window_enable_scanning', laser_segmentation.set_window_enable)
-        # self.update_callback('refinement_scanning', laser_segmentation.set_refinement_method)
+        self.update_callback('refinement_scanning', laser_segmentation.set_refinement_method)
 
     def on_selected(self):
         current_video.updating = True
@@ -346,7 +346,7 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         self.add_control(
             'window_enable_calibration', CheckBox,
             _("Filter pixels out of 2 * window value around the intensity peak"))
-        # self.add_control('refinement_calibration', ComboBox)
+        self.add_control('refinement_calibration', ComboBox)
 
     def update_callbacks(self):
         # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
@@ -357,7 +357,7 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         self.update_callback('blur_enable_calibration', laser_segmentation.set_blur_enable)
         self.update_callback('window_value_calibration', laser_segmentation.set_window_value)
         self.update_callback('window_enable_calibration', laser_segmentation.set_window_enable)
-        # self.update_callback('refinement_calibration', laser_segmentation.set_refinement_method)
+        self.update_callback('refinement_calibration', laser_segmentation.set_refinement_method)
 
     def on_selected(self):
         current_video.updating = True
