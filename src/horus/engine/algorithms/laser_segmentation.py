@@ -130,12 +130,11 @@ class LaserSegmentation(object):
     # Segmented gaussian filter
 
     def _sgf(self, u, v, s):
-        if len(u) > 0:
+        if len(u) > 1:
             i = 0
             sigma = 2.0
             f = np.array([])
             segments = [s[_r] for _r in np.ma.clump_unmasked(np.ma.masked_equal(s, 0))]
-
             # Detect stripe segments
             for segment in segments:
                 j = len(segment)
@@ -143,13 +142,14 @@ class LaserSegmentation(object):
                 fseg = scipy.ndimage.gaussian_filter(u[i:i + j], sigma=sigma)
                 f = np.concatenate((f, fseg))
                 i += j
-
-        return f, v
+            return f, v
+        else:
+            return u, v
 
     # RANSAC implementation: https://github.com/ahojnnes/numpy-snippets/blob/master/ransac.py
 
     def _ransac(self, u, v):
-        if len(u) > 0:
+        if len(u) > 1:
             data = np.vstack((v.ravel(), u.ravel())).T
             dr, thetar = self.ransac(data, self.LinearLeastSquares2D(), 2, 2)
             u = (dr - v * math.sin(thetar)) / math.cos(thetar)

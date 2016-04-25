@@ -20,7 +20,7 @@ class MovingCalibration(Calibration):
 
     def __init__(self):
         Calibration.__init__(self)
-        self.step = 5
+        self.step = 4
 
     def _initialize(self):
         raise NotImplementedError
@@ -41,7 +41,7 @@ class MovingCalibration(Calibration):
             self.driver.board.lasers_off()
             self.driver.board.motor_enable()
             self.driver.board.motor_speed(200)
-            self.driver.board.motor_acceleration(200)
+            self.driver.board.motor_acceleration(150)
 
             # Move to origin
             self.driver.board.motor_relative(-90)
@@ -60,7 +60,7 @@ class MovingCalibration(Calibration):
                 angle += self.step
                 self.driver.board.motor_relative(self.step)
                 self.driver.board.motor_move()
-                time.sleep(0.3)
+                time.sleep(0.5)
 
             # Move to origin
             self.driver.board.motor_relative(90 - angle)
