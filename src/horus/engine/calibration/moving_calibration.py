@@ -20,7 +20,7 @@ class MovingCalibration(Calibration):
 
     def __init__(self):
         Calibration.__init__(self)
-        self.step = 4
+        self.step = 3
 
     def _initialize(self):
         raise NotImplementedError
@@ -33,7 +33,7 @@ class MovingCalibration(Calibration):
 
     def _start(self):
         if self.driver.is_connected:
-            angle = 0
+            angle = 0.0
 
             self._initialize()
 
@@ -60,7 +60,7 @@ class MovingCalibration(Calibration):
                 angle += self.step
                 self.driver.board.motor_relative(self.step)
                 self.driver.board.motor_move()
-                time.sleep(0.5)
+                time.sleep(0.3)
 
             # Move to origin
             self.driver.board.motor_relative(90 - angle)

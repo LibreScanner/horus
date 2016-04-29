@@ -117,6 +117,7 @@ class ResultPage(Page):
         laser_triangulation.cancel()
         if self.exit_callback is not None:
             self.exit_callback()
+        self.plot_panel.clear()
 
     def on_accept(self):
         laser_triangulation.accept()
@@ -128,6 +129,7 @@ class ResultPage(Page):
         profile.settings['laser_triangulation_hash'] = calibration_data.md5_hash()
         if self.exit_callback is not None:
             self.exit_callback()
+        self.plot_panel.clear()
 
     def process_calibration(self, response):
         ret, result = response

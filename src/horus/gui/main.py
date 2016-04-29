@@ -41,7 +41,7 @@ __title__ = "Horus " + __version__
 class MainWindow(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, title=__title__, size=(980, 640))
+        wx.Frame.__init__(self, None, title=__title__, size=(980, 623))
 
         logger.info("Start application " + __title__)
 

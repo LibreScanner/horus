@@ -7,7 +7,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import struct
 import numpy as np
-from scipy.sparse import linalg
 
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
@@ -53,15 +52,20 @@ class LaserTriangulation(MovingCalibration):
         else:
             d, n, corners = ret
             for i in xrange(2):
-                image = self.image_capture.capture_laser(i)
-                image = self.image_detection.pattern_mask(image, corners)
-                self.image = image
-                points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                point_3d = self.point_cloud_generation.compute_camera_point_cloud(points_2d, d, n)
-                if self._point_cloud[i] is None:
-                    self._point_cloud[i] = point_3d.T
+                if (angle > 65 and angle < 115):
+                    image = self.image_capture.capture_laser(i)
+                    image = self.image_detection.pattern_mask(image, corners)
+                    self.image = image
+                    points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                    point_3d = self.point_cloud_generation.compute_camera_point_cloud(
+                        points_2d, d, n)
+                    if self._point_cloud[i] is None:
+                        self._point_cloud[i] = point_3d.T
+                    else:
+                        self._point_cloud[i] = np.concatenate(
+                            (self._point_cloud[i], point_3d.T))
                 else:
-                    self._point_cloud[i] = np.concatenate((self._point_cloud[i], point_3d.T))
+                    self.image = image
 
     def _calibrate(self):
         self.has_image = False
@@ -73,8 +77,11 @@ class LaserTriangulation(MovingCalibration):
 
         # TODO: use arrays
         # Compute planes
-        self.dL, self.nL, stdL = compute_plane(0, self._point_cloud[0])
-        self.dR, self.nR, stdR = compute_plane(1, self._point_cloud[1])
+        if self._is_calibrating:
+            self.dL, self.nL, stdL = compute_plane(0, self._point_cloud[0])
+
+        if self._is_calibrating:
+            self.dR, self.nR, stdR = compute_plane(1, self._point_cloud[1])
 
         if self._is_calibrating:
             if stdL < 1.0 and stdR < 1.0 and \
@@ -114,14 +121,17 @@ def compute_plane(index, X):
     else:
         return None, None, None
 
+import numpy.linalg
+# from scipy.sparse import linalg
+
 
 class PlaneDetection(object):
 
     def fit(self, X):
         M, Xm = self._compute_m(X)
-        U = linalg.svds(M, k=2)[0]
-        normal = np.cross(U.T[0], U.T[1])
-        # normal = numpy.linalg.svd(M)[0][:,2]
+        # U = linalg.svds(M, k=2)[0]
+        # normal = np.cross(U.T[0], U.T[1])
+        normal = numpy.linalg.svd(M)[0][:, 2]
         if normal[2] < 0:
             normal *= -1
         dist = np.dot(normal, Xm)

@@ -304,7 +304,7 @@ class Settings(collections.MutableMapping):
                     int, 200, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_calibration', _('Saturation'), 'profile_settings',
-                    int, 200, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_calibration', _('Exposure'), 'profile_settings',
                     int, 8, min_value=1, max_value=64))
@@ -337,7 +337,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('refinement_calibration', _('Refinement'), 'profile_settings',
                     unicode, u'RANSAC',
-                    possible_values=(u'SGF', u'RANSAC')))
+                    possible_values=(u'None', u'SGF', u'RANSAC')))
 
         self._add_setting(
             Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
@@ -435,7 +435,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
-                                                                          [0.0, 1430.0, 625.0],
+                                                                          [0.0, 1430.0, 620.0],
                                                                           [0.0, 0.0, 1.0]]))))
         self._add_setting(
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',

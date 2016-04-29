@@ -54,7 +54,7 @@ class ImageDetection(object):
             t = pose[1].T[0]
             c = pose[2]
             n = R.T[2]
-            d = -np.dot(n, t)
+            d = np.dot(n, t)
             return (d, n, c)
 
     def pattern_mask(self, image, corners):

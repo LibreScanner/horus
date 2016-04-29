@@ -153,8 +153,10 @@ class CiclopScan(Scan):
                             int(100 * self._progress / self._range))
                         print string_time + " elapsed time: {0}".format(
                             time.strftime("%M' %S\"", time.gmtime(end - self._begin)))
-                        print string_time + " elapsed angle: {0}º".format(int(np.rad2deg(self._theta)))
-                        print string_time + " capture: {0} ms".format(int((end - begin) * 1000))
+                        print string_time + " elapsed angle: {0}º".format(
+                            int(np.rad2deg(self._theta)))
+                        print string_time + " capture: {0} ms".format(
+                            int((end - begin) * 1000))
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()

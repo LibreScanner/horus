@@ -104,16 +104,16 @@ class CameraIntrinsics(ExpandablePanel):
 
     def add_controls(self):
         self.add_control('camera_matrix', FloatTextBoxArray)
-        self.add_control('distortion_vector', FloatTextBoxArray)
-        self.add_control(
-            'use_distortion', CheckBox,
-            _("This option applies lens distortion correction to the video. "
-              "This process slows the video feed from the camera"))
+        # self.add_control('distortion_vector', FloatTextBoxArray)
+        # self.add_control(
+        #     'use_distortion', CheckBox,
+        #     _("This option applies lens distortion correction to the video. "
+        #       "This process slows the video feed from the camera"))
 
     def update_callbacks(self):
         self.update_callback('camera_matrix', lambda v: self._update_camera_matrix(v))
-        self.update_callback('distortion_vector', lambda v: self._update_distortion_vector(v))
-        self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
+        # self.update_callback('distortion_vector', lambda v: self._update_distortion_vector(v))
+        # self.update_callback('use_distortion', lambda v: image_capture.set_use_distortion(v))
 
     def _update_camera_matrix(self, value):
         calibration_data.camera_matrix = value

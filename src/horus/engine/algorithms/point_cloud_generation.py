@@ -20,7 +20,7 @@ class PointCloudGeneration(object):
 
     def compute_point_cloud(self, theta, points_2d, index):
         # Load calibration values
-        R = np.matrix(self.calibration_data.platform_rotation).T
+        R = np.matrix(self.calibration_data.platform_rotation)
         t = np.matrix(self.calibration_data.platform_translation).T
         # Compute platform transformation
         Xwo = self.compute_platform_point_cloud(points_2d, R, t, index)
@@ -39,9 +39,9 @@ class PointCloudGeneration(object):
         n = self.calibration_data.laser_planes[index].normal
         d = self.calibration_data.laser_planes[index].distance
         # Camera system
-        Xc = - self.compute_camera_point_cloud(points_2d, d, n)
+        Xc = self.compute_camera_point_cloud(points_2d, d, n)
         # Compute platform transformation
-        return R * Xc - R * t
+        return R.T * Xc - R.T * t
 
     def compute_camera_point_cloud(self, points_2d, d, n):
         # Load calibration values
@@ -53,4 +53,4 @@ class PointCloudGeneration(object):
         u, v = points_2d
         x = np.concatenate(((u - cx) / fx, (v - cy) / fy, np.ones(len(u)))).reshape(3, len(u))
         # Compute laser intersection
-        return -d / np.dot(n, x) * x
+        return d / np.dot(n, x) * x
