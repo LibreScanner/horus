@@ -2,7 +2,7 @@
 
 [return to Home](../../README.md)
 
-### Version 0.2 beta3
+### Version 0.2 beta4
 
 First install USB Camera drivers:
 
@@ -10,7 +10,7 @@ First install USB Camera drivers:
 
 Download Horus installer:
 
-* [Horus 0.2b3 installer](https://github.com/bqlabs/horus/releases/download/0.2b3/Horus_0.2b3.exe)
+* [Horus 0.2b4 installer](https://github.com/bqlabs/horus/releases/download/0.2b4/Horus_0.2b4.exe)
 
 Execute the installer and follow the wizard. This package contains all dependencies and also Arduino and FTDI drivers.
 
