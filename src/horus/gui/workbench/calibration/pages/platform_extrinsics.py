@@ -121,6 +121,7 @@ class ResultPage(Page):
         platform_extrinsics.cancel()
         if self.exit_callback is not None:
             self.exit_callback()
+        self.plot_panel.clear()
 
     def on_accept(self):
         platform_extrinsics.accept()
@@ -130,6 +131,7 @@ class ResultPage(Page):
         profile.settings['platform_extrinsics_hash'] = calibration_data.md5_hash()
         if self.exit_callback is not None:
             self.exit_callback()
+        self.plot_panel.clear()
 
     def process_calibration(self, response):
         ret, result = response

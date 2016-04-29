@@ -17,7 +17,7 @@ BUILD_TARGET=${1:-none}
 EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
-export VERSION=0.2b3
+export VERSION=0.2b4
 export DATETIME=`git log -1 --pretty=%ci`
 export COMMIT=`git log -1 --pretty=%H`
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}

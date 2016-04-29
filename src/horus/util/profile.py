@@ -196,16 +196,6 @@ class Settings(collections.MutableMapping):
             Setting('framerate', _('Framerate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
         self._add_setting(
-            Setting('resolution', _('Resolution'), 'profile_settings',
-                    unicode, u'1280x960', possible_values=(u'1280x960',
-                                                           u'960x720',
-                                                           u'800x600',
-                                                           u'320x240',
-                                                           u'160x120')))
-        self._add_setting(
-            Setting('use_distortion', _('Use distortion'), 'profile_settings', bool, False))
-
-        self._add_setting(
             Setting('motor_step_control', _(u'Step (º)'), 'profile_settings',
                     float, 90.0))
         self._add_setting(
@@ -252,37 +242,39 @@ class Settings(collections.MutableMapping):
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_scanning', _('Exposure'), 'profile_settings',
-                    int, 6, min_value=1, max_value=64))
+                    int, 8, min_value=1, max_value=64))
         self._add_setting(
             Setting('remove_background_scanning', _('Remove background'),
                     'profile_settings', bool, True))
+
         self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
-                    unicode, u'R-G (RGB)',
-                    possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
-        self._add_setting(
-            Setting('window_enable_scanning', _('Enable window'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('window_value_scanning', _('Window'), 'profile_settings',
-                    int, 15, min_value=0, max_value=30))
-        self._add_setting(
-            Setting('blur_enable_scanning', _('Enable blur'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('blur_value_scanning', _('Blur'), 'profile_settings',
-                    int, 1, min_value=0, max_value=10))
-        self._add_setting(
-            Setting('open_enable_scanning', _('Enable open'), 'profile_settings', bool, True))
-        self._add_setting(
-            Setting('open_value_scanning', _('Open'), 'profile_settings',
-                    int, 1, min_value=1, max_value=10))
+                    unicode, u'R (RGB)',
+                    possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_scanning', _('Enable threshold'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_scanning', _('Threshold'), 'profile_settings',
                     int, 50, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('blur_enable_scanning', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_scanning', _('Blur'), 'profile_settings',
+                    int, 2, min_value=0, max_value=10))
+        self._add_setting(
+            Setting('window_enable_scanning', _('Enable window'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('window_value_scanning', _('Window'), 'profile_settings',
+                    int, 8, min_value=0, max_value=30))
+        self._add_setting(
+            Setting('refinement_scanning', _('Refinement'), 'profile_settings',
+                    unicode, u'SGF',
+                    possible_values=(u'None', u'SGF', u'RANSAC')))
+        _('Open')
+        _('Enable open')
 
         # Hack to translate combo boxes:
         _('Pattern')
@@ -315,33 +307,37 @@ class Settings(collections.MutableMapping):
                     int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_laser_calibration', _('Exposure'), 'profile_settings',
-                    int, 4, min_value=1, max_value=64))
+                    int, 8, min_value=1, max_value=64))
         self._add_setting(
             Setting('remove_background_calibration', _('Remove background'),
                     'profile_settings', bool, True))
 
         self._add_setting(
             Setting('red_channel_calibration', _('Red channel'), 'profile_settings',
-                    unicode, u'R-G (RGB)',
-                    possible_values=(u'R-G (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
-        self._add_setting(
-            Setting('window_enable_calibration', _('Enable window'),
-                    'profile_settings', bool, True))
-        self._add_setting(
-            Setting('window_value_calibration', _('Window'), 'profile_settings',
-                    int, 10, min_value=0, max_value=30))
-        self._add_setting(
-            Setting('blur_enable_calibration', _('Enable blur'),
-                    'profile_settings', bool, False))
-        self._add_setting(
-            Setting('blur_value_calibration', _('Blur'), 'profile_settings',
-                    int, 1, min_value=0, max_value=10))
+                    unicode, u'R (RGB)',
+                    possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
         self._add_setting(
             Setting('threshold_enable_calibration', _('Enable threshold'),
                     'profile_settings', bool, True))
         self._add_setting(
             Setting('threshold_value_calibration', _('Threshold'), 'profile_settings',
-                    int, 50, min_value=0, max_value=255))
+                    int, 30, min_value=0, max_value=255))
+        self._add_setting(
+            Setting('blur_enable_calibration', _('Enable blur'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('blur_value_calibration', _('Blur'), 'profile_settings',
+                    int, 2, min_value=0, max_value=10))
+        self._add_setting(
+            Setting('window_enable_calibration', _('Enable window'),
+                    'profile_settings', bool, True))
+        self._add_setting(
+            Setting('window_value_calibration', _('Window'), 'profile_settings',
+                    int, 5, min_value=0, max_value=30))
+        self._add_setting(
+            Setting('refinement_calibration', _('Refinement'), 'profile_settings',
+                    unicode, u'RANSAC',
+                    possible_values=(u'None', u'SGF', u'RANSAC')))
 
         self._add_setting(
             Setting('current_video_mode_adjustment', u'Texture', 'profile_settings',
@@ -395,6 +391,8 @@ class Settings(collections.MutableMapping):
             Setting('video_scanning', _('Video'), 'profile_settings',
                     unicode, u'Laser', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
 
+        self._add_setting(
+            Setting('save_image_button', _('Save image'), 'profile_settings', unicode, u''))
         self._add_setting(Setting('left_button', _('Left'), 'profile_settings', unicode, u''))
         self._add_setting(Setting('right_button', _('Right'), 'profile_settings', unicode, u''))
         self._add_setting(Setting('move_button', _('Move'), 'profile_settings', unicode, u''))
@@ -423,14 +421,28 @@ class Settings(collections.MutableMapping):
             Setting('adjust_laser', _('Adjust Laser'), 'calibration_settings', bool, True))
 
         self._add_setting(
+            Setting('camera_width', _('Width'), 'calibration_settings',
+                    int, 1280, min_value=1, max_value=10000))
+        self._add_setting(
+            Setting('camera_height', _('Height'), 'calibration_settings',
+                    int, 960, min_value=1, max_value=10000))
+
+        self._add_setting(
+            Setting('camera_rotate', _('Rotate'), 'calibration_settings', bool, True))
+        self._add_setting(
+            Setting('camera_mirror', _('Mirror'), 'calibration_settings', bool, False))
+
+        self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(3, 3), buffer=np.array([[1430.0, 0.0, 480.0],
-                                                                          [0.0, 1430.0, 640.0],
+                                                                          [0.0, 1430.0, 620.0],
                                                                           [0.0, 0.0, 1.0]]))))
         self._add_setting(
             Setting('distortion_vector', _('Distortion vector'), 'calibration_settings',
                     np.ndarray, np.ndarray(shape=(5,),
                                            buffer=np.array([0.0, 0.0, 0.0, 0.0, 0.0]))))
+        self._add_setting(
+            Setting('use_distortion', _('Use distortion'), 'calibration_settings', bool, False))
 
         self._add_setting(
             Setting('distance_left', _('Distance left (mm)'), 'calibration_settings', float, 0.0))
@@ -467,7 +479,7 @@ class Settings(collections.MutableMapping):
                     unicode, u'pattern_settings',
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
                                      u'scanner_autocheck', u'laser_triangulation',
-                                     u'platform_extrinsics')))
+                                     u'platform_extrinsics', u'video_settings')))
 
         # -- Machine Settings
 
@@ -635,7 +647,8 @@ class Setting(object):
 
     def _check_type(self, value):
         if not isinstance(value, self._type):
-            raise TypeError("Error when setting %s.\n%s (%s) is not of type %s." %
+            raise TypeError("Error when setting %s.\n%s (%s) is not of type %s. "
+                            "Please remove current profile at ~/.horus" %
                             (self._id, value, type(value), self._type))
 
     def _check_range(self, value):

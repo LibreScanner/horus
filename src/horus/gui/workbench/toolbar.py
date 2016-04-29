@@ -7,11 +7,12 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.util import resources
+from horus.util import resources, system
 
 from horus.gui.engine import driver
 from horus.engine.driver.board import WrongFirmware, BoardNotConnected
-from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo
+from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo, \
+    WrongDriver
 
 
 class Toolbar(wx.Panel):
@@ -108,6 +109,12 @@ class ToolbarConnection(Toolbar):
                 self._show_message(_(result), wx.ICON_ERROR,
                                    _("Unplug and plug your camera USB cable "
                                      "and try to connect again"))
+            elif isinstance(result, WrongDriver):
+                if system.is_windows():
+                    self._show_message(
+                        _(result), wx.ICON_ERROR,
+                        _("Please, download and install the camera driver: \n"
+                          "http://support.logitech.com/en_us/product/hd-webcam-c270"))
 
         self.update_status(driver.is_connected)
         self.GetParent().enable_gui(True)

@@ -7,7 +7,6 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import struct
 import numpy as np
-from scipy.sparse import linalg
 
 from horus import Singleton
 from horus.engine.calibration.calibration import CalibrationCancel
@@ -53,15 +52,20 @@ class LaserTriangulation(MovingCalibration):
         else:
             d, n, corners = ret
             for i in xrange(2):
-                image = self.image_capture.capture_laser(i)
-                image = self.image_detection.pattern_mask(image, corners)
-                self.image = image
-                points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                point_3d = self.point_cloud_generation.compute_camera_point_cloud(points_2d, d, n)
-                if self._point_cloud[i] is None:
-                    self._point_cloud[i] = point_3d.T
+                if (angle > 65 and angle < 115):
+                    image = self.image_capture.capture_laser(i)
+                    image = self.image_detection.pattern_mask(image, corners)
+                    self.image = image
+                    points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                    point_3d = self.point_cloud_generation.compute_camera_point_cloud(
+                        points_2d, d, n)
+                    if self._point_cloud[i] is None:
+                        self._point_cloud[i] = point_3d.T
+                    else:
+                        self._point_cloud[i] = np.concatenate(
+                            (self._point_cloud[i], point_3d.T))
                 else:
-                    self._point_cloud[i] = np.concatenate((self._point_cloud[i], point_3d.T))
+                    self.image = image
 
     def _calibrate(self):
         self.has_image = False
@@ -73,11 +77,14 @@ class LaserTriangulation(MovingCalibration):
 
         # TODO: use arrays
         # Compute planes
-        self.dL, self.nL, stdL = compute_plane(0, self._point_cloud[0])
-        self.dR, self.nR, stdR = compute_plane(1, self._point_cloud[1])
+        if self._is_calibrating:
+            self.dL, self.nL, stdL = compute_plane(0, self._point_cloud[0])
 
         if self._is_calibrating:
-            if stdL < 10.0 and stdR < 10.0 and \
+            self.dR, self.nR, stdR = compute_plane(1, self._point_cloud[1])
+
+        if self._is_calibrating:
+            if stdL < 1.0 and stdR < 1.0 and \
                self.nL is not None and self.nR is not None:
                 response = (True, ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR)))
             else:
@@ -98,55 +105,72 @@ class LaserTriangulation(MovingCalibration):
 
 
 def compute_plane(index, X):
-    if X is not None:
-        X = np.matrix(X).T
-        n = X.shape[1]
-        std = 0
-        size = 0
-        if n > 3:
-            final_points = []
+    if X is not None and X.shape[0] > 3:
+        model, inliers = ransac(X, PlaneDetection(), 3, 0.1)
 
-            for trials in xrange(30):
-                X = np.matrix(X)
-                n = X.shape[1]
-                Xm = X.sum(axis=1) / n
-                M = np.array(X - Xm)
-                U = linalg.svds(M, k=2)[0]
-                s, t = U.T
-                normal = np.cross(s, t)
-                if normal[2] < 0:
-                    normal *= -1
-                distance = np.dot(normal, np.array(Xm))[0]
-                error_vector = np.dot(M.T, normal)
+        distance, normal, M = model
+        std = np.dot(M.T, normal).std()
 
-                std = error_vector.std()
+        logger.info("Laser calibration " + str(index))
+        logger.info(" Distance: " + str(distance))
+        logger.info(" Normal: " + str(normal))
+        logger.info(" Standard deviation: " + str(std))
+        logger.info(" Point cloud size: " + str(len(inliers)))
 
-                final_points = np.where(abs(error_vector) < abs(2 * std))[0]
-
-                X = X[:, final_points]
-
-                if std < 0.05 or std > 20.0 or \
-                   len(final_points) < 1000 or \
-                   size == len(final_points):
-                    size = len(final_points)
-                    break
-
-                size = len(final_points)
-
-            logger.info("Laser calibration " + str(index))
-            logger.info(" Distance: " + str(distance))
-            logger.info(" Normal: " + str(normal))
-            logger.info(" Standard deviation: " + str(std))
-            logger.info(" Iterations: " + str(trials))
-            logger.info(" Point cloud size: " + str(size))
-
-            save_point_cloud('PC' + str(index) + '-final.ply', np.array(np.matrix(X).T))
-
-            return distance, normal, std
-        else:
-            return None, None, None
+        return distance, normal, std
     else:
         return None, None, None
+
+import numpy.linalg
+# from scipy.sparse import linalg
+
+
+class PlaneDetection(object):
+
+    def fit(self, X):
+        M, Xm = self._compute_m(X)
+        # U = linalg.svds(M, k=2)[0]
+        # normal = np.cross(U.T[0], U.T[1])
+        normal = numpy.linalg.svd(M)[0][:, 2]
+        if normal[2] < 0:
+            normal *= -1
+        dist = np.dot(normal, Xm)
+        return dist, normal, M
+
+    def residuals(self, model, X):
+        _, normal, _ = model
+        M, Xm = self._compute_m(X)
+        return np.abs(np.dot(M.T, normal))
+
+    def is_degenerate(self, sample):
+        return False
+
+    def _compute_m(self, X):
+        n = X.shape[0]
+        Xm = X.sum(axis=0) / n
+        M = np.array(X - Xm).T
+        return M, Xm
+
+
+def ransac(data, model_class, min_samples, threshold, max_trials=500):
+    best_model = None
+    best_inlier_num = 0
+    best_inliers = None
+    data_idx = np.arange(data.shape[0])
+    for _ in xrange(max_trials):
+        sample = data[np.random.randint(0, data.shape[0], 3)]
+        if model_class.is_degenerate(sample):
+            continue
+        sample_model = model_class.fit(sample)
+        sample_model_residua = model_class.residuals(sample_model, data)
+        sample_model_inliers = data_idx[sample_model_residua < threshold]
+        inlier_num = sample_model_inliers.shape[0]
+        if inlier_num > best_inlier_num:
+            best_inlier_num = inlier_num
+            best_inliers = sample_model_inliers
+    if best_inliers is not None:
+        best_model = model_class.fit(data[best_inliers])
+    return best_model, best_inliers
 
 
 def save_point_cloud(filename, point_cloud):

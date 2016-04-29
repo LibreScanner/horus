@@ -7,14 +7,15 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.util import profile, resources
+from horus.util import profile, resources, system
 
 from horus.gui.engine import driver, scanner_autocheck, image_capture, image_detection
 from horus.gui.util.image_view import ImageView
 from horus.gui.wizard.wizard_page import WizardPage
 
 from horus.engine.driver.board import WrongFirmware, BoardNotConnected
-from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo
+from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo, \
+    WrongDriver
 from horus.engine.calibration.autocheck import PatternNotDetected, \
     WrongMotorDirection, LaserNotDetected
 
@@ -161,6 +162,14 @@ class ConnectionPage(WizardPage):
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
+            elif isinstance(result, WrongDriver):
+                if system.is_windows():
+                    dlg = wx.MessageDialog(
+                        self, _("Please, download and install the camera driver: \n"
+                                "http://support.logitech.com/en_us/product/hd-webcam-c270"),
+                        _(result), wx.OK | wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
 
         self.update_status(driver.is_connected)
         self.settings_button.Enable()

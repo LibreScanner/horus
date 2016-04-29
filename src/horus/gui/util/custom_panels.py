@@ -524,6 +524,28 @@ class TextBox(ControlPanel):
         self.release_restore()
 
 
+class IntLabel(ControlPanel):
+
+    def __init__(self, parent, name, engine_callback=None):
+        ControlPanel.__init__(self, parent, name, engine_callback)
+
+        # Elements
+        label = wx.StaticText(self, size=(160, -1), label=self.setting._label)
+        self.control = wx.StaticText(self, size=(100, -1), style=wx.TE_RIGHT)
+        self.control.SetLabel(str(profile.settings[self.name]))
+
+        # Layout
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(label, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL, 7)
+        hbox.Add(self.control, 0, wx.TOP | wx.ALIGN_CENTER_VERTICAL, 4)
+        self.SetSizer(hbox)
+        self.Layout()
+
+    def update_from_profile(self):
+        value = profile.settings[self.name]
+        self.control.SetLabel(str(value))
+
+
 class FloatBox(wx.TextCtrl):
 
     def __init__(self, *args, **kwargs):
@@ -738,7 +760,7 @@ class Button(ControlPanel):
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.control, 1, wx.ALL | wx.EXPAND, 5)
+        hbox.Add(self.control, 1, wx.TOP | wx.EXPAND, 10)
         self.SetSizer(hbox)
         self.Layout()
 

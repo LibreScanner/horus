@@ -11,6 +11,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 try:
     import os
     import wx
+    import sys
     import cv2
     import OpenGL
     import serial
@@ -21,13 +22,10 @@ except ImportError as e:
     print(e.message)
     exit(1)
 
-try:
-    from horus.util import resources
-except ImportError:
-    # we are in the sources
-    import sys
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
-    from horus.util import resources
+# Try first the sources
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+
+from horus.util import resources
 
 resdir = os.path.join(os.path.dirname(__file__), "res")
 if not os.path.exists(resdir):

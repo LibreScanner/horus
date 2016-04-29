@@ -66,7 +66,7 @@ class ImageCapture(object):
 
         self.stream = True
         if system == 'Linux':
-            self._flush_texture = 2
+            self._flush_texture = 3
             self._flush_laser = 2
             self._flush_pattern = 2
             self._flush_stream_texture = 0

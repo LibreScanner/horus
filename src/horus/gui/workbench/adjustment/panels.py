@@ -18,7 +18,7 @@ current_video = CurrentVideo()
 def flush_video():
     current_video.capture()
     current_video.capture()
-    # current_video.capture()
+    current_video.capture()
 
 
 class ScanCapturePanel(ExpandablePanel):
@@ -149,40 +149,34 @@ class ScanSegmentationPanel(ExpandablePanel):
     def add_controls(self):
         # self.add_control('red_channel_scanning', ComboBox)
         self.add_control(
-            'open_value_scanning', Slider,
-            _("Remove noise in the background. Kernel size: 2 * value - 1"))
-        self.add_control(
-            'open_enable_scanning', CheckBox,
-            _("Remove noise in the background. Kernel size: 2 * value - 1"))
-        self.add_control(
             'threshold_value_scanning', Slider,
             _("Remove all pixels which intensity is less that the threshold value"))
         self.add_control(
             'threshold_enable_scanning', CheckBox,
             _("Remove all pixels which intensity is less that the threshold value"))
         self.add_control(
-            'window_value_scanning', Slider,
-            _("Filter pixels out of 2 * window value around the intensity peak"))
-        self.add_control(
-            'window_enable_scanning', CheckBox,
-            _("Filter pixels out of 2 * window value around the intensity peak"))
-        self.add_control(
             'blur_value_scanning', Slider,
             _("Blur with Normalized box filter. Kernel size: 2 * value + 1"))
         self.add_control(
             'blur_enable_scanning', CheckBox,
             _("Blur with Normalized box filter. Kernel size: 2 * value + 1"))
+        self.add_control(
+            'window_value_scanning', Slider,
+            _("Filter pixels out of 2 * window value around the intensity peak"))
+        self.add_control(
+            'window_enable_scanning', CheckBox,
+            _("Filter pixels out of 2 * window value around the intensity peak"))
+        self.add_control('refinement_scanning', ComboBox)
 
     def update_callbacks(self):
         # self.update_callback('red_channel_scanning', laser_segmentation.set_red_channel)
-        self.update_callback('window_value_scanning', laser_segmentation.set_window_value)
-        self.update_callback('window_enable_scanning', laser_segmentation.set_window_enable)
-        self.update_callback('blur_value_scanning', laser_segmentation.set_blur_value)
-        self.update_callback('blur_enable_scanning', laser_segmentation.set_blur_enable)
-        self.update_callback('open_value_scanning', laser_segmentation.set_open_value)
-        self.update_callback('open_enable_scanning', laser_segmentation.set_open_enable)
         self.update_callback('threshold_value_scanning', laser_segmentation.set_threshold_value)
         self.update_callback('threshold_enable_scanning', laser_segmentation.set_threshold_enable)
+        self.update_callback('blur_value_scanning', laser_segmentation.set_blur_value)
+        self.update_callback('blur_enable_scanning', laser_segmentation.set_blur_enable)
+        self.update_callback('window_value_scanning', laser_segmentation.set_window_value)
+        self.update_callback('window_enable_scanning', laser_segmentation.set_window_enable)
+        self.update_callback('refinement_scanning', laser_segmentation.set_refinement_method)
 
     def on_selected(self):
         current_video.updating = True
@@ -196,14 +190,13 @@ class ScanSegmentationPanel(ExpandablePanel):
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         laser_segmentation.set_red_channel(profile.settings['red_channel_scanning'])
-        laser_segmentation.set_window_value(profile.settings['window_value_scanning'])
-        laser_segmentation.set_window_enable(profile.settings['window_enable_scanning'])
-        laser_segmentation.set_blur_value(profile.settings['blur_value_scanning'])
-        laser_segmentation.set_blur_enable(profile.settings['blur_enable_scanning'])
-        laser_segmentation.open_enable = profile.settings['open_enable_scanning']
-        laser_segmentation.open_value = profile.settings['open_value_scanning']
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_scanning'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_scanning'])
+        laser_segmentation.set_blur_value(profile.settings['blur_value_scanning'])
+        laser_segmentation.set_blur_enable(profile.settings['blur_enable_scanning'])
+        laser_segmentation.set_window_value(profile.settings['window_value_scanning'])
+        laser_segmentation.set_window_enable(profile.settings['window_enable_scanning'])
+        laser_segmentation.set_refinement_method(profile.settings['refinement_scanning'])
         current_video.updating = False
 
 
@@ -342,27 +335,29 @@ class CalibrationSegmentationPanel(ExpandablePanel):
             'threshold_enable_calibration', CheckBox,
             _("Remove all pixels which intensity is less that the threshold value"))
         self.add_control(
-            'window_value_calibration', Slider,
-            _("Filter pixels out of 2 * window value around the intensity peak"))
-        self.add_control(
-            'window_enable_calibration', CheckBox,
-            _("Filter pixels out of 2 * window value around the intensity peak"))
-        self.add_control(
             'blur_value_calibration', Slider,
             _("Blur with Normalized box filter. Kernel size: 2 * value + 1"))
         self.add_control(
             'blur_enable_calibration', CheckBox,
             _("Blur with Normalized box filter. Kernel size: 2 * value + 1"))
+        self.add_control(
+            'window_value_calibration', Slider,
+            _("Filter pixels out of 2 * window value around the intensity peak"))
+        self.add_control(
+            'window_enable_calibration', CheckBox,
+            _("Filter pixels out of 2 * window value around the intensity peak"))
+        self.add_control('refinement_calibration', ComboBox)
 
     def update_callbacks(self):
         # self.update_callback('red_channel_calibration', laser_segmentation.set_red_channel)
-        self.update_callback('window_value_calibration', laser_segmentation.set_window_value)
-        self.update_callback('window_enable_calibration', laser_segmentation.set_window_enable)
-        self.update_callback('blur_value_calibration', laser_segmentation.set_blur_value)
-        self.update_callback('blur_enable_calibration', laser_segmentation.set_blur_enable)
         self.update_callback('threshold_value_calibration', laser_segmentation.set_threshold_value)
         self.update_callback(
             'threshold_enable_calibration', laser_segmentation.set_threshold_enable)
+        self.update_callback('blur_value_calibration', laser_segmentation.set_blur_value)
+        self.update_callback('blur_enable_calibration', laser_segmentation.set_blur_enable)
+        self.update_callback('window_value_calibration', laser_segmentation.set_window_value)
+        self.update_callback('window_enable_calibration', laser_segmentation.set_window_enable)
+        self.update_callback('refinement_calibration', laser_segmentation.set_refinement_method)
 
     def on_selected(self):
         current_video.updating = True
@@ -376,10 +371,11 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
         laser_segmentation.set_red_channel(profile.settings['red_channel_calibration'])
-        laser_segmentation.set_window_value(profile.settings['window_value_calibration'])
-        laser_segmentation.set_window_enable(profile.settings['window_enable_calibration'])
-        laser_segmentation.set_blur_value(profile.settings['blur_value_calibration'])
-        laser_segmentation.set_blur_enable(profile.settings['blur_enable_calibration'])
         laser_segmentation.set_threshold_value(profile.settings['threshold_value_calibration'])
         laser_segmentation.set_threshold_enable(profile.settings['threshold_enable_calibration'])
+        laser_segmentation.set_blur_value(profile.settings['blur_value_calibration'])
+        laser_segmentation.set_blur_enable(profile.settings['blur_enable_calibration'])
+        laser_segmentation.set_window_value(profile.settings['window_value_calibration'])
+        laser_segmentation.set_window_enable(profile.settings['window_enable_calibration'])
+        laser_segmentation.set_refinement_method(profile.settings['refinement_calibration'])
         current_video.updating = False

@@ -41,7 +41,7 @@ __title__ = "Horus " + __version__
 class MainWindow(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, title=__title__, size=(980, 640))
+        wx.Frame.__init__(self, None, title=__title__, size=(980, 623))
 
         logger.info("Start application " + __title__)
 
@@ -139,10 +139,7 @@ class MainWindow(wx.Frame):
         self.menu_welcome = self.menu_help.Append(wx.ID_ANY, _("Welcome"))
         if profile.settings['check_for_updates']:
             self.menu_updates = self.menu_help.Append(wx.ID_ANY, _("Updates"))
-        self.menu_wiki = self.menu_help.Append(wx.ID_ANY, _("Wiki"))
         self.menu_sources = self.menu_help.Append(wx.ID_ANY, _("Sources"))
-        self.menu_issues = self.menu_help.Append(wx.ID_ANY, _("Issues"))
-        self.menu_forum = self.menu_help.Append(wx.ID_ANY, _("Forum"))
         self.menu_about = self.menu_help.Append(wx.ID_ABOUT, _("About"))
         self.menu_bar.Append(self.menu_help, _("Help"))
 
@@ -182,13 +179,7 @@ class MainWindow(wx.Frame):
         if profile.settings['check_for_updates']:
             self.Bind(wx.EVT_MENU, self.on_updates, self.menu_updates)
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://github.com/bq/horus/wiki'), self.menu_wiki)
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://github.com/bq/horus'), self.menu_sources)
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://github.com/bq/horus/issues'), self.menu_issues)
-        self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-            'https://groups.google.com/forum/?hl=es#!forum/ciclop-3d-scanner'), self.menu_forum)
+            'https://github.com/bqlabs/horus'), self.menu_sources)
 
     def on_launch_wizard(self, event):
         self.workbench[profile.settings['workbench']].on_close()
@@ -412,12 +403,17 @@ class MainWindow(wx.Frame):
         profile.settings['view_mode_advanced'] = checked
         if checked:
             self.workbench['calibration'].panels_collection.expandable_panels[
+                'video_settings'].Show()
+            self.workbench['calibration'].panels_collection.expandable_panels[
                 'camera_intrinsics'].Show()
         else:
             self.workbench['calibration'].panels_collection.expandable_panels[
+                'video_settings'].Hide()
+            self.workbench['calibration'].panels_collection.expandable_panels[
                 'camera_intrinsics'].Hide()
 
-            if profile.settings['current_panel_calibration'] == 'camera_intrinsics':
+            if profile.settings['current_panel_calibration'] == 'video_settings' or \
+               profile.settings['current_panel_calibration'] == 'camera_intrinsics':
                 self.workbench['calibration'].on_pattern_settings_selected()
                 self.workbench['calibration'].panels_collection.expandable_panels[
                     profile.settings['current_panel_calibration']].on_title_clicked(None)
@@ -483,7 +479,7 @@ class MainWindow(wx.Frame):
                         "Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA")
         info.AddDeveloper(u'Jesús Arroyo, Irene Sanz, Jorge Robles')
         info.AddDocWriter(u'Jesús Arroyo, Ángel Larrañaga')
-        info.AddArtist(u'Jesús Arroyo, Nestor Toribio')
+        info.AddArtist(u'Nestor Toribio')
         info.AddTranslator(u'Jesús Arroyo, Irene Sanz, Alexandre Galode, Natasha da Silva, '
                            'Camille Montgolfier, Markus Hoedl, Andrea Fantini, Maria Albuquerque, '
                            'Meike Schirmeister')

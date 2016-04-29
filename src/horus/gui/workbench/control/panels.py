@@ -7,11 +7,11 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.util import profile
+from horus.util import profile, system as sys
 
 from horus.gui.engine import driver
 from horus.gui.util.custom_panels import ExpandablePanel, ControlPanel, Slider, \
-    ToggleButton, CallbackButton, FloatTextBox
+    ToggleButton, Button, CallbackButton, FloatTextBox
 
 
 class CameraControl(ExpandablePanel):
@@ -39,15 +39,32 @@ class CameraControl(ExpandablePanel):
             _("Amount of light per unit area. It is controlled by the time the camera "
               "sensor is exposed during a frame capture. "
               "High values are recommended for poorly lit places"))
+        self.add_control('save_image_button', Button)
 
     def update_callbacks(self):
         self.update_callback('brightness_control', driver.camera.set_brightness)
         self.update_callback('contrast_control', driver.camera.set_contrast)
         self.update_callback('saturation_control', driver.camera.set_saturation)
         self.update_callback('exposure_control', driver.camera.set_exposure)
+        self.update_callback('save_image_button', self._save_image)
 
     def on_selected(self):
         profile.settings['current_panel_control'] = 'camera_control'
+
+    def _save_image(self):
+        image = driver.camera.capture_image()
+        dlg = wx.FileDialog(self, _("Save image"), style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        wildcard_list = ';'.join(map(lambda s: '*' + s, ['.png']))
+        wildcard_filter = "Image files (%s)|%s;%s" % (wildcard_list, wildcard_list,
+                                                      wildcard_list.upper())
+        dlg.SetWildcard(wildcard_filter)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            if not filename.endswith('.png'):
+                if sys.is_linux():  # hack for linux, as for some reason the .ply is not appended.
+                    filename += '.png'
+            driver.camera.save_image(filename, image)
+        dlg.Destroy()
 
 
 class LaserControl(ExpandablePanel):

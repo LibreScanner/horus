@@ -54,25 +54,32 @@ class ImageDetection(object):
             t = pose[1].T[0]
             c = pose[2]
             n = R.T[2]
-            d = -np.dot(n, t)
+            d = np.dot(n, t)
             return (d, n, c)
 
     def pattern_mask(self, image, corners):
+        h, w, d = image.shape
         if corners is not None:
+            corners = corners.astype(np.int)
             p1 = corners[0][0]
             p2 = corners[self.pattern.columns - 1][0]
-            p3 = corners[self.pattern.columns * (self.pattern.rows - 1) - 1][0]
+            p3 = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
             p4 = corners[self.pattern.columns * self.pattern.rows - 1][0]
-            p11 = min(p1[1], p2[1], p3[1], p4[1])
-            p12 = max(p1[1], p2[1], p3[1], p4[1])
-            p21 = min(p1[0], p2[0], p3[0], p4[0])
-            p22 = max(p1[0], p2[0], p3[0], p4[0])
-            d = max(corners[1][0][0] - corners[0][0][0],
-                    corners[1][0][1] - corners[0][0][1],
-                    corners[self.pattern.columns][0][1] - corners[0][0][1],
-                    corners[self.pattern.columns][0][0] - corners[0][0][0])
-            mask = np.zeros(image.shape[:2], np.uint8)
-            mask[p11 - d:p12 + d, p21 - d:p22 + d] = 255
+            if 1:
+                mask = np.zeros((h, w), np.uint8)
+                points = np.array([p1, p2, p4, p3])
+                cv2.fillConvexPoly(mask, points, 255)
+            else:
+                p11 = min(p1[1], p2[1], p3[1], p4[1])
+                p12 = max(p1[1], p2[1], p3[1], p4[1])
+                p21 = min(p1[0], p2[0], p3[0], p4[0])
+                p22 = max(p1[0], p2[0], p3[0], p4[0])
+                d = max(corners[1][0][0] - corners[0][0][0],
+                        corners[1][0][1] - corners[0][0][1],
+                        corners[self.pattern.columns][0][1] - corners[0][0][1],
+                        corners[self.pattern.columns][0][0] - corners[0][0][0])
+                mask = np.zeros(image.shape[:2], np.uint8)
+                mask[p11 - d:p12 + d, p21 - d:p22 + d] = 255
             image = cv2.bitwise_and(image, image, mask=mask)
         return image
 

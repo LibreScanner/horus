@@ -76,7 +76,9 @@ class PointCloudROI(object):
                                (rho >= -self._radious) &
                                (rho <= self._radious))[0]
             else:
-                idx = np.where((z >= 0))[0]
+                idx = np.where((z >= 0) &
+                               (rho >= -125) &
+                               (rho <= 125))[0]
 
             return point_cloud[:, idx], texture[:, idx]
 

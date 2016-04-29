@@ -51,16 +51,21 @@ class AdjustmentWorkbench(Workbench):
         self.pages_collection['video_view'].reset()
 
     def setup_engine(self):
-        resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
-        driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
+        driver.camera.set_resolution(
+            profile.settings['camera_width'], profile.settings['camera_height'])
+        profile.settings['camera_width'] = int(driver.camera._width)
+        profile.settings['camera_height'] = int(driver.camera._height)
+        driver.camera.set_rotate(profile.settings['camera_rotate'])
+        driver.camera.set_mirror(profile.settings['camera_mirror'])
         self.current_video.mode = profile.settings['current_video_mode_adjustment']
         pattern.rows = profile.settings['pattern_rows']
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']
         pattern.distance = profile.settings['pattern_origin_distance']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
-        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
+        width, height = driver.camera.get_resolution()
+        calibration_data.set_resolution(width, height)
         calibration_data.camera_matrix = profile.settings['camera_matrix']
         calibration_data.distortion_vector = profile.settings['distortion_vector']
         self.panels_collection.expandable_panels[

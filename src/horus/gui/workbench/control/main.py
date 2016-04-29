@@ -48,16 +48,21 @@ class ControlWorkbench(Workbench):
         self.pages_collection['video_view'].reset()
 
     def setup_engine(self):
-        resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
-        driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
+        driver.camera.set_resolution(
+            profile.settings['camera_width'], profile.settings['camera_height'])
+        profile.settings['camera_width'] = int(driver.camera._width)
+        profile.settings['camera_height'] = int(driver.camera._height)
+        driver.camera.set_rotate(profile.settings['camera_rotate'])
+        driver.camera.set_mirror(profile.settings['camera_mirror'])
         image_capture.set_mode_texture()
         image_capture.texture_mode.set_brightness(profile.settings['brightness_control'])
         image_capture.texture_mode.set_contrast(profile.settings['contrast_control'])
         image_capture.texture_mode.set_saturation(profile.settings['saturation_control'])
         image_capture.texture_mode.set_exposure(profile.settings['exposure_control'])
         image_capture.set_use_distortion(profile.settings['use_distortion'])
-        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
+        width, height = driver.camera.get_resolution()
+        calibration_data.set_resolution(width, height)
         calibration_data.camera_matrix = profile.settings['camera_matrix']
         calibration_data.distortion_vector = profile.settings['distortion_vector']
         driver.board.motor_relative(profile.settings['motor_step_control'])

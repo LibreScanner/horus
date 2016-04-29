@@ -12,7 +12,7 @@ from horus.gui.engine import driver, pattern, calibration_data, image_capture, i
 from horus.gui.util.video_view import VideoView
 from horus.gui.workbench.workbench import Workbench
 from horus.gui.workbench.calibration.panels import PatternSettings, CameraIntrinsics, \
-    ScannerAutocheck, LaserTriangulation, PlatformExtrinsics
+    ScannerAutocheck, LaserTriangulation, PlatformExtrinsics, VideoSettings
 
 from horus.gui.workbench.calibration.pages.camera_intrinsics import CameraIntrinsicsPages
 from horus.gui.workbench.calibration.pages.scanner_autocheck import ScannerAutocheckPages
@@ -34,6 +34,8 @@ class CalibrationWorkbench(Workbench):
             'laser_triangulation', LaserTriangulation, self.on_laser_triangulation_selected)
         self.add_panel(
             'platform_extrinsics', PlatformExtrinsics, self.on_platform_extrinsics_selected)
+        self.add_panel(
+            'video_settings', VideoSettings, self.on_video_settings_selected)
         self.add_panel(
             'camera_intrinsics', CameraIntrinsics, self.on_camera_intrinsics_selected)
 
@@ -59,9 +61,11 @@ class CalibrationWorkbench(Workbench):
         self.pages_collection['platform_extrinsics_pages'].Disable()
 
         if not profile.settings['view_mode_advanced']:
+            self.panels_collection.expandable_panels['video_settings'].Hide()
             self.panels_collection.expandable_panels['camera_intrinsics'].Hide()
 
-            if profile.settings['current_panel_calibration'] == 'camera_intrinsics':
+            if profile.settings['current_panel_calibration'] == 'video_settings' or \
+               profile.settings['current_panel_calibration'] == 'camera_intrinsics':
                 self.on_pattern_settings_selected()
 
         self.panels_collection.expandable_panels[
@@ -100,9 +104,13 @@ class CalibrationWorkbench(Workbench):
 
     def setup_engine(self):
         driver.board.lasers_off()
-        resolution = profile.settings['resolution'].split('x')
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
-        driver.camera.set_resolution(int(resolution[1]), int(resolution[0]))
+        driver.camera.set_resolution(
+            profile.settings['camera_width'], profile.settings['camera_height'])
+        profile.settings['camera_width'] = int(driver.camera._width)
+        profile.settings['camera_height'] = int(driver.camera._height)
+        driver.camera.set_rotate(profile.settings['camera_rotate'])
+        driver.camera.set_mirror(profile.settings['camera_mirror'])
         image_capture.set_mode_pattern()
         pattern_mode = image_capture.pattern_mode
         pattern_mode.set_brightness(profile.settings['brightness_pattern_calibration'])
@@ -116,22 +124,28 @@ class CalibrationWorkbench(Workbench):
         image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
         laser_segmentation.red_channel = profile.settings['red_channel_calibration']
-        laser_segmentation.window_enable = profile.settings['window_enable_calibration']
-        laser_segmentation.window_value = profile.settings['window_value_calibration']
-        laser_segmentation.blur_enable = profile.settings['blur_enable_calibration']
-        laser_segmentation.set_blur_value(profile.settings['blur_value_calibration'])
         laser_segmentation.threshold_enable = profile.settings['threshold_enable_calibration']
         laser_segmentation.threshold_value = profile.settings['threshold_value_calibration']
+        laser_segmentation.blur_enable = profile.settings['blur_enable_calibration']
+        laser_segmentation.set_blur_value(profile.settings['blur_value_calibration'])
+        laser_segmentation.window_enable = profile.settings['window_enable_calibration']
+        laser_segmentation.window_value = profile.settings['window_value_calibration']
+        laser_segmentation.refinement_method = profile.settings['refinement_calibration']
         pattern.rows = profile.settings['pattern_rows']
         pattern.columns = profile.settings['pattern_columns']
         pattern.square_width = profile.settings['pattern_square_width']
         pattern.origin_distance = profile.settings['pattern_origin_distance']
-        calibration_data.set_resolution(int(resolution[1]), int(resolution[0]))
+        width, height = driver.camera.get_resolution()
+        calibration_data.set_resolution(width, height)
         calibration_data.camera_matrix = profile.settings['camera_matrix']
         calibration_data.distortion_vector = profile.settings['distortion_vector']
 
     def on_pattern_settings_selected(self):
         profile.settings['current_panel_calibration'] = 'pattern_settings'
+        self._on_panel_selected(self.pages_collection['video_view'])
+
+    def on_video_settings_selected(self):
+        profile.settings['current_panel_calibration'] = 'video_settings'
         self._on_panel_selected(self.pages_collection['video_view'])
 
     def on_camera_intrinsics_selected(self):
