@@ -40,7 +40,7 @@ class VideoView(ImageView):
                                 self.set_frame(frame)
                             else:
                                 wx.CallAfter(self.set_frame, frame)
-                        self._start()
+                    self._start()
         except:
             pass
 
