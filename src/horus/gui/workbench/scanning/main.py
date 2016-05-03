@@ -28,7 +28,7 @@ class ScanningWorkbench(Workbench):
         self.toolbar_scan = toolbar_scan
 
         # Elements
-        self.point_cloud_timer_millis = 50
+        self.point_cloud_timer_millis = 200
         self.point_cloud_timer = wx.Timer(self)
         self.play_tool = self.toolbar_scan.AddLabelTool(
             wx.NewId(), _("Play"),

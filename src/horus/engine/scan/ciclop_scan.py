@@ -99,7 +99,6 @@ class CiclopScan(Scan):
             print string_time + " elapsed time: 0' 0\""
             print string_time + " elapsed angle: 0º"
             print string_time + " capture: 0 ms"
-            print string_time + " process: 0 ms"
 
         # Setup scanner
         self.driver.board.lasers_off()
@@ -127,6 +126,8 @@ class CiclopScan(Scan):
                     begin = time.time()
                     # Capture images
                     capture = self._capture_images()
+                    # Put images into queue
+                    self._captures_queue.put(capture)
                     # Move motor
                     if self.move_motor:
                         self.driver.board.motor_relative(self.motor_step)
@@ -139,8 +140,6 @@ class CiclopScan(Scan):
                     if abs(self.motor_step) > 0:
                         self._progress = abs(np.rad2deg(self._theta) / self.motor_step)
                         self._range = abs(360.0 / self.motor_step)
-                    # Put images into queue
-                    self._captures_queue.put(capture)
 
                     # Print info
                     end = time.time()
@@ -148,7 +147,7 @@ class CiclopScan(Scan):
 
                     # Cursor up + remove lines
                     if system == 'Linux':
-                        print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
+                        print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
                         print string_time + " elapsed progress: {0} %".format(
                             int(100 * self._progress / self._range))
                         print string_time + " elapsed time: {0}".format(
@@ -167,6 +166,7 @@ class CiclopScan(Scan):
 
         if self.capture_texture:
             capture.texture = self.image_capture.capture_texture()
+            self.image_capture.flush_laser()
         else:
             r, g, b = self.color
             ones = np.zeros((self.calibration_data.height,
@@ -193,7 +193,7 @@ class CiclopScan(Scan):
         global string_time
         ret = False
         while self.is_scanning:
-            time.sleep(0.05)
+            time.sleep(0.4)
             if self._inactive:
                 self.image_detection.stream = True
                 time.sleep(0.1)
@@ -205,58 +205,19 @@ class CiclopScan(Scan):
                     break
                 else:
                     if not self._captures_queue.empty():
-                        begin = time.time()
                         # Get capture from queue
                         capture = self._captures_queue.get(timeout=0.1)
                         self._captures_queue.task_done()
+                        # Process capture
+                        self._process_capture(capture)
 
-                        # Current video arrays
-                        images = [None, None]
-                        points = [None, None]
-
-                        for i in xrange(2):
-                            if capture.lasers[i] is not None:
-                                image = capture.lasers[i]
-                                self.image = image
-                                # Compute 2D points from images
-                                points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                                images[i] = image
-                                points[i] = points_2d
-                                # Compute point cloud from 2D points
-                                point_cloud = self.point_cloud_generation.compute_point_cloud(
-                                    capture.theta, points_2d, i)
-                                # Compute point cloud texture
-                                u, v = points_2d
-
-                                if self._debug:
-                                    if i == 0:
-                                        r, g, b = 255, 0, 0
-                                    else:
-                                        r, g, b = 0, 255, 0
-                                    texture = np.zeros((3, len(v)), np.uint8)
-                                    texture[0, :] = r
-                                    texture[1, :] = g
-                                    texture[2, :] = b
-                                else:
-                                    texture = capture.texture[v, np.around(u).astype(int)].T
-
-                                self._point_cloud_queue.put((point_cloud, texture))
-
-                        # Set current video images
-                        self.current_video.set_gray(images)
-                        self.current_video.set_line(points, image)
-
-                        # Print info
-                        if system == 'Linux':
-                            print string_time + " process: {0} ms".format(
-                                int((time.time() - begin) * 1000))
         if ret:
             response = (True, None)
         else:
             response = (False, ScanError)
 
         # Cursor down
-        print "\x1b[1C"
+        # print "\x1b[1C"
 
         self.image_capture.stream = True
 
@@ -264,6 +225,50 @@ class CiclopScan(Scan):
 
         if self._after_callback is not None:
             self._after_callback(response)
+
+    def _process_capture(self, capture):
+        # Current video arrays
+        images = [None, None]
+        points = [None, None]
+
+        # begin = time.time()
+
+        for i in xrange(2):
+            if capture.lasers[i] is not None:
+                image = capture.lasers[i]
+                self.image = image
+                # Compute 2D points from images
+                points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                images[i] = image
+                points[i] = points_2d
+                # Compute point cloud from 2D points
+                point_cloud = self.point_cloud_generation.compute_point_cloud(
+                    capture.theta, points_2d, i)
+                # Compute point cloud texture
+                u, v = points_2d
+
+                if self._debug:
+                    if i == 0:
+                        r, g, b = 255, 0, 0
+                    else:
+                        r, g, b = 0, 255, 0
+                    texture = np.zeros((3, len(v)), np.uint8)
+                    texture[0, :] = r
+                    texture[1, :] = g
+                    texture[2, :] = b
+                else:
+                    texture = capture.texture[v, np.around(u).astype(int)].T
+
+                self._point_cloud_queue.put((point_cloud, texture))
+
+        # Set current video images
+        self.current_video.set_gray(images)
+        self.current_video.set_line(points, image)
+
+        # Print info
+        """if system == 'Linux':
+            print string_time + " process: {0} ms".format(
+                int((time.time() - begin) * 1000))"""
 
     def get_progress(self):
         return self._progress, self._range

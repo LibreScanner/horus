@@ -303,14 +303,14 @@ class MainWindow(wx.Frame):
 
     def on_close(self, event):
         try:
+            if ciclop_scan.is_scanning:
+                ciclop_scan.stop()
+                time.sleep(0.5)
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
             driver.disconnect()
             for workbench in self.workbench:
                 workbench.on_disconnect()
-            if ciclop_scan.is_scanning:
-                ciclop_scan.stop()
-                time.sleep(0.5)
         except:
             pass
         self.Show(False)

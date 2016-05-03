@@ -122,6 +122,14 @@ class ImageCapture(object):
     def set_mode_pattern(self):
         self.set_mode(self.pattern_mode)
 
+    def flush_texture(self):
+        self.set_mode_texture()
+        self.capture_image(flush=1)
+
+    def flush_laser(self):
+        self.set_mode_laser()
+        self.capture_image(flush=1)
+
     def capture_texture(self):
         self.set_mode(self.texture_mode)
         if self.stream:
@@ -130,8 +138,6 @@ class ImageCapture(object):
             flush = self._flush_texture
         image = self.capture_image(flush=flush)
         return image
-
-    # TODO: slow with laser
 
     def _capture_laser(self, index):
         self.set_mode(self.laser_mode)
