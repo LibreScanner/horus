@@ -51,10 +51,9 @@ class ControlWorkbench(Workbench):
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(
             profile.settings['camera_width'], profile.settings['camera_height'])
-        profile.settings['camera_width'] = int(driver.camera._width)
-        profile.settings['camera_height'] = int(driver.camera._height)
         driver.camera.set_rotate(profile.settings['camera_rotate'])
-        driver.camera.set_mirror(profile.settings['camera_mirror'])
+        driver.camera.set_hflip(profile.settings['camera_hflip'])
+        driver.camera.set_vflip(profile.settings['camera_vflip'])
         image_capture.set_mode_texture()
         image_capture.texture_mode.set_brightness(profile.settings['brightness_control'])
         image_capture.texture_mode.set_contrast(profile.settings['contrast_control'])

@@ -37,12 +37,13 @@ class CurrentVideo(object):
 
     def set_line(self, points, image):
         images = [None, None]
-        for i in xrange(2):
-            if points[i]:
-                images[i] = self._compute_line_image(points[i], image)
-        image = self._combine_images(images)
-        image = cv2.merge((image, image, image))
-        self.images['Line'] = image
+        if image is not None:
+            for i in xrange(2):
+                if points[i]:
+                    images[i] = self._compute_line_image(points[i], image)
+            image = self._combine_images(images)
+            image = cv2.merge((image, image, image))
+            self.images['Line'] = image
 
     def _combine_images(self, images):
         if images[0] is not None and images[1] is not None:

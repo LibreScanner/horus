@@ -95,11 +95,11 @@ class Board(object):
                 if self._serial_port is not None:
                     self.lasers_off()
                     self.motor_disable()
+                    self._is_connected = False
                     self._serial_port.close()
                     del self._serial_port
             except serial.SerialException:
                 logger.error("Error closing the port {0}\n".format(self.serial_name))
-            self._is_connected = False
             logger.info(" Done")
 
     def set_unplug_callback(self, value):
@@ -205,15 +205,16 @@ class Board(object):
         self._tries = 0
 
     def _fail(self):
-        logger.debug("Board fail")
-        self._tries += 1
-        if self._tries >= 3:
-            self._tries = 0
-            if self.unplug_callback is not None and \
-               self.parent is not None and \
-               not self.parent.unplugged:
-                self.parent.unplugged = True
-                self.unplug_callback()
+        if self._is_connected:
+            logger.debug("Board fail")
+            self._tries += 1
+            if self._tries >= 3:
+                self._tries = 0
+                if self.unplug_callback is not None and \
+                   self.parent is not None and \
+                   not self.parent.unplugged:
+                    self.parent.unplugged = True
+                    self.unplug_callback()
 
     def _reset(self):
         self._serial_port.flushInput()

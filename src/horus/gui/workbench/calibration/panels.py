@@ -88,12 +88,14 @@ class VideoSettings(ExpandablePanel):
     def add_controls(self):
         self.add_control('camera_width', IntLabel, _("Width"))
         self.add_control('camera_height', IntLabel, _("Height"))
-        self.add_control('camera_rotate', CheckBox, _("Rotate camera"))
-        self.add_control('camera_mirror', CheckBox, _("Camera mirror"))
+        self.add_control('camera_rotate', CheckBox, _("Rotate image"))
+        self.add_control('camera_hflip', CheckBox, _("Horizontal flip"))
+        self.add_control('camera_vflip', CheckBox, _("Vertical flip"))
 
     def update_callbacks(self):
         self.update_callback('camera_rotate', lambda v: driver.camera.set_rotate(v))
-        self.update_callback('camera_mirror', lambda v: driver.camera.set_mirror(v))
+        self.update_callback('camera_hflip', lambda v: driver.camera.set_hflip(v))
+        self.update_callback('camera_vflip', lambda v: driver.camera.set_vflip(v))
 
 
 class CameraIntrinsics(ExpandablePanel):

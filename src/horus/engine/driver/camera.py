@@ -91,7 +91,8 @@ class Camera(object):
         self._width = 0
         self._height = 0
         self._rotate = True
-        self._mirror = True
+        self._hflip = True
+        self._vflip = False
 
     def connect(self):
         logger.info("Connecting camera {0}".format(self.camera_id))
@@ -170,24 +171,32 @@ class Camera(object):
             if mean > 200:
                 raise WrongDriver()
 
-    def capture_image(self, flush=0):
+    def capture_image(self, flush=0, auto=False):
         """Capture image from camera"""
         if self._is_connected:
             if self._updating:
                 return self._last_image
             else:
                 self._reading = True
-                if flush > 0:
-                    for i in xrange(0, flush):
-                        self._capture.read()
+                if auto:
+                    b, e = 0, 0
+                    while e - b < (0.030):
+                        b = time.time()
+                        self._capture.grab()
+                        e = time.time()
+                else:
+                    if flush > 0:
+                        for i in xrange(flush):
+                            self._capture.grab()
                 ret, image = self._capture.read()
                 self._reading = False
                 if ret:
                     if self._rotate:
                         image = cv2.transpose(image)
-                    if self._mirror:
+                    if self._hflip:
+                        image = cv2.flip(image, 1)
+                    if self._vflip:
                         image = cv2.flip(image, 0)
-                    image = cv2.flip(image, 1)
                     self._success()
                     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                     self._last_image = image
@@ -205,12 +214,16 @@ class Camera(object):
     def set_rotate(self, value):
         self._rotate = value
 
-    def set_mirror(self, value):
-        self._mirror = value
+    def set_hflip(self, value):
+        self._hflip = value
+
+    def set_vflip(self, value):
+        self._vflip = value
 
     def set_brightness(self, value):
         if self._is_connected:
             if self._brightness != value:
+                self._brightness = value
                 self._updating = True
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
@@ -218,12 +231,12 @@ class Camera(object):
                 else:
                     value = int(value) / self._max_brightness
                     self._capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
-                self._brightness = value
                 self._updating = False
 
     def set_contrast(self, value):
         if self._is_connected:
             if self._contrast != value:
+                self._contrast = value
                 self._updating = True
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_CONTRAST_ABS']
@@ -231,12 +244,12 @@ class Camera(object):
                 else:
                     value = int(value) / self._max_contrast
                     self._capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
-                self._contrast = value
                 self._updating = False
 
     def set_saturation(self, value):
         if self._is_connected:
             if self._saturation != value:
+                self._saturation = value
                 self._updating = True
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_SATURATION_ABS']
@@ -244,12 +257,12 @@ class Camera(object):
                 else:
                     value = int(value) / self._max_saturation
                     self._capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
-                self._saturation = value
                 self._updating = False
 
     def set_exposure(self, value):
         if self._is_connected:
             if self._exposure != value:
+                self._exposure = value
                 self._updating = True
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
@@ -261,15 +274,14 @@ class Camera(object):
                 else:
                     value = int(value) / self._max_exposure
                     self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
-                self._exposure = value
                 self._updating = False
 
     def set_frame_rate(self, value):
         if self._is_connected:
             if self._frame_rate != value:
+                self._frame_rate = value
                 self._updating = True
                 self._capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
-                self._frame_rate = value
                 self._updating = False
 
     def set_resolution(self, width, height):
