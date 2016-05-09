@@ -58,7 +58,6 @@ class Scan(object):
             threading.Thread(target=self._process).start()
 
     def stop(self):
-
         self._inactive = False
         self.is_scanning = False
 

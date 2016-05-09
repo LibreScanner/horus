@@ -66,8 +66,8 @@ class PointCloudROI(object):
             return image
 
     def mask_point_cloud(self, point_cloud, texture):
-        if point_cloud is not None and len(point_cloud) > 0:
-            rho = np.sqrt(point_cloud[0, :] ** 2 + point_cloud[1, :] ** 2)
+        if point_cloud is not None and texture is not None and len(point_cloud) > 0:
+            rho = np.sqrt(np.square(point_cloud[0, :]) + np.square(point_cloud[1, :]))
             z = point_cloud[2, :]
 
             if self._use_roi:

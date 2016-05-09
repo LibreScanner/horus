@@ -28,7 +28,7 @@ class ScanError(Exception):
     def __init__(self):
         Exception.__init__(self, "ScanError")
 
-string_time = ""
+scan_sleep = 0.05
 
 
 @Singleton
@@ -53,9 +53,10 @@ class CiclopScan(Scan):
         self.color = (0, 0, 0)
 
         self._theta = 0
-        self._debug = False
+        self._debug = True
+        self._bicolor = False
         self._captures_queue = Queue.Queue(10)
-        self._point_cloud_queue = Queue.Queue(10)
+        self.point_cloud_callback = None
 
     def set_capture_texture(self, value):
         self.capture_texture = value
@@ -82,18 +83,16 @@ class CiclopScan(Scan):
         self._debug = value
 
     def _initialize(self):
-        global string_time
         self.image = None
         self.image_capture.stream = False
         self._theta = 0
         self._progress = 0
         self._captures_queue.queue.clear()
-        self._point_cloud_queue.queue.clear()
         self._begin = time.time()
 
         # Setup console
         logger.info("Start scan")
-        if system == 'Linux':
+        if self._debug and system == 'Linux':
             string_time = str(datetime.datetime.now())[:-3] + " - "
             print string_time + " elapsed progress: 0 %"
             print string_time + " elapsed time: 0' 0\""
@@ -112,9 +111,9 @@ class CiclopScan(Scan):
             self.driver.board.motor_disable()
 
     def _capture(self):
-        global string_time
+        # Flush buffer of texture captures
+        self.image_capture.flush_laser()
         while self.is_scanning:
-            time.sleep(0.02)
             if self._inactive:
                 self.image_capture.stream = True
                 time.sleep(0.1)
@@ -128,12 +127,15 @@ class CiclopScan(Scan):
                     capture = self._capture_images()
                     # Put images into queue
                     self._captures_queue.put(capture)
+                    # print self._captures_queue.qsize()
+
                     # Move motor
                     if self.move_motor:
                         self.driver.board.motor_relative(self.motor_step)
                         self.driver.board.motor_move()
                     else:
-                        time.sleep(0.05)
+                        time.sleep(0.130)  # Time for 0.45º movement
+
                     # Update theta
                     self._theta += np.deg2rad(self.motor_step)
                     # Refresh progress
@@ -145,8 +147,8 @@ class CiclopScan(Scan):
                     end = time.time()
                     string_time = str(datetime.datetime.now())[:-3] + " - "
 
-                    # Cursor up + remove lines
-                    if system == 'Linux':
+                    if self._debug and system == 'Linux':
+                        # Cursor up + remove lines
                         print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
                         print string_time + " elapsed progress: {0} %".format(
                             int(100 * self._progress / self._range))
@@ -156,6 +158,8 @@ class CiclopScan(Scan):
                             int(np.rad2deg(self._theta)))
                         print string_time + " capture: {0} ms".format(
                             int((end - begin) * 1000))
+            # Sleep
+            time.sleep(scan_sleep)
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()
@@ -166,6 +170,8 @@ class CiclopScan(Scan):
 
         if self.capture_texture:
             capture.texture = self.image_capture.capture_texture()
+            # Flush buffer to improve the synchronization when
+            # the texture exposure is around 33 ms
             self.image_capture.flush_laser()
         else:
             r, g, b = self.color
@@ -190,10 +196,8 @@ class CiclopScan(Scan):
         return capture
 
     def _process(self):
-        global string_time
         ret = False
         while self.is_scanning:
-            time.sleep(0.4)
             if self._inactive:
                 self.image_detection.stream = True
                 time.sleep(0.1)
@@ -210,6 +214,8 @@ class CiclopScan(Scan):
                         self._captures_queue.task_done()
                         # Process capture
                         self._process_capture(capture)
+            # Sleep
+            time.sleep(scan_sleep)
 
         if ret:
             response = (True, None)
@@ -217,7 +223,8 @@ class CiclopScan(Scan):
             response = (False, ScanError)
 
         # Cursor down
-        # print "\x1b[1C"
+        # if self._debug and system == 'Linux':
+        #     print "\x1b[1C"
 
         self.image_capture.stream = True
 
@@ -228,6 +235,7 @@ class CiclopScan(Scan):
 
     def _process_capture(self, capture):
         # Current video arrays
+        image = None
         images = [None, None]
         points = [None, None]
 
@@ -247,7 +255,7 @@ class CiclopScan(Scan):
                 # Compute point cloud texture
                 u, v = points_2d
 
-                if self._debug:
+                if self._bicolor:
                     if i == 0:
                         r, g, b = 255, 0, 0
                     else:
@@ -259,25 +267,15 @@ class CiclopScan(Scan):
                 else:
                     texture = capture.texture[v, np.around(u).astype(int)].T
 
-                self._point_cloud_queue.put((point_cloud, texture))
+                if self.point_cloud_callback:
+                    self.point_cloud_callback(self._range, self._progress,
+                                              (point_cloud, texture))
 
         # Set current video images
         self.current_video.set_gray(images)
         self.current_video.set_line(points, image)
 
         # Print info
-        """if system == 'Linux':
+        """if self._debug and system == 'Linux':
             print string_time + " process: {0} ms".format(
                 int((time.time() - begin) * 1000))"""
-
-    def get_progress(self):
-        return self._progress, self._range
-
-    def get_point_cloud_increment(self):
-        if not self._point_cloud_queue.empty():
-            pc = self._point_cloud_queue.get_nowait()
-            if pc is not None:
-                self._point_cloud_queue.task_done()
-            return pc
-        else:
-            return None
