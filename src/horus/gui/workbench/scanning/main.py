@@ -24,7 +24,6 @@ class ScanningWorkbench(Workbench):
         Workbench.__init__(self, parent, name=_('Scanning workbench'))
 
         self.scanning = False
-        self.show_video_views = False
         self.toolbar_scan = toolbar_scan
 
         # Elements
@@ -92,8 +91,6 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)
-
-        driver.board.lasers_off()
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(
             profile.settings['camera_width'], profile.settings['camera_height'])
@@ -101,14 +98,16 @@ class ScanningWorkbench(Workbench):
         driver.camera.set_hflip(profile.settings['camera_hflip'])
         driver.camera.set_vflip(profile.settings['camera_vflip'])
         image_capture.set_mode_texture()
-        image_capture.texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
-        image_capture.texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
-        image_capture.texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
-        image_capture.texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
-        image_capture.laser_mode.brightness = profile.settings['brightness_laser_scanning']
-        image_capture.laser_mode.contrast = profile.settings['contrast_laser_scanning']
-        image_capture.laser_mode.saturation = profile.settings['saturation_laser_scanning']
-        image_capture.laser_mode.exposure = profile.settings['exposure_laser_scanning']
+        texture_mode = image_capture.texture_mode
+        texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
+        texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
+        texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
+        texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
+        laser_mode = image_capture.laser_mode
+        laser_mode.brightness = profile.settings['brightness_laser_scanning']
+        laser_mode.contrast = profile.settings['contrast_laser_scanning']
+        laser_mode.saturation = profile.settings['saturation_laser_scanning']
+        laser_mode.exposure = profile.settings['exposure_laser_scanning']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         laser_segmentation.red_channel = profile.settings['red_channel_scanning']
@@ -138,6 +137,7 @@ class ScanningWorkbench(Workbench):
         ciclop_scan.motor_acceleration = profile.settings['motor_acceleration_scanning']
         ciclop_scan.color = struct.unpack(
             'BBB', profile.settings['point_cloud_color'].decode('hex'))
+        ciclop_scan.set_scan_sleep(profile.settings['scan_sleep'])
         point_cloud_roi.set_use_roi(profile.settings['use_roi'])
         point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
         point_cloud_roi.set_height(profile.settings['roi_height'])
@@ -243,6 +243,7 @@ class ScanningWorkbench(Workbench):
         self.Layout()
 
     def after_scan(self, response):
+        self.gauge.SetValue(self.gauge.GetRange())
         ret, result = response
         if ret:
             dlg = wx.MessageDialog(self,

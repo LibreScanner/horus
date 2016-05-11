@@ -87,7 +87,7 @@ class ScannerAutocheckPages(wx.Panel):
                 self.GetParent().GetParent().on_preferences(None)
             elif isinstance(result, LaserNotDetected):
                 dlg = wx.MessageDialog(
-                    self, _("Please, check the lasers connection"),
+                    self, _("Please, check the lasers connection..."),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()

@@ -151,13 +151,13 @@ class Camera(object):
         self.set_exposure(2)
         exposure = self.get_exposure()
         if exposure is not None:
-            c_exp = exposure >= 1
+            c_exp = exposure >= 1.9
 
         # Check brightness
         self.set_brightness(2)
         brightness = self.get_brightness()
         if brightness is not None:
-            c_bri = brightness >= 1
+            c_bri = brightness >= 2
 
         if not c_exp or not c_bri:
             raise WrongCamera()
@@ -223,8 +223,8 @@ class Camera(object):
     def set_brightness(self, value):
         if self._is_connected:
             if self._brightness != value:
-                self._brightness = value
                 self._updating = True
+                self._brightness = value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
                     ctl.set_val(self._line(value, 0, self._max_brightness, ctl.min, ctl.max))
@@ -236,8 +236,8 @@ class Camera(object):
     def set_contrast(self, value):
         if self._is_connected:
             if self._contrast != value:
-                self._contrast = value
                 self._updating = True
+                self._contrast = value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_CONTRAST_ABS']
                     ctl.set_val(self._line(value, 0, self._max_contrast, ctl.min, ctl.max))
@@ -249,8 +249,8 @@ class Camera(object):
     def set_saturation(self, value):
         if self._is_connected:
             if self._saturation != value:
-                self._saturation = value
                 self._updating = True
+                self._saturation = value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_SATURATION_ABS']
                     ctl.set_val(self._line(value, 0, self._max_saturation, ctl.min, ctl.max))
@@ -262,8 +262,8 @@ class Camera(object):
     def set_exposure(self, value):
         if self._is_connected:
             if self._exposure != value:
-                self._exposure = value
                 self._updating = True
+                self._exposure = value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
                     value = int(value * self._rel_exposure)
@@ -273,6 +273,7 @@ class Camera(object):
                     self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
                 else:
                     value = int(value) / self._max_exposure
+                    self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
                     self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
                 self._updating = False
 
@@ -311,7 +312,6 @@ class Camera(object):
             else:
                 value = self._capture.get(cv2.cv.CV_CAP_PROP_BRIGHTNESS)
                 value *= self._max_brightness
-            self._brightness = value
             return value
 
     def get_exposure(self):
@@ -326,7 +326,6 @@ class Camera(object):
             else:
                 value = self._capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
                 value *= self._max_exposure
-            self._exposure = value
             return value
 
     def get_resolution(self):

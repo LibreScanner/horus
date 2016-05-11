@@ -22,7 +22,7 @@ class ViewPage(wx.SplitterWindow):
 
         self.get_image = get_image
 
-        self.video_view = VideoView(self, get_image, wxtimer=False)
+        self.video_view = VideoView(self, get_image)
 
         self.scene_panel = wx.Panel(self)
         self.scene_view = SceneView(self.scene_panel)

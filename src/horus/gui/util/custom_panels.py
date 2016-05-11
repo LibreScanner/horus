@@ -359,7 +359,7 @@ class Slider(ControlPanel):
         self.flag_first_move = True
 
         # Elements
-        self.label = wx.StaticText(self, label=self.setting._label, size=(110, -1))
+        self.label = wx.StaticText(self, label=self.setting._label, size=(130, -1))
         self.control = wx.Slider(self, value=profile.settings[name],
                                  minValue=profile.settings.get_min_value(name),
                                  maxValue=profile.settings.get_max_value(name),
@@ -414,7 +414,7 @@ class ComboBox(ControlPanel):
         self.control = wx.ComboBox(self, wx.ID_ANY,
                                    value=_(profile.settings[self.name]),
                                    choices=_choices,
-                                   size=(130, -1),
+                                   size=(150, -1),
                                    style=wx.CB_READONLY)
 
         self.control.SetValue_original = self.control.SetValue

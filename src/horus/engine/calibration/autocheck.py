@@ -110,7 +110,7 @@ class Autocheck(Calibration):
 
         # Check pattern detection
         if len(patterns_detected) == 0:
-            raise PatternNotDetected
+            raise PatternNotDetected()
 
         # Check motor direction
         max_x = max(patterns_detected.values())
@@ -123,7 +123,7 @@ class Autocheck(Calibration):
                 if v <= min_v:
                     min_v = v
                 else:
-                    raise WrongMotorDirection
+                    raise WrongMotorDirection()
 
         # Move to nearest position
         x = np.array(patterns_sorted.keys())
@@ -139,12 +139,12 @@ class Autocheck(Calibration):
     def check_lasers(self):
         image = self.image_capture.capture_pattern()
         corners = self.image_detection.detect_corners(image)
+        self.image_capture.flush_laser()
         for i in xrange(2):
             if not self._is_calibrating:
                 raise CalibrationCancel()
             image = self.image_capture.capture_laser(i)
             image = self.image_detection.pattern_mask(image, corners)
-            self.image = image
             lines = self.laser_segmentation.compute_hough_lines(image)
             if lines is None:
-                raise LaserNotDetected
+                raise LaserNotDetected()

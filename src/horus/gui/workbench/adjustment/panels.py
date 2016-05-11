@@ -15,12 +15,6 @@ from horus.gui.util.custom_panels import ExpandablePanel, Slider, ComboBox, Chec
 current_video = CurrentVideo()
 
 
-def flush_video():
-    current_video.capture()
-    current_video.capture()
-    current_video.capture()
-
-
 class ScanCapturePanel(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
@@ -90,10 +84,9 @@ class ScanCapturePanel(ExpandablePanel):
 
     def on_selected(self):
         current_video.updating = True
+        current_video.sync()
+        # Update mode settings
         current_video.mode = profile.settings['capture_mode_scanning']
-        profile.settings['current_video_mode_adjustment'] = current_video.mode
-        profile.settings['current_panel_adjustment'] = 'scan_capture'
-        image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         texture_mode = image_capture.texture_mode
         texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
         texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
@@ -104,17 +97,20 @@ class ScanCapturePanel(ExpandablePanel):
         laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
         laser_mode.set_saturation(profile.settings['saturation_laser_scanning'])
         laser_mode.set_exposure(profile.settings['exposure_laser_scanning'])
-        if current_video.mode == 'Texture':
-            flush_video()
+        image_capture.set_remove_background(profile.settings['remove_background_scanning'])
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+        profile.settings['current_panel_adjustment'] = 'scan_capture'
+        current_video.flush()
         current_video.updating = False
 
     def _set_camera_mode(self, mode):
         current_video.updating = True
+        current_video.sync()
+        # Update mode settings
         self._set_mode_layout(mode)
         current_video.mode = mode
         profile.settings['current_video_mode_adjustment'] = current_video.mode
-        if mode == 'Texture':
-            flush_video()
+        current_video.flush()
         current_video.updating = False
 
     def _set_mode_layout(self, mode):
@@ -180,9 +176,9 @@ class ScanSegmentationPanel(ExpandablePanel):
 
     def on_selected(self):
         current_video.updating = True
+        current_video.sync()
+        # Update mode settings
         current_video.mode = 'Gray'
-        profile.settings['current_video_mode_adjustment'] = current_video.mode
-        profile.settings['current_panel_adjustment'] = 'scan_segmentation'
         laser_mode = image_capture.laser_mode
         laser_mode.set_brightness(profile.settings['brightness_laser_scanning'])
         laser_mode.set_contrast(profile.settings['contrast_laser_scanning'])
@@ -197,6 +193,9 @@ class ScanSegmentationPanel(ExpandablePanel):
         laser_segmentation.set_window_value(profile.settings['window_value_scanning'])
         laser_segmentation.set_window_enable(profile.settings['window_enable_scanning'])
         laser_segmentation.set_refinement_method(profile.settings['refinement_scanning'])
+        profile.settings['current_video_mode_adjustment'] = current_video.mode
+        profile.settings['current_panel_adjustment'] = 'scan_segmentation'
+        current_video.flush()
         current_video.updating = False
 
 
@@ -269,7 +268,8 @@ class CalibrationCapturePanel(ExpandablePanel):
 
     def on_selected(self):
         current_video.updating = True
-        driver.board.lasers_off()
+        current_video.sync()
+        # Update mode settings
         current_video.mode = profile.settings['capture_mode_calibration']
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_capture'
@@ -284,17 +284,17 @@ class CalibrationCapturePanel(ExpandablePanel):
         laser_mode.set_contrast(profile.settings['contrast_laser_calibration'])
         laser_mode.set_saturation(profile.settings['saturation_laser_calibration'])
         laser_mode.set_exposure(profile.settings['exposure_laser_calibration'])
-        if current_video.mode == 'Pattern':
-            flush_video()
+        current_video.flush()
         current_video.updating = False
 
     def _set_camera_mode(self, mode):
         current_video.updating = True
+        current_video.sync()
+        # Update mode settings
         self._set_mode_layout(mode)
         current_video.mode = mode
         profile.settings['current_video_mode_adjustment'] = current_video.mode
-        if mode == 'Pattern':
-            flush_video()
+        current_video.flush()
         current_video.updating = False
 
     def _set_mode_layout(self, mode):
@@ -361,6 +361,8 @@ class CalibrationSegmentationPanel(ExpandablePanel):
 
     def on_selected(self):
         current_video.updating = True
+        current_video.sync()
+        # Update mode settings
         current_video.mode = 'Gray'
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_segmentation'
@@ -378,4 +380,5 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         laser_segmentation.set_window_value(profile.settings['window_value_calibration'])
         laser_segmentation.set_window_enable(profile.settings['window_enable_calibration'])
         laser_segmentation.set_refinement_method(profile.settings['refinement_calibration'])
+        current_video.flush()
         current_video.updating = False

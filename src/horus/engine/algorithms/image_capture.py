@@ -6,6 +6,7 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
+import time
 import platform
 
 from horus import Singleton
@@ -20,6 +21,7 @@ class CameraSettings(object):
     def __init__(self):
         self.driver = Driver()
 
+        self.sleep = 0.001
         self.selected = False
         self.brightness = 0
         self.contrast = 0
@@ -47,9 +49,13 @@ class CameraSettings(object):
             self.driver.camera.set_exposure(value)
 
     def send_all_settings(self):
+        print self.brightness, self.contrast, self.saturation, self.exposure
         self.driver.camera.set_brightness(self.brightness)
+        time.sleep(self.sleep)
         self.driver.camera.set_contrast(self.contrast)
+        time.sleep(self.sleep)
         self.driver.camera.set_saturation(self.saturation)
+        time.sleep(self.sleep)
         self.driver.camera.set_exposure(self.exposure)
 
 
@@ -128,6 +134,10 @@ class ImageCapture(object):
 
     def flush_laser(self):
         self.set_mode_laser()
+        self.capture_image(flush=0)
+
+    def flush_pattern(self):
+        self.set_mode_pattern()
         self.capture_image(flush=0)
 
     def capture_texture(self):

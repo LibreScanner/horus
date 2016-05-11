@@ -382,6 +382,10 @@ class Settings(collections.MutableMapping):
             Setting('point_cloud_color', _('Choose point cloud color'), 'profile_settings',
                     unicode, u'AAAAAA'))
 
+        self._add_setting(
+            Setting('scan_sleep', _(u'Wait time in each scan interval'), 'profile_settings',
+                    float, 50.0, min_value=0.0, max_value=1000.0))
+
         # Hack to translate combo boxes:
         _('Texture')
         _('Laser')

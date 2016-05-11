@@ -120,27 +120,27 @@ class Board(object):
 
     def motor_speed(self, value):
         if self._motor_speed != value:
-            self._send_command("G1F{0}".format(value))
             self._motor_speed = value
+            self._send_command("G1F{0}".format(value))
 
     def motor_acceleration(self, value):
         if self._motor_acceleration != value:
-            self._send_command("$120={0}".format(value))
             self._motor_acceleration = value
+            self._send_command("$120={0}".format(value))
 
     def motor_enable(self):
         if not self._motor_enabled:
+            self._motor_enabled = True
             speed = self._motor_speed
             self.motor_speed(1)
             self._send_command("M17")
             time.sleep(0.3)
             self.motor_speed(speed)
-            self._motor_enabled = True
 
     def motor_disable(self):
         if self._motor_enabled:
-            self._send_command("M18")
             self._motor_enabled = False
+            self._send_command("M18")
 
     def motor_move(self, nonblocking=False, callback=None):
         self._motor_position += self._motor_relative * self._motor_direction
@@ -148,13 +148,13 @@ class Board(object):
 
     def laser_on(self, index):
         if not self._laser_enabled[index]:
-            if self._send_command("M71T" + str(index + 1)) != '':
-                self._laser_enabled[index] = True
+            self._laser_enabled[index] = True
+            self._send_command("M71T" + str(index + 1))
 
     def laser_off(self, index):
         if self._laser_enabled[index]:
-            if self._send_command("M70T" + str(index + 1)) != '':
-                self._laser_enabled[index] = False
+            self._laser_enabled[index] = False
+            self._send_command("M70T" + str(index + 1))
 
     def lasers_on(self):
         for i in xrange(self._laser_number):
@@ -186,17 +186,18 @@ class Board(object):
                     self._serial_port.flushInput()
                     self._serial_port.flushOutput()
                     self._serial_port.write(req + "\r\n")
-                    while ret == '':  # TODO: add timeout
+                    while ret == '':
                         if read_lines:
                             ret = ''.join(self._serial_port.readlines())
                         else:
                             ret = ''.join(self._serial_port.readline())
-                        time.sleep(0.01)
+                        time.sleep(0.001)
                     self._success()
                 except:
-                    if callback is not None:
-                        callback(ret)
-                    self._fail()
+                    if hasattr(self, '_serial_port'):
+                        if callback is not None:
+                            callback(ret)
+                        self._fail()
         if callback is not None:
             callback(ret)
         return ret

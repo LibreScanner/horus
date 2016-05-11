@@ -41,6 +41,9 @@ class ControlWorkbench(Workbench):
         try:
             driver.board.lasers_off()
             self.pages_collection['video_view'].stop()
+            laser_control = self.panels_collection.expandable_panels['laser_control']
+            laser_control.get_control('left_button').control.SetValue(False)
+            laser_control.get_control('right_button').control.SetValue(False)
         except:
             pass
 
