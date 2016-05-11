@@ -62,7 +62,8 @@ class ExpandableCollection(wx.Panel):
 
 class ExpandablePanel(wx.Panel):
 
-    def __init__(self, parent, title="", selected_callback=None, has_undo=True, has_restore=True):
+    def __init__(self, parent, title="", selected_callback=None,
+                 has_undo=True, has_restore=True, restore_callback=None):
         wx.Panel.__init__(self, parent, size=(-1, -1))
 
         # Elements
@@ -74,6 +75,7 @@ class ExpandablePanel(wx.Panel):
         self.title_text = TitleText(self, title)
         self.has_undo = has_undo
         self.has_restore = has_restore
+        self.restore_callback = restore_callback
         if self.has_undo:
             self.undo_button = wx.BitmapButton(
                 self, wx.NewId(),
@@ -190,6 +192,8 @@ class ExpandablePanel(wx.Panel):
         if result:
             self.restore_button.Disable()
             self.content.reset_profile()
+            if self.restore_callback:
+                self.restore_callback()
             if self.has_undo:
                 del self.undo_objects[:]
                 self.undo_button.Disable()
@@ -530,8 +534,8 @@ class IntLabel(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(160, -1), label=self.setting._label)
-        self.control = wx.StaticText(self, size=(100, -1), style=wx.TE_RIGHT)
+        label = wx.StaticText(self, size=(130, -1), label=self.setting._label)
+        self.control = wx.StaticText(self, size=(150, -1), style=wx.TE_RIGHT)
         self.control.SetLabel(str(profile.settings[self.name]))
 
         # Layout
@@ -544,6 +548,64 @@ class IntLabel(ControlPanel):
     def update_from_profile(self):
         value = profile.settings[self.name]
         self.control.SetLabel(str(value))
+
+
+class IntBox(wx.TextCtrl):
+
+    def __init__(self, *args, **kwargs):
+        wx.TextCtrl.__init__(self, *args, **kwargs)
+        self.old_value = 0
+
+    def SetValue(self, value):
+        self.old_value = value
+        wx.TextCtrl.SetValue(self, str(int(value)))
+
+    def GetValue(self):
+        try:
+            value = int(wx.TextCtrl.GetValue(self))
+        except:
+            value = self.old_value
+            self.SetValue(value)
+            return value
+        else:
+            self.old_value = value
+            self.SetValue(value)
+            return value
+
+
+class IntTextBox(ControlPanel):
+
+    def __init__(self, parent, name, engine_callback=None):
+        ControlPanel.__init__(self, parent, name, engine_callback)
+
+        # Elements
+        label = wx.StaticText(self, size=(130, -1), label=self.setting._label)
+        self.control = IntBox(self, size=(150, -1), style=wx.TE_RIGHT)
+        self.control.SetValue(profile.settings[self.name])
+
+        # Layout
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        hbox.AddStretchSpacer()
+        hbox.Add(self.control, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        self.SetSizer(hbox)
+        self.Layout()
+
+        # Events
+        self.control.Bind(wx.EVT_KILL_FOCUS, self._on_text_box_lost_focus)
+
+    def GetValue(self):
+        return self.control.GetValue()
+
+    def SetValue(self, value):
+        self.control.SetValue(value)
+        self.update_to_profile(value)
+        self.set_engine(value)
+
+    def _on_text_box_lost_focus(self, event):
+        value = self.GetValue()
+        self.SetValue(value)
+        self.release_restore()
 
 
 class FloatBox(wx.TextCtrl):
@@ -575,8 +637,8 @@ class FloatTextBox(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(160, -1), label=self.setting._label)
-        self.control = FloatBox(self, size=(100, -1), style=wx.TE_RIGHT)
+        label = wx.StaticText(self, size=(130, -1), label=self.setting._label)
+        self.control = FloatBox(self, size=(150, -1), style=wx.TE_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 
         # Layout

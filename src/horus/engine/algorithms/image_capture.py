@@ -21,7 +21,7 @@ class CameraSettings(object):
     def __init__(self):
         self.driver = Driver()
 
-        self.sleep = 0.001
+        self.sleep = 0.000
         self.selected = False
         self.brightness = 0
         self.contrast = 0

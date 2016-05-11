@@ -45,8 +45,10 @@ class PlatformExtrinsicsPages(wx.Panel):
     def _initialize(self):
         self.video_page.initialize()
         self.video_page.Show()
+        self.video_page.play()
         self.result_page.Hide()
         self.video_page.right_button.Enable()
+        self.GetParent().Layout()
 
     def play(self):
         self.video_page.play()
@@ -71,6 +73,7 @@ class PlatformExtrinsicsPages(wx.Panel):
         ret, result = response
         if ret:
             self.video_page.Hide()
+            self.video_page.stop()
             self.result_page.Show()
             self.Layout()
         else:
@@ -90,8 +93,6 @@ class PlatformExtrinsicsPages(wx.Panel):
 
     def on_exit(self):
         platform_extrinsics.cancel()
-        self.video_page.Show()
-        self.result_page.Hide()
         self._initialize()
         if self.exit_callback is not None:
             self.exit_callback()
@@ -157,7 +158,7 @@ class ResultPage(Page):
             if isinstance(result, PlatformExtrinsicsError):
                 dlg = wx.MessageDialog(
                     self, _("Platform Extrinsics Calibration has failed.\n"
-                            "Please check the pattern and try again."),
+                            "Please check the pattern and try again..."),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()

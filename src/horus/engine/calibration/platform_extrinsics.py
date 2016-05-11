@@ -51,23 +51,26 @@ class PlatformExtrinsics(MovingCalibration):
         image = self.image_capture.capture_pattern()
         pose = self.image_detection.detect_pose(image)
         if pose is not None:
-            d, n, corners = self.image_detection.detect_pattern_plane(pose)
-            self.image = self.image_detection.draw_pattern(image, corners)
-            if corners is not None:
-                origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
-                origin = np.array([[origin[0]], [origin[1]]])
-                t = self.point_cloud_generation.compute_camera_point_cloud(origin, d, n)
-                if t is not None:
-                    self.x += [t[0][0]]
-                    self.y += [t[1][0]]
-                    self.z += [t[2][0]]
+            plane = self.image_detection.detect_pattern_plane(pose)
+            if plane is not None:
+                distance, normal, corners = plane
+                self.image = self.image_detection.draw_pattern(image, corners)
+                if corners is not None:
+                    origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
+                    origin = np.array([[origin[0]], [origin[1]]])
+                    t = self.point_cloud_generation.compute_camera_point_cloud(
+                        origin, distance, normal)
+                    if t is not None:
+                        self.x += [t[0][0]]
+                        self.y += [t[1][0]]
+                        self.z += [t[2][0]]
         else:
             self.image = image
 
     def _calibrate(self):
         self.has_image = False
         self.image_capture.stream = True
-        self.tt = None
+        self.t = None
         self.x = np.array(self.x)
         self.y = np.array(self.y)
         self.z = np.array(self.z)
@@ -83,15 +86,15 @@ class PlatformExtrinsics(MovingCalibration):
             # Get real origin
             self.t = center - self.pattern.origin_distance * np.array(normal)
 
-        if self._is_calibrating and self.t is not None and \
-           np.linalg.norm(self.t - estimated_t) < 100:
-            response = (True, (self.R, self.t, center, point, normal,
-                        [self.x, self.y, self.z], circle))
-
             logger.info("Platform calibration ")
             logger.info(" Translation: " + str(self.t))
             logger.info(" Rotation: " + str(self.R).replace('\n', ''))
             logger.info(" Normal: " + str(normal))
+
+        if self._is_calibrating and self.t is not None and \
+           np.linalg.norm(self.t - estimated_t) < 100:
+            response = (True, (self.R, self.t, center, point, normal,
+                        [self.x, self.y, self.z], circle))
 
         else:
             if self._is_calibrating:

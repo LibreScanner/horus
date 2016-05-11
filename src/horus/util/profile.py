@@ -397,14 +397,22 @@ class Settings(collections.MutableMapping):
 
         self._add_setting(
             Setting('save_image_button', _('Save image'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('left_button', _('Left'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('right_button', _('Right'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('move_button', _('Move'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('enable_button', _('Enable'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('gcode_gui', _('Send'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('ldr_value', _('Send'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('left_button', _('Left'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('right_button', _('Right'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('move_button', _('Move'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('enable_button', _('Enable'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('gcode_gui', _('Send'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('ldr_value', _('Send'), 'profile_settings', unicode, u''))
         self._add_setting(
             Setting('autocheck_button', _('Perform autocheck'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('set_resolution_button', _('Set resolution'), 'profile_settings', unicode, u''))
 
         # -- Calibration Settings
 

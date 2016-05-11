@@ -51,7 +51,7 @@ class CiclopScan(Scan):
         self.color = (0, 0, 0)
 
         self._theta = 0
-        self._debug = True
+        self._debug = False
         self._bicolor = False
         self._scan_sleep = 0.05
         self._captures_queue = Queue.Queue(10)
@@ -152,7 +152,7 @@ class CiclopScan(Scan):
                         # Cursor up + remove lines
                         print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
                         print string_time + " elapsed progress: {0} %".format(
-                            round(float(self._theta / 3.6), 1))
+                            int(self._theta / 3.6))
                         print string_time + " elapsed time: {0}".format(
                             time.strftime("%M' %S\"", time.gmtime(self._end - self._begin)))
                         print string_time + " elapsed angle: {0}º".format(
@@ -230,7 +230,7 @@ class CiclopScan(Scan):
         self.image_capture.stream = True
 
         logger.info("Finish scan {0} %  Time {1}".format(
-            round(float(100 * self._progress / self._range), 1),
+            int(100 * self._progress / self._range),
             time.strftime("%M' %S\"", time.gmtime(self._end - self._begin))))
 
         if self._after_callback is not None:
