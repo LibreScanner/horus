@@ -27,7 +27,7 @@ class PatternDistanceWindow(wx.Dialog):
         self.description.Wrap(400)
         tooltip = _(
             "Minimum distance between the origin of the pattern (bottom-left corner) "
-            "and the pattern's base surface")
+            "and the pattern's base surface (mm)")
         self.image = wx.Image(
             resources.get_path_for_image('pattern-distance.jpg'), wx.BITMAP_TYPE_ANY)
         self.image = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
@@ -36,7 +36,7 @@ class PatternDistanceWindow(wx.Dialog):
         self.label.SetToolTip(wx.ToolTip(tooltip))
         self.text_box = wx.TextCtrl(
             self, value=str(profile.settings['pattern_origin_distance']))
-        self.ok_button = wx.Button(self, label=_("OK"))
+        self.ok_button = wx.Button(self, label=_("Accept"))
         self.cancel_button = wx.Button(self, label=_("Cancel"))
 
         # Events

@@ -363,7 +363,7 @@ class Slider(ControlPanel):
         self.flag_first_move = True
 
         # Elements
-        self.label = wx.StaticText(self, label=self.setting._label, size=(130, -1))
+        self.label = wx.StaticText(self, label=_(self.setting._label), size=(130, -1))
         self.control = wx.Slider(self, value=profile.settings[name],
                                  minValue=profile.settings.get_min_value(name),
                                  maxValue=profile.settings.get_max_value(name),
@@ -414,7 +414,7 @@ class ComboBox(ControlPanel):
         self.key_dict = dict(zip(_choices, choices))
 
         # Elements
-        label = wx.StaticText(self, label=self.setting._label, size=(130, -1))
+        label = wx.StaticText(self, label=_(self.setting._label), size=(130, -1))
         self.control = wx.ComboBox(self, wx.ID_ANY,
                                    value=_(profile.settings[self.name]),
                                    choices=_choices,
@@ -436,7 +436,7 @@ class ComboBox(ControlPanel):
         self.control.Bind(wx.EVT_COMBOBOX, self._on_combo_box_changed)
 
     def SetValue_overwrite(self, value):
-        self.control.SetValue_original(str(value))
+        self.control.SetValue_original(_(str(value)))
 
     def _on_combo_box_changed(self, event):
         value = self.key_dict[self.control.GetValue()]
@@ -451,7 +451,7 @@ class CheckBox(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, label=self.setting._label, size=(130, -1))
+        label = wx.StaticText(self, label=_(self.setting._label), size=(130, -1))
         self.control = wx.CheckBox(self, size=(150, -1))
         self.control.SetValue(profile.settings[self.name])
 
@@ -479,7 +479,7 @@ class RadioButton(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, label=self.setting._label)
+        label = wx.StaticText(self, label=_(self.setting._label))
         self.control = wx.RadioButton(self, style=wx.ALIGN_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 
@@ -506,7 +506,7 @@ class TextBox(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
+        label = wx.StaticText(self, size=(140, -1), label=_(self.setting._label))
         self.control = wx.TextCtrl(self, size=(120, -1), style=wx.TE_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 
@@ -534,7 +534,7 @@ class IntLabel(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(130, -1), label=self.setting._label)
+        label = wx.StaticText(self, size=(130, -1), label=_(self.setting._label))
         self.control = wx.StaticText(self, size=(150, -1), style=wx.TE_RIGHT)
         self.control.SetLabel(str(profile.settings[self.name]))
 
@@ -579,7 +579,7 @@ class IntTextBox(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(130, -1), label=self.setting._label)
+        label = wx.StaticText(self, size=(130, -1), label=_(self.setting._label))
         self.control = IntBox(self, size=(150, -1), style=wx.TE_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 
@@ -637,7 +637,7 @@ class FloatTextBox(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(130, -1), label=self.setting._label)
+        label = wx.StaticText(self, size=(130, -1), label=_(self.setting._label))
         self.control = FloatBox(self, size=(150, -1), style=wx.TE_RIGHT)
         self.control.SetValue(profile.settings[self.name])
 
@@ -714,7 +714,7 @@ class FloatTextBoxArray(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
+        label = wx.StaticText(self, size=(140, -1), label=_(self.setting._label))
         self.control = FloatBoxArray(self, value=profile.settings[name], size=(50, -1),
                                      onedit_callback=self._on_text_box_lost_focus)
 
@@ -742,7 +742,7 @@ class FloatLabel(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(160, -1), label=self.setting._label)
+        label = wx.StaticText(self, size=(160, -1), label=_(self.setting._label))
         self.control = wx.StaticText(self, size=(100, -1), style=wx.TE_RIGHT)
         self.control.SetLabel(str(round(profile.settings[self.name], 4)))
 
@@ -800,7 +800,7 @@ class FloatLabelArray(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        label = wx.StaticText(self, size=(140, -1), label=self.setting._label)
+        label = wx.StaticText(self, size=(140, -1), label=_(self.setting._label))
         self.control = FloatStaticArray(self, value=profile.settings[name], size=(50, -1))
 
         # Layout
@@ -818,7 +818,7 @@ class Button(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        self.control = wx.Button(self, label=self.setting._label)
+        self.control = wx.Button(self, label=_(self.setting._label))
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -840,7 +840,7 @@ class CallbackButton(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        self.control = wx.Button(self, label=self.setting._label)
+        self.control = wx.Button(self, label=_(self.setting._label))
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -868,7 +868,7 @@ class ToggleButton(ControlPanel):
         ControlPanel.__init__(self, parent, name, engine_callback)
 
         # Elements
-        self.control = wx.ToggleButton(self, label=self.setting._label)
+        self.control = wx.ToggleButton(self, label=_(self.setting._label))
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)

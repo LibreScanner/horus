@@ -204,7 +204,7 @@ class GcodeSection(ControlPanel):
 
         # Elements
         self.request = wx.TextCtrl(self)
-        self.control = wx.Button(self, label=self.setting._label, size=(-1, -1))
+        self.control = wx.Button(self, label=_(self.setting._label), size=(-1, -1))
         self.response = wx.TextCtrl(self, size=(-1, 290), style=wx.TE_MULTILINE)
 
         # Layout

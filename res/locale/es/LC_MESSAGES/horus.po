@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2016-05-12 14:23+0200\n"
-"PO-Revision-Date: 2016-05-03 19:15+0100\n"
+"POT-Creation-Date: 2016-05-12 15:51+0200\n"
+"PO-Revision-Date: 2016-05-12 16:22+0100\n"
 "Last-Translator: Nicanor Romero Venier <nicanor.romerovenier@bq.com>\n"
 "Language-Team: bq\n"
 "Language: es\n"
@@ -71,7 +71,6 @@ msgid "Exposure"
 msgstr "Exposición"
 
 #: ../../src/horus/util/profile.py:195
-#, fuzzy
 msgid "Frame rate"
 msgstr "Velocidad de fotogramas"
 
@@ -189,7 +188,7 @@ msgstr "Elige el color de la nube de puntos"
 
 #: ../../src/horus/util/profile.py:385
 msgid "Wait time in each scan interval"
-msgstr ""
+msgstr "Tiempo de espera en cada intervalo de exploración"
 
 #: ../../src/horus/util/profile.py:391
 msgid "Gray"
@@ -222,13 +221,12 @@ msgstr "Enviar"
 
 #: ../../src/horus/util/profile.py:412
 msgid "Perform autocheck"
-msgstr "Realizar verificación automática"
+msgstr "Realizar comprobación automática"
 
 #: ../../src/horus/util/profile.py:414
 #: ../../src/horus/gui/workbench/calibration/panels.py:97
-#, fuzzy
 msgid "Set resolution"
-msgstr "Resolución"
+msgstr "Establecer resolución"
 
 #: ../../src/horus/util/profile.py:419
 msgid "Pattern rows"
@@ -247,7 +245,6 @@ msgid "Origin distance (mm)"
 msgstr "Distancia del patrón (mm)"
 
 #: ../../src/horus/util/profile.py:432
-#, fuzzy
 msgid "Adjust laser"
 msgstr "Ajustar el láser"
 
@@ -270,12 +267,12 @@ msgstr "Rotación"
 #: ../../src/horus/util/profile.py:444
 #: ../../src/horus/gui/workbench/calibration/panels.py:93
 msgid "Horizontal flip"
-msgstr ""
+msgstr "Inversión horizontal"
 
 #: ../../src/horus/util/profile.py:446
 #: ../../src/horus/gui/workbench/calibration/panels.py:94
 msgid "Vertical flip"
-msgstr ""
+msgstr "Inversión vertical"
 
 #: ../../src/horus/util/profile.py:449
 msgid "Camera matrix"
@@ -295,7 +292,7 @@ msgstr "Distancia izquierda (mm)"
 
 #: ../../src/horus/util/profile.py:463
 msgid "Normal left"
-msgstr "Normal"
+msgstr "Normal izquierda"
 
 #: ../../src/horus/util/profile.py:466
 msgid "Distance right (mm)"
@@ -303,7 +300,7 @@ msgstr "Distancia derecha (mm)"
 
 #: ../../src/horus/util/profile.py:468
 msgid "Normal right"
-msgstr "Normal"
+msgstr "Normal derecha"
 
 #: ../../src/horus/util/profile.py:472
 msgid "Rotation matrix"
@@ -318,24 +315,20 @@ msgid "Estimated size"
 msgstr "Tamaño estimado"
 
 #: ../../src/horus/util/profile.py:500
-#, fuzzy
 msgid "Machine diameter"
-msgstr "Diámetro de la Máquina"
+msgstr "Diámetro de la máquina"
 
 #: ../../src/horus/util/profile.py:502
-#, fuzzy
 msgid "Machine width"
-msgstr "Ancho de la Máquina"
+msgstr "Ancho de la máquina"
 
 #: ../../src/horus/util/profile.py:504
-#, fuzzy
 msgid "Machine height"
-msgstr "Altura de la Máquina"
+msgstr "Altura de la máquina"
 
 #: ../../src/horus/util/profile.py:506
-#, fuzzy
 msgid "Machine depth"
-msgstr "Largo de la Máquina"
+msgstr "Largo de la máquina"
 
 #: ../../src/horus/util/profile.py:508
 msgid "Circular"
@@ -346,19 +339,16 @@ msgid "Rectangular"
 msgstr "Rectangular"
 
 #: ../../src/horus/util/profile.py:511
-#, fuzzy
 msgid "Machine shape"
-msgstr "Aspecto de la Máquina"
+msgstr "Aspecto de la máquina"
 
 #: ../../src/horus/util/profile.py:514
 #: ../../src/horus/gui/util/machine_settings.py:42
-#, fuzzy
 msgid "Machine model"
-msgstr "Modelo de la Máquina"
+msgstr "Modelo de la máquina"
 
 #: ../../src/horus/util/profile.py:532
 #: ../../src/horus/gui/util/preferences.py:34
-#, fuzzy
 msgid "Serial name"
 msgstr "Puerto serie"
 
@@ -369,9 +359,8 @@ msgstr "Tasa de baudios"
 
 #: ../../src/horus/util/profile.py:537
 #: ../../src/horus/gui/util/preferences.py:29
-#, fuzzy
 msgid "Camera ID"
-msgstr "Identificación de cámara "
+msgstr "Cámara ID"
 
 #: ../../src/horus/util/profile.py:539
 msgid "Board"
@@ -387,68 +376,57 @@ msgid "Language"
 msgstr "Idioma"
 
 #: ../../src/horus/util/profile.py:547
-#, fuzzy
 msgid ""
 "Change the language of Horus. Switching language will require a program "
 "restart"
-msgstr "Cambia el idioma de Horus. El cambio requiere que Horus se reinicie."
+msgstr ""
+"Cambia el idioma de Horus. El cambio requiere que el programa se reinicie"
 
 #: ../../src/horus/util/profile.py:552
 msgid "Workbench"
 msgstr "Banco de trabajo"
 
 #: ../../src/horus/util/profile.py:555
-#, fuzzy
 msgid "Show welcome"
 msgstr "Mostrar bienvenida"
 
 #: ../../src/horus/util/profile.py:557
-#, fuzzy
 msgid "Check for updates"
 msgstr "Buscar actualizaciones"
 
 #: ../../src/horus/util/profile.py:559
-#, fuzzy
 msgid "Basic mode"
 msgstr "Modo básico"
 
 #: ../../src/horus/util/profile.py:561 ../../src/horus/util/profile.py:563
-#, fuzzy
 msgid "View control panel"
 msgstr "Ver el panel de control"
 
 #: ../../src/horus/util/profile.py:565
-#, fuzzy
 msgid "View adjustment panel"
 msgstr "Ver panel de ajustes"
 
 #: ../../src/horus/util/profile.py:568
-#, fuzzy
 msgid "View adjustment video"
 msgstr "Ver vídeo de ajustes"
 
 #: ../../src/horus/util/profile.py:571
-#, fuzzy
 msgid "View calibration panel"
 msgstr "Ver panel de calibración"
 
 #: ../../src/horus/util/profile.py:574
-#, fuzzy
 msgid "View calibration video"
 msgstr "Ver vídeo de calibración"
 
 #: ../../src/horus/util/profile.py:577
-#, fuzzy
 msgid "View scanning panel"
 msgstr "Ver panel de escaneo"
 
 #: ../../src/horus/util/profile.py:579
-#, fuzzy
 msgid "View scanning video"
 msgstr "Ver vídeo de escaneo"
 
 #: ../../src/horus/util/profile.py:581
-#, fuzzy
 msgid "View scanning scene"
 msgstr "Ver entorno de escaneo"
 
@@ -457,17 +435,14 @@ msgid "Advanced mode"
 msgstr "Modo avanzado"
 
 #: ../../src/horus/util/profile.py:587
-#, fuzzy
 msgid "Last files"
 msgstr "Últimos archivos"
 
 #: ../../src/horus/util/profile.py:590
-#, fuzzy
 msgid "Last file"
 msgstr "Último archivo"
 
 #: ../../src/horus/util/profile.py:593
-#, fuzzy
 msgid "Last profile"
 msgstr "Último perfil"
 
@@ -500,7 +475,6 @@ msgid "Open profile"
 msgstr "Abrir perfil"
 
 #: ../../src/horus/gui/main.py:99
-#, fuzzy
 msgid "Open profile .json"
 msgstr "Abrir perfil .json"
 
@@ -509,7 +483,6 @@ msgid "Save profile"
 msgstr "Guardar perfil"
 
 #: ../../src/horus/gui/main.py:101
-#, fuzzy
 msgid "Save profile .json"
 msgstr "Guardar perfil .json"
 
@@ -518,7 +491,6 @@ msgid "Reset profile"
 msgstr "Restaurar perfil"
 
 #: ../../src/horus/gui/main.py:103
-#, fuzzy
 msgid "Reset default values"
 msgstr "Restaurar valores por defecto"
 
@@ -527,27 +499,24 @@ msgid "Open calibration"
 msgstr "Abrir calibración"
 
 #: ../../src/horus/gui/main.py:106
-#, fuzzy
 msgid "Open calibration .json"
-msgstr "Abre calibración .json"
+msgstr "Abrir calibración .json"
 
 #: ../../src/horus/gui/main.py:108
 msgid "Save calibration"
 msgstr "Guardar calibración"
 
 #: ../../src/horus/gui/main.py:108
-#, fuzzy
 msgid "Save calibration .json"
-msgstr "Guarda calibración .json"
+msgstr "Guardar calibración .json"
 
 #: ../../src/horus/gui/main.py:110
 msgid "Reset calibration"
 msgstr "Restablecer calibración"
 
 #: ../../src/horus/gui/main.py:110
-#, fuzzy
 msgid "Reset calibration default values"
-msgstr "Restaurar los valores de calibración por defecto "
+msgstr "Restaurar los valores de calibración por defecto"
 
 #: ../../src/horus/gui/main.py:113
 msgid "Export log"
@@ -629,17 +598,15 @@ msgstr "Guardar modelo 3D"
 
 #: ../../src/horus/gui/main.py:229 ../../src/horus/gui/util/scene_view.py:310
 #: ../../src/horus/gui/workbench/scanning/main.py:217
-#, fuzzy
 msgid ""
 "Your current model will be deleted.\n"
 "Are you sure you want to delete it?"
 msgstr ""
 "El modelo actual será borrado.\n"
-"¿Realmente quieres hacerlo?"
+"¿Realmente quieres eliminarlo?"
 
 #: ../../src/horus/gui/main.py:230 ../../src/horus/gui/util/scene_view.py:311
 #: ../../src/horus/gui/workbench/scanning/main.py:219
-#, fuzzy
 msgid "Clear point cloud"
 msgstr "Borrar nube de puntos"
 
@@ -652,14 +619,13 @@ msgid "Select profile file to save"
 msgstr "Selecciona un perfil para guardar"
 
 #: ../../src/horus/gui/main.py:261
-#, fuzzy
 msgid ""
 "This will reset all profile settings to defaults. Unless you have saved your "
 "current profile, all settings will be lost!\n"
 "Do you really want to reset?"
 msgstr ""
-"Se van a restaurar los parámetros del perfil por defecto.\n"
-"A menos que hayas guardado el perfil actual, se perderán todos los ajustes.\n"
+"Se van a restaurar los parámetros del perfil por defecto. A menos que hayas "
+"guardado el perfil actual, se perderán todos los ajustes.\n"
 "¿Realmente quieres reiniciar?"
 
 #: ../../src/horus/gui/main.py:264
@@ -667,13 +633,12 @@ msgid "Profile reset"
 msgstr "Restaurar perfil"
 
 #: ../../src/horus/gui/main.py:274
-#, fuzzy
 msgid ""
 "Your current log file will be deleted.\n"
 "Are you sure you want to delete it?"
 msgstr ""
 "Se borrará el archivo de registro actual.\n"
-"¿Realmente quieres hacerlo?"
+"¿Realmente quieres eliminarlo?"
 
 #: ../../src/horus/gui/main.py:287
 msgid "Select log file to save"
@@ -705,14 +670,13 @@ msgid "Delete object"
 msgstr "Eliminar objeto"
 
 #: ../../src/horus/gui/util/custom_panels.py:187
-#, fuzzy
 msgid ""
 "This will reset all section settings to defaults. Unless you have saved your "
 "current profile, all section settings will be lost!\n"
 "Do you really want to reset?"
 msgstr ""
-"Se van a restaurar los parámetros del perfil por defecto.\n"
-"A menos que hayas guardado el perfil actual, se perderán todos los cambios.\n"
+"Se van a restaurar los parámetros del perfil por defecto. A menos que hayas "
+"guardado el perfil actual, se perderán todos los cambios.\n"
 "¿Realmente quieres reiniciar?"
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:18
@@ -720,26 +684,29 @@ msgid "Pattern distance"
 msgstr "Distancia del patrón"
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:25
-#, fuzzy
 msgid ""
 "The pattern distance value must be higher than 0. Please change it in the "
 "textbox below."
-msgstr "La distancia del patrón debe ser mayor que 0. Por favor, cámbialo."
+msgstr "La distancia del patrón debe ser mayor que 0. Por favor, modifícalo."
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:29
+#: ../../src/horus/gui/workbench/calibration/panels.py:30
 msgid ""
 "Minimum distance between the origin of the pattern (bottom-left corner) and "
-"the pattern's base surface"
+"the pattern's base surface (mm)"
 msgstr ""
 "Distancia mínima entre el origen del patrón (esquina inferior izquierda) y "
-"la superficie de la base del patrón."
+"la superficie de la base del patrón (mm)"
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:35
 msgid "Pattern distance (mm)"
 msgstr "Distancia del patrón (mm)"
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:39
-msgid "OK"
+#: ../../src/horus/gui/workbench/calibration/pages/laser_triangulation.py:104
+#: ../../src/horus/gui/workbench/calibration/pages/platform_extrinsics.py:108
+#: ../../src/horus/gui/workbench/calibration/pages/camera_intrinsics.py:97
+msgid "Accept"
 msgstr "Aceptar"
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:40
@@ -756,7 +723,6 @@ msgid "New version available!"
 msgstr "¡Nueva versión disponible!"
 
 #: ../../src/horus/gui/util/version_window.py:22
-#, fuzzy
 msgid "A new version of Horus is available, would you like to download it?"
 msgstr "Está disponible una nueva versión de Horus, ¿quieres descargarla?"
 
@@ -765,17 +731,14 @@ msgid "Download"
 msgstr "Descargar"
 
 #: ../../src/horus/gui/util/machine_settings.py:20
-#, fuzzy
 msgid "Machine settings"
 msgstr "Configuración de la máquina"
 
 #: ../../src/horus/gui/util/machine_settings.py:25
-#, fuzzy
 msgid "Platform shape"
 msgstr "Aspecto de la plataforma"
 
 #: ../../src/horus/gui/util/machine_settings.py:32
-#, fuzzy
 msgid "Platform dimensions"
 msgstr "Dimensiones de la plataforma"
 
@@ -822,7 +785,6 @@ msgid "Invert the motor direction"
 msgstr "Invertir la dirección del motor"
 
 #: ../../src/horus/gui/util/preferences.py:60
-#, fuzzy
 msgid "AVR board"
 msgstr "Placa AVR"
 
@@ -840,33 +802,27 @@ msgid "Clear EEPROM"
 msgstr "Borrar EEPROM"
 
 #: ../../src/horus/gui/util/preferences.py:70
-#, fuzzy
 msgid "Upload firmware"
 msgstr "Cargar firmware"
 
 #: ../../src/horus/gui/util/preferences.py:217
-#, fuzzy
 msgid "Probably you have selected the wrong board. Select another board"
 msgstr ""
-"Seguramente has seleccionado la placa equivocada. Selecciona otra placa."
+"Seguramente has seleccionado la placa equivocada. Selecciona otra placa"
 
 #: ../../src/horus/gui/util/preferences.py:218
-#, fuzzy
 msgid "Wrong board"
 msgstr "Placa incorrecta"
 
 #: ../../src/horus/gui/util/preferences.py:250
-#, fuzzy
 msgid "You need to restart the application for the changes to take effect"
-msgstr "Debes reiniciar la aplicación para que se realicen los cambios."
+msgstr "Debes reiniciar la aplicación para que se realicen los cambios"
 
 #: ../../src/horus/gui/util/preferences.py:251
-#, fuzzy
 msgid "Language modified"
-msgstr "Idioma :"
+msgstr "Idioma modificado"
 
 #: ../../src/horus/gui/util/opengl_gui.py:235
-#, fuzzy
 msgid "An error occurred during the 3D view drawing."
 msgstr "Ha ocurrido un error durante el trazado de la vista 3D."
 
@@ -879,7 +835,6 @@ msgid "Don't show this dialog again"
 msgstr "No mostrar más esta ventana"
 
 #: ../../src/horus/gui/welcome.py:66
-#, fuzzy
 msgid "3D scanning for everyone"
 msgstr "Escaneo 3D para todo el mundo"
 
@@ -897,7 +852,7 @@ msgstr "Escanear con los últimos parámetros"
 
 #: ../../src/horus/gui/welcome.py:93
 msgid "Advanced adjustment"
-msgstr "Modo avanzado"
+msgstr "Ajustes avanzados"
 
 #: ../../src/horus/gui/welcome.py:94
 msgid "Advanced calibration"
@@ -958,9 +913,8 @@ msgstr ""
 "Calibración cancelada. Para volver a intentarlo haz clic en \"Calibrar\""
 
 #: ../../src/horus/gui/wizard/calibration_page.py:150
-#, fuzzy
 msgid "Check the pattern and the lasers and try again"
-msgstr "Comprueba el patrón y los láseres  y prueba de nuevo"
+msgstr "Comprueba el patrón y los láseres y prueba de nuevo"
 
 #: ../../src/horus/gui/wizard/calibration_page.py:152
 msgid ""
@@ -969,15 +923,19 @@ msgid ""
 "\"Adjustment workbench\" until the pattern and the lasers are detected "
 "correctly"
 msgstr ""
+"La calibración del escáner ha fallado. Por favor, comprueba el patrón y los "
+"láseres y vuelve a intentarlo. También puedes configurar los ajustes de la "
+"calibración en el \"Banco de trabajo de ajuste\" hasta que el patrón y los "
+"láseres se detecten correctamente"
 
 #: ../../src/horus/gui/wizard/calibration_page.py:157
 msgid "Calibration failed"
-msgstr "Calibración cancelada"
+msgstr "Calibración fallida"
 
 #: ../../src/horus/gui/wizard/calibration_page.py:168
 #: ../../src/horus/gui/wizard/connection_page.py:211
 msgid "Success. Please press \"Next\" to continue"
-msgstr "Todo OK. Haz clic en Siguiente para continuar"
+msgstr "Éxito. Haz clic en \"Siguiente\" para continuar"
 
 #: ../../src/horus/gui/wizard/calibration_page.py:170
 msgid "Scanner calibrated correctly"
@@ -989,7 +947,7 @@ msgstr "Escáner calibrado correctamente"
 #: ../../src/horus/gui/workbench/calibration/pages/platform_extrinsics.py:153
 #: ../../src/horus/gui/workbench/calibration/pages/scanner_autocheck.py:70
 msgid "Success"
-msgstr "Todo OK"
+msgstr "Éxito"
 
 #: ../../src/horus/gui/wizard/connection_page.py:27
 msgid "Connection"
@@ -1008,35 +966,32 @@ msgid ""
 "check\""
 msgstr ""
 "Sitúa el patrón en la plataforma como se muestra en la imagen y pulsa "
-"\"verificación automática\""
+"\"Comprobación automática\""
 
 #: ../../src/horus/gui/wizard/connection_page.py:41
 msgid "Auto check"
-msgstr "Verificación automática"
+msgstr "Comprobación automática"
 
 #: ../../src/horus/gui/wizard/connection_page.py:123
 #: ../../src/horus/gui/workbench/toolbar.py:89
-#, fuzzy
 msgid ""
 "The board has the wrong firmware or an invalid baud rate.\n"
 "Please select your board and press \"Upload firmware\""
 msgstr ""
 "La placa tiene un firmware o una tasa de baudios incorrectos.\n"
-"Por favor, selecciona tu placa y haz clic en Cargar Firmware "
+"Por favor, selecciona tu placa y haz clic en \"Cargar Firmware\""
 
 #: ../../src/horus/gui/wizard/connection_page.py:133
 #: ../../src/horus/gui/workbench/toolbar.py:95
-#, fuzzy
 msgid ""
 "The board is not connected.\n"
 "Please connect your board and select a valid Serial name"
 msgstr ""
 "La placa no está conectada.\n"
-"Por favor, conecta la placa y selecciona un puerto serie válido."
+"Por favor, conecta la placa y selecciona un puerto serie válido"
 
 #: ../../src/horus/gui/wizard/connection_page.py:143
 #: ../../src/horus/gui/workbench/toolbar.py:101
-#, fuzzy
 msgid ""
 "You probably have selected the wrong camera.\n"
 "Please select another Camera ID"
@@ -1046,9 +1001,8 @@ msgstr ""
 
 #: ../../src/horus/gui/wizard/connection_page.py:152
 #: ../../src/horus/gui/workbench/toolbar.py:107
-#, fuzzy
 msgid "Please plug your camera in and try to connect again"
-msgstr "Por favor, conecta tu cámara e intenta conectar de nuevo."
+msgstr "Por favor, conecta tu cámara e intenta conectar de nuevo"
 
 #: ../../src/horus/gui/wizard/connection_page.py:158
 #: ../../src/horus/gui/workbench/toolbar.py:110
@@ -1065,14 +1019,13 @@ msgstr ""
 "http://support.logitech.com/en_us/product/hd-webcam-c270"
 
 #: ../../src/horus/gui/wizard/connection_page.py:180
-#, fuzzy
 msgid ""
 "It is recommended to adjust the line lasers vertically.\n"
 "You will need to use the allen key.\n"
 "Do you want to adjust it now?"
 msgstr ""
 "Es recomendable ajustar las líneas de los láseres verticalmente.\n"
-"Necesitas usar una llave Allen.\n"
+"Necesitarás usar una llave Allen.\n"
 "¿Quieres ajustarlas ahora?"
 
 #: ../../src/horus/gui/wizard/connection_page.py:183
@@ -1091,12 +1044,14 @@ msgid ""
 "calibration's capture settings in the \"Adjustment workbench\" until the "
 "pattern is detected correctly"
 msgstr ""
+"Por favor, sitúa el patrón en la plataforma. También puedes configurar los "
+"ajustes de captura de la calibración en el \"Banco de trabajo de ajuste\" "
+"hasta que el patrón se detecte correctamente"
 
 #: ../../src/horus/gui/wizard/connection_page.py:231
 #: ../../src/horus/gui/workbench/calibration/pages/scanner_autocheck.py:86
-#, fuzzy
 msgid "Please, select \"Invert the motor direction\" in the preferences"
-msgstr "En Preferencias, selecciona invertir la dirección del motor"
+msgstr "Selecciona \"Invertir la dirección del motor\" en las preferencias"
 
 #: ../../src/horus/gui/wizard/connection_page.py:238
 #: ../../src/horus/gui/workbench/calibration/pages/scanner_autocheck.py:93
@@ -1105,6 +1060,9 @@ msgid ""
 "capture and segmentation settings in the \"Adjustment workbench\" until the "
 "lasers are detected correctly"
 msgstr ""
+"Por favor, comprueba la conexión de los láseres. También puedes configurar "
+"los ajustes de captura y segmentación de la calibración en el \"Banco de "
+"trabajo de ajuste\" hasta que los láseres se detecten correctamente"
 
 #: ../../src/horus/gui/wizard/connection_page.py:271
 #: ../../src/horus/gui/workbench/toolbar.py:55
@@ -1113,7 +1071,6 @@ msgid "Disconnect"
 msgstr "Desconectar"
 
 #: ../../src/horus/gui/wizard/wizard_page.py:28
-#, fuzzy
 msgid "Previous"
 msgstr "Anterior"
 
@@ -1127,11 +1084,11 @@ msgstr "Siguiente"
 
 #: ../../src/horus/gui/workbench/adjustment/main.py:21
 msgid "Adjustment workbench"
-msgstr "Ajustar el banco de trabajo"
+msgstr "Banco de trabajo de ajuste"
 
 #: ../../src/horus/gui/workbench/adjustment/panels.py:21
 msgid "Scan capture"
-msgstr "Escanear captura"
+msgstr "Captura del escaneo"
 
 #: ../../src/horus/gui/workbench/adjustment/panels.py:27
 #: ../../src/horus/gui/workbench/adjustment/panels.py:45
@@ -1189,13 +1146,12 @@ msgstr ""
 
 #: ../../src/horus/gui/workbench/adjustment/panels.py:63
 #: ../../src/horus/gui/workbench/adjustment/panels.py:247
-#, fuzzy
 msgid ""
 "Capture an extra image without laser to remove the background in the laser's "
 "image"
 msgstr ""
 "Captura una imagen extra sin láser para quitar el fondo de la imagen del "
-"láser."
+"láser"
 
 #: ../../src/horus/gui/workbench/adjustment/panels.py:143
 msgid "Scan segmentation"
@@ -1215,15 +1171,14 @@ msgstr ""
 #: ../../src/horus/gui/workbench/adjustment/panels.py:342
 msgid "Blur with Normalized box filter. Kernel size: 2 * value + 1"
 msgstr ""
-"Desenfoque con el filtro Normalized box filter. Tamaño del kernel: 2 * Valor "
-"- 1"
+"Desenfoque con el filtro Normalized box. Tamaño del kernel: 2 * valor + 1"
 
 #: ../../src/horus/gui/workbench/adjustment/panels.py:161
 #: ../../src/horus/gui/workbench/adjustment/panels.py:164
 #: ../../src/horus/gui/workbench/adjustment/panels.py:345
 #: ../../src/horus/gui/workbench/adjustment/panels.py:348
 msgid "Filter pixels out of 2 * window value around the intensity peak"
-msgstr "Filtrar píxeles fuera del valor 2 * alrededor de la intensidad máxima"
+msgstr "Filtrar píxeles fuera del valor * 2 alrededor de la intensidad máxima"
 
 #: ../../src/horus/gui/workbench/adjustment/panels.py:205
 msgid "Calibration capture"
@@ -1235,12 +1190,12 @@ msgstr "Segmentación de calibración"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:24
 msgid "Scanning workbench"
-msgstr "Escanear banco de trabajo "
+msgstr "Banco de trabajo  de escaneo"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:31
 #: ../../src/horus/gui/workbench/scanning/main.py:32
 msgid "Play"
-msgstr "Play"
+msgstr "Comenzar"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:34
 #: ../../src/horus/gui/workbench/scanning/main.py:35
@@ -1260,11 +1215,11 @@ msgid ""
 "  2. Laser triangulation\n"
 "  3. Platform extrinsics"
 msgstr ""
-"Los parámetros de calibración no son correctos. \n"
-"Por favor, ejecuta el proceso de calibración: \n"
-"1.  Verificación automática del escáner\n"
-"2. Triangulación láser\n"
-"3. Parámetros extrínsecos de la plataforma"
+"Los parámetros de calibración no son correctos.\n"
+"Por favor, ejecuta el proceso de calibración:\n"
+" 1.  Comprobación automática del escáner\n"
+" 2. Triangulación láser\n"
+" 3. Parámetros extrínsecos de la plataforma"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:185
 #: ../../src/horus/gui/workbench/scanning/main.py:197
@@ -1283,8 +1238,8 @@ msgstr ""
 "Se ha llevado a cabo la calibración de la triangulación láser con diferentes "
 "valores intrínsecos de cámara.\n"
 "Por favor, realiza la calibración de la triangulación láser de nuevo:\n"
-"1.  Verificación automática del escáner\n"
-"2. Triangulación láser"
+" 1. Comprobación automática del escáner\n"
+" 2. Triangulación láser"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:204
 msgid ""
@@ -1297,38 +1252,34 @@ msgstr ""
 "Se ha llevado a cabo la calibración de los parámetros extrínsecos de la "
 "plataforma con diferentes valores intrínsecos de cámara.\n"
 "Por favor, realiza la calibración de la triangulación láser de nuevo:\n"
-"1.  Verificación automática del escáner\n"
-"2. Parámetros extrínsecos de la plataforma"
+" 1. Comprobación automática del escáner\n"
+" 2. Parámetros extrínsecos de la plataforma"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:251
-#, fuzzy
 msgid ""
 "Scanning has finished. If you want to save your point cloud go to \"File > "
 "Save model\""
 msgstr ""
-"El escaneo ha terminado. Si quieres guardar la nube de puntos ve a Archivo > "
-"Guardar Modelo"
+"El escaneo ha terminado. Si quieres guardar la nube de puntos ve a \"Archivo "
+"> Guardar Modelo\""
 
 #: ../../src/horus/gui/workbench/scanning/main.py:253
 msgid "Scanning finished!"
 msgstr "Escaneo finalizado"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:263
-#, fuzzy
 msgid ""
 "Your current scanning will be stopped.\n"
 "Are you sure you want to stop?"
 msgstr ""
 "Tu escaneo se parará.\n"
-"¿Realmente quieres hacerlo?"
+"¿Realmente quieres pararlo?"
 
 #: ../../src/horus/gui/workbench/scanning/main.py:265
-#, fuzzy
 msgid "Stop scanning"
-msgstr "Para el escaneo"
+msgstr "Parar el escaneo"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:21
-#, fuzzy
 msgid "Scan parameters"
 msgstr "Parámetros de escaneo"
 
@@ -1346,9 +1297,9 @@ msgid ""
 "scanned. All information outside won't be taken into account during the "
 "scanning process"
 msgstr ""
-"Ver la Región de Interés (ROI, por sus siglas en inglés). Esta es la región "
-"cilíndrica que  se va a escanear. La información que esté situada fuera de "
-"ella no se tendrá en cuenta durante el escaneo."
+"Aplicar la Región de Interés (ROI, por sus siglas en inglés). Esta es la "
+"región cilíndrica que se va a escanear. La información que esté situada "
+"fuera de ella no se tendrá en cuenta durante el escaneo"
 
 #: ../../src/horus/gui/workbench/scanning/panels.py:122
 msgid "Point cloud color"
@@ -1356,7 +1307,7 @@ msgstr " Color de la nube de puntos"
 
 #: ../../src/horus/gui/workbench/control/main.py:20
 msgid "Control workbench"
-msgstr "Control del banco de trabajo"
+msgstr "Banco de trabajo de control"
 
 #: ../../src/horus/gui/workbench/control/panels.py:20
 msgid "Camera control"
@@ -1380,11 +1331,11 @@ msgstr "Control con Gcode"
 
 #: ../../src/horus/gui/workbench/calibration/main.py:26
 msgid "Calibration workbench"
-msgstr "Calibración del banco de trabajo"
+msgstr "Banco de trabajo de calibración"
 
 #: ../../src/horus/gui/workbench/calibration/pages/capture_page.py:22
 msgid "Camera intrinsics (advanced)"
-msgstr "Valores intrínsecos de la cámara (avanzados)"
+msgstr "Valores intrínsecos de la cámara (avanzado)"
 
 #: ../../src/horus/gui/workbench/calibration/pages/capture_page.py:23
 #: ../../src/horus/gui/workbench/calibration/pages/capture_page.py:59
@@ -1424,12 +1375,6 @@ msgstr "Resultado de  la triangulación láser"
 msgid "Reject"
 msgstr "Rechazar"
 
-#: ../../src/horus/gui/workbench/calibration/pages/laser_triangulation.py:104
-#: ../../src/horus/gui/workbench/calibration/pages/platform_extrinsics.py:108
-#: ../../src/horus/gui/workbench/calibration/pages/camera_intrinsics.py:97
-msgid "Accept"
-msgstr "Aceptar"
-
 #: ../../src/horus/gui/workbench/calibration/pages/laser_triangulation.py:155
 msgid "Lasers calibrated correctly"
 msgstr "Láseres calibrados correctamente"
@@ -1441,6 +1386,10 @@ msgid ""
 "\"Adjustment workbench\" until the pattern and the lasers are detected "
 "correctly"
 msgstr ""
+"La calibración de la triangulación láser ha fallado. Por favor, comprueba el "
+"patrón y los láseres y vuelve a intentarlo. También puedes configurar los "
+"ajustes de la calibración en el \"Banco de trabajo de ajuste\" hasta que el "
+"patrón y los láseres se detecten correctamente"
 
 #: ../../src/horus/gui/workbench/calibration/pages/video_page.py:24
 msgid ""
@@ -1452,7 +1401,7 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/pages/platform_extrinsics.py:33
 #: ../../src/horus/gui/workbench/calibration/panels.py:76
 msgid "Platform extrinsics"
-msgstr "Parámetros extrínsecos de la plataforma"
+msgstr "Parámetros extrínsecos"
 
 #: ../../src/horus/gui/workbench/calibration/pages/platform_extrinsics.py:105
 msgid "Platform extrinsics result"
@@ -1468,13 +1417,16 @@ msgid ""
 "again. Also you can set up the calibration's capture settings in the "
 "\"Adjustment workbench\" until the pattern is detected correctly"
 msgstr ""
+"La calibración de los parámetros extrínsecos de la plataforma ha fallado. "
+"Por favor, comprueba el patrón vuelve a intentarlo. También puedes "
+"configurar los ajustes de captura de la calibración en el \"Banco de trabajo "
+"de ajuste\" hasta que el patrón se detecte correctamente"
 
 #: ../../src/horus/gui/workbench/calibration/pages/camera_intrinsics.py:94
 msgid "Camera intrinsics result"
 msgstr "Resultados de los valores intrínsecos de la cámara"
 
 #: ../../src/horus/gui/workbench/calibration/pages/camera_intrinsics.py:142
-#, fuzzy
 msgid "Camera intrinsics calibration has failed. Please try again"
 msgstr ""
 "La calibración intrínseca de la cámara ha fallado. Por favor, prueba de "
@@ -1483,7 +1435,7 @@ msgstr ""
 #: ../../src/horus/gui/workbench/calibration/pages/scanner_autocheck.py:26
 #: ../../src/horus/gui/workbench/calibration/panels.py:55
 msgid "Scanner autocheck"
-msgstr "verificación automática del escáner"
+msgstr "Comprobación automática"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:18
 msgid "Pattern settings"
@@ -1499,39 +1451,41 @@ msgstr "Número de columnas esquina en el patrón"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:27
 msgid "Square width in the pattern (mm)"
-msgstr "Ancho cuadrado en el patrón (mm)"
-
-#: ../../src/horus/gui/workbench/calibration/panels.py:30
-msgid ""
-"Minimum distance between the origin of the pattern (bottom-left corner) and "
-"the pattern's base surface (mm)"
-msgstr ""
-"Distancia mínima entre el origen del patrón (esquina inferior izquierda) y "
-"la superficie de la base del patrón"
+msgstr "Ancho del cuadrado en el patrón (mm)"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:87
 msgid "Video settings"
 msgstr "Ajustes de video"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:92
-#, fuzzy
 msgid "Rotate image"
-msgstr "Guardar imagen"
+msgstr "Rotar imagen"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:119
 msgid ""
 "Your camera does not accept this resolution.\n"
 "Do you want to use the nearest values?"
 msgstr ""
+"Tu cámara no acepta esta resolución.\n"
+"¿Quieres utilizar los valores más cercanos?"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:121
-#, fuzzy
 msgid "Wrong resolution"
-msgstr "Resolución"
+msgstr "Resolución incorrecta"
 
 #: ../../src/horus/gui/workbench/calibration/panels.py:137
 msgid "Camera intrinsics"
 msgstr "Valores intrínsecos de la cámara"
+
+#~ msgid ""
+#~ "Minimum distance between the origin of the pattern (bottom-left corner) "
+#~ "and the pattern's base surface"
+#~ msgstr ""
+#~ "Distancia mínima entre el origen del patrón (esquina inferior izquierda) "
+#~ "y la superficie de la base del patrón."
+
+#~ msgid "OK"
+#~ msgstr "Aceptar"
 
 #~ msgid "Clear Log File"
 #~ msgstr "Borrar archivo de registro"

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.1\n"
 "Report-Msgid-Bugs-To: jesus.arroyo@bq.com\n"
-"POT-Creation-Date: 2016-05-12 14:23+0200\n"
+"POT-Creation-Date: 2016-05-12 15:51+0200\n"
 "PO-Revision-Date: 2016-05-03 19:23+0100\n"
 "Last-Translator: \n"
 "Language-Team: bq\n"
@@ -729,20 +729,24 @@ msgstr ""
 "texto abaixo."
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:29
+#: ../../src/horus/gui/workbench/calibration/panels.py:30
 msgid ""
 "Minimum distance between the origin of the pattern (bottom-left corner) and "
-"the pattern's base surface"
+"the pattern's base surface (mm)"
 msgstr ""
 "Distância mínima entre a origem do padrão (canto inferior esquerdo) e a "
-"superfície de base do padrão"
+"superfície de base do padrão (mm)"
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:35
 msgid "Pattern distance (mm)"
 msgstr "Distância do padrão (mm)"
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:39
-msgid "OK"
-msgstr "OK"
+#: ../../src/horus/gui/workbench/calibration/pages/laser_triangulation.py:104
+#: ../../src/horus/gui/workbench/calibration/pages/platform_extrinsics.py:108
+#: ../../src/horus/gui/workbench/calibration/pages/camera_intrinsics.py:97
+msgid "Accept"
+msgstr "Aceitar"
 
 #: ../../src/horus/gui/util/pattern_distance_window.py:40
 #: ../../src/horus/gui/util/version_window.py:24
@@ -1421,12 +1425,6 @@ msgstr "Resultados da triangulação dos lasers"
 msgid "Reject"
 msgstr "Rejeitar"
 
-#: ../../src/horus/gui/workbench/calibration/pages/laser_triangulation.py:104
-#: ../../src/horus/gui/workbench/calibration/pages/platform_extrinsics.py:108
-#: ../../src/horus/gui/workbench/calibration/pages/camera_intrinsics.py:97
-msgid "Accept"
-msgstr "Aceitar"
-
 #: ../../src/horus/gui/workbench/calibration/pages/laser_triangulation.py:155
 msgid "Lasers calibrated correctly"
 msgstr "Lasers calibrados corretamente"
@@ -1497,14 +1495,6 @@ msgstr "Número de colunas de cantos no padrão"
 msgid "Square width in the pattern (mm)"
 msgstr "Comprimento do quadrado no padrão (mm)"
 
-#: ../../src/horus/gui/workbench/calibration/panels.py:30
-msgid ""
-"Minimum distance between the origin of the pattern (bottom-left corner) and "
-"the pattern's base surface (mm)"
-msgstr ""
-"Distância mínima entre a origem do padrão (canto inferior esquerdo) e a "
-"superfície de base do padrão (mm)"
-
 #: ../../src/horus/gui/workbench/calibration/panels.py:87
 msgid "Video settings"
 msgstr "Configurações de vídeo"
@@ -1528,6 +1518,16 @@ msgstr "Resolução"
 #: ../../src/horus/gui/workbench/calibration/panels.py:137
 msgid "Camera intrinsics"
 msgstr "Valores intrínsecos da câmara"
+
+#~ msgid ""
+#~ "Minimum distance between the origin of the pattern (bottom-left corner) "
+#~ "and the pattern's base surface"
+#~ msgstr ""
+#~ "Distância mínima entre a origem do padrão (canto inferior esquerdo) e a "
+#~ "superfície de base do padrão"
+
+#~ msgid "OK"
+#~ msgstr "OK"
 
 #~ msgid "Clear Log File"
 #~ msgstr "Limpar Ficheiro de Registo"

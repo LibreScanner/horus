@@ -25,7 +25,7 @@ class Toolbar(wx.Panel):
         self.toolbar.SetDoubleBuffered(True)
         self.toolbar_scan = wx.ToolBar(self)
         self.toolbar_scan.SetDoubleBuffered(True)
-        self.combo = wx.ComboBox(self, -1, style=wx.CB_READONLY)
+        self.combo = wx.ComboBox(self, -1, size=(250, -1), style=wx.CB_READONLY)
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
