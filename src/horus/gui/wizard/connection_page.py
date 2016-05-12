@@ -42,8 +42,6 @@ class ConnectionPage(WizardPage):
         self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
         self.result_label = wx.StaticText(self.panel, size=(-1, 30))
 
-        self.connect_button.Enable()
-        self.settings_button.Enable()
         self.pattern_label.Disable()
         self.image_view.Disable()
         self.auto_check_button.Disable()
@@ -98,19 +96,20 @@ class ConnectionPage(WizardPage):
         self.parent.on_exit(message=False)
 
     def on_connect_button_clicked(self, event):
-        driver.set_callbacks(
-            lambda: wx.CallAfter(self.before_connect),
-            lambda r: wx.CallAfter(self.after_connect, r))
-        driver.connect()
+        if driver.is_connected:
+            driver.disconnect()
+            self.update_status(driver.is_connected)
+        else:
+            driver.set_callbacks(
+                lambda: wx.CallAfter(self.before_connect),
+                lambda r: wx.CallAfter(self.after_connect, r))
+            driver.connect()
 
     def on_settings_button_clicked(self, event):
         SettingsWindow(self)
 
     def before_connect(self):
-        self.settings_button.Disable()
-        self.breadcrumbs.Disable()
-        self.connect_button.Disable()
-        self.prev_button.Disable()
+        self.Disable()
         self.video_view.stop()
         driver.board.set_unplug_callback(None)
         driver.camera.set_unplug_callback(None)
@@ -172,9 +171,7 @@ class ConnectionPage(WizardPage):
                     dlg.Destroy()
 
         self.update_status(driver.is_connected)
-        self.settings_button.Enable()
-        self.breadcrumbs.Enable()
-        self.prev_button.Enable()
+        self.Enable()
         del self.wait_cursor
 
     def on_auto_check_button_clicked(self, event):
@@ -197,12 +194,7 @@ class ConnectionPage(WizardPage):
             scanner_autocheck.start()
 
     def before_auto_check(self):
-        self.settings_button.Disable()
-        self.breadcrumbs.Disable()
-        self.auto_check_button.Disable()
-        self.prev_button.Disable()
-        self.skip_button.Disable()
-        self.next_button.Disable()
+        self.Disable()
         self.enable_next = False
         self.gauge.SetValue(0)
         self.result_label.Hide()
@@ -253,12 +245,9 @@ class ConnectionPage(WizardPage):
             self.skip_button.Enable()
             self.next_button.Disable()
 
-        self.settings_button.Enable()
-        self.breadcrumbs.Enable()
+        self.Disable()
         self.enable_next = True
         self.result_label.Show()
-        self.auto_check_button.Enable()
-        self.prev_button.Enable()
         self.gauge.Hide()
         if hasattr(self, 'wait_cursor'):
             del self.wait_cursor
@@ -274,20 +263,18 @@ class ConnectionPage(WizardPage):
                 lambda: wx.CallAfter(self.parent.on_camera_unplugged))
             self.GetParent().parent.workbench['calibration'].setup_engine()
             self.video_view.play()
-            self.connect_button.Disable()
-            self.auto_check_button.Enable()
-            self.settings_button.Enable()
-            self.image_view.Enable()
+            self.connect_button.SetLabel(_("Disconnect"))
             self.skip_button.Enable()
             self.enable_next = True
-            driver.board.lasers_off()
+            self.auto_check_button.Enable()
         else:
             self.video_view.stop()
+            self.video_view.reset()
             self.gauge.SetValue(0)
             self.gauge.Show()
             self.result_label.Hide()
             self.result_label.SetLabel("")
-            self.connect_button.Enable()
+            self.connect_button.SetLabel(_("Connect"))
             self.skip_button.Disable()
             self.next_button.Disable()
             self.enable_next = False
