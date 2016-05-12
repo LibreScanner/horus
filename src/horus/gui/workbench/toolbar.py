@@ -89,19 +89,19 @@ class ToolbarConnection(Toolbar):
                                    _("Board has a wrong firmware or an invalid Baud Rate.\n"
                                      "Please select your Board and press Upload Firmware"))
                 self.update_status(False)
-                self.GetParent().on_preferences(None)
+                self.GetParent().launch_preferences()
             elif isinstance(result, BoardNotConnected):
                 self._show_message(_(result), wx.ICON_INFORMATION,
                                    _("Board is not connected.\n"
                                      "Please connect your board and select a valid Serial Name"))
                 self.update_status(False)
-                self.GetParent().on_preferences(None)
+                self.GetParent().launch_preferences(basic=True)
             elif isinstance(result, WrongCamera):
                 self._show_message(_(result), wx.ICON_INFORMATION,
                                    _("You probably have selected a wrong camera.\n"
                                      "Please select other Camera Id"))
                 self.update_status(False)
-                self.GetParent().on_preferences(None)
+                self.GetParent().launch_preferences(basic=True)
             elif isinstance(result, CameraNotConnected):
                 self._show_message(_(result), wx.ICON_ERROR,
                                    _("Please plug your camera and try to connect again"))

@@ -178,8 +178,7 @@ class Settings(collections.MutableMapping):
         _('Low')
         self._add_setting(
             Setting('luminosity', _('Luminosity'), 'profile_settings',
-                    unicode, u'Medium', possible_values=(u'Very high', u'High', u'Medium',
-                                                         u'Low')))
+                    unicode, u'Medium', possible_values=(u'High', u'Medium', u'Low')))
         self._add_setting(
             Setting('brightness_control', _('Brightness'), 'profile_settings',
                     int, 128, min_value=0, max_value=255))
@@ -393,7 +392,7 @@ class Settings(collections.MutableMapping):
         _('Line')
         self._add_setting(
             Setting('video_scanning', _('Video'), 'profile_settings',
-                    unicode, u'Laser', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
+                    unicode, u'Texture', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
 
         self._add_setting(
             Setting('save_image_button', _('Save image'), 'profile_settings', unicode, u''))

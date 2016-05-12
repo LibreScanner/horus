@@ -338,7 +338,10 @@ class MainWindow(wx.Frame):
         profile.settings['last_files'] = self.last_files
 
     def on_preferences(self, event):
-        preferences = PreferencesDialog()
+        self.launch_preferences()
+
+    def launch_preferences(self, basic=False):
+        preferences = PreferencesDialog(basic=basic)
         preferences.ShowModal()
 
     """def on_machine_settings(self, event):

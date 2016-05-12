@@ -19,62 +19,68 @@ logger = logging.getLogger(__name__)
 
 class PreferencesDialog(wx.Dialog):
 
-    def __init__(self):
+    def __init__(self, basic=False):
         wx.Dialog.__init__(self, None, title=_("Preferences"))
 
-        # Elements
         self.hex_path = None
-        self.con_params_static_text = wx.StaticText(
-            self, label=_("Connection Parameters"), style=wx.ALIGN_CENTRE)
-        self.serial_name_label = wx.StaticText(self, label=_("Serial Name"))
-        self.serial_names = driver.board.get_serial_list()
-        self.serial_name_combo = wx.ComboBox(self, choices=self.serial_names, size=(170, -1))
-        self.baud_rate_label = wx.StaticText(self, label=_("Baud Rate"))
-        self.baud_rates = [str(b) for b in profile.settings.get_possible_values('baud_rate')]
-        self.baud_rate_combo = wx.ComboBox(
-            self, choices=self.baud_rates, size=(170, -1), style=wx.CB_READONLY)
+        self.basic = basic
+
+        # Elements
         self.camera_id_label = wx.StaticText(self, label=_("Camera Id"))
         self.camera_id_names = driver.camera.get_video_list()
         self.camera_id_combo = wx.ComboBox(
             self, choices=self.camera_id_names, size=(170, -1), style=wx.CB_READONLY)
 
-        self.firmware_static_text = wx.StaticText(
-            self, label=_("Burn Firmware"), style=wx.ALIGN_CENTRE)
-        self.board_label = wx.StaticText(self, label=_("AVR Board"))
-        self.boards = profile.settings.get_possible_values('board')
-        self.boards_combo = wx.ComboBox(
-            self, choices=self.boards, size=(168, -1), style=wx.CB_READONLY)
+        self.serial_name_label = wx.StaticText(self, label=_("Serial Name"))
+        self.serial_names = driver.board.get_serial_list()
+        self.serial_name_combo = wx.ComboBox(self, choices=self.serial_names, size=(170, -1))
 
-        self.hex_label = wx.StaticText(self, label=_("Binary file"))
-        self.hex_combo = wx.ComboBox(self, choices=[_("Default"), _("External file...")], value=_(
-            "Default"), size=(170, -1), style=wx.CB_READONLY)
-        self.clear_check_box = wx.CheckBox(self, label=_("Clear EEPROM"))
-        self.upload_firmware_button = wx.Button(self, label=_("Upload Firmware"))
-        self.gauge = wx.Gauge(self, range=100, size=(180, -1))
-        self.gauge.Hide()
+        self.luminosity_values = []
+        values = profile.settings.get_possible_values('luminosity')
+        for value in values:
+            self.luminosity_values.append(_(value))
+        self.luminosity_dict = dict(zip(self.luminosity_values, values))
+        self.luminosity_label = wx.StaticText(self, label=_("Luminosity"))
+        self.luminosity_label.SetToolTip(wx.ToolTip(
+            _("Change the luminosity until colored lines appear "
+              "over the chess pattern in the video")))
+        self.luminosity_combo = wx.ComboBox(self, wx.ID_ANY,
+                                            choices=self.luminosity_values,
+                                            size=(170, -1), style=wx.CB_READONLY)
 
-        self.language_label = wx.StaticText(self, label=_("Language"))
-        self.languages = [row[1] for row in resources.get_language_options()]
-        self.language_combo = wx.ComboBox(self, choices=self.languages,
-                                          value=profile.settings['language'],
-                                          size=(175, -1), style = wx.CB_READONLY)
+        self.invert_motor_label = wx.StaticText(self, label=_("Invert the motor direction"))
+        self.invert_motor_check_box = wx.CheckBox(self)
 
-        self.invert_motor_check_box = wx.CheckBox(self, label=_("Invert the motor direction"))
+        if not self.basic:
+            self.baud_rate_label = wx.StaticText(self, label=_("Baud Rate"))
+            self.baud_rates = [str(b) for b in profile.settings.get_possible_values('baud_rate')]
+            self.baud_rate_combo = wx.ComboBox(
+                self, choices=self.baud_rates, size=(170, -1), style=wx.CB_READONLY)
+
+            self.board_label = wx.StaticText(self, label=_("AVR Board"))
+            self.boards = profile.settings.get_possible_values('board')
+            self.boards_combo = wx.ComboBox(
+                self, choices=self.boards, size=(170, -1), style=wx.CB_READONLY)
+
+            self.hex_label = wx.StaticText(self, label=_("Binary file"))
+            self.hex_combo = wx.ComboBox(
+                self, choices=[_("Default"), _("External file...")],
+                value=_("Default"), size=(170, -1), style=wx.CB_READONLY)
+            self.clear_check_box = wx.CheckBox(self, label=_("Clear EEPROM"))
+            self.upload_firmware_button = wx.Button(self, label=_("Upload Firmware"))
+            self.gauge = wx.Gauge(self, range=100, size=(180, -1))
+            self.gauge.Hide()
+
+            self.language_label = wx.StaticText(self, label=_("Language"))
+            self.languages = [row[1] for row in resources.get_language_options()]
+            self.language_combo = wx.ComboBox(self, choices=self.languages,
+                                              value=profile.settings['language'],
+                                              size=(170, -1), style = wx.CB_READONLY)
 
         self.cancel_button = wx.Button(self, label=_("Cancel"), size=(110, -1))
         self.save_button = wx.Button(self, label=_("Save"), size=(110, -1))
 
         # Fill data
-        current_serial = profile.settings['serial_name']
-        if len(self.serial_names) > 0:
-            if current_serial not in self.serial_names:
-                self.serial_name_combo.SetValue(self.serial_names[0])
-            else:
-                self.serial_name_combo.SetValue(current_serial)
-
-        current_baud_rate = str(profile.settings['baud_rate'])
-        self.baud_rate_combo.SetValue(current_baud_rate)
-
         current_video_id = profile.settings['camera_id']
         if len(self.camera_id_names) > 0:
             if current_video_id not in self.camera_id_names:
@@ -82,8 +88,22 @@ class PreferencesDialog(wx.Dialog):
             else:
                 self.camera_id_combo.SetValue(current_video_id)
 
-        current_board = profile.settings['board']
-        self.boards_combo.SetValue(current_board)
+        current_serial = profile.settings['serial_name']
+        if len(self.serial_names) > 0:
+            if current_serial not in self.serial_names:
+                self.serial_name_combo.SetValue(self.serial_names[0])
+            else:
+                self.serial_name_combo.SetValue(current_serial)
+
+        if not self.basic:
+            current_baud_rate = str(profile.settings['baud_rate'])
+            self.baud_rate_combo.SetValue(current_baud_rate)
+
+            current_board = profile.settings['board']
+            self.boards_combo.SetValue(current_board)
+
+        current_luminosity = profile.settings['luminosity']
+        self.luminosity_combo.SetValue(_(current_luminosity))
 
         current_invert = profile.settings['invert_motor']
         self.invert_motor_check_box.SetValue(current_invert)
@@ -91,65 +111,35 @@ class PreferencesDialog(wx.Dialog):
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        vbox.Add(self.con_params_static_text, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.serial_name_label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.serial_name_combo, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.baud_rate_label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.baud_rate_combo, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.camera_id_label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.camera_id_combo, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
+        self._add_label_control(vbox, self.camera_id_label, self.camera_id_combo)
+        self._add_label_control(vbox, self.serial_name_label, self.serial_name_combo)
+        if not self.basic:
+            self._add_label_control(vbox, self.baud_rate_label, self.baud_rate_combo)
 
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND | wx.ALL, 5)
 
-        vbox.Add(self.firmware_static_text, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.board_label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.boards_combo, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.hex_label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.hex_combo, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.upload_firmware_button, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.clear_check_box, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
-
-        vbox.Add(self.gauge, 0, wx.EXPAND | wx.ALL ^ wx.TOP, 10)
-
-        vbox.Add(wx.StaticLine(self), 0, wx.EXPAND | wx.ALL ^ wx.TOP, 5)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.language_label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.language_combo, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
+        self._add_label_control(vbox, self.luminosity_label, self.luminosity_combo)
+        self._add_label_control(vbox, self.invert_motor_label, self.invert_motor_check_box)
 
         vbox.Add(wx.StaticLine(self), 0, wx.EXPAND | wx.ALL, 5)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.invert_motor_check_box, 0, wx.ALIGN_CENTER_VERTICAL)
-        vbox.Add(hbox, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 10)
+        if not self.basic:
+            self._add_label_control(vbox, self.board_label, self.boards_combo)
+            self._add_label_control(vbox, self.hex_label, self.hex_combo)
 
-        vbox.Add(wx.StaticLine(self), 0, wx.EXPAND | wx.ALL, 5)
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
+            hbox.Add(self.upload_firmware_button, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
+            hbox.AddStretchSpacer()
+            hbox.Add(self.clear_check_box, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+            vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
+
+            vbox.Add(self.gauge, 0, wx.EXPAND | wx.ALL ^ wx.TOP, 10)
+
+            vbox.Add(wx.StaticLine(self), 0, wx.EXPAND | wx.ALL ^ wx.TOP, 5)
+
+            self._add_label_control(vbox, self.language_label, self.language_combo)
+
+            vbox.Add(wx.StaticLine(self), 0, wx.EXPAND | wx.ALL, 5)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.cancel_button, 0, wx.ALL ^ wx.RIGHT, 10)
@@ -162,12 +152,20 @@ class PreferencesDialog(wx.Dialog):
         self.Fit()
 
         # Events
-        self.hex_combo.Bind(wx.EVT_COMBOBOX, self.on_hex_combo_changed)
-        self.upload_firmware_button.Bind(wx.EVT_BUTTON, self.on_upload_firmware)
-        self.language_combo.Bind(wx.EVT_COMBOBOX, self.on_language_combo_changed)
+        if not self.basic:
+            self.hex_combo.Bind(wx.EVT_COMBOBOX, self.on_hex_combo_changed)
+            self.upload_firmware_button.Bind(wx.EVT_BUTTON, self.on_upload_firmware)
+            self.language_combo.Bind(wx.EVT_COMBOBOX, self.on_language_combo_changed)
         self.cancel_button.Bind(wx.EVT_BUTTON, self.on_close)
         self.save_button.Bind(wx.EVT_BUTTON, self.on_save_button)
         self.Bind(wx.EVT_CLOSE, self.on_close)
+
+    def _add_label_control(self, vbox, label, combo):
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
+        hbox.AddStretchSpacer()
+        hbox.Add(combo, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
 
     def on_hex_combo_changed(self, event):
         value = self.hex_combo.GetValue()
@@ -254,22 +252,28 @@ class PreferencesDialog(wx.Dialog):
 
     def on_save_button(self, event):
         # Update profile
-        if len(self.serial_name_combo.GetValue()):
-            profile.settings['serial_name'] = self.serial_name_combo.GetValue()
-        if self.baud_rate_combo.GetValue() in self.baud_rates:
-            profile.settings['baud_rate'] = int(self.baud_rate_combo.GetValue())
         if len(self.camera_id_combo.GetValue()):
             profile.settings['camera_id'] = self.camera_id_combo.GetValue()
-        profile.settings['board'] = self.boards_combo.GetValue()
-        if profile.settings['language'] != self.language_combo.GetValue():
-            profile.settings['language'] = self.language_combo.GetValue()
+        if len(self.serial_name_combo.GetValue()):
+            profile.settings['serial_name'] = self.serial_name_combo.GetValue()
+
         profile.settings['invert_motor'] = self.invert_motor_check_box.GetValue()
+        luminosity = self.luminosity_dict[self.luminosity_combo.GetValue()]
+        profile.settings['luminosity'] = luminosity
+
+        if not self.basic:
+            if self.baud_rate_combo.GetValue() in self.baud_rates:
+                profile.settings['baud_rate'] = int(self.baud_rate_combo.GetValue())
+            profile.settings['board'] = self.boards_combo.GetValue()
+            if profile.settings['language'] != self.language_combo.GetValue():
+                profile.settings['language'] = self.language_combo.GetValue()
         profile.settings.save_settings(categories=["preferences"])
         # Update engine
+        driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
         driver.board.serial_name = profile.settings['serial_name']
         driver.board.baud_rate = profile.settings['baud_rate']
-        driver.camera.camera_id = int(profile.settings['camera_id'][-1:])
         driver.board.motor_invert(profile.settings['invert_motor'])
+        driver.camera.set_luminosity(profile.settings['luminosity'])
         self.on_close(None)
 
     def on_close(self, event):

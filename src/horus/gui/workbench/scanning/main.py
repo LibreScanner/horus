@@ -97,6 +97,7 @@ class ScanningWorkbench(Workbench):
         driver.camera.set_rotate(profile.settings['camera_rotate'])
         driver.camera.set_hflip(profile.settings['camera_hflip'])
         driver.camera.set_vflip(profile.settings['camera_vflip'])
+        driver.camera.set_luminosity(profile.settings['luminosity'])
         image_capture.set_mode_texture()
         texture_mode = image_capture.texture_mode
         texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])

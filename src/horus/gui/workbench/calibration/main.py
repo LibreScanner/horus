@@ -109,6 +109,7 @@ class CalibrationWorkbench(Workbench):
         driver.camera.set_rotate(profile.settings['camera_rotate'])
         driver.camera.set_hflip(profile.settings['camera_hflip'])
         driver.camera.set_vflip(profile.settings['camera_vflip'])
+        driver.camera.set_luminosity(profile.settings['luminosity'])
         image_capture.set_mode_pattern()
         pattern_mode = image_capture.pattern_mode
         pattern_mode.set_brightness(profile.settings['brightness_pattern_calibration'])

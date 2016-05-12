@@ -31,7 +31,7 @@ class ConnectionPage(WizardPage):
         self.parent = parent
 
         self.connect_button = wx.Button(self.panel, label=_("Connect"))
-        self.settings_button = wx.Button(self.panel, label=_("Edit settings"))
+        self.preferences_button = wx.Button(self.panel, label=_("Preferences"))
 
         self.pattern_label = wx.StaticText(self.panel, label=_(
             "Put the pattern on the platform as shown in the picture and press \"Auto check\""))
@@ -53,7 +53,7 @@ class ConnectionPage(WizardPage):
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.connect_button, 1, wx.ALL | wx.EXPAND, 5)
-        hbox.Add(self.settings_button, 1, wx.ALL | wx.EXPAND, 5)
+        hbox.Add(self.preferences_button, 1, wx.ALL | wx.EXPAND, 5)
         vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 2)
         vbox.Add(self.pattern_label, 0, wx.ALL | wx.CENTER, 5)
         vbox.Add(self.image_view, 1, wx.ALL | wx.EXPAND, 5)
@@ -65,7 +65,7 @@ class ConnectionPage(WizardPage):
         self.Layout()
 
         self.connect_button.Bind(wx.EVT_BUTTON, self.on_connect_button_clicked)
-        self.settings_button.Bind(wx.EVT_BUTTON, self.on_settings_button_clicked)
+        self.preferences_button.Bind(wx.EVT_BUTTON, self.on_preferences_button_clicked)
         self.auto_check_button.Bind(wx.EVT_BUTTON, self.on_auto_check_button_clicked)
         self.Bind(wx.EVT_SHOW, self.on_show)
 
@@ -105,8 +105,8 @@ class ConnectionPage(WizardPage):
                 lambda r: wx.CallAfter(self.after_connect, r))
             driver.connect()
 
-    def on_settings_button_clicked(self, event):
-        SettingsWindow(self)
+    def on_preferences_button_clicked(self, event):
+        self.GetParent().parent.launch_preferences(basic=True)
 
     def before_connect(self):
         self.Disable()
@@ -128,7 +128,7 @@ class ConnectionPage(WizardPage):
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.update_status(False)
-                self.GetParent().parent.on_preferences(None)
+                self.GetParent().parent.launch_preferences()
             elif isinstance(result, BoardNotConnected):
                 dlg = wx.MessageDialog(
                     self,
@@ -138,7 +138,7 @@ class ConnectionPage(WizardPage):
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.update_status(False)
-                self.GetParent().parent.on_preferences(None)
+                self.GetParent().parent.launch_preferences(basic=True)
             elif isinstance(result, WrongCamera):
                 dlg = wx.MessageDialog(
                     self,
@@ -148,7 +148,7 @@ class ConnectionPage(WizardPage):
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.update_status(False)
-                self.GetParent().parent.on_preferences(None)
+                self.GetParent().parent.launch_preferences(basic=True)
             elif isinstance(result, CameraNotConnected):
                 dlg = wx.MessageDialog(
                     self, _("Please plug your camera and try to connect again"),
@@ -230,7 +230,7 @@ class ConnectionPage(WizardPage):
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
-                self.GetParent().parent.on_preferences(None)
+                self.GetParent().parent.launch_preferences(basic=True)
             elif isinstance(result, LaserNotDetected):
                 dlg = wx.MessageDialog(
                     self, _("Please, check the lasers connection..."),
@@ -245,7 +245,7 @@ class ConnectionPage(WizardPage):
             self.skip_button.Enable()
             self.next_button.Disable()
 
-        self.Disable()
+        self.Enable()
         self.enable_next = True
         self.result_label.Show()
         self.gauge.Hide()
@@ -280,86 +280,3 @@ class ConnectionPage(WizardPage):
             self.enable_next = False
             self.auto_check_button.Disable()
         self.Layout()
-
-
-class SettingsWindow(wx.Dialog):
-
-    def __init__(self, parent):
-        super(SettingsWindow, self).__init__(
-            parent, title=_('Settings'), size=(420, -1),
-            style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
-
-        # Elements
-        _choices = []
-        choices = profile.settings.get_possible_values('luminosity')
-        for i in choices:
-            _choices.append(_(i))
-        self.init_luminosity = profile.settings['luminosity']
-        self.luminosity_dict = dict(zip(_choices, choices))
-        self.luminosity_text = wx.StaticText(self, label=_('Luminosity'))
-        self.luminosity_text.SetToolTip(wx.ToolTip(
-            _('Change the luminosity until colored lines appear '
-              'over the chess pattern in the video')))
-        self.luminosity_combo_box = wx.ComboBox(self, wx.ID_ANY,
-                                                value=_(self.init_luminosity),
-                                                choices=_choices,
-                                                style=wx.CB_READONLY)
-        self.ok_button = wx.Button(self, label=_('OK'))
-        self.cancel_button = wx.Button(self, label=_('Cancel'))
-
-        # Events
-        self.luminosity_combo_box.Bind(wx.EVT_COMBOBOX, self.on_luminosity_combo_box_changed)
-        self.cancel_button.Bind(wx.EVT_BUTTON, self.on_close)
-        self.ok_button.Bind(wx.EVT_BUTTON, self.on_ok)
-        self.Bind(wx.EVT_CLOSE, self.on_close)
-
-        # Layout
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.luminosity_text, 0, wx.ALL, 7)
-        hbox.Add(self.luminosity_combo_box, 1, wx.ALL, 3)
-        vbox.Add(hbox, 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 7)
-        vbox.Add(wx.StaticLine(self), 0, wx.ALL ^ wx.BOTTOM | wx.EXPAND, 10)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.cancel_button, 1, wx.ALL, 3)
-        hbox.Add(self.ok_button, 1, wx.ALL, 3)
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
-        self.SetSizer(vbox)
-        self.Center()
-        self.Fit()
-
-        self.ShowModal()
-
-    def set_luminosity(self, luminosity):
-        profile.settings['luminosity'] = luminosity
-
-        if luminosity == 'Low':
-            luminosity = 32
-        elif luminosity == 'Medium':
-            luminosity = 16
-        elif luminosity == 'High':
-            luminosity = 8
-        elif luminosity == 'Very high':
-            luminosity = 4
-
-        profile.settings['exposure_control'] = luminosity
-        profile.settings['exposure_texture_scanning'] = luminosity
-        profile.settings['exposure_pattern_calibration'] = luminosity
-        """
-        exposure_texture_scanning
-        exposure_pattern_calibration
-        """
-        driver.camera.set_exposure(luminosity)
-
-    def on_luminosity_combo_box_changed(self, event):
-        value = self.luminosity_dict[event.GetEventObject().GetValue()]
-        self.set_luminosity(value)
-
-    def on_ok(self, event):
-        self.EndModal(wx.ID_OK)
-        self.Destroy()
-
-    def on_close(self, event):
-        self.set_luminosity(self.init_luminosity)
-        self.EndModal(wx.ID_OK)
-        self.Destroy()
