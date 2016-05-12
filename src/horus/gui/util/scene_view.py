@@ -307,8 +307,8 @@ class SceneView(opengl_gui.glGuiPanel):
     def on_delete_object(self, event):
         if self._object is not None:
             dlg = wx.MessageDialog(
-                self, _("Your current model will be erased.\nDo you really want to do it?"),
-                _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                self, _("Your current model will be deleted.\nAre you sure you want to delete it?"),
+                _("Clear point cloud"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:

@@ -63,7 +63,7 @@ class Header(wx.Panel):
         # Elements
         logo = ImageView(self)
         logo.set_image(wx.Image(resources.get_path_for_image("logo.png")))
-        title_text = wx.StaticText(self, label=_("3D Scanning for everyone"))
+        title_text = wx.StaticText(self, label=_("3D scanning for everyone"))
         title_text.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
         separator = wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL)
 

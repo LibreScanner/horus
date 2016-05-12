@@ -18,7 +18,7 @@ class ScanParameters(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(
-            self, parent, _("Scan Parameters"), has_undo=False, has_restore=False)
+            self, parent, _("Scan parameters"), has_undo=False, has_restore=False)
         self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):

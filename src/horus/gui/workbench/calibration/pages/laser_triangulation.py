@@ -160,8 +160,11 @@ class ResultPage(Page):
         else:
             if isinstance(result, LaserTriangulationError):
                 dlg = wx.MessageDialog(
-                    self, _("Laser Triangulation Calibration has failed.\n"
-                            "Please check the lasers and try again..."),
+                    self, _("Laser triangulation calibration has failed. "
+                            "Please check the pattern and the lasers and try again. "
+                            "Also you can set up the calibration's settings "
+                            "in the \"Adjustment workbench\" until the pattern "
+                            "and the lasers are detected correctly"),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()

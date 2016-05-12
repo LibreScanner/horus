@@ -96,18 +96,18 @@ class MainWindow(wx.Frame):
         self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear model"))
         self.menu_file.AppendSeparator()
         self.menu_open_profile = self.menu_file.Append(
-            wx.NewId(), _("Open profile"), _("Opens profile .json"))
+            wx.NewId(), _("Open profile"), _("Open profile .json"))
         self.menu_save_profile = self.menu_file.Append(
-            wx.NewId(), _("Save profile"), _("Saves profile .json"))
+            wx.NewId(), _("Save profile"), _("Save profile .json"))
         self.menu_reset_profile = self.menu_file.Append(
-            wx.NewId(), _("Reset profile"), _("Resets default values"))
+            wx.NewId(), _("Reset profile"), _("Reset default values"))
         self.menu_file.AppendSeparator()
         self.menu_open_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Open calibration"), _("Opens calibration .json"))
+            wx.NewId(), _("Open calibration"), _("Open calibration .json"))
         self.menu_save_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Save calibration"), _("Saves calibration .json"))
+            wx.NewId(), _("Save calibration"), _("Save calibration .json"))
         self.menu_reset_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Reset calibration"), _("Resets calibration default values"))
+            wx.NewId(), _("Reset calibration"), _("Reset calibration default values"))
         self.menu_file.AppendSeparator()
         self.menu_export_log = self.menu_file.Append(
             wx.NewId(), _("Export log"), _("Export log file"))
@@ -226,8 +226,8 @@ class MainWindow(wx.Frame):
         if self.workbench['scanning'].scene_view._object is not None:
             dlg = wx.MessageDialog(
                 self,
-                _("Your current model will be erased.\nDo you really want to do it?"),
-                _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                _("Your current model will be deleted.\nAre you sure you want to delete it?"),
+                _("Clear point cloud"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
@@ -258,7 +258,7 @@ class MainWindow(wx.Frame):
     def on_reset_profile(self, category):
         dlg = wx.MessageDialog(
             self,
-            _("This will reset all profile settings to defaults.\n"
+            _("This will reset all profile settings to defaults. "
               "Unless you have saved your current profile, all settings will be lost!\n"
               "Do you really want to reset?"),
             _("Profile reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -271,8 +271,9 @@ class MainWindow(wx.Frame):
     def on_clear_log(self, event):
         dlg = wx.MessageDialog(
             self,
-            _("Your current log file will be erased.\nDo you really want to do it?"),
-            _("Clear Log File"), wx.YES_NO | wx.ICON_QUESTION)
+            _("Your current log file will be deleted.\n"
+              "Are you sure you want to delete it?"),
+            _("Clear log file"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:

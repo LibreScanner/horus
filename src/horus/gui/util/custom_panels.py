@@ -184,7 +184,7 @@ class ExpandablePanel(wx.Panel):
     def on_restore_button_clicked(self, event):
         dlg = wx.MessageDialog(
             self,
-            _("This will reset all section settings to defaults.\n"
+            _("This will reset all section settings to defaults. "
               "Unless you have saved your current profile, all section settings will be lost!\n"
               "Do you really want to reset?"), self.title, wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES

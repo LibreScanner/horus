@@ -157,8 +157,11 @@ class ResultPage(Page):
         else:
             if isinstance(result, PlatformExtrinsicsError):
                 dlg = wx.MessageDialog(
-                    self, _("Platform Extrinsics Calibration has failed.\n"
-                            "Please check the pattern and try again..."),
+                    self, _("Platform extrinsics calibration has failed. "
+                            "Please check the pattern and try again. "
+                            "Also you can set up the calibration's capture settings "
+                            "in the \"Adjustment workbench\" until the pattern "
+                            "is detected correctly"),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()

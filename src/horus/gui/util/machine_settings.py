@@ -17,19 +17,19 @@ from horus.util import profile
 class MachineSettingsDialog(wx.Dialog):
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, None, title=_("Machine Settings"))
+        wx.Dialog.__init__(self, None, title=_("Machine settings"))
 
         self.main = parent
 
         # Elements
-        self.machineShapeLabel = wx.StaticText(self, label=_("Platform Shape"))
+        self.machineShapeLabel = wx.StaticText(self, label=_("Platform shape"))
         self.machineShapes = profile.settings.get_possible_values("machine_shape")
         self.translatedMachineShapes = [_(s) for s in self.machineShapes]
         self.machineShapeCombo = wx.ComboBox(
             self, choices=self.translatedMachineShapes, size=(170, -1), style=wx.CB_READONLY)
 
         self.dimensionsStaticText = wx.StaticText(
-            self, label=_("Platform Dimensions"), style=wx.ALIGN_CENTRE)
+            self, label=_("Platform dimensions"), style=wx.ALIGN_CENTRE)
         self.diameterLabel = wx.StaticText(self, label=_("Diameter"))
         self.diameterField = wx.lib.intctrl.IntCtrl(self, size=(170, -1), style=wx.TE_RIGHT)
         self.widthLabel = wx.StaticText(self, label=_("Width"))
@@ -39,7 +39,7 @@ class MachineSettingsDialog(wx.Dialog):
         self.depthLabel = wx.StaticText(self, label=_("Depth"))
         self.depthField = wx.lib.intctrl.IntCtrl(self, size=(170, -1), style=wx.TE_RIGHT)
 
-        self.machineModelLabel = wx.StaticText(self, label=_("Machine Model"))
+        self.machineModelLabel = wx.StaticText(self, label=_("Machine model"))
         self.machineModelButton = wx.Button(self, label=_("Browse"))
         self.machineModelField = wx.StaticText(self, size=(200, -1))
 

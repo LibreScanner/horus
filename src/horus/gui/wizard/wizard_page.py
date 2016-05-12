@@ -25,7 +25,7 @@ class WizardPage(wx.Panel):
         self.button_next_callback = button_next_callback
 
         self.video_view = VideoView(self, size=(300, 400), wxtimer=False)
-        self.prev_button = wx.Button(self, label=_("Prev"))
+        self.prev_button = wx.Button(self, label=_("Previous"))
         self.skip_button = wx.Button(self, label=_("Skip"))
         self.next_button = wx.Button(self, label=_("Next"))
 

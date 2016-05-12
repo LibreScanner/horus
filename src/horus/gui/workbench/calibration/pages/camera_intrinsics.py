@@ -139,7 +139,7 @@ class ResultPage(Page):
         else:
             if isinstance(result, CameraIntrinsicsError):
                 dlg = wx.MessageDialog(
-                    self, _("Camera Intrinsics Calibration has failed. Please try again."),
+                    self, _("Camera intrinsics calibration has failed. Please try again"),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()

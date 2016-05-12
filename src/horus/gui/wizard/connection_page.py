@@ -42,8 +42,6 @@ class ConnectionPage(WizardPage):
         self.gauge = wx.Gauge(self.panel, range=100, size=(-1, 30))
         self.result_label = wx.StaticText(self.panel, size=(-1, 30))
 
-        self.pattern_label.Disable()
-        self.image_view.Disable()
         self.auto_check_button.Disable()
         self.skip_button.Disable()
         self.next_button.Disable()
@@ -122,8 +120,8 @@ class ConnectionPage(WizardPage):
             if isinstance(result, WrongFirmware):
                 dlg = wx.MessageDialog(
                     self,
-                    _("Board has a wrong firmware or an invalid Baud Rate.\n"
-                      "Please select your Board and press Upload Firmware"),
+                    _("The board has the wrong firmware or an invalid baud rate.\n"
+                      "Please select your board and press \"Upload firmware\""),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -132,8 +130,8 @@ class ConnectionPage(WizardPage):
             elif isinstance(result, BoardNotConnected):
                 dlg = wx.MessageDialog(
                     self,
-                    _("Board is not connected.\n"
-                      "Please connect your board and select a valid Serial Name"),
+                    _("The board is not connected.\n"
+                      "Please connect your board and select a valid Serial name"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -142,8 +140,8 @@ class ConnectionPage(WizardPage):
             elif isinstance(result, WrongCamera):
                 dlg = wx.MessageDialog(
                     self,
-                    _("You probably have selected a wrong camera.\n"
-                      "Please select other Camera Id"),
+                    _("You probably have selected the wrong camera.\n"
+                      "Please select another Camera ID"),
                     _(result), wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -151,7 +149,7 @@ class ConnectionPage(WizardPage):
                 self.GetParent().parent.launch_preferences(basic=True)
             elif isinstance(result, CameraNotConnected):
                 dlg = wx.MessageDialog(
-                    self, _("Please plug your camera and try to connect again"),
+                    self, _("Please plug your camera in and try to connect again"),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -179,8 +177,9 @@ class ConnectionPage(WizardPage):
             profile.settings['adjust_laser'] = False
             dlg = wx.MessageDialog(
                 self,
-                _("It is recomended to adjust line lasers vertically.\n"
-                  "You need to use the allen wrench.\nDo you want to adjust it now?"),
+                _("It is recommended to adjust the line lasers vertically.\n"
+                  "You will need to use the allen key.\n"
+                  "Do you want to adjust it now?"),
                 _("Manual laser adjustment"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
@@ -219,21 +218,27 @@ class ConnectionPage(WizardPage):
             self.result_label.SetLabel(str(result))
             if isinstance(result, PatternNotDetected):
                 dlg = wx.MessageDialog(
-                    self, _("Please, put the pattern on the platform"),
+                    self, _("Please, put the pattern on the platform. "
+                            "Also you can set up the calibration's capture "
+                            "settings in the \"Adjustment workbench\" "
+                            "until the pattern is detected correctly"),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
             elif isinstance(result, WrongMotorDirection):
                 dlg = wx.MessageDialog(
                     self, _(
-                        'Please, select "Invert the motor direction" in Preferences'),
+                        "Please, select \"Invert the motor direction\" in the preferences"),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.GetParent().parent.launch_preferences(basic=True)
             elif isinstance(result, LaserNotDetected):
                 dlg = wx.MessageDialog(
-                    self, _("Please, check the lasers connection..."),
+                    self, _("Please, check the lasers connection. "
+                            "Also you can set up the calibration's capture and "
+                            "segmentation settings in the \"Adjustment workbench\" "
+                            "until the lasers are detected correctly"),
                     _(result), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()

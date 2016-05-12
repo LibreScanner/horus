@@ -61,7 +61,7 @@ class ScanCapturePanel(ExpandablePanel):
         self.add_control(
             'remove_background_scanning', CheckBox,
             _("Capture an extra image without laser to remove "
-              "the background in the laser's image."))
+              "the background in the laser's image"))
 
         # Initial layout
         self._set_mode_layout(profile.settings['capture_mode_scanning'])
@@ -245,7 +245,7 @@ class CalibrationCapturePanel(ExpandablePanel):
         self.add_control(
             'remove_background_calibration', CheckBox,
             _("Capture an extra image without laser to remove "
-              "the background in the laser's image."))
+              "the background in the laser's image"))
 
         # Initial layout
         self._set_mode_layout(profile.settings['capture_mode_calibration'])

@@ -192,7 +192,7 @@ class Settings(collections.MutableMapping):
             Setting('exposure_control', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=64))
         self._add_setting(
-            Setting('framerate', _('Framerate'), 'profile_settings',
+            Setting('framerate', _('Frame rate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
         self._add_setting(
             Setting('motor_step_control', _(u'Step (º)'), 'profile_settings',
@@ -429,7 +429,7 @@ class Settings(collections.MutableMapping):
                     float, 0.0, min_value=0.0))
 
         self._add_setting(
-            Setting('adjust_laser', _('Adjust Laser'), 'calibration_settings', bool, True))
+            Setting('adjust_laser', _('Adjust laser'), 'calibration_settings', bool, True))
 
         self._add_setting(
             Setting('camera_width', _('Width'), 'calibration_settings',
@@ -497,21 +497,21 @@ class Settings(collections.MutableMapping):
         # -- Machine Settings
 
         self._add_setting(
-            Setting('machine_diameter', _('Machine Diameter'), 'machine_settings', int, 200))
+            Setting('machine_diameter', _('Machine diameter'), 'machine_settings', int, 200))
         self._add_setting(
-            Setting('machine_width', _('Machine Width'), 'machine_settings', int, 200))
+            Setting('machine_width', _('Machine width'), 'machine_settings', int, 200))
         self._add_setting(
-            Setting('machine_height', _('Machine Height'), 'machine_settings', int, 200))
+            Setting('machine_height', _('Machine height'), 'machine_settings', int, 200))
         self._add_setting(
-            Setting('machine_depth', _('Machine Depth'), 'machine_settings', int, 200))
+            Setting('machine_depth', _('Machine depth'), 'machine_settings', int, 200))
         # Hack to translate combo boxes:
         _('Circular')
         _('Rectangular')
         self._add_setting(
-            Setting('machine_shape', _('Machine Shape'), 'machine_settings',
+            Setting('machine_shape', _('Machine shape'), 'machine_settings',
                     unicode, u'Circular', possible_values=(u'Circular', u'Rectangular')))
         self._add_setting(
-            Setting('machine_model_path', _('Machine Model'), 'machine_settings',
+            Setting('machine_model_path', _('Machine model'), 'machine_settings',
                     unicode, unicode(resources.get_path_for_mesh('ciclop_platform.stl'))))
         # self._add_setting(
         #     Setting('roi_width', _('Width (mm)'), 'machine_settings',
@@ -529,12 +529,12 @@ class Settings(collections.MutableMapping):
         # -- Preferences
 
         self._add_setting(
-            Setting('serial_name', _('Serial Name'), 'preferences', unicode, u''))
+            Setting('serial_name', _('Serial name'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('baud_rate', _('Baud rate'), 'preferences', int, 115200,
                     possible_values=(9600, 14400, 19200, 38400, 57600, 115200)))
         self._add_setting(
-            Setting('camera_id', _('Camera Id'), 'preferences', unicode, u''))
+            Setting('camera_id', _('Camera ID'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('board', _('Board'), 'preferences', unicode, u'BT ATmega328',
                     possible_values=(u'Arduino Uno', u'BT ATmega328')))
@@ -544,53 +544,53 @@ class Settings(collections.MutableMapping):
             Setting('language', _('Language'), 'preferences', unicode, u'English',
                     possible_values=(u'English', u'Español', u'Français',
                                      u'Deutsch', u'Italiano', u'Português'),
-                    tooltip=_('Change the language in which Horus runs. '
-                              'Switching language requires a restart of Horus')))
+                    tooltip=_('Change the language of Horus. '
+                              'Switching language will require a program restart')))
 
         # Hack to translate combo boxes:
         self._add_setting(
             Setting('workbench', _('Workbench'), 'preferences', unicode, u'scanning',
                     possible_values=(u'control', u'adjustment', u'calibration', u'scanning')))
         self._add_setting(
-            Setting('show_welcome', _('Show Welcome'), 'preferences', bool, True))
+            Setting('show_welcome', _('Show welcome'), 'preferences', bool, True))
         self._add_setting(
-            Setting('check_for_updates', _('Check for Updates'), 'preferences', bool, True))
+            Setting('check_for_updates', _('Check for updates'), 'preferences', bool, True))
         self._add_setting(
-            Setting('basic_mode', _('Basic Mode'), 'preferences', bool, False))
+            Setting('basic_mode', _('Basic mode'), 'preferences', bool, False))
         self._add_setting(
-            Setting('view_control_panel', _('View Control Panel'), 'preferences', bool, True))
+            Setting('view_control_panel', _('View control panel'), 'preferences', bool, True))
         self._add_setting(
-            Setting('view_control_video', _('View Control Panel'), 'preferences', bool, True))
+            Setting('view_control_video', _('View control panel'), 'preferences', bool, True))
         self._add_setting(
-            Setting('view_adjustment_panel', _('View Adjustment Panel'),
+            Setting('view_adjustment_panel', _('View adjustment panel'),
                     'preferences', bool, True))
         self._add_setting(
-            Setting('view_adjustment_video', _('View Adjustment Video'),
+            Setting('view_adjustment_video', _('View adjustment video'),
                     'preferences', bool, True))
         self._add_setting(
-            Setting('view_calibration_panel', _('View Calibration Panel'),
+            Setting('view_calibration_panel', _('View calibration panel'),
                     'preferences', bool, True))
         self._add_setting(
-            Setting('view_calibration_video', _('View Calibration Video'),
+            Setting('view_calibration_video', _('View calibration video'),
                     'preferences', bool, True))
         self._add_setting(
-            Setting('view_scanning_panel', _('View Scanning Panel'), 'preferences', bool, False))
+            Setting('view_scanning_panel', _('View scanning panel'), 'preferences', bool, False))
         self._add_setting(
-            Setting('view_scanning_video', _('View Scanning Video'), 'preferences', bool, False))
+            Setting('view_scanning_video', _('View scanning video'), 'preferences', bool, False))
         self._add_setting(
-            Setting('view_scanning_scene', _('View Scanning Scene'), 'preferences', bool, True))
+            Setting('view_scanning_scene', _('View scanning scene'), 'preferences', bool, True))
 
         self._add_setting(
             Setting('view_mode_advanced', _('Advanced mode'), 'preferences', bool, False))
 
         self._add_setting(
-            Setting('last_files', _('Last Files'), 'preferences', list, []))
+            Setting('last_files', _('Last files'), 'preferences', list, []))
         # TODO: Set this default value
         self._add_setting(
-            Setting('last_file', _('Last File'), 'preferences', unicode, u''))
+            Setting('last_file', _('Last file'), 'preferences', unicode, u''))
         # TODO: Set this default value
         self._add_setting(
-            Setting('last_profile', _('Last Profile'), 'preferences', unicode, u''))
+            Setting('last_profile', _('Last profile'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('model_color', _('Model color'), 'preferences', unicode, u'888888'))
         self._add_setting(

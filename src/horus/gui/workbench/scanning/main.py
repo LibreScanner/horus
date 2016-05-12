@@ -214,9 +214,9 @@ class ScanningWorkbench(Workbench):
             result = True
             if self.scene_view._object is not None:
                 dlg = wx.MessageDialog(self,
-                                       _("Your current model will be erased.\n"
-                                         "Do you really want to do it?"),
-                                       _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                                       _("Your current model will be deleted.\n"
+                                         "Are you sure you want to delete it?"),
+                                       _("Clear point cloud"), wx.YES_NO | wx.ICON_QUESTION)
                 result = dlg.ShowModal() == wx.ID_YES
                 dlg.Destroy()
             if result:
@@ -249,7 +249,7 @@ class ScanningWorkbench(Workbench):
         if ret:
             dlg = wx.MessageDialog(self,
                                    _("Scanning has finished. If you want to save your "
-                                     "point cloud go to File > Save Model"),
+                                     "point cloud go to \"File > Save model\""),
                                    _("Scanning finished!"), wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
@@ -261,8 +261,8 @@ class ScanningWorkbench(Workbench):
         ciclop_scan.pause()
         dlg = wx.MessageDialog(self,
                                _("Your current scanning will be stopped.\n"
-                                 "Do you really want to do it?"),
-                               _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
+                                 "Are you sure you want to stop?"),
+                               _("Stop scanning"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
 

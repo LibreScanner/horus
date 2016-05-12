@@ -86,25 +86,25 @@ class ToolbarConnection(Toolbar):
         if not ret:
             if isinstance(result, WrongFirmware):
                 self._show_message(_(result), wx.ICON_INFORMATION,
-                                   _("Board has a wrong firmware or an invalid Baud Rate.\n"
-                                     "Please select your Board and press Upload Firmware"))
+                                   _("The board has the wrong firmware or an invalid baud rate.\n"
+                                     "Please select your board and press \"Upload firmware\""))
                 self.update_status(False)
                 self.GetParent().launch_preferences()
             elif isinstance(result, BoardNotConnected):
                 self._show_message(_(result), wx.ICON_INFORMATION,
-                                   _("Board is not connected.\n"
-                                     "Please connect your board and select a valid Serial Name"))
+                                   _("The board is not connected.\n"
+                                     "Please connect your board and select a valid Serial name"))
                 self.update_status(False)
                 self.GetParent().launch_preferences(basic=True)
             elif isinstance(result, WrongCamera):
                 self._show_message(_(result), wx.ICON_INFORMATION,
-                                   _("You probably have selected a wrong camera.\n"
-                                     "Please select other Camera Id"))
+                                   _("You probably have selected the wrong camera.\n"
+                                     "Please select another Camera ID"))
                 self.update_status(False)
                 self.GetParent().launch_preferences(basic=True)
             elif isinstance(result, CameraNotConnected):
                 self._show_message(_(result), wx.ICON_ERROR,
-                                   _("Please plug your camera and try to connect again"))
+                                   _("Please plug your camera in and try to connect again"))
             elif isinstance(result, InvalidVideo):
                 self._show_message(_(result), wx.ICON_ERROR,
                                    _("Unplug and plug your camera USB cable "
