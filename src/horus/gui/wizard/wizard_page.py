@@ -34,7 +34,7 @@ class WizardPage(wx.Panel):
 
         # Layout
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.breadcrumbs, 0, wx.ALL ^ wx.TOP | wx.EXPAND, 10)
+        vbox.Add(self.breadcrumbs, 0, wx.ALL | wx.EXPAND, 10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.panel, 1, wx.RIGHT | wx.EXPAND, 10)
         hbox.Add(self.video_view, 0, wx.ALL, 0)
@@ -88,14 +88,20 @@ class Breadcrumbs(wx.Panel):
             title = wx.StaticText(self, label=page.title)
             title.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             if self.GetParent().title == page.title:
-                title.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+                title_font = title.GetFont()
+                title_font.SetWeight(wx.BOLD)
+                title.SetFont(title_font)
             else:
-                title.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_LIGHT)))
+                title_font = title.GetFont()
+                title_font.SetWeight(wx.LIGHT)
+                title.SetFont(title_font)
             title.Bind(wx.EVT_LEFT_UP, self.on_title_pressed)
             hbox.Add(title, 0, wx.ALL | wx.EXPAND, 0)
             if page is not pages[-1]:
                 line = wx.StaticText(self, label="  .....................  ")
-                line.SetFont((wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_LIGHT)))
+                line_font = line.GetFont()
+                line_font.SetWeight(wx.LIGHT)
+                line.SetFont(line_font)
                 hbox.Add(line, 0, wx.ALL | wx.EXPAND, 0)
         vbox.Add(hbox, 0, wx.ALL | wx.CENTER, 0)
 
@@ -106,10 +112,15 @@ class Breadcrumbs(wx.Panel):
         label = event.GetEventObject().GetLabel()
         for page in self.pages:
             if page.enable_next:
+                if page.title != label:
+                    page.Hide()
+            else:
+                break
+
+        for page in self.pages:
+            if page.enable_next:
                 if page.title == label:
                     page.Show()
-                else:
-                    page.Hide()
             else:
                 break
 

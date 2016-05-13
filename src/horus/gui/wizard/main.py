@@ -111,7 +111,6 @@ class Wizard(wx.Dialog):
         self.Layout()
 
     def on_scanning_page_prev_clicked(self):
-        driver.board.lasers_off()
         self.scanning_page.Hide()
         self.calibration_page.Show()
         self.Layout()

@@ -163,8 +163,9 @@ class ScanningWorkbench(Workbench):
                      range, progress, point_cloud)
 
     def _point_cloud_callback(self, range, progress, point_cloud):
-        self.gauge.SetRange(range)
-        self.gauge.SetValue(progress)
+        if range > 0:
+            self.gauge.SetRange(range)
+            self.gauge.SetValue(progress)
         if point_cloud is not None:
             points, texture = point_cloud
             self.scene_view.append_point_cloud(points, texture)
@@ -244,9 +245,9 @@ class ScanningWorkbench(Workbench):
         self.Layout()
 
     def after_scan(self, response):
-        self.gauge.SetValue(self.gauge.GetRange())
         ret, result = response
         if ret:
+            self.gauge.SetValue(self.gauge.GetRange())
             dlg = wx.MessageDialog(self,
                                    _("Scanning has finished. If you want to save your "
                                      "point cloud go to \"File > Save model\""),

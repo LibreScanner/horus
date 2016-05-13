@@ -8,7 +8,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 from collections import OrderedDict
 
-from horus.util import profile, resources, system
+from horus.util import profile, resources, system as sys
 
 
 class ExpandableCollection(wx.Panel):
@@ -148,7 +148,6 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Disable()
 
     def show_content(self):
-        self.title_text.font_selected()
         self.content.Show()
         if self.has_undo:
             self.undo_button.Show()
@@ -157,7 +156,6 @@ class ExpandablePanel(wx.Panel):
         self.parent.Layout()
 
     def hide_content(self):
-        self.title_text.font_normal()
         self.content.Hide()
         if self.has_undo:
             self.undo_button.Hide()
@@ -213,9 +211,9 @@ class TitleText(wx.Panel):
 
         # Elements
         self.title = wx.StaticText(self, label=title)
-        self.title.SetFont((wx.Font(wx.SystemSettings.GetFont(
-            wx.SYS_ANSI_VAR_FONT).GetPointSize(),
-            wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        title_font = self.title.GetFont()
+        title_font.SetWeight(wx.BOLD)
+        self.title.SetFont(title_font)
         self.line = wx.StaticLine(self)
 
         if hand_cursor:
@@ -234,7 +232,7 @@ class TitleText(wx.Panel):
         self.Layout()
 
     def font_selected(self):
-        self.title.SetForegroundColour('#313739')
+        self.title.SetForegroundColour('#000000')
         self.Layout()
 
 
@@ -250,7 +248,10 @@ class ControlCollection(wx.Panel):
 
         # Layout
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.vbox)
+        if sys.is_darwin():
+            self.SetSizerAndFit(self.vbox)
+        else:
+            self.SetSizer(self.vbox)
         self.Layout()
 
     def __getitem__(self, key):
@@ -262,7 +263,7 @@ class ControlCollection(wx.Panel):
         self.control_panels.update({_name: control})
         self.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
         self.vbox.Layout()
-        if system.is_darwin():
+        if sys.is_darwin():
             self.SetSizerAndFit(self.vbox)
 
     def update_callback(self, _name, _callback):
@@ -372,9 +373,14 @@ class Slider(ControlPanel):
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.label, 0, wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-        hbox.AddStretchSpacer()
-        hbox.Add(self.control, 0, wx.TOP | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+        if sys.is_darwin():
+            hbox.Add(self.label, 0, wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+            hbox.AddStretchSpacer()
+            hbox.Add(self.control, 0, wx.BOTTOM | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        else:
+            hbox.Add(self.label, 0, wx.TOP | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+            hbox.AddStretchSpacer()
+            hbox.Add(self.control, 0, wx.TOP | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
         self.SetSizer(hbox)
         self.Layout()
 

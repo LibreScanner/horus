@@ -8,8 +8,10 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 import wx._core
 
 from horus.gui.engine import driver, pattern, calibration_data
+from horus.util import system as sys
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, CheckBox, \
-    FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray, Button, IntTextBox
+    FloatTextBox, FloatTextBoxArray, FloatLabel, FloatLabelArray, Button, \
+    IntLabel, IntTextBox
 
 
 class PatternSettings(ExpandablePanel):
@@ -92,43 +94,49 @@ class VideoSettings(ExpandablePanel):
         self.add_control('camera_rotate', CheckBox, _("Rotate image"))
         self.add_control('camera_hflip', CheckBox, _("Horizontal flip"))
         self.add_control('camera_vflip', CheckBox, _("Vertical flip"))
-        self.add_control('camera_width', IntTextBox, _("Width"))
-        self.add_control('camera_height', IntTextBox, _("Height"))
-        self.add_control('set_resolution_button', Button, _("Set resolution"))
+        if sys.is_darwin():
+            self.add_control('camera_width', IntLabel, _("Width"))
+            self.add_control('camera_height', IntLabel, _("Height"))
+        else:
+            self.add_control('camera_width', IntTextBox, _("Width"))
+            self.add_control('camera_height', IntTextBox, _("Height"))
+            self.add_control('set_resolution_button', Button, _("Set resolution"))
 
     def update_callbacks(self):
         self.update_callback('camera_rotate', lambda v: driver.camera.set_rotate(v))
         self.update_callback('camera_hflip', lambda v: driver.camera.set_hflip(v))
         self.update_callback('camera_vflip', lambda v: driver.camera.set_vflip(v))
-        self.update_callback('set_resolution_button', self._set_resolution)
+        if not sys.is_darwin():
+            self.update_callback('set_resolution_button', self._set_resolution)
 
     def _set_resolution(self):
-        old_width = driver.camera._width
-        old_height = driver.camera._height
+        if not sys.is_darwin():
+            old_width = driver.camera._width
+            old_height = driver.camera._height
 
-        new_width = self.get_control('camera_width').GetValue()
-        new_height = self.get_control('camera_height').GetValue()
-        driver.camera.set_resolution(new_width, new_height)
+            new_width = self.get_control('camera_width').GetValue()
+            new_height = self.get_control('camera_height').GetValue()
+            driver.camera.set_resolution(new_width, new_height)
 
-        real_width = driver.camera._width
-        real_height = driver.camera._height
+            real_width = driver.camera._width
+            real_height = driver.camera._height
 
-        if real_width != new_width or real_height != new_height:
-            dlg = wx.MessageDialog(
-                self,
-                _("Your camera does not accept this resolution.\n"
-                  "Do you want to use the nearest values?"),
-                _("Wrong resolution"), wx.YES_NO | wx.ICON_QUESTION)
-            result = dlg.ShowModal() == wx.ID_YES
-            dlg.Destroy()
-            if result:
-                driver.camera.set_resolution(real_width, real_height)
-                self.get_control('camera_width').SetValue(real_width)
-                self.get_control('camera_height').SetValue(real_height)
-            else:
-                driver.camera.set_resolution(old_width, old_height)
-                self.get_control('camera_width').SetValue(old_width)
-                self.get_control('camera_height').SetValue(old_height)
+            if real_width != new_width or real_height != new_height:
+                dlg = wx.MessageDialog(
+                    self,
+                    _("Your camera does not accept this resolution.\n"
+                      "Do you want to use the nearest values?"),
+                    _("Wrong resolution"), wx.YES_NO | wx.ICON_QUESTION)
+                result = dlg.ShowModal() == wx.ID_YES
+                dlg.Destroy()
+                if result:
+                    driver.camera.set_resolution(real_width, real_height)
+                    self.get_control('camera_width').SetValue(real_width)
+                    self.get_control('camera_height').SetValue(real_height)
+                else:
+                    driver.camera.set_resolution(old_width, old_height)
+                    self.get_control('camera_width').SetValue(old_width)
+                    self.get_control('camera_height').SetValue(old_height)
 
 
 class CameraIntrinsics(ExpandablePanel):

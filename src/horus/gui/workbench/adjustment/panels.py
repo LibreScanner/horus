@@ -5,7 +5,7 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
-from horus.util import profile
+from horus.util import profile, system as sys
 
 from horus.gui.engine import driver, image_capture, laser_segmentation
 
@@ -134,7 +134,10 @@ class ScanCapturePanel(ExpandablePanel):
             self.get_control('saturation_laser_scanning').Hide()
             self.get_control('exposure_laser_scanning').Hide()
             self.get_control('remove_background_scanning').Hide()
-        self.GetParent().Layout()
+
+        if sys.is_darwin():
+            self.content.SetSizerAndFit(self.content.vbox)
+        self.Layout()
 
 
 class ScanSegmentationPanel(ExpandablePanel):
@@ -318,7 +321,10 @@ class CalibrationCapturePanel(ExpandablePanel):
             self.get_control('saturation_laser_calibration').Hide()
             self.get_control('exposure_laser_calibration').Hide()
             self.get_control('remove_background_calibration').Hide()
-        self.GetParent().Layout()
+
+        if sys.is_darwin():
+            self.content.SetSizerAndFit(self.content.vbox)
+        self.Layout()
 
 
 class CalibrationSegmentationPanel(ExpandablePanel):

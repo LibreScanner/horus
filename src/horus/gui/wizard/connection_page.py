@@ -72,6 +72,7 @@ class ConnectionPage(WizardPage):
 
     def on_show(self, event):
         if event.GetShow():
+            driver.board.lasers_off()
             self.update_status(driver.is_connected)
         else:
             try:

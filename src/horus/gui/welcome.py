@@ -64,7 +64,9 @@ class Header(wx.Panel):
         logo = ImageView(self)
         logo.set_image(wx.Image(resources.get_path_for_image("logo.png")))
         title_text = wx.StaticText(self, label=_("3D scanning for everyone"))
-        title_text.SetFont((wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
+        title_font = title_text.GetFont()
+        title_font.SetPointSize(15)
+        title_text.SetFont(title_font)
         separator = wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL)
 
         # Layout
@@ -84,9 +86,6 @@ class CreateNew(wx.Panel):
 
         # Elements
         title_text = wx.StaticText(self, label=_("Create new"))
-        title_text.SetFont(
-            (wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(),
-                     wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
         wizard_button = wx.Button(self, label=_("Wizard mode (step by step)"))
         scan_button = wx.Button(self, label=_("Scan using recent settings"))
         # advanced_control_button = wx.Button(self, label=_("Advanced control"))
@@ -153,9 +152,6 @@ class OpenRecent(wx.Panel):
 
         # Elements
         title_text = wx.StaticText(self, label=_("Open recent file"))
-        title_text.SetFont(
-            (wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize(),
-                     wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)))
 
         lastFiles = profile.settings['last_files']
         lastFiles.reverse()

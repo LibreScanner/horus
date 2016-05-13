@@ -21,7 +21,9 @@ class Page(wx.Panel):
         self.panel = wx.Panel(self)
         button_panel = wx.Panel(self)
         title_text = wx.StaticText(self, label=title)
-        title_text.SetFont((wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)))
+        title_font = title_text.GetFont()
+        title_font.SetWeight(wx.BOLD)
+        title_text.SetFont(title_font)
         if desc != "":
             self.desc_text = wx.StaticText(self, label=desc)
         self.gauge = wx.Gauge(self, range=100, size=(-1, 30))

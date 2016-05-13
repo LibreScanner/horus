@@ -269,6 +269,8 @@ class Camera(object):
                 self._updating = True
                 self._exposure = value
                 value *= self._luminosity
+                if value < 1:
+                    value = 1
                 print "E", value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
