@@ -26,7 +26,7 @@ system = platform.system()
 class ScanError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, "ScanError")
+        Exception.__init__(self, "Scan Error")
 
 
 @Singleton
@@ -104,10 +104,10 @@ class CiclopScan(Scan):
         # Setup scanner
         self.driver.board.lasers_off()
         if self.move_motor:
-            self.driver.board.motor_enable()
             self.driver.board.motor_relative(self.motor_step)
             self.driver.board.motor_speed(self.motor_speed)
             self.driver.board.motor_acceleration(self.motor_acceleration)
+            self.driver.board.motor_enable()
             time.sleep(0.1)
         else:
             self.driver.board.motor_disable()
@@ -125,10 +125,17 @@ class CiclopScan(Scan):
                     break
                 else:
                     begin = time.time()
-                    # Capture images
-                    capture = self._capture_images()
-                    # Put images into queue
-                    self._captures_queue.put(capture)
+                    try:
+                        # Capture images
+                        capture = self._capture_images()
+                        # Put images into queue
+                        self._captures_queue.put(capture)
+                    except Exception as e:
+                        self.is_scanning = False
+                        response = (False, e)
+                        if self._after_callback is not None:
+                            self._after_callback(response)
+                        break
 
                     # Move motor
                     if self.move_motor:
@@ -221,7 +228,7 @@ class CiclopScan(Scan):
         if ret:
             response = (True, None)
         else:
-            response = (False, ScanError)
+            response = (False, ScanError())
 
         # Cursor down
         # if self._debug and system == 'Linux':

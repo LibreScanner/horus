@@ -86,8 +86,8 @@ class Autocheck(Calibration):
         patterns_sorted = {}
 
         # Setup scanner
-        self.driver.board.motor_speed(300)
-        self.driver.board.motor_acceleration(400)
+        self.driver.board.motor_speed(200)
+        self.driver.board.motor_acceleration(300)
 
         if self._progress_callback is not None:
             self._progress_callback(0)
@@ -130,7 +130,7 @@ class Autocheck(Calibration):
         y = np.array(patterns_sorted.values())
         A = np.vstack([x, np.ones(len(x))]).T
         m, c = np.linalg.lstsq(A, y)[0]
-        pos = -c / m
+        pos = -c / m % 360
         if pos > 180:
             pos = pos - 360
         self.driver.board.motor_relative(pos)

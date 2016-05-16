@@ -10,6 +10,8 @@ import wx._core
 
 from horus.util import resources, profile
 
+from horus.engine.driver.camera import InputOutputError
+
 from horus.gui.engine import driver, image_capture, laser_segmentation, calibration_data, \
     ciclop_scan, current_video, point_cloud_roi
 from horus.gui.workbench.workbench import Workbench
@@ -255,7 +257,24 @@ class ScanningWorkbench(Workbench):
             dlg.ShowModal()
             dlg.Destroy()
             self.scanning = False
+            # Flush video
+            image_capture.capture_texture()
+            image_capture.capture_texture()
+            image_capture.capture_texture()
             self.on_scan_finished()
+        else:
+            if isinstance(result, InputOutputError):
+                self.scanning = False
+                self.on_scan_finished()
+                self.GetParent().toolbar.update_status(False)
+                driver.disconnect()
+                dlg = wx.MessageDialog(
+                    self,
+                    "Low exposure values can cause a timing issue at the USB stack level on "
+                    "v4l2_ioctl function in VIDIOC_S_CTRL mode. This is a Logitech issue on Linux",
+                    str(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
 
     def on_stop_tool_clicked(self, event):
         paused = ciclop_scan._inactive
@@ -270,16 +289,16 @@ class ScanningWorkbench(Workbench):
         if result:
             self.scanning = False
             ciclop_scan.stop()
+            # Flush video
+            image_capture.capture_texture()
+            image_capture.capture_texture()
+            image_capture.capture_texture()
             self.on_scan_finished()
         else:
             if not paused:
                 ciclop_scan.resume()
 
     def on_scan_finished(self):
-        # Flush video
-        image_capture.capture_texture()
-        image_capture.capture_texture()
-        image_capture.capture_texture()
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)

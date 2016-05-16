@@ -45,6 +45,12 @@ class WrongDriver(Exception):
         Exception.__init__(self, "Wrong Driver")
 
 
+class InputOutputError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, "V4L2 Input/Output Error")
+
+
 class Camera(object):
 
     """Camera class. For accessing to the scanner camera"""
@@ -226,13 +232,13 @@ class Camera(object):
             if self._brightness != value:
                 self._updating = True
                 self._brightness = value
-                print "B", value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
                     ctl.set_val(self._line(value, 0, self._max_brightness, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_brightness
-                    self._capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
+                    if self._capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value):
+                        raise InputOutputError()
                 self._updating = False
 
     def set_contrast(self, value):
@@ -240,13 +246,13 @@ class Camera(object):
             if self._contrast != value:
                 self._updating = True
                 self._contrast = value
-                print "C", value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_CONTRAST_ABS']
                     ctl.set_val(self._line(value, 0, self._max_contrast, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_contrast
-                    self._capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
+                    if self._capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value):
+                        raise InputOutputError()
                 self._updating = False
 
     def set_saturation(self, value):
@@ -254,13 +260,13 @@ class Camera(object):
             if self._saturation != value:
                 self._updating = True
                 self._saturation = value
-                print "S", value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_SATURATION_ABS']
                     ctl.set_val(self._line(value, 0, self._max_saturation, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_saturation
-                    self._capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
+                    if self._capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value):
+                        raise InputOutputError()
                 self._updating = False
 
     def set_exposure(self, value, force=False):
@@ -271,7 +277,6 @@ class Camera(object):
                 value *= self._luminosity
                 if value < 1:
                     value = 1
-                print "E", value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
                     value = int(value * self._rel_exposure)
@@ -281,8 +286,8 @@ class Camera(object):
                     self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
                 else:
                     value = int(value) / self._max_exposure
-                    self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
-                    self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
+                    if self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value):
+                        raise InputOutputError()
                 self._updating = False
 
     def set_luminosity(self, value):
