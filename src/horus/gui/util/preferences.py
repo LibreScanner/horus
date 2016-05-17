@@ -11,7 +11,7 @@ import threading
 
 from horus.gui.engine import driver
 from horus.util import profile, resources
-from horus.util.avr_helpers import AvrDude
+from horus.util.avr_helpers import AvrDude, AvrError
 
 import logging
 logger = logging.getLogger(__name__)
@@ -196,21 +196,33 @@ class PreferencesDialog(wx.Dialog):
             return 19200
 
     def load_firmware(self, hex_baud_rate, clear_eeprom):
-        avr_dude = AvrDude(port=profile.settings['serial_name'], baud_rate=hex_baud_rate)
-        logger.info("Uploading firmware: ")
-        if clear_eeprom:
-            avr_dude.flash(clear_eeprom=True)
-            time.sleep(3)  # Clear EEPROM
-        self.count = -50
-        out = avr_dude.flash(hex_path=self.hex_path, callback=self.increment_progress)
-        if 'not in sync' in out or 'Invalid' in out:
-            wx.CallAfter(self.wrong_board_message)
-        wx.CallAfter(self.after_load_firmware)
+        try:
+            avr_dude = AvrDude(port=profile.settings['serial_name'], baud_rate=hex_baud_rate)
+            logger.info("Uploading firmware: ")
+            if clear_eeprom:
+                avr_dude.flash(clear_eeprom=True)
+                time.sleep(3)  # Clear EEPROM
+            self.count = -50
+            out = avr_dude.flash(hex_path=self.hex_path, callback=self.increment_progress)
+            if 'not in sync' in out or 'Invalid' in out:
+                wx.CallAfter(self.wrong_board_message)
+            wx.CallAfter(self.after_load_firmware)
+        except Exception as e:
+            wx.CallAfter(self.after_load_firmware)
+            if isinstance(e, AvrError):
+                wx.CallAfter(self.avr_error_message)
 
     def increment_progress(self):
         self.count += 1
         if self.count >= 0:
             wx.CallAfter(self.gauge.SetValue, self.count)
+
+    def avr_error_message(self):
+        dlg = wx.MessageDialog(
+            self, _("Avrdude is not installed. Please, install it on your system"),
+            _('Avrdude not installed'), wx.OK | wx.ICON_ERROR)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def wrong_board_message(self):
         dlg = wx.MessageDialog(

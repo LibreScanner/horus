@@ -186,12 +186,10 @@ class Board(object):
                     self._serial_port.flushInput()
                     self._serial_port.flushOutput()
                     self._serial_port.write(req + "\r\n")
-                    while ret == '':
-                        if read_lines:
-                            ret = ''.join(self._serial_port.readlines())
-                        else:
-                            ret = ''.join(self._serial_port.readline())
-                        time.sleep(0.001)
+                    if read_lines:
+                        ret = ''.join(self._serial_port.readlines())
+                    else:
+                        ret = ''.join(self._serial_port.readline())
                     self._success()
                 except:
                     if hasattr(self, '_serial_port'):

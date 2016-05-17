@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class FirmwareError(Exception):
+class AvrError(Exception):
     pass
 
 
@@ -31,15 +31,19 @@ class AvrDude(object):
         elif sys.is_darwin():
             self.avrdude = os.path.abspath(resources.get_path_for_tools("avrdude"))
         else:
-            self.avrdude = 'avrdude'
+            try:
+                Popen(["avrdude"], stdout=PIPE, stderr=STDOUT)
+                self.avrdude = "avrdude"
+            except:
+                self.avrdude = None
 
         if self.avrdude is None:
-            raise FirmwareError('avrdude not installed')
+            raise AvrError('avrdude not installed')
 
         self.avrconf = os.path.abspath(resources.get_path_for_tools("avrdude.conf"))
         self.port = port
 
-    def _run_command(self, flags, callback=None):
+    def _run_command(self, flags=[], callback=None):
         config = dict(avrdude=self.avrdude, avrconf=self.avrconf)
         cmd = ['%(avrdude)s'] + flags
         cmd = [v % config for v in cmd]
