@@ -13,7 +13,7 @@ from horus.gui.engine import driver, scanner_autocheck, image_capture, image_det
 from horus.gui.util.image_view import ImageView
 from horus.gui.wizard.wizard_page import WizardPage
 
-from horus.engine.driver.board import WrongFirmware, BoardNotConnected
+from horus.engine.driver.board import WrongFirmware, BoardNotConnected, OldFirmware
 from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo, \
     WrongDriver
 from horus.engine.calibration.autocheck import PatternNotDetected, \
@@ -138,6 +138,16 @@ class ConnectionPage(WizardPage):
                 dlg.Destroy()
                 self.update_status(False)
                 self.GetParent().parent.launch_preferences(basic=True)
+            elif isinstance(result, OldFirmware):
+                dlg = wx.MessageDialog(
+                    self,
+                    _("The board has and old firmware.\n"
+                      "Please select your board and press \"Upload firmware\""),
+                    _(result), wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+                self.update_status(False)
+                self.GetParent().parent.launch_preferences()
             elif isinstance(result, WrongCamera):
                 dlg = wx.MessageDialog(
                     self,
@@ -216,7 +226,7 @@ class ConnectionPage(WizardPage):
             dlg.ShowModal()
             dlg.Destroy()
         else:
-            self.result_label.SetLabel(str(result))
+            self.result_label.SetLabel(str(_(result)))
             if isinstance(result, PatternNotDetected):
                 dlg = wx.MessageDialog(
                     self, _("Please, put the pattern on the platform. "

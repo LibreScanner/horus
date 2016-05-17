@@ -10,7 +10,7 @@ import wx._core
 from horus.util import resources, system
 
 from horus.gui.engine import driver
-from horus.engine.driver.board import WrongFirmware, BoardNotConnected
+from horus.engine.driver.board import WrongFirmware, BoardNotConnected, OldFirmware
 from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo, \
     WrongDriver
 
@@ -96,6 +96,12 @@ class ToolbarConnection(Toolbar):
                                      "Please connect your board and select a valid Serial name"))
                 self.update_status(False)
                 self.GetParent().launch_preferences(basic=True)
+            elif isinstance(result, OldFirmware):
+                self._show_message(_(result), wx.ICON_INFORMATION,
+                                   _("The board has and old firmware.\n"
+                                     "Please select your board and press \"Upload firmware\""))
+                self.update_status(False)
+                self.GetParent().launch_preferences()
             elif isinstance(result, WrongCamera):
                 self._show_message(_(result), wx.ICON_INFORMATION,
                                    _("You probably have selected the wrong camera.\n"

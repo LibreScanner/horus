@@ -29,6 +29,12 @@ class BoardNotConnected(Exception):
         Exception.__init__(self, "Board Not Connected")
 
 
+class OldFirmware(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, "Old Firmware")
+
+
 class Board(object):
 
     """Board class. For accessing to the scanner board
@@ -72,7 +78,9 @@ class Board(object):
             if self._serial_port.isOpen():
                 self._reset()  # Force Reset and flush
                 version = self._serial_port.readline()
-                if version == "Horus 0.1 ['$' for help]\r\n":
+                if "Horus 0.1 ['$' for help]" in version:
+                    raise OldFirmware()
+                elif "Horus 0.2 ['$' for help]" in version:
                     self.motor_speed(1)
                     self.motor_absolute(0)
                     self._serial_port.timeout = 0.05
@@ -82,10 +90,10 @@ class Board(object):
                     raise WrongFirmware()
             else:
                 raise BoardNotConnected()
-        except:
+        except Exception as exception:
             logger.error("Error opening the port {0}\n".format(self.serial_name))
             self._serial_port = None
-            raise BoardNotConnected()
+            raise exception
 
     def disconnect(self):
         """Close serial port"""
