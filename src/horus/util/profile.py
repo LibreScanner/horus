@@ -235,7 +235,7 @@ class Settings(collections.MutableMapping):
                     int, 0, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_laser_scanning', _('Contrast'), 'profile_settings',
-                    int, 200, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_scanning', _('Saturation'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
@@ -300,7 +300,7 @@ class Settings(collections.MutableMapping):
                     int, 0, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_laser_calibration', _('Contrast'), 'profile_settings',
-                    int, 200, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_calibration', _('Saturation'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
@@ -367,7 +367,7 @@ class Settings(collections.MutableMapping):
                     float, 200.0, min_value=1.0, max_value=1000.0))
         self._add_setting(
             Setting('motor_acceleration_scanning', _(u'Acceleration (º/s²)'), 'profile_settings',
-                    float, 300.0, min_value=1.0, max_value=1000.0))
+                    float, 200.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
             Setting('use_roi', _('Use ROI'), 'profile_settings', bool, False))
@@ -404,6 +404,8 @@ class Settings(collections.MutableMapping):
             Setting('move_button', _('Move'), 'profile_settings', unicode, u''))
         self._add_setting(
             Setting('enable_button', _('Enable'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('reset_origin_button', _('Reset origin'), 'profile_settings', unicode, u''))
         self._add_setting(
             Setting('gcode_gui', _('Send'), 'profile_settings', unicode, u''))
         self._add_setting(

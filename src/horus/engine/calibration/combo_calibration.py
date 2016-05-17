@@ -63,20 +63,23 @@ class ComboCalibration(MovingCalibration):
             # Laser triangulation
             if (angle > 65 and angle < 115):
                 plane = self.image_detection.detect_pattern_plane(pose)
+                self.image_capture.flush_laser()
                 if plane is not None:
                     distance, normal, corners = plane
                     for i in xrange(2):
-                            image = self.image_capture.capture_laser(i)
-                            image = self.image_detection.pattern_mask(image, corners)
-                            self.image = image
-                            points_2d, _ = self.laser_segmentation.compute_2d_points(image)
-                            point_3d = self.point_cloud_generation.compute_camera_point_cloud(
-                                points_2d, distance, normal)
-                            if self._point_cloud[i] is None:
-                                self._point_cloud[i] = point_3d.T
-                            else:
-                                self._point_cloud[i] = np.concatenate(
-                                    (self._point_cloud[i], point_3d.T))
+                        image = self.image_capture.capture_laser(i)
+                        image = self.image_detection.pattern_mask(image, corners)
+                        self.image = image
+                        points_2d, _ = self.laser_segmentation.compute_2d_points(image)
+                        point_3d = self.point_cloud_generation.compute_camera_point_cloud(
+                            points_2d, distance, normal)
+                        if self._point_cloud[i] is None:
+                            self._point_cloud[i] = point_3d.T
+                        else:
+                            self._point_cloud[i] = np.concatenate(
+                                (self._point_cloud[i], point_3d.T))
+                else:
+                    self.image = image
             else:
                 self.image = image
 

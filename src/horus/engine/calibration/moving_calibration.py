@@ -40,12 +40,12 @@ class MovingCalibration(Calibration):
             # Setup scanner
             self.driver.board.lasers_off()
             self.driver.board.motor_enable()
+            self.driver.board.motor_reset_origin()
             self.driver.board.motor_speed(200)
-            self.driver.board.motor_acceleration(150)
+            self.driver.board.motor_acceleration(200)
 
-            # Move to origin
-            self.driver.board.motor_relative(-90)
-            self.driver.board.motor_move()
+            # Move to starting position
+            self.driver.board.motor_move(-90)
 
             if self._progress_callback is not None:
                 self._progress_callback(0)
@@ -58,13 +58,11 @@ class MovingCalibration(Calibration):
                 self._capture(angle)
 
                 angle += self.step
-                self.driver.board.motor_relative(self.step)
-                self.driver.board.motor_move()
-                time.sleep(0.3)
+                self.driver.board.motor_move(self.step)
+                time.sleep(0.5)
 
             # Move to origin
-            self.driver.board.motor_relative(90 - angle)
-            self.driver.board.motor_move()
+            self.driver.board.motor_move(90 - angle)
 
             self.driver.board.lasers_off()
             self.driver.board.motor_disable()

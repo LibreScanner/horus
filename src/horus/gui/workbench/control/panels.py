@@ -166,18 +166,22 @@ class MotorControl(ExpandablePanel):
         self.add_control('motor_acceleration_control', FloatTextBox)
         self.add_control('move_button', CallbackButton)
         self.add_control('enable_button', ToggleButton)
+        self.add_control('reset_origin_button', Button)
 
     def update_callbacks(self):
-        self.update_callback('motor_step_control', driver.board.motor_relative)
         self.update_callback('motor_speed_control', driver.board.motor_speed)
         self.update_callback('motor_acceleration_control', driver.board.motor_acceleration)
-        self.update_callback('move_button',
-                             lambda c: driver.board.motor_move(nonblocking=True, callback=c))
+        self.update_callback('move_button', lambda c: self._on_move_button(c))
         self.update_callback('enable_button',
                              (driver.board.motor_enable, driver.board.motor_disable))
+        self.update_callback('reset_origin_button', driver.board.motor_reset_origin)
 
     def on_selected(self):
         profile.settings['current_panel_control'] = 'motor_control'
+
+    def _on_move_button(self, callback):
+        step = self.get_control('motor_step_control').control.GetValue()
+        driver.board.motor_move(step, nonblocking=True, callback=callback)
 
 
 class GcodeControl(ExpandablePanel):
@@ -191,7 +195,9 @@ class GcodeControl(ExpandablePanel):
 
     def update_callbacks(self):
         self.update_callback(
-            'gcode_gui', lambda v, c: driver.board._send_command(v, callback=c, read_lines=True))
+            'gcode_gui',
+            lambda v, c: driver.board.send_command(v, nonblocking=True,
+                                                   callback=c, read_lines=True))
 
     def on_selected(self):
         profile.settings['current_panel_control'] = 'gcode_control'

@@ -828,7 +828,7 @@ class Button(ControlPanel):
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.control, 1, wx.TOP | wx.EXPAND, 10)
+        hbox.Add(self.control, 1, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.EXPAND, 2)
         self.SetSizer(hbox)
         self.Layout()
 
@@ -850,7 +850,7 @@ class CallbackButton(ControlPanel):
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.control, 1, wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        hbox.Add(self.control, 1, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.EXPAND, 2)
         self.SetSizer(hbox)
         self.Layout()
 
@@ -878,7 +878,7 @@ class ToggleButton(ControlPanel):
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.control, 1, wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        hbox.Add(self.control, 1, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.EXPAND, 2)
         self.SetSizer(hbox)
         self.Layout()
 

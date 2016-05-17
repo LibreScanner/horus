@@ -47,24 +47,24 @@ class LaserTriangulation(MovingCalibration):
         image = self.image_capture.capture_pattern()
         if (angle > 65 and angle < 115):
             pose = self.image_detection.detect_pose(image)
-            ret = self.image_detection.detect_pattern_plane(pose)
+            plane = self.image_detection.detect_pattern_plane(pose)
             self.image_capture.flush_laser()
-            if ret is None:
-                self.image = image
-            else:
-                distance, normal, corners = ret
+            if plane is not None:
+                distance, normal, corners = plane
                 for i in xrange(2):
-                        image = self.image_capture.capture_laser(i)
-                        image = self.image_detection.pattern_mask(image, corners)
-                        self.image = image
-                        points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                        point_3d = self.point_cloud_generation.compute_camera_point_cloud(
-                            points_2d, distance, normal)
-                        if self._point_cloud[i] is None:
-                            self._point_cloud[i] = point_3d.T
-                        else:
-                            self._point_cloud[i] = np.concatenate(
-                                (self._point_cloud[i], point_3d.T))
+                    image = self.image_capture.capture_laser(i)
+                    image = self.image_detection.pattern_mask(image, corners)
+                    self.image = image
+                    points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                    point_3d = self.point_cloud_generation.compute_camera_point_cloud(
+                        points_2d, distance, normal)
+                    if self._point_cloud[i] is None:
+                        self._point_cloud[i] = point_3d.T
+                    else:
+                        self._point_cloud[i] = np.concatenate(
+                            (self._point_cloud[i], point_3d.T))
+            else:
+                self.image = image
         else:
             self.image = image
 

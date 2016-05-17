@@ -68,6 +68,5 @@ class ControlWorkbench(Workbench):
         calibration_data.set_resolution(width, height)
         calibration_data.camera_matrix = profile.settings['camera_matrix']
         calibration_data.distortion_vector = profile.settings['distortion_vector']
-        driver.board.motor_relative(profile.settings['motor_step_control'])
         driver.board.motor_speed(profile.settings['motor_speed_control'])
         driver.board.motor_acceleration(profile.settings['motor_acceleration_control'])

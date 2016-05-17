@@ -60,15 +60,17 @@ class Autocheck(Calibration):
             # Setup scanner
             self.driver.board.lasers_off()
             self.driver.board.motor_enable()
+            self.driver.board.motor_reset_origin()
+            self.driver.board.motor_speed(200)
+            self.driver.board.motor_acceleration(200)
 
             # Perform autocheck
             try:
                 self.check_pattern_and_motor()
-                time.sleep(0.1)
                 self.check_lasers()
                 ret = True
-            except Exception as e:
-                response = e
+            except Exception as exception:
+                response = exception
             finally:
                 self._is_calibrating = False
                 self.image_capture.stream = True
@@ -84,10 +86,6 @@ class Autocheck(Calibration):
         scan_step = 30
         patterns_detected = {}
         patterns_sorted = {}
-
-        # Setup scanner
-        self.driver.board.motor_speed(200)
-        self.driver.board.motor_acceleration(300)
 
         if self._progress_callback is not None:
             self._progress_callback(0)
@@ -105,8 +103,7 @@ class Autocheck(Calibration):
                 self.image = self.image_detection.detect_pattern(image)
             if self._progress_callback is not None:
                 self._progress_callback(i / 3.6)
-            self.driver.board.motor_relative(scan_step)
-            self.driver.board.motor_move()
+            self.driver.board.motor_move(scan_step)
 
         # Check pattern detection
         if len(patterns_detected) == 0:
@@ -133,8 +130,7 @@ class Autocheck(Calibration):
         pos = -c / m % 360
         if pos > 180:
             pos = pos - 360
-        self.driver.board.motor_relative(pos)
-        self.driver.board.motor_move()
+        self.driver.board.motor_move(pos)
 
     def check_lasers(self):
         image = self.image_capture.capture_pattern()

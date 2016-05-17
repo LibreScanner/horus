@@ -104,11 +104,10 @@ class CiclopScan(Scan):
         # Setup scanner
         self.driver.board.lasers_off()
         if self.move_motor:
-            self.driver.board.motor_relative(self.motor_step)
+            self.driver.board.motor_enable()
+            self.driver.board.motor_reset_origin()
             self.driver.board.motor_speed(self.motor_speed)
             self.driver.board.motor_acceleration(self.motor_acceleration)
-            self.driver.board.motor_enable()
-            time.sleep(0.1)
         else:
             self.driver.board.motor_disable()
 
@@ -139,8 +138,7 @@ class CiclopScan(Scan):
 
                     # Move motor
                     if self.move_motor:
-                        self.driver.board.motor_relative(self.motor_step)
-                        self.driver.board.motor_move()
+                        self.driver.board.motor_move(self.motor_step)
                     else:
                         time.sleep(0.130)  # Time for 0.45º movement
 
@@ -236,8 +234,11 @@ class CiclopScan(Scan):
 
         self.image_capture.stream = True
 
+        progress = 0
+        if self._range > 0:
+            progress = int(100 * self._progress / self._range)
         logger.info("Finish scan {0} %  Time {1}".format(
-            int(100 * self._progress / self._range),
+            progress,
             time.strftime("%M' %S\"", time.gmtime(self._end - self._begin))))
 
         if self._after_callback is not None:
