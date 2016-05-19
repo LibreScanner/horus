@@ -13,6 +13,8 @@ from subprocess import Popen, PIPE, STDOUT
 import logging
 logger = logging.getLogger(__name__)
 
+from horus.util import system as sys
+
 
 class AvrError(Exception):
     pass
@@ -48,7 +50,7 @@ class AvrDude(object):
         cmd = ['%(avrdude)s'] + flags
         cmd = [v % config for v in cmd]
         logger.info(' ' + ' '.join(cmd))
-        p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+        p = Popen(cmd, stdout=PIPE, stderr=STDOUT, shell=sys.is_windows())
         out = ''
         while True:
             char = p.stdout.read(1)

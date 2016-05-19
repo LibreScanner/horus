@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
-from horus.util import profile
+from horus.util import profile, system as sys
 
 from horus.gui.engine import driver
 
@@ -19,7 +19,11 @@ from horus.gui.wizard.scanning_page import ScanningPage
 class Wizard(wx.Dialog):
 
     def __init__(self, parent):
-        super(Wizard, self).__init__(parent, title="", size=(760, 520))
+        if sys.is_windows():
+            size = (760, 540)
+        else:
+            size = (760, 520)
+        super(Wizard, self).__init__(parent, title="", size=size)
 
         self.parent = parent
 
@@ -106,23 +110,39 @@ class Wizard(wx.Dialog):
         self.on_exit()
 
     def on_calibration_page_prev_clicked(self):
-        self.calibration_page.Hide()
-        self.connection_page.Show()
+        if sys.is_windows():
+            self.connection_page.Show()
+            self.calibration_page.Hide()
+        else:
+            self.calibration_page.Hide()
+            self.connection_page.Show()
         self.Layout()
 
     def on_scanning_page_prev_clicked(self):
-        self.scanning_page.Hide()
-        self.calibration_page.Show()
+        if sys.is_windows():
+            self.calibration_page.Show()
+            self.scanning_page.Hide()
+        else:
+            self.scanning_page.Hide()
+            self.calibration_page.Show()
         self.Layout()
 
     def on_connection_page_next_clicked(self):
-        self.connection_page.Hide()
-        self.calibration_page.Show()
+        if sys.is_windows():
+            self.calibration_page.Show()
+            self.connection_page.Hide()
+        else:
+            self.connection_page.Hide()
+            self.calibration_page.Show()
         self.Layout()
 
     def on_calibration_page_next_clicked(self):
-        self.calibration_page.Hide()
-        self.scanning_page.Show()
+        if sys.is_windows():
+            self.scanning_page.Show()
+            self.calibration_page.Hide()
+        else:
+            self.calibration_page.Hide()
+            self.scanning_page.Show()
         self.Layout()
 
     def on_scanning_page_next_clicked(self):

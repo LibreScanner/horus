@@ -7,6 +7,8 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 import wx._core
 
+from horus.util import system as sys
+
 from horus.gui.util.video_view import VideoView
 
 
@@ -108,8 +110,7 @@ class Breadcrumbs(wx.Panel):
         self.SetSizer(vbox)
         self.Layout()
 
-    def on_title_pressed(self, event):
-        label = event.GetEventObject().GetLabel()
+    def _hide(label):
         for page in self.pages:
             if page.enable_next:
                 if page.title != label:
@@ -117,11 +118,21 @@ class Breadcrumbs(wx.Panel):
             else:
                 break
 
+    def _show(label):
         for page in self.pages:
             if page.enable_next:
                 if page.title == label:
                     page.Show()
             else:
                 break
+
+    def on_title_pressed(self, event):
+        label = event.GetEventObject().GetLabel()
+        if sys.is_windows():
+            self._show(label)
+            self._hide(label)
+        else:
+            self._hide(label)
+            self._show(label)
 
         self.GetParent().GetParent().Layout()

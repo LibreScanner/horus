@@ -7,7 +7,7 @@ __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.ht
 
 from horus.util import profile, system as sys
 
-from horus.gui.engine import driver, image_capture, laser_segmentation
+from horus.gui.engine import image_capture, laser_segmentation
 
 from horus.gui.workbench.adjustment.current_video import CurrentVideo
 from horus.gui.util.custom_panels import ExpandablePanel, Slider, ComboBox, CheckBox
@@ -137,6 +137,9 @@ class ScanCapturePanel(ExpandablePanel):
 
         if sys.is_darwin():
             self.content.SetSizerAndFit(self.content.vbox)
+        if sys.is_windows():
+            self.parent.Refresh()
+            self.parent.Layout()
         self.Layout()
 
 
@@ -324,6 +327,9 @@ class CalibrationCapturePanel(ExpandablePanel):
 
         if sys.is_darwin():
             self.content.SetSizerAndFit(self.content.vbox)
+        if sys.is_windows():
+            self.parent.Refresh()
+            self.parent.Layout()
         self.Layout()
 
 

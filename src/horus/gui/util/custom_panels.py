@@ -36,10 +36,16 @@ class ExpandableCollection(wx.Panel):
             self._expand_callback(values[0])
 
     def _expand_callback(self, selected_panel):
-        for panel in self.expandable_panels.values():
-            panel.hide_content()
-        selected_panel.show_content()
-        self.Layout()
+        if sys.is_windows():
+            selected_panel.show_content()
+            for panel in self.expandable_panels.values():
+                if panel is not selected_panel:
+                    panel.hide_content()
+        else:
+            for panel in self.expandable_panels.values():
+                if panel is not selected_panel:
+                    panel.hide_content()
+            selected_panel.show_content()
 
     # Engine callbacks
     def update_callbacks(self):
@@ -153,6 +159,7 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Show()
         if self.has_restore:
             self.restore_button.Show()
+        self.parent.Refresh()
         self.parent.Layout()
 
     def hide_content(self):
@@ -161,6 +168,7 @@ class ExpandablePanel(wx.Panel):
             self.undo_button.Hide()
         if self.has_restore:
             self.restore_button.Hide()
+        self.parent.Refresh()
         self.parent.Layout()
 
     def append_undo(self, _object):

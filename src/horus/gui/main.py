@@ -439,13 +439,22 @@ class MainWindow(wx.Frame):
     def update_workbench(self, name):
         self.wait_cursor = wx.BusyCursor()
         self.toolbar.combo.SetValue(name)
-        for key, wb in self.workbench.iteritems():
-            if wb.name != name:
-                wb.Hide()
-        for key, wb in self.workbench.iteritems():
-            if wb.name == name:
-                wb.Show()
-                profile.settings['workbench'] = key
+        if sys.is_windows():
+            for key, wb in self.workbench.iteritems():
+                if wb.name == name:
+                    wb.Show()
+                    profile.settings['workbench'] = key
+            for key, wb in self.workbench.iteritems():
+                if wb.name != name:
+                    wb.Hide()
+        else:
+            for key, wb in self.workbench.iteritems():
+                if wb.name != name:
+                    wb.Hide()
+            for key, wb in self.workbench.iteritems():
+                if wb.name == name:
+                    wb.Show()
+                    profile.settings['workbench'] = key
         is_scan = profile.settings['workbench'] == 'scanning'
         self.menu_file.Enable(self.menu_load_model.GetId(), is_scan)
         self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)

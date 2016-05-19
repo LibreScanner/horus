@@ -44,11 +44,12 @@ class PlatformExtrinsicsPages(wx.Panel):
 
     def _initialize(self):
         self.video_page.initialize()
+        self.result_page.Hide()
         self.video_page.Show()
         self.video_page.play()
-        self.result_page.Hide()
         self.video_page.right_button.Enable()
         self.GetParent().Layout()
+        self.Layout()
 
     def play(self):
         self.video_page.play()
