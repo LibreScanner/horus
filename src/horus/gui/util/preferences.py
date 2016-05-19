@@ -71,6 +71,8 @@ class PreferencesDialog(wx.Dialog):
             self.gauge = wx.Gauge(self, range=100, size=(180, -1))
             self.gauge.Hide()
 
+            self.enable_firmware_section(not driver.is_connected)
+
             self.language_label = wx.StaticText(self, label=_("Language"))
             self.languages = [row[1] for row in resources.get_language_options()]
             self.language_combo = wx.ComboBox(self, choices=self.languages,
@@ -231,11 +233,20 @@ class PreferencesDialog(wx.Dialog):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def enable_firmware_section(self, value):
+        if value:
+            self.upload_firmware_button.Enable()
+            self.clear_check_box.Enable()
+            self.boards_combo.Enable()
+            self.hex_combo.Enable()
+        else:
+            self.upload_firmware_button.Disable()
+            self.clear_check_box.Disable()
+            self.boards_combo.Disable()
+            self.hex_combo.Disable()
+
     def before_load_firmware(self):
-        self.upload_firmware_button.Disable()
-        self.clear_check_box.Disable()
-        self.boards_combo.Disable()
-        self.hex_combo.Disable()
+        self.enable_firmware_section(False)
         self.cancel_button.Disable()
         self.save_button.Disable()
         self.gauge.SetValue(0)
@@ -245,10 +256,7 @@ class PreferencesDialog(wx.Dialog):
         self.SetSizerAndFit(self.GetSizer())
 
     def after_load_firmware(self):
-        self.upload_firmware_button.Enable()
-        self.clear_check_box.Enable()
-        self.boards_combo.Enable()
-        self.hex_combo.Enable()
+        self.enable_firmware_section(True)
         self.cancel_button.Enable()
         self.save_button.Enable()
         self.gauge.Hide()

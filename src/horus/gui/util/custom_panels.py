@@ -813,7 +813,7 @@ class FloatLabelArray(ControlPanel):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 2)
         vbox.AddStretchSpacer()
-        vbox.Add(self.control, 0, wx.ALL | wx.EXPAND, 10)
+        vbox.Add(self.control, 0, wx.TOP | wx.EXPAND, 10)
         self.SetSizer(vbox)
         self.Layout()
 

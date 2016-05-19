@@ -152,19 +152,22 @@ class Camera(object):
         c_exp = False
         c_bri = False
 
-        # Check exposure
-        if system == 'Darwin':
-            self.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1)
-        self.set_exposure(2)
-        exposure = self.get_exposure()
-        if exposure is not None:
-            c_exp = exposure >= 1.9
+        try:
+            # Check exposure
+            if system == 'Darwin':
+                self.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1)
+            self.set_exposure(2)
+            exposure = self.get_exposure()
+            if exposure is not None:
+                c_exp = exposure >= 1.9
 
-        # Check brightness
-        self.set_brightness(2)
-        brightness = self.get_brightness()
-        if brightness is not None:
-            c_bri = brightness >= 2
+            # Check brightness
+            self.set_brightness(2)
+            brightness = self.get_brightness()
+            if brightness is not None:
+                c_bri = brightness >= 2
+        except:
+            raise WrongCamera()
 
         if not c_exp or not c_bri:
             raise WrongCamera()
@@ -237,7 +240,8 @@ class Camera(object):
                     ctl.set_val(self._line(value, 0, self._max_brightness, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_brightness
-                    if self._capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value):
+                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
+                    if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
 
@@ -251,7 +255,8 @@ class Camera(object):
                     ctl.set_val(self._line(value, 0, self._max_contrast, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_contrast
-                    if self._capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value):
+                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
+                    if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
 
@@ -265,7 +270,8 @@ class Camera(object):
                     ctl.set_val(self._line(value, 0, self._max_saturation, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_saturation
-                    if self._capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value):
+                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
+                    if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
 
@@ -286,7 +292,8 @@ class Camera(object):
                     self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
                 else:
                     value = int(value) / self._max_exposure
-                    if self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value):
+                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
+                    if system == 'Linux' and ret:
                         raise InputOutputError()
                 self._updating = False
 

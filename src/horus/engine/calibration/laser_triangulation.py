@@ -49,6 +49,7 @@ class LaserTriangulation(MovingCalibration):
             pose = self.image_detection.detect_pose(image)
             plane = self.image_detection.detect_pattern_plane(pose)
             self.image_capture.flush_laser()
+            self.image_capture.flush_laser()
             if plane is not None:
                 distance, normal, corners = plane
                 for i in xrange(2):

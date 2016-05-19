@@ -44,44 +44,38 @@ class ComboCalibration(MovingCalibration):
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
         pose = self.image_detection.detect_pose(image)
-        if pose is None:
-            self.image = image
-        else:
-            # Platform extrinsics
-            plane = self.image_detection.detect_pattern_plane(pose)
-            if plane is not None:
-                distance, normal, corners = plane
-                origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
-                origin = np.array([[origin[0]], [origin[1]]])
-                t = self.point_cloud_generation.compute_camera_point_cloud(
-                    origin, distance, normal)
-                if t is not None:
-                    self.x += [t[0][0]]
-                    self.y += [t[1][0]]
-                    self.z += [t[2][0]]
+        plane = self.image_detection.detect_pattern_plane(pose)
+        if plane is not None:
+            distance, normal, corners = plane
 
             # Laser triangulation
             if (angle > 65 and angle < 115):
-                plane = self.image_detection.detect_pattern_plane(pose)
                 self.image_capture.flush_laser()
-                if plane is not None:
-                    distance, normal, corners = plane
-                    for i in xrange(2):
-                        image = self.image_capture.capture_laser(i)
-                        image = self.image_detection.pattern_mask(image, corners)
-                        self.image = image
-                        points_2d, _ = self.laser_segmentation.compute_2d_points(image)
-                        point_3d = self.point_cloud_generation.compute_camera_point_cloud(
-                            points_2d, distance, normal)
-                        if self._point_cloud[i] is None:
-                            self._point_cloud[i] = point_3d.T
-                        else:
-                            self._point_cloud[i] = np.concatenate(
-                                (self._point_cloud[i], point_3d.T))
-                else:
+                self.image_capture.flush_laser()
+                for i in xrange(2):
+                    image = self.image_capture.capture_laser(i)
+                    image = self.image_detection.pattern_mask(image, corners)
                     self.image = image
-            else:
-                self.image = image
+                    points_2d, _ = self.laser_segmentation.compute_2d_points(image)
+                    point_3d = self.point_cloud_generation.compute_camera_point_cloud(
+                        points_2d, distance, normal)
+                    if self._point_cloud[i] is None:
+                        self._point_cloud[i] = point_3d.T
+                    else:
+                        self._point_cloud[i] = np.concatenate(
+                            (self._point_cloud[i], point_3d.T))
+
+            # Platform extrinsics
+            origin = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
+            origin = np.array([[origin[0]], [origin[1]]])
+            t = self.point_cloud_generation.compute_camera_point_cloud(
+                origin, distance, normal)
+            if t is not None:
+                self.x += [t[0][0]]
+                self.y += [t[1][0]]
+                self.z += [t[2][0]]
+        else:
+            self.image = image
 
     def _calibrate(self):
         self.has_image = False
