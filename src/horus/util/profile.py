@@ -370,6 +370,8 @@ class Settings(collections.MutableMapping):
                     float, 200.0, min_value=1.0, max_value=1000.0))
 
         self._add_setting(
+            Setting('show_center', _('Show center'), 'profile_settings', bool, True))
+        self._add_setting(
             Setting('use_roi', _('Use ROI'), 'profile_settings', bool, False))
         self._add_setting(
             Setting('roi_diameter', _('Diameter (mm)'), 'profile_settings',

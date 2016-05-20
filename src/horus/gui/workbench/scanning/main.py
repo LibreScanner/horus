@@ -141,6 +141,7 @@ class ScanningWorkbench(Workbench):
         ciclop_scan.color = struct.unpack(
             'BBB', profile.settings['point_cloud_color'].decode('hex'))
         ciclop_scan.set_scan_sleep(profile.settings['scan_sleep'])
+        point_cloud_roi.set_show_center(profile.settings['show_center'])
         point_cloud_roi.set_use_roi(profile.settings['use_roi'])
         point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
         point_cloud_roi.set_height(profile.settings['roi_height'])
@@ -154,6 +155,7 @@ class ScanningWorkbench(Workbench):
         else:
             image_capture.stream = True
             image = image_capture.capture_texture()
+            image = point_cloud_roi.draw_cross(image)
             if self.scene_view._view_roi:
                 image = point_cloud_roi.mask_image(image)
                 image = point_cloud_roi.draw_roi(image)
