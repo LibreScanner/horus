@@ -17,7 +17,7 @@ BUILD_TARGET=${1:-none}
 EXTRA_ARGS=${2}
 
 ##Which version name are we appending to the final archive
-export VERSION=0.2b4
+export VERSION=0.2rc1
 export DATETIME=`git log -1 --pretty=%ci`
 export COMMIT=`git log -1 --pretty=%H`
 TARGET_DIR=Horus-${VERSION}-${BUILD_TARGET}
@@ -147,7 +147,7 @@ if [ $BUILD_TARGET = "debian" ]; then
 			# Upload to launchpad
 			debuild -S -sa
 			PPA=${PPA:="ppa:bqlabs/horus-dev"}
-			RELEASES="trusty vivid wily"
+			RELEASES="trusty vivid wily xenial"
 			for RELEASE in $RELEASES ;
 			do
 			  cp debian/changelog debian/changelog.backup
