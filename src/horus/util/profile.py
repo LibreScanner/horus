@@ -549,6 +549,29 @@ class Settings(collections.MutableMapping):
                     tooltip=_('Change the language of Horus. '
                               'Switching language will require a program restart')))
 
+        # Video flush values
+        # - Linux
+        self._add_setting(
+            Setting('flush_linux', 'Flush Linux', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([3, 2, 3]))))
+        self._add_setting(
+            Setting('flush_stream_linux', 'Flush stream Linux', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 2, 0]))))
+        # - Darwin
+        self._add_setting(
+            Setting('flush_darwin', 'Flush Darwin', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([4, 3, 4]))))
+        self._add_setting(
+            Setting('flush_stream_darwin', 'Flush stream Darwin', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 2, 0]))))
+        # - Windows
+        self._add_setting(
+            Setting('flush_windows', 'Flush Windows', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([4, 3, 4]))))
+        self._add_setting(
+            Setting('flush_stream_windows', 'Flush stream Windows', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 2, 0]))))
+
         # Hack to translate combo boxes:
         self._add_setting(
             Setting('workbench', _('Workbench'), 'preferences', unicode, u'scanning',

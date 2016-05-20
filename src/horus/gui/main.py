@@ -14,7 +14,7 @@ import webbrowser
 from collections import OrderedDict
 
 from horus import __version__, __datetime__, __commit__
-from horus.gui.engine import driver, ciclop_scan, scanner_autocheck, \
+from horus.gui.engine import driver, image_capture, ciclop_scan, scanner_autocheck, \
     laser_triangulation, platform_extrinsics
 
 from horus.gui.welcome import WelcomeDialog
@@ -603,3 +603,20 @@ class MainWindow(wx.Frame):
         driver.board.baud_rate = profile.settings['baud_rate']
         driver.board.motor_invert(profile.settings['invert_motor'])
         platform_extrinsics.set_estimated_size(profile.settings['estimated_size'])
+
+        flush_setting = 'flush_'
+        flush_stream_setting = 'flush_stream_'
+        if sys.is_linux():
+            flush_setting += 'linux'
+            flush_stream_setting += 'linux'
+        elif sys.is_darwin():
+            flush_setting += 'darwin'
+            flush_stream_setting += 'darwin'
+        elif sys.is_windows():
+            flush_setting += 'windows'
+            flush_stream_setting += 'windows'
+
+        texture, laser, pattern = profile.settings[flush_setting]
+        image_capture.set_flush_values(texture, laser, pattern)
+        texture, laser, pattern = profile.settings[flush_stream_setting]
+        image_capture.set_flush_stream_values(texture, laser, pattern)

@@ -28,7 +28,7 @@ class ImageView(wx.Panel):
 
         self.black = black
         self.frame = None
-        self.current_size = (0, 0)
+        self.current_size = self.GetSizeTuple()
         self.SetDoubleBuffered(True)
 
         self.Bind(wx.EVT_SHOW, self.on_show)

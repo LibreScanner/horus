@@ -197,7 +197,9 @@ class Camera(object):
                 else:
                     if flush > 0:
                         for i in xrange(flush):
-                            self._capture.grab()
+                            self._capture.read()
+                            # Note: Windows needs read() to perform
+                            #       the flush instead of grab()
                 ret, image = self._capture.read()
                 self._reading = False
                 if ret:

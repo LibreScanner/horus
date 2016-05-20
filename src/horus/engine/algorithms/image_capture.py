@@ -6,13 +6,10 @@ __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
 import cv2
-import platform
 
 from horus import Singleton
 from horus.engine.driver.driver import Driver
 from horus.engine.calibration.calibration_data import CalibrationData
-
-system = platform.system()
 
 
 class CameraSettings(object):
@@ -65,28 +62,6 @@ class ImageCapture(object):
         self.pattern_mode = CameraSettings()
 
         self.stream = True
-        if system == 'Linux':
-            self._flush_texture = 3
-            self._flush_laser = 2
-            self._flush_pattern = 3
-            self._flush_stream_texture = 0
-            self._flush_stream_laser = 2
-            self._flush_stream_pattern = 0
-        elif system == 'Darwin':
-            self._flush_texture = 4
-            self._flush_laser = 3
-            self._flush_pattern = 4
-            self._flush_stream_texture = 0
-            self._flush_stream_laser = 2
-            self._flush_stream_pattern = 0
-        elif system == 'Windows':
-            self._flush_texture = 4
-            self._flush_laser = 4
-            self._flush_pattern = 4
-            self._flush_stream_texture = 0
-            self._flush_stream_laser = 2
-            self._flush_stream_pattern = 0
-
         self._mode = self.pattern_mode
         self._mode.selected = True
         self._remove_background = True
@@ -97,6 +72,16 @@ class ImageCapture(object):
         self.texture_mode.initialize()
         self.laser_mode.initialize()
         self.pattern_mode.initialize()
+
+    def set_flush_values(self, texture, laser, pattern):
+        self._flush_texture = texture
+        self._flush_laser = laser
+        self._flush_pattern = pattern
+
+    def set_flush_stream_values(self, texture, laser, pattern):
+        self._flush_stream_texture = texture
+        self._flush_stream_laser = laser
+        self._flush_stream_pattern = pattern
 
     def set_use_distortion(self, value):
         self.use_distortion = value
