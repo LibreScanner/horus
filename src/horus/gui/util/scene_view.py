@@ -58,6 +58,7 @@ class SceneView(opengl_gui.glGuiPanel):
         self._h_offset = 20
 
         self._view_roi = False
+        self._point_size = 2
 
         self._object_point_cloud = []
         self._object_texture = []
@@ -303,6 +304,9 @@ class SceneView(opengl_gui.glGuiPanel):
 
     def set_show_delete_menu(self, value=True):
         self._show_delete_menu = value
+
+    def set_point_size(self, value):
+        self._point_size = value
 
     def on_delete_object(self, event):
         if self._object is not None:
@@ -583,7 +587,8 @@ class SceneView(opengl_gui.glGuiPanel):
                     obj._mesh.vbo = opengl_helpers.GLVBO(
                         GL_POINTS,
                         obj._mesh.vertexes[:obj._mesh.vertex_count],
-                        color_array=obj._mesh.colors[:obj._mesh.vertex_count])
+                        color_array=obj._mesh.colors[:obj._mesh.vertex_count],
+                        point_size=self._point_size)
                 obj._mesh.vbo.render()
         else:
             if obj._mesh is not None:

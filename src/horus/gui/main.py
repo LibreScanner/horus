@@ -84,6 +84,8 @@ class MainWindow(wx.Frame):
         self.update_workbench(name)
         self.SetSizer(sizer)
 
+        self.workbench['scanning'].scene_view.set_point_size(profile.settings['point_size'])
+
     def load_menu(self):
         self.menu_bar = wx.MenuBar()
 

@@ -156,9 +156,10 @@ class GLVBO(GLReferenceCounter):
     """
 
     def __init__(self, render_type, vertex_array,
-                 normal_array=None, indices_array=None, color_array=None):
+                 normal_array=None, indices_array=None, color_array=None, point_size=2):
         super(GLVBO, self).__init__()
         self._render_type = render_type
+        self._point_size = point_size
         if not bool(glGenBuffers):  # Fallback if buffers are not supported.
             self._vertex_array = vertex_array
             self._normal_array = normal_array
@@ -183,7 +184,7 @@ class GLVBO(GLReferenceCounter):
                     (vertex_array, normal_array), 1), GL_STATIC_DRAW)
             else:
                 if self._has_color:
-                    glPointSize(1)
+                    glPointSize(self._point_size)
                     self._buffer = glGenBuffers(2)
                     glBindBuffer(GL_ARRAY_BUFFER, self._buffer[0])
                     glBufferData(GL_ARRAY_BUFFER, vertex_array, GL_STATIC_DRAW)

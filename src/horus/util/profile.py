@@ -572,6 +572,9 @@ class Settings(collections.MutableMapping):
             Setting('flush_stream_windows', 'Flush stream Windows', 'preferences',
                     np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 2, 0]))))
 
+        self._add_setting(
+            Setting('point_size', 'Point size', 'preferences', int, 2, min_value=1, max_value=4))
+
         # Hack to translate combo boxes:
         self._add_setting(
             Setting('workbench', _('Workbench'), 'preferences', unicode, u'scanning',
@@ -648,7 +651,7 @@ class Setting(object):
         if value is None:
             return
         self._check_type(value)
-        self._check_range(value)
+        value = self._check_range(value)
         self._check_possible_values(value)
         self.__value = value
 
@@ -659,7 +662,7 @@ class Setting(object):
     @default.setter
     def default(self, value):
         self._check_type(value)
-        self._check_range(value)
+        value = self._check_range(value)
         self._check_possible_values(value)
         self.__default = value
 
@@ -695,11 +698,14 @@ class Setting(object):
             # (self._id, value, self.min_value))
             logger.warning('Warning: For setting %s, %s is below min value %s.' % (self._id, value,
                            self.min_value))
+            return self.min_value
         if self.max_value is not None and value > self.max_value:
             # raise ValueError('Error when setting %s.\n%s is above max value %s.' %
             # (self._id, value, self.max_value))
             logger.warning('Warning: For setting %s.\n%s is above max value %s.' % (self._id, value,
                            self.max_value))
+            return self.max_value
+        return value
 
     def _check_possible_values(self, value):
         if self._possible_values is not None and value not in self._possible_values:
