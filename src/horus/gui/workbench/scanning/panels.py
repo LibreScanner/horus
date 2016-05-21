@@ -18,7 +18,7 @@ class ScanParameters(ExpandablePanel):
 
     def __init__(self, parent, on_selected_callback):
         ExpandablePanel.__init__(
-            self, parent, _("Scan Parameters"), has_undo=False, has_restore=False)
+            self, parent, _("Scan parameters"), has_undo=False, has_restore=False)
         self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):
@@ -47,11 +47,16 @@ class RotatingPlatform(ExpandablePanel):
         self.main = self.GetParent().GetParent().GetParent()
 
     def add_controls(self):
+        self.add_control(
+            'show_center', CheckBox,
+            _("Shows the center of the platform using the "
+              "current calibration parameters"))
         self.add_control('motor_step_scanning', FloatTextBox)
         self.add_control('motor_speed_scanning', FloatTextBox)
         self.add_control('motor_acceleration_scanning', FloatTextBox)
 
     def update_callbacks(self):
+        self.update_callback('show_center', point_cloud_roi.set_show_center)
         self.update_callback('motor_step_scanning', ciclop_scan.set_motor_step)
         self.update_callback('motor_speed_scanning', ciclop_scan.set_motor_speed)
         self.update_callback('motor_acceleration_scanning', ciclop_scan.set_motor_acceleration)

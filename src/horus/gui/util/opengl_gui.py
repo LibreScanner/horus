@@ -232,7 +232,7 @@ class glGuiPanel(glcanvas.GLCanvas):
             # When an exception happens, catch it and show a message box.
             # If the exception is not caught the draw function bugs out.
             # Only show this exception once so we do not overload the user with popups.
-            errStr = _("An error has occurred during the 3D view drawing.")
+            errStr = _("An error occurred during the 3D view drawing.")
             tb = traceback.extract_tb(sys.exc_info()[2])
             errStr += "\n%s: '%s'" % (str(sys.exc_info()[0].__name__), str(sys.exc_info()[1]))
             for n in xrange(len(tb) - 1, -1, -1):

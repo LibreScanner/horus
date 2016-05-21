@@ -18,11 +18,11 @@ from horus.gui.util.scene_view import SceneView
 class ViewPage(wx.SplitterWindow):
 
     def __init__(self, parent, get_image):
-        wx.SplitterWindow.__init__(self, parent, style=wx.SP_3D | wx.SP_LIVE_UPDATE)
+        wx.SplitterWindow.__init__(self, parent, style=wx.SP_3D)  # | wx.SP_LIVE_UPDATE)
 
         self.get_image = get_image
 
-        self.video_view = VideoView(self, get_image, wxtimer=False)
+        self.video_view = VideoView(self, get_image)
 
         self.scene_panel = wx.Panel(self)
         self.scene_view = SceneView(self.scene_panel)
@@ -45,7 +45,7 @@ class ViewPage(wx.SplitterWindow):
             _choices.append(_(i))
         self.video_views_dict = dict(zip(_choices, choices))
         self.combo_video_views = wx.ComboBox(self.video_view,
-                                             value=self.video_views_dict[u'Texture'],
+                                             value=_(u'Texture'),
                                              choices=_choices, style=wx.CB_READONLY,
                                              size=(100, -1), pos=(0, -1))
         self.combo_video_views.Hide()
@@ -56,7 +56,7 @@ class ViewPage(wx.SplitterWindow):
 
     def on_show(self, event):
         if event.GetShow():
-            if driver.is_connected:
+            if driver.is_connected and profile.settings['workbench'] == 'scanning':
                 self.video_view.play()
         else:
             try:

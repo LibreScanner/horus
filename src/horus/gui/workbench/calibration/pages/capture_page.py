@@ -57,7 +57,7 @@ class CapturePage(Page):
     def initialize(self):
         self.desc_text.SetLabel(
             _("Default values are recommended. To perform the calibration, "
-              "disable 'use distortion', click over the video panel and press "
+              "click over the video panel and press "
               "space bar to perform the captures."))
         self.current_grid = 0
         self.gauge.SetValue(0)

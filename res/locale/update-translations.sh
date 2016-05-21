@@ -2,7 +2,7 @@
 xgettext --language=Python \
 	--copyright-holder='bq' \
 	--package-name=Horus \
-	--package-version=0.1 \
+	--package-version=0.2 \
 	--msgid-bugs-address=jesus.arroyo@bq.com \
 	--keyword=_ \
 	--output=horus.pot \

@@ -103,24 +103,24 @@ class CalibrationWorkbench(Workbench):
             self.pages_collection[page].reset()
 
     def setup_engine(self):
-        driver.board.lasers_off()
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(
             profile.settings['camera_width'], profile.settings['camera_height'])
-        profile.settings['camera_width'] = int(driver.camera._width)
-        profile.settings['camera_height'] = int(driver.camera._height)
         driver.camera.set_rotate(profile.settings['camera_rotate'])
-        driver.camera.set_mirror(profile.settings['camera_mirror'])
+        driver.camera.set_hflip(profile.settings['camera_hflip'])
+        driver.camera.set_vflip(profile.settings['camera_vflip'])
+        driver.camera.set_luminosity(profile.settings['luminosity'])
         image_capture.set_mode_pattern()
         pattern_mode = image_capture.pattern_mode
         pattern_mode.set_brightness(profile.settings['brightness_pattern_calibration'])
         pattern_mode.set_contrast(profile.settings['contrast_pattern_calibration'])
         pattern_mode.set_saturation(profile.settings['saturation_pattern_calibration'])
         pattern_mode.set_exposure(profile.settings['exposure_pattern_calibration'])
-        image_capture.laser_mode.brightness = profile.settings['brightness_laser_calibration']
-        image_capture.laser_mode.contrast = profile.settings['contrast_laser_calibration']
-        image_capture.laser_mode.saturation = profile.settings['saturation_laser_calibration']
-        image_capture.laser_mode.exposure = profile.settings['exposure_laser_calibration']
+        laser_mode = image_capture.laser_mode
+        laser_mode.brightness = profile.settings['brightness_laser_calibration']
+        laser_mode.contrast = profile.settings['contrast_laser_calibration']
+        laser_mode.saturation = profile.settings['saturation_laser_calibration']
+        laser_mode.exposure = profile.settings['exposure_laser_calibration']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_calibration'])
         laser_segmentation.red_channel = profile.settings['red_channel_calibration']

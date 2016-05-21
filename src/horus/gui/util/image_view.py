@@ -5,6 +5,8 @@ __author__ = 'Jesús Arroyo Torrens <jesus.arroyo@bq.com>'
 __copyright__ = 'Copyright (C) 2014-2016 Mundo Reader S.L.'
 __license__ = 'GNU General Public License v2 http://www.gnu.org/licenses/gpl2.html'
 
+import time
+
 import wx._core
 
 from horus.util import resources
@@ -26,6 +28,7 @@ class ImageView(wx.Panel):
 
         self.black = black
         self.frame = None
+        self.current_size = self.GetSizeTuple()
         self.SetDoubleBuffered(True)
 
         self.Bind(wx.EVT_SHOW, self.on_show)
@@ -51,7 +54,10 @@ class ImageView(wx.Panel):
             dc.DrawBitmap(self.bitmap, self.x_offset, self.y_offset)
 
     def on_resize(self, size):
-        self.refresh_bitmap()
+        new_size = size.GetSize()
+        if self.current_size != new_size:
+            self.current_size = new_size
+            self.refresh_bitmap()
 
     def set_image(self, image):
         if image is not None:
@@ -76,7 +82,7 @@ class ImageView(wx.Panel):
             self.Refresh()
 
     def get_best_size(self):
-        (wwidth, wheight) = self.GetSizeTuple()
+        (wwidth, wheight) = self.current_size
         (width, height) = self.image.GetSize()
 
         if height > 0 and wheight > 0:

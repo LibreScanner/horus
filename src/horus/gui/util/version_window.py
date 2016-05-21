@@ -19,7 +19,7 @@ class VersionWindow(wx.Dialog):
 
         # Elements
         self.description = wx.StaticText(
-            self, label=_('A new version of Horus is available, would you like to download?'))
+            self, label=_('A new version of Horus is available, would you like to download it?'))
         self.download_button = wx.Button(self, label=_('Download'))
         self.cancel_button = wx.Button(self, label=_('Cancel'))
 

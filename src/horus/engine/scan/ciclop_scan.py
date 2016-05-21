@@ -26,9 +26,7 @@ system = platform.system()
 class ScanError(Exception):
 
     def __init__(self):
-        Exception.__init__(self, "ScanError")
-
-string_time = ""
+        Exception.__init__(self, "Scan Error")
 
 
 @Singleton
@@ -54,8 +52,10 @@ class CiclopScan(Scan):
 
         self._theta = 0
         self._debug = False
+        self._bicolor = False
+        self._scan_sleep = 0.05
         self._captures_queue = Queue.Queue(10)
-        self._point_cloud_queue = Queue.Queue(10)
+        self.point_cloud_callback = None
 
     def set_capture_texture(self, value):
         self.capture_texture = value
@@ -81,92 +81,104 @@ class CiclopScan(Scan):
     def set_debug(self, value):
         self._debug = value
 
+    def set_scan_sleep(self, value):
+        self._scan_sleep = value / 1000.
+
     def _initialize(self):
-        global string_time
         self.image = None
         self.image_capture.stream = False
         self._theta = 0
         self._progress = 0
         self._captures_queue.queue.clear()
-        self._point_cloud_queue.queue.clear()
         self._begin = time.time()
 
         # Setup console
         logger.info("Start scan")
-        if system == 'Linux':
+        if self._debug and system == 'Linux':
             string_time = str(datetime.datetime.now())[:-3] + " - "
             print string_time + " elapsed progress: 0 %"
             print string_time + " elapsed time: 0' 0\""
             print string_time + " elapsed angle: 0º"
             print string_time + " capture: 0 ms"
-            print string_time + " process: 0 ms"
 
         # Setup scanner
         self.driver.board.lasers_off()
         if self.move_motor:
             self.driver.board.motor_enable()
-            self.driver.board.motor_relative(self.motor_step)
+            self.driver.board.motor_reset_origin()
             self.driver.board.motor_speed(self.motor_speed)
             self.driver.board.motor_acceleration(self.motor_acceleration)
-            time.sleep(0.1)
         else:
             self.driver.board.motor_disable()
 
     def _capture(self):
-        global string_time
+        # Flush buffer of texture captures
+        self.image_capture.flush_laser()
         while self.is_scanning:
-            time.sleep(0.02)
             if self._inactive:
                 self.image_capture.stream = True
                 time.sleep(0.1)
             else:
                 self.image_capture.stream = False
-                if abs(self._theta) > 2 * np.pi:
+                if abs(self._theta) >= 360.0:
                     break
                 else:
                     begin = time.time()
-                    # Capture images
-                    capture = self._capture_images()
+                    try:
+                        # Capture images
+                        capture = self._capture_images()
+                        # Put images into queue
+                        self._captures_queue.put(capture)
+                    except Exception as e:
+                        self.is_scanning = False
+                        response = (False, e)
+                        if self._after_callback is not None:
+                            self._after_callback(response)
+                        break
+
                     # Move motor
                     if self.move_motor:
-                        self.driver.board.motor_relative(self.motor_step)
-                        self.driver.board.motor_move()
+                        self.driver.board.motor_move(self.motor_step)
                     else:
-                        time.sleep(0.05)
+                        time.sleep(0.130)  # Time for 0.45º movement
+
                     # Update theta
-                    self._theta += np.deg2rad(self.motor_step)
+                    self._theta += self.motor_step
                     # Refresh progress
-                    if abs(self.motor_step) > 0:
-                        self._progress = abs(np.rad2deg(self._theta) / self.motor_step)
+                    if self.motor_step != 0:
+                        self._progress = abs(self._theta / self.motor_step)
                         self._range = abs(360.0 / self.motor_step)
-                    # Put images into queue
-                    self._captures_queue.put(capture)
 
                     # Print info
-                    end = time.time()
+                    self._end = time.time()
                     string_time = str(datetime.datetime.now())[:-3] + " - "
 
-                    # Cursor up + remove lines
-                    if system == 'Linux':
-                        print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
+                    if self._debug and system == 'Linux':
+                        # Cursor up + remove lines
+                        print "\x1b[1A\x1b[1A\x1b[1A\x1b[1A\x1b[2K\x1b[1A"
                         print string_time + " elapsed progress: {0} %".format(
-                            int(100 * self._progress / self._range))
+                            int(self._theta / 3.6))
                         print string_time + " elapsed time: {0}".format(
-                            time.strftime("%M' %S\"", time.gmtime(end - self._begin)))
+                            time.strftime("%M' %S\"", time.gmtime(self._end - self._begin)))
                         print string_time + " elapsed angle: {0}º".format(
-                            int(np.rad2deg(self._theta)))
+                            float(self._theta))
                         print string_time + " capture: {0} ms".format(
-                            int((end - begin) * 1000))
+                            int((self._end - begin) * 1000))
+            # Sleep
+            time.sleep(self._scan_sleep)
 
         self.driver.board.lasers_off()
         self.driver.board.motor_disable()
 
     def _capture_images(self):
         capture = ScanCapture()
-        capture.theta = self._theta
+        capture.theta = np.deg2rad(self._theta)
 
         if self.capture_texture:
             capture.texture = self.image_capture.capture_texture()
+            # Flush buffer to improve the synchronization when
+            # the texture exposure is around 33 ms
+            self.image_capture.flush_laser()
         else:
             r, g, b = self.color
             ones = np.zeros((self.calibration_data.height,
@@ -190,89 +202,91 @@ class CiclopScan(Scan):
         return capture
 
     def _process(self):
-        global string_time
         ret = False
         while self.is_scanning:
-            time.sleep(0.05)
             if self._inactive:
                 self.image_detection.stream = True
                 time.sleep(0.1)
             else:
                 self.image_detection.stream = False
-                if abs(self._theta) > 2 * np.pi:
+                if self._theta >= 360.0:
                     self.is_scanning = False
                     ret = True
                     break
                 else:
                     if not self._captures_queue.empty():
-                        begin = time.time()
                         # Get capture from queue
                         capture = self._captures_queue.get(timeout=0.1)
                         self._captures_queue.task_done()
+                        # Process capture
+                        self._process_capture(capture)
+            # Sleep
+            time.sleep(self._scan_sleep)
 
-                        # Current video arrays
-                        images = [None, None]
-                        points = [None, None]
-
-                        for i in xrange(2):
-                            if capture.lasers[i] is not None:
-                                image = capture.lasers[i]
-                                self.image = image
-                                # Compute 2D points from images
-                                points_2d, image = self.laser_segmentation.compute_2d_points(image)
-                                images[i] = image
-                                points[i] = points_2d
-                                # Compute point cloud from 2D points
-                                point_cloud = self.point_cloud_generation.compute_point_cloud(
-                                    capture.theta, points_2d, i)
-                                # Compute point cloud texture
-                                u, v = points_2d
-
-                                if self._debug:
-                                    if i == 0:
-                                        r, g, b = 255, 0, 0
-                                    else:
-                                        r, g, b = 0, 255, 0
-                                    texture = np.zeros((3, len(v)), np.uint8)
-                                    texture[0, :] = r
-                                    texture[1, :] = g
-                                    texture[2, :] = b
-                                else:
-                                    texture = capture.texture[v, np.around(u).astype(int)].T
-
-                                self._point_cloud_queue.put((point_cloud, texture))
-
-                        # Set current video images
-                        self.current_video.set_gray(images)
-                        self.current_video.set_line(points, image)
-
-                        # Print info
-                        if system == 'Linux':
-                            print string_time + " process: {0} ms".format(
-                                int((time.time() - begin) * 1000))
         if ret:
             response = (True, None)
         else:
-            response = (False, ScanError)
+            response = (False, ScanError())
 
         # Cursor down
-        print "\x1b[1C"
+        # if self._debug and system == 'Linux':
+        #     print "\x1b[1C"
 
         self.image_capture.stream = True
 
-        logger.info("Finish scan")
+        progress = 0
+        if self._range > 0:
+            progress = int(100 * self._progress / self._range)
+        logger.info("Finish scan {0} %  Time {1}".format(
+            progress,
+            time.strftime("%M' %S\"", time.gmtime(self._end - self._begin))))
 
         if self._after_callback is not None:
             self._after_callback(response)
 
-    def get_progress(self):
-        return self._progress, self._range
+    def _process_capture(self, capture):
+        # Current video arrays
+        image = None
+        images = [None, None]
+        points = [None, None]
 
-    def get_point_cloud_increment(self):
-        if not self._point_cloud_queue.empty():
-            pc = self._point_cloud_queue.get_nowait()
-            if pc is not None:
-                self._point_cloud_queue.task_done()
-            return pc
-        else:
-            return None
+        # begin = time.time()
+
+        for i in xrange(2):
+            if capture.lasers[i] is not None:
+                image = capture.lasers[i]
+                self.image = image
+                # Compute 2D points from images
+                points_2d, image = self.laser_segmentation.compute_2d_points(image)
+                images[i] = image
+                points[i] = points_2d
+                # Compute point cloud from 2D points
+                point_cloud = self.point_cloud_generation.compute_point_cloud(
+                    capture.theta, points_2d, i)
+                # Compute point cloud texture
+                u, v = points_2d
+
+                if self._bicolor:
+                    if i == 0:
+                        r, g, b = 255, 0, 0
+                    else:
+                        r, g, b = 0, 255, 0
+                    texture = np.zeros((3, len(v)), np.uint8)
+                    texture[0, :] = r
+                    texture[1, :] = g
+                    texture[2, :] = b
+                else:
+                    texture = capture.texture[v, np.around(u).astype(int)].T
+
+                if self.point_cloud_callback:
+                    self.point_cloud_callback(self._range, self._progress,
+                                              (point_cloud, texture))
+
+        # Set current video images
+        self.current_video.set_gray(images)
+        self.current_video.set_line(points, image)
+
+        # Print info
+        """if self._debug and system == 'Linux':
+            print string_time + " process: {0} ms".format(
+                int((time.time() - begin) * 1000))"""

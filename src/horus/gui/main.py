@@ -14,7 +14,7 @@ import webbrowser
 from collections import OrderedDict
 
 from horus import __version__, __datetime__, __commit__
-from horus.gui.engine import driver, ciclop_scan, scanner_autocheck, \
+from horus.gui.engine import driver, image_capture, ciclop_scan, scanner_autocheck, \
     laser_triangulation, platform_extrinsics
 
 from horus.gui.welcome import WelcomeDialog
@@ -84,6 +84,8 @@ class MainWindow(wx.Frame):
         self.update_workbench(name)
         self.SetSizer(sizer)
 
+        self.workbench['scanning'].scene_view.set_point_size(profile.settings['point_size'])
+
     def load_menu(self):
         self.menu_bar = wx.MenuBar()
 
@@ -96,18 +98,18 @@ class MainWindow(wx.Frame):
         self.menu_clear_model = self.menu_file.Append(wx.NewId(), _("Clear model"))
         self.menu_file.AppendSeparator()
         self.menu_open_profile = self.menu_file.Append(
-            wx.NewId(), _("Open profile"), _("Opens profile .json"))
+            wx.NewId(), _("Open profile"), _("Open profile .json"))
         self.menu_save_profile = self.menu_file.Append(
-            wx.NewId(), _("Save profile"), _("Saves profile .json"))
+            wx.NewId(), _("Save profile"), _("Save profile .json"))
         self.menu_reset_profile = self.menu_file.Append(
-            wx.NewId(), _("Reset profile"), _("Resets default values"))
+            wx.NewId(), _("Reset profile"), _("Reset default values"))
         self.menu_file.AppendSeparator()
         self.menu_open_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Open calibration"), _("Opens calibration .json"))
+            wx.NewId(), _("Open calibration"), _("Open calibration .json"))
         self.menu_save_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Save calibration"), _("Saves calibration .json"))
+            wx.NewId(), _("Save calibration"), _("Save calibration .json"))
         self.menu_reset_calibration_profile = self.menu_file.Append(
-            wx.NewId(), _("Reset calibration"), _("Resets calibration default values"))
+            wx.NewId(), _("Reset calibration"), _("Reset calibration default values"))
         self.menu_file.AppendSeparator()
         self.menu_export_log = self.menu_file.Append(
             wx.NewId(), _("Export log"), _("Export log file"))
@@ -226,8 +228,8 @@ class MainWindow(wx.Frame):
         if self.workbench['scanning'].scene_view._object is not None:
             dlg = wx.MessageDialog(
                 self,
-                _("Your current model will be erased.\nDo you really want to do it?"),
-                _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                _("Your current model will be deleted.\nAre you sure you want to delete it?"),
+                _("Clear point cloud"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
@@ -258,7 +260,7 @@ class MainWindow(wx.Frame):
     def on_reset_profile(self, category):
         dlg = wx.MessageDialog(
             self,
-            _("This will reset all profile settings to defaults.\n"
+            _("This will reset all profile settings to defaults. "
               "Unless you have saved your current profile, all settings will be lost!\n"
               "Do you really want to reset?"),
             _("Profile reset"), wx.YES_NO | wx.ICON_QUESTION)
@@ -271,8 +273,9 @@ class MainWindow(wx.Frame):
     def on_clear_log(self, event):
         dlg = wx.MessageDialog(
             self,
-            _("Your current log file will be erased.\nDo you really want to do it?"),
-            _("Clear Log File"), wx.YES_NO | wx.ICON_QUESTION)
+            _("Your current log file will be deleted.\n"
+              "Are you sure you want to delete it?"),
+            _("Clear log file"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         if result:
@@ -303,14 +306,14 @@ class MainWindow(wx.Frame):
 
     def on_close(self, event):
         try:
+            if ciclop_scan.is_scanning:
+                ciclop_scan.stop()
+                time.sleep(0.5)
             driver.board.set_unplug_callback(None)
             driver.camera.set_unplug_callback(None)
             driver.disconnect()
             for workbench in self.workbench:
                 workbench.on_disconnect()
-            if ciclop_scan.is_scanning:
-                ciclop_scan.stop()
-                time.sleep(0.5)
         except:
             pass
         self.Show(False)
@@ -338,7 +341,10 @@ class MainWindow(wx.Frame):
         profile.settings['last_files'] = self.last_files
 
     def on_preferences(self, event):
-        preferences = PreferencesDialog()
+        self.launch_preferences()
+
+    def launch_preferences(self, basic=False):
+        preferences = PreferencesDialog(basic=basic)
         preferences.ShowModal()
 
     """def on_machine_settings(self, event):
@@ -435,13 +441,22 @@ class MainWindow(wx.Frame):
     def update_workbench(self, name):
         self.wait_cursor = wx.BusyCursor()
         self.toolbar.combo.SetValue(name)
-        for key, wb in self.workbench.iteritems():
-            if wb.name != name:
-                wb.Hide()
-        for key, wb in self.workbench.iteritems():
-            if wb.name == name:
-                wb.Show()
-                profile.settings['workbench'] = key
+        if sys.is_windows():
+            for key, wb in self.workbench.iteritems():
+                if wb.name == name:
+                    wb.Show()
+                    profile.settings['workbench'] = key
+            for key, wb in self.workbench.iteritems():
+                if wb.name != name:
+                    wb.Hide()
+        else:
+            for key, wb in self.workbench.iteritems():
+                if wb.name != name:
+                    wb.Hide()
+            for key, wb in self.workbench.iteritems():
+                if wb.name == name:
+                    wb.Show()
+                    profile.settings['workbench'] = key
         is_scan = profile.settings['workbench'] == 'scanning'
         self.menu_file.Enable(self.menu_load_model.GetId(), is_scan)
         self.menu_file.Enable(self.menu_save_model.GetId(), is_scan)
@@ -590,3 +605,20 @@ class MainWindow(wx.Frame):
         driver.board.baud_rate = profile.settings['baud_rate']
         driver.board.motor_invert(profile.settings['invert_motor'])
         platform_extrinsics.set_estimated_size(profile.settings['estimated_size'])
+
+        flush_setting = 'flush_'
+        flush_stream_setting = 'flush_stream_'
+        if sys.is_linux():
+            flush_setting += 'linux'
+            flush_stream_setting += 'linux'
+        elif sys.is_darwin():
+            flush_setting += 'darwin'
+            flush_stream_setting += 'darwin'
+        elif sys.is_windows():
+            flush_setting += 'windows'
+            flush_stream_setting += 'windows'
+
+        texture, laser, pattern = profile.settings[flush_setting]
+        image_capture.set_flush_values(texture, laser, pattern)
+        texture, laser, pattern = profile.settings[flush_stream_setting]
+        image_capture.set_flush_stream_values(texture, laser, pattern)

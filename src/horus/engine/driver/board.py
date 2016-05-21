@@ -29,6 +29,12 @@ class BoardNotConnected(Exception):
         Exception.__init__(self, "Board Not Connected")
 
 
+class OldFirmware(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, "Old Firmware")
+
+
 class Board(object):
 
     """Board class. For accessing to the scanner board
@@ -37,6 +43,7 @@ class Board(object):
 
         G1 Fnnn : feed rate
         G1 Xnnn : move motor
+        G50     : reset origin position
 
         M70 Tn  : switch off laser n
         M71 Tn  : switch on laser n
@@ -55,7 +62,6 @@ class Board(object):
         self._is_connected = False
         self._motor_enabled = False
         self._motor_position = 0
-        self._motor_relative = 0
         self._motor_speed = 0
         self._motor_acceleration = 0
         self._motor_direction = 1
@@ -72,20 +78,23 @@ class Board(object):
             if self._serial_port.isOpen():
                 self._reset()  # Force Reset and flush
                 version = self._serial_port.readline()
-                if version == "Horus 0.1 ['$' for help]\r\n":
+                if "Horus 0.1 ['$' for help]" in version:
+                    raise OldFirmware()
+                elif "Horus 0.2 ['$' for help]" in version:
                     self.motor_speed(1)
-                    self.motor_absolute(0)
                     self._serial_port.timeout = 0.05
                     self._is_connected = True
+                    # Set current position as origin
+                    self.motor_reset_origin()
                     logger.info(" Done")
                 else:
                     raise WrongFirmware()
             else:
                 raise BoardNotConnected()
-        except:
+        except Exception as exception:
             logger.error("Error opening the port {0}\n".format(self.serial_name))
             self._serial_port = None
-            raise BoardNotConnected()
+            raise exception
 
     def disconnect(self):
         """Close serial port"""
@@ -95,11 +104,11 @@ class Board(object):
                 if self._serial_port is not None:
                     self.lasers_off()
                     self.motor_disable()
+                    self._is_connected = False
                     self._serial_port.close()
                     del self._serial_port
             except serial.SerialException:
                 logger.error("Error closing the port {0}\n".format(self.serial_name))
-            self._is_connected = False
             logger.info(" Done")
 
     def set_unplug_callback(self, value):
@@ -111,50 +120,58 @@ class Board(object):
         else:
             self._motor_direction = +1
 
-    def motor_relative(self, value):
-        self._motor_relative = value
-
-    def motor_absolute(self, value):
-        self._motor_relative = 0
-        self._motor_position = value
-
     def motor_speed(self, value):
-        if self._motor_speed != value:
-            self._send_command("G1F{0}".format(value))
-            self._motor_speed = value
+        if self._is_connected:
+            if self._motor_speed != value:
+                self._motor_speed = value
+                self._send_command("G1F{0}".format(value))
 
     def motor_acceleration(self, value):
-        if self._motor_acceleration != value:
-            self._send_command("$120={0}".format(value))
-            self._motor_acceleration = value
+        if self._is_connected:
+            if self._motor_acceleration != value:
+                self._motor_acceleration = value
+                self._send_command("$120={0}".format(value))
 
     def motor_enable(self):
-        if not self._motor_enabled:
-            speed = self._motor_speed
-            self.motor_speed(1)
-            self._send_command("M17")
-            time.sleep(0.3)
-            self.motor_speed(speed)
-            self._motor_enabled = True
+        if self._is_connected:
+            if not self._motor_enabled:
+                self._motor_enabled = True
+                # Save current speed value
+                speed = self._motor_speed
+                self.motor_speed(1)
+                # Enable stepper motor
+                self._send_command("M17")
+                time.sleep(1)
+                # Restore speed value
+                self.motor_speed(speed)
 
     def motor_disable(self):
-        if self._motor_enabled:
-            self._send_command("M18")
-            self._motor_enabled = False
+        if self._is_connected:
+            if self._motor_enabled:
+                self._motor_enabled = False
+                self._send_command("M18")
 
-    def motor_move(self, nonblocking=False, callback=None):
-        self._motor_position += self._motor_relative * self._motor_direction
-        self.send_command("G1X{0}".format(self._motor_position), nonblocking, callback)
+    def motor_reset_origin(self):
+        if self._is_connected:
+            self._send_command("G50")
+            self._motor_position = 0
+
+    def motor_move(self, step=0, nonblocking=False, callback=None):
+        if self._is_connected:
+            self._motor_position += step * self._motor_direction
+            self.send_command("G1X{0}".format(self._motor_position), nonblocking, callback)
 
     def laser_on(self, index):
-        if not self._laser_enabled[index]:
-            if self._send_command("M71T" + str(index + 1)) != '':
+        if self._is_connected:
+            if not self._laser_enabled[index]:
                 self._laser_enabled[index] = True
+                self._send_command("M71T" + str(index + 1))
 
     def laser_off(self, index):
-        if self._laser_enabled[index]:
-            if self._send_command("M70T" + str(index + 1)) != '':
+        if self._is_connected:
+            if self._laser_enabled[index]:
                 self._laser_enabled[index] = False
+                self._send_command("M70T" + str(index + 1))
 
     def lasers_on(self):
         for i in xrange(self._laser_number):
@@ -173,7 +190,8 @@ class Board(object):
 
     def send_command(self, req, nonblocking=False, callback=None, read_lines=False):
         if nonblocking:
-            threading.Thread(target=self._send_command, args=(req, callback, read_lines)).start()
+            threading.Thread(target=self._send_command,
+                             args=(req, callback, read_lines)).start()
         else:
             self._send_command(req, callback, read_lines)
 
@@ -186,34 +204,39 @@ class Board(object):
                     self._serial_port.flushInput()
                     self._serial_port.flushOutput()
                     self._serial_port.write(req + "\r\n")
-                    while ret == '':  # TODO: add timeout
-                        if read_lines:
-                            ret = ''.join(self._serial_port.readlines())
-                        else:
-                            ret = ''.join(self._serial_port.readline())
+                    while req != '~' and req != '!' and ret == '':
+                        ret = self.read(read_lines)
                         time.sleep(0.01)
                     self._success()
                 except:
-                    if callback is not None:
-                        callback(ret)
-                    self._fail()
+                    if hasattr(self, '_serial_port'):
+                        if callback is not None:
+                            callback(ret)
+                        self._fail()
         if callback is not None:
             callback(ret)
         return ret
+
+    def read(self, read_lines=False):
+        if read_lines:
+            return ''.join(self._serial_port.readlines())
+        else:
+            return ''.join(self._serial_port.readline())
 
     def _success(self):
         self._tries = 0
 
     def _fail(self):
-        logger.debug("Board fail")
-        self._tries += 1
-        if self._tries >= 3:
-            self._tries = 0
-            if self.unplug_callback is not None and \
-               self.parent is not None and \
-               not self.parent.unplugged:
-                self.parent.unplugged = True
-                self.unplug_callback()
+        if self._is_connected:
+            logger.debug("Board fail")
+            self._tries += 1
+            if self._tries >= 3:
+                self._tries = 0
+                if self.unplug_callback is not None and \
+                   self.parent is not None and \
+                   not self.parent.unplugged:
+                    self.parent.unplugged = True
+                    self.unplug_callback()
 
     def _reset(self):
         self._serial_port.flushInput()

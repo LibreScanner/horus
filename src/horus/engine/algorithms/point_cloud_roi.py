@@ -18,6 +18,7 @@ class PointCloudROI(object):
     def __init__(self):
         self.calibration_data = CalibrationData()
         self._use_roi = False
+        self._show_center = True
         self._height = 0
         self._radious = 0
         self._initialize()
@@ -55,8 +56,11 @@ class PointCloudROI(object):
     def set_use_roi(self, value):
         self._use_roi = value
 
+    def set_show_center(self, value):
+        self._show_center = value
+
     def mask_image(self, image):
-        if self._use_roi:
+        if self._center_v != 0 and self._center_u != 0 and self._use_roi:
             if image is not None:
                 mask = np.zeros(image.shape, np.uint8)
                 mask[self._vmin:self._vmax, self._umin:self._umax] = image[
@@ -66,8 +70,8 @@ class PointCloudROI(object):
             return image
 
     def mask_point_cloud(self, point_cloud, texture):
-        if point_cloud is not None and len(point_cloud) > 0:
-            rho = np.sqrt(point_cloud[0, :] ** 2 + point_cloud[1, :] ** 2)
+        if point_cloud is not None and texture is not None and len(point_cloud) > 0:
+            rho = np.sqrt(np.square(point_cloud[0, :]) + np.square(point_cloud[1, :]))
             z = point_cloud[2, :]
 
             if self._use_roi:
@@ -82,61 +86,69 @@ class PointCloudROI(object):
 
             return point_cloud[:, idx], texture[:, idx]
 
+    def draw_cross(self, image):
+        if self._center_v != 0 and self._center_u != 0 and self._show_center:
+            thickness = 3
+            v_max, u_max, _ = image.shape
+            cv2.line(image, (0, self._center_v), (u_max, self._center_v), (200, 0, 0), thickness)
+            cv2.line(image, (self._center_u, 0), (self._center_u, v_max), (200, 0, 0), thickness)
+        return image
+
     def draw_roi(self, image):
-        thickness = 6
-        thickness_hiden = 1
-        cy = self.calibration_data.camera_matrix[1][2]
+        if self._center_v != 0 and self._center_u != 0:
+            thickness = 6
+            thickness_hiden = 1
+            cy = self.calibration_data.camera_matrix[1][2]
 
-        center_up_u = self._no_trimmed_umin + \
-            (self._no_trimmed_umax - self._no_trimmed_umin) / 2
-        center_up_v = self._upper_vmin + (self._upper_vmax - self._upper_vmin) / 2
-        center_down_u = self._no_trimmed_umin + \
-            (self._no_trimmed_umax - self._no_trimmed_umin) / 2
-        center_down_v = self._lower_vmax + (self._lower_vmin - self._lower_vmax) / 2
-        axes_up = ((self._no_trimmed_umax - self._no_trimmed_umin) / 2,
-                   ((self._upper_vmax - self._upper_vmin) / 2))
-        axes_down = ((self._no_trimmed_umax - self._no_trimmed_umin) / 2,
-                     ((self._lower_vmin - self._lower_vmax) / 2))
+            center_up_u = self._no_trimmed_umin + \
+                (self._no_trimmed_umax - self._no_trimmed_umin) / 2
+            center_up_v = self._upper_vmin + (self._upper_vmax - self._upper_vmin) / 2
+            center_down_u = self._no_trimmed_umin + \
+                (self._no_trimmed_umax - self._no_trimmed_umin) / 2
+            center_down_v = self._lower_vmax + (self._lower_vmin - self._lower_vmax) / 2
+            axes_up = ((self._no_trimmed_umax - self._no_trimmed_umin) / 2,
+                       ((self._upper_vmax - self._upper_vmin) / 2))
+            axes_down = ((self._no_trimmed_umax - self._no_trimmed_umin) / 2,
+                         ((self._lower_vmin - self._lower_vmax) / 2))
 
-        # upper ellipse
-        if (center_up_v < cy):
-            cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
-                        0, 180, 360, (0, 100, 200), thickness)
-            cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
-                        0, 0, 180, (0, 100, 200), thickness_hiden)
-        else:
-            cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
-                        0, 180, 360, (0, 100, 200), thickness)
-            cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
-                        0, 0, 180, (0, 100, 200), thickness)
+            # upper ellipse
+            if (center_up_v < cy):
+                cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
+                            0, 180, 360, (0, 100, 200), thickness)
+                cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
+                            0, 0, 180, (0, 100, 200), thickness_hiden)
+            else:
+                cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
+                            0, 180, 360, (0, 100, 200), thickness)
+                cv2.ellipse(image, (center_up_u, center_up_v), axes_up,
+                            0, 0, 180, (0, 100, 200), thickness)
 
-        # lower ellipse
-        cv2.ellipse(image, (center_down_u, center_down_v), axes_down,
-                    0, 180, 360, (0, 100, 200), thickness_hiden)
-        cv2.ellipse(image, (center_down_u, center_down_v),
-                    axes_down, 0, 0, 180, (0, 100, 200), thickness)
+            # lower ellipse
+            cv2.ellipse(image, (center_down_u, center_down_v), axes_down,
+                        0, 180, 360, (0, 100, 200), thickness_hiden)
+            cv2.ellipse(image, (center_down_u, center_down_v),
+                        axes_down, 0, 0, 180, (0, 100, 200), thickness)
 
-        # cylinder lines
-        cv2.line(image, (self._no_trimmed_umin, center_up_v),
-                 (self._no_trimmed_umin, center_down_v), (0, 100, 200), thickness)
-        cv2.line(image, (self._no_trimmed_umax, center_up_v),
-                 (self._no_trimmed_umax, center_down_v), (0, 100, 200), thickness)
+            # cylinder lines
+            cv2.line(image, (self._no_trimmed_umin, center_up_v),
+                     (self._no_trimmed_umin, center_down_v), (0, 100, 200), thickness)
+            cv2.line(image, (self._no_trimmed_umax, center_up_v),
+                     (self._no_trimmed_umax, center_down_v), (0, 100, 200), thickness)
 
-        # view center
-        if axes_up[0] <= 0 or axes_up[1] <= 0:
-            axes_up_center = (20, 1)
-            axes_down_center = (20, 1)
-        else:
-            axes_up_center = (20, axes_up[1] * 20 / axes_up[0])
-            axes_down_center = (20, axes_down[1] * 20 / axes_down[0])
+            # view center
+            if axes_up[0] <= 0 or axes_up[1] <= 0:
+                axes_up_center = (20, 1)
+                axes_down_center = (20, 1)
+            else:
+                axes_up_center = (20, axes_up[1] * 20 / axes_up[0])
+                axes_down_center = (20, axes_down[1] * 20 / axes_down[0])
 
-        # upper center
-        cv2.ellipse(image, (self._center_u, min(center_up_v, self._center_v)),
-                    axes_up_center, 0, 0, 360, (0, 70, 120), -1)
-        # lower center
-        cv2.ellipse(image, (self._center_u, self._center_v),
-                    axes_down_center, 0, 0, 360, (0, 70, 120), -1)
-
+            # upper center
+            cv2.ellipse(image, (self._center_u, min(center_up_v, self._center_v)),
+                        axes_up_center, 0, 0, 360, (0, 70, 120), -1)
+            # lower center
+            cv2.ellipse(image, (self._center_u, self._center_v),
+                        axes_down_center, 0, 0, 360, (0, 70, 120), -1)
         return image
 
     def _compute_roi(self):

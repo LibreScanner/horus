@@ -10,7 +10,7 @@ import wx._core
 from horus.util import resources, system
 
 from horus.gui.engine import driver
-from horus.engine.driver.board import WrongFirmware, BoardNotConnected
+from horus.engine.driver.board import WrongFirmware, BoardNotConnected, OldFirmware
 from horus.engine.driver.camera import WrongCamera, CameraNotConnected, InvalidVideo, \
     WrongDriver
 
@@ -25,7 +25,7 @@ class Toolbar(wx.Panel):
         self.toolbar.SetDoubleBuffered(True)
         self.toolbar_scan = wx.ToolBar(self)
         self.toolbar_scan.SetDoubleBuffered(True)
-        self.combo = wx.ComboBox(self, -1, style=wx.CB_READONLY)
+        self.combo = wx.ComboBox(self, -1, size=(250, -1), style=wx.CB_READONLY)
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -86,25 +86,31 @@ class ToolbarConnection(Toolbar):
         if not ret:
             if isinstance(result, WrongFirmware):
                 self._show_message(_(result), wx.ICON_INFORMATION,
-                                   _("Board has a wrong firmware or an invalid Baud Rate.\n"
-                                     "Please select your Board and press Upload Firmware"))
+                                   _("The board has the wrong firmware or an invalid baud rate.\n"
+                                     "Please select your board and press \"Upload firmware\""))
                 self.update_status(False)
-                self.GetParent().on_preferences(None)
+                self.GetParent().launch_preferences()
             elif isinstance(result, BoardNotConnected):
                 self._show_message(_(result), wx.ICON_INFORMATION,
-                                   _("Board is not connected.\n"
-                                     "Please connect your board and select a valid Serial Name"))
+                                   _("The board is not connected.\n"
+                                     "Please connect your board and select a valid Serial name"))
                 self.update_status(False)
-                self.GetParent().on_preferences(None)
+                self.GetParent().launch_preferences(basic=True)
+            elif isinstance(result, OldFirmware):
+                self._show_message(_(result), wx.ICON_INFORMATION,
+                                   _("The board has and old firmware.\n"
+                                     "Please select your board and press \"Upload firmware\""))
+                self.update_status(False)
+                self.GetParent().launch_preferences()
             elif isinstance(result, WrongCamera):
                 self._show_message(_(result), wx.ICON_INFORMATION,
-                                   _("You probably have selected a wrong camera.\n"
-                                     "Please select other Camera Id"))
+                                   _("You probably have selected the wrong camera.\n"
+                                     "Please select another Camera ID"))
                 self.update_status(False)
-                self.GetParent().on_preferences(None)
+                self.GetParent().launch_preferences(basic=True)
             elif isinstance(result, CameraNotConnected):
                 self._show_message(_(result), wx.ICON_ERROR,
-                                   _("Please plug your camera and try to connect again"))
+                                   _("Please plug your camera in and try to connect again"))
             elif isinstance(result, InvalidVideo):
                 self._show_message(_(result), wx.ICON_ERROR,
                                    _("Unplug and plug your camera USB cable "

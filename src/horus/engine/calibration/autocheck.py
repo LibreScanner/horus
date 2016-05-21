@@ -60,15 +60,17 @@ class Autocheck(Calibration):
             # Setup scanner
             self.driver.board.lasers_off()
             self.driver.board.motor_enable()
+            self.driver.board.motor_reset_origin()
+            self.driver.board.motor_speed(200)
+            self.driver.board.motor_acceleration(200)
 
             # Perform autocheck
             try:
                 self.check_pattern_and_motor()
-                time.sleep(0.1)
                 self.check_lasers()
                 ret = True
-            except Exception as e:
-                response = e
+            except Exception as exception:
+                response = exception
             finally:
                 self._is_calibrating = False
                 self.image_capture.stream = True
@@ -84,10 +86,6 @@ class Autocheck(Calibration):
         scan_step = 30
         patterns_detected = {}
         patterns_sorted = {}
-
-        # Setup scanner
-        self.driver.board.motor_speed(300)
-        self.driver.board.motor_acceleration(400)
 
         if self._progress_callback is not None:
             self._progress_callback(0)
@@ -105,12 +103,11 @@ class Autocheck(Calibration):
                 self.image = self.image_detection.detect_pattern(image)
             if self._progress_callback is not None:
                 self._progress_callback(i / 3.6)
-            self.driver.board.motor_relative(scan_step)
-            self.driver.board.motor_move()
+            self.driver.board.motor_move(scan_step)
 
         # Check pattern detection
         if len(patterns_detected) == 0:
-            raise PatternNotDetected
+            raise PatternNotDetected()
 
         # Check motor direction
         max_x = max(patterns_detected.values())
@@ -123,28 +120,27 @@ class Autocheck(Calibration):
                 if v <= min_v:
                     min_v = v
                 else:
-                    raise WrongMotorDirection
+                    raise WrongMotorDirection()
 
         # Move to nearest position
         x = np.array(patterns_sorted.keys())
         y = np.array(patterns_sorted.values())
         A = np.vstack([x, np.ones(len(x))]).T
         m, c = np.linalg.lstsq(A, y)[0]
-        pos = -c / m
+        pos = -c / m % 360
         if pos > 180:
             pos = pos - 360
-        self.driver.board.motor_relative(pos)
-        self.driver.board.motor_move()
+        self.driver.board.motor_move(pos)
 
     def check_lasers(self):
         image = self.image_capture.capture_pattern()
         corners = self.image_detection.detect_corners(image)
+        self.image_capture.flush_laser()
         for i in xrange(2):
             if not self._is_calibrating:
                 raise CalibrationCancel()
             image = self.image_capture.capture_laser(i)
             image = self.image_detection.pattern_mask(image, corners)
-            self.image = image
             lines = self.laser_segmentation.compute_hough_lines(image)
             if lines is None:
-                raise LaserNotDetected
+                raise LaserNotDetected()

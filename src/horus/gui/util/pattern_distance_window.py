@@ -15,29 +15,29 @@ class PatternDistanceWindow(wx.Dialog):
 
     def __init__(self, parent):
         super(PatternDistanceWindow, self).__init__(
-            parent, title=_('Pattern distance'),
+            parent, title=_("Pattern distance"),
             size=(420, -1), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
 
         self.value = float(profile.settings['pattern_origin_distance'])
 
         # Elements
         self.description = wx.StaticText(self, label=_(
-            'Pattern distance value must be a number higher than 0. '
-            'Please, change it in the textbox below.'))
+            "The pattern distance value must be higher than 0. "
+            "Please change it in the textbox below."))
         self.description.Wrap(400)
         tooltip = _(
             "Minimum distance between the origin of the pattern (bottom-left corner) "
-            "and the pattern's base surface")
+            "and the pattern's base surface (mm)")
         self.image = wx.Image(
-            resources.get_path_for_image("pattern-distance.jpg"), wx.BITMAP_TYPE_ANY)
+            resources.get_path_for_image('pattern-distance.jpg'), wx.BITMAP_TYPE_ANY)
         self.image = wx.StaticBitmap(self, wx.ID_ANY, wx.BitmapFromImage(self.image))
         self.image.SetToolTip(wx.ToolTip(tooltip))
-        self.label = wx.StaticText(self, label=_('Pattern distance (mm)'))
+        self.label = wx.StaticText(self, label=_("Pattern distance (mm)"))
         self.label.SetToolTip(wx.ToolTip(tooltip))
         self.text_box = wx.TextCtrl(
             self, value=str(profile.settings['pattern_origin_distance']))
-        self.ok_button = wx.Button(self, label=_('OK'))
-        self.cancel_button = wx.Button(self, label=_('Cancel'))
+        self.ok_button = wx.Button(self, label=_("Accept"))
+        self.cancel_button = wx.Button(self, label=_("Cancel"))
 
         # Events
         self.text_box.Bind(wx.EVT_TEXT, self.on_text_box_changed)

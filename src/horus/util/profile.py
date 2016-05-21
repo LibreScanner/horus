@@ -178,8 +178,7 @@ class Settings(collections.MutableMapping):
         _('Low')
         self._add_setting(
             Setting('luminosity', _('Luminosity'), 'profile_settings',
-                    unicode, u'Medium', possible_values=(u'Very high', u'High', u'Medium',
-                                                         u'Low')))
+                    unicode, u'Medium', possible_values=(u'High', u'Medium', u'Low')))
         self._add_setting(
             Setting('brightness_control', _('Brightness'), 'profile_settings',
                     int, 128, min_value=0, max_value=255))
@@ -191,9 +190,9 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_control', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=128))
+                    int, 16, min_value=1, max_value=64))
         self._add_setting(
-            Setting('framerate', _('Framerate'), 'profile_settings',
+            Setting('framerate', _('Frame rate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
         self._add_setting(
             Setting('motor_step_control', _(u'Step (º)'), 'profile_settings',
@@ -229,14 +228,14 @@ class Settings(collections.MutableMapping):
                     int, 50, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_texture_scanning', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=128))
+                    int, 16, min_value=1, max_value=64))
 
         self._add_setting(
             Setting('brightness_laser_scanning', _('Brightness'), 'profile_settings',
                     int, 0, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_laser_scanning', _('Contrast'), 'profile_settings',
-                    int, 200, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_scanning', _('Saturation'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
@@ -294,14 +293,14 @@ class Settings(collections.MutableMapping):
                     int, 32, min_value=0, max_value=255))
         self._add_setting(
             Setting('exposure_pattern_calibration', _('Exposure'), 'profile_settings',
-                    int, 16, min_value=1, max_value=128))
+                    int, 16, min_value=1, max_value=64))
 
         self._add_setting(
             Setting('brightness_laser_calibration', _('Brightness'), 'profile_settings',
                     int, 0, min_value=0, max_value=255))
         self._add_setting(
             Setting('contrast_laser_calibration', _('Contrast'), 'profile_settings',
-                    int, 200, min_value=0, max_value=255))
+                    int, 100, min_value=0, max_value=255))
         self._add_setting(
             Setting('saturation_laser_calibration', _('Saturation'), 'profile_settings',
                     int, 100, min_value=0, max_value=255))
@@ -368,8 +367,10 @@ class Settings(collections.MutableMapping):
                     float, 200.0, min_value=1.0, max_value=1000.0))
         self._add_setting(
             Setting('motor_acceleration_scanning', _(u'Acceleration (º/s²)'), 'profile_settings',
-                    float, 300.0, min_value=1.0, max_value=1000.0))
+                    float, 200.0, min_value=1.0, max_value=1000.0))
 
+        self._add_setting(
+            Setting('show_center', _('Show center'), 'profile_settings', bool, True))
         self._add_setting(
             Setting('use_roi', _('Use ROI'), 'profile_settings', bool, False))
         self._add_setting(
@@ -382,6 +383,10 @@ class Settings(collections.MutableMapping):
             Setting('point_cloud_color', _('Choose point cloud color'), 'profile_settings',
                     unicode, u'AAAAAA'))
 
+        self._add_setting(
+            Setting('scan_sleep', _(u'Wait time in each scan interval'), 'profile_settings',
+                    float, 50.0, min_value=0.0, max_value=1000.0))
+
         # Hack to translate combo boxes:
         _('Texture')
         _('Laser')
@@ -389,18 +394,28 @@ class Settings(collections.MutableMapping):
         _('Line')
         self._add_setting(
             Setting('video_scanning', _('Video'), 'profile_settings',
-                    unicode, u'Laser', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
+                    unicode, u'Texture', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
 
         self._add_setting(
             Setting('save_image_button', _('Save image'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('left_button', _('Left'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('right_button', _('Right'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('move_button', _('Move'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('enable_button', _('Enable'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('gcode_gui', _('Send'), 'profile_settings', unicode, u''))
-        self._add_setting(Setting('ldr_value', _('Send'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('left_button', _('Left'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('right_button', _('Right'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('move_button', _('Move'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('enable_button', _('Enable'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('reset_origin_button', _('Reset origin'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('gcode_gui', _('Send'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('ldr_value', _('Send'), 'profile_settings', unicode, u''))
         self._add_setting(
             Setting('autocheck_button', _('Perform autocheck'), 'profile_settings', unicode, u''))
+        self._add_setting(
+            Setting('set_resolution_button', _('Set resolution'), 'profile_settings', unicode, u''))
 
         # -- Calibration Settings
 
@@ -418,7 +433,7 @@ class Settings(collections.MutableMapping):
                     float, 0.0, min_value=0.0))
 
         self._add_setting(
-            Setting('adjust_laser', _('Adjust Laser'), 'calibration_settings', bool, True))
+            Setting('adjust_laser', _('Adjust laser'), 'calibration_settings', bool, True))
 
         self._add_setting(
             Setting('camera_width', _('Width'), 'calibration_settings',
@@ -430,7 +445,9 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('camera_rotate', _('Rotate'), 'calibration_settings', bool, True))
         self._add_setting(
-            Setting('camera_mirror', _('Mirror'), 'calibration_settings', bool, False))
+            Setting('camera_hflip', _('Horizontal flip'), 'calibration_settings', bool, True))
+        self._add_setting(
+            Setting('camera_vflip', _('Vertical flip'), 'calibration_settings', bool, False))
 
         self._add_setting(
             Setting('camera_matrix', _('Camera matrix'), 'calibration_settings',
@@ -484,21 +501,21 @@ class Settings(collections.MutableMapping):
         # -- Machine Settings
 
         self._add_setting(
-            Setting('machine_diameter', _('Machine Diameter'), 'machine_settings', int, 200))
+            Setting('machine_diameter', _('Machine diameter'), 'machine_settings', int, 200))
         self._add_setting(
-            Setting('machine_width', _('Machine Width'), 'machine_settings', int, 200))
+            Setting('machine_width', _('Machine width'), 'machine_settings', int, 200))
         self._add_setting(
-            Setting('machine_height', _('Machine Height'), 'machine_settings', int, 200))
+            Setting('machine_height', _('Machine height'), 'machine_settings', int, 200))
         self._add_setting(
-            Setting('machine_depth', _('Machine Depth'), 'machine_settings', int, 200))
+            Setting('machine_depth', _('Machine depth'), 'machine_settings', int, 200))
         # Hack to translate combo boxes:
         _('Circular')
         _('Rectangular')
         self._add_setting(
-            Setting('machine_shape', _('Machine Shape'), 'machine_settings',
+            Setting('machine_shape', _('Machine shape'), 'machine_settings',
                     unicode, u'Circular', possible_values=(u'Circular', u'Rectangular')))
         self._add_setting(
-            Setting('machine_model_path', _('Machine Model'), 'machine_settings',
+            Setting('machine_model_path', _('Machine model'), 'machine_settings',
                     unicode, unicode(resources.get_path_for_mesh('ciclop_platform.stl'))))
         # self._add_setting(
         #     Setting('roi_width', _('Width (mm)'), 'machine_settings',
@@ -516,12 +533,12 @@ class Settings(collections.MutableMapping):
         # -- Preferences
 
         self._add_setting(
-            Setting('serial_name', _('Serial Name'), 'preferences', unicode, u''))
+            Setting('serial_name', _('Serial name'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('baud_rate', _('Baud rate'), 'preferences', int, 115200,
                     possible_values=(9600, 14400, 19200, 38400, 57600, 115200)))
         self._add_setting(
-            Setting('camera_id', _('Camera Id'), 'preferences', unicode, u''))
+            Setting('camera_id', _('Camera ID'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('board', _('Board'), 'preferences', unicode, u'BT ATmega328',
                     possible_values=(u'Arduino Uno', u'BT ATmega328')))
@@ -531,53 +548,79 @@ class Settings(collections.MutableMapping):
             Setting('language', _('Language'), 'preferences', unicode, u'English',
                     possible_values=(u'English', u'Español', u'Français',
                                      u'Deutsch', u'Italiano', u'Português'),
-                    tooltip=_('Change the language in which Horus runs. '
-                              'Switching language requires a restart of Horus')))
+                    tooltip=_('Change the language of Horus. '
+                              'Switching language will require a program restart')))
+
+        # Video flush values
+        # - Linux
+        self._add_setting(
+            Setting('flush_linux', 'Flush Linux', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([3, 2, 3]))))
+        self._add_setting(
+            Setting('flush_stream_linux', 'Flush stream Linux', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 2, 0]))))
+        # - Darwin
+        self._add_setting(
+            Setting('flush_darwin', 'Flush Darwin', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([4, 3, 4]))))
+        self._add_setting(
+            Setting('flush_stream_darwin', 'Flush stream Darwin', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 2, 0]))))
+        # - Windows
+        self._add_setting(
+            Setting('flush_windows', 'Flush Windows', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([4, 3, 4]))))
+        self._add_setting(
+            Setting('flush_stream_windows', 'Flush stream Windows', 'preferences',
+                    np.ndarray, np.ndarray(shape=(3,), dtype=int, buffer=np.array([0, 2, 0]))))
+
+        self._add_setting(
+            Setting('point_size', 'Point size', 'preferences', int, 2, min_value=1, max_value=4))
 
         # Hack to translate combo boxes:
         self._add_setting(
             Setting('workbench', _('Workbench'), 'preferences', unicode, u'scanning',
                     possible_values=(u'control', u'adjustment', u'calibration', u'scanning')))
         self._add_setting(
-            Setting('show_welcome', _('Show Welcome'), 'preferences', bool, True))
+            Setting('show_welcome', _('Show welcome'), 'preferences', bool, True))
         self._add_setting(
-            Setting('check_for_updates', _('Check for Updates'), 'preferences', bool, True))
+            Setting('check_for_updates', _('Check for updates'), 'preferences', bool, True))
         self._add_setting(
-            Setting('basic_mode', _('Basic Mode'), 'preferences', bool, False))
+            Setting('basic_mode', _('Basic mode'), 'preferences', bool, False))
         self._add_setting(
-            Setting('view_control_panel', _('View Control Panel'), 'preferences', bool, True))
+            Setting('view_control_panel', _('View control panel'), 'preferences', bool, True))
         self._add_setting(
-            Setting('view_control_video', _('View Control Panel'), 'preferences', bool, True))
+            Setting('view_control_video', _('View control panel'), 'preferences', bool, True))
         self._add_setting(
-            Setting('view_adjustment_panel', _('View Adjustment Panel'),
+            Setting('view_adjustment_panel', _('View adjustment panel'),
                     'preferences', bool, True))
         self._add_setting(
-            Setting('view_adjustment_video', _('View Adjustment Video'),
+            Setting('view_adjustment_video', _('View adjustment video'),
                     'preferences', bool, True))
         self._add_setting(
-            Setting('view_calibration_panel', _('View Calibration Panel'),
+            Setting('view_calibration_panel', _('View calibration panel'),
                     'preferences', bool, True))
         self._add_setting(
-            Setting('view_calibration_video', _('View Calibration Video'),
+            Setting('view_calibration_video', _('View calibration video'),
                     'preferences', bool, True))
         self._add_setting(
-            Setting('view_scanning_panel', _('View Scanning Panel'), 'preferences', bool, False))
+            Setting('view_scanning_panel', _('View scanning panel'), 'preferences', bool, False))
         self._add_setting(
-            Setting('view_scanning_video', _('View Scanning Video'), 'preferences', bool, False))
+            Setting('view_scanning_video', _('View scanning video'), 'preferences', bool, False))
         self._add_setting(
-            Setting('view_scanning_scene', _('View Scanning Scene'), 'preferences', bool, True))
+            Setting('view_scanning_scene', _('View scanning scene'), 'preferences', bool, True))
 
         self._add_setting(
             Setting('view_mode_advanced', _('Advanced mode'), 'preferences', bool, False))
 
         self._add_setting(
-            Setting('last_files', _('Last Files'), 'preferences', list, []))
+            Setting('last_files', _('Last files'), 'preferences', list, []))
         # TODO: Set this default value
         self._add_setting(
-            Setting('last_file', _('Last File'), 'preferences', unicode, u''))
+            Setting('last_file', _('Last file'), 'preferences', unicode, u''))
         # TODO: Set this default value
         self._add_setting(
-            Setting('last_profile', _('Last Profile'), 'preferences', unicode, u''))
+            Setting('last_profile', _('Last profile'), 'preferences', unicode, u''))
         self._add_setting(
             Setting('model_color', _('Model color'), 'preferences', unicode, u'888888'))
         self._add_setting(
@@ -610,7 +653,7 @@ class Setting(object):
         if value is None:
             return
         self._check_type(value)
-        self._check_range(value)
+        value = self._check_range(value)
         self._check_possible_values(value)
         self.__value = value
 
@@ -621,7 +664,7 @@ class Setting(object):
     @default.setter
     def default(self, value):
         self._check_type(value)
-        self._check_range(value)
+        value = self._check_range(value)
         self._check_possible_values(value)
         self.__default = value
 
@@ -657,11 +700,14 @@ class Setting(object):
             # (self._id, value, self.min_value))
             logger.warning('Warning: For setting %s, %s is below min value %s.' % (self._id, value,
                            self.min_value))
+            return self.min_value
         if self.max_value is not None and value > self.max_value:
             # raise ValueError('Error when setting %s.\n%s is above max value %s.' %
             # (self._id, value, self.max_value))
             logger.warning('Warning: For setting %s.\n%s is above max value %s.' % (self._id, value,
                            self.max_value))
+            return self.max_value
+        return value
 
     def _check_possible_values(self, value):
         if self._possible_values is not None and value not in self._possible_values:

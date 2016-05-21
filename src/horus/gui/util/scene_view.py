@@ -58,6 +58,7 @@ class SceneView(opengl_gui.glGuiPanel):
         self._h_offset = 20
 
         self._view_roi = False
+        self._point_size = 2
 
         self._object_point_cloud = []
         self._object_texture = []
@@ -304,11 +305,14 @@ class SceneView(opengl_gui.glGuiPanel):
     def set_show_delete_menu(self, value=True):
         self._show_delete_menu = value
 
+    def set_point_size(self, value):
+        self._point_size = value
+
     def on_delete_object(self, event):
         if self._object is not None:
             dlg = wx.MessageDialog(
-                self, _("Your current model will be erased.\nDo you really want to do it?"),
-                _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                self, _("Your current model will be deleted.\nAre you sure you want to delete it?"),
+                _("Clear point cloud"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal() == wx.ID_YES
             dlg.Destroy()
             if result:
@@ -583,7 +587,8 @@ class SceneView(opengl_gui.glGuiPanel):
                     obj._mesh.vbo = opengl_helpers.GLVBO(
                         GL_POINTS,
                         obj._mesh.vertexes[:obj._mesh.vertex_count],
-                        color_array=obj._mesh.colors[:obj._mesh.vertex_count])
+                        color_array=obj._mesh.colors[:obj._mesh.vertex_count],
+                        point_size=self._point_size)
                 obj._mesh.vbo.render()
         else:
             if obj._mesh is not None:

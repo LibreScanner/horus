@@ -45,27 +45,29 @@ class LaserTriangulation(MovingCalibration):
 
     def _capture(self, angle):
         image = self.image_capture.capture_pattern()
-        pose = self.image_detection.detect_pose(image)
-        ret = self.image_detection.detect_pattern_plane(pose)
-        if ret is None:
-            self.image = image
-        else:
-            d, n, corners = ret
-            for i in xrange(2):
-                if (angle > 65 and angle < 115):
+        if (angle > 65 and angle < 115):
+            pose = self.image_detection.detect_pose(image)
+            plane = self.image_detection.detect_pattern_plane(pose)
+            self.image_capture.flush_laser()
+            self.image_capture.flush_laser()
+            if plane is not None:
+                distance, normal, corners = plane
+                for i in xrange(2):
                     image = self.image_capture.capture_laser(i)
                     image = self.image_detection.pattern_mask(image, corners)
                     self.image = image
                     points_2d, image = self.laser_segmentation.compute_2d_points(image)
                     point_3d = self.point_cloud_generation.compute_camera_point_cloud(
-                        points_2d, d, n)
+                        points_2d, distance, normal)
                     if self._point_cloud[i] is None:
                         self._point_cloud[i] = point_3d.T
                     else:
                         self._point_cloud[i] = np.concatenate(
                             (self._point_cloud[i], point_3d.T))
-                else:
-                    self.image = image
+            else:
+                self.image = image
+        else:
+            self.image = image
 
     def _calibrate(self):
         self.has_image = False
@@ -75,18 +77,21 @@ class LaserTriangulation(MovingCalibration):
         for i in xrange(2):
             save_point_cloud('PC' + str(i) + '.ply', self._point_cloud[i])
 
-        # TODO: use arrays
+        self.distance = [None, None]
+        self.normal = [None, None]
+        self.std = [None, None]
+
         # Compute planes
-        if self._is_calibrating:
-            self.dL, self.nL, stdL = compute_plane(0, self._point_cloud[0])
+        for i in xrange(2):
+            if self._is_calibrating:
+                plane = compute_plane(i, self._point_cloud[i])
+                self.distance[i], self.normal[i], self.std[i] = plane
 
         if self._is_calibrating:
-            self.dR, self.nR, stdR = compute_plane(1, self._point_cloud[1])
-
-        if self._is_calibrating:
-            if stdL < 1.0 and stdR < 1.0 and \
-               self.nL is not None and self.nR is not None:
-                response = (True, ((self.dL, self.nL, stdL), (self.dR, self.nR, stdR)))
+            if self.std[0] < 1.0 and self.std[1] < 1.0 and \
+               self.normal[0] is not None and self.normal[1] is not None:
+                response = (True, ((self.distance[0], self.normal[0], self.std[0]),
+                                   (self.distance[1], self.normal[1], self.std[1])))
             else:
                 response = (False, LaserTriangulationError())
         else:
@@ -98,10 +103,9 @@ class LaserTriangulation(MovingCalibration):
         return response
 
     def accept(self):
-        self.calibration_data.laser_planes[0].distance = self.dL
-        self.calibration_data.laser_planes[0].normal = self.nL
-        self.calibration_data.laser_planes[1].distance = self.dR
-        self.calibration_data.laser_planes[1].normal = self.nR
+        for i in xrange(2):
+            self.calibration_data.laser_planes[i].distance = self.distance[i]
+            self.calibration_data.laser_planes[i].normal = self.normal[i]
 
 
 def compute_plane(index, X):

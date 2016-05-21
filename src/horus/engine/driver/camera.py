@@ -45,6 +45,12 @@ class WrongDriver(Exception):
         Exception.__init__(self, "Wrong Driver")
 
 
+class InputOutputError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, "V4L2 Input/Output Error")
+
+
 class Camera(object):
 
     """Camera class. For accessing to the scanner camera"""
@@ -61,6 +67,7 @@ class Camera(object):
         self._last_image = None
         self._video_list = None
         self._tries = 0  # Check if command fails
+        self._luminosity = 1.0
 
         self.initialize()
 
@@ -91,7 +98,8 @@ class Camera(object):
         self._width = 0
         self._height = 0
         self._rotate = True
-        self._mirror = True
+        self._hflip = True
+        self._vflip = False
 
     def connect(self):
         logger.info("Connecting camera {0}".format(self.camera_id))
@@ -144,19 +152,22 @@ class Camera(object):
         c_exp = False
         c_bri = False
 
-        # Check exposure
-        if system == 'Darwin':
-            self.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1)
-        self.set_exposure(2)
-        exposure = self.get_exposure()
-        if exposure is not None:
-            c_exp = exposure >= 1
+        try:
+            # Check exposure
+            if system == 'Darwin':
+                self.controls['UVCC_REQ_EXPOSURE_AUTOMODE'].set_val(1)
+            self.set_exposure(2)
+            exposure = self.get_exposure()
+            if exposure is not None:
+                c_exp = exposure >= 1.9
 
-        # Check brightness
-        self.set_brightness(2)
-        brightness = self.get_brightness()
-        if brightness is not None:
-            c_bri = brightness >= 1
+            # Check brightness
+            self.set_brightness(2)
+            brightness = self.get_brightness()
+            if brightness is not None:
+                c_bri = brightness >= 2
+        except:
+            raise WrongCamera()
 
         if not c_exp or not c_bri:
             raise WrongCamera()
@@ -170,24 +181,34 @@ class Camera(object):
             if mean > 200:
                 raise WrongDriver()
 
-    def capture_image(self, flush=0):
+    def capture_image(self, flush=0, auto=False):
         """Capture image from camera"""
         if self._is_connected:
             if self._updating:
                 return self._last_image
             else:
                 self._reading = True
-                if flush > 0:
-                    for i in xrange(0, flush):
-                        self._capture.read()
+                if auto:
+                    b, e = 0, 0
+                    while e - b < (0.030):
+                        b = time.time()
+                        self._capture.grab()
+                        e = time.time()
+                else:
+                    if flush > 0:
+                        for i in xrange(flush):
+                            self._capture.read()
+                            # Note: Windows needs read() to perform
+                            #       the flush instead of grab()
                 ret, image = self._capture.read()
                 self._reading = False
                 if ret:
                     if self._rotate:
                         image = cv2.transpose(image)
-                    if self._mirror:
+                    if self._hflip:
+                        image = cv2.flip(image, 1)
+                    if self._vflip:
                         image = cv2.flip(image, 0)
-                    image = cv2.flip(image, 1)
                     self._success()
                     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                     self._last_image = image
@@ -205,52 +226,65 @@ class Camera(object):
     def set_rotate(self, value):
         self._rotate = value
 
-    def set_mirror(self, value):
-        self._mirror = value
+    def set_hflip(self, value):
+        self._hflip = value
+
+    def set_vflip(self, value):
+        self._vflip = value
 
     def set_brightness(self, value):
         if self._is_connected:
             if self._brightness != value:
                 self._updating = True
+                self._brightness = value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_BRIGHTNESS_ABS']
                     ctl.set_val(self._line(value, 0, self._max_brightness, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_brightness
-                    self._capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
-                self._brightness = value
+                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_BRIGHTNESS, value)
+                    if system == 'Linux' and ret:
+                        raise InputOutputError()
                 self._updating = False
 
     def set_contrast(self, value):
         if self._is_connected:
             if self._contrast != value:
                 self._updating = True
+                self._contrast = value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_CONTRAST_ABS']
                     ctl.set_val(self._line(value, 0, self._max_contrast, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_contrast
-                    self._capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
-                self._contrast = value
+                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_CONTRAST, value)
+                    if system == 'Linux' and ret:
+                        raise InputOutputError()
                 self._updating = False
 
     def set_saturation(self, value):
         if self._is_connected:
             if self._saturation != value:
                 self._updating = True
+                self._saturation = value
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_SATURATION_ABS']
                     ctl.set_val(self._line(value, 0, self._max_saturation, ctl.min, ctl.max))
                 else:
                     value = int(value) / self._max_saturation
-                    self._capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
-                self._saturation = value
+                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_SATURATION, value)
+                    if system == 'Linux' and ret:
+                        raise InputOutputError()
                 self._updating = False
 
-    def set_exposure(self, value):
+    def set_exposure(self, value, force=False):
         if self._is_connected:
-            if self._exposure != value:
+            if self._exposure != value or force:
                 self._updating = True
+                self._exposure = value
+                value *= self._luminosity
+                if value < 1:
+                    value = 1
                 if system == 'Darwin':
                     ctl = self.controls['UVCC_REQ_EXPOSURE_ABS']
                     value = int(value * self._rel_exposure)
@@ -260,16 +294,26 @@ class Camera(object):
                     self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
                 else:
                     value = int(value) / self._max_exposure
-                    self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
-                self._exposure = value
+                    ret = self._capture.set(cv2.cv.CV_CAP_PROP_EXPOSURE, value)
+                    if system == 'Linux' and ret:
+                        raise InputOutputError()
                 self._updating = False
+
+    def set_luminosity(self, value):
+        possible_values = {
+            "High": 0.5,
+            "Medium": 1.0,
+            "Low": 2.0
+        }
+        self._luminosity = possible_values[value]
+        self.set_exposure(self._exposure, force=True)
 
     def set_frame_rate(self, value):
         if self._is_connected:
             if self._frame_rate != value:
+                self._frame_rate = value
                 self._updating = True
                 self._capture.set(cv2.cv.CV_CAP_PROP_FPS, value)
-                self._frame_rate = value
                 self._updating = False
 
     def set_resolution(self, width, height):
@@ -299,7 +343,6 @@ class Camera(object):
             else:
                 value = self._capture.get(cv2.cv.CV_CAP_PROP_BRIGHTNESS)
                 value *= self._max_brightness
-            self._brightness = value
             return value
 
     def get_exposure(self):
@@ -314,7 +357,6 @@ class Camera(object):
             else:
                 value = self._capture.get(cv2.cv.CV_CAP_PROP_EXPOSURE)
                 value *= self._max_exposure
-            self._exposure = value
             return value
 
     def get_resolution(self):

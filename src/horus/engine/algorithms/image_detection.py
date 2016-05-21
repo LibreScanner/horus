@@ -58,35 +58,23 @@ class ImageDetection(object):
             return (d, n, c)
 
     def pattern_mask(self, image, corners):
-        h, w, d = image.shape
-        if corners is not None:
-            corners = corners.astype(np.int)
-            p1 = corners[0][0]
-            p2 = corners[self.pattern.columns - 1][0]
-            p3 = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
-            p4 = corners[self.pattern.columns * self.pattern.rows - 1][0]
-            if 1:
+        if image is not None:
+            h, w, d = image.shape
+            if corners is not None:
+                corners = corners.astype(np.int)
+                p1 = corners[0][0]
+                p2 = corners[self.pattern.columns - 1][0]
+                p3 = corners[self.pattern.columns * (self.pattern.rows - 1)][0]
+                p4 = corners[self.pattern.columns * self.pattern.rows - 1][0]
                 mask = np.zeros((h, w), np.uint8)
                 points = np.array([p1, p2, p4, p3])
                 cv2.fillConvexPoly(mask, points, 255)
-            else:
-                p11 = min(p1[1], p2[1], p3[1], p4[1])
-                p12 = max(p1[1], p2[1], p3[1], p4[1])
-                p21 = min(p1[0], p2[0], p3[0], p4[0])
-                p22 = max(p1[0], p2[0], p3[0], p4[0])
-                d = max(corners[1][0][0] - corners[0][0][0],
-                        corners[1][0][1] - corners[0][0][1],
-                        corners[self.pattern.columns][0][1] - corners[0][0][1],
-                        corners[self.pattern.columns][0][0] - corners[0][0][0])
-                mask = np.zeros(image.shape[:2], np.uint8)
-                mask[p11 - d:p12 + d, p21 - d:p22 + d] = 255
-            image = cv2.bitwise_and(image, image, mask=mask)
+                image = cv2.bitwise_and(image, image, mask=mask)
         return image
 
     def _detect_chessboard(self, image):
         if image is not None:
             if self.pattern.rows > 2 and self.pattern.columns > 2:
-
                 gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
                 ret, corners = cv2.findChessboardCorners(
                     gray, (self.pattern.columns, self.pattern.rows), flags=cv2.CALIB_CB_FAST_CHECK)

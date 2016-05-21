@@ -10,6 +10,8 @@ import wx._core
 
 from horus.util import resources, profile
 
+from horus.engine.driver.camera import InputOutputError
+
 from horus.gui.engine import driver, image_capture, laser_segmentation, calibration_data, \
     ciclop_scan, current_video, point_cloud_roi
 from horus.gui.workbench.workbench import Workbench
@@ -24,12 +26,9 @@ class ScanningWorkbench(Workbench):
         Workbench.__init__(self, parent, name=_('Scanning workbench'))
 
         self.scanning = False
-        self.show_video_views = False
         self.toolbar_scan = toolbar_scan
 
         # Elements
-        self.point_cloud_timer_millis = 50
-        self.point_cloud_timer = wx.Timer(self)
         self.play_tool = self.toolbar_scan.AddLabelTool(
             wx.NewId(), _("Play"),
             wx.Bitmap(resources.get_path_for_image("play.png")), shortHelp=_("Play"))
@@ -42,6 +41,8 @@ class ScanningWorkbench(Workbench):
         self.toolbar_scan.Realize()
         self.toolbar_scan.GetParent().Layout()
 
+        ciclop_scan.point_cloud_callback = self.point_cloud_callback
+
         self._enable_tool_scan(self.play_tool, False)
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)
@@ -50,7 +51,6 @@ class ScanningWorkbench(Workbench):
         self.toolbar_scan.GetParent().Bind(wx.EVT_TOOL, self.on_play_tool_clicked, self.play_tool)
         self.toolbar_scan.GetParent().Bind(wx.EVT_TOOL, self.on_stop_tool_clicked, self.stop_tool)
         self.toolbar_scan.GetParent().Bind(wx.EVT_TOOL, self.on_pause_tool_clicked, self.pause_tool)
-        self.Bind(wx.EVT_TIMER, self.on_point_cloud_timer, self.point_cloud_timer)
 
     def add_panels(self):
         self.add_panel('scan_parameters', ScanParameters)
@@ -70,7 +70,6 @@ class ScanningWorkbench(Workbench):
     def on_open(self):
         if self.video_view.IsShown():
             self.video_view.play()
-        self.point_cloud_timer.Stop()
         if driver.is_connected and profile.settings['current_panel_scanning'] == 'point_cloud_roi':
             self.scene_view._view_roi = profile.settings['use_roi']
             self.scene_view.queue_refresh()
@@ -78,7 +77,6 @@ class ScanningWorkbench(Workbench):
     def on_close(self):
         try:
             self.video_view.stop()
-            self.point_cloud_timer.Stop()
             self.pages_collection['view_page'].Enable()
             self.scene_view._view_roi = False
             self.scene_view.queue_refresh()
@@ -95,24 +93,24 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)
-
-        driver.board.lasers_off()
         driver.camera.set_frame_rate(int(profile.settings['framerate']))
         driver.camera.set_resolution(
             profile.settings['camera_width'], profile.settings['camera_height'])
-        profile.settings['camera_width'] = int(driver.camera._width)
-        profile.settings['camera_height'] = int(driver.camera._height)
         driver.camera.set_rotate(profile.settings['camera_rotate'])
-        driver.camera.set_mirror(profile.settings['camera_mirror'])
+        driver.camera.set_hflip(profile.settings['camera_hflip'])
+        driver.camera.set_vflip(profile.settings['camera_vflip'])
+        driver.camera.set_luminosity(profile.settings['luminosity'])
         image_capture.set_mode_texture()
-        image_capture.texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
-        image_capture.texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
-        image_capture.texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
-        image_capture.texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
-        image_capture.laser_mode.brightness = profile.settings['brightness_laser_scanning']
-        image_capture.laser_mode.contrast = profile.settings['contrast_laser_scanning']
-        image_capture.laser_mode.saturation = profile.settings['saturation_laser_scanning']
-        image_capture.laser_mode.exposure = profile.settings['exposure_laser_scanning']
+        texture_mode = image_capture.texture_mode
+        texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
+        texture_mode.set_contrast(profile.settings['contrast_texture_scanning'])
+        texture_mode.set_saturation(profile.settings['saturation_texture_scanning'])
+        texture_mode.set_exposure(profile.settings['exposure_texture_scanning'])
+        laser_mode = image_capture.laser_mode
+        laser_mode.brightness = profile.settings['brightness_laser_scanning']
+        laser_mode.contrast = profile.settings['contrast_laser_scanning']
+        laser_mode.saturation = profile.settings['saturation_laser_scanning']
+        laser_mode.exposure = profile.settings['exposure_laser_scanning']
         image_capture.set_use_distortion(profile.settings['use_distortion'])
         image_capture.set_remove_background(profile.settings['remove_background_scanning'])
         laser_segmentation.red_channel = profile.settings['red_channel_scanning']
@@ -142,6 +140,8 @@ class ScanningWorkbench(Workbench):
         ciclop_scan.motor_acceleration = profile.settings['motor_acceleration_scanning']
         ciclop_scan.color = struct.unpack(
             'BBB', profile.settings['point_cloud_color'].decode('hex'))
+        ciclop_scan.set_scan_sleep(profile.settings['scan_sleep'])
+        point_cloud_roi.set_show_center(profile.settings['show_center'])
         point_cloud_roi.set_use_roi(profile.settings['use_roi'])
         point_cloud_roi.set_diameter(profile.settings['roi_diameter'])
         point_cloud_roi.set_height(profile.settings['roi_height'])
@@ -155,29 +155,30 @@ class ScanningWorkbench(Workbench):
         else:
             image_capture.stream = True
             image = image_capture.capture_texture()
+            image = point_cloud_roi.draw_cross(image)
             if self.scene_view._view_roi:
                 image = point_cloud_roi.mask_image(image)
                 image = point_cloud_roi.draw_roi(image)
             return image
 
-    def on_point_cloud_timer(self, event):
-        p, r = ciclop_scan.get_progress()
-        self.gauge.SetRange(r)
-        self.gauge.SetValue(p)
-        point_cloud = ciclop_scan.get_point_cloud_increment()
+    def point_cloud_callback(self, range, progress, point_cloud):
+        point_cloud = point_cloud_roi.mask_point_cloud(*point_cloud)
+        wx.CallAfter(self._point_cloud_callback,
+                     range, progress, point_cloud)
+
+    def _point_cloud_callback(self, range, progress, point_cloud):
+        if range > 0:
+            self.gauge.SetRange(range)
+            self.gauge.SetValue(progress)
         if point_cloud is not None:
-            if point_cloud[0] is not None and point_cloud[1] is not None:
-                if len(point_cloud[0]) > 0:
-                    point_cloud = point_cloud_roi.mask_point_cloud(*point_cloud)
-                    self.scene_view.append_point_cloud(
-                        point_cloud[0], point_cloud[1])
+            points, texture = point_cloud
+            self.scene_view.append_point_cloud(points, texture)
 
     def on_play_tool_clicked(self, event):
         if ciclop_scan._inactive:
             self._enable_tool_scan(self.play_tool, False)
             self._enable_tool_scan(self.pause_tool, True)
             ciclop_scan.resume()
-            self.point_cloud_timer.Start(milliseconds=self.point_cloud_timer_millis)
         else:
             if not calibration_data.check_calibration():
                 dlg = wx.MessageDialog(self,
@@ -218,9 +219,9 @@ class ScanningWorkbench(Workbench):
             result = True
             if self.scene_view._object is not None:
                 dlg = wx.MessageDialog(self,
-                                       _("Your current model will be erased.\n"
-                                         "Do you really want to do it?"),
-                                       _("Clear Point Cloud"), wx.YES_NO | wx.ICON_QUESTION)
+                                       _("Your current model will be deleted.\n"
+                                         "Are you sure you want to delete it?"),
+                                       _("Clear point cloud"), wx.YES_NO | wx.ICON_QUESTION)
                 result = dlg.ShowModal() == wx.ID_YES
                 dlg.Destroy()
             if result:
@@ -242,7 +243,6 @@ class ScanningWorkbench(Workbench):
         self.pages_collection['view_page'].combo_video_views.Show()
         self.scene_view.create_default_object()
         self.scene_view.set_show_delete_menu(False)
-        self.point_cloud_timer.Start(milliseconds=self.point_cloud_timer_millis)
         self.gauge.SetValue(0)
         self.gauge.Show()
         self.scene_panel.Layout()
@@ -251,38 +251,56 @@ class ScanningWorkbench(Workbench):
     def after_scan(self, response):
         ret, result = response
         if ret:
+            self.gauge.SetValue(self.gauge.GetRange())
             dlg = wx.MessageDialog(self,
                                    _("Scanning has finished. If you want to save your "
-                                     "point cloud go to File > Save Model"),
+                                     "point cloud go to \"File > Save model\""),
                                    _("Scanning finished!"), wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
             self.scanning = False
+            # Flush video
+            image_capture.capture_texture()
+            image_capture.capture_texture()
+            image_capture.capture_texture()
             self.on_scan_finished()
+        else:
+            if isinstance(result, InputOutputError):
+                self.scanning = False
+                self.on_scan_finished()
+                self.GetParent().toolbar.update_status(False)
+                driver.disconnect()
+                dlg = wx.MessageDialog(
+                    self,
+                    "Low exposure values can cause a timing issue at the USB stack level on "
+                    "v4l2_ioctl function in VIDIOC_S_CTRL mode. This is a Logitech issue on Linux",
+                    str(result), wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
 
     def on_stop_tool_clicked(self, event):
         paused = ciclop_scan._inactive
         ciclop_scan.pause()
         dlg = wx.MessageDialog(self,
                                _("Your current scanning will be stopped.\n"
-                                 "Do you really want to do it?"),
-                               _("Stop Scanning"), wx.YES_NO | wx.ICON_QUESTION)
+                                 "Are you sure you want to stop?"),
+                               _("Stop scanning"), wx.YES_NO | wx.ICON_QUESTION)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
 
         if result:
             self.scanning = False
             ciclop_scan.stop()
+            # Flush video
+            image_capture.capture_texture()
+            image_capture.capture_texture()
+            image_capture.capture_texture()
             self.on_scan_finished()
         else:
             if not paused:
                 ciclop_scan.resume()
 
     def on_scan_finished(self):
-        # Flush video
-        image_capture.capture_texture()
-        image_capture.capture_texture()
-        image_capture.capture_texture()
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)
@@ -290,7 +308,6 @@ class ScanningWorkbench(Workbench):
         self.GetParent().on_scanning_panel_clicked(None)
         self.pages_collection['view_page'].combo_video_views.Hide()
         self.scene_view.set_show_delete_menu(True)
-        self.point_cloud_timer.Stop()
         if profile.settings['current_panel_scanning'] == 'point_cloud_roi':
             self.scene_view._view_roi = profile.settings['use_roi']
             self.scene_view.queue_refresh()
@@ -303,7 +320,6 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.pause_tool, False)
         ciclop_scan.pause()
-        self.point_cloud_timer.Stop()
 
     def _enable_tool_scan(self, item, enable):
         self.toolbar_scan.EnableTool(item.GetId(), enable)

@@ -74,8 +74,8 @@ class Workbench(wx.Panel):
         self.hbox.Add(page, 1, wx.ALL | wx.EXPAND, 2)
 
     def enable_content(self):
-        self.panels_collection.enable_content()
         self.scroll_panel.Enable()
+        self.panels_collection.enable_content()
 
     def disable_content(self):
         self.panels_collection.disable_content()

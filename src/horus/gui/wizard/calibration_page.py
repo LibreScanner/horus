@@ -64,6 +64,7 @@ class CalibrationPage(WizardPage):
 
     def on_show(self, event):
         if event.GetShow():
+            driver.board.lasers_off()
             self.update_status(driver.is_connected)
         else:
             try:
@@ -147,9 +148,13 @@ class CalibrationPage(WizardPage):
         else:
             if isinstance(result, ComboCalibrationError):
                 self.result_label.SetLabel(
-                    _("Check pattern and lasers and try again"))
+                    _("Check the pattern and the lasers and try again"))
                 dlg = wx.MessageDialog(
-                    self, _("Check pattern and lasers and try again"),
+                    self, _("Scanner calibration has failed. "
+                            "Please check the pattern and the lasers and try again. "
+                            "Also you can set up the calibration's settings "
+                            "in the \"Adjustment workbench\" until the pattern "
+                            "and the lasers are detected correctly"),
                     _("Calibration failed"), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
