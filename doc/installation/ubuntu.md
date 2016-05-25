@@ -2,9 +2,9 @@
 
 [return to Home](../../README.md)
 
-### Version 0.2 beta3
+### Version 0.2 release candidate 1
 
-Add our ppa:
+##### Add Horus ppa:
 
 *NOTE*: Official versions are hosted in **ppa:bqlabs/horus**. Alpha, beta and rc versions are hosted in **ppa:bqlabs/horus-dev**.
 
@@ -13,7 +13,7 @@ sudo add-apt-repository ppa:bqlabs/horus-dev
 sudo apt-get update
 ```
 
-Remove older OpenCV
+##### Remove older OpenCV
 
 *NOTE*: try to remove previous versions of opencv:
 
@@ -22,7 +22,7 @@ sudo apt-get remove python-opencv
 sudo apt-get autoremove
 ```
 
-Install Horus
+##### Install Horus
 
 *NOTE*: this command installs all the dependencies, including custom OpenCV libraries.
 
@@ -37,7 +37,7 @@ sudo usermod -a -G dialout $USER
 sudo reboot
 ```
 
-### Update Horus
+##### Update Horus
 
 If there is a new release just execute:
 

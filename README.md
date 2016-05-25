@@ -38,11 +38,11 @@ NOTE: *dmg* packages only can be generated in Mac OS X
 
 #### Supported
 
-###### Current version: 0.2b4
+###### Current version: 0.2rc1
 
 | Logo              | Name     | Versions            | Instructions                        |
 |:-----------------:|:--------:|:-------------------:|:-----------------------------------:|
-| ![][ubuntu-logo]  | Ubuntu   | 14.04, 14.10, 15.10 | [link](doc/installation/ubuntu.md)  |
+| ![][ubuntu-logo]  | Ubuntu   | 14.04, 15.04, 15.10 | [link](doc/installation/ubuntu.md)  |
 | ![][windows-logo] | Windows  | 7                   | [link](doc/installation/windows.md) |
 | ![][macosx-logo]  | Mac OS X | 10.9, 10.10, 10.11  | [link](doc/installation/macosx.md)  |
 

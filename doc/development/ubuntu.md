@@ -22,7 +22,21 @@ Following dependencies are included in deb package, but if you want to install i
 
 #### Python modules
 ```bash
-sudo apt-get install python-serial python-wxgtk2.8 python-opengl python-pyglet python-numpy python-scipy python-matplotlib
+sudo apt-get install python-serial python-opengl python-pyglet python-numpy python-scipy python-matplotlib
+```
+
+##### wxPython
+
+For older ubuntu versions
+
+```bash
+sudo apt-get install python-wxgtk2.8
+```
+
+For newer ubuntu versions
+
+```bash
+sudo apt-get install python-wxgtk3.0
 ```
 
 #### Custom OpenCV
