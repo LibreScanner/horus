@@ -135,7 +135,7 @@ class ScanCapturePanel(ExpandablePanel):
             self.get_control('exposure_laser_scanning').Hide()
             self.get_control('remove_background_scanning').Hide()
 
-        if sys.is_darwin():
+        if sys.is_wx30():
             self.content.SetSizerAndFit(self.content.vbox)
         if sys.is_windows():
             self.parent.Refresh()
@@ -325,7 +325,7 @@ class CalibrationCapturePanel(ExpandablePanel):
             self.get_control('exposure_laser_calibration').Hide()
             self.get_control('remove_background_calibration').Hide()
 
-        if sys.is_darwin():
+        if sys.is_wx30():
             self.content.SetSizerAndFit(self.content.vbox)
         if sys.is_windows():
             self.parent.Refresh()

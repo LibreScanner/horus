@@ -256,7 +256,7 @@ class ControlCollection(wx.Panel):
 
         # Layout
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        if sys.is_darwin():
+        if sys.is_wx30():
             self.SetSizerAndFit(self.vbox)
         else:
             self.SetSizer(self.vbox)
@@ -271,7 +271,7 @@ class ControlCollection(wx.Panel):
         self.control_panels.update({_name: control})
         self.vbox.Add(control, 0, wx.BOTTOM | wx.EXPAND, 5)
         self.vbox.Layout()
-        if sys.is_darwin():
+        if sys.is_wx30():
             self.SetSizerAndFit(self.vbox)
 
     def update_callback(self, _name, _callback):
@@ -381,7 +381,7 @@ class Slider(ControlPanel):
 
         # Layout
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        if sys.is_darwin():
+        if sys.is_wx30():
             hbox.Add(self.label, 0, wx.BOTTOM | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
             hbox.AddStretchSpacer()
             hbox.Add(self.control, 0, wx.BOTTOM | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
