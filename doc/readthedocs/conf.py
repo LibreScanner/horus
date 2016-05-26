@@ -12,9 +12,13 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
-import shlex
+import sys
+
+# Import horus sources
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
+
+from horus import __version__
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -50,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Horus'
-copyright = u'2015, Mundo Reader S.L.'
+copyright = u'2016, Mundo Reader S.L.'
 author = u'Jesús Arroyo Torrens'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -58,7 +62,7 @@ author = u'Jesús Arroyo Torrens'
 # built documents.
 #
 # The short X.Y version.
-version = u'0.2'
+version = __version__
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -67,7 +71,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'en'
+language = None
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -285,6 +289,8 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+locale_dirs = ['locale/']
 
 
 # -- Options for Epub output ----------------------------------------------

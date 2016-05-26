@@ -1,15 +1,15 @@
-Bienvenido a la documentación de Horus
+Welcome to Horus's documentation!
 ======================================
 
-.. image:: images/horus-logo.png
+.. image:: src/images/horus-logo.png
    :alt: The Horus Logo
    :align: right
 
 
-Contenido:
+Content:
 
 .. toctree::
    :maxdepth: 2
 
-   guia-rapida/index.rst
-   bancos-de-trabajo/index.rst
+..   src/guia-rapida/index.rst
+..   src/bancos-de-trabajo/index.rst
