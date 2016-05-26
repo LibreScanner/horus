@@ -16,7 +16,7 @@ import os
 import sys
 
 # Import horus sources
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
 
 from horus import __version__
 
