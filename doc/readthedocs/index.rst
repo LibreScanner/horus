@@ -12,3 +12,4 @@ Content:
    :maxdepth: 2
 
    source/installation/index.rst
+   source/scanner-components/index.rst

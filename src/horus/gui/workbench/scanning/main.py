@@ -93,7 +93,7 @@ class ScanningWorkbench(Workbench):
         self._enable_tool_scan(self.play_tool, True)
         self._enable_tool_scan(self.stop_tool, False)
         self._enable_tool_scan(self.pause_tool, False)
-        driver.camera.set_frame_rate(int(profile.settings['framerate']))
+        driver.camera.set_frame_rate(int(profile.settings['frame_rate']))
         driver.camera.set_resolution(
             profile.settings['camera_width'], profile.settings['camera_height'])
         driver.camera.set_rotate(profile.settings['camera_rotate'])
