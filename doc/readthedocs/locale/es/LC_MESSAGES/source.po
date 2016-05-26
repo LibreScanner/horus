@@ -1,0 +1,122 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2016, Mundo Reader S.L.
+# This file is distributed under the same license as the Horus package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Horus 0.2rc1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-05-26 14:58+0200\n"
+"PO-Revision-Date: 2016-05-26 14:59+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.1.1\n"
+"Language: rst\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: ../../source/installation/index.rst:4
+msgid "Installation"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:4
+msgid "Install on Mac OS X"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:6
+msgid "**Supported versions**: 10.9, 10.10, 10.11"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:9
+#: ../../source/installation/ubuntu.rst:9
+#: ../../source/installation/windows.rst:9
+msgid "System setup"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:11
+msgid "Install the FTDI drivers"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:13
+msgid "`FTDI USB Drivers`_"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:17
+#: ../../source/installation/ubuntu.rst:21
+#: ../../source/installation/windows.rst:17
+msgid "Install Horus"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:19
+#: ../../source/installation/windows.rst:19
+msgid "`Horus installer`_"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:21
+msgid "Execute the installer and drag Horus icon into *Applications*."
+msgstr ""
+
+#: ../../source/installation/macosx.rst:23
+#: ../../source/installation/windows.rst:23
+msgid "Reboot the computer to apply the changes."
+msgstr ""
+
+#: ../../source/installation/ubuntu.rst:4
+msgid "Install on Ubuntu"
+msgstr ""
+
+#: ../../source/installation/ubuntu.rst:6
+msgid "**Supported versions**: 14.04, 15.04, 15.10, 16.04"
+msgstr ""
+
+#: ../../source/installation/ubuntu.rst:16
+msgid ""
+"Official versions are hosted in **ppa:bqlabs/horus**: `PPA Horus`_. Alpha, "
+"beta and rc versions are hosted in **ppa:bqlabs/horus-dev**: `PPA Horus "
+"dev`_."
+msgstr ""
+
+#: ../../source/installation/ubuntu.rst:23
+msgid ""
+"This command installs all the dependencies, including custom OpenCV "
+"libraries."
+msgstr ""
+
+#: ../../source/installation/ubuntu.rst:31
+msgid ""
+"If user has no access to serial port, execute ``sudo usermod -a -G dialout "
+"$USER`` and reboot."
+msgstr ""
+
+#: ../../source/installation/ubuntu.rst:35
+msgid "Update Horus"
+msgstr ""
+
+#: ../../source/installation/ubuntu.rst:37
+msgid "If there is a new release just execute"
+msgstr ""
+
+#: ../../source/installation/windows.rst:4
+msgid "Install on Windows"
+msgstr ""
+
+#: ../../source/installation/windows.rst:6
+msgid "**Supported versions**: 7, 10"
+msgstr ""
+
+#: ../../source/installation/windows.rst:11
+msgid "Install the USB Camera drivers"
+msgstr ""
+
+#: ../../source/installation/windows.rst:13
+msgid "`Logitech Camera C270 Drivers`_"
+msgstr ""
+
+#: ../../source/installation/windows.rst:21
+msgid ""
+"Execute the installer and follow the wizard. This package contains all "
+"dependencies and also Arduino and FTDI drivers."
+msgstr ""
