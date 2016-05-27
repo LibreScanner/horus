@@ -75,5 +75,6 @@ Laser not detected correctly
 
    1. Improve the environment light conditions.
    2. Adjust the camera settings in *Adjustment workbench*:
-     * *Scan capture > Laser* for the laser over the scanning object.
-     * *Calibration capture > Laser* for the laser over the pattern.
+
+      * *Scan capture > Laser* for the laser over the scanning object.
+      * *Calibration capture > Laser* for the laser over the pattern.

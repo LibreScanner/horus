@@ -46,7 +46,7 @@ If there is a new release just execute
    sudo apt-get update
    sudo apt-get install horus
 
-.. _`PPA Horus`: https://launchpad.net/~bqlabs/+archive/ubuntu/horus/
-.. _`PPA Horus dev`: https://launchpad.net/~bqlabs/+archive/ubuntu/horus-dev/
-.. _`custom OpenCV`: https://github.com/bqlabs/opencv
-.. _`reasons`: https://github.com/bqlabs/opencv/wiki
+.. _PPA Horus: https://launchpad.net/~bqlabs/+archive/ubuntu/horus/
+.. _PPA Horus dev: https://launchpad.net/~bqlabs/+archive/ubuntu/horus-dev/
+.. _custom OpenCV: https://github.com/bqlabs/opencv
+.. _reasons: https://github.com/bqlabs/opencv/wiki

@@ -23,5 +23,5 @@ Execute the installer and drag Horus icon into *Applications*.
 Reboot the computer to apply the changes.
 
 
-.. _`FTDI USB Drivers`: http://www.ftdichip.com/Drivers/VCP/MacOSX/FTDIUSBSerialDriver_v2_3.dmg
-.. _`Horus installer`: https://github.com/bqlabs/horus/releases/download/0.2rc1/Horus_0.2rc1.dmg
+.. _FTDI USB Drivers: http://www.ftdichip.com/Drivers/VCP/MacOSX/FTDIUSBSerialDriver_v2_3.dmg
+.. _Horus installer: https://github.com/bqlabs/horus/releases/download/0.2rc1/Horus_0.2rc1.dmg

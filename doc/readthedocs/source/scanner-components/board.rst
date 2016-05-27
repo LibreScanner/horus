@@ -2,3 +2,29 @@
 
 Board
 =====
+
+Supported boards
+----------------
+
+ZUM BT-328
+```````````
+
+.. image:: ../_static/zum.jpg
+   :width: 250 px
+
+ZUM SCAN Shield
+```````````````
+
+.. image:: ../_static/zum-scan.jpg
+   :width: 250 px
+
+
+Horus Firmware
+--------------
+
+The firmware is an adaptation of Grbl. Source code is here: https://github.com/bqlabs/horus-fw.
+
+It can be uploaded in **Preferences > Upload firmware**.
+
+.. Troubleshooting
+.. ---------------

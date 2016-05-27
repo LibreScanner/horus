@@ -163,6 +163,6 @@ Focus image
    In this `video`_ the camera manual focus is explained.
 
 
-.. _`custom OpenCV`: https://github.com/bqlabs/opencv
-.. _`reasons`: https://github.com/bqlabs/opencv/wiki
-.. _`video`: https://www.youtube.com/watch?v=v-gYgBeiOVI
+.. _custom OpenCV: https://github.com/bqlabs/opencv
+.. _reasons: https://github.com/bqlabs/opencv/wiki
+.. _video: https://www.youtube.com/watch?v=v-gYgBeiOVI

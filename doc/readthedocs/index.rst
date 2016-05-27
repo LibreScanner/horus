@@ -6,10 +6,13 @@ Welcome to Horus's documentation!
    :align: right
 
 
-Content:
+Contents
+````````
 
 .. toctree::
    :maxdepth: 2
 
    source/installation/index.rst
+   source/getting-started/index.rst
+   source/workbenches/index.rst
    source/scanner-components/index.rst

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-make -e SPHINXOPTS="-D language='$1'" html
+make clean -e SPHINXOPTS="-D language='$1'" html

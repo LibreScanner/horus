@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# Clean _build dir
-[ -d "_build" ] && rm -r _build
-
-make gettext
+make clean gettext
 
 LANGUAGES=""
 for var in "$@"
