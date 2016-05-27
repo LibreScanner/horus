@@ -9,39 +9,72 @@ Supported cameras
 Logitech C270
 `````````````
 
-.. image:: https://assets.logitech.com/assets/55372/2/webcam-c270-gallery.png
+.. image:: ../../images/logitech-c270.png
    :width: 250 px
 
 HD USB webcam with fixed focus.
 
-================  =======  =============
-Name              Value    Setting
-================  =======  =============
-Width             1280 px  `camera_width`
-Height            960 px   `camera_height`
-Frame rate        30 fps   `frame_rate`
-Rotation          Yes      `camera_rotate`
-Horizontal flip   Yes      `camera_hflip`
-Vertical flip     No       `camera_vflip`
-Focal length x    1430 px  `camera_matrix`
-Focal length y    1430 px  `camera_matrix`
-Optical center x  480 px   `camera_matrix`
-Optical center y  620 px   `camera_matrix`
-Distortion        No       `use_distortion`
-================  =======  =============
+.. list-table::
+   :widths: 5 3 4
 
+   * - **Name**
+     - **Value**
+     - **Setting**
+   * - Width
+     - 1280 px
+     - ``camera_width``
+   * - Height
+     - 960 px
+     - ``camera_height``
+   * - Frame rate
+     - 30 fps
+     - ``frame_rate``
+   * - Rotation
+     - Yes
+     - ``camera_rotate``
+   * - Horizontal flip
+     - Yes
+     - ``camera_hflip``
+   * - Vertical flip
+     - No
+     - ``camera_vflip``
+   * - Focal length x
+     - 1430 px
+     - ``camera_matrix``
+   * - Focal length y
+     - 1430 px
+     - ``camera_matrix``
+   * - Optical center x
+     - 480 px
+     - ``camera_matrix``
+   * - Optical center y
+     - 620 px
+     - ``camera_matrix``
+   * - Distortion
+     - No
+     - ``use_distortion``
 
 Image controls
 --------------
 
-================  =======  =============
-Name              Range    Setting
-================  =======  =============
-Brightness        0-255    `brightness_`
-Contrast          0-255    `contrast_`
-Saturation        0-255    `saturation_`
-Exposure          1-64     `exposure_`
-================  =======  =============
+.. list-table::
+   :widths: 5 3 4
+
+   * - **Name**
+     - **Range**
+     - **Setting**
+   * - Brightness
+     - 0-255
+     - ``brightness_``
+   * - Contrast
+     - 0-255
+     - ``contrast_``
+   * - Saturation
+     - 0-255
+     - ``saturation_``
+   * - Exposure
+     - 1-64
+     - ``exposure_``
 
 These parameters have different values for each situation:
 
@@ -61,19 +94,49 @@ OpenCV is used to manage the camera. It wraps all the functionality to allow eas
 At the low level driver, each operating system has different behavior regarding to the buffer of stored images. Moreover, if the exposure time is set over the frame rate (33 ms), buffer filling may vary if image controls are being updated.
 This may cause synchronization problems between the laser and the camera. Instead of using a long delay to reach the synchronization, a better approach is implemented using custom flush values.
 
-================  =======  =====  =============
-Name              OS       Value  Setting
-================  =======  =====  =============
-Texture flush     Linux    3      `flush_linux_texture`
-Laser flush       Linux    2      `flush_linux_laser`
-Pattern flush     Linux    3      `flush_linux_pattern`
-Texture flush     Windows  4      `flush_windows_texture`
-Laser flush       Windows  3      `flush_windows_laser`
-Pattern flush     Windows  4      `flush_windows_pattern`
-Texture flush     MacOSX   4      `flush_darwin_texture`
-Laser flush       MacOSX   3      `flush_darwin_laser`
-Pattern flush     MacOSX   4      `flush_darwin_pattern`
-================  =======  =====  =============
+.. list-table::
+   :widths: 4 3 2 4
+
+   * - **Name**
+     - **OS**
+     - **Value**
+     - **Setting**
+   * - Texture flush
+     - Linux
+     - 3
+     - ``flush_linux_texture``
+   * - Laser flush
+     - Linux
+     - 2
+     - ``flush_linux_laser``
+   * - Pattern flush
+     - Linux
+     - 3
+     - ``flush_linux_pattern``
+   * - Texture flush
+     - Windows
+     - 4
+     - ``flush_windows_texture``
+   * - Laser flush
+     - Windows
+     - 3
+     - ``flush_windows_laser``
+   * - Pattern flush
+     - Windows
+     - 4
+     - ``flush_windows_pattern``
+   * - Texture flush
+     - MacOSX
+     - 4
+     - ``flush_darwin_texture``
+   * - Laser flush
+     - MacOSX
+     - 3
+     - ``flush_darwin_laser``
+   * - Pattern flush
+     - MacOSX
+     - 4
+     - ``flush_darwin_pattern``
 
 .. note::
 

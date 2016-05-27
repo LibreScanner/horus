@@ -16,6 +16,11 @@ System setup
 Official versions are hosted in **ppa:bqlabs/horus**: `PPA Horus`_.
 Alpha, beta and rc versions are hosted in **ppa:bqlabs/horus-dev**: `PPA Horus dev`_.
 
+.. note::
+
+   A `custom OpenCV`_ version is used, because of the next `reasons`_.
+
+
 
 Install Horus
 -------------
@@ -39,7 +44,9 @@ If there is a new release just execute
 .. code-block:: bash
 
    sudo apt-get update
-   sudo apt-get upgrade
+   sudo apt-get install horus
 
 .. _`PPA Horus`: https://launchpad.net/~bqlabs/+archive/ubuntu/horus/
 .. _`PPA Horus dev`: https://launchpad.net/~bqlabs/+archive/ubuntu/horus-dev/
+.. _`custom OpenCV`: https://github.com/bqlabs/opencv
+.. _`reasons`: https://github.com/bqlabs/opencv/wiki

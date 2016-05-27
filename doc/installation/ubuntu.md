@@ -42,7 +42,8 @@ sudo reboot
 If there is a new release just execute:
 
 ```bash
-sudo apt-get upgrade
+sudo apt-get update
+sudo apt-get install horus
 ```
 
 <br>
