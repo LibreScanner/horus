@@ -9,7 +9,7 @@ Supported motors
 Nema 17
 ```````
 
-.. image:: ../../images/stepper-motor.png
+.. image:: ../_static/stepper-motor.png
    :width: 250 px
 
 Bipolar stepper motor.
@@ -68,13 +68,13 @@ Troubleshooting
 Reversed direction of rotation
 ``````````````````````````````
 
-Motor rotation must turn in a counterclockwise direction with positive angles. If it turns in reverse, probably the connector is connected in the wrong way. This can be solved by editing the parameter ``invert_motor`` in Preferences > Invert the motor direction.
+   Motor rotation must turn in a counterclockwise direction with positive angles. If it turns in reverse, probably the connector is connected in the wrong way. This can be solved by editing the parameter ``invert_motor`` in Preferences > Invert the motor direction.
 
 Strange movements
 `````````````````
 
-To avoid possible strange movements in the motor:
+   To avoid possible strange movements in the motor:
 
-1. Make sure the motor step is 1.8º.
-2. Put all the jumpers in the Zum Scan board to enable micro-stepping.
-3. Adjust the electrical current with the potentiometer in the pololu driver. Recommended values are about 200 mA.
+   1. Make sure the motor step is 1.8º.
+   2. Put all the jumpers in the Zum Scan board to enable micro-stepping.
+   3. Adjust the electrical current with the potentiometer in the pololu driver. Recommended values are about 200 mA.

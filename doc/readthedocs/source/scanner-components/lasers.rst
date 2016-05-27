@@ -9,7 +9,7 @@ Supported lasers
 Line laser
 ``````````
 
-.. image:: ../../images/line-laser.png
+.. image:: ../_static/line-laser.png
    :width: 250 px
 
 Red Class 1 line laser.
@@ -65,6 +65,15 @@ Switch on the laser specified in the T command.
 
     Lasers are switched off automatically after 255 seconds as a safety measure.
 
+Troubleshooting
+---------------
 
-.. Troubleshooting
-.. ---------------
+Laser not detected correctly
+````````````````````````````
+
+   If the laser is not detected correctly:
+
+   1. Improve the environment light conditions.
+   2. Adjust the camera settings in *Adjustment workbench*:
+     * *Scan capture > Laser* for the laser over the scanning object.
+     * *Calibration capture > Laser* for the laser over the pattern.

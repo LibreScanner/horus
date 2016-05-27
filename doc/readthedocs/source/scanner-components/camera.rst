@@ -9,7 +9,7 @@ Supported cameras
 Logitech C270
 `````````````
 
-.. image:: ../../images/logitech-c270.png
+.. image:: ../_static/logitech-c270.png
    :width: 250 px
 
 HD USB webcam with fixed focus.
@@ -148,19 +148,19 @@ Troubleshooting
 Focus image
 ```````````
 
-Logitech C270 camera is not focused at the scanner working distance (about 300 mm), but it is focused at a longer distance. This may cause inaccurate pattern detection and worse calibration values.
+   Logitech C270 camera is not focused at the scanner working distance (about 300 mm), but it is focused at a longer distance. This may cause inaccurate pattern detection and worse calibration values.
 
-To improve that, the camera can be re-focused manually:
+   To improve that, the camera can be re-focused manually:
 
- 1. Remove the electronics: the camera can not be removed if the board is fixed.
- 2. Disassemble the camera: remove the 3 screws and the front cover.
- 3. Move the lens to break up the glue.
- 4. Put the camera into the scanner.
- 5. Put the pattern on the middle of the platform.
- 6. Open the video and move the focus until the pattern is focused.
- 7. Assemble again the camera and the rest of the scanner.
+    1. Remove the electronics: the camera can not be removed if the board is fixed.
+    2. Disassemble the camera: remove the 3 screws and the front cover.
+    3. Move the lens to break up the glue.
+    4. Put the camera into the scanner.
+    5. Put the pattern on the middle of the platform.
+    6. Open the video and move the focus until the pattern is focused.
+    7. Assemble again the camera and the rest of the scanner.
 
-In this `video`_ the camera manual focus is explained.
+   In this `video`_ the camera manual focus is explained.
 
 
 .. _`custom OpenCV`: https://github.com/bqlabs/opencv

@@ -1,7 +1,7 @@
 Welcome to Horus's documentation!
 =================================
 
-.. image:: images/horus-logo.png
+.. image:: source/_static/horus-logo.png
    :alt: The Horus Logo
    :align: right
 
