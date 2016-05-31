@@ -22,6 +22,14 @@ Execute the installer and follow the wizard. This package contains all dependenc
 
 Reboot the computer to apply the changes.
 
+.. note::
+
+   In **Windows 10**, if the application is blurred, follow these steps:
+
+   1. Right click on the application and select *Properties*
+   2. Go to *Compatibility* tab.
+   3. Under *Settings* section, check *Disable display scaling on high DPI settings*
+   4. *Apply* and close the window.
 
 .. _Logitech Camera C270 Drivers: http://support.logitech.com/en_us/product/hd-webcam-c270
 .. _Horus installer: https://github.com/bqlabs/horus/releases/download/0.2rc1/Horus_0.2rc1.exe
