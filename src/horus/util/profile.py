@@ -271,7 +271,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('refinement_scanning', _('Refinement'), 'profile_settings',
                     unicode, u'SGF',
-                    possible_values=(u'None', u'SGF', u'RANSAC')))
+                    possible_values=(u'None', u'SGF')))
         _('Open')
         _('Enable open')
 
