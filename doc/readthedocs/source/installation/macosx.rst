@@ -1,5 +1,9 @@
 .. _sec-installation-macosx:
 
+.. image:: ../_static/installation/apple-logo.svg
+   :align: right
+   :width: 100 px
+
 Install on Mac OS X
 ===================
 

@@ -1,5 +1,9 @@
 .. _sec-installation-windows:
 
+.. image:: ../_static/installation/windows-logo.svg
+   :align: right
+   :width: 100 px
+
 Install on Windows
 ==================
 

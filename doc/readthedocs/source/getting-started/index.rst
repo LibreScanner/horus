@@ -17,11 +17,9 @@ It was created by `bqlabs`_, the Department of Innovation and Robotics at `BQ`_,
 .. _Python: https://www.python.org/
 .. _GPLv2: https://www.gnu.org/licenses/gpl-2.0.html
 
-Start here
-``````````
-
 .. toctree::
    :maxdepth: 1
 
    wizard.rst
    menu.rst
+   scanning.rst

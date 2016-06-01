@@ -9,7 +9,7 @@ Supported cameras
 Logitech C270
 `````````````
 
-.. image:: ../_static/logitech-c270.png
+.. image:: ../_static/scanner-components/logitech-c270.png
    :width: 250 px
 
 HD USB webcam with fixed focus.

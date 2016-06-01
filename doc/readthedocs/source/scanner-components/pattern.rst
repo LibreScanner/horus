@@ -9,7 +9,7 @@ Supported pattern
 Chessboard patterns
 ```````````````````
 
-.. image:: ../_static/chessboard-pattern.svg
+.. image:: ../_static/scanner-components/chessboard-pattern.svg
    :width: 250 px
 
 .. list-table::
@@ -45,7 +45,7 @@ Origin distance
 
 The origin distance is the minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface. This value is used to define where is the pattern with respect to the turntable.
 
-.. image:: ../_static/pattern-distance.jpg
+.. image:: ../_static/scanner-components/pattern-distance.jpg
    :width: 250 px
 
 Pattern detection
@@ -53,7 +53,7 @@ Pattern detection
 
 When the pattern is correctly detected, the following colored dots and lines are drawn.
 
-.. image:: ../_static/pattern-detected.png
+.. image:: ../_static/scanner-components/pattern-detected.png
    :width: 250 px
 
 Troubleshooting

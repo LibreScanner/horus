@@ -9,7 +9,7 @@ Supported motors
 Nema 17
 ```````
 
-.. image:: ../_static/stepper-motor.png
+.. image:: ../_static/scanner-components/stepper-motor.png
    :width: 250 px
 
 Bipolar stepper motor.

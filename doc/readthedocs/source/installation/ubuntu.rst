@@ -1,5 +1,9 @@
 .. _sec-installation-ubuntu:
 
+.. image:: ../_static/installation/ubuntu-logo.svg
+   :align: right
+   :width: 100 px
+
 Install on Ubuntu
 =================
 

@@ -1,11 +1,11 @@
+.. image:: source/_static/horus-logo.svg
+   :alt: The Horus Logo
+   :align: right
+   :width: 150 px
+
 =================================
 Welcome to Horus's documentation!
 =================================
-
-.. image:: source/_static/horus-logo.png
-   :alt: The Horus Logo
-   :align: right
-
 
 Contents
 ````````

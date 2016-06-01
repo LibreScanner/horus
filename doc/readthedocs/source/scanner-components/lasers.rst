@@ -9,7 +9,7 @@ Supported lasers
 Line laser
 ``````````
 
-.. image:: ../_static/line-laser.png
+.. image:: ../_static/scanner-components/line-laser.png
    :width: 250 px
 
 Red Class 1 line laser.

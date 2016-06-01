@@ -9,13 +9,13 @@ Supported boards
 ZUM BT-328
 ```````````
 
-.. image:: ../_static/zum.jpg
+.. image:: ../_static/scanner-components/zum.jpg
    :width: 250 px
 
 ZUM SCAN Shield
 ```````````````
 
-.. image:: ../_static/zum-scan.jpg
+.. image:: ../_static/scanner-components/zum-scan.jpg
    :width: 250 px
 
 
