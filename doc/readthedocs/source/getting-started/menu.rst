@@ -11,10 +11,10 @@ File
 * **Save model**: saves the point cloud of the 3D scene in *ply* format.
 * **Clear model**: removes the current 3D model from the 3D scene.
 * **Open profile**: loads all the control, adjustment and scanning parameters.
-* **Save profile**: saves all the control, adjustment and scanning parameters in a JSON format.
+* **Save profile**: saves all the control, adjustment and scanning parameters in JSON format.
 * **Reset profile**: resets all the control, adjustment and scanning parameters to the default values.
 * **Open calibration**: loads all the calibration parameters.
-* **Save calibration**: saves all the calibration parameters.
+* **Save calibration**: saves all the calibration parameters in JSON format.
 * **Reset calibration**: resets all the calibration parameters to the default values.
 * **Export log**: saves a log file with the registry of the previous commands.
 * **Clear log**: removes the log file. It is automatically removed each 7 days.
@@ -25,7 +25,7 @@ File
 Edit
 ----
 
-* **Preferences**: opens the complete preferences window.
+* **Preferences**: opens the complete preferences window:
 
    * **Connection section**: *Camera ID*, *Serial name* and *Baud rate*.
    * **Adjustment section**: *Luminosity* and *Invert the motor direction*.
@@ -39,7 +39,7 @@ Edit
 
 .. note::
 
-   The *Upload firmware* action is only enabled if the scanner is disconnected.
+   The *Firmware section* is only enabled if the scanner is disconnected.
 
 View
 ----

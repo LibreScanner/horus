@@ -56,7 +56,7 @@ This calibration process computes the planes in the space respect to the camera 
 Scanning window
 ---------------
 
-In this windows, scanning parameters are set:
+In this window, scanning parameters are set:
 
 * **Resolution**: it is related to the number of steps per revolution of the motor.
 

@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Horus 0.2rc1.1\n"
+"Project-Id-Version: Horus 0.2rc1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-26 11:03+0200\n"
-"PO-Revision-Date: 2016-05-26 14:42+0100\n"
+"POT-Creation-Date: 2016-05-31 18:47+0200\n"
+"PO-Revision-Date: 2016-06-01 10:44+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -18,10 +18,10 @@ msgstr ""
 "Language: rst\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: ../../index.rst:2
+#: ../../index.rst:3
 msgid "Welcome to Horus's documentation!"
 msgstr "¡Bienvenido a la documentación de Horus!"
 
-#: ../../index.rst:9
-msgid "Content:"
-msgstr "Contenido:"
+#: ../../index.rst:11
+msgid "Contents"
+msgstr "Contenidos"
