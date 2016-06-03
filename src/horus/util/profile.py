@@ -192,7 +192,7 @@ class Settings(collections.MutableMapping):
             Setting('exposure_control', _('Exposure'), 'profile_settings',
                     int, 16, min_value=1, max_value=64))
         self._add_setting(
-            Setting('framerate', _('Frame rate'), 'profile_settings',
+            Setting('frame_rate', _('Frame rate'), 'profile_settings',
                     int, 30, possible_values=(30, 25, 20, 15, 10, 5)))
         self._add_setting(
             Setting('motor_step_control', _(u'Step (º)'), 'profile_settings',
@@ -271,7 +271,7 @@ class Settings(collections.MutableMapping):
         self._add_setting(
             Setting('refinement_scanning', _('Refinement'), 'profile_settings',
                     unicode, u'SGF',
-                    possible_values=(u'None', u'SGF', u'RANSAC')))
+                    possible_values=(u'None', u'SGF')))
         _('Open')
         _('Enable open')
 

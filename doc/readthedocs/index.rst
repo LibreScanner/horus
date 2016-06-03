@@ -1,15 +1,19 @@
-Bienvenido a la documentación de Horus
-======================================
-
-.. image:: images/horus-logo.png
+.. image:: source/_static/horus-logo.svg
    :alt: The Horus Logo
    :align: right
+   :width: 150 px
 
+=================================
+Welcome to Horus's documentation!
+=================================
 
-Contenido:
+Contents
+````````
 
 .. toctree::
    :maxdepth: 2
 
-   guia-rapida/index.rst
-   bancos-de-trabajo/index.rst
+   source/installation/index.rst
+   source/getting-started/index.rst
+   source/workbenches/index.rst
+   source/scanner-components/index.rst

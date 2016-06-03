@@ -3,6 +3,9 @@
 [return to Home](../../README.md)
 
 ### Not supported for version 0.2
+
+Versions: 21, 22
+
 However it can be installed following the next instructions.
 
 Add a [Copr repository with horus](https://copr.fedoraproject.org/coprs/churchyard/horus/):

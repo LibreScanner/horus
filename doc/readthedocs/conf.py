@@ -12,9 +12,13 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
-import shlex
+import sys
+
+# Import horus sources
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
+
+from horus import __version__
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -50,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Horus'
-copyright = u'2015, Mundo Reader S.L.'
+copyright = u'2016, Mundo Reader S.L.'
 author = u'Jesús Arroyo Torrens'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -58,7 +62,7 @@ author = u'Jesús Arroyo Torrens'
 # built documents.
 #
 # The short X.Y version.
-version = u'0.2'
+version = __version__
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -67,7 +71,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'en'
+language = None
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -77,7 +81,7 @@ language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', 'old']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -140,7 +144,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['source/_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -285,6 +289,9 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+locale_dirs = ['locale/']
+gettext_compact = True
 
 
 # -- Options for Epub output ----------------------------------------------

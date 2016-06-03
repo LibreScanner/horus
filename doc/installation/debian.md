@@ -3,6 +3,9 @@
 [return to Home](../../README.md)
 
 ### Not supported for version 0.2
+
+Versions: 8
+
 However it can be installed following the next instructions.
 
 First you need to build and install our [custom OpenCV](https://github.com/bqlabs/opencv/wiki/Build)

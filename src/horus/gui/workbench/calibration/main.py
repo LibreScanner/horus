@@ -103,7 +103,7 @@ class CalibrationWorkbench(Workbench):
             self.pages_collection[page].reset()
 
     def setup_engine(self):
-        driver.camera.set_frame_rate(int(profile.settings['framerate']))
+        driver.camera.set_frame_rate(int(profile.settings['frame_rate']))
         driver.camera.set_resolution(
             profile.settings['camera_width'], profile.settings['camera_height'])
         driver.camera.set_rotate(profile.settings['camera_rotate'])
