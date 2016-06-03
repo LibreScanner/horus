@@ -33,6 +33,7 @@ Edit
    * **Language section**: allows to select the application's current language.
 
 .. image:: ../_static/getting-started/preferences.png
+   :align: center
    :width: 284 px
 
 .. image:: ../_static/getting-started/menu-edit.png

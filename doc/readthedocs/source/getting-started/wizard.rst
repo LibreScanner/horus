@@ -23,6 +23,7 @@ This window contains the scanner connection, a preferences panel and the auto ch
 * **Preferences**: allows to modify the *Camera ID* and the *Serial name* of the scanner. Also the *Luminosity*. This setting can take *High, Medium or Low* for high, medium of low ambient light. The setting *Invert the motor direction* inverts all the motor angle commands.
 
 .. image:: ../_static/getting-started/preferences-mini.png
+   :align: center
    :width: 284 px
 
 * **Auto check**: in order to perform this process, putting the pattern over the platform is required, as shown in the picture. This process makes a full turn of the platform, and checks:
@@ -51,6 +52,7 @@ This calibration process computes the planes in the space respect to the camera 
    The first time the calibration is performed, *Origin pattern distance* must be set. This distance is fundamental for the platform's calibration, because it indicates the real relation between the position of the pattern's sticker and the base.
 
    .. image:: ../_static/getting-started/pattern-origin-distance.png
+      :align: center
       :width: 456 px
 
 Scanning window

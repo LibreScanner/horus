@@ -37,7 +37,7 @@ You can navigate in the 3D scene using the following shortcuts:
    * - Reset vertical shift
      - Dobule left click
      -
-   * - Translation
+   * - Traslation
      - Shift + Left click
      -
    * - Zoom

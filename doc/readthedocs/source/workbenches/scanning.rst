@@ -26,7 +26,7 @@ Rotating platform
 ~~~~~~~~~~~~~~~~~
 
 * **Show center**: shows the center of the platform using the current calibration values.
-* **Step**: is the angle increased in each scan iteration. The smaller step, the greater radial resolution, and also more scanning time. The default value is 0.45º, that is 800 steps per revolution.
+* **Step**: is the angle increased in each scan iteration. The smaller the step, the greater radial resolution, and also more scanning time. The default value is 0.45º, that is 800 steps per revolution.
 * **Speed**: is the motor speed in degrees per second. Te default value is 200 º/s.
 * **Acceleration**: is the motor acceleration in degress per secon squared. The default value is 200 º/s².
 
@@ -70,7 +70,7 @@ In this window, two states are distinguished: while not scanning, it shows the v
 
  .. image:: ../_static/workbenches/scanning-video-laser.png
 
-* **Gray**:
+* **Gray**
 
  .. image:: ../_static/workbenches/scanning-video-gray.png
 
@@ -107,7 +107,7 @@ You can navigate in the 3D scene using the following shortcuts:
    * - Reset vertical shift
      - Dobule left click
      -
-   * - Translation
+   * - Traslation
      - Shift + Left click
      -
    * - Zoom

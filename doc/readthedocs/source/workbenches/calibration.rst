@@ -10,8 +10,8 @@ Pattern settings
 
 This section contains the calibration pattern features:
 
-* **Pattern rows**: number of corner rows in the pattern. Default value 6 mm.
-* **Pattern columns**: number of corner columns in the pattern. Default value 11 mm.
+* **Pattern rows**: number of corner rows in the pattern. Default value 6.
+* **Pattern columns**: number of corner columns in the pattern. Default value 11.
 * **Square width**: default value 13 mm.
 * **Origin distance**: minimum distance between the origin of the pattern (bottom-left corner) and the pattern's base surface in mm. There is no default value because it depends on the physical pattern.
 
@@ -86,6 +86,6 @@ To begin the calibration, press the "space" key to capture the pattern in differ
 
 .. note::
 
-   To enable the advanced mode go to *Menu > View > Advanced mode*.
+   To enable the advanced mode go to the menu *View > Advanced mode*.
 
    .. image:: ../_static/workbenches/calibration-advanced-mode.png

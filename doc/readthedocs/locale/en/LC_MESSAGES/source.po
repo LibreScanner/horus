@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Horus 0.2rc1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-01 10:36+0200\n"
+"POT-Creation-Date: 2016-06-03 10:22+0200\n"
 "PO-Revision-Date: 2016-05-26 14:59+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -38,10 +38,6 @@ msgstr ""
 msgid ""
 "It was created by `bqlabs`_, the Department of Innovation and Robotics at"
 " `BQ`_, developed in `Python`_ and released under the `GPLv2`_ license."
-msgstr ""
-
-#: ../../source/getting-started/index.rst:21
-msgid "Start here"
 msgstr ""
 
 #: ../../source/getting-started/menu.rst:4
@@ -143,42 +139,203 @@ msgstr ""
 msgid "**Language section**: allows to select the application's current language."
 msgstr ""
 
-#: ../../source/getting-started/menu.rst:42
+#: ../../source/getting-started/menu.rst:43
 msgid "The *Firmware section* is only enabled if the scanner is disconnected."
 msgstr ""
 
-#: ../../source/getting-started/menu.rst:45
+#: ../../source/getting-started/menu.rst:46
 msgid "View"
 msgstr ""
 
-#: ../../source/getting-started/menu.rst:47
+#: ../../source/getting-started/menu.rst:48
 msgid ""
 "This menu shows and hides the *Scanning workbench* panels: the "
 "configuration panel, the video and the 3D scene."
 msgstr ""
 
-#: ../../source/getting-started/menu.rst:49
+#: ../../source/getting-started/menu.rst:50
 msgid ""
 "It also contains the *Advanced mode* option, that enables advanced "
 "options in *Calibration workbench*."
 msgstr ""
 
-#: ../../source/getting-started/menu.rst:54
+#: ../../source/getting-started/menu.rst:55
 msgid "Help"
 msgstr ""
 
-#: ../../source/getting-started/menu.rst:56
+#: ../../source/getting-started/menu.rst:57
 msgid ""
 "In this menu you can open the *Welcome* window, check for updates and to "
 "access to project's web resources."
 msgstr ""
 
-#: ../../source/getting-started/menu.rst:61
+#: ../../source/getting-started/menu.rst:62
 msgid "Workbench combo box"
 msgstr ""
 
-#: ../../source/getting-started/menu.rst:63
+#: ../../source/getting-started/menu.rst:64
 msgid "With this combo box, the current workbench is selected."
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:4
+#: ../../source/workbenches/scanning.rst:4
+msgid "Scanning"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:8
+msgid ""
+"To start scanning press the *Play* button. Also the process can be "
+"stopped, paused and resumed."
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:10
+msgid "During the scanning, the progress is shown in the bottom of the scene."
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:14
+#: ../../source/workbenches/scanning.rst:84
+msgid "You can navigate in the 3D scene using the following shortcuts:"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:19
+#: ../../source/workbenches/scanning.rst:89
+msgid "**Action**"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:20
+#: ../../source/workbenches/scanning.rst:90
+msgid "**Shortcut 1**"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:21
+#: ../../source/workbenches/scanning.rst:91
+msgid "**Shortcut 2**"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:22
+#: ../../source/workbenches/scanning.rst:92
+msgid "Default views"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:23
+#: ../../source/workbenches/scanning.rst:93
+msgid "Home / PgUp / PgDn / End"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:25
+#: ../../source/workbenches/scanning.rst:95
+msgid "Rotate"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:26
+#: ../../source/workbenches/scanning.rst:96
+msgid "Left click"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:27
+#: ../../source/workbenches/scanning.rst:97
+msgid "Shift + Up/Down"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:28
+#: ../../source/workbenches/scanning.rst:98
+msgid "Rotate horizontally"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:29
+#: ../../source/workbenches/scanning.rst:99
+msgid "Up / Down"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:31
+#: ../../source/workbenches/scanning.rst:101
+msgid "Rotate vertically"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:32
+#: ../../source/workbenches/scanning.rst:102
+msgid "Left / Right"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:34
+#: ../../source/workbenches/scanning.rst:104
+msgid "Vertical shift"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:35
+#: ../../source/workbenches/scanning.rst:105
+msgid "Ctrl + Mouse wheel"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:36
+#: ../../source/workbenches/scanning.rst:106
+msgid "Ctrl + Up / Down"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:37
+#: ../../source/workbenches/scanning.rst:107
+msgid "Reset vertical shift"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:38
+#: ../../source/workbenches/scanning.rst:108
+msgid "Dobule left click"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:40
+#: ../../source/workbenches/scanning.rst:110
+msgid "Traslation"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:41
+#: ../../source/workbenches/scanning.rst:111
+msgid "Shift + Left click"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:43
+#: ../../source/workbenches/scanning.rst:113
+msgid "Zoom"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:44
+#: ../../source/workbenches/scanning.rst:114
+msgid "Mouse wheel"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:45
+#: ../../source/workbenches/scanning.rst:115
+msgid "Shift + Up /Down"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:46
+#: ../../source/workbenches/scanning.rst:116
+msgid "Delete object"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:47
+#: ../../source/workbenches/scanning.rst:117
+msgid "Right click + Delete object"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:48
+#: ../../source/workbenches/scanning.rst:118
+msgid "Del"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:49
+#: ../../source/workbenches/scanning.rst:119
+msgid "Quit program"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:50
+#: ../../source/workbenches/scanning.rst:120
+msgid "Ctrl + Q"
+msgstr ""
+
+#: ../../source/getting-started/scanning.rst:53
+msgid ""
+"Upon completion of the scanning process, the object can be saved in *File"
+" > Save model*. The point cloud is saved in *ply* format."
 msgstr ""
 
 #: ../../source/getting-started/wizard.rst:4
@@ -231,32 +388,32 @@ msgid ""
 " the motor direction* inverts all the motor angle commands."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:28
+#: ../../source/getting-started/wizard.rst:29
 msgid ""
 "**Auto check**: in order to perform this process, putting the pattern "
 "over the platform is required, as shown in the picture. This process "
 "makes a full turn of the platform, and checks:"
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:30
+#: ../../source/getting-started/wizard.rst:31
 msgid ""
 "**Pattern detection**: indicates whether the pattern is not detected "
 "correctly by luminosity or brightness problems."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:31
+#: ../../source/getting-started/wizard.rst:32
 msgid ""
 "**Motor direction**: detects if the motor direction is reversed and how "
 "to correct it."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:32
+#: ../../source/getting-started/wizard.rst:33
 msgid ""
 "**Lasers detection**: detects if the lasers have been connected properly "
 "and are working."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:38
+#: ../../source/getting-started/wizard.rst:39
 msgid ""
 "The first time *Auto check* is pressed, a menu appears indicating if the "
 "lasers want to be aligned. This is for manually moving the orientation of"
@@ -264,24 +421,24 @@ msgid ""
 "requires an Allen wrench."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:41
+#: ../../source/getting-started/wizard.rst:42
 msgid "Calibration window"
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:43
+#: ../../source/getting-started/wizard.rst:44
 msgid ""
 "In this windows both the lasers calibration and the platform calibration "
 "are performed."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:47
+#: ../../source/getting-started/wizard.rst:48
 msgid ""
 "This calibration process computes the planes in the space respect to the "
 "camera for each laser, as well as the spatial relation between the "
 "turntable and the optical center of the camera."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:51
+#: ../../source/getting-started/wizard.rst:52
 msgid ""
 "The first time the calibration is performed, *Origin pattern distance* "
 "must be set. This distance is fundamental for the platform's calibration,"
@@ -289,43 +446,43 @@ msgid ""
 "pattern's sticker and the base."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:57
+#: ../../source/getting-started/wizard.rst:59
 msgid "Scanning window"
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:59
+#: ../../source/getting-started/wizard.rst:61
 msgid "In this window, scanning parameters are set:"
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:61
+#: ../../source/getting-started/wizard.rst:63
 msgid ""
 "**Resolution**: it is related to the number of steps per revolution of "
 "the motor."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:63
+#: ../../source/getting-started/wizard.rst:65
 msgid "*High*: 800 steps (0.45º)"
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:64
+#: ../../source/getting-started/wizard.rst:66
 msgid "*Medium*: 400 steps (0.9º)"
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:65
+#: ../../source/getting-started/wizard.rst:67
 msgid "*Low*: 200 steps (1.8º)"
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:67
+#: ../../source/getting-started/wizard.rst:69
 msgid "**Laser**: selects left laser, right laser or both."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:68
+#: ../../source/getting-started/wizard.rst:70
 msgid ""
 "**Capture texture**: enabling this option captures the real color of the "
 "object. Otherwise the point cloud has an uniform fake color."
 msgstr ""
 
-#: ../../source/getting-started/wizard.rst:72
+#: ../../source/getting-started/wizard.rst:74
 msgid "Once the **Wizard** is completed, access the main window."
 msgstr ""
 
@@ -333,128 +490,128 @@ msgstr ""
 msgid "Installation"
 msgstr ""
 
-#: ../../source/installation/macosx.rst:4
+#: ../../source/installation/macosx.rst:8
 msgid "Install on Mac OS X"
 msgstr ""
 
-#: ../../source/installation/macosx.rst:6
+#: ../../source/installation/macosx.rst:10
 msgid "**Supported versions**: 10.9, 10.10, 10.11"
 msgstr ""
 
-#: ../../source/installation/macosx.rst:9
-#: ../../source/installation/ubuntu.rst:9
-#: ../../source/installation/windows.rst:9
+#: ../../source/installation/macosx.rst:13
+#: ../../source/installation/ubuntu.rst:13
+#: ../../source/installation/windows.rst:13
 msgid "System setup"
 msgstr ""
 
-#: ../../source/installation/macosx.rst:11
+#: ../../source/installation/macosx.rst:15
 msgid "Install the FTDI drivers"
 msgstr ""
 
-#: ../../source/installation/macosx.rst:13
+#: ../../source/installation/macosx.rst:17
 msgid "`FTDI USB Drivers`_"
 msgstr ""
 
-#: ../../source/installation/macosx.rst:17
-#: ../../source/installation/ubuntu.rst:26
-#: ../../source/installation/windows.rst:17
-msgid "Install Horus"
-msgstr ""
-
-#: ../../source/installation/macosx.rst:19
-#: ../../source/installation/windows.rst:19
-msgid "`Horus installer`_"
-msgstr ""
-
 #: ../../source/installation/macosx.rst:21
-msgid "Execute the installer and drag Horus icon into *Applications*."
+#: ../../source/installation/ubuntu.rst:30
+#: ../../source/installation/windows.rst:21
+msgid "Install Horus"
 msgstr ""
 
 #: ../../source/installation/macosx.rst:23
 #: ../../source/installation/windows.rst:23
+msgid "`Horus installer`_"
+msgstr ""
+
+#: ../../source/installation/macosx.rst:25
+msgid "Execute the installer and drag Horus icon into *Applications*."
+msgstr ""
+
+#: ../../source/installation/macosx.rst:27
+#: ../../source/installation/windows.rst:27
 msgid "Reboot the computer to apply the changes."
 msgstr ""
 
-#: ../../source/installation/ubuntu.rst:4
+#: ../../source/installation/ubuntu.rst:8
 msgid "Install on Ubuntu"
 msgstr ""
 
-#: ../../source/installation/ubuntu.rst:6
+#: ../../source/installation/ubuntu.rst:10
 msgid "**Supported versions**: 14.04, 15.04, 15.10, 16.04"
 msgstr ""
 
-#: ../../source/installation/ubuntu.rst:16
+#: ../../source/installation/ubuntu.rst:20
 msgid ""
 "Official versions are hosted in **ppa:bqlabs/horus**: `PPA Horus`_. "
 "Alpha, beta and rc versions are hosted in **ppa:bqlabs/horus-dev**: `PPA "
 "Horus dev`_."
 msgstr ""
 
-#: ../../source/installation/ubuntu.rst:21
+#: ../../source/installation/ubuntu.rst:25
 msgid "A `custom OpenCV`_ version is used, because of the next `reasons`_."
 msgstr ""
 
-#: ../../source/installation/ubuntu.rst:28
+#: ../../source/installation/ubuntu.rst:32
 msgid ""
 "This command installs all the dependencies, including custom OpenCV "
 "libraries."
 msgstr ""
 
-#: ../../source/installation/ubuntu.rst:36
+#: ../../source/installation/ubuntu.rst:40
 msgid ""
 "If user has no access to serial port, execute ``sudo usermod -a -G "
 "dialout $USER`` and reboot."
 msgstr ""
 
-#: ../../source/installation/ubuntu.rst:40
+#: ../../source/installation/ubuntu.rst:44
 msgid "Update Horus"
 msgstr ""
 
-#: ../../source/installation/ubuntu.rst:42
+#: ../../source/installation/ubuntu.rst:46
 msgid "If there is a new release just execute"
 msgstr ""
 
-#: ../../source/installation/windows.rst:4
+#: ../../source/installation/windows.rst:8
 msgid "Install on Windows"
 msgstr ""
 
-#: ../../source/installation/windows.rst:6
+#: ../../source/installation/windows.rst:10
 msgid "**Supported versions**: 7, 10"
 msgstr ""
 
-#: ../../source/installation/windows.rst:11
+#: ../../source/installation/windows.rst:15
 msgid "Install the USB Camera drivers"
 msgstr ""
 
-#: ../../source/installation/windows.rst:13
+#: ../../source/installation/windows.rst:17
 msgid "`Logitech Camera C270 Drivers`_"
 msgstr ""
 
-#: ../../source/installation/windows.rst:21
+#: ../../source/installation/windows.rst:25
 msgid ""
 "Execute the installer and follow the wizard. This package contains all "
 "dependencies and also Arduino and FTDI drivers."
 msgstr ""
 
-#: ../../source/installation/windows.rst:27
+#: ../../source/installation/windows.rst:31
 msgid "In **Windows 10**, if the application is blurred, follow these steps:"
 msgstr ""
 
-#: ../../source/installation/windows.rst:29
+#: ../../source/installation/windows.rst:33
 msgid "Right click on the application and select *Properties*"
 msgstr ""
 
-#: ../../source/installation/windows.rst:30
+#: ../../source/installation/windows.rst:34
 msgid "Go to *Compatibility* tab."
 msgstr ""
 
-#: ../../source/installation/windows.rst:31
+#: ../../source/installation/windows.rst:35
 msgid ""
 "Under *Settings* section, check *Disable display scaling on high DPI "
 "settings*"
 msgstr ""
 
-#: ../../source/installation/windows.rst:32
+#: ../../source/installation/windows.rst:36
 msgid "*Apply* and close the window."
 msgstr ""
 
@@ -489,6 +646,7 @@ msgid "It can be uploaded in **Preferences > Upload firmware**."
 msgstr ""
 
 #: ../../source/scanner-components/camera.rst:4
+#: ../../source/workbenches/control.rst:11
 msgid "Camera"
 msgstr ""
 
@@ -1073,6 +1231,7 @@ msgid "*Calibration capture > Laser* for the laser over the pattern."
 msgstr ""
 
 #: ../../source/scanner-components/motor.rst:4
+#: ../../source/workbenches/control.rst:27
 msgid "Motor"
 msgstr ""
 
@@ -1315,20 +1474,477 @@ msgstr ""
 msgid "Adjustment"
 msgstr ""
 
+#: ../../source/workbenches/adjustment.rst:6
+msgid ""
+"In this workbench, camera capture and image processing parameters are "
+"adjusted for the different states of the system. The current state and "
+"its changes are displayed in the video wall in real time."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:9
+msgid "Scanning adjustments"
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:11
+msgid "These settings are applied during the scanning process."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:14
+#: ../../source/workbenches/adjustment.rst:44
+msgid "Capture"
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:16
+msgid ""
+"In this section you can adjust the parameters of the capture during the "
+"scanning process. These parameters must be adjusted with the object to be"
+" scanned."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:18
+msgid ""
+"The *Texture mode* contains the settings used to capture the "
+"texture/color of the scanned object. These are: brightness, constrast, "
+"saturation and exposure."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:22
+msgid ""
+"The *Laser mode* contains the settings used to capture and detect the "
+"laser over the scanned object. These are: brightness, constrast, "
+"saturation, exposure and background removal. The *Remove background* "
+"option improves the laser detection by consuming twice as long."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:27
+#: ../../source/workbenches/adjustment.rst:57
+msgid "Segmentation"
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:29
+msgid ""
+"In this section you can adjust the parameters for the laser stripe "
+"segmentation during the scanning process."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:31
+#: ../../source/workbenches/adjustment.rst:61
+msgid ""
+"**Threshold**: remove all pixels which intensity is less that the "
+"threshold value."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:32
+#: ../../source/workbenches/adjustment.rst:62
+msgid "**Blur**: blur with Normalized box filter. Kernel size: 2 * value + 1."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:33
+#: ../../source/workbenches/adjustment.rst:63
+msgid ""
+"**Window**: filter pixels out of 2 * window value around the intensity "
+"peak."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:34
+msgid ""
+"**Refinement**: apply None or SGF algorithms for line smooth. SGF "
+"produces continous surfaces."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:39
+msgid "Calibration adjustments"
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:41
+msgid "These settings are applied during the calibration processes."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:46
+msgid ""
+"In this section you can adjust the parameters of the capture during the "
+"calibration process. These parameters must be adjusted with the "
+"calibration pattern."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:48
+msgid ""
+"The *Pattern mode* contains the settings used to capture the pattern. "
+"These are: brightness, constrast, saturation and exposure."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:52
+msgid ""
+"The *Laser mode* contains the settings used to capture and detect the "
+"laser over the pattern. These are: brightness, constrast, saturation, "
+"exposure and background removal. The *Remove background* option improves "
+"the laser detection by consuming twice as long."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:59
+msgid ""
+"In this section you can adjust the parameters for the laser stripe "
+"segmentation during the calibration processes."
+msgstr ""
+
+#: ../../source/workbenches/adjustment.rst:64
+msgid ""
+"**Refinement**: apply None, SGF, RANSAC algorithms for line smooth. SGF "
+"produces continous surfaces. RANSAC produces flat surfaces."
+msgstr ""
+
 #: ../../source/workbenches/calibration.rst:4
 msgid "Calibration"
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:6
+msgid "This workbench contains all the scanner calibration processes."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:9
+msgid "Pattern settings"
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:11
+msgid "This section contains the calibration pattern features:"
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:13
+msgid "**Pattern rows**: number of corner rows in the pattern. Default value 6."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:14
+msgid ""
+"**Pattern columns**: number of corner columns in the pattern. Default "
+"value 11."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:15
+msgid "**Square width**: default value 13 mm."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:16
+msgid ""
+"**Origin distance**: minimum distance between the origin of the pattern "
+"(bottom-left corner) and the pattern's base surface in mm. There is no "
+"default value because it depends on the physical pattern."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:21
+msgid "Autocheck"
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:23
+msgid ""
+"This section contains the auto check process in which is detected whether"
+" the pattern, motor and lasers are configured properly."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:25
+msgid ""
+"The pattern should be placed as shown in the picture. If the process ends"
+" successfully, the pattern will be placed perpendicular to the camera. "
+"Otherwise, a notification will be displayed."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:30
+msgid "Laser calibration"
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:32
+msgid ""
+"In this section, the laser's planes are calculated. Each plane is defined"
+" by a normal vector and the minimum distance from the plane to the "
+"optical center of the camera."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:34
+#: ../../source/workbenches/calibration.rst:47
+msgid ""
+"To begin the calibration, the pattern must be placed perpendicular to the"
+" camera, as shown in the picture. At any time you can cancel the "
+"calibration and the pattern will return to its initial position."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:38
+msgid ""
+"Finally the result is shown numerically and depicted in 3D. Also, the "
+"dispersion of the captured points during calibration appears. This value "
+"must be less than 0.1 mm. You can accept or reject the calibration "
+"result."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:43
+msgid "Platform calibration"
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:45
+msgid ""
+"In this section, the homogeneous transformation matrix from the rotation "
+"center of the turntable with respect to the camera system is calculated. "
+"This matrix is composed by a rotation matrix and a traslation vector in "
+"mm."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:51
+msgid ""
+"Finally the result is shown numerically and depicted in 3D. You can "
+"accept or reject the calibration result."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:55
+msgid "Once this process is completed, the scanner is calibrated."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:58
+msgid "Video settings (advanced)"
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:60
+msgid ""
+"This is an advanced section. It contains the rotation flags for the "
+"video. Also you can set the camera resolution in px."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:66
+msgid ""
+"If a wrong resolution is set, the nearest resolution is recommended. "
+"Also, you can go back to the latest resolution."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:70
+msgid ""
+"In Mac OS the resolution can not be set in runtime because of its OpenCV "
+"version."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:73
+msgid "Camera calibration (advanced)"
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:75
+msgid "This is an advanced section. Default values are recommended."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:77
+msgid ""
+"To begin the calibration, press the \"space\" key to capture the pattern "
+"in different positions. Once taken all the captures, the calibration "
+"starts automatically. You can reset the taken captures at any time."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:83
+msgid ""
+"If camera intrinsics values are modified, laser and platform calibrations"
+" must be performed again."
+msgstr ""
+
+#: ../../source/workbenches/calibration.rst:89
+msgid "To enable the advanced mode go to the menu *View > Advanced mode*."
 msgstr ""
 
 #: ../../source/workbenches/control.rst:4
 msgid "Control"
 msgstr ""
 
+#: ../../source/workbenches/control.rst:6
+msgid ""
+"This workbench is used to test the scanner components: camera, lasers and"
+" motor."
+msgstr ""
+
+#: ../../source/workbenches/control.rst:13
+msgid ""
+"In this section you can adjust the brightness, contrast, saturation and "
+"exposure of the camera."
+msgstr ""
+
+#: ../../source/workbenches/control.rst:17
+msgid "Also it allows to capture and save images from the camera in *png* format."
+msgstr ""
+
+#: ../../source/workbenches/control.rst:20
+msgid "Laser"
+msgstr ""
+
+#: ../../source/workbenches/control.rst:22
+msgid ""
+"In this section you can turn on and off the lasers. When leaving the "
+"workbench the lasers are automatically turned off."
+msgstr ""
+
+#: ../../source/workbenches/control.rst:29
+msgid ""
+"In this section you can move the motor to an absolute angle, with a "
+"specific speed and acceleration. These values affect only to this "
+"workbench."
+msgstr ""
+
+#: ../../source/workbenches/control.rst:33
+msgid ""
+"Also the motor can be enabled or disabled and the position stored inside "
+"the firmware reseted."
+msgstr ""
+
+#: ../../source/workbenches/control.rst:36
+msgid "Gcode"
+msgstr ""
+
+#: ../../source/workbenches/control.rst:38
+msgid ""
+"This section contains a terminal that allows to communicate with the "
+"firmware through Gcode commands."
+msgstr ""
+
 #: ../../source/workbenches/index.rst:4
 msgid "Workbenches"
 msgstr ""
 
-#: ../../source/workbenches/scanning.rst:4
-msgid "Scanning"
+#: ../../source/workbenches/scanning.rst:6
+msgid ""
+"This workbench is where the 3D scanning process is performed. This "
+"process generates a three dimensional point cloud from a physical object."
+" It has three components:"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:8
+#: ../../source/workbenches/scanning.rst:15
+msgid "Settings panel"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:9
+#: ../../source/workbenches/scanning.rst:61
+msgid "Video wall"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:10
+#: ../../source/workbenches/scanning.rst:78
+msgid "3D scene"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:12
+msgid "Through the menu *View* these panels can be shown or hidden."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:18
+msgid "Scan parameters"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:20
+msgid ""
+"**Capture texture**: enabling this option captures the real color of the "
+"object. Otherwise the point cloud has an uniform fake color. If this "
+"option is disabled, the process is faster and the color used is the one "
+"defined in the *Point cloud color* section."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:21
+msgid "**Use laser**: selects left laser, right laser or both."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:26
+msgid "Rotating platform"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:28
+msgid ""
+"**Show center**: shows the center of the platform using the current "
+"calibration values."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:29
+msgid ""
+"**Step**: is the angle increased in each scan iteration. The smaller the "
+"step, the greater radial resolution, and also more scanning time. The "
+"default value is 0.45º, that is 800 steps per revolution."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:30
+msgid ""
+"**Speed**: is the motor speed in degrees per second. Te default value is "
+"200 º/s."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:31
+msgid ""
+"**Acceleration**: is the motor acceleration in degress per secon squared."
+" The default value is 200 º/s²."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:36
+msgid "Point cloud ROI"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:38
+msgid ""
+"In this section the ROI (Region of interest) is defined. It is a "
+"cylindrical volume in the point cloud and a rectangle in the video."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:40
+msgid ""
+"**Use ROI**: enabling this option applies the ROI. This region is the one"
+" being scanned both in the video and in the point cloud. All information "
+"outside won't be taken into account during the scanning process."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:41
+msgid "**Diameter**: ROI diameter in mm. The default value is 200 mm."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:42
+msgid "**Height**: ROI height in mm. The default value is 200 mm."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:47
+msgid "Point cloud color"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:49
+msgid ""
+"In this section is selected the color for the point cloud when no texture"
+" is captured."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:58
+msgid "The *Settings panel* is hidden during the scanning process."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:63
+msgid ""
+"In this window, two states are distinguished: while not scanning, it "
+"shows the video in texture mode. When the scan starts, you can select "
+"several views corresponding to the different stages of the image "
+"processing."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:65
+msgid "**Texture**"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:69
+msgid "**Laser**"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:73
+msgid "**Gray**"
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:80
+msgid ""
+"This section is a three-dimensional scene where the scanned point cloud "
+"(model) is shown. Also it allows to view meshes in *stl* format."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:82
+msgid ""
+"To start scanning press the *Play* button. Also the process can be "
+"stopped, paused and resumed. During the scanning, the progress is shown "
+"in the bottom of the scene."
+msgstr ""
+
+#: ../../source/workbenches/scanning.rst:125
+msgid "To load, save or reset the 3D model, access from the menu *File*."
 msgstr ""
 
 #~ msgid ""
@@ -1344,5 +1960,26 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "In this windows, scanning parameters are set:"
+#~ msgstr ""
+
+#~ msgid "Start here"
+#~ msgstr ""
+
+#~ msgid "Translation"
+#~ msgstr ""
+
+#~ msgid "**Gray**:"
+#~ msgstr ""
+
+#~ msgid "To enable the advanced mode go to *Menu > View > Advanced mode*."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "**Step**: is the angle increased in "
+#~ "each scan iteration. The smaller step,"
+#~ " the greater radial resolution, and "
+#~ "also more scanning time. The default "
+#~ "value is 0.45º, that is 800 steps"
+#~ " per revolution."
 #~ msgstr ""
 
