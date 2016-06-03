@@ -10,6 +10,40 @@ This is a research project to explore the 3D laser scan with free tools. Feel fr
 
 This project has been developed in [Python](https://www.python.org/) language and it is distributed under [GPL v2](https://www.gnu.org/licenses/gpl-2.0.html) license.
 
+## Installation
+
+#### Supported
+
+###### Current version: 0.2rc1
+
+| Logo              | Name     | Instructions                        |
+|:-----------------:|:--------:|:-----------------------------------:|
+| ![][ubuntu-logo]  | Ubuntu   | [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/ubuntu.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/ubuntu.html) |
+| ![][windows-logo] | Windows  |  [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/windows.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/windows.html) |
+| ![][macosx-logo]  | Mac OS X |  [[en]](http://horus.readthedocs.io/en/release-0.2/source/installation/macosx.html)  [[es]](http://horus.readthedocs.io/es/release-0.2/source/installation/macosx.html) |
+
+#### Experimental
+
+**Horus 0.2 is not supported for the following distributions**.
+
+However, anyone can test it and contribute to its support.
+
+| Logo               | Name      | Instructions                          |
+|:------------------:|:---------:|:-------------------------------------:|
+| ![][debian-logo]   | Debian    | [[en]](doc/installation/debian.md)    |
+| ![][fedora-logo]   | Fedora    | [[en]](doc/installation/fedora.md)    |
+
+## Documentation
+
+Here you will find the official documentation of the application:
+
+* [User's manual](http://horus.readthedocs.io/en/release-0.2/) [[es](http://horus.readthedocs.io/es/release-0.2/)]
+
+And also all the scientific background of the project in nice Jupyter notebooks:
+
+* [Notebooks](http://nbviewer.jupyter.org/github/Jesus89/3DScanScience/tree/master/notebooks/)
+* [Repository](https://github.com/Jesus89/3DScanScience)
+
 ## Development
 
 Horus is an Open Source Project. Anyone has the freedom to use, modify, share and distribute this software. If you want to:
@@ -35,34 +69,8 @@ NOTE: *deb* and *exe* packages can be generated in *debian like* systems
 NOTE: *dmg* packages only can be generated in Mac OS X
 
 
-## Installation
-
-#### Supported
-
-###### Current version: 0.2rc1
-
-| Logo              | Name     | Versions            | Instructions                        |
-|:-----------------:|:--------:|:-------------------:|:-----------------------------------:|
-| ![][ubuntu-logo]  | Ubuntu   | 14.04, 15.04, 15.10 | [link](doc/installation/ubuntu.md)  |
-| ![][windows-logo] | Windows  | 7                   | [link](doc/installation/windows.md) |
-| ![][macosx-logo]  | Mac OS X | 10.9, 10.10, 10.11  | [link](doc/installation/macosx.md)  |
-
-#### Experimental
-
-**Horus 0.2 is not supported in the following distributions**.
-
-However, anyone can test it and contribute to its support.
-
-| Logo               | Name      | Versions     | Instructions                          |
-|:------------------:|:---------:|:------------:|:-------------------------------------:|
-| ![][debian-logo]   | Debian    | 8            | [link](doc/installation/debian.md)    |
-| ![][fedora-logo]   | Fedora    | 21, 22       | [link](doc/installation/fedora.md)    |
-
-
 More interest links are shown below:
 
-* [Documentation 0.2 (es)](http://horus.readthedocs.org)
-* [3D Scan Science](https://github.com/Jesus89/3DScanScience)
 * [Presentation](http://diwo.bq.com/en/presentacion-ciclop-horus/) [[es](http://diwo.bq.com/presentacion-ciclop-horus/)]
 * [3D Design](http://diwo.bq.com/en/ciclop-released/) [[es](http://diwo.bq.com/ciclop-released/)]
 * [Electronics](http://diwo.bq.com/en/zum-scan-released/) [[es](http://diwo.bq.com/zum-scan-released/)]
