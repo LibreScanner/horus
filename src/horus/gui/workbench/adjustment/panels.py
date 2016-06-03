@@ -139,7 +139,7 @@ class ScanCapturePanel(ExpandablePanel):
             self.content.SetSizerAndFit(self.content.vbox)
         if sys.is_windows():
             self.parent.Refresh()
-            self.parent.Layout()
+        self.parent.Layout()
         self.Layout()
 
 
@@ -329,7 +329,7 @@ class CalibrationCapturePanel(ExpandablePanel):
             self.content.SetSizerAndFit(self.content.vbox)
         if sys.is_windows():
             self.parent.Refresh()
-            self.parent.Layout()
+        self.parent.Layout()
         self.Layout()
 
 

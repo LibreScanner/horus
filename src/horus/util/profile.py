@@ -433,6 +433,16 @@ class Settings(collections.MutableMapping):
                     float, 0.0, min_value=0.0))
 
         self._add_setting(
+            Setting('motor_step_calibration', _(u'Step (º)'), 'calibration_settings',
+                    float, 4.5))
+        self._add_setting(
+            Setting('motor_speed_calibration', _(u'Speed (º/s)'), 'calibration_settings',
+                    float, 200.0, min_value=1.0, max_value=1000.0))
+        self._add_setting(
+            Setting('motor_acceleration_calibration', _(u'Acceleration (º/s²)'),
+                    'calibration_settings', float, 200.0, min_value=1.0, max_value=1000.0))
+
+        self._add_setting(
             Setting('adjust_laser', _('Adjust laser'), 'calibration_settings', bool, True))
 
         self._add_setting(
@@ -495,8 +505,9 @@ class Settings(collections.MutableMapping):
             Setting('current_panel_calibration', u'pattern_settings', 'profile_settings',
                     unicode, u'pattern_settings',
                     possible_values=(u'pattern_settings', u'camera_intrinsics',
-                                     u'scanner_autocheck', u'laser_triangulation',
-                                     u'platform_extrinsics', u'video_settings')))
+                                     u'scanner_autocheck', u'rotating_platform_settings',
+                                     u'laser_triangulation', u'platform_extrinsics',
+                                     u'video_settings')))
 
         # -- Machine Settings
 
