@@ -86,6 +86,7 @@ class ScanCapturePanel(ExpandablePanel):
         current_video.updating = True
         current_video.sync()
         # Update mode settings
+        current_video.calibration = False
         current_video.mode = profile.settings['capture_mode_scanning']
         texture_mode = image_capture.texture_mode
         texture_mode.set_brightness(profile.settings['brightness_texture_scanning'])
@@ -184,6 +185,7 @@ class ScanSegmentationPanel(ExpandablePanel):
         current_video.updating = True
         current_video.sync()
         # Update mode settings
+        current_video.calibration = False
         current_video.mode = 'Gray'
         laser_mode = image_capture.laser_mode
         laser_mode.set_brightness(profile.settings['brightness_laser_scanning'])
@@ -276,6 +278,7 @@ class CalibrationCapturePanel(ExpandablePanel):
         current_video.updating = True
         current_video.sync()
         # Update mode settings
+        current_video.calibration = True
         current_video.mode = profile.settings['capture_mode_calibration']
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_capture'
@@ -375,6 +378,7 @@ class CalibrationSegmentationPanel(ExpandablePanel):
         current_video.updating = True
         current_video.sync()
         # Update mode settings
+        current_video.calibration = True
         current_video.mode = 'Gray'
         profile.settings['current_video_mode_adjustment'] = current_video.mode
         profile.settings['current_panel_adjustment'] = 'calibration_segmentation'

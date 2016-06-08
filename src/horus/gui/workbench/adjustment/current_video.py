@@ -20,6 +20,7 @@ class CurrentVideo(object):
         self.updating = False
         self.latest_image = None
         self.capturing = False
+        self.calibration = False
 
     def get_frame(self):
         if not self.updating:
@@ -38,10 +39,25 @@ class CurrentVideo(object):
             image = image_detection.detect_pattern(image)
 
         if self.mode == 'Laser':
-            image = image_capture.capture_all_lasers()
+            if self.calibration:
+                image = image_capture.capture_pattern()
+                corners = image_detection.detect_corners(image)
+                image_capture.flush_laser(14)
+                image = image_capture.capture_all_lasers()
+                image = image_detection.pattern_mask(image, corners)
+            else:
+                image = image_capture.capture_all_lasers()
 
         if self.mode == 'Gray':
-            images = image_capture.capture_lasers()
+            if self.calibration:
+                image = image_capture.capture_pattern()
+                corners = image_detection.detect_corners(image)
+                image_capture.flush_laser(14)
+                images = image_capture.capture_lasers()
+                for i in xrange(2):
+                    images[i] = image_detection.pattern_mask(images[i], corners)
+            else:
+                images = image_capture.capture_lasers()
             for i in xrange(2):
                 images[i] = laser_segmentation.compute_line_segmentation(images[i])
             if images[0] is not None and images[1] is not None:

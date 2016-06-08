@@ -113,8 +113,8 @@ class PlatformExtrinsics(ExpandablePanel):
                                  selected_callback=on_selected_callback, has_undo=False)
 
     def add_controls(self):
-        self.add_control('rotation_matrix', FloatLabelArray)
-        self.add_control('translation_vector', FloatLabelArray)
+        self.add_control('rotation_matrix', FloatTextBoxArray)
+        self.add_control('translation_vector', FloatTextBoxArray)
 
 
 class VideoSettings(ExpandablePanel):
