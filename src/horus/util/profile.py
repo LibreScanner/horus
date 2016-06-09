@@ -247,6 +247,8 @@ class Settings(collections.MutableMapping):
                     'profile_settings', bool, True))
 
         self._add_setting(
+            Setting('draw_line_scanning', _('Draw line'), 'profile_settings', bool, True))
+        self._add_setting(
             Setting('red_channel_scanning', _('Red channel'), 'profile_settings',
                     unicode, u'R (RGB)',
                     possible_values=(u'R (RGB)', u'Cr (YCrCb)', u'U (YUV)')))
