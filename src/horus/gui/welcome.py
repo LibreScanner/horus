@@ -114,7 +114,6 @@ class CreateNew(wx.Panel):
         parent = self.GetParent().GetParent()
         parent.Hide()
         Wizard(parent.parent)
-        parent.Close()
 
     def on_scan(self, event):
         profile.settings['workbench'] = 'scanning'
