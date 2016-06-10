@@ -87,7 +87,7 @@ class Settings(collections.MutableMapping):
             elif setting_type == np.ndarray:
                 value = np.asarray(value)
         except:
-            raise ValueError("Unable to cast setting %s to type %s" % (key, setting_type))
+            logger.error("Unable to cast setting %s to type %s" % (key, setting_type))
         else:
             self.get_setting(key).value = value
 
@@ -399,25 +399,25 @@ class Settings(collections.MutableMapping):
                     unicode, u'Texture', possible_values=(u'Texture', u'Laser', u'Gray', u'Line')))
 
         self._add_setting(
-            Setting('save_image_button', _('Save image'), 'profile_settings', unicode, u''))
+            Setting('save_image_button', _('Save image'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('left_button', _('Left'), 'profile_settings', unicode, u''))
+            Setting('left_button', _('Left'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('right_button', _('Right'), 'profile_settings', unicode, u''))
+            Setting('right_button', _('Right'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('move_button', _('Move'), 'profile_settings', unicode, u''))
+            Setting('move_button', _('Move'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('enable_button', _('Enable'), 'profile_settings', unicode, u''))
+            Setting('enable_button', _('Enable'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('reset_origin_button', _('Reset origin'), 'profile_settings', unicode, u''))
+            Setting('reset_origin_button', _('Reset origin'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('gcode_gui', _('Send'), 'profile_settings', unicode, u''))
+            Setting('gcode_gui', _('Send'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('ldr_value', _('Send'), 'profile_settings', unicode, u''))
+            Setting('ldr_value', _('Send'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('autocheck_button', _('Perform autocheck'), 'profile_settings', unicode, u''))
+            Setting('autocheck_button', _('Perform autocheck'), 'no_settings', unicode, u''))
         self._add_setting(
-            Setting('set_resolution_button', _('Set resolution'), 'profile_settings', unicode, u''))
+            Setting('set_resolution_button', _('Set resolution'), 'no_settings', unicode, u''))
 
         # -- Calibration Settings
 
@@ -667,7 +667,7 @@ class Setting(object):
             return
         self._check_type(value)
         value = self._check_range(value)
-        self._check_possible_values(value)
+        value = self._check_possible_values(value)
         self.__value = value
 
     @property
@@ -678,7 +678,7 @@ class Setting(object):
     def default(self, value):
         self._check_type(value)
         value = self._check_range(value)
-        self._check_possible_values(value)
+        value = self._check_possible_values(value)
         self.__default = value
 
     @property
@@ -703,20 +703,16 @@ class Setting(object):
 
     def _check_type(self, value):
         if not isinstance(value, self._type):
-            raise TypeError("Error when setting %s.\n%s (%s) is not of type %s. "
-                            "Please remove current profile at ~/.horus" %
-                            (self._id, value, type(value), self._type))
+            logger.error("Error when setting %s.\n%s (%s) is not of type %s. "
+                         "Please remove current profile at ~/.horus" %
+                         (self._id, value, type(value), self._type))
 
     def _check_range(self, value):
         if self.min_value is not None and value < self.min_value:
-            # raise ValueError('Error when setting %s.\n%s is below min value %s.' %
-            # (self._id, value, self.min_value))
             logger.warning('Warning: For setting %s, %s is below min value %s.' % (self._id, value,
                            self.min_value))
             return self.min_value
         if self.max_value is not None and value > self.max_value:
-            # raise ValueError('Error when setting %s.\n%s is above max value %s.' %
-            # (self._id, value, self.max_value))
             logger.warning('Warning: For setting %s.\n%s is above max value %s.' % (self._id, value,
                            self.max_value))
             return self.max_value
@@ -724,8 +720,11 @@ class Setting(object):
 
     def _check_possible_values(self, value):
         if self._possible_values is not None and value not in self._possible_values:
-            raise ValueError('Error when setting %s.\n%s is not within the possible values %s.' % (
+            logger.error('Error when setting %s.\n%s is not within the possible values %s.' % (
                 self._id, value, self._possible_values))
+            if len(self._possible_values) > 0:
+                return self._possible_values[0]
+        return value
 
     def _load_json_dict(self, json_dict):
         # Only load configurable fields (__value, __min_value, __max_value)

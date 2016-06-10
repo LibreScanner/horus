@@ -64,10 +64,12 @@ class LaserSegmentation(object):
             u = (self.calibration_data.weight_matrix * image).sum(axis=1)[v] / s[v]
             if self.refinement_method == 'SGF':
                 # Segmented gaussian filter
-                u, v = self._sgf(u, v, s)
+                u = self._sgf(u, s)
             elif self.refinement_method == 'RANSAC':
                 # Random sample consensus
-                u, v = self._ransac(u, v)
+                u = self._ransac(u, v)
+            # Saturate u
+            u = np.clip(u, 0, self.calibration_data.width - 1)
             return (u, v), image
 
     def compute_hough_lines(self, image):
@@ -127,7 +129,7 @@ class LaserSegmentation(object):
 
     # Segmented gaussian filter
 
-    def _sgf(self, u, v, s):
+    def _sgf(self, u, s):
         if len(u) > 1:
             i = 0
             sigma = 2.0
@@ -140,9 +142,9 @@ class LaserSegmentation(object):
                 fseg = scipy.ndimage.gaussian_filter(u[i:i + j], sigma=sigma)
                 f = np.concatenate((f, fseg))
                 i += j
-            return f, v
+            return f
         else:
-            return u, v
+            return u
 
     # RANSAC implementation: https://github.com/ahojnnes/numpy-snippets/blob/master/ransac.py
 
@@ -152,7 +154,7 @@ class LaserSegmentation(object):
             dr, thetar = self.ransac(data, self.LinearLeastSquares2D(), 2, 1)
             # v = np.array(range(min(v), max(v)))
             u = (dr - v * math.sin(thetar)) / math.cos(thetar)
-        return u, v
+        return u
 
     class LinearLeastSquares2D(object):
         '''
