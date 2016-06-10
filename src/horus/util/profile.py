@@ -260,7 +260,7 @@ class Settings(collections.MutableMapping):
                     int, 50, min_value=0, max_value=255))
         self._add_setting(
             Setting('blur_enable_scanning', _('Enable blur'),
-                    'profile_settings', bool, False))
+                    'profile_settings', bool, True))
         self._add_setting(
             Setting('blur_value_scanning', _('Blur'), 'profile_settings',
                     int, 2, min_value=0, max_value=10))
@@ -325,7 +325,7 @@ class Settings(collections.MutableMapping):
                     int, 50, min_value=0, max_value=255))
         self._add_setting(
             Setting('blur_enable_calibration', _('Enable blur'),
-                    'profile_settings', bool, True))
+                    'profile_settings', bool, False))
         self._add_setting(
             Setting('blur_value_calibration', _('Blur'), 'profile_settings',
                     int, 2, min_value=0, max_value=10))
